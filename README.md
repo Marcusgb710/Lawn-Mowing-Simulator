@@ -97,6 +97,9 @@ Services*. Without it the game still runs, it just doesn't save progress.
      costs 10% of the job's pay.
    - **Bonuses:** bigger crews, better trucks and a bigger business all pay more.
    The money is split evenly across the crew, then the truck drives everyone back to the business.
+   Pro jobs mow show lawns, knee-high grass and tight lawns full of trees, and renovate turf in
+   order: probe the soil, dethatch, aerate (moist soil!), overseed (50-65 F soil), fertilize and
+   water. The probe tells you the soil's temperature and moisture; the customer only hints.
 7. **Look after your gear.** Engines burn fuel (regular gas for four-strokes, mix for
    two-strokes: the wrong one wrecks the engine), air tires go soft and puncture, blades go dull
    and trimmers run out of line. The HUD tells you when something's wrong, never how to fix it.

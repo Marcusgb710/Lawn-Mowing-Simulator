@@ -7,7 +7,8 @@
 --   verbs        actions the tool can do; TaskTypes.luau decides how well it does each job
 --   sizeClass    where it's stored and how much truck space it takes (see SizeClasses)
 --   use          "Passive" works while equipped (mowers), "Hold" while the button is held,
---                "Worn" is worn not used (gloves), "Supply" is a consumable or spare part
+--                "Worn" is worn not used (gloves), "Supply" is a consumable or spare part,
+--                "Towed" is pulled behind a ride-on that `tows` (tow-behind aerator)
 --   power        work per second at a perfect fit (higher = faster)
 --   radius       how far around the work point it reaches, in studs
 --   quality      0-1 finish it leaves (mowers use cutQuality instead)
@@ -19,6 +20,8 @@
 --
 -- Mowers also have: cutQuality, maxGrassHeight (inches it can cut), maneuverability (0-1),
 -- walkSpeed (your speed while using it), motorized (false = only cuts while you push) and ride.
+-- Ride-ons have `ride` (where you sit, or `stand` on a platform) and maybe `tows` (they can pull
+-- a tow-behind attachment).
 
 local Tools = {}
 
@@ -159,6 +162,7 @@ Tools.List = {
 		tires = "Air",
 		-- Where you sit, in studs from the steering-wheel grip: X right, Y up, Z back.
 		ride = { seat = Vector3.new(0, -0.9, 1.2) },
+		tows = true,
 		color = Color3.fromRGB(40, 150, 60),
 		description = "Lawn tractor with a wide two-blade deck. You sit and drive, which makes big open "
 			.. "lawns quick. A good cut, but it's clumsy in tight spots and around beds.",
@@ -182,6 +186,7 @@ Tools.List = {
 		engine = "FourStroke",
 		tires = "Air",
 		ride = { seat = Vector3.new(0, -0.6, 1) },
+		tows = true,
 		color = Color3.fromRGB(240, 160, 20),
 		description = "Residential zero-turn mower. Lap-bar steering drives each rear wheel on its own, "
 			.. "so it spins in place around trees and beds without leaving uncut patches. Fast and wide, "
@@ -950,7 +955,7 @@ Tools.List = {
 		engine = "FourStroke",
 		tires = "Air",
 		ride = { seat = Vector3.new(0, -0.6, 1) },
-		available = false,
+		tows = true,
 		color = Color3.fromRGB(200, 40, 40),
 		description = "Commercial zero-turn with a wide 52-72 inch deck. The fastest machine on big, open "
 			.. "lawns, with a good cut.",
@@ -973,7 +978,8 @@ Tools.List = {
 		maneuverability = 0.95,
 		engine = "FourStroke",
 		tires = "Air",
-		available = false,
+		-- You stand on the platform behind the control bars (in studs from the grip: X right, Y up, Z back).
+		ride = { seat = Vector3.new(0, -2.6, 1.3), stand = true },
 		color = Color3.fromRGB(240, 160, 20),
 		description = "Stand-on mower. Compact, very maneuverable and fast; the best choice for tight "
 			.. "properties with lots of obstacles and for slopes.",
@@ -995,7 +1001,6 @@ Tools.List = {
 		maxGrassHeight = 1.5,
 		maneuverability = 0.6,
 		engine = "FourStroke",
-		available = false,
 		color = Color3.fromRGB(60, 120, 60),
 		description = "Walk-behind greens reel mower. Its scissor-like cut is the finest and cleanest at "
 			.. "very low heights, for show lawns and putting greens. Slow, needs flat, well-kept turf, "
@@ -1014,7 +1019,6 @@ Tools.List = {
 		radius = 6,
 		quality = 0.9,
 		engine = "TwoStroke",
-		available = false,
 		color = Color3.fromRGB(230, 120, 30),
 		description = "Professional straight-shaft string trimmer. Long reach, durable and well balanced, "
 			.. "for trimming along fences, trees and obstacles all day.",
@@ -1032,7 +1036,6 @@ Tools.List = {
 		radius = 10,
 		quality = 0.9,
 		engine = "TwoStroke",
-		available = false,
 		color = Color3.fromRGB(200, 60, 30),
 		description = "Articulating hedge trimmer. A long pole with an angle-adjustable cutting head for "
 			.. "tall or wide hedges and hedge tops.",
@@ -1052,7 +1055,8 @@ Tools.List = {
 		quality = 0.9,
 		engine = "FourStroke",
 		tires = "Air",
-		available = false,
+		-- You stand on the platform behind the control bars (in studs from the grip: X right, Y up, Z back).
+		ride = { seat = Vector3.new(0, -2.6, 1.3), stand = true },
 		color = Color3.fromRGB(40, 100, 160),
 		description = "Stand-on core aerator. Hollow tines pull plugs of soil to relieve compaction and let "
 			.. "air, water and nutrients in. Works best in moist soil, not dry and not soggy.",
@@ -1064,14 +1068,13 @@ Tools.List = {
 		tier = "Pro",
 		verbs = { "Aerate" },
 		sizeClass = "Bay",
-		use = "Passive",
+		use = "Towed",
 		price = 8000,
 		power = 5,
 		radius = 4,
 		quality = 0.85,
 		engine = "None",
 		tires = "Air",
-		available = false,
 		color = Color3.fromRGB(70, 70, 75),
 		description = "Tow-behind core aerator. Pulls soil plugs like a stand-on aerator, but it needs a "
 			.. "ride-on mower or truck to pull it. Works best in moist soil.",
@@ -1090,7 +1093,6 @@ Tools.List = {
 		walkSpeed = 12,
 		quality = 0.92,
 		engine = "FourStroke",
-		available = false,
 		color = Color3.fromRGB(230, 170, 30),
 		description = "Slit overseeder. Cuts shallow slits and drops seed into them for good seed-to-soil "
 			.. "contact. Best right after aerating or dethatching.",
@@ -1109,7 +1111,6 @@ Tools.List = {
 		walkSpeed = 12,
 		quality = 0.88,
 		engine = "FourStroke",
-		available = false,
 		color = Color3.fromRGB(200, 40, 40),
 		description = "Power rake (dethatcher). Spinning flails tear out a thatch layer thicker than about "
 			.. "1/2 inch so water and seed can reach the soil.",
@@ -1129,7 +1130,8 @@ Tools.List = {
 		quality = 0.9,
 		engine = "FourStroke",
 		tires = "Air",
-		available = false,
+		ride = { seat = Vector3.new(0, -0.8, 1.1) },
+		tows = true,
 		color = Color3.fromRGB(240, 200, 40),
 		description = "Ride-on spreader sprayer. Applies granular and liquid products over large lawns "
 			.. "quickly and evenly.",
@@ -1146,7 +1148,6 @@ Tools.List = {
 		power = 2,
 		radius = 2,
 		quality = 1,
-		available = false,
 		color = Color3.fromRGB(220, 220, 225),
 		description = "Soil probe. Reads soil temperature and moisture, so you know when to seed (cool-season "
 			.. "grass sprouts best in soil around 50-65 F), when to aerate (moist soil) and how much to "

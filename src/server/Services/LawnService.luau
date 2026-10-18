@@ -378,11 +378,12 @@ end
 function Lawn:_buildGrass(task, hazardTiles)
 	local tile = GameConfig.TileSize
 	self.grassState = {}
+	local obstacles = self.obstacleTiles or {}
 
 	for column = 0, self.columns - 1 do
 		for row = 0, self.rows - 1 do
 			local index = LawnGrid.index(column, row, self.rows)
-			if nearHazard(hazardTiles, column, row, 0) then
+			if nearHazard(hazardTiles, column, row, 0) or nearHazard(obstacles, column, row, 0) then
 				self.grassState[index] = LawnGrid.EMPTY
 				continue
 			end
@@ -391,8 +392,8 @@ function Lawn:_buildGrass(task, hazardTiles)
 				continue
 			end
 			self.grassState[index] = LawnGrid.TALL
-			-- Grass right next to flowers doesn't count against you if you leave it.
-			local optional = nearHazard(hazardTiles, column, row, 1)
+			-- Grass right next to flowers or tree trunks doesn't count against you if you leave it.
+			local optional = nearHazard(hazardTiles, column, row, 1) or nearHazard(obstacles, column, row, 1)
 			self:_addTarget(task, nil, LawnGrid.center(self.origin, tile, column, row), tile * 0.35, {
 				lawn = self,
 				index = index,
@@ -411,8 +412,57 @@ function Lawn:_buildGrass(task, hazardTiles)
 	grass:SetAttribute("Columns", self.columns)
 	grass:SetAttribute("Rows", self.rows)
 	grass:SetAttribute("State", table.concat(self.grassState))
+	-- How tall uncut grass looks, compared to a normal lawn (knee-high grass is about 3x).
+	grass:SetAttribute("TallScale", if task then math.clamp((task.type.grassHeight or 3) / 3, 1, 3) else 1)
 	grass.Parent = self.folder
 	self.grassFolder = grass
+end
+
+-- Trees in mulch rings dotted around a tight lawn, to mow around.
+function Lawn:_buildObstacles(rng: Random, hazardTiles, count: number)
+	local tile = GameConfig.TileSize
+	local folder = Instance.new("Folder")
+	folder.Name = "Trees"
+	folder.Parent = self.folder
+	self.obstacleTiles = {}
+	for _ = 1, count * 20 do
+		if #self.obstacleTiles >= count then
+			break
+		end
+		local column = rng:NextInteger(1, math.max(1, self.columns - 2))
+		local row = rng:NextInteger(1, math.max(1, self.rows - 2))
+		if nearHazard(hazardTiles, column, row, 1) or nearHazard(self.obstacleTiles, column, row, 1) then
+			continue
+		end
+		table.insert(self.obstacleTiles, { column = column, row = row })
+		local ground = CFrame.new(LawnGrid.center(self.origin, tile, column, row))
+		local ring = makePart(folder, {
+			Name = "MulchRing",
+			Shape = Enum.PartType.Cylinder,
+			Size = Vector3.new(0.2, tile * 0.9, tile * 0.9),
+			CFrame = ground * CFrame.new(0, 0.1, 0) * CFrame.Angles(0, 0, math.pi / 2),
+			Color = COLORS.Mulch,
+			Material = Enum.Material.Ground,
+		})
+		ghost(ring)
+		local trunk = makePart(folder, {
+			Name = "Trunk",
+			Size = Vector3.new(0.9, 7, 0.9),
+			CFrame = ground * CFrame.new(0, 3.5, 0),
+			Color = COLORS.Bark,
+			Material = Enum.Material.Wood,
+		})
+		trunk.CanCollide = true
+		local canopy = makePart(folder, {
+			Name = "Canopy",
+			Shape = Enum.PartType.Ball,
+			Size = Vector3.new(6, 6, 6),
+			CFrame = ground * CFrame.new(0, 8.5, 0),
+			Color = COLORS.Leaf,
+			Material = Enum.Material.LeafyGrass,
+		})
+		ghost(canopy)
+	end
 end
 
 function Lawn:_setGrass(index: number, state: string)
@@ -1407,10 +1457,14 @@ function Lawn:_buildFertilize(task, hazardTiles)
 				continue
 			end
 			local optional = nearHazard(hazardTiles, column, row, 1)
-			self:_addTarget(task, nil, LawnGrid.center(self.origin, tile, column, row), tile * 0.35, {
+			local index = LawnGrid.index(column, row, self.rows)
+			local target = self:_addTarget(task, nil, LawnGrid.center(self.origin, tile, column, row), tile * 0.35, {
 				folder = folder,
 				optional = optional,
+				index = index,
 			})
+			task.byIndex = task.byIndex or {}
+			task.byIndex[index] = target
 			if optional then
 				task.optional += 1
 			end
@@ -1473,6 +1527,236 @@ VISUALS.SprayWeed = function(target, fraction: number)
 	end
 end
 
+-- Turf renovation (design phase F) ---------------------------------------------------------
+-- Done in order: check the soil, dethatch (if the thatch is thick), core aerate (the soil must be
+-- moist), overseed (the soil must be 50-65 F; best right after aerating or dethatching),
+-- fertilize, water. Every lawn tile remembers which steps it's had.
+
+-- Overseeding sprouts best in this soil temperature range (cool-season grass), in F.
+local SEED_TEMPERATURE = { min = 50, max = 65 }
+-- How much each mistake lowers the finish of the work it affects.
+local PENALTY = {
+	Blind = 0.85, -- working before checking the soil
+	DryAerating = 0.7, -- core aerating dry soil: the tines bounce off
+	ThatchFirst = 0.85, -- aerating through thick thatch that should have come out first
+	SeedOnTop = 0.75, -- seed dropped on unprepared turf sits on top
+	WrongTemperature = 0.7, -- seed in soil that's too cold or too hot
+	FeedFirst = 0.9, -- feeding before the seed is down
+}
+
+-- The per-tile record of what's been done. Made the first time a renovation task needs it.
+function Lawn:_turf(index: number)
+	self.turfState = self.turfState or {}
+	local tile = self.turfState[index]
+	if not tile then
+		tile = {}
+		self.turfState[index] = tile
+	end
+	return tile
+end
+
+-- One overlay per tile that shows its latest renovation step.
+local TURF_LOOKS = {
+	Dethatched = { color = Color3.fromRGB(120, 140, 70), transparency = 0.75 },
+	Aerated = { color = Color3.fromRGB(95, 70, 45), transparency = 0.5, material = Enum.Material.Pebble },
+	Seeded = { color = Color3.fromRGB(210, 195, 140), transparency = 0.55, material = Enum.Material.Sand },
+	Watered = { color = Color3.fromRGB(60, 90, 60), transparency = 0.45 },
+}
+
+function Lawn:_showTurf(target, look: string)
+	local style = TURF_LOOKS[look]
+	local tile = GameConfig.TileSize
+	-- One overlay per tile, kept on the tile's record, however many steps it's had.
+	local turf = self:_turf(target.index or 0)
+	if not turf.overlay then
+		turf.overlay = block(self.turfFolder, {
+			Name = "Turf",
+			Size = Vector3.new(tile * 0.95, 0.03, tile * 0.95),
+			Position = target.position + Vector3.new(0, 0.06, 0),
+		})
+		turf.overlay.CastShadow = false
+	end
+	turf.overlay.Color = style.color
+	turf.overlay.Transparency = style.transparency
+	turf.overlay.Material = style.material or Enum.Material.Grass
+end
+
+-- A target on every lawn tile for a renovation step (thatch only where it's thick).
+function Lawn:_buildTurfStep(task, hazardTiles, rng: Random)
+	local tile = GameConfig.TileSize
+	if not self.turfFolder then
+		self.turfFolder = Instance.new("Folder")
+		self.turfFolder.Name = "Renovation"
+		self.turfFolder.Parent = self.folder
+	end
+	local thick = task.type.target == "Thatch"
+	for column = 0, self.columns - 1 do
+		for row = 0, self.rows - 1 do
+			if nearHazard(hazardTiles, column, row, 0) then
+				continue
+			end
+			local index = LawnGrid.index(column, row, self.rows)
+			local turf = self:_turf(index)
+			-- Thatch depth in inches: the job says how thick it runs; some tiles are thinner.
+			turf.thatch = turf.thatch or (self.thatch or 0.3) * rng:NextNumber(0.6, 1.4)
+			if thick and turf.thatch < 0.5 then
+				continue
+			end
+			local position = LawnGrid.center(self.origin, tile, column, row)
+			local target = self:_addTarget(task, nil, position, tile * 0.35, { index = index, lawn = self })
+			task.byIndex = task.byIndex or {}
+			task.byIndex[index] = target
+			if thick then
+				-- A spongy brown mat over the tile.
+				target.mat = block(self.turfFolder, {
+					Name = "Thatch",
+					Size = Vector3.new(tile * 0.95, 0.08, tile * 0.95),
+					Position = position + Vector3.new(0, 0.05, 0),
+					Color = Color3.fromRGB(140, 115, 70),
+					Material = Enum.Material.Fabric,
+					Transparency = 0.35,
+				})
+			end
+			if nearHazard(hazardTiles, column, row, 1) then
+				target.optional = true
+				task.optional += 1
+			end
+		end
+	end
+end
+
+-- A few marked spots on the lawn to push the probe in.
+function Lawn:_buildProbe(task, rng: Random, hazardTiles)
+	local tile = GameConfig.TileSize
+	local folder = Instance.new("Folder")
+	folder.Name = "ProbeSpots"
+	folder.Parent = self.folder
+	for index = 1, task.amount do
+		local column = math.clamp(math.floor(self.columns * index / (task.amount + 1)), 0, self.columns - 1)
+		local row = rng:NextInteger(0, self.rows - 1)
+		if nearHazard(hazardTiles, column, row, 0) then
+			row = (row + 2) % self.rows
+		end
+		local position = LawnGrid.center(self.origin, tile, column, row)
+		local pole = stick(folder, position, position + Vector3.new(0, 1.4, 0), 0.08, Color3.new(1, 1, 1))
+		local flag = block(folder, {
+			Name = "Flag",
+			Size = Vector3.new(0.5, 0.35, 0.04),
+			CFrame = CFrame.new(position + Vector3.new(0.27, 1.2, 0)),
+			Color = Color3.fromRGB(60, 120, 230),
+		})
+		self:_addTarget(task, pole, position, 0.8, { flag = flag })
+	end
+end
+
+VISUALS.Probe = function(target, fraction: number)
+	if fraction >= 1 then
+		target.flag:Destroy()
+		target.part:Destroy()
+	end
+end
+VISUALS.Thatch = function(target, fraction: number)
+	if target.mat then
+		target.mat.Transparency = 0.35 + 0.65 * fraction
+	end
+	if fraction >= 1 then
+		target.lawn:_showTurf(target, "Dethatched")
+	end
+end
+VISUALS.Aerate = function(target, fraction: number)
+	if fraction >= 1 then
+		target.lawn:_showTurf(target, "Aerated")
+	end
+end
+VISUALS.Overseed = function(target, fraction: number)
+	if fraction >= 1 then
+		target.lawn:_showTurf(target, "Seeded")
+	end
+end
+VISUALS.WaterSeed = function(target, fraction: number)
+	if fraction >= 1 then
+		target.lawn:_showTurf(target, "Watered")
+	end
+end
+
+-- What the soil probe reads, as players see it.
+function Lawn:SoilReading(): string
+	local soil = self.soil
+	return `{soil.temperature}°F and {string.lower(soil.moisture)}`
+end
+
+-- Whether renovation work on `target` counts yet, and how well, given what's been done so far.
+-- Watering a tile that hasn't been seeded only wets the soil (which helps aerating).
+function Lawn:_renovation(task, target): (boolean, number)
+	local step = task.type.step
+	local turf = self:_turf(target.index or 0)
+	local scale = 1
+	if step > 1 and self.hasProbe and not self.probed then
+		scale *= PENALTY.Blind
+	end
+	if task.type.target == "Aerate" then
+		if self.soil.moisture == "Dry" and not turf.moistened then
+			scale *= PENALTY.DryAerating
+		end
+		if self.hasDethatch and turf.thatch and turf.thatch >= 0.5 and not turf.dethatched then
+			scale *= PENALTY.ThatchFirst
+		end
+	elseif task.type.target == "Overseed" then
+		if not (turf.aerated or turf.dethatched) then
+			scale *= PENALTY.SeedOnTop
+		end
+		local temperature = self.soil.temperature
+		if temperature < SEED_TEMPERATURE.min or temperature > SEED_TEMPERATURE.max then
+			scale *= PENALTY.WrongTemperature
+		end
+	elseif task.type.target == "Fertilize" and self.hasOverseed and not turf.seeded then
+		scale *= PENALTY.FeedFirst
+	elseif task.type.target == "WaterSeed" and self.hasOverseed and not turf.seeded then
+		turf.moistened = true
+		return false, scale
+	end
+	return true, scale
+end
+
+-- True if the soil is outside the range where new seed sprouts.
+function Lawn:_tooColdOrHot(): boolean
+	local temperature = self.soil.temperature
+	return temperature < SEED_TEMPERATURE.min or temperature > SEED_TEMPERATURE.max
+end
+
+-- Records a finished renovation step on its tile.
+local STEP_FLAGS =
+	{ Thatch = "dethatched", Aerate = "aerated", Overseed = "seeded", Fertilize = "fertilized", WaterSeed = "watered" }
+function Lawn:_finishRenovation(task, target, result)
+	local kind = task.type.target
+	if kind == "Probe" then
+		if not self.probed then
+			self.probed = true
+			result.message = `Soil reading: {self:SoilReading()}.`
+			-- A pro doesn't seed into soil that's too cold or hot: once the probe shows it, the
+			-- customer is happy to have the seeding done another day.
+			if self:_tooColdOrHot() then
+				for _, other in self.tasks do
+					local otherKind = other.type.target
+					if otherKind == "Overseed" or otherKind == "WaterSeed" then
+						other.optional = other.total
+					end
+				end
+				result.message ..= " Too cold or hot for new seed: the seeding can wait for another day."
+			end
+		end
+		return
+	end
+	local flag = STEP_FLAGS[kind]
+	if flag and target.index then
+		local turf = self:_turf(target.index)
+		turf[flag] = true
+		if kind == "WaterSeed" then
+			turf.moistened = true
+		end
+	end
+end
+
 -- Dandelions dotted around the lawn, away from the flowers.
 function Lawn:_buildDandelions(task, rng: Random, hazardTiles)
 	local tile = GameConfig.TileSize
@@ -1508,7 +1792,8 @@ end
 -- Public API ---------------------------------------------------------------------------------
 
 -- `origin` is the front-left corner of the lawn, where it meets the sidewalk.
-function LawnService:Build(template, origin: Vector3, address: string)
+-- `conditions` are what the job rolled: { soil = { temperature, moisture } } for renovations.
+function LawnService:Build(template, origin: Vector3, address: string, conditions)
 	local rng = Random.new()
 	local tile = GameConfig.TileSize
 	local layout = template.lawn
@@ -1529,6 +1814,11 @@ function LawnService:Build(template, origin: Vector3, address: string)
 		hazards = {},
 		-- Where the next side garden plot goes (left of the yard, from the sidewalk back).
 		gardenCursor = { x = GARDEN_START_X, z = 0, columnWidth = 0 },
+		-- Turf renovation: the soil (only the probe reveals it), how thick the thatch runs (inches)
+		-- and whether the probe has been used yet.
+		soil = conditions and conditions.soil or { temperature = 58, moisture = "Moist" },
+		thatch = layout.thatch,
+		probed = false,
 	}, Lawn)
 
 	-- Which task each kind of yard target belongs to (one task per kind).
@@ -1554,6 +1844,9 @@ function LawnService:Build(template, origin: Vector3, address: string)
 
 	local hazardTiles = lawn:_pickHazardTiles(rng, layout.flowerPatches)
 	lawn:_buildGround()
+	if byTarget.Grass and byTarget.Grass.type.tight then
+		lawn:_buildObstacles(rng, hazardTiles, layout.trees or 6)
+	end
 	lawn:_buildGrass(byTarget.Grass, hazardTiles)
 	lawn:_buildHazards(rng, hazardTiles)
 	if byTarget.Edge then
@@ -1573,6 +1866,17 @@ function LawnService:Build(template, origin: Vector3, address: string)
 	end
 	if byTarget.Fertilize then
 		lawn:_buildFertilize(byTarget.Fertilize, hazardTiles)
+	end
+	lawn.hasProbe = byTarget.Probe ~= nil
+	lawn.hasDethatch = byTarget.Thatch ~= nil
+	lawn.hasOverseed = byTarget.Overseed ~= nil
+	if byTarget.Probe then
+		lawn:_buildProbe(byTarget.Probe, rng, hazardTiles)
+	end
+	for _, kind in { "Thatch", "Aerate", "Overseed", "WaterSeed" } do
+		if byTarget[kind] then
+			lawn:_buildTurfStep(byTarget[kind], hazardTiles, rng)
+		end
 	end
 	if byTarget.SprayWeed then
 		lawn:_buildSprayWeeds(byTarget.SprayWeed, rng, hazardTiles)
@@ -1627,7 +1931,7 @@ export type WorkContext = {
 
 -- Targets that cover the whole lawn. Walking a tool across them on the way to its real work isn't
 -- a mistake, so they only count as "wrong tool" when the tool has nothing left to do here.
-local LAWN_WIDE = { Grass = true, Fertilize = true }
+local LAWN_WIDE = { Grass = true, Fertilize = true, Thatch = true, Aerate = true, Overseed = true, WaterSeed = true }
 
 -- A one-wheeled barrow carrying something heavy tips over about this often per second of walking.
 local TIP_CHANCE = 0.05
@@ -1681,6 +1985,39 @@ function Lawn:ApplyWork(
 				result.hurt = needs
 				break
 			end
+			-- Renovation steps depend on what's been done before (and may not count yet).
+			local scale = 1
+			if task.type.step then
+				-- A tool that can do two steps (a spreader seeds and feeds) does the earlier one first.
+				local earlier = false
+				for _, other in self.tasks do
+					local otherTarget = other.byIndex and target.index and other.byIndex[target.index]
+					if
+						other.type.step
+						and other.type.step < task.type.step
+						and fits[other]
+						and otherTarget
+						and otherTarget.work > 0
+					then
+						earlier = true
+						break
+					end
+				end
+				if earlier then
+					continue
+				end
+				local counts
+				counts, scale = self:_renovation(task, target)
+				if not counts then
+					-- Watering unseeded soil still wets it, which helps aerating.
+					result.changed = true
+					if not self.wetNoticeSent then
+						self.wetNoticeSent = true
+						result.message = "The soil soaks the water up."
+					end
+					continue
+				end
+			end
 			-- Some targets are harder for some tools (rocky ground).
 			local hit = target.speedHits and target.speedHits[toolId] or 1
 			local applied = math.min(target.work, amount * fit.speed * hit)
@@ -1689,11 +2026,14 @@ function Lawn:ApplyWork(
 			if target.work <= 0 then
 				target.work = 0
 				task.done += 1
+				if task.type.step then
+					self:_finishRenovation(task, target, result)
+				end
 			end
 			result.changed = true
 			result.work += applied
 			result.fitWork += applied * fit.pay
-			result.qualityWork += applied * fit.quality
+			result.qualityWork += applied * fit.quality * scale
 		end
 	end
 

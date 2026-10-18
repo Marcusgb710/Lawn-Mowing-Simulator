@@ -148,6 +148,8 @@ end
 -- [offer id] = the customer's preference. Kept off the offers players can see: the story is
 -- the only hint.
 local offerPreferences = {}
+-- [offer id] = the soil under a renovation job (only the soil probe reads it exactly).
+local offerSoil = {}
 
 local function makeOffer(kind: string)
 	local pool = poolFor(kind)
@@ -156,6 +158,12 @@ local function makeOffer(kind: string)
 	nextOfferId += 1
 	local preference = Jobs.pickPreference(rng)
 	offerPreferences[tostring(nextOfferId)] = preference
+	local story = Jobs.story(rng, template, preference)
+	if Jobs.isRenovation(template) then
+		local soil, hint = Jobs.soil(rng)
+		offerSoil[tostring(nextOfferId)] = soil
+		story ..= " " .. hint
+	end
 	return {
 		id = tostring(nextOfferId),
 		templateId = template.id,
@@ -163,7 +171,7 @@ local function makeOffer(kind: string)
 		tier = template.tier,
 		address = Jobs.randomAddress(rng),
 		customer = Jobs.Customers[rng:NextInteger(1, #Jobs.Customers)],
-		story = Jobs.story(rng, template, preference),
+		story = story,
 		todo = Jobs.todoList(template),
 		payout = math.floor(template.basePay * rng:NextNumber(0.9, 1.25) / 5 + 0.5) * 5,
 		xp = template.xp,
@@ -180,6 +188,7 @@ end
 local function refreshBoard()
 	table.clear(board)
 	table.clear(offerPreferences)
+	table.clear(offerSoil)
 	for index = 1, GameConfig.JobBoardSize do
 		table.insert(board, makeOffer(slotKind(index)))
 	end
@@ -210,6 +219,8 @@ local function sendUpdate(job)
 		penalty = job.penalty,
 		damageCount = job.damageCount,
 		result = job.result,
+		-- What the soil probe read, once someone has used it.
+		soil = if job.lawn and job.lawn.probed then job.lawn:SoilReading() else nil,
 	}
 	for _, player in recipients(job) do
 		Net.event("JobUpdated"):FireClient(player, payload)
@@ -358,7 +369,7 @@ local function startDriving(job)
 
 	job.slot = claimSlot()
 	local origin = GameConfig.JobSiteOrigin + Vector3.new(job.slot * GameConfig.JobSiteSpacing, 0, 0)
-	job.lawn = LawnService:Build(Jobs.get(job.offer.templateId), origin, job.offer.address)
+	job.lawn = LawnService:Build(Jobs.get(job.offer.templateId), origin, job.offer.address, { soil = job.soil })
 
 	local truck = Assets.truck(job.truckId, job.trailerId)
 	Assets.anchor(truck)
@@ -585,11 +596,14 @@ function JobService:AcceptJob(player: Player, offerId: string): (boolean, string
 	Net.event("JobBoardUpdated"):FireAllClients(board)
 	local preference = offerPreferences[offer.id] or "Balanced"
 	offerPreferences[offer.id] = nil
+	local soil = offerSoil[offer.id]
+	offerSoil[offer.id] = nil
 
 	local job = {
 		id = offer.id,
 		offer = offer,
 		preference = preference,
+		soil = soil,
 		party = party,
 		state = "Ready",
 		members = {},

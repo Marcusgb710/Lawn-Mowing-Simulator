@@ -69,7 +69,7 @@ local function buildTile(lawn, index: number, kind: string, far: boolean): { Bas
 	local source = template(name)
 	if source then
 		local clump = source:Clone()
-		local height = source.Size.Y * (0.85 + noise(index, 3) * 0.3)
+		local height = source.Size.Y * (0.85 + noise(index, 3) * 0.3) * (if kind == "Tall" then lawn.tallScale else 1)
 		Assets.standOn(clump, ground, Vector3.new(tileSize * 0.95, height, tileSize * 0.95))
 		table.insert(parts, clump)
 		if kind == "Short" then
@@ -87,7 +87,7 @@ local function buildTile(lawn, index: number, kind: string, far: boolean): { Bas
 		local tall = kind == "Tall"
 		block.Color = if tall then BLOCK_TALL_COLOR else stripe
 		local height = if tall
-			then GameConfig.TallGrassHeight * (0.85 + noise(index, 3) * 0.3)
+			then GameConfig.TallGrassHeight * (0.85 + noise(index, 3) * 0.3) * lawn.tallScale
 			else GameConfig.MowedGrassHeight
 		Assets.standOn(block, ground, Vector3.new(tileSize, height, tileSize))
 		table.insert(parts, block)
@@ -188,6 +188,8 @@ local function track(folder: Instance)
 		tileSize = folder:GetAttribute("TileSize") or GameConfig.TileSize,
 		columns = folder:GetAttribute("Columns") or 0,
 		rows = folder:GetAttribute("Rows") or 1,
+		-- Overgrown lawns grow taller clumps.
+		tallScale = folder:GetAttribute("TallScale") or 1,
 		state = state,
 		tiles = {},
 		container = nil,
