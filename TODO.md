@@ -142,6 +142,14 @@ One PR per phase, each stacked on the one before. Every phase still needs a Stud
       - carried tools in view at the business;
       - the mouse freeing while menus are open, Left Alt, the keys, and the dot;
       - head bob and engine shake strength, and motion sickness on a phone.
+- [ ] **Immersion 1: walk-in buildings, truck at the door.** Waiting on the new building, truck
+      and trailer models (instructions24). When they're in, check in Studio:
+      - fixtures on every `Mount`, tools on their slots, floor spots and bays inside;
+      - walking (and pushing a mower) in through every door, and no walking through walls (keep
+        wall meshes on Default or PreciseConvexDecomposition collision, set before saving);
+      - the truck on `TruckParking` with its rear at the door, the tailgate, ramp and rear door
+        opening and closing (hinge pivots), the ramp reaching the ground;
+      - interior lights on phones.
 
 ## Before release
 

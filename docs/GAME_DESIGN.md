@@ -517,6 +517,51 @@ The game is played in first person (`StarterPlayer.CameraMode = LockFirstPerson`
   `GameConfig.Camera.HeadBob` / `EngineShake` to false to turn them off for everyone. Both only
   move `Humanoid.CameraOffset`, so they cost nothing on phones.
 
+## 8. Immersion
+
+Making the business, loading and maintenance hands-on, built on first person. One PR per part.
+
+### Walk-in buildings
+
+- **Storage inside.** A building model can mark where everything goes inside it with
+  Attachments (`src/server/BusinessStorage.luau`):
+  - `Mount` with attributes `Kind` (`Pegboard`, `WallRack`, `WallHooks`, `Shelf`, `Workbench`,
+    `Compressor`, `Grinder`) and `Index`. Its LookVector points into the room, and the fixture's
+    back goes on it.
+  - `FloorSpot` and `EquipmentBay` (with `Index`).
+  - `TruckParking`: the truck's ground centre, LookVector the way the truck faces (rear toward
+    the door).
+  - `Light`: a ceiling light (a PointLight without shadows, cheap on phones).
+
+  Fixtures fill the building's spots (`storage` in `Items.luau`) mount by mount, in Index order.
+  Planned counts:
+
+  | Building | Pegboard | WallRack | WallHooks | Shelf | FloorSpot | EquipmentBay | Also |
+  | --- | --- | --- | --- | --- | --- | --- | --- |
+  | Shed | 2 | 1 | 1 | 1 | 1 | - | - |
+  | Garage | 3 | 2 | 2 | 2 | 2 | - | Workbench |
+  | SmallOffice | 4 | 3 | 3 | 2 | 4 | 2 | Workbench, Compressor |
+  | EquipmentYard | 6 | 4 | 5 | 3 | 6 | 5 | Workbench, Compressor, Grinder |
+
+  Anything a building has no attachments for (the current models, placeholders) keeps the
+  outdoor layout along the plot's edges. Tools without a spot still go in the overflow rows.
+- **Doors.** `<Id>__Door` and `<Id>__GarageDoor` are modelled open (swung open, rolled up) and
+  stay that way. Choice made: the garage door doesn't roll down and up as the owner walks up,
+  because the models only have the open pose.
+- **Walls you can't walk through, doors you can.** Building walls are separate meshes with real
+  holes for the doors. They collide properly with the Default or `PreciseConvexDecomposition`
+  CollisionFidelity, which is set in Studio before saving the model (scripts can't change it).
+  A walk-in building's wall mesh left on Box or Hull would block its doorways. It stops colliding
+  instead, and invisible walls go up around the building with gaps at its doors: a garage door's
+  opening is under it, and a hinged door's opening is taken to be in line with `TruckParking`.
+- **Truck at the door.** The plot's truck parks on `TruckParking` (with a trailer, the trailer's
+  rear goes there and the truck sits ahead of it), with its `<Id>__Tailgate`,
+  `EquipmentTrailer__Ramp` or `LandscapeTrailer__RampDoor` down, or its `<Id>__RearDoor`
+  (LandscapingTruck) up. Tailgates and
+  ramps are hinged on their pivot and rotate about X; the ramp goes down until it reaches the
+  ground. Everything closes as the crew drives off and opens again when they're back. At the job
+  site the truck parks with its tailgate down, since that's where you work on your tools.
+
 ## Phases
 
 | Phase | What | Status |

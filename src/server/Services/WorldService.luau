@@ -1,7 +1,10 @@
 -- The town: a hardware store in the middle and a business plot for every player.
 -- Your business (shed -> garage -> small office -> equipment yard) is where your crew hangs out
 -- between jobs: check the job board, carry tools from storage to the truck, then drive off.
--- What's in storage is laid out by BusinessStorage.
+-- What's in storage is laid out by BusinessStorage. Walk-in buildings (docs/GAME_DESIGN.md,
+-- "Immersion") have their storage, workbench, lights and truck parking marked inside the model,
+-- and their doors are modelled open. The truck waits at the door with its tailgate (or ramp, or
+-- rear door) open, and closes it to drive off.
 --
 -- To build the town yourself in Studio, make a Model named "Town" in Workspace with:
 --   * a SpawnLocation
@@ -20,6 +23,7 @@ local Signal = require(Shared.Signal)
 
 local BusinessStorage = require(script.Parent.Parent.BusinessStorage)
 local DataService = require(script.Parent.DataService)
+local Openings = require(script.Parent.Parent.Openings)
 
 -- How close (studs from the plot's center) counts as "at your business".
 local PLOT_RADIUS = 40
@@ -28,6 +32,12 @@ local PLOT_SIZE = Vector3.new(60, 1, 60)
 local STORAGE_REACH = 10
 -- How close you need to be to the workbench to work on tools (a bit more than its prompt's reach).
 local WORKBENCH_REACH = 14
+-- How long the truck's tailgate takes to open or close.
+local TAILGATE_TIME = 0.6
+-- The building's own machines, for its Compressor and Grinder mounts.
+local SHOP_MACHINES = { Compressor = "AirCompressor", Grinder = "BenchGrinder" }
+-- Walls put up for a walk-in building whose walls don't collide properly (see makeWalkable).
+local FALLBACK_WALL = 0.8
 
 local WorldService = {}
 -- Fired with (owner) after a business plot is (re)built, so the truck bed can be refilled.
@@ -154,6 +164,124 @@ local function buildPlaceholderTown(): Model
 	return town
 end
 
+-- A walk-in building needs walls you can't walk through but doors you can. Its wall meshes have
+-- real holes for the doors, which collide properly with the Default or
+-- PreciseConvexDecomposition CollisionFidelity (set in Studio: scripts can't change it). A wall
+-- mesh left on Box or Hull collides as one solid block, so it stops colliding and plain invisible
+-- walls go up around the building instead, open where its doors are.
+local function isDoor(name: string): boolean
+	return string.sub(name, -6) == "__Door" or string.sub(name, -12) == "__GarageDoor"
+end
+
+local function makeWalkable(building: Model, markers)
+	local shells = {}
+	for _, descendant in building:GetDescendants() do
+		if
+			descendant:IsA("MeshPart")
+			and descendant.CanCollide
+			and not isDoor(descendant.Name)
+			and (descendant.CollisionFidelity == Enum.CollisionFidelity.Box or descendant.CollisionFidelity == Enum.CollisionFidelity.Hull)
+			and math.max(descendant.Size.X, descendant.Size.Z) >= 8
+			and descendant.Size.Y >= 4
+		then
+			table.insert(shells, descendant)
+		end
+	end
+	if #shells == 0 then
+		return
+	end
+	for _, shell in shells do
+		shell.CanCollide = false
+	end
+
+	local box, size = building:GetBoundingBox()
+	local height = math.min(size.Y, 16)
+	local half = size / 2
+	local function nearestWall(point: Vector3): (string, number)
+		local distances = {
+			Front = math.abs(point.Z + half.Z),
+			Back = math.abs(point.Z - half.Z),
+			Left = math.abs(point.X + half.X),
+			Right = math.abs(point.X - half.X),
+		}
+		local wall, nearest = "Front", math.huge
+		for name, distance in distances do
+			if distance < nearest then
+				wall, nearest = name, distance
+			end
+		end
+		return wall, if wall == "Front" or wall == "Back" then point.X else point.Z
+	end
+
+	-- Each door's opening along the wall it's in, from the floor up. A garage door is modelled
+	-- rolled up over its opening. A hinged door is modelled swung open, beside its opening, so
+	-- the opening is taken to be where the truck parks in front of (or, without a parking
+	-- marker, where the door is).
+	local gaps = { Front = {}, Back = {}, Left = {}, Right = {} }
+	for _, descendant in building:GetDescendants() do
+		if descendant:IsA("BasePart") and isDoor(descendant.Name) then
+			local center = box:PointToObjectSpace(descendant.Position)
+			local garage = string.sub(descendant.Name, -12) == "__GarageDoor"
+			local width = math.max(descendant.Size.X, descendant.Size.Z)
+			local top = center.Y + descendant.Size.Y / 2 + half.Y
+			if not garage then
+				top = descendant.Size.Y + 0.3
+				width = math.max(width, 4) + 0.6
+				if markers.parking then
+					center = box:PointToObjectSpace(markers.parking.Position)
+				end
+			end
+			local wall, along = nearestWall(center)
+			table.insert(gaps[wall], { from = along - width / 2, to = along + width / 2, height = top })
+		end
+	end
+
+	local walls = Instance.new("Folder")
+	walls.Name = "Walls"
+	local function wallPiece(center: Vector3, pieceSize: Vector3)
+		if pieceSize.X > 0.05 and pieceSize.Y > 0.05 and pieceSize.Z > 0.05 then
+			part(walls, {
+				Name = "Wall",
+				Size = pieceSize,
+				CFrame = box * CFrame.new(center),
+				Transparency = 1,
+				CanQuery = false,
+			})
+		end
+	end
+	local floor = -half.Y
+	for wall, list in gaps do
+		local across = wall == "Front" or wall == "Back"
+		local length = if across then size.X else size.Z
+		local offset = if wall == "Front"
+			then -half.Z
+			elseif wall == "Back" then half.Z
+			elseif wall == "Left" then -half.X
+			else half.X
+		local function piece(from: number, to: number, bottom: number)
+			local middle, span = (from + to) / 2, to - from
+			local y = floor + (bottom + height) / 2
+			if across then
+				wallPiece(Vector3.new(middle, y, offset), Vector3.new(span, height - bottom, FALLBACK_WALL))
+			else
+				wallPiece(Vector3.new(offset, y, middle), Vector3.new(FALLBACK_WALL, height - bottom, span))
+			end
+		end
+		table.sort(list, function(a, b)
+			return a.from < b.from
+		end)
+		local cursor = -length / 2
+		for _, gap in list do
+			piece(cursor, math.max(cursor, gap.from), 0)
+			-- Above the door.
+			piece(math.max(cursor, gap.from), gap.to, math.min(gap.height, height))
+			cursor = math.max(cursor, gap.to)
+		end
+		piece(cursor, length / 2, 0)
+	end
+	walls.Parent = building
+end
+
 -- Rebuilds everything on a plot to match its owner's business tier, truck and trailer.
 local function buildPlot(plot)
 	if plot.model then
@@ -179,6 +307,19 @@ local function buildPlot(plot)
 	Assets.anchor(building)
 	Assets.placeOnGround(building, at(0, 0, 14))
 	building.Parent = model
+	local markers = BusinessStorage.markers(building)
+	local walkIn = next(markers.mounts) ~= nil or #markers.floor > 0 or #markers.bays > 0
+	if walkIn then
+		makeWalkable(building, markers)
+	end
+	for _, light in markers.lights do
+		local pointLight = Instance.new("PointLight")
+		pointLight.Range = 18
+		pointLight.Brightness = 1.2
+		pointLight.Color = Color3.fromRGB(255, 238, 210)
+		pointLight.Shadows = false
+		pointLight.Parent = light
+	end
 
 	local signPost = part(model, {
 		Name = "BusinessSign",
@@ -198,14 +339,25 @@ local function buildPlot(plot)
 	prompt(board, "View Jobs", "Job Board", { OpensPanel = "Jobs" })
 
 	-- Each player sees their own tools in storage on their screen (see CarryController).
-	BusinessStorage.build(model, origin, data.equipped.Business or "Shed")
+	BusinessStorage.build(model, origin, data.equipped.Business or "Shed", markers)
 
 	-- Where the crew fixes up their tools (see MaintenanceService).
 	local bench = Assets.prop("Workbench")
 	Assets.anchor(bench)
-	Assets.placeAt(bench, at(10, 0, 11))
+	Assets.placeAt(bench, if markers.mounts.Workbench then markers.mounts.Workbench[1] else at(10, 0, 11))
 	bench.Name = "Workbench"
 	bench.Parent = model
+	-- The building's own air compressor and bench grinder, where it has room for them.
+	for kind, toolId in SHOP_MACHINES do
+		local tool = markers.mounts[kind] and Items.get("Supplies", toolId)
+		if tool then
+			local machine = Assets.toolDisplay(tool.category, toolId)
+			Assets.anchor(machine)
+			Assets.placeOnGround(machine, markers.mounts[kind][1])
+			machine.Name = kind
+			machine.Parent = model
+		end
+	end
 	local benchPart = bench.PrimaryPart or bench:FindFirstChildWhichIsA("BasePart", true)
 	if benchPart then
 		prompt(benchPart, "Work on Tools", "Workbench", { OpensPanel = "Workbench" })
@@ -213,9 +365,17 @@ local function buildPlot(plot)
 
 	local truck = Assets.truck(data.equipped.Truck or Items.Catalog.Truck[1].id, data.equipped.Trailer)
 	Assets.anchor(truck)
-	Assets.placeOnGround(truck, at(-4, 0, -18) * CFrame.Angles(0, math.rad(90), 0))
+	Assets.placeOnGround(truck, markers.parking or at(-4, 0, -18) * CFrame.Angles(0, math.rad(90), 0))
+	-- At the door, a trailer's ramp goes where the tailgate would be, with the truck ahead of it.
+	local trailer = truck:FindFirstChild("Trailer")
+	if markers.parking and trailer and trailer:IsA("Model") then
+		local _, trailerSize = trailer:GetBoundingBox()
+		truck:PivotTo(truck:GetPivot() + markers.parking.LookVector * (trailerSize.Z + 1))
+	end
 	truck.Name = "CrewTruck"
 	truck.Parent = model
+	-- Parked with the tailgate down (and the trailer's ramp), ready to load.
+	Openings.set(truck, true)
 	prompt(truck.PrimaryPart :: BasePart, "Drive to Job", "Crew Truck", {
 		Action = "DriveToJob",
 		OwnerUserId = owner.UserId,
@@ -250,6 +410,15 @@ function WorldService:GetHomeCFrame(player: Player, index: number?): CFrame
 	local plot = playerPlots[getLeader(player)] or playerPlots[player]
 	local base = if plot then plot.cframe * CFrame.new(0, 3.5, -6) else spawnCFrame
 	return base * CFrame.new(((index or 1) - 1) * 3 - 4.5, 0, 0)
+end
+
+-- Opens or closes the tailgate (ramp, rear door) of the truck at this player's business: it
+-- closes before the crew drives off and opens again when they're back.
+function WorldService:SetTruckOpen(player: Player, open: boolean)
+	local truck = WorldService:GetPlotTruck(player)
+	if truck then
+		Openings.set(truck, open, TAILGATE_TIME)
+	end
 end
 
 -- The truck parked at this player's own business.
