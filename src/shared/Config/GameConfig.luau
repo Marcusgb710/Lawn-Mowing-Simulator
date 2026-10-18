@@ -51,8 +51,11 @@ local GameConfig = {
 		-- It only grows while you're in the game.
 		RegrowMinutes = 40,
 		-- What a neighbor tips you for tidying it up after it got untidy, and how often at most.
+		-- It only counts once the lawn has grown back to below this share done since the last tip,
+		-- so cutting back one stray weed isn't worth a tip.
 		TidyTip = 25,
 		TidyTipCooldownMinutes = 30,
+		TipAfterBelowShare = 0.75,
 	},
 	-- Curb appeal, 0-100: how good your business looks from the street (see HomeLawn.luau).
 	CurbAppeal = {

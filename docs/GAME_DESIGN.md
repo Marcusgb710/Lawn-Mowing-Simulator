@@ -655,7 +655,9 @@ which earns your business curb appeal and a bonus on every job.
     spawn.
 
   The placeholder town spaces its 12 plots to fit. Every plot faces its street to the south
-  (-Z), so the front lawns line up with the grid lawns are drawn on.
+  (-Z), so the front lawns line up with the grid lawns are drawn on. A town built in Studio
+  needs the same; the server warns if a plot doesn't. Older buildings without a `DeliverySpot`
+  get their boxes on the right of the driveway, clear of the lawn.
 - **Leaving from the truck.** The truck parks on `TruckParking` (older buildings: about 10
   studs out from the door) with its tailgate to the door. With a trailer, the trailer's ramp
   faces the door and the truck sits ahead of it. To leave, the crew leader looks at the driver's
@@ -694,7 +696,9 @@ which earns your business curb appeal and a bonus on every job.
   (a grass tile, an edge strip, a weed, a leaf pile), never right next to someone. It doesn't grow
   while you're offline. What's done is saved (`homeLawn`), so it looks the same when you come
   back; a new lawn starts overgrown. Getting an untidy lawn tidy again earns a neighbor's tip
-  (`TidyTip`, $25), at most once every `TidyTipCooldownMinutes` (30).
+  (`TidyTip`, $25), at most once every `TidyTipCooldownMinutes` (30), and only after it has grown
+  back below `TipAfterBelowShare` (75%) done since the last tip, so a stray weed isn't a tip.
+  Work counts on the lawn and just past its edges, not on the driveway.
 - **Curb appeal** is 0 to 100: how good your business looks from the street. The HUD shows your
   crew's under your money and level.
   - Up to `CurbAppeal.LawnPoints` (60) come from the lawn, in proportion to how much of it is
@@ -751,7 +755,7 @@ phase that gives them work.
 - **Version 6 (the shop as the hub)** adds `deliveries`, the orders still in their box. Everything
   bought before is already unpacked.
 - **Version 7 (your own lawn)** adds `homeLawn`: which parts of the lawn are done, one character
-  per target and task, and when the last tidy tip was paid. Existing players' lawns start
+  per target and task, when the last tidy tip was paid, and whether another is due. Existing players' lawns start
   overgrown.
 
 ## New item ids for modelers

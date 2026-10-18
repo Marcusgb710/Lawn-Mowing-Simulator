@@ -115,6 +115,7 @@ local MIGRATIONS = {
 		data.homeLawn = {
 			done = if typeof(saved.done) == "table" then saved.done else {},
 			tippedAt = if typeof(saved.tippedAt) == "number" then saved.tippedAt else 0,
+			tipReady = if typeof(saved.tipReady) == "boolean" then saved.tipReady else true,
 		}
 	end,
 }
@@ -144,8 +145,9 @@ local function defaultData()
 		-- { key, id, arrives (os.time) } for every order still in its box (see DeliveryService)
 		deliveries = {},
 		-- Your own lawn: { done = { [task type] = "0110..." per target }, tippedAt = os.time() of
-		-- the last tip for tidying it } (see HomeLawnService)
-		homeLawn = { done = {}, tippedAt = 0 },
+		-- the last tip for tidying it, tipReady = it's grown back enough since then for another }
+		-- (see HomeLawnService)
+		homeLawn = { done = {}, tippedAt = 0, tipReady = true },
 		trailerUnlocked = false,
 	}
 	for _, category in Items.Categories do

@@ -1347,6 +1347,12 @@ function Tools.get(id: string)
 	return byId[id]
 end
 
+-- Whether a tool is used in your hands (a Tool in the hotbar). Supplies, gloves and the towed
+-- attachment are only ever carried.
+function Tools.isHeld(tool): boolean
+	return not (tool.use == "Supply" or tool.use == "Worn" or tool.use == "Towed")
+end
+
 function Tools.hasVerb(tool, verb: string): boolean
 	return table.find(tool.verbs, verb) ~= nil
 end

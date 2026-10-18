@@ -34,8 +34,6 @@ local JobService = require(script.Parent.JobService)
 local REACH_OFFSET = 2
 -- Machines that roll on the ground: held so their lowest point sits on it.
 local GROUNDED = { FloorManual = true, FloorEngine = true, Bay = true }
--- Tools that never go in the hotbar: supplies, and gloves (worn, not used).
-local NOT_HELD = { Supply = true, Worn = true, Towed = true }
 -- How far behind the rider a towed attachment works.
 local TOW_DISTANCE = 6
 
@@ -259,7 +257,9 @@ local function hookTool(player: Player, tool: Tool, item)
 	tool.Equipped:Connect(function()
 		local humanoid = getHumanoid(player)
 		if humanoid and item.walkSpeed then
-			humanoid.WalkSpeed = item.walkSpeed
+			-- Soft tires slow you down wherever you push it.
+			local data = DataService:Get(player)
+			humanoid.WalkSpeed = item.walkSpeed * Maintenance.tireFactor(data and data.condition[item.id] or {})
 		end
 		-- Lift R15 characters so the riding mower's wheels touch the ground under them.
 		local seatHeight = tool:GetAttribute("SeatHeight")
@@ -349,7 +349,7 @@ end
 -- Whether this tool goes in your hands as a Tool you use (not supplies, gloves or a towed
 -- attachment, which are just carried).
 function ToolService.isHeld(item): boolean
-	return not NOT_HELD[item.use]
+	return Tools.isHeld(item)
 end
 
 -- A tool taken out of storage at the business, equipped straight away: a ride-on to drive (up
@@ -411,7 +411,7 @@ function ToolService:GiveTools(player: Player)
 	end
 	for _, itemId in Storage.loadedIds(data.loadout) do
 		local item = Tools.get(itemId)
-		if NOT_HELD[item.use] then
+		if not Tools.isHeld(item) then
 			continue
 		end
 		local tool = makeTool(player, data, item, height, true)

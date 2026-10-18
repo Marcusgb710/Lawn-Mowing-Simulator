@@ -10,7 +10,9 @@
 -- To build the town yourself in Studio, make a Model named "Town" in Workspace with:
 --   * a SpawnLocation
 --   * a Folder named "Plots" with one Part per business plot. A plot's front (LookVector)
---     should face the street. Everything on the plot is placed relative to that part.
+--     should face the street, and the street should be to the south (-Z): every plot's front
+--     lawn is drawn on a grid along the world's axes, edged along -Z and +X (see
+--     HomeLawnService). Everything on the plot is placed relative to that part.
 -- Otherwise a placeholder town is built here.
 
 local Players = game:GetService("Players")
@@ -34,8 +36,8 @@ local PLOT_SIZE = Vector3.new(90, 1, 90)
 local BUILDING_Z = 22
 local DRIVEWAY_WIDTH = 10
 -- Where the business's own lawn goes (see HomeLawnService), on the left of the driveway, in plot
--- space.
-local LAWN_CENTER, LAWN_SIZE = Vector3.new(-23, 0, -25), Vector3.new(30, 0, 34)
+-- space: its edge runs a couple of studs from the driveway.
+local LAWN_CENTER, LAWN_SIZE = Vector3.new(-21.5, 0, -25), Vector3.new(30, 0, 34)
 -- The crew truck pulls out of the driveway and back in over this many seconds.
 local DRIVE_TIME = 2.5
 -- How close you need to be to your business's storage to grab or put back a tool.
@@ -346,7 +348,8 @@ local function buildPlot(plot)
 	desk.Name = "Desk"
 	desk.Parent = model
 	interactable(desk, "UseComputer", "Use Computer", "Shop Computer", {})
-	plot.deliveryFrame = markers.delivery or at(-12, 0, math.min(2, frontZ - 2))
+	-- Older buildings get their deliveries out front on the right of the driveway, clear of the lawn.
+	plot.deliveryFrame = markers.delivery or at(16, 0, math.min(2, frontZ - 2))
 
 	-- The driveway, from the street to the door.
 	local drivewayLength = frontZ + plot.depth / 2
@@ -697,11 +700,17 @@ function WorldService:Init()
 	if #plots == 0 then
 		warn("No business plots found in Town.Plots, players won't get a business")
 	end
+	for _, plot in plots do
+		if plot.cframe.LookVector.Z > -0.99 then
+			warn("A business plot doesn't face south (-Z): its front lawn's edges will be on the wrong sides")
+			break
+		end
+	end
 end
 
 function WorldService:Start()
 	local function onPlayerAdded(player: Player)
-		if not DataService:WaitForData(player) then
+		if not DataService:WaitForData(player) or player.Parent ~= Players then
 			return
 		end
 		for _, plot in plots do

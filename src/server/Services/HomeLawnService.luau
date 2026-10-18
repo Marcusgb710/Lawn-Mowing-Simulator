@@ -25,8 +25,11 @@ local LawnService = require(script.Parent.LawnService)
 local PartyService = require(script.Parent.PartyService)
 local WorldService = require(script.Parent.WorldService)
 
--- Work this far (studs) outside the lawn still counts: the edge and the weeds along its sides.
-local MARGIN = 4
+-- How far (studs) outside the lawn work still counts, side by side: just past the edge along the
+-- front and the driveway, the weeds down the left, and the weeds along the back.
+local MARGIN_LEFT, MARGIN_RIGHT, MARGIN_FRONT, MARGIN_BACK = 2, 1.5, 1.5, 3.5
+-- Gloves owned are checked again this often (seconds), not every tick.
+local PROTECTIONS_REFRESH = 2
 -- Nothing grows back this close to someone, so it doesn't spring up right behind the mower.
 local GROW_CLEARANCE = 10
 -- How often the lawns grow (seconds).
@@ -42,6 +45,8 @@ local HomeLawnService = {}
 local lawns = {}
 -- [Player] = os.clock() they were last told their tool won't work here
 local warnedAt = {}
+-- [Player] = { at = os.clock(), value = their protections }
+local protectionCache = {}
 local folder: Folder
 local rng = Random.new()
 
@@ -55,7 +60,11 @@ local function leaderOf(player: Player): Player
 end
 
 -- The protection of every pair of gloves they own: at home they just put them on.
-local function protectionsOf(data): { [string]: boolean }
+local function protectionsOf(player: Player, data): { [string]: boolean }
+	local cached = protectionCache[player]
+	if cached and os.clock() - cached.at < PROTECTIONS_REFRESH then
+		return cached.value
+	end
 	local protections = {}
 	for _, owned in data.owned do
 		for toolId in owned do
@@ -65,6 +74,7 @@ local function protectionsOf(data): { [string]: boolean }
 			end
 		end
 	end
+	protectionCache[player] = { at = os.clock(), value = protections }
 	return protections
 end
 
@@ -80,6 +90,10 @@ local function savedState(data)
 	end
 	if typeof(state.tippedAt) ~= "number" then
 		state.tippedAt = 0
+	end
+	-- Whether it's grown back enough since the last tip for tidying it to earn another.
+	if typeof(state.tipReady) ~= "boolean" then
+		state.tipReady = true
 	end
 	return state
 end
@@ -105,7 +119,11 @@ local function refresh(owner: Player, entry)
 			end
 			done[task.id] = HomeLawn.encode(flags)
 		end
-		savedState(data).done = done
+		local state = savedState(data)
+		state.done = done
+		if entry.lawn:DoneShare() < GameConfig.HomeLawn.TipAfterBelowShare then
+			state.tipReady = true
+		end
 	end
 	owner:SetAttribute("CurbAppeal", HomeLawn.curbAppeal(entry.lawn:DoneShare()))
 end
@@ -121,6 +139,9 @@ end
 -- Builds the owner's lawn on their plot, the way they left it.
 local function build(owner: Player)
 	local data = DataService:Get(owner)
+	if owner.Parent ~= Players then
+		return
+	end
 	local frame, size = WorldService:GetLawnArea(owner)
 	if not (data and frame and size) then
 		destroy(owner)
@@ -164,8 +185,8 @@ local function build(owner: Player)
 		lawn = lawn,
 		targets = lawn:AllTargets(),
 		frame = frame,
-		min = origin - Vector3.new(MARGIN, 0, MARGIN),
-		max = origin + Vector3.new(columns * tile + MARGIN, 0, rows * tile + MARGIN),
+		min = origin - Vector3.new(MARGIN_LEFT, 0, MARGIN_FRONT),
+		max = origin + Vector3.new(columns * tile + MARGIN_RIGHT, 0, rows * tile + MARGIN_BACK),
 		growth = 0,
 		tidy = lawn:IsComplete(),
 		done = 0,
@@ -270,7 +291,7 @@ function HomeLawnService:ApplyWork(
 		return false
 	end
 	local result = entry.lawn:ApplyWork(position, radius, toolId, amount, {
-		protections = protectionsOf(data),
+		protections = protectionsOf(player, data),
 		holder = player,
 		moving = options.moving,
 		seconds = options.seconds,
@@ -297,8 +318,10 @@ function HomeLawnService:ApplyWork(
 	if tidy and not entry.tidy then
 		local ownerData = DataService:Get(owner)
 		local now = os.time()
-		if ownerData and HomeLawn.tipDue(savedState(ownerData).tippedAt, now) then
-			savedState(ownerData).tippedAt = now
+		local state = ownerData and savedState(ownerData)
+		if state and state.tipReady and HomeLawn.tipDue(state.tippedAt, now) then
+			state.tippedAt = now
+			state.tipReady = false
 			local tip = GameConfig.HomeLawn.TidyTip
 			DataService:AddMoney(owner, tip)
 			notify(owner, `Your lawn looks great! A neighbor tipped you {Format.money(tip)}.`)
@@ -332,6 +355,7 @@ function HomeLawnService:Start()
 	Players.PlayerRemoving:Connect(function(player)
 		destroy(player)
 		warnedAt[player] = nil
+		protectionCache[player] = nil
 	end)
 
 	-- It grows while its owner plays.
