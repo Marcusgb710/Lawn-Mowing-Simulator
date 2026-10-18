@@ -1,7 +1,10 @@
 -- Finds the real model for something, or falls back to a placeholder.
 --
 -- Where real models go (all inside ReplicatedStorage.Assets):
---   Tools/<item id>     e.g. Tools/GasPushMower       a Tool with a Handle, or a Model/Part (we wrap it in a Tool)
+--   Tools/<item id>     e.g. Tools/GasPushMower       a Tool with a Handle, or a Model/Part (we wrap it in a Tool).
+--                                                     The hand holds the handle (or the Model's PrimaryPart)
+--                                                     with its +Y up and its LookVector pointing forward.
+--   Kit/<asset>                                       the Lawn Mowing mobile kit templates (grass, weeds, props...)
 --   Trucks/<item id>    e.g. Trucks/RustyPickup       a Model whose front faces its pivot's LookVector
 --   Trailers/<item id>  e.g. Trailers/UtilityTrailer  a Model whose hitch faces its pivot's LookVector
 --   Buildings/<item id> e.g. Buildings/Shed           a Model whose front door faces its pivot's LookVector
@@ -29,6 +32,23 @@ local function prepareModel(model: Model): Model
 	return model
 end
 
+-- Kit parts that spin, found by their "<Asset>__<Component>" names. They get a Motor6D instead of
+-- a rigid weld, and ToolFxController turns them.
+local SPINNING_PARTS = {
+	{ match = "__Wheel", spin = "Wheel" },
+	{ match = "__CutterRotor", spin = "Rotor" },
+	{ match = "__Spool", spin = "Spool" },
+}
+
+local function spinKind(name: string): string?
+	for _, entry in SPINNING_PARTS do
+		if string.find(name, entry.match, 1, true) then
+			return entry.spin
+		end
+	end
+	return nil
+end
+
 -- Turns whatever the modeler made into a working Tool.
 local function toTool(instance: Instance): Tool?
 	if instance:IsA("Tool") then
@@ -39,7 +59,11 @@ local function toTool(instance: Instance): Tool?
 	if instance:IsA("BasePart") then
 		handle = instance
 	elseif instance:IsA("Model") then
-		handle = instance.PrimaryPart or instance:FindFirstChildWhichIsA("BasePart", true)
+		-- A part named Handle wins: PrimaryPart doesn't always survive a Rojo sync.
+		local named = instance:FindFirstChild("Handle")
+		handle = if named and named:IsA("BasePart")
+			then named
+			else instance.PrimaryPart or instance:FindFirstChildWhichIsA("BasePart", true)
 	end
 	if not handle then
 		return nil
@@ -52,14 +76,26 @@ local function toTool(instance: Instance): Tool?
 			descendant.Anchored = false
 			descendant.CanCollide = false
 			descendant.Massless = true
-			local weld = Instance.new("WeldConstraint")
-			weld.Part0 = handle
-			weld.Part1 = descendant
-			weld.Parent = descendant
+			local spin = spinKind(descendant.Name)
+			if spin then
+				local motor = Instance.new("Motor6D")
+				motor.Name = "Spin"
+				motor.Part0 = handle
+				motor.Part1 = descendant
+				motor.C0 = handle.CFrame:ToObjectSpace(descendant.CFrame)
+				motor:SetAttribute("Spin", spin)
+				motor.Parent = descendant
+			else
+				local weld = Instance.new("WeldConstraint")
+				weld.Part0 = handle
+				weld.Part1 = descendant
+				weld.Parent = descendant
+			end
 		end
 	end
 	handle.Anchored = false
 	handle.CanCollide = false
+	handle.Massless = true
 
 	if instance ~= handle then
 		instance.Parent = tool
@@ -100,8 +136,9 @@ function Assets.toolDisplay(category: string, itemId: string): Model
 	local handle = model:FindFirstChild("Handle")
 	if handle and handle:IsA("BasePart") then
 		model.PrimaryPart = handle
-		-- A held tool's handle has its +Y pointing forward and +Z pointing up.
-		handle.PivotOffset = tool.Grip * CFrame.Angles(math.pi / 2, 0, 0)
+		-- In the hand, the grip frame is upright with its front (-Z) pointing forward, so it's
+		-- already the right pivot for standing the tool on the ground.
+		handle.PivotOffset = tool.Grip
 	end
 	tool:Destroy()
 	return model
@@ -142,6 +179,30 @@ function Assets.building(itemId: string): Model
 		return prepareModel(found:Clone())
 	end
 	return Placeholders.building(itemId)
+end
+
+-- One piece of the Lawn Mowing kit (Assets.Kit) as a loose, anchored part you can size and place.
+-- Every yard piece in the kit (grass, weeds, shrubs, curbs, props) is a single MeshPart.
+-- Returns nil if the kit isn't in the game, so callers can fall back to a block.
+function Assets.kitPart(name: string): BasePart?
+	local model = findAsset("Kit", name)
+	local part = model and model:FindFirstChildWhichIsA("BasePart", true)
+	if not part then
+		return nil
+	end
+	local copy = part:Clone()
+	copy.Anchored = true
+	copy.CanCollide = false
+	copy.CanTouch = false
+	copy.CanQuery = false
+	copy.CastShadow = false
+	return copy
+end
+
+-- Sizes a part and stands it on `ground` (a CFrame on the ground, facing the way it should face).
+function Assets.standOn(part: BasePart, ground: CFrame, size: Vector3)
+	part.Size = size
+	part.CFrame = ground * CFrame.new(0, size.Y / 2, 0)
 end
 
 function Assets.prop(name: string): Model

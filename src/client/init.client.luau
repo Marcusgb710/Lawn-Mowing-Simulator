@@ -13,6 +13,8 @@ local CONTROLLERS = {
 	"ShopController",
 	"TruckController",
 	"CarryController",
+	"GrassController",
+	"ToolFxController",
 	"PartyController",
 	"CutsceneController",
 }

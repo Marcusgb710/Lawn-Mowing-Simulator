@@ -19,7 +19,8 @@ end
 
 -- Tools -------------------------------------------------------------------------------------
 
--- With the default grip, a tool handle's +Y axis points forward out of the hand and +Z points up.
+-- Placeholder tools are built with the handle's +Y axis pointing forward out of the hand and +Z
+-- pointing up. Placeholders.tool turns the grip so they're held that way.
 local function attach(tool: Tool, handle: BasePart, offset: CFrame, props)
 	props.CanCollide = false
 	props.Massless = true
@@ -116,6 +117,8 @@ function Placeholders.tool(category: string, itemId: string): Tool
 	local tool = Instance.new("Tool")
 	tool.Name = item.name
 	TOOL_BUILDERS[category](tool, item)
+	-- A held handle really has +Y up and -Z forward, so tip the builders' layout forward.
+	tool.Grip *= CFrame.Angles(math.pi / 2, 0, 0)
 	return tool
 end
 
