@@ -1,4 +1,5 @@
 -- The hardware store: one tab per category. Buy tools, trucks, trailers and business upgrades.
+-- Every tool says what it's for: that's how players learn which tool fits which job.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -24,7 +25,10 @@ local function statsText(item): string
 	elseif item.category == "Business" then
 		return `Job pay +{math.floor(item.payoutBonus * 100)}%`
 	end
-	local parts = { `Power {item.power}`, `Reach {item.radius}` }
+	local parts = { item.tier, `Power {item.power}`, `Reach {item.radius}` }
+	if item.cutQuality then
+		table.insert(parts, `Cut {math.floor(item.cutQuality * 100)}%`)
+	end
 	if item.walkSpeed then
 		table.insert(parts, `Speed {item.walkSpeed}`)
 	end
@@ -57,35 +61,41 @@ local function render()
 		local equipped = profile.equipped[selectedCategory] == item.id
 
 		local card = UI.new("Frame", {
-			Size = UDim2.new(1, -8, 0, 76),
+			Size = UDim2.new(1, -8, 0, 0),
+			AutomaticSize = Enum.AutomaticSize.Y,
 			BackgroundColor3 = UI.Colors.Card,
 			LayoutOrder = index,
 			Parent = list,
 		}, { UI.corner(8) })
+		-- Text down the left (it wraps, so long descriptions grow the card); button on the right.
+		local details = UI.new("Frame", {
+			Size = UDim2.new(1, -150, 0, 0),
+			AutomaticSize = Enum.AutomaticSize.Y,
+			BackgroundTransparency = 1,
+			Parent = card,
+		}, { UI.list(3), UI.padding(10) })
 
-		UI.label(item.name, {
-			Position = UDim2.fromOffset(12, 8),
-			Size = UDim2.new(1, -150, 0, 22),
-			TextSize = 20,
-			Parent = card,
-		})
+		UI.label(item.name, { TextSize = 20, LayoutOrder = 1, Parent = details })
 		UI.label(item.description, {
-			Position = UDim2.fromOffset(12, 32),
-			Size = UDim2.new(1, -150, 0, 18),
-			TextSize = 15,
-			TextColor3 = UI.Colors.SubText,
-			Parent = card,
+			Size = UDim2.fromScale(1, 0),
+			AutomaticSize = Enum.AutomaticSize.Y,
+			TextWrapped = true,
+			TextSize = 14,
+			Font = Enum.Font.Gotham,
+			TextColor3 = UI.Colors.Text,
+			LayoutOrder = 2,
+			Parent = details,
 		})
 		UI.label(statsText(item), {
-			Position = UDim2.fromOffset(12, 52),
-			Size = UDim2.new(1, -150, 0, 16),
+			Size = UDim2.new(1, 0, 0, 16),
 			TextSize = 14,
 			TextColor3 = UI.Colors.SubText,
-			Parent = card,
+			LayoutOrder = 3,
+			Parent = details,
 		})
 
 		local text, color, action
-		local previous = Items.Catalog[selectedCategory][item.tier - 1]
+		local previous = Items.Catalog[selectedCategory][item.rank - 1]
 		local locked = (selectedCategory == "Trailer" and not profile.trailerUnlocked)
 			or (selectedCategory == "Business" and previous and not profile.owned.Business[previous.id])
 		if equipped then

@@ -2,6 +2,7 @@
 -- Nothing else in the game depends on what these look like, so feel free to delete them later.
 
 local Items = require(script.Parent.Config.Items)
+local Tools = require(script.Parent.Config.Tools)
 
 local Placeholders = {}
 
@@ -58,7 +59,7 @@ local TOOL_BUILDERS = {
 			CanCollide = false,
 		})
 		handle.Parent = tool
-		local deckSize = if item.tier >= 4 then Vector3.new(4.5, 4.5, 1.4) else Vector3.new(2.6, 2.6, 1)
+		local deckSize = if item.sizeClass == "Bay" then Vector3.new(4.5, 4.5, 1.4) else Vector3.new(2.6, 2.6, 1)
 		attach(tool, handle, CFrame.new(0, 1.2, -1), {
 			Name = "Bar",
 			Size = Vector3.new(0.2, 2.6, 0.2),
@@ -112,11 +113,31 @@ local TOOL_BUILDERS = {
 	end,
 }
 
+-- Tools in categories without their own builder get a shape by how big they are.
+local SIZE_BUILDERS = {
+	Hand = function(tool: Tool, item)
+		return shaftTool(tool, item, 1.4, { Name = "Head", Size = Vector3.new(0.6, 0.6, 0.2) })
+	end,
+	Long = function(tool: Tool, item)
+		return shaftTool(tool, item, 5, { Name = "Head", Size = Vector3.new(1.2, 0.8, 0.3) })
+	end,
+	HangingPower = TOOL_BUILDERS.Trimmer,
+	FloorManual = TOOL_BUILDERS.Mower,
+	FloorEngine = TOOL_BUILDERS.Mower,
+	Bay = TOOL_BUILDERS.Mower,
+	Supply = function(tool: Tool, item)
+		local handle = part({ Name = "Handle", Size = Vector3.new(1, 1, 1), Color = item.color, CanCollide = false })
+		handle.Parent = tool
+		return handle
+	end,
+}
+
 function Placeholders.tool(category: string, itemId: string): Tool
-	local item = Items.get(category, itemId)
+	local item = Tools.get(itemId) or Items.get(category, itemId)
 	local tool = Instance.new("Tool")
 	tool.Name = item.name
-	TOOL_BUILDERS[category](tool, item)
+	local builder = TOOL_BUILDERS[category] or SIZE_BUILDERS[item.sizeClass] or SIZE_BUILDERS.Hand
+	builder(tool, item)
 	-- A held handle really has +Y up and -Z forward, so tip the builders' layout forward.
 	tool.Grip *= CFrame.Angles(math.pi / 2, 0, 0)
 	return tool

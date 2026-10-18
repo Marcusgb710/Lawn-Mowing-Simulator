@@ -1,20 +1,16 @@
--- Everything you can buy in the shop. Each category is a list of tiers, cheapest first.
--- Players start owning every item with price = 0 (the reel mower and the rusty pickup).
+-- Everything you can buy in the shop, by shop tab.
+-- Tools come from Tools.luau (only the ones available right now are sold); trucks, trailers and
+-- business upgrades are listed below. Each tab is cheapest first, and `rank` is an item's place
+-- in its tab. Players start owning every item with price = 0 (the reel mower, the rusty pickup
+-- and the tool shed).
 --
 -- Truck bed: each truck holds `bedSlots` tools. Only tools loaded in your truck bed come with you
 -- to a job. Once your bed is full, trailers unlock and each one adds `extraSlots`.
 --
--- Tool stats:
---   power     how much work the tool does per second (higher = faster)
---   radius    how far around you the tool reaches, in studs
---   walkSpeed only for mowers, your speed while pushing/riding it
---   motorized only for mowers, false means it only cuts while you're moving
---   ride      only for riding mowers: you sit on it instead of holding it. `seat` is where you sit,
---             in studs from where the tool's hand grip is (the steering wheel or lap bars):
---             X right, Y up, Z back. Tune it in Studio until the player sits on the seat.
---
 -- Model swap: put a model named after the item's `id` in ReplicatedStorage.Assets.Tools
 -- (or Assets.Trucks for trucks) and it replaces the placeholder automatically.
+
+local Tools = require(script.Parent.Tools)
 
 local Items = {}
 
@@ -22,234 +18,17 @@ Items.Categories = { "Mower", "Trimmer", "Rake", "Edger", "HedgeTrimmer", "Truck
 Items.ToolCategories = { "Mower", "Trimmer", "Rake", "Edger", "HedgeTrimmer" }
 
 Items.CategoryInfo = {
-	-- damagesHazards: this tool wrecks flower patches and gnomes if you hit them with it.
-	Mower = { displayName = "Mowers", toolName = "Mower", task = "Mow", damagesHazards = true },
-	Trimmer = { displayName = "Weed Whackers", toolName = "Weed Whacker", task = "Weeds", damagesHazards = true },
-	Rake = { displayName = "Rakes & Blowers", toolName = "Rake", task = "Leaves" },
-	Edger = { displayName = "Edgers", toolName = "Edger", task = "Edge", damagesHazards = true },
-	HedgeTrimmer = { displayName = "Hedge Trimmers", toolName = "Hedge Trimmer", task = "Hedge" },
+	Mower = { displayName = "Mowers", toolName = "Mower" },
+	Trimmer = { displayName = "Trimmers", toolName = "Trimmer" },
+	Rake = { displayName = "Rakes & Blowers", toolName = "Rake" },
+	Edger = { displayName = "Edgers", toolName = "Edger" },
+	HedgeTrimmer = { displayName = "Hedge Tools", toolName = "Hedge Tool" },
 	Truck = { displayName = "Trucks" },
 	Trailer = { displayName = "Trailers" },
 	Business = { displayName = "Business" },
 }
 
 Items.Catalog = {
-	Mower = {
-		{
-			id = "ReelMower",
-			name = "Reel Push Mower",
-			price = 0,
-			power = 3,
-			radius = 2.5,
-			walkSpeed = 12,
-			motorized = false,
-			color = Color3.fromRGB(120, 120, 120),
-			description = "No motor. It only cuts while you keep pushing.",
-		},
-		{
-			id = "GasPushMower",
-			name = "Gas Push Mower",
-			price = 750,
-			power = 5,
-			radius = 3.5,
-			walkSpeed = 14,
-			motorized = true,
-			color = Color3.fromRGB(200, 40, 40),
-			description = "A real engine. Cuts even when you stop.",
-		},
-		{
-			id = "SelfPropelledMower",
-			name = "Self-Propelled Mower",
-			price = 3000,
-			power = 6,
-			radius = 4,
-			walkSpeed = 18,
-			motorized = true,
-			color = Color3.fromRGB(40, 120, 200),
-			description = "Drives itself forward so you can walk faster.",
-		},
-		{
-			id = "RidingMower",
-			name = "Riding Mower",
-			price = 12000,
-			power = 8,
-			radius = 6,
-			walkSpeed = 24,
-			motorized = true,
-			ride = { seat = Vector3.new(0, -0.9, 1.2) },
-			color = Color3.fromRGB(40, 150, 60),
-			description = "Sit down and mow big lawns quickly.",
-		},
-		{
-			id = "ZeroTurnMower",
-			name = "Zero-Turn Mower",
-			price = 40000,
-			power = 12,
-			radius = 8,
-			walkSpeed = 32,
-			motorized = true,
-			ride = { seat = Vector3.new(0, -0.6, 1) },
-			color = Color3.fromRGB(240, 160, 20),
-			description = "What the pros use. Very fast, very wide.",
-		},
-	},
-
-	Trimmer = {
-		{
-			id = "GardenShears",
-			name = "Garden Shears",
-			price = 100,
-			power = 1,
-			radius = 3,
-			color = Color3.fromRGB(150, 150, 150),
-			description = "Snip snip. Slow, but it gets the weeds.",
-		},
-		{
-			id = "ElectricTrimmer",
-			name = "Electric String Trimmer",
-			price = 400,
-			power = 2,
-			radius = 4,
-			color = Color3.fromRGB(60, 160, 220),
-			description = "A corded weed whacker.",
-		},
-		{
-			id = "GasTrimmer",
-			name = "Gas String Trimmer",
-			price = 2000,
-			power = 4,
-			radius = 5,
-			color = Color3.fromRGB(230, 120, 30),
-			description = "More power, no cord.",
-		},
-		{
-			id = "Brushcutter",
-			name = "Pro Brushcutter",
-			price = 8000,
-			power = 7,
-			radius = 7,
-			color = Color3.fromRGB(200, 30, 30),
-			description = "Tears through anything.",
-		},
-	},
-
-	Rake = {
-		{
-			id = "OldRake",
-			name = "Old Rake",
-			price = 60,
-			power = 1,
-			radius = 4,
-			color = Color3.fromRGB(140, 100, 60),
-			description = "A few teeth are missing.",
-		},
-		{
-			id = "WideRake",
-			name = "Wide Rake",
-			price = 300,
-			power = 1.6,
-			radius = 5,
-			color = Color3.fromRGB(60, 140, 60),
-			description = "Gathers more leaves per pull.",
-		},
-		{
-			id = "LeafBlower",
-			name = "Leaf Blower",
-			price = 1800,
-			power = 3,
-			radius = 8,
-			color = Color3.fromRGB(230, 120, 30),
-			description = "Loud and effective.",
-		},
-		{
-			id = "BackpackBlower",
-			name = "Backpack Blower",
-			price = 7000,
-			power = 5,
-			radius = 12,
-			color = Color3.fromRGB(200, 30, 30),
-			description = "Clears a yard in seconds.",
-		},
-	},
-
-	Edger = {
-		{
-			id = "HalfMoonEdger",
-			name = "Half-Moon Edger",
-			price = 120,
-			power = 1,
-			radius = 3,
-			color = Color3.fromRGB(130, 130, 130),
-			description = "A sharp metal blade on a stick.",
-		},
-		{
-			id = "ElectricEdger",
-			name = "Electric Edger",
-			price = 450,
-			power = 2,
-			radius = 4,
-			color = Color3.fromRGB(60, 160, 220),
-			description = "Clean lines with less effort.",
-		},
-		{
-			id = "GasStickEdger",
-			name = "Gas Stick Edger",
-			price = 2200,
-			power = 3.5,
-			radius = 5,
-			color = Color3.fromRGB(230, 120, 30),
-			description = "Fast and precise.",
-		},
-		{
-			id = "WalkBehindEdger",
-			name = "Walk-Behind Edger",
-			price = 8500,
-			power = 6,
-			radius = 6,
-			color = Color3.fromRGB(200, 30, 30),
-			description = "Perfect edges at walking speed.",
-		},
-	},
-
-	HedgeTrimmer = {
-		{
-			id = "HandHedgeShears",
-			name = "Hand Hedge Shears",
-			price = 150,
-			power = 1,
-			radius = 5,
-			color = Color3.fromRGB(150, 150, 150),
-			description = "Big scissors for big bushes.",
-		},
-		{
-			id = "ElectricHedgeTrimmer",
-			name = "Electric Hedge Trimmer",
-			price = 400,
-			power = 2,
-			radius = 6,
-			color = Color3.fromRGB(60, 160, 220),
-			description = "Buzzes through hedges.",
-		},
-		{
-			id = "CordlessHedgeTrimmer",
-			name = "Cordless Hedge Trimmer",
-			price = 2000,
-			power = 3.5,
-			radius = 7,
-			color = Color3.fromRGB(230, 120, 30),
-			description = "Battery powered, longer reach.",
-		},
-		{
-			id = "GasHedgeTrimmer",
-			name = "Gas Hedge Trimmer",
-			price = 8000,
-			power = 6,
-			radius = 8,
-			color = Color3.fromRGB(200, 30, 30),
-			description = "Shapes hedges in a few passes.",
-		},
-	},
-
 	Truck = {
 		{
 			id = "RustyPickup",
@@ -339,12 +118,17 @@ Items.Catalog = {
 	},
 }
 
+-- Tool tabs come straight from Tools.luau.
+for _, category in Items.ToolCategories do
+	Items.Catalog[category] = Tools.inCategory(category)
+end
+
 local byId = {}
 for category, list in Items.Catalog do
 	byId[category] = {}
 	for index, item in list do
 		item.category = category
-		item.tier = index
+		item.rank = index
 		byId[category][item.id] = item
 	end
 end

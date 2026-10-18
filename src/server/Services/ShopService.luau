@@ -45,7 +45,7 @@ function ShopService:Buy(player: Player, category: string, itemId: string): (boo
 		return false, "Fill up your truck bed to unlock trailers."
 	end
 	if category == "Business" then
-		local previous = Items.Catalog.Business[item.tier - 1]
+		local previous = Items.Catalog.Business[item.rank - 1]
 		if previous and not data.owned.Business[previous.id] then
 			return false, `Upgrade to the {previous.name} first.`
 		end
@@ -77,7 +77,7 @@ function ShopService:Equip(player: Player, category: string, itemId: string): (b
 	end
 	if category == "Business" then
 		local current = Items.get("Business", data.equipped.Business)
-		if current and current.tier > item.tier then
+		if current and current.rank > item.rank then
 			return false, "Your business is already bigger than that."
 		end
 	end

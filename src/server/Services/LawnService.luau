@@ -22,8 +22,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Assets = require(Shared.Assets)
 local GameConfig = require(Shared.Config.GameConfig)
-local Jobs = require(Shared.Config.Jobs)
 local LawnGrid = require(Shared.LawnGrid)
+local TaskTypes = require(Shared.Config.TaskTypes)
 
 local COLORS = {
 	Turf = Color3.fromRGB(70, 125, 45),
@@ -107,9 +107,10 @@ local function shrink(target, scale: Vector3)
 	Assets.standOn(target.part, target.ground, target.startSize * scale)
 end
 
--- How each kind of target looks as it gets worked on. `fraction` goes from 0 (untouched) to 1 (done).
+-- How each kind of yard target looks as it gets worked on. `fraction` goes from 0 (untouched)
+-- to 1 (done). The kinds match TaskTypes' `target` field.
 local VISUALS = {
-	Mow = function(target, fraction: number)
+	Grass = function(target, fraction: number)
 		if fraction >= 1 then
 			target.lawn:_setGrass(target.index, LawnGrid.MOWED)
 		end
@@ -124,7 +125,7 @@ local VISUALS = {
 		end
 	end,
 
-	Weeds = function(target, fraction: number)
+	Weed = function(target, fraction: number)
 		if fraction >= 1 then
 			target.part:Destroy()
 		else
@@ -133,7 +134,7 @@ local VISUALS = {
 	end,
 
 	-- Raked piles shrink, then get bagged up.
-	Leaves = function(target, fraction: number)
+	LeafPile = function(target, fraction: number)
 		if fraction < 1 then
 			shrink(target, Vector3.one * (1 - fraction * 0.8))
 			return
@@ -154,16 +155,17 @@ local VISUALS = {
 	end,
 }
 
-function Lawn:_addTarget(taskName: string, part: BasePart?, position: Vector3, reach: number, extra)
-	local work = Jobs.TaskInfo[taskName].workPerTarget
+function Lawn:_addTarget(task, part: BasePart?, position: Vector3, reach: number, extra)
+	local work = task.type.workPerTarget
 	local target = extra or {}
+	target.kind = task.type.target
 	target.part = part
 	target.position = position
 	target.reach = reach
 	target.work = work
 	target.maxWork = work
-	table.insert(self.targets[taskName], target)
-	self.totals[taskName] += 1
+	table.insert(task.targets, target)
+	task.total += 1
 	return target
 end
 
@@ -334,7 +336,8 @@ local function nearHazard(hazardTiles, column: number, row: number, distance: nu
 end
 
 -- Grass tiles are only data here. The "Grass" folder tells clients what to draw.
-function Lawn:_buildGrass(hazardTiles)
+-- Without a mowing task the lawn is already mown and there's nothing to do on it.
+function Lawn:_buildGrass(task, hazardTiles)
 	local tile = GameConfig.TileSize
 	self.grassState = {}
 
@@ -345,16 +348,20 @@ function Lawn:_buildGrass(hazardTiles)
 				self.grassState[index] = LawnGrid.EMPTY
 				continue
 			end
+			if not task then
+				self.grassState[index] = LawnGrid.MOWED
+				continue
+			end
 			self.grassState[index] = LawnGrid.TALL
 			-- Grass right next to flowers doesn't count against you if you leave it.
 			local optional = nearHazard(hazardTiles, column, row, 1)
-			self:_addTarget("Mow", nil, LawnGrid.center(self.origin, tile, column, row), tile * 0.35, {
+			self:_addTarget(task, nil, LawnGrid.center(self.origin, tile, column, row), tile * 0.35, {
 				lawn = self,
 				index = index,
 				optional = optional,
 			})
 			if optional then
-				self.optional.Mow += 1
+				task.optional += 1
 			end
 		end
 	end
@@ -422,7 +429,7 @@ end
 
 -- A concrete curb along the sidewalk and driveway, with overgrown grass flopping over it that
 -- the edger cuts back.
-function Lawn:_buildEdges()
+function Lawn:_buildEdges(task)
 	local tile = GameConfig.TileSize
 	local origin = self.origin
 	local edges = Instance.new("Folder")
@@ -457,7 +464,7 @@ function Lawn:_buildEdges()
 				then Vector3.new(tile, strip.Size.Y * 0.8, strip.Size.Z * 1.2)
 				else Vector3.new(tile, 0.8, 1)
 			Assets.standOn(strip, ground, size)
-			self:_addTarget("Edge", strip, center, 1, { ground = ground, startSize = size })
+			self:_addTarget(task, strip, center, 1, { ground = ground, startSize = size })
 		end
 	end
 
@@ -466,7 +473,7 @@ function Lawn:_buildEdges()
 	edgeRun(origin + Vector3.new(self.width + 0.3, 0, 0), Vector3.zAxis, self.depth, self.rows)
 end
 
-function Lawn:_buildHedges(rng: Random, count: number)
+function Lawn:_buildHedges(task, rng: Random, count: number)
 	local origin = self.origin
 	local hedges = Instance.new("Folder")
 	hedges.Name = "Hedges"
@@ -497,7 +504,7 @@ function Lawn:_buildHedges(rng: Random, count: number)
 			part.CanCollide = true
 		end
 		Assets.standOn(part, ground, startSize)
-		self:_addTarget("Hedge", part, ground.Position, 2.5, {
+		self:_addTarget(task, part, ground.Position, 2.5, {
 			ground = ground,
 			startSize = startSize,
 			trimmedSize = Vector3.new(4, 3.5, 2.5),
@@ -506,7 +513,7 @@ function Lawn:_buildHedges(rng: Random, count: number)
 	end
 end
 
-function Lawn:_buildWeeds(rng: Random, count: number)
+function Lawn:_buildWeeds(task, rng: Random, count: number)
 	local origin = self.origin
 	local weeds = Instance.new("Folder")
 	weeds.Name = "Weeds"
@@ -535,11 +542,11 @@ function Lawn:_buildWeeds(rng: Random, count: number)
 		local size = if isKit then part.Size * rng:NextNumber(1.6, 2.2) else Vector3.new(1, rng:NextNumber(1.6, 2.6), 1)
 		Assets.standOn(part, ground, size)
 		part:SetAttribute("OriginalSize", size)
-		self:_addTarget("Weeds", part, base, 0.5, { ground = ground, startSize = size })
+		self:_addTarget(task, part, base, 0.5, { ground = ground, startSize = size })
 	end
 end
 
-function Lawn:_buildLeaves(rng: Random, count: number)
+function Lawn:_buildLeaves(task, rng: Random, count: number)
 	local origin = self.origin
 	local leaves = Instance.new("Folder")
 	leaves.Name = "Leaves"
@@ -561,7 +568,7 @@ function Lawn:_buildLeaves(rng: Random, count: number)
 		end
 		local startSize = Vector3.new(rng:NextNumber(3, 4.5), rng:NextNumber(0.8, 1.4), rng:NextNumber(3, 4.5))
 		Assets.standOn(part, ground, startSize)
-		self:_addTarget("Leaves", part, base, 1.5, { ground = ground, startSize = startSize })
+		self:_addTarget(task, part, base, 1.5, { ground = ground, startSize = startSize })
 	end
 end
 
@@ -571,6 +578,7 @@ end
 function LawnService:Build(template, origin: Vector3, address: string)
 	local rng = Random.new()
 	local tile = GameConfig.TileSize
+	local layout = template.lawn
 
 	local folder = Instance.new("Model")
 	folder.Name = "JobSite"
@@ -579,33 +587,50 @@ function LawnService:Build(template, origin: Vector3, address: string)
 		folder = folder,
 		origin = origin,
 		address = address,
-		columns = template.columns,
-		rows = template.rows,
-		width = template.columns * tile,
-		depth = template.rows * tile,
-		targets = {},
-		totals = {},
-		done = {},
-		optional = {},
+		columns = layout.columns,
+		rows = layout.rows,
+		width = layout.columns * tile,
+		depth = layout.rows * tile,
+		-- One entry per task in the job, in the customer's order.
+		tasks = {},
 		hazards = {},
 	}, Lawn)
-	for _, taskName in Jobs.TaskOrder do
-		lawn.targets[taskName] = {}
-		lawn.totals[taskName] = 0
-		lawn.done[taskName] = 0
-		lawn.optional[taskName] = 0
+
+	-- Which task each kind of yard target belongs to (one task per kind).
+	local byTarget = {}
+	for _, entry in template.tasks do
+		local taskType = TaskTypes.get(entry.type)
+		local task = {
+			id = entry.type,
+			type = taskType,
+			amount = entry.amount or 0,
+			targets = {},
+			total = 0,
+			done = 0,
+			optional = 0,
+		}
+		table.insert(lawn.tasks, task)
+		if taskType.target and not byTarget[taskType.target] then
+			byTarget[taskType.target] = task
+		end
 	end
 
-	local hazardTiles = lawn:_pickHazardTiles(rng, template.flowerPatches)
+	local hazardTiles = lawn:_pickHazardTiles(rng, layout.flowerPatches)
 	lawn:_buildGround()
-	lawn:_buildGrass(hazardTiles)
+	lawn:_buildGrass(byTarget.Grass, hazardTiles)
 	lawn:_buildHazards(rng, hazardTiles)
-	if template.edging then
-		lawn:_buildEdges()
+	if byTarget.Edge then
+		lawn:_buildEdges(byTarget.Edge)
 	end
-	lawn:_buildHedges(rng, template.hedges)
-	lawn:_buildWeeds(rng, template.weeds)
-	lawn:_buildLeaves(rng, template.leafPiles)
+	if byTarget.Hedge then
+		lawn:_buildHedges(byTarget.Hedge, rng, byTarget.Hedge.amount)
+	end
+	if byTarget.Weed then
+		lawn:_buildWeeds(byTarget.Weed, rng, byTarget.Weed.amount)
+	end
+	if byTarget.LeafPile then
+		lawn:_buildLeaves(byTarget.LeafPile, rng, byTarget.LeafPile.amount)
+	end
 	lawn:_buildDecor(rng)
 
 	-- The truck parks on the road facing along the curb; the crew hops out onto the sidewalk.
@@ -619,28 +644,47 @@ function LawnService:Build(template, origin: Vector3, address: string)
 	return lawn
 end
 
--- Applies `amount` of work to every target of `taskName` within `radius` of `position`.
--- Returns true if anything changed.
-function Lawn:ApplyWork(position: Vector3, radius: number, taskName: string, amount: number): boolean
-	local targets = self.targets[taskName]
-	if not targets then
-		return false
-	end
+export type WorkResult = {
+	-- Something got worked on.
+	changed: boolean,
+	-- There was unfinished work in reach that this tool can't do.
+	blocked: boolean,
+	-- Work done, and the same work weighted by tool fit (for pay) and by finish quality.
+	work: number,
+	fitWork: number,
+	qualityWork: number,
+}
 
-	local visual = VISUALS[taskName]
-	local changed = false
-	for _, target in targets do
-		if target.work > 0 then
-			local offset = target.position - position
-			local flatDistance = Vector2.new(offset.X, offset.Z).Magnitude
-			if flatDistance <= radius + target.reach then
-				target.work = math.max(0, target.work - amount)
-				visual(target, 1 - target.work / target.maxWork)
-				if target.work == 0 then
-					self.done[taskName] += 1
-				end
-				changed = true
+-- Uses tool `toolId` on everything within `radius` of `position` that it can work on. `amount`
+-- is the work a perfectly fitting tool would do this tick; worse fits do less.
+function Lawn:ApplyWork(position: Vector3, radius: number, toolId: string, amount: number): WorkResult
+	local result = { changed = false, blocked = false, work = 0, fitWork = 0, qualityWork = 0 }
+
+	for _, task in self.tasks do
+		local fit = TaskTypes.fit(task.id, toolId)
+		for _, target in task.targets do
+			if target.work <= 0 then
+				continue
 			end
+			local offset = target.position - position
+			if Vector2.new(offset.X, offset.Z).Magnitude > radius + target.reach then
+				continue
+			end
+			if not fit then
+				result.blocked = true
+				break
+			end
+			local applied = math.min(target.work, amount * fit.speed)
+			target.work -= applied
+			VISUALS[target.kind](target, 1 - target.work / target.maxWork)
+			if target.work <= 0 then
+				target.work = 0
+				task.done += 1
+			end
+			result.changed = true
+			result.work += applied
+			result.fitWork += applied * fit.pay
+			result.qualityWork += applied * fit.quality
 		end
 	end
 
@@ -649,7 +693,7 @@ function Lawn:ApplyWork(position: Vector3, radius: number, taskName: string, amo
 		self.grassDirty = false
 		self.grassFolder:SetAttribute("State", table.concat(self.grassState))
 	end
-	return changed
+	return result
 end
 
 -- Wrecks any flower patch or gnome within `radius` of `position`. Returns the ones that just got hit.
@@ -669,30 +713,29 @@ function Lawn:CheckHazards(position: Vector3, radius: number)
 end
 
 -- The number of targets that must be done for a task to count as finished.
-function Lawn:Needed(taskName: string): number
-	return math.ceil((self.totals[taskName] - self.optional[taskName]) * GameConfig.CompletionThreshold)
+local function needed(task): number
+	return math.ceil((task.total - task.optional) * GameConfig.CompletionThreshold)
 end
 
 function Lawn:IsComplete(): boolean
-	for _, taskName in Jobs.TaskOrder do
-		if self.done[taskName] < self:Needed(taskName) then
+	for _, task in self.tasks do
+		if task.done < needed(task) then
 			return false
 		end
 	end
 	return true
 end
 
--- Progress for the HUD: { { task = "Mow", label = "...", done = 10, needed = 29 }, ... }
+-- Progress for the HUD: { { task = "MowSmallLawn", label = "Mow the lawn", done = 10, needed = 29 }, ... }
 function Lawn:GetProgress()
 	local progress = {}
-	for _, taskName in Jobs.TaskOrder do
-		if self.totals[taskName] > 0 then
+	for _, task in self.tasks do
+		if task.total > 0 then
 			table.insert(progress, {
-				task = taskName,
-				label = Jobs.TaskInfo[taskName].label,
-				tool = Jobs.TaskInfo[taskName].tool,
-				done = math.min(self.done[taskName], self:Needed(taskName)),
-				needed = self:Needed(taskName),
+				task = task.id,
+				label = task.type.label,
+				done = math.min(task.done, needed(task)),
+				needed = needed(task),
 			})
 		end
 	end
