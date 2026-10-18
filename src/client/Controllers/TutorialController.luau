@@ -16,7 +16,7 @@ local function step(job): string
 	elseif job.state == "Ready" then
 		return "Read what the customer wants. Not sure what a tool is for? Tap Guide. Look at a tool in "
 			.. "storage and press E (or tap the button) to take it, set it down in the truck bed, then look "
-			.. "at the truck and drive."
+			.. "at the truck's driver door and get in."
 	elseif job.state == "Traveling" then
 		return "On the way to the customer's house..."
 	elseif job.state == "Working" then

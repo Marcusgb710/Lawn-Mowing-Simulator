@@ -329,7 +329,21 @@ local function sendHome(job, players: { Player })
 			table.insert(going, player)
 		end
 	end
-	local leader = job.party and job.party.leader
+	-- The truck that pulled out comes back with its owner (or, if they're gone, with nobody).
+	local owner = job.truckOwner
+	local ownerGoing = owner ~= nil and table.find(going, owner) ~= nil
+	if not job.tripStarted then
+		-- Called off while the truck was still pulling out: everyone just gets back out, and the
+		-- truck's back at the door.
+		for _, player in going do
+			setFrozen(player, false)
+			Net.event("PullOutCancelled"):FireClient(player)
+		end
+		if owner and (ownerGoing or #job.members == 0) then
+			WorldService:ReturnTruck(owner, true)
+		end
+		return
+	end
 	travel(going, {
 		direction = "ToBusiness",
 		title = "Heading back to the shop",
@@ -339,9 +353,9 @@ local function sendHome(job, players: { Player })
 	}, function(index, player)
 		return WorldService:GetHomeCFrame(player, index)
 	end, function()
-		-- Back at the business: the truck's tailgate comes down for unloading.
-		if leader and table.find(going, leader) then
-			WorldService:SetTruckOpen(leader, true)
+		-- Back at the business: the truck pulls back in and drops its tailgate for unloading.
+		if owner and ownerGoing then
+			WorldService:ReturnTruck(owner)
 		end
 	end)
 end
@@ -365,11 +379,26 @@ local function startDriving(job)
 	readyJobs[party] = nil
 	activeJobs[job] = true
 	job.state = "Traveling"
-	WorldService:SetTruckOpen(party.leader, false)
+	-- The leader is always first, so they're in the driver's seat.
 	job.members = table.clone(party.members)
 	for _, member in job.members do
 		playerJobs[member] = job
 		JobService.PlayerStateChanged:Fire(member)
+	end
+	-- Everyone gets in: the tailgate shuts, the driver's door opens and closes, and the truck
+	-- pulls out of the driveway (each crew member watches from their seat) before the trip. It's
+	-- the leader's truck, and it comes back with them (see sendHome).
+	local plotTruck = WorldService:GetPlotTruck(party.leader)
+	job.truckOwner = party.leader
+	WorldService:SetTruckOpen(party.leader, false)
+	WorldService:PullOut(party.leader)
+	for seat, member in job.members do
+		setFrozen(member, true)
+		Net.event("PullingOut"):FireClient(member, {
+			truck = plotTruck,
+			seat = seat,
+			duration = GameConfig.PullOutTime,
+		})
 	end
 
 	local leaderData = DataService:Get(party.leader)
@@ -397,6 +426,12 @@ local function startDriving(job)
 	job.lawn.folder.Parent = sitesFolder
 
 	sendUpdate(job)
+	task.wait(GameConfig.PullOutTime)
+	if not (activeJobs[job] and job.state == "Traveling") then
+		-- Everyone already got back out (see sendHome).
+		return
+	end
+	job.tripStarted = true
 	travel(job.members, {
 		direction = "ToJob",
 		title = job.offer.name,
@@ -581,7 +616,7 @@ function JobService:AcceptJob(player: Player, offerId: string): (boolean, string
 		return false, "Take jobs at the computer in your shop."
 	end
 	if readyJobs[party] then
-		return false, "You already have a job. Hop in the truck!"
+		return false, "You already have a job. Get in at the truck's driver door!"
 	end
 	for _, member in party.members do
 		if playerJobs[member] or traveling[member] then
@@ -628,7 +663,7 @@ function JobService:AcceptJob(player: Player, offerId: string): (boolean, string
 	}
 	readyJobs[party] = job
 	sendUpdate(job)
-	return true, "Job accepted! Load the tools you think you'll need, then hop in the truck."
+	return true, "Job accepted! Load the tools you think you'll need, then get in at the truck's driver door."
 end
 
 function JobService:Abandon(player: Player)
@@ -711,7 +746,8 @@ function JobService:Start()
 		elseif leader ~= player then
 			return false, `Waiting for {leader.DisplayName} to start the truck.`
 		end
-		startDriving(job)
+		-- The pull-out takes a few seconds; don't keep the client waiting.
+		task.spawn(startDriving, job)
 		return true, nil
 	end
 
@@ -763,6 +799,10 @@ function JobService:Start()
 			local job = playerJobs[player]
 			if traveling[player] then
 				return
+			elseif job and not job.tripStarted then
+				-- Respawned in the truck as it pulls out: still in their seat.
+				task.wait()
+				setFrozen(player, true)
 			elseif job and job.lawn then
 				-- Respawned mid-job: put them back at the house.
 				task.wait()

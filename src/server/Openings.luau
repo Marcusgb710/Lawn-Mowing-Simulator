@@ -5,9 +5,11 @@
 --   EquipmentTrailer__Ramp  swings down the same way until its end reaches the ground (also
 --   LandscapeTrailer__RampDoor)
 --   <Id>__RearDoor          a box truck's back door: rolls up
--- Openings.set(model, true) opens every one of them in a model, Openings.set(model, false)
--- closes them again. Building doors (<Id>__Door, <Id>__GarageDoor) are modelled open and stay
--- as they are.
+--   <Id>__DriverDoor        the driver's door (on the left): swings open about its own Y axis,
+--                           its pivot on the hinge; <Id>__DriverDoorGlass swings with it
+-- Openings.set(model, true) opens the tailgates, ramps and rear doors in a model,
+-- Openings.set(model, false) closes them again; pass a kind ("DriverDoor") for just that.
+-- Building doors (<Id>__Door, <Id>__GarageDoor) are modelled open and stay as they are.
 
 local TweenService = game:GetService("TweenService")
 
@@ -18,8 +20,12 @@ local SUFFIXES = {
 	__Ramp = "Ramp",
 	__RampDoor = "Ramp",
 	__RearDoor = "RollUp",
+	__DriverDoor = "DriverDoor",
+	__DriverDoorGlass = "DriverDoor",
 }
 local TAILGATE_ANGLE = math.rad(90)
+-- The driver's door swings out this far (it's on the left, so its back edge goes to -X).
+local DRIVER_DOOR_ANGLE = math.rad(-70)
 -- A ramp swings at least this far and at most this far (it stops on the ground in between).
 local RAMP_MIN, RAMP_MAX = math.rad(90), math.rad(165)
 -- How much of its height a roll-up door rises.
@@ -29,7 +35,8 @@ type Opening = {
 	part: BasePart,
 	kind: string,
 	closed: CFrame, -- the part's pivot when closed, relative to the model's pivot
-	angle: number, -- how far it swings down (tailgates and ramps)
+	hinge: CFrame, -- what it turns about, relative to the model's pivot
+	angle: number, -- how far it swings (tailgates and ramps about X, doors about Y)
 	rise: number, -- how far it rolls up (roll-up doors)
 	amount: number, -- how open it is now, 0-1
 	tween: Tween?,
@@ -64,13 +71,14 @@ local function extents(part: BasePart, frame: CFrame): (Vector3, Vector3)
 	return low, high
 end
 
-local function describe(model: Model, part: BasePart, kind: string): Opening
+local function describe(model: Model, part: BasePart, kind: string, hinge: CFrame?): Opening
 	local pivot = part:GetPivot()
 	local low, high = extents(part, pivot)
 	local opening: Opening = {
 		part = part,
 		kind = kind,
 		closed = model:GetPivot():ToObjectSpace(pivot),
+		hinge = model:GetPivot():ToObjectSpace(hinge or pivot),
 		angle = 0,
 		rise = 0,
 		amount = 0,
@@ -86,6 +94,8 @@ local function describe(model: Model, part: BasePart, kind: string): Opening
 		opening.angle = math.clamp(math.acos(math.clamp(-height / length, -1, 1)), RAMP_MIN, RAMP_MAX)
 	elseif kind == "RollUp" then
 		opening.rise = (high.Y - low.Y) * ROLL_UP
+	elseif kind == "DriverDoor" then
+		opening.angle = DRIVER_DOOR_ANGLE
 	end
 	return opening
 end
@@ -96,11 +106,22 @@ local function openingsOf(model: Model): { Opening }
 		return cached
 	end
 	local list = {}
+	-- A door's glass turns about the door's hinge, so they stay together.
+	local doorHinge = {}
+	for _, descendant in model:GetDescendants() do
+		if descendant:IsA("BasePart") and string.sub(descendant.Name, -12) == "__DriverDoor" then
+			doorHinge[string.sub(descendant.Name, 1, -13)] = descendant:GetPivot()
+		end
+	end
 	for _, descendant in model:GetDescendants() do
 		if descendant:IsA("BasePart") then
 			local kind = Openings.kindOf(descendant.Name)
 			if kind then
-				table.insert(list, describe(model, descendant, kind))
+				local hinge = nil
+				if string.sub(descendant.Name, -17) == "__DriverDoorGlass" then
+					hinge = doorHinge[string.sub(descendant.Name, 1, -18)]
+				end
+				table.insert(list, describe(model, descendant, kind, hinge))
 			end
 		end
 	end
@@ -115,7 +136,11 @@ local function pose(model: Model, opening: Opening, amount: number)
 	if opening.kind == "RollUp" then
 		target = closed + closed.UpVector * (opening.rise * amount)
 	else
-		target = closed * CFrame.Angles(opening.angle * amount, 0, 0)
+		local hinge = model:GetPivot() * opening.hinge
+		local turn = if opening.kind == "DriverDoor"
+			then CFrame.Angles(0, opening.angle * amount, 0)
+			else CFrame.Angles(opening.angle * amount, 0, 0)
+		target = hinge * turn * hinge:ToObjectSpace(closed)
 	end
 	opening.part:PivotTo(target)
 end
@@ -125,10 +150,14 @@ function Openings.has(model: Model): boolean
 	return #openingsOf(model) > 0
 end
 
--- Opens (or closes) everything in `model` that opens, over `seconds` (at once if 0 or nil).
-function Openings.set(model: Model, open: boolean, seconds: number?)
+-- Opens (or closes) the tailgates, ramps and rear doors in `model` (or only the openings of
+-- `kind`), over `seconds` (at once if 0 or nil).
+function Openings.set(model: Model, open: boolean, seconds: number?, kind: string?)
 	local goal = if open then 1 else 0
 	for _, opening in openingsOf(model) do
+		if (kind and opening.kind ~= kind) or (not kind and opening.kind == "DriverDoor") then
+			continue
+		end
 		if opening.tween then
 			opening.tween:Cancel()
 			opening.tween = nil

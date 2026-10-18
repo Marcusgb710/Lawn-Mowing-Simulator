@@ -192,6 +192,27 @@ function Placeholders.truck(itemId: string): Model
 		Color = Color3.fromRGB(150, 200, 230),
 		Transparency = 0.3,
 	})
+	-- The driver's door on the left, hinged at its front edge like the real models
+	-- (alphainstructions/instructions25.md), and where the driver's eyes are.
+	local door = add({
+		Name = itemId .. "__DriverDoor",
+		Size = Vector3.new(0.15, 2.6, 3),
+		Position = Vector3.new(-3.6, 3.6, -2.5),
+		Color = item.color:Lerp(Color3.new(1, 1, 1), 0.1),
+	})
+	door.PivotOffset = CFrame.new(0, 0, -1.5)
+	local glass = add({
+		Name = itemId .. "__DriverDoorGlass",
+		Size = Vector3.new(0.1, 1.4, 2.6),
+		Position = Vector3.new(-3.6, 5.6, -2.5),
+		Color = Color3.fromRGB(150, 200, 230),
+		Transparency = 0.4,
+	})
+	glass.PivotOffset = CFrame.new(0, 0, -1.3)
+	local seat = Instance.new("Attachment")
+	seat.Name = "DriverSeat"
+	seat.Parent = base
+	seat.WorldCFrame = CFrame.new(-1.6, 5.2, -2.2)
 
 	if itemId == "LandscapingTruck" then
 		add({ Name = "Box", Size = Vector3.new(7.4, 6, 8), Position = Vector3.new(0, 5.1, 4), Color = item.color })
@@ -199,7 +220,14 @@ function Placeholders.truck(itemId: string): Model
 		local bedColor = item.color:Lerp(Color3.new(0, 0, 0), 0.2)
 		add({ Name = "BedLeft", Size = Vector3.new(0.4, 2, 8), Position = Vector3.new(-3.3, 3.1, 4), Color = bedColor })
 		add({ Name = "BedRight", Size = Vector3.new(0.4, 2, 8), Position = Vector3.new(3.3, 3.1, 4), Color = bedColor })
-		add({ Name = "Tailgate", Size = Vector3.new(7, 2, 0.4), Position = Vector3.new(0, 3.1, 7.8), Color = bedColor })
+		local tailgate = add({
+			Name = itemId .. "__Tailgate",
+			Size = Vector3.new(7, 2, 0.4),
+			Position = Vector3.new(0, 3.1, 7.8),
+			Color = bedColor,
+		})
+		-- Hinged at its bottom edge.
+		tailgate.PivotOffset = CFrame.new(0, -1, 0)
 	end
 
 	bedArea(model, Vector3.new(6, 0.2, 7.6), Vector3.new(0, 2.2, 4), item.space)

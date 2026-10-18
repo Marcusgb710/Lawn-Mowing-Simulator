@@ -6,6 +6,8 @@ local GameConfig = {
 
 	-- How long the truck "drive" cutscene lasts, in seconds.
 	TravelTime = 6,
+	-- Before it, the crew gets in and the truck pulls out of the driveway, for this many seconds.
+	PullOutTime = 3.5,
 	-- How long the crew stays at the house after finishing before driving back.
 	ReturnDelay = 5,
 

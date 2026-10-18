@@ -24,11 +24,12 @@
 --   DeliverySpot   where delivered boxes appear, just inside the door
 -- Anything a building has no attachments for (older models, placeholders) is laid out outdoors:
 --
--- Outdoor layout, in the plot's own space (the street is toward -Z, the building's front at z = 14):
---   right edge, x = 29    pegboards (two high), then wall racks, running toward the street
---   left edge, x = -29    wall hooks, then shelves
---   middle, z = 4         floor spots on the right, equipment bays on the left
---   z = -7, x = 8         tools without a spot
+-- Outdoor layout, in the plot's own space (the street is toward -Z, the building at the back,
+-- the driveway down the middle and the front lawn on the left, see WorldService):
+--   right edge, x = 42    pegboards (two high), then wall racks, running toward the street
+--   left edge, x = -42    wall hooks, then shelves
+--   right side            floor spots (z = -2), then equipment bays (z = -14)
+--   z = -26, x = 14       tools without a spot
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -51,13 +52,13 @@ local WALL_HEIGHT = 10
 -- Each wall runs from near the building toward the street. `frame` stands on the wall's first
 -- end and faces into the plot; `run` is which way along the wall (its X) the fixtures go.
 local WALLS = {
-	{ frame = CFrame.new(29, 0, 13) * CFrame.Angles(0, math.pi / 2, 0), run = 1, spots = { "Pegboard", "WallRack" } },
-	{ frame = CFrame.new(-29, 0, 13) * CFrame.Angles(0, -math.pi / 2, 0), run = -1, spots = { "WallHooks", "Shelf" } },
+	{ frame = CFrame.new(42, 0, 10) * CFrame.Angles(0, math.pi / 2, 0), run = 1, spots = { "Pegboard", "WallRack" } },
+	{ frame = CFrame.new(-42, 0, 10) * CFrame.Angles(0, -math.pi / 2, 0), run = -1, spots = { "WallHooks", "Shelf" } },
 }
 
-local FLOOR_ROW = { start = Vector3.new(25, 0, 4), step = Vector3.new(-3.9, 0, 0), size = Vector3.new(3.6, 0.1, 4.4) }
-local BAY_ROW = { start = Vector3.new(-24, 0, 4), step = Vector3.new(6.2, 0, 0), size = Vector3.new(5.6, 0.1, 8) }
-local OVERFLOW = CFrame.new(8, 0, -7)
+local FLOOR_ROW = { start = Vector3.new(36, 0, -2), step = Vector3.new(-3.9, 0, 0), size = Vector3.new(3.6, 0.1, 4.4) }
+local BAY_ROW = { start = Vector3.new(36, 0, -14), step = Vector3.new(-6.2, 0, 0), size = Vector3.new(5.6, 0.1, 8) }
+local OVERFLOW = CFrame.new(14, 0, -26)
 local WALL_SPOTS = { "Pegboard", "WallRack", "WallHooks", "Shelf" }
 
 export type Markers = {
