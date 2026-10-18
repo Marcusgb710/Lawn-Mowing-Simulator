@@ -54,6 +54,13 @@ Last updated: 2026-10-18
 Everything below still uses a block placeholder. Name each model after its id and drop it in the
 matching `assets/` folder (see the README section *Swapping in real models*).
 
+ChatGPT, connected to Studio, builds these from the specs in `alphainstructions/instructions1.md`
+to `instructions9.md`, most important first. It puts the models straight into
+`ReplicatedStorage.Assets` in the Team Create place.
+
+- [ ] Once they're built, export them into `assets/` so they're in git too. Save a local copy of
+      the place, then write a Lune export like `scripts/export-kit.luau`.
+
 | Folder | Still a placeholder | Kit stand-in you could use |
 | --- | --- | --- |
 | `Tools` (Mower) | `ReelMower` (the starter tool), `SelfPropelledMower` | Push mower for `SelfPropelledMower` |
