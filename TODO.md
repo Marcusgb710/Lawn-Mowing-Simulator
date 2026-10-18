@@ -77,26 +77,27 @@ Import** (as Big Dink Studios), then use them as MaterialVariants or Textures on
 
 ## Code work to use the rest of the kit
 
-The rest of the kit is in `ReplicatedStorage.Assets.Kit`, but nothing uses it yet. These need
-changes in `src/server/Services/LawnService.luau`:
+Yards (`src/server/Services/LawnService.luau`) now use the kit, falling back to blocks if
+`Assets.Kit` is missing:
 
-- [ ] **Grass** (`_buildGrass`): each 4×4 tile is one tall green block that shrinks when mowed.
-      Swap in `Grass_Tall_A/B` clumps that switch to `Grass_Short_A/B` when mowed, and use the
-      `_LOD` versions away from the player. Mowing state is already per tile; ideally spawn the
-      clumps on the client so the server only sends tile state. Keep mesh grass to the visible
-      yard and use the lawn texture for distant ground.
-- [ ] **Weeds** (`_buildWeeds`): 3 green blocks plus a ball. Swap in `Weed_Dandelion`,
-      `Weed_Broadleaf`, `Weed_Clover`, `Weed_Thistle` and `Weed_DryTuft`. The whacking code shrinks
-      parts using their `OriginalSize` attribute, so set it on the mesh parts too.
-- [ ] **Hedges** (`_buildHedges`): one block trimmed from about 5×6×4 down to 4×3.5×2.5. Use
-      `Shrub_Rounded` scaled to the start size and scale it down as it's trimmed.
-- [ ] **Edges** (`_buildEdges`): place `Curb_Concrete_1m` along the sidewalk and driveway and
-      `Grass_EdgeStrip_1m` as the overgrowth that gets edged away.
-- [ ] **Leaves** (`_buildLeaves`): the kit has no leaf pile. `Grass_Clippings_Pile` could stand in;
-      drop a `Prop_YardWasteBag` when a pile is cleared.
-- [ ] **Decoration**: `Fence_Cedar_2m`, `Paver_Concrete_40cm`, `Rock_Field_A/B`, `Prop_WheelieBin`,
-      `Prop_TrafficCone`, `Prop_FuelCan_5L`, `Prop_GardenHose_Coil` and `Prop_Shovel` for yards
-      and business plots.
+- [x] **Grass**: the server only tracks tile state (a string attribute on each job site's
+      `Grass` folder, see `src/shared/LawnGrid.luau`). Each client draws it
+      (`src/client/Controllers/GrassController.luau`): one `Grass_Tall_A/B` clump per tile, swapped
+      for `Grass_Short_A/B` on a striped turf plate when mowed, `_LOD` clumps beyond 70 studs, and
+      nothing at all for lawns more than 200 studs away. Still to do: use the lawn texture for
+      distant ground once it's uploaded.
+- [x] **Weeds**: random `Weed_*` models, scaled up 1.6–2.2× (life-size weeds are tiny next to a
+      player), shrinking toward the ground as they're whacked. `OriginalSize` is set too.
+- [x] **Hedges**: `Shrub_Rounded` stretched to the overgrown size and shrunk to the trimmed size.
+      Kit shrubs have no collision; block hedges still do.
+- [x] **Edges**: `Curb_Concrete_1m` runs along the sidewalk and driveway, with a
+      `Grass_EdgeStrip_1m` per tile flopping over it that the edger cuts away.
+- [x] **Leaves**: a stretched `Grass_Clippings_Pile` stands in for a leaf pile and leaves a
+      `Prop_YardWasteBag` behind when it's raked up.
+- [x] **Yard decoration**: a cedar fence down the left side, a wheelie bin and hose by the
+      driveway, rocks in the flower bed and cones around the parked truck.
+- [ ] **Business plot decoration**: `Paver_Concrete_40cm`, `Prop_FuelCan_5L`, `Prop_Shovel` and
+      friends around the shed, tool rack and truck.
 - [ ] **Moving parts**: wheels, cutter rotors, trimmer spools, the tractor steering wheel and the
       zero-turn lap bars are separate meshes but welded rigid right now. Weld them with Motor6Ds or
       HingeConstraints and spin them on the client while mowing.

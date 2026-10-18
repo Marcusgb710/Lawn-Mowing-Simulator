@@ -152,6 +152,30 @@ function Assets.building(itemId: string): Model
 	return Placeholders.building(itemId)
 end
 
+-- One piece of the Lawn Mowing kit (Assets.Kit) as a loose, anchored part you can size and place.
+-- Every yard piece in the kit (grass, weeds, shrubs, curbs, props) is a single MeshPart.
+-- Returns nil if the kit isn't in the game, so callers can fall back to a block.
+function Assets.kitPart(name: string): BasePart?
+	local model = findAsset("Kit", name)
+	local part = model and model:FindFirstChildWhichIsA("BasePart", true)
+	if not part then
+		return nil
+	end
+	local copy = part:Clone()
+	copy.Anchored = true
+	copy.CanCollide = false
+	copy.CanTouch = false
+	copy.CanQuery = false
+	copy.CastShadow = false
+	return copy
+end
+
+-- Sizes a part and stands it on `ground` (a CFrame on the ground, facing the way it should face).
+function Assets.standOn(part: BasePart, ground: CFrame, size: Vector3)
+	part.Size = size
+	part.CFrame = ground * CFrame.new(0, size.Y / 2, 0)
+end
+
 function Assets.prop(name: string): Model
 	local found = findAsset("Props", name)
 	if found and found:IsA("Model") then

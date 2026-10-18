@@ -2,16 +2,20 @@
 --
 -- Layout of a job site, looking down (street at the bottom):
 --
---        [            house            ]
---        [  hedges in the flower bed   ]
---        +-----------------------------+ +------+
---        |                             | |      |
---  weeds |   grass tiles to mow,       | | drive|
---  along |   leaf piles to rake,       |e| way  |
---  side  |   flowers/gnomes to AVOID   |d|      |
---        +-----------edge--------------+ +------+
---        ========= sidewalk ==========================
---        ============ road (truck parks here) ========
+--   fence [            house            ]
+--     |   [  hedges in the flower bed   ]
+--     |   +-----------------------------+ +------+
+--     |   |                             | |      |
+--  weeds  |   grass tiles to mow,       | | drive|
+--  along  |   leaf piles to rake,       |e| way  |
+--  side   |   flowers/gnomes to AVOID   |d|      |
+--         +-----------edge--------------+ +------+
+--         ========= sidewalk ==========================
+--         ============ road (truck parks here) ========
+--
+-- Everything uses the Lawn Mowing kit (Assets.Kit) when it's there and falls back to blocks.
+-- Grass is special: the server only tracks which tiles are mowed (see LawnGrid) and each client
+-- draws the grass itself (see GrassController), which keeps big lawns cheap on phones.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -19,19 +23,16 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Assets = require(Shared.Assets)
 local GameConfig = require(Shared.Config.GameConfig)
 local Jobs = require(Shared.Config.Jobs)
+local LawnGrid = require(Shared.LawnGrid)
 
 local COLORS = {
-	TallGrass = Color3.fromRGB(70, 125, 45),
-	MowedLight = Color3.fromRGB(120, 200, 75),
-	MowedDark = Color3.fromRGB(100, 178, 62),
+	Turf = Color3.fromRGB(70, 125, 45),
 	Neighborhood = Color3.fromRGB(85, 140, 60),
 	Concrete = Color3.fromRGB(190, 190, 185),
 	Road = Color3.fromRGB(55, 55, 60),
 	Mulch = Color3.fromRGB(90, 60, 40),
 	Weed = Color3.fromRGB(150, 170, 50),
-	Dandelion = Color3.fromRGB(250, 220, 40),
 	OvergrownEdge = Color3.fromRGB(80, 140, 50),
-	CleanEdge = Color3.fromRGB(70, 50, 35),
 	HedgeOvergrown = Color3.fromRGB(90, 150, 60),
 	HedgeTrimmed = Color3.fromRGB(40, 100, 40),
 	Leaves = {
@@ -46,9 +47,13 @@ local HAZARD_NAMES = {
 	GardenGnome = "garden gnome",
 }
 
+local WEED_KINDS = { "Weed_Dandelion", "Weed_Broadleaf", "Weed_Clover", "Weed_Thistle", "Weed_DryTuft" }
+
 local SIDEWALK_DEPTH = 6
 local DRIVEWAY_WIDTH = 12
 local BED_DEPTH = 4
+-- The kit's curb and edge strip are 1 m (about 3.6 studs) long.
+local CURB_LENGTH = 3.57
 
 local LawnService = {}
 
@@ -75,65 +80,81 @@ local function ghost(part: BasePart)
 	part.CastShadow = false
 end
 
+-- A kit piece, or a plain block with these props if the kit isn't in the game.
+local function kitOrBlock(kitName: string, parent: Instance, blockProps): (BasePart, boolean)
+	local part = Assets.kitPart(kitName)
+	if part then
+		part.Parent = parent
+		return part, true
+	end
+	local block = makePart(parent, blockProps)
+	ghost(block)
+	return block, false
+end
+
+-- A kit piece stood on the ground, or nothing if the kit isn't in the game. For decoration only.
+local function decorate(kitName: string, parent: Instance, ground: CFrame, scale: number?)
+	local part = Assets.kitPart(kitName)
+	if part then
+		Assets.standOn(part, ground, part.Size * (scale or 1))
+		part.Parent = parent
+	end
+	return part
+end
+
+-- Shrinks a target's part toward the ground. `scale` multiplies the size it started at.
+local function shrink(target, scale: Vector3)
+	Assets.standOn(target.part, target.ground, target.startSize * scale)
+end
+
 -- How each kind of target looks as it gets worked on. `fraction` goes from 0 (untouched) to 1 (done).
 local VISUALS = {
 	Mow = function(target, fraction: number)
-		local height = target.startHeight + (GameConfig.MowedGrassHeight - target.startHeight) * fraction
-		local part = target.part
-		part.Size = Vector3.new(part.Size.X, height, part.Size.Z)
-		part.Position = Vector3.new(part.Position.X, target.base + height / 2, part.Position.Z)
 		if fraction >= 1 then
-			part.Color = target.stripe
+			target.lawn:_setGrass(target.index, LawnGrid.MOWED)
 		end
 	end,
 
+	-- The overgrown strip gets cut back until only the curb is left.
 	Edge = function(target, fraction: number)
 		if fraction >= 1 then
-			local part = target.part
-			part.Color = COLORS.CleanEdge
-			part.Material = Enum.Material.Ground
-			part.Size = target.cleanSize
-			part.CFrame = target.cleanCFrame
+			target.part:Destroy()
+		else
+			shrink(target, Vector3.new(1, 1 - fraction * 0.6, 1))
 		end
 	end,
 
 	Weeds = function(target, fraction: number)
 		if fraction >= 1 then
 			target.part:Destroy()
-			return
-		end
-		local scale = 1 - fraction * 0.7
-		for _, piece in target.part:GetChildren() do
-			if piece:IsA("BasePart") then
-				local original = piece:GetAttribute("OriginalSize")
-				piece.Size = original * Vector3.new(1, scale, 1)
-			end
+		else
+			shrink(target, Vector3.one * (1 - fraction * 0.7))
 		end
 	end,
 
+	-- Raked piles shrink, then get bagged up.
 	Leaves = function(target, fraction: number)
-		if fraction >= 1 then
-			target.part:Destroy()
+		if fraction < 1 then
+			shrink(target, Vector3.one * (1 - fraction * 0.8))
 			return
 		end
-		local part = target.part
-		part.Size = target.startSize * (1 - fraction * 0.8)
-		part.Position = Vector3.new(part.Position.X, target.base + part.Size.Y / 2, part.Position.Z)
+		local parent = target.part.Parent
+		target.part:Destroy()
+		if parent then
+			decorate("Prop_YardWasteBag", parent, target.ground)
+		end
 	end,
 
 	Hedge = function(target, fraction: number)
-		local part = target.part
 		local size = target.startSize:Lerp(target.trimmedSize, fraction)
-		part.Size = size
-		part.Position = Vector3.new(part.Position.X, target.base + size.Y / 2, part.Position.Z)
-		part.Color = COLORS.HedgeOvergrown:Lerp(COLORS.HedgeTrimmed, fraction)
-		if fraction >= 1 then
-			part.Material = Enum.Material.Grass
+		Assets.standOn(target.part, target.ground, size)
+		if not target.isKit then
+			target.part.Color = COLORS.HedgeOvergrown:Lerp(COLORS.HedgeTrimmed, fraction)
 		end
 	end,
 }
 
-function Lawn:_addTarget(taskName: string, part: Instance, position: Vector3, reach: number, extra)
+function Lawn:_addTarget(taskName: string, part: BasePart?, position: Vector3, reach: number, extra)
 	local work = Jobs.TaskInfo[taskName].workPerTarget
 	local target = extra or {}
 	target.part = part
@@ -159,6 +180,15 @@ function Lawn:_buildGround()
 		Color = COLORS.Neighborhood,
 		Material = Enum.Material.Grass,
 	})
+	-- Darker turf under the customer's lawn, showing between grass clumps.
+	local turf = makePart(folder, {
+		Name = "Turf",
+		Size = Vector3.new(width, 0.04, depth),
+		Position = origin + Vector3.new(width / 2, 0, depth / 2),
+		Color = COLORS.Turf,
+		Material = Enum.Material.Grass,
+	})
+	ghost(turf)
 	makePart(folder, {
 		Name = "Road",
 		Size = Vector3.new(width + 160, 0.2, 20),
@@ -226,6 +256,51 @@ function Lawn:_buildGround()
 	billboard.Parent = post
 end
 
+-- A few kit props so yards don't look empty. Skipped entirely without the kit.
+function Lawn:_buildDecor(rng: Random)
+	local decor = Instance.new("Folder")
+	decor.Name = "Decor"
+	decor.Parent = self.folder
+	local origin = self.origin
+	local width, depth = self.width, self.depth
+
+	-- A cedar fence down the left side of the yard, from the sidewalk to the house.
+	local fenceLength = depth + BED_DEPTH
+	local panels = math.max(1, math.ceil(fenceLength / 7.5))
+	for index = 0, panels - 1 do
+		local panel = Assets.kitPart("Fence_Cedar_2m")
+		if not panel then
+			break
+		end
+		local z = fenceLength * (index + 0.5) / panels
+		local ground = CFrame.new(origin + Vector3.new(-5.5, 0, z)) * CFrame.Angles(0, math.pi / 2, 0)
+		-- Stretch the panels a touch so they meet.
+		Assets.standOn(panel, ground, Vector3.new(fenceLength / panels, panel.Size.Y, panel.Size.Z))
+		panel.Parent = decor
+	end
+
+	-- Bin and hose up by the garage end of the driveway.
+	local driveFar = origin + Vector3.new(width + DRIVEWAY_WIDTH - 1.5, 0.3, depth + BED_DEPTH - 2)
+	decorate("Prop_WheelieBin", decor, CFrame.new(driveFar) * CFrame.Angles(0, math.pi / 2, 0))
+	decorate("Prop_GardenHose_Coil", decor, CFrame.new(driveFar + Vector3.new(-3, 0, -3)))
+
+	-- Rocks in the corners of the flower bed.
+	for _, x in { 1.2, width - 1.2 } do
+		local rock = if rng:NextNumber() < 0.5 then "Rock_Field_A" else "Rock_Field_B"
+		decorate(
+			rock,
+			decor,
+			CFrame.new(origin + Vector3.new(x, 0.3, depth + BED_DEPTH / 2))
+				* CFrame.Angles(0, rng:NextNumber(0, math.pi * 2), 0)
+		)
+	end
+
+	-- Cones on the road around where the truck parks.
+	for _, x in { -18, 18 } do
+		decorate("Prop_TrafficCone", decor, CFrame.new(origin + Vector3.new(width / 2 + x, 0.2, -SIDEWALK_DEPTH - 5)))
+	end
+end
+
 -- Picks tiles inside the lawn for flower patches and gnomes, spread apart from each other.
 function Lawn:_pickHazardTiles(rng: Random, count: number)
 	local picked = {}
@@ -258,34 +333,24 @@ local function nearHazard(hazardTiles, column: number, row: number, distance: nu
 	return false
 end
 
-function Lawn:_buildGrass(rng: Random, hazardTiles)
+-- Grass tiles are only data here. The "Grass" folder tells clients what to draw.
+function Lawn:_buildGrass(hazardTiles)
 	local tile = GameConfig.TileSize
-	local grass = Instance.new("Folder")
-	grass.Name = "Grass"
-	grass.Parent = self.folder
+	self.grassState = {}
 
 	for column = 0, self.columns - 1 do
-		local stripe = if column % 2 == 0 then COLORS.MowedLight else COLORS.MowedDark
 		for row = 0, self.rows - 1 do
+			local index = LawnGrid.index(column, row, self.rows)
 			if nearHazard(hazardTiles, column, row, 0) then
+				self.grassState[index] = LawnGrid.EMPTY
 				continue
 			end
-			local height = GameConfig.TallGrassHeight * rng:NextNumber(0.85, 1.15)
-			local position = self.origin + Vector3.new(column * tile + tile / 2, height / 2, row * tile + tile / 2)
-			local part = makePart(grass, {
-				Name = "Tile",
-				Size = Vector3.new(tile, height, tile),
-				Position = position,
-				Color = COLORS.TallGrass,
-				Material = Enum.Material.Grass,
-			})
-			ghost(part)
+			self.grassState[index] = LawnGrid.TALL
 			-- Grass right next to flowers doesn't count against you if you leave it.
 			local optional = nearHazard(hazardTiles, column, row, 1)
-			self:_addTarget("Mow", part, position, tile * 0.35, {
-				startHeight = height,
-				base = self.origin.Y,
-				stripe = stripe,
+			self:_addTarget("Mow", nil, LawnGrid.center(self.origin, tile, column, row), tile * 0.35, {
+				lawn = self,
+				index = index,
 				optional = optional,
 			})
 			if optional then
@@ -293,6 +358,21 @@ function Lawn:_buildGrass(rng: Random, hazardTiles)
 			end
 		end
 	end
+
+	local grass = Instance.new("Folder")
+	grass.Name = "Grass"
+	grass:SetAttribute("Origin", self.origin)
+	grass:SetAttribute("TileSize", tile)
+	grass:SetAttribute("Columns", self.columns)
+	grass:SetAttribute("Rows", self.rows)
+	grass:SetAttribute("State", table.concat(self.grassState))
+	grass.Parent = self.folder
+	self.grassFolder = grass
+end
+
+function Lawn:_setGrass(index: number, state: string)
+	self.grassState[index] = state
+	self.grassDirty = true
 end
 
 function Lawn:_buildHazards(rng: Random, hazardTiles)
@@ -303,7 +383,7 @@ function Lawn:_buildHazards(rng: Random, hazardTiles)
 
 	for _, spot in hazardTiles do
 		local kind = if rng:NextNumber() < 0.25 then "GardenGnome" else "FlowerPatch"
-		local position = self.origin + Vector3.new(spot.column * tile + tile / 2, 0, spot.row * tile + tile / 2)
+		local position = LawnGrid.center(self.origin, tile, spot.column, spot.row)
 		local model = Assets.prop(kind)
 		Assets.anchor(model)
 		for _, descendant in model:GetDescendants() do
@@ -340,6 +420,8 @@ local function wreck(hazard)
 	end
 end
 
+-- A concrete curb along the sidewalk and driveway, with overgrown grass flopping over it that
+-- the edger cuts back.
 function Lawn:_buildEdges()
 	local tile = GameConfig.TileSize
 	local origin = self.origin
@@ -347,40 +429,41 @@ function Lawn:_buildEdges()
 	edges.Name = "Edges"
 	edges.Parent = self.folder
 
-	local function addEdge(center: Vector3, size: Vector3, cleanSize: Vector3, cleanOffset: Vector3)
-		local part = makePart(edges, {
-			Name = "Edge",
-			Size = size,
-			Position = center,
-			Color = COLORS.OvergrownEdge,
-			Material = Enum.Material.Grass,
-		})
-		ghost(part)
-		local cleanCFrame = CFrame.new(center + cleanOffset)
-		self:_addTarget("Edge", part, center, 1, {
-			cleanSize = cleanSize,
-			cleanCFrame = cleanCFrame,
-		})
+	-- `start` is one end of the run on the ground, `along` the unit direction it runs in.
+	local function edgeRun(start: Vector3, along: Vector3, length: number, segments: number)
+		local facing = CFrame.lookAt(Vector3.zero, along) * CFrame.Angles(0, math.pi / 2, 0)
+
+		local curbs = math.max(1, math.ceil(length / CURB_LENGTH))
+		for index = 0, curbs - 1 do
+			local ground = CFrame.new(start + along * (length * (index + 0.5) / curbs)) * facing
+			local curb, isKit = kitOrBlock("Curb_Concrete_1m", edges, {
+				Name = "Curb",
+				Color = COLORS.Concrete,
+				Material = Enum.Material.Concrete,
+			})
+			local height = if isKit then curb.Size.Y else 0.5
+			Assets.standOn(curb, ground, Vector3.new(length / curbs, height, if isKit then curb.Size.Z else 0.5))
+		end
+
+		for index = 0, segments - 1 do
+			local center = start + along * (tile * (index + 0.5))
+			local ground = CFrame.new(center) * facing
+			local strip, isKit = kitOrBlock("Grass_EdgeStrip_1m", edges, {
+				Name = "Overgrowth",
+				Color = COLORS.OvergrownEdge,
+				Material = Enum.Material.Grass,
+			})
+			local size = if isKit
+				then Vector3.new(tile, strip.Size.Y * 0.8, strip.Size.Z * 1.2)
+				else Vector3.new(tile, 0.8, 1)
+			Assets.standOn(strip, ground, size)
+			self:_addTarget("Edge", strip, center, 1, { ground = ground, startSize = size })
+		end
 	end
 
-	-- Grass creeping over the sidewalk along the front...
-	for column = 0, self.columns - 1 do
-		addEdge(
-			origin + Vector3.new(column * tile + tile / 2, 0.55, -0.4),
-			Vector3.new(tile, 0.5, 1),
-			Vector3.new(tile, 0.1, 0.3),
-			Vector3.new(0, -0.27, 0.35)
-		)
-	end
-	-- ...and over the driveway along the side.
-	for row = 0, self.rows - 1 do
-		addEdge(
-			origin + Vector3.new(self.width + 0.4, 0.55, row * tile + tile / 2),
-			Vector3.new(1, 0.5, tile),
-			Vector3.new(0.3, 0.1, tile),
-			Vector3.new(-0.35, -0.27, 0)
-		)
-	end
+	-- Along the sidewalk at the front, then along the driveway on the right.
+	edgeRun(origin + Vector3.new(0, 0, -0.3), Vector3.xAxis, self.width, self.columns)
+	edgeRun(origin + Vector3.new(self.width + 0.3, 0, 0), Vector3.zAxis, self.depth, self.rows)
 end
 
 function Lawn:_buildHedges(rng: Random, count: number)
@@ -403,18 +486,22 @@ function Lawn:_buildHedges(rng: Random, count: number)
 
 	for _, offset in positions do
 		local startSize = Vector3.new(rng:NextNumber(4.5, 5.5), rng:NextNumber(5.5, 6.5), rng:NextNumber(3.5, 4.5))
-		local position = origin + offset + Vector3.new(0, startSize.Y / 2, 0)
-		local part = makePart(hedges, {
+		local ground = CFrame.new(origin + offset) * CFrame.Angles(0, rng:NextNumber(-0.2, 0.2), 0)
+		local part, isKit = kitOrBlock("Shrub_Rounded", hedges, {
 			Name = "Hedge",
-			Size = startSize,
-			Position = position,
 			Color = COLORS.HedgeOvergrown,
 			Material = Enum.Material.LeafyGrass,
 		})
-		self:_addTarget("Hedge", part, position, 2.5, {
+		if not isKit then
+			-- Block hedges are solid; kit shrubs have no collision.
+			part.CanCollide = true
+		end
+		Assets.standOn(part, ground, startSize)
+		self:_addTarget("Hedge", part, ground.Position, 2.5, {
+			ground = ground,
 			startSize = startSize,
 			trimmedSize = Vector3.new(4, 3.5, 2.5),
-			base = origin.Y,
+			isKit = isKit,
 		})
 	end
 end
@@ -437,36 +524,18 @@ function Lawn:_buildWeeds(rng: Random, count: number)
 			offset = Vector3.new(self.width + rng:NextNumber(1, DRIVEWAY_WIDTH - 1), 0, rng:NextNumber(1, self.depth))
 		end
 
-		local clump = Instance.new("Model")
-		clump.Name = "Weed"
 		local base = origin + offset
-		for leaf = 1, 3 do
-			local height = rng:NextNumber(1.6, 2.6)
-			local size = Vector3.new(0.3, height, 0.6)
-			local part = makePart(clump, {
-				Name = "Leaf",
-				Size = size,
-				CFrame = CFrame.new(base + Vector3.new(0, height / 2, 0))
-					* CFrame.Angles(0, math.rad(leaf * 60), math.rad(rng:NextNumber(-20, 20))),
-				Color = COLORS.Weed,
-				Material = Enum.Material.Grass,
-			})
-			part:SetAttribute("OriginalSize", size)
-			ghost(part)
-		end
-		if rng:NextNumber() < 0.5 then
-			local flower = makePart(clump, {
-				Name = "Flower",
-				Shape = Enum.PartType.Ball,
-				Size = Vector3.new(0.7, 0.7, 0.7),
-				Position = base + Vector3.new(0, 2.4, 0),
-				Color = COLORS.Dandelion,
-			})
-			flower:SetAttribute("OriginalSize", flower.Size)
-			ghost(flower)
-		end
-		clump.Parent = weeds
-		self:_addTarget("Weeds", clump, base, 0.5)
+		local ground = CFrame.new(base) * CFrame.Angles(0, rng:NextNumber(0, math.pi * 2), 0)
+		local part, isKit = kitOrBlock(WEED_KINDS[rng:NextInteger(1, #WEED_KINDS)], weeds, {
+			Name = "Weed",
+			Color = COLORS.Weed,
+			Material = Enum.Material.Grass,
+		})
+		-- Kit weeds are life-size, which is tiny next to a player, so blow them up a bit.
+		local size = if isKit then part.Size * rng:NextNumber(1.6, 2.2) else Vector3.new(1, rng:NextNumber(1.6, 2.6), 1)
+		Assets.standOn(part, ground, size)
+		part:SetAttribute("OriginalSize", size)
+		self:_addTarget("Weeds", part, base, 0.5, { ground = ground, startSize = size })
 	end
 end
 
@@ -477,21 +546,22 @@ function Lawn:_buildLeaves(rng: Random, count: number)
 	leaves.Parent = self.folder
 
 	for _ = 1, count do
-		local startSize = Vector3.new(rng:NextNumber(3, 4.5), rng:NextNumber(1, 1.6), rng:NextNumber(3, 4.5))
-		local position = origin
-			+ Vector3.new(rng:NextNumber(2, self.width - 2), startSize.Y / 2, rng:NextNumber(2, self.depth - 2))
-		local part = makePart(leaves, {
+		local base = origin + Vector3.new(rng:NextNumber(2, self.width - 2), 0, rng:NextNumber(2, self.depth - 2))
+		local ground = CFrame.new(base) * CFrame.Angles(0, rng:NextNumber(0, math.pi * 2), 0)
+		-- The kit has no leaf pile, so a big clippings pile stands in for one.
+		local part, isKit = kitOrBlock("Grass_Clippings_Pile", leaves, {
 			Name = "LeafPile",
-			Size = startSize,
-			Position = position,
 			Color = COLORS.Leaves[rng:NextInteger(1, #COLORS.Leaves)],
 			Material = Enum.Material.LeafyGrass,
 		})
-		ghost(part)
-		local mesh = Instance.new("SpecialMesh")
-		mesh.MeshType = Enum.MeshType.Sphere
-		mesh.Parent = part
-		self:_addTarget("Leaves", part, position, 1.5, { startSize = startSize, base = origin.Y })
+		if not isKit then
+			local mesh = Instance.new("SpecialMesh")
+			mesh.MeshType = Enum.MeshType.Sphere
+			mesh.Parent = part
+		end
+		local startSize = Vector3.new(rng:NextNumber(3, 4.5), rng:NextNumber(0.8, 1.4), rng:NextNumber(3, 4.5))
+		Assets.standOn(part, ground, startSize)
+		self:_addTarget("Leaves", part, base, 1.5, { ground = ground, startSize = startSize })
 	end
 end
 
@@ -528,7 +598,7 @@ function LawnService:Build(template, origin: Vector3, address: string)
 
 	local hazardTiles = lawn:_pickHazardTiles(rng, template.flowerPatches)
 	lawn:_buildGround()
-	lawn:_buildGrass(rng, hazardTiles)
+	lawn:_buildGrass(hazardTiles)
 	lawn:_buildHazards(rng, hazardTiles)
 	if template.edging then
 		lawn:_buildEdges()
@@ -536,6 +606,7 @@ function LawnService:Build(template, origin: Vector3, address: string)
 	lawn:_buildHedges(rng, template.hedges)
 	lawn:_buildWeeds(rng, template.weeds)
 	lawn:_buildLeaves(rng, template.leafPiles)
+	lawn:_buildDecor(rng)
 
 	-- The truck parks on the road facing along the curb; the crew hops out onto the sidewalk.
 	lawn.truckCFrame = CFrame.new(origin + Vector3.new(lawn.width / 2, 0.2, -SIDEWALK_DEPTH - 5))
@@ -571,6 +642,12 @@ function Lawn:ApplyWork(position: Vector3, radius: number, taskName: string, amo
 				changed = true
 			end
 		end
+	end
+
+	-- One attribute update per tick, however many tiles just got mowed.
+	if self.grassDirty then
+		self.grassDirty = false
+		self.grassFolder:SetAttribute("State", table.concat(self.grassState))
 	end
 	return changed
 end
