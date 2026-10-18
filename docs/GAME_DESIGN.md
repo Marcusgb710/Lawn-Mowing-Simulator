@@ -255,6 +255,44 @@ Nine serious-tier jobs (`NewShrubBorder` to `FallCleanup`, level 3-5) use the ti
   leaves.
 - New shop tabs: Digging, Barrows & Carts and Lawn Care.
 
+### Pro work (phase F)
+
+All the pro equipment is on sale. Five pro jobs join the park and the estate:
+
+| Job | What makes it pro |
+| --- | --- |
+| ShowLawn | putting-green grass (1.25 in): only reel mowers cut it right, and cut quality (`cutQuality` x blade sharpness) decides the pay on quality-minded jobs |
+| OvergrownLot | knee-high grass (9 in): reel mowers can't cut it; the grass is drawn taller (`TallScale` on the Grass folder) |
+| WoodedEstate | a tight lawn with trees in mulch rings (`trees`): on `tight` tasks every mower's speed is scaled by `0.4 + 0.6 x maneuverability`, so a stand-on (0.95) beats a lawn tractor (0.4) |
+| TurfRenovation | the full renovation, thick thatch (`thatch = 0.8` in) |
+| LawnRenewal | renovation without dethatching (thin thatch) |
+
+**Ride-ons.** Stand-on machines (`StandOnMower`, `StandOnAerator`) have `ride.stand`: you stand
+on the platform behind the control bars, lifted by the platform height plus your legs, with no
+sit animation. The `RideOnSpreaderSprayer` is a seated ride. Ride-ons that `tows`
+(lawn tractor, zero-turns, ride-on spreader) pull the `TowBehindAerator` when it's in the truck:
+it rides along behind them (`use = "Towed"`, never in the hotbar) and aerates where it goes,
+wearing its own tires. It can't be pulled by the truck at the job site, since the truck doesn't
+drive there.
+
+**Turf renovation** happens on the lawn's own tiles, in order (`step` on the task types):
+
+1. **Probe the soil** at the flagged spots. The first reading reveals the soil's temperature and
+   moisture (`Soil reading: 58°F and moist`), and the HUD keeps showing it. Working before the
+   probe: x0.85 on that work.
+2. **Dethatch** the tiles where the thatch is thick (0.5 in or more; the job sets how thick it
+   runs and each tile varies). Aerating through thatch that should have come out first: x0.85.
+3. **Core aerate.** Dry soil: x0.7, unless the tile was watered first (watering an unseeded tile
+   only wets it; it doesn't count as the last step).
+4. **Overseed.** Best right after aerating or dethatching (otherwise x0.75), and in 50-65 F soil
+   (otherwise x0.7).
+5. **Fertilize** after the seed is down (otherwise x0.9).
+6. **Water** the new seed in.
+
+Each tile shows its latest step (an overlay). The multipliers lower the finish quality, and with
+it the pay. The soil is rolled per job offer and stays on the server; the customer hints at it
+("The mornings have been frosty lately. We haven't had rain in weeks."), never naming a tool.
+
 ### Task types
 
 | Phase | Task type | Verb | Ideal / Good / Poor |
@@ -444,8 +482,8 @@ again.
 | B | Storage per building, size-based truck and trailer space, shop gating by tier and storage, selling tools, EquipmentYard, EquipmentTrailer, ToolBucket | done |
 | C | Tier-1 jobs and yard targets: pots, planting spots with depths, bulbs, beds, lawn dandelions, rose bushes, dead stems, flowers, watering zones; gloves; tool guide and first-job coach | done |
 | D | Tier-2: holes, trenches and sod, deep beds, hauling from a pile to a bed, spreader and sprayer, branch thickness | done |
-| E | Maintenance systems and supplies | **this PR** |
-| F | Tier-3 pro equipment and the turf renovation sequence | |
+| E | Maintenance systems and supplies | done |
+| F | Tier-3 pro equipment and the turf renovation sequence | **this PR** |
 
 New tools are already in `Tools.luau` with `available = false`, so they aren't sold until the
 phase that gives them work.

@@ -10,6 +10,9 @@
 --             A job without a mowing task gets an already-mown lawn. `rocky` (0-1) is the share of
 --             a task's targets in rocky ground, for tasks with TaskTypes `rocky`.
 --   notes     extra things this customer might say (one is picked at random)
+--   Lawn extras: `thatch` (inches it runs, for renovations) and `trees` (how many on a tight lawn).
+--   Jobs with turf renovation steps also roll the soil's temperature and moisture (see Jobs.soil),
+--   which the customer hints at and only the probe reads exactly.
 --   parTime   seconds a solo player should take; beating it pays more on Speed jobs
 --   basePay, xp, minLevel
 
@@ -464,6 +467,80 @@ Jobs.Templates = {
 		basePay = 650,
 		xp = 160,
 	},
+	-- Pro work (design phase F): show lawns, overgrown and tight properties, turf renovation.
+	{
+		id = "ShowLawn",
+		name = "Show Lawn",
+		tier = "Pro",
+		minLevel = 8,
+		lawn = { columns = 12, rows = 9, flowerPatches = 2 },
+		tasks = { { type = "MowShowLawn" }, { type = "EdgeHardscape" } },
+		notes = { "It's kept as short and smooth as a putting green. Every blade has to be cut clean." },
+		parTime = 420,
+		basePay = 1200,
+		xp = 260,
+	},
+	{
+		id = "OvergrownLot",
+		name = "Overgrown Lot",
+		tier = "Pro",
+		minLevel = 8,
+		lawn = { columns = 16, rows = 12, flowerPatches = 2 },
+		tasks = { { type = "MowTallGrass" }, { type = "TrimAroundObstacles", amount = 12 } },
+		notes = { "Nobody's touched this place all summer. The grass is up to your knees." },
+		parTime = 480,
+		basePay = 1300,
+		xp = 290,
+	},
+	{
+		id = "WoodedEstate",
+		name = "Wooded Estate",
+		tier = "Pro",
+		minLevel = 9,
+		lawn = { columns = 16, rows = 12, flowerPatches = 3, trees = 8 },
+		tasks = { { type = "MowTightOrSloped" }, { type = "TrimAroundObstacles", amount = 14 } },
+		notes = { "The lawn winds between old trees and down a steep bank at the back." },
+		parTime = 540,
+		basePay = 1500,
+		xp = 330,
+	},
+	{
+		id = "TurfRenovation",
+		name = "Turf Renovation",
+		tier = "Pro",
+		minLevel = 10,
+		lawn = { columns = 14, rows = 10, flowerPatches = 2, thatch = 0.8 },
+		tasks = {
+			{ type = "ProbeSoil", amount = 3 },
+			{ type = "DethatchLawn" },
+			{ type = "CoreAerate" },
+			{ type = "Overseed" },
+			{ type = "FertilizeLargeLawn" },
+			{ type = "WaterNewSeed" },
+		},
+		notes = { "The lawn feels spongy underfoot, and it's gone thin and patchy. Bring it all back." },
+		parTime = 900,
+		basePay = 3200,
+		xp = 700,
+	},
+	{
+		id = "LawnRenewal",
+		name = "Lawn Renewal",
+		tier = "Pro",
+		minLevel = 9,
+		lawn = { columns = 12, rows = 9, flowerPatches = 2, thatch = 0.25 },
+		tasks = {
+			{ type = "ProbeSoil", amount = 2 },
+			{ type = "CoreAerate" },
+			{ type = "Overseed" },
+			{ type = "FertilizeLargeLawn" },
+			{ type = "WaterNewSeed" },
+		},
+		notes = { "The kids trampled it hard all summer. The soil's packed and the grass is thin." },
+		parTime = 720,
+		basePay = 2200,
+		xp = 480,
+	},
 	{
 		id = "NeighborhoodPark",
 		name = "Neighborhood Park",
@@ -516,7 +593,8 @@ local STREETS = {
 }
 
 -- Targets that cover the lawn itself; every other kind is placed a set number of times.
-local LAWN_TARGETS = { Grass = true, Edge = true, Fertilize = true }
+local LAWN_TARGETS =
+	{ Grass = true, Edge = true, Fertilize = true, Thatch = true, Aerate = true, Overseed = true, WaterSeed = true }
 
 -- Catch templates that would make a job that can't be finished.
 local byId = {}
@@ -571,6 +649,31 @@ function Jobs.todoList(template): { string }
 		table.insert(list, TaskTypes.todo(task.type, task.amount))
 	end
 	return list
+end
+
+-- Soil for a turf renovation: temperature in F and "Moist" or "Dry", plus what the customer says
+-- about the weather. Cool-season seed wants 50-65 F; aerating wants moist soil.
+function Jobs.soil(rng: Random): ({ temperature: number, moisture: string }, string)
+	local temperature = rng:NextInteger(42, 74)
+	local moisture = if rng:NextNumber() < 0.6 then "Moist" else "Dry"
+	local weather = if temperature < 50
+		then "The mornings have been frosty lately."
+		elseif temperature > 65 then "It's been a real heat wave."
+		else "The weather's been mild."
+	local rain = if moisture == "Dry"
+		then "We haven't had rain in weeks."
+		else "We had a good soaking rain two days ago."
+	return { temperature = temperature, moisture = moisture }, `{weather} {rain}`
+end
+
+-- True if the job is a turf renovation (it has ordered steps).
+function Jobs.isRenovation(template): boolean
+	for _, task in template.tasks do
+		if TaskTypes.get(task.type).step then
+			return true
+		end
+	end
+	return false
 end
 
 function Jobs.hasMowing(template): boolean

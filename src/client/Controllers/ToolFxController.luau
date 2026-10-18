@@ -57,10 +57,10 @@ local function spinTool(tool: Tool, root: BasePart, deltaTime: number)
 	end
 end
 
--- Plays your avatar's own sit animation while you ride a mower.
+-- Plays your avatar's own sit animation while you ride a mower (not on stand-on machines).
 local function updateSit(character: Model?)
 	local tool = character and character:FindFirstChildOfClass("Tool")
-	local riding = tool ~= nil and tool:GetAttribute("Ride") == true
+	local riding = tool ~= nil and tool:GetAttribute("Ride") == true and tool:GetAttribute("Stand") ~= true
 	if riding and not sitTrack and character then
 		local humanoid = character:FindFirstChildOfClass("Humanoid")
 		local animator = humanoid and humanoid:FindFirstChildOfClass("Animator")

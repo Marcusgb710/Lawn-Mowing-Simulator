@@ -33,7 +33,9 @@ local REACH_OFFSET = 2
 -- Machines that roll on the ground: held so their lowest point sits on it.
 local GROUNDED = { FloorManual = true, FloorEngine = true, Bay = true }
 -- Tools that never go in the hotbar: supplies, and gloves (worn, not used).
-local NOT_HELD = { Supply = true, Worn = true }
+local NOT_HELD = { Supply = true, Worn = true, Towed = true }
+-- How far behind the rider a towed attachment works.
+local TOW_DISTANCE = 6
 
 -- Particle color by what the tool does (its first verb).
 local FX_COLORS = {
@@ -185,6 +187,14 @@ local function setUpRide(player: Player, tool: Tool, item)
 	base.Name = "RideRoot"
 	tool.RequiresHandle = false
 	tool:SetAttribute("Ride", true)
+	-- On stand-on machines your feet are on the platform, so your legs sit above it.
+	local standing = item.ride.stand == true
+	local humanoid = getHumanoid(player)
+	local legs = 0
+	if standing then
+		tool:SetAttribute("Stand", true)
+		legs = if humanoid and humanoid.RigType == Enum.HumanoidRigType.R15 then humanoid.HipHeight else 2
+	end
 
 	-- The weld only does anything once the tool is equipped and in the character.
 	local seat: Vector3 = item.ride.seat
@@ -192,11 +202,35 @@ local function setUpRide(player: Player, tool: Tool, item)
 	weld.Name = "RideWeld"
 	weld.Part0 = root
 	weld.Part1 = base
-	weld.C0 = CFrame.new(0, -root.Size.Y / 2, 0) * CFrame.new(-seat)
+	weld.C0 = CFrame.new(0, -root.Size.Y / 2 - legs, 0) * CFrame.new(-seat)
 	weld.C1 = tool.Grip
 	weld.Parent = base
-	-- How high the seat is off the ground, which is how high the player needs to float.
-	tool:SetAttribute("SeatHeight", depthBelow(tool, base.CFrame * tool.Grip) + seat.Y)
+	-- How high the seat (or platform plus legs) is off the ground: how high the player floats.
+	tool:SetAttribute("SeatHeight", depthBelow(tool, base.CFrame * tool.Grip) + seat.Y + legs)
+end
+
+-- Hitches a tow-behind attachment (the aerator) to a ride-on, as a model a little behind it.
+local function hitch(tool: Tool, towedId: string)
+	local base = toolBase(tool)
+	local towed = Tools.get(towedId)
+	if not (base and towed) then
+		return
+	end
+	local model = Assets.toolDisplay(towed.category, towedId)
+	model.Name = "Towed"
+	local _, size = tool:GetBoundingBox()
+	model:PivotTo(base.CFrame * CFrame.new(0, 0, size.Z / 2 + 2))
+	for _, part in model:GetDescendants() do
+		if part:IsA("BasePart") then
+			part.Anchored = false
+			local weld = Instance.new("WeldConstraint")
+			weld.Part0 = base
+			weld.Part1 = part
+			weld.Parent = part
+		end
+	end
+	model.Parent = tool
+	tool:SetAttribute("Towing", towedId)
 end
 
 local function hookTool(player: Player, tool: Tool, item)
@@ -302,6 +336,10 @@ function ToolService:GiveTools(player: Player)
 		syncCondition(tool, data.condition[itemId] or {})
 		if item.ride then
 			setUpRide(player, tool, item)
+			-- A ride-on that can tow pulls the tow-behind aerator, if it came along.
+			if item.tows and data.loadout.TowBehindAerator then
+				hitch(tool, "TowBehindAerator")
+			end
 		elseif height and GROUNDED[item.sizeClass] then
 			groundGrip(tool, height)
 		end
@@ -398,6 +436,25 @@ local function workTick(elapsed: number)
 				DataService:Changed(player)
 			end
 			lastWarnings[tool] = warnings
+		end
+
+		-- Whatever it's towing works behind it, wearing its own tires.
+		local towedId = tool:GetAttribute("Towing")
+		local towed = towedId and Tools.get(towedId)
+		if towed and moving then
+			local towedCondition = data and data.condition[towedId] or {}
+			if not Maintenance.blocker(towed, towedCondition) then
+				local towSpeed, towQuality = Maintenance.effects(towedCondition)
+				local behind = root.Position - root.CFrame.LookVector * TOW_DISTANCE
+				local towedCut =
+					JobService:ApplyWork(player, behind, towed.radius, towedId, towed.power * elapsed * towSpeed, {
+						quiet = true,
+						moving = true,
+						seconds = elapsed,
+						qualityScale = towQuality,
+					})
+				Maintenance.wear(towed, towedCondition, elapsed, false, true, towedCut == true, rng:NextNumber())
+			end
 		end
 		setFx(tool, true)
 	end

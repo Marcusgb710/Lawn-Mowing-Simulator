@@ -21,6 +21,9 @@
 --   rocky        [tool id] = speed multiplier on targets in rocky ground (a job sets how many
 --                with `rocky` on the task)
 --   heavy        hauling tasks whose loads can tip a one-wheeled barrow
+--   tight        lawns full of obstacles and banks: speed scales with the mower's maneuverability
+--   step         the task's place in a turf renovation (1 probe, 2 dethatch, 3 aerate, 4 overseed,
+--                5 fertilize, 6 water); doing them out of order lowers the finish (LawnService)
 --   phase        when the task's yard targets arrive, for tasks not used yet
 
 local Tools = require(script.Parent.Tools)
@@ -79,7 +82,6 @@ TaskTypes.List = {
 		workPerTarget = 1,
 		grassHeight = 1.25,
 		ideal = { "CommercialReelMower", "ReelMower" },
-		phase = "F",
 	},
 	{
 		id = "MowTallGrass",
@@ -91,7 +93,6 @@ TaskTypes.List = {
 		grassHeight = 9,
 		ideal = { "GasPushMower", "SelfPropelledMower" },
 		good = { "CommercialZeroTurn", "StandOnMower" },
-		phase = "F",
 	},
 	{
 		id = "MowTightOrSloped",
@@ -101,9 +102,10 @@ TaskTypes.List = {
 		target = "Grass",
 		workPerTarget = 1,
 		grassHeight = 3.5,
+		-- Trees, beds and banks everywhere: clumsy machines lose a lot of time turning.
+		tight = true,
 		ideal = { "StandOnMower" },
 		good = { "SelfPropelledMower", "GasPushMower", "ZeroTurnMower" },
-		phase = "F",
 	},
 	{
 		id = "EdgeSidewalk",
@@ -499,26 +501,30 @@ TaskTypes.List = {
 		verb = "Measure",
 		label = "Check the soil first",
 		todo = "Check soil temperature and moisture before starting",
+		target = "Probe",
+		step = 1,
 		workPerTarget = 1,
 		ideal = { "SoilProbe" },
-		phase = "F",
 	},
 	{
 		id = "DethatchLawn",
 		verb = "Dethatch",
 		label = "Pull out the thatch",
 		todo = "Tear out the thick thatch layer",
+		target = "Thatch",
+		step = 2,
 		workPerTarget = 2,
 		ideal = { "PowerRakeDethatcher" },
 		poor = { "BowRake" },
 		speedHits = { BowRake = 0.5 },
-		phase = "F",
 	},
 	{
 		id = "CoreAerate",
 		verb = "Aerate",
 		label = "Core aerate the lawn",
 		todo = "Core aerate the compacted lawn",
+		target = "Aerate",
+		step = 3,
 		workPerTarget = 2,
 		ideal = { "StandOnAerator" },
 		good = { "TowBehindAerator" },
@@ -526,40 +532,42 @@ TaskTypes.List = {
 		poor = { "DiggingFork" },
 		qualityHits = { DiggingFork = 0.7 },
 		speedHits = { DiggingFork = 0.4 },
-		phase = "F",
 	},
 	{
 		id = "Overseed",
 		verb = "Seed",
 		label = "Overseed the lawn",
 		todo = "Overseed the thin lawn",
+		target = "Overseed",
+		step = 4,
 		workPerTarget = 2,
 		ideal = { "SlitOverseeder" },
 		-- Seed sitting on top of the soil sprouts patchy.
 		good = { "BroadcastSpreader" },
 		qualityHits = { BroadcastSpreader = 0.8 },
-		phase = "F",
 	},
 	{
 		id = "FertilizeLargeLawn",
 		verb = "Spread",
 		label = "Fertilize the lawn evenly",
 		todo = "Feed a big lawn with granular fertilizer",
+		target = "Fertilize",
+		step = 5,
 		workPerTarget = 1,
 		ideal = { "RideOnSpreaderSprayer" },
 		good = { "BroadcastSpreader" },
-		phase = "F",
 	},
 	{
 		id = "WaterNewSeed",
 		verb = "Water",
 		label = "Water in the new seed",
 		todo = "Water in the new seed without washing it away",
+		target = "WaterSeed",
+		step = 6,
 		workPerTarget = 1,
 		ideal = { "GardenHoseWand" },
 		good = { "WateringCan" },
 		speedHits = { WateringCan = 0.5 },
-		phase = "F",
 	},
 }
 
@@ -614,6 +622,9 @@ function TaskTypes.fit(taskTypeId: string, toolId: string): Fit?
 	local multiplier = TaskTypes.FitMultipliers[rating]
 	local qualityHit = taskType.qualityHits and taskType.qualityHits[toolId] or 1
 	local speedHit = taskType.speedHits and taskType.speedHits[toolId] or 1
+	if taskType.tight then
+		speedHit *= 0.4 + 0.6 * (tool.maneuverability or 1)
+	end
 	return {
 		rating = rating,
 		speed = multiplier * speedHit,

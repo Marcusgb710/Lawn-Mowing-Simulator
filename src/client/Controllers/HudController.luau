@@ -306,6 +306,9 @@ local function updateJob()
 		trackerButton.Visible = false
 	elseif job.state == "Working" then
 		trackerHint.Text = if job.story then `"{job.story}"  - {job.customer}` else "Don't hit the flowers or gnomes!"
+		if job.soil then
+			trackerHint.Text ..= `\nSoil probe: {job.soil}`
+		end
 		trackerButton.Text = if isLeader then "Call off job" else "Leave job"
 	elseif job.state == "Complete" then
 		trackerHint.Text = if job.result then resultText(job.result) else "Job done!"
