@@ -49,34 +49,22 @@ Last updated: 2026-10-18
 
   Lune 0.11 is installed globally with Rokit (`~/.rokit/bin/lune`).
 
-## Models still needed
+## Models
 
-Everything below still uses a block placeholder. Name each model after its id and drop it in the
-matching `assets/` folder (see the README section *Swapping in real models*).
+Every item now has a real model. ChatGPT built mesh sources from `alphainstructions/instructions1.md`
+to `instructions23.md`, kept in `model-source/`. They were imported into Studio as Big Dink Studios
+and exported to `assets/` (85 models: 67 tools, 7 props, 4 buildings, 4 trucks, 3 trailers).
 
-ChatGPT, connected to Studio, builds these from the specs in `alphainstructions/instructions1.md`
-to `instructions9.md`, most important first. The 58 new items from `docs/GAME_DESIGN.md` are
-specced in `instructions10.md` to `instructions23.md`. It puts the models straight into
-`ReplicatedStorage.Assets` in the Team Create place.
+To re-import or add models: in Studio use File → Import 3D with Creator Big Dink Studios, Scale Unit
+Meter and **World Forward: Back**, because these packs are authored with their front at −Z. Then
+paste `scripts/PrepareChatGPTModels.luau` into the command bar, save
+`ServerStorage.ModelImport` with right-click → Save / Export → Save to File, and run
+`lune run scripts/export-models <file>.rbxm`.
 
-- [ ] Once they're built, export them into `assets/` so they're in git too. Save a local copy of
-      the place, then write a Lune export like `scripts/export-kit.luau`.
-
-| Folder | Still a placeholder | Kit stand-in you could use |
-| --- | --- | --- |
-| `Tools` (Mower) | `ReelMower` (the starter tool), `SelfPropelledMower` | Push mower for `SelfPropelledMower` |
-| `Tools` (Trimmer) | `GardenShears`, `Brushcutter` | Petrol trimmer for `Brushcutter` |
-| `Tools` (Rake) | `WideRake`, `LeafBlower`, `BackpackBlower` | Rake for `WideRake` |
-| `Tools` (Edger) | `HalfMoonEdger`, `ElectricEdger`, `GasStickEdger`, `WalkBehindEdger` | Shovel for `HalfMoonEdger` |
-| `Tools` (HedgeTrimmer) | `HandHedgeShears`, `ElectricHedgeTrimmer`, `CordlessHedgeTrimmer`, `GasHedgeTrimmer` | none |
-| `Trucks` | `RustyPickup`, `WorkPickup`, `HeavyDutyPickup`, `LandscapingTruck` | none. Each needs a `BedArea` part with a `Slots` attribute |
-| `Trailers` | `UtilityTrailer`, `LandscapeTrailer` | none. Each needs a `BedArea` part |
-| `Buildings` | `Shed`, `Garage`, `SmallOffice` | none |
-| `Props` | `House`, `FlowerPatch` (parts named `Flower` wilt), `GardenGnome` | none |
-
-To use a stand-in, add a line to `TOOLS` in `scripts/build-kit-tools.luau` and re-run it. Reusing
-a model for two tiers makes them look identical, so consider recoloring the SurfaceAppearance or
-scaling it.
+- [ ] Visual review. These are simpler low-poly models than the original kit; the trucks
+      especially are boxy. Check grips, scale and colors in Play and send weak ones back to
+      ChatGPT with notes.
+- [ ] `RidingMower`-style seat offsets for the new ride-on and stand-on machines (Phase F).
 
 Not uploaded yet: `Textures/Lawn_Uncut_Color.png`, `Textures/Lawn_Mown_Color.png` and
 `Textures/Soil_Color.png` from the kit. They're 512×512 tiling lawn and soil color maps, and the
