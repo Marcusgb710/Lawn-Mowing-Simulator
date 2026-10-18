@@ -60,7 +60,9 @@ Every job task has a **task type** with one verb and a **fit table**
   (phase C/D).
 
 When a player uses a tool on targets it can't work, they're told **"That won't work here."**
-(at most every few seconds), and never which tool would.
+(at most every few seconds), and never which tool would. Walking over lawn grass doesn't count
+while the tool still has work left on the job, and a mower idling while you stand still stays
+quiet.
 
 ## 2. Tools by tier
 
@@ -189,7 +191,15 @@ Templates live in `src/shared/Config/Jobs.luau`:
 
 Each offer also gets a random customer, a preference and a story. The board and the on-site
 tracker show only the customer's note and the to-do lines (`TaskTypes.todo`, e.g. "Plant 12
-bulbs, 6 inches deep, along the front walk"), never tools. Jobs vary: some need one tool, others
+bulbs, 6 inches deep, along the front walk"), never tools. The preference stays on the server;
+players only see the story.
+
+Since nothing checks tools any more, a crew can take a job it can't finish (and call it off).
+So the board's first slot always shows a job the free starter gear can finish, and the next
+slots are level 1 jobs. `Jobs.luau` also refuses templates that couldn't be finished:
+- a task whose yard targets don't exist yet
+- two tasks sharing a target kind
+- a counted task with no amount Jobs vary: some need one tool, others
 several. Later phases add task `protection`, ordering, and soil conditions for pro jobs.
 
 ### Task types
@@ -337,8 +347,12 @@ phase that gives them work.
 
 - **Version 2 (phase A)** just starts the versioning. Tools kept their ids and categories, so
   nothing moves, and money, level and owned items carry over as-is.
-- A save from a newer version of the game is played but never overwritten.
-- If a migration fails, that session doesn't save, so the stored data is left alone.
+- A save from a newer version of the game is played but never overwritten. Saves go through
+  `UpdateAsync`, which also refuses to write over one.
+- If a migration fails, that session doesn't save, so the stored data is left alone. The player
+  still gets a profile, so nothing waits on them forever.
+- There's no session locking yet. A very fast server hop could still lose the last session;
+  moving to ProfileStore or a session lock would fix that.
 - **Phase B** will add version 3, moving owned tools into per-tool storage.
 
 ## New item ids for modelers

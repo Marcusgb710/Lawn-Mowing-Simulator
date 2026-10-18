@@ -61,9 +61,13 @@ local function defaultData()
 	return data
 end
 
+local function versionOf(saved): number
+	return if typeof(saved) == "table" then tonumber(saved.version) or 1 else 1
+end
+
 -- Runs every migration step a save hasn't had yet.
 local function migrate(data)
-	local version = data.version or 1
+	local version = versionOf(data)
 	while version < DATA_VERSION do
 		version += 1
 		local step = MIGRATIONS[version]
@@ -138,8 +142,11 @@ local function load(player: Player)
 		if ok then
 			-- A save from a newer version of the game (say, during a rollback) is played as-is,
 			-- but never overwritten with the older format.
-			local newer = result ~= nil and (result.version or 1) > DATA_VERSION
+			local newer = versionOf(result) > DATA_VERSION
 			local migrated, data = pcall(function()
+				if result ~= nil and typeof(result) ~= "table" then
+					error("the save isn't a table")
+				end
 				return reconcile(if newer then result else migrate(result or defaultData()))
 			end)
 			if migrated then
@@ -168,7 +175,13 @@ local function save(player: Player)
 	if not (profile and profile.canSave and store) then
 		return
 	end
-	local ok, err = pcall(store.SetAsync, store, keyFor(player), profile.data, { player.UserId })
+	local ok, err = pcall(store.UpdateAsync, store, keyFor(player), function(stored)
+		-- Never write the older format over a save from a newer version of the game.
+		if versionOf(stored) > DATA_VERSION then
+			return nil
+		end
+		return profile.data, { player.UserId }
+	end)
 	if not ok then
 		warn(`Couldn't save data for {player.Name}: {err}`)
 	end
@@ -206,7 +219,12 @@ local function createLeaderstats(player: Player, data)
 end
 
 local function onPlayerAdded(player: Player)
-	local data, canSave = load(player)
+	local loaded, data, canSave = pcall(load, player)
+	if not loaded then
+		-- Always give them a profile so nothing waits on it forever, but don't save it.
+		warn(`Couldn't load data for {player.Name}: {data}`)
+		data, canSave = defaultData(), false
+	end
 	if player.Parent ~= Players then
 		return
 	end

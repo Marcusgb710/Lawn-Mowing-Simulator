@@ -22,6 +22,8 @@ local GameConfig = require(Shared.Config.GameConfig)
 local Items = require(Shared.Config.Items)
 local Jobs = require(Shared.Config.Jobs)
 local Net = require(Shared.Net)
+local TaskTypes = require(Shared.Config.TaskTypes)
+local Tools = require(Shared.Config.Tools)
 local Signal = require(Shared.Signal)
 
 local DataService = require(script.Parent.DataService)
@@ -64,19 +66,56 @@ local function highestLevel(): number
 	return best
 end
 
-local function makeOffer(starter: boolean)
-	-- Show jobs a little above the best player's level so there's something to work toward.
-	local maxLevel = if starter then 1 else highestLevel() + 2
+-- True if a brand-new player's free gear can finish every task in the job.
+local function doableWithStarterGear(template): boolean
+	for _, task in template.tasks do
+		local doable = false
+		for _, tool in Tools.List do
+			if tool.available and tool.price == 0 and TaskTypes.fit(task.type, tool.id) then
+				doable = true
+				break
+			end
+		end
+		if not doable then
+			return false
+		end
+	end
+	return true
+end
+
+-- What kind of job a board slot shows:
+--   "StarterGear"  a job new players can finish with the gear they start with (always one)
+--   "Starter"      any level 1 job
+--   "Open"         anything up to a little above the best player's level
+local function poolFor(kind: string)
+	local maxLevel = if kind == "Open" then highestLevel() + 2 else 1
 	local pool = {}
 	for _, template in Jobs.Templates do
-		if template.minLevel <= maxLevel then
+		if template.minLevel <= maxLevel and (kind ~= "StarterGear" or doableWithStarterGear(template)) then
 			table.insert(pool, template)
 		end
 	end
+	return if #pool > 0 then pool else poolFor("Starter")
+end
+
+local function slotKind(index: number): string
+	if index == 1 then
+		return "StarterGear"
+	end
+	return if index <= GameConfig.StarterJobsOnBoard then "Starter" else "Open"
+end
+
+-- [offer id] = the customer's preference. Kept off the offers players can see: the story is
+-- the only hint.
+local offerPreferences = {}
+
+local function makeOffer(kind: string)
+	local pool = poolFor(kind)
 	local template = pool[rng:NextInteger(1, #pool)]
 
 	nextOfferId += 1
 	local preference = Jobs.pickPreference(rng)
+	offerPreferences[tostring(nextOfferId)] = preference
 	return {
 		id = tostring(nextOfferId),
 		templateId = template.id,
@@ -85,14 +124,12 @@ local function makeOffer(starter: boolean)
 		address = Jobs.randomAddress(rng),
 		customer = Jobs.Customers[rng:NextInteger(1, #Jobs.Customers)],
 		story = Jobs.story(rng, template, preference),
-		-- Only hinted at in the story; shown after the job in the pay breakdown.
-		preference = preference,
 		todo = Jobs.todoList(template),
 		payout = math.floor(template.basePay * rng:NextNumber(0.9, 1.25) / 5 + 0.5) * 5,
 		xp = template.xp,
 		minLevel = template.minLevel,
 		parTime = template.parTime,
-		starter = starter,
+		kind = kind,
 	}
 end
 
@@ -102,8 +139,9 @@ end
 
 local function refreshBoard()
 	table.clear(board)
+	table.clear(offerPreferences)
 	for index = 1, GameConfig.JobBoardSize do
-		table.insert(board, makeOffer(index <= GameConfig.StarterJobsOnBoard))
+		table.insert(board, makeOffer(slotKind(index)))
 	end
 	Net.event("JobBoardUpdated"):FireAllClients(board)
 end
@@ -324,7 +362,7 @@ local function completeJob(job)
 	-- Averages over all the work done, so the tool used most counts most.
 	local toolFit = if job.work > 0 then job.fitWork / job.work else 1
 	local quality = if job.work > 0 then job.qualityWork / job.work else 0.75
-	local weights = Jobs.Preferences[job.offer.preference]
+	local weights = Jobs.Preferences[job.preference]
 	local total = GameConfig.jobPay({
 		basePay = job.offer.payout,
 		toolFit = toolFit,
@@ -340,7 +378,7 @@ local function completeJob(job)
 	job.result = {
 		basePay = job.offer.payout,
 		time = elapsed,
-		preference = job.offer.preference,
+		preference = job.preference,
 		toolFit = toolFit,
 		quality = quality,
 		qualityMultiplier = GameConfig.qualityMultiplier(quality),
@@ -391,7 +429,9 @@ function JobService:ApplyWork(
 	radius: number,
 	toolId: string,
 	amount: number,
-	damagesHazards: boolean
+	damagesHazards: boolean,
+	-- Don't tell them their tool won't work (a mower idling while they stand still).
+	quiet: boolean?
 )
 	local job = playerJobs[player]
 	if not job or job.state ~= "Working" then
@@ -414,7 +454,7 @@ function JobService:ApplyWork(
 	job.work += result.work
 	job.fitWork += result.fitWork
 	job.qualityWork += result.qualityWork
-	if result.blocked and not result.changed and os.clock() - (wrongToolWarnings[player] or 0) > 4 then
+	if result.blocked and not result.changed and not quiet and os.clock() - (wrongToolWarnings[player] or 0) > 4 then
 		-- Never say which tool would work: knowing your tools is the game.
 		wrongToolWarnings[player] = os.clock()
 		notify(player, "That won't work here.")
@@ -457,12 +497,15 @@ function JobService:AcceptJob(player: Player, offerId: string): (boolean, string
 		return false, `You need to be level {offer.minLevel} for this job.`
 	end
 
-	board[index] = makeOffer(offer.starter)
+	board[index] = makeOffer(offer.kind)
 	Net.event("JobBoardUpdated"):FireAllClients(board)
+	local preference = offerPreferences[offer.id] or "Balanced"
+	offerPreferences[offer.id] = nil
 
 	local job = {
 		id = offer.id,
 		offer = offer,
+		preference = preference,
 		party = party,
 		state = "Ready",
 		members = {},

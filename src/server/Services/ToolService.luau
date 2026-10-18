@@ -264,7 +264,16 @@ local function workTick(elapsed: number)
 		end
 
 		local position = root.Position + root.CFrame.LookVector * REACH_OFFSET
-		JobService:ApplyWork(player, position, item.radius, itemId, item.power * elapsed, Tools.damagesHazards(item))
+		local idling = item.use == "Passive" and not moving
+		JobService:ApplyWork(
+			player,
+			position,
+			item.radius,
+			itemId,
+			item.power * elapsed,
+			Tools.damagesHazards(item),
+			idling
+		)
 		setFx(tool, true)
 	end
 end

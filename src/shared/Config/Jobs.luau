@@ -230,11 +230,23 @@ local STREETS = {
 	"Clover Ln",
 }
 
+-- Targets the yard builder places a set number of; the others (grass, edges) come from the lawn.
+local COUNTED_TARGETS = { Weed = true, LeafPile = true, Hedge = true }
+
+-- Catch templates that would make a job that can't be finished.
 local byId = {}
 for _, template in Jobs.Templates do
 	byId[template.id] = template
+	local targets = {}
 	for _, task in template.tasks do
-		assert(TaskTypes.get(task.type), `{template.id} uses unknown task type {task.type}`)
+		local taskType = TaskTypes.get(task.type)
+		assert(taskType, `{template.id} uses unknown task type {task.type}`)
+		assert(taskType.target, `{template.id}: {task.type} has no yard targets until phase {taskType.phase}`)
+		assert(not targets[taskType.target], `{template.id}: two tasks use {taskType.target} targets`)
+		targets[taskType.target] = true
+		if COUNTED_TARGETS[taskType.target] then
+			assert((task.amount or 0) > 0, `{template.id}: {task.type} needs an amount`)
+		end
 	end
 end
 

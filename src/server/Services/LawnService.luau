@@ -660,8 +660,19 @@ export type WorkResult = {
 function Lawn:ApplyWork(position: Vector3, radius: number, toolId: string, amount: number): WorkResult
 	local result = { changed = false, blocked = false, work = 0, fitWork = 0, qualityWork = 0 }
 
+	-- Lawn grass is everywhere, so walking a tool across it on the way to its real work isn't a
+	-- mistake. Grass only counts as "wrong tool" when the tool has nothing left to do here.
+	local fits = {}
+	local usefulHere = false
 	for _, task in self.tasks do
-		local fit = TaskTypes.fit(task.id, toolId)
+		fits[task] = TaskTypes.fit(task.id, toolId) or false
+		if fits[task] and task.done < task.total then
+			usefulHere = true
+		end
+	end
+
+	for _, task in self.tasks do
+		local fit = fits[task]
 		for _, target in task.targets do
 			if target.work <= 0 then
 				continue
@@ -671,7 +682,9 @@ function Lawn:ApplyWork(position: Vector3, radius: number, toolId: string, amoun
 				continue
 			end
 			if not fit then
-				result.blocked = true
+				if target.kind ~= "Grass" or not usefulHere then
+					result.blocked = true
+				end
 				break
 			end
 			local applied = math.min(target.work, amount * fit.speed)
