@@ -15,6 +15,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Assets = require(Shared.Assets)
 local GameConfig = require(Shared.Config.GameConfig)
 local Items = require(Shared.Config.Items)
+local Tools = require(Shared.Config.Tools)
 
 local DataService = require(script.Parent.DataService)
 local JobService = require(script.Parent.JobService)
@@ -22,13 +23,16 @@ local JobService = require(script.Parent.JobService)
 -- How far in front of the player a tool does its work.
 local REACH_OFFSET = 2
 
+-- Particle color by what the tool does (its first verb).
 local FX_COLORS = {
 	Mow = Color3.fromRGB(110, 190, 70),
+	Trim = Color3.fromRGB(150, 170, 50),
 	Edge = Color3.fromRGB(110, 80, 50),
-	Weeds = Color3.fromRGB(150, 170, 50),
-	Leaves = Color3.fromRGB(210, 120, 40),
-	Hedge = Color3.fromRGB(60, 130, 50),
+	Rake = Color3.fromRGB(210, 120, 40),
+	Blow = Color3.fromRGB(210, 120, 40),
+	Shear = Color3.fromRGB(60, 130, 50),
 }
+local DEFAULT_FX_COLOR = Color3.fromRGB(120, 90, 60)
 
 local ToolService = {}
 
@@ -57,7 +61,7 @@ local function setFx(tool: Tool, enabled: boolean)
 	end
 end
 
-local function addFx(tool: Tool, taskName: string)
+local function addFx(tool: Tool, verb: string?)
 	local handle = toolBase(tool)
 	if not handle or handle:FindFirstChild("WorkFx") then
 		return
@@ -65,7 +69,7 @@ local function addFx(tool: Tool, taskName: string)
 	local emitter = Instance.new("ParticleEmitter")
 	emitter.Name = "WorkFx"
 	emitter.Enabled = false
-	emitter.Color = ColorSequence.new(FX_COLORS[taskName])
+	emitter.Color = ColorSequence.new(verb and FX_COLORS[verb] or DEFAULT_FX_COLOR)
 	emitter.Size = NumberSequence.new(0.25)
 	emitter.Lifetime = NumberRange.new(0.3, 0.6)
 	emitter.Rate = 40
@@ -128,8 +132,9 @@ local function setUpRide(player: Player, tool: Tool, item)
 	tool:SetAttribute("SeatHeight", depthBelow(tool, base.CFrame * tool.Grip) + seat.Y)
 end
 
-local function hookTool(player: Player, tool: Tool, category: string, item)
-	local isMower = category == "Mower"
+local function hookTool(player: Player, tool: Tool, item)
+	-- Mowers work the whole time they're equipped; everything else while the button is held.
+	local passive = item.use == "Passive"
 
 	tool.Equipped:Connect(function()
 		local humanoid = getHumanoid(player)
@@ -144,7 +149,7 @@ local function hookTool(player: Player, tool: Tool, category: string, item)
 			end
 			humanoid.HipHeight = seatHeight
 		end
-		if isMower then
+		if passive then
 			running[tool] = true
 		end
 	end)
@@ -159,7 +164,7 @@ local function hookTool(player: Player, tool: Tool, category: string, item)
 		end
 	end)
 
-	if not isMower then
+	if not passive then
 		tool.Activated:Connect(function()
 			running[tool] = true
 		end)
@@ -216,7 +221,7 @@ function ToolService:GiveTools(player: Player)
 		if not (itemId and data.loadout[category]) then
 			continue
 		end
-		local item = Items.get(category, itemId)
+		local item = Tools.get(itemId)
 		local tool = Assets.tool(category, itemId)
 		tool.Name = item.name
 		tool.ToolTip = Items.CategoryInfo[category].displayName
@@ -226,8 +231,8 @@ function ToolService:GiveTools(player: Player)
 		if item.ride then
 			setUpRide(player, tool, item)
 		end
-		addFx(tool, Items.CategoryInfo[category].task)
-		hookTool(player, tool, category, item)
+		addFx(tool, item.verbs[1])
+		hookTool(player, tool, item)
 		tool.Parent = backpack
 
 		-- Swapping gear shouldn't make you put your tool away.
@@ -250,8 +255,8 @@ local function workTick(elapsed: number)
 			continue
 		end
 
-		local category = tool:GetAttribute("Category")
-		local item = Items.get(category, tool:GetAttribute("ItemId"))
+		local itemId = tool:GetAttribute("ItemId")
+		local item = Tools.get(itemId)
 		local moving = humanoid.MoveDirection.Magnitude > 0.1
 		if item.motorized == false and not moving then
 			setFx(tool, false)
@@ -259,14 +264,15 @@ local function workTick(elapsed: number)
 		end
 
 		local position = root.Position + root.CFrame.LookVector * REACH_OFFSET
-		local info = Items.CategoryInfo[category]
+		local idling = item.use == "Passive" and not moving
 		JobService:ApplyWork(
 			player,
 			position,
 			item.radius,
-			info.task,
+			itemId,
 			item.power * elapsed,
-			info.damagesHazards == true
+			Tools.damagesHazards(item),
+			idling
 		)
 		setFx(tool, true)
 	end

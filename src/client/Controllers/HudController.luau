@@ -7,7 +7,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Format = require(Shared.Format)
 local GameConfig = require(Shared.Config.GameConfig)
-local Items = require(Shared.Config.Items)
 local Net = require(Shared.Net)
 
 local ClientState = require(script.Parent.Parent.ClientState)
@@ -146,11 +145,27 @@ local function updateTimer()
 	timerLabel.Visible = true
 end
 
+local WANTED = {
+	Quality = "a perfect finish",
+	Speed = "it done fast",
+	Balanced = "a good job in good time",
+}
+
+local function multiplier(value: number): string
+	return "x" .. string.format("%.2f", value)
+end
+
 local function resultText(result): string
 	local lines = {
 		`Job pay {Format.money(result.basePay)} in {Format.time(result.time)}`,
-		`Speed x{string.format("%.2f", result.speedMultiplier)}`,
+		`The customer wanted {WANTED[result.preference] or WANTED.Balanced}`,
+		`Finish {Format.percent(result.quality)} ({multiplier(result.qualityMultiplier)})`
+			.. `  ·  Speed {multiplier(result.speedMultiplier)}`,
 	}
+	if result.toolFit < 0.995 then
+		-- Says the tools weren't the best for the job, but never which ones would have been.
+		table.insert(lines, `Right tools for the job: {Format.percent(result.toolFit)}`)
+	end
 	local bonus = result.crewBonus * result.truckBonus * result.businessBonus
 	if bonus > 1 then
 		table.insert(lines, `Crew/truck/business x{string.format("%.2f", bonus)}`)
@@ -230,7 +245,7 @@ local function updateJob()
 
 	if job.state == "Ready" then
 		trackerHint.Text = if isLeader
-			then `{job.address} · {Format.money(job.payout)}\nCarry the tools it needs from the rack to the truck, then hop in!`
+			then `{job.address} · {Format.money(job.payout)}\nLoad the tools you think you'll need, then hop in!`
 			else `{job.address} · {Format.money(job.payout)}\nWaiting for {job.leader.DisplayName} to start the truck.`
 		trackerButton.Text = "Cancel job"
 		trackerButton.Visible = isLeader
@@ -238,7 +253,7 @@ local function updateJob()
 		trackerHint.Text = `Driving to {job.address}...`
 		trackerButton.Visible = false
 	elseif job.state == "Working" then
-		trackerHint.Text = "Be fast, and don't hit the flowers or gnomes!"
+		trackerHint.Text = if job.story then `"{job.story}"  - {job.customer}` else "Don't hit the flowers or gnomes!"
 		trackerButton.Text = if isLeader then "Call off job" else "Leave job"
 	elseif job.state == "Complete" then
 		trackerHint.Text = if job.result then resultText(job.result) else "Job done!"
@@ -252,8 +267,7 @@ local function updateJob()
 	end
 	for order, info in job.tasks do
 		local row = getTaskRow(info.task, order)
-		local toolName = Items.CategoryInfo[info.tool].toolName
-		row.label.Text = `{info.label} ({toolName})  {info.done}/{info.needed}`
+		row.label.Text = `{info.label}  {info.done}/{info.needed}`
 		local fraction = if info.needed > 0 then info.done / info.needed else 1
 		row.fill.Size = UDim2.fromScale(fraction, 1)
 		row.fill.BackgroundColor3 = if fraction >= 1 then UI.Colors.Money else UI.Colors.Accent

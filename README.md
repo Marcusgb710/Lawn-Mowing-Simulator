@@ -61,8 +61,10 @@ Services*. Without it the game still runs, it just doesn't save progress.
 1. **Your business.** Everyone gets a business plot in town. It has a job board, a tool rack and
    your crew truck parked out front. It starts as a **Tool Shed** and can be upgraded to a
    **Garage** and then a **Small Office** (each upgrade pays more per job).
-2. **Take a job.** At the job board the crew leader picks a job. Each job lists the tools it needs
-   (mower, edger, weed whacker, rake, hedge trimmer).
+2. **Take a job.** At the job board the crew leader picks a job. Customers say what they want done
+   and hint at how ("it has to look immaculate" or "just knock it down before noon"), but **no job
+   ever says which tool to use**. Every tool's description in the shop and the Truck checklist
+   says what it's for; knowing your tools is the game.
 3. **Load the truck by hand.** Your tools are laid out in front of the tool rack. Walk up to one
    and press **E** to pick it up, carry it to the truck and press **E** again to load it. To take
    a tool back out, press **R** on it in the truck bed and carry it back to the rack. Only tools in
@@ -71,13 +73,16 @@ Services*. Without it the game still runs, it just doesn't save progress.
    you more room. The **Truck** button shows a checklist of what's loaded.
 4. **Drive.** The leader hops in the truck. Everyone watches the drive cutscene and arrives at the
    house.
-5. **Do the yard.** Mow the grass, edge the sidewalk and driveway, whack the weeds, rake the leaf
-   piles and trim the hedges. Mowers work while equipped; every other tool works while you hold the
-   mouse button.
+5. **Do the yard.** Mow the grass, edge the sidewalk and driveway, cut back the long grass along
+   the house, clear the leaf piles and shape the hedges. Mowers work while equipped; every other
+   tool works while you hold the mouse button. A tool that can't do a job says "That won't work
+   here"; a tool that can but isn't the best fit works slower and pays less.
 6. **Get paid.** Pay depends on:
-   - **Speed:** beat the job's par time for up to +25%, go slow and lose up to 50%.
-   - **Accuracy:** each flower patch or garden gnome you run over with a mower, weed whacker or
-     edger costs 10% of the job's pay.
+   - **Tool fit:** the right tools pay in full, okay ones 80%, poor ones 55%.
+   - **Finish and speed:** how clean the work is (reel mowers cut cleanest) and how it compares
+     to the par time, weighted by what the customer cares about.
+   - **Accuracy:** each flower patch or garden gnome you run over with a mower, trimmer or edger
+     costs 10% of the job's pay.
    - **Bonuses:** bigger crews, better trucks and a bigger business all pay more.
    The money is split evenly across the crew, then the truck drives everyone back to the business.
 7. **Upgrade.** Spend money at the hardware store on better tools (reel push mower → gas → self
@@ -98,9 +103,11 @@ default.project.json         Rojo project: maps the folders below into the game
 rokit.toml                   Tool versions (Rojo, Selene, StyLua)
 assets/                      -> ReplicatedStorage.Assets   real models go here (see below)
 src/shared/                  -> ReplicatedStorage.Shared   code used by both server and client
-  Config/GameConfig.luau        balance numbers: travel time, payouts, penalties, leveling...
-  Config/Items.luau             every shop item: tools, trucks, trailers, business upgrades
-  Config/Jobs.luau              job types: lawn size, tasks, flower patches, par time, pay
+  Config/GameConfig.luau        balance numbers: travel time, pay formula, penalties, leveling...
+  Config/Tools.luau             every tool: tier, verbs, size class, stats, what it's for
+  Config/TaskTypes.luau         every kind of task and which tools fit it (ideal/good/poor)
+  Config/Jobs.luau              job types: customers, stories, yard, tasks, par time, pay
+  Config/Items.luau             the shop tabs: tools from Tools.luau, trucks, trailers, businesses
   Assets.luau                   finds a real model or falls back to a placeholder
   Placeholders.luau             the block models used until real ones exist
   Net.luau                      every RemoteEvent / RemoteFunction name
@@ -120,7 +127,9 @@ src/client/                  -> StarterPlayer.StarterPlayerScripts.Client
                                 drive cutscene
 ```
 
-Most balancing happens in the three files in `src/shared/Config/`, no other code changes needed.
+Most balancing happens in the files in `src/shared/Config/`, no other code changes needed. The
+full design (realistic tools, storage, maintenance, and the phase plan) is in
+[`docs/GAME_DESIGN.md`](docs/GAME_DESIGN.md).
 
 ## Swapping in real models
 

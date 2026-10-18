@@ -1,5 +1,6 @@
--- The "Truck" menu: a checklist of what's in the truck, what's on the rack and what the job needs.
--- Loading happens by hand (see CarryController); only tools in the truck come along on a job.
+-- The "Truck" menu: a checklist of your tools (what each is for, and whether it's in the truck,
+-- in your hands or on the rack) next to the customer's to-do list. It never says which tool a
+-- job needs. Loading happens by hand (see CarryController).
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -41,12 +42,8 @@ local function render()
 	summary.Text = `{owner}: {used}/{capacity} tools loaded`
 
 	local job = ClientState.job
-	if job and job.tools then
-		local names = {}
-		for _, category in job.tools do
-			table.insert(names, Items.CategoryInfo[category].toolName)
-		end
-		hint.Text = `This job needs: {table.concat(names, ", ")}. Carry them from the rack to the truck.`
+	if job and job.todo then
+		hint.Text = `The customer wants: {table.concat(job.todo, "; ")}.`
 	elseif not profile.trailerUnlocked then
 		hint.Text = "Fill the truck bed to unlock trailers at the hardware store."
 	elseif not profile.equipped.Trailer then
@@ -63,29 +60,34 @@ local function render()
 		local held = player:GetAttribute("Carrying") == category
 
 		local card = UI.new("Frame", {
-			Size = UDim2.new(1, -8, 0, 56),
+			Size = UDim2.new(1, -8, 0, 0),
+			AutomaticSize = Enum.AutomaticSize.Y,
 			BackgroundColor3 = UI.Colors.Card,
 			LayoutOrder = index,
 			Parent = list,
 		}, { UI.corner(8) })
-		UI.label(info.toolName, {
-			Position = UDim2.fromOffset(12, 6),
-			Size = UDim2.new(1, -150, 0, 22),
-			TextSize = 20,
+		local text = UI.new("Frame", {
+			Size = UDim2.new(1, -150, 0, 0),
+			AutomaticSize = Enum.AutomaticSize.Y,
+			BackgroundTransparency = 1,
 			Parent = card,
-		})
-		UI.label(if item then item.name else "Not owned yet. Buy one at the hardware store.", {
-			Position = UDim2.fromOffset(12, 30),
-			Size = UDim2.new(1, -150, 0, 18),
-			TextSize = 15,
+		}, { UI.list(2), UI.padding(8) })
+		UI.label(if item then item.name else info.toolName, { TextSize = 19, LayoutOrder = 1, Parent = text })
+		UI.label(if item then item.description else "None yet. Buy one at the hardware store.", {
+			Size = UDim2.fromScale(1, 0),
+			AutomaticSize = Enum.AutomaticSize.Y,
+			TextWrapped = true,
+			TextSize = 14,
+			Font = Enum.Font.Gotham,
 			TextColor3 = UI.Colors.SubText,
-			Parent = card,
+			LayoutOrder = 2,
+			Parent = text,
 		})
 
 		if item then
 			UI.label(if loaded then "In the truck" elseif held then "In your hands" else "On the rack", {
-				AnchorPoint = Vector2.new(1, 0.5),
-				Position = UDim2.new(1, -12, 0.5, 0),
+				AnchorPoint = Vector2.new(1, 0),
+				Position = UDim2.new(1, -12, 0, 10),
 				Size = UDim2.fromOffset(130, 24),
 				TextSize = 17,
 				TextXAlignment = Enum.TextXAlignment.Right,
@@ -102,13 +104,16 @@ function TruckController:Start()
 	summary = UI.label("", { TextSize = 20, Parent = content })
 	hint = UI.label("", {
 		Position = UDim2.fromOffset(0, 26),
+		Size = UDim2.new(1, 0, 0, 40),
 		TextSize = 15,
+		TextWrapped = true,
+		TextYAlignment = Enum.TextYAlignment.Top,
 		TextColor3 = UI.Colors.SubText,
 		Parent = content,
 	})
 	list = UI.scrollingList(content, {
-		Position = UDim2.fromOffset(0, 56),
-		Size = UDim2.new(1, 0, 1, -56),
+		Position = UDim2.fromOffset(0, 70),
+		Size = UDim2.new(1, 0, 1, -70),
 	})
 
 	ClientState.Changed:Connect(function(key)

@@ -4,8 +4,12 @@
 --   Working    the crew is at the house doing yard work (the clock is running)
 --   Complete   everyone got paid, the truck heads back to the business in a few seconds
 --
--- Pay = job pay x crew bonus x truck bonus x business bonus x speed bonus, minus damage for every flower patch
--- or gnome the crew ran over. Then it's split evenly between the crew.
+-- Nothing here tells players which tools to bring: offers carry the customer's story and to-do
+-- list, and a tool that can't do a task just gets "That won't work here".
+--
+-- Pay (GameConfig.jobPay) = job pay x how well the tools fit the tasks x a blend of finish
+-- quality and speed (weighted by what the customer wants) x crew/truck/business bonuses, minus
+-- damage for every flower patch or gnome the crew ran over. Then it's split evenly.
 
 local Players = game:GetService("Players")
 local ProximityPromptService = game:GetService("ProximityPromptService")
@@ -18,6 +22,8 @@ local GameConfig = require(Shared.Config.GameConfig)
 local Items = require(Shared.Config.Items)
 local Jobs = require(Shared.Config.Jobs)
 local Net = require(Shared.Net)
+local TaskTypes = require(Shared.Config.TaskTypes)
+local Tools = require(Shared.Config.Tools)
 local Signal = require(Shared.Signal)
 
 local DataService = require(script.Parent.DataService)
@@ -43,6 +49,8 @@ local playerJobs = {}
 -- [Player] = token for the trip they're on, so overlapping trips don't trip over each other
 local traveling = {}
 local usedSlots = {}
+-- [Player] = when they were last told their tool won't work, so it isn't spammed
+local wrongToolWarnings = {}
 
 local function notify(player: Player, message: string)
 	Net.event("Notify"):FireClient(player, message)
@@ -58,50 +66,71 @@ local function highestLevel(): number
 	return best
 end
 
-local function makeOffer(starter: boolean)
-	-- Show jobs a little above the best player's level so there's something to work toward.
-	local maxLevel = if starter then 1 else highestLevel() + 2
+-- True if a brand-new player's free gear can finish every task in the job.
+local function doableWithStarterGear(template): boolean
+	for _, task in template.tasks do
+		local doable = false
+		for _, tool in Tools.List do
+			if tool.available and tool.price == 0 and TaskTypes.fit(task.type, tool.id) then
+				doable = true
+				break
+			end
+		end
+		if not doable then
+			return false
+		end
+	end
+	return true
+end
+
+-- What kind of job a board slot shows:
+--   "StarterGear"  a job new players can finish with the gear they start with (always one)
+--   "Starter"      any level 1 job
+--   "Open"         anything up to a little above the best player's level
+local function poolFor(kind: string)
+	local maxLevel = if kind == "Open" then highestLevel() + 2 else 1
 	local pool = {}
 	for _, template in Jobs.Templates do
-		if template.minLevel <= maxLevel then
+		if template.minLevel <= maxLevel and (kind ~= "StarterGear" or doableWithStarterGear(template)) then
 			table.insert(pool, template)
 		end
 	end
+	return if #pool > 0 then pool else poolFor("Starter")
+end
+
+local function slotKind(index: number): string
+	if index == 1 then
+		return "StarterGear"
+	end
+	return if index <= GameConfig.StarterJobsOnBoard then "Starter" else "Open"
+end
+
+-- [offer id] = the customer's preference. Kept off the offers players can see: the story is
+-- the only hint.
+local offerPreferences = {}
+
+local function makeOffer(kind: string)
+	local pool = poolFor(kind)
 	local template = pool[rng:NextInteger(1, #pool)]
 
 	nextOfferId += 1
+	local preference = Jobs.pickPreference(rng)
+	offerPreferences[tostring(nextOfferId)] = preference
 	return {
 		id = tostring(nextOfferId),
 		templateId = template.id,
 		name = template.name,
+		tier = template.tier,
 		address = Jobs.randomAddress(rng),
+		customer = Jobs.Customers[rng:NextInteger(1, #Jobs.Customers)],
+		story = Jobs.story(rng, template, preference),
+		todo = Jobs.todoList(template),
 		payout = math.floor(template.basePay * rng:NextNumber(0.9, 1.25) / 5 + 0.5) * 5,
 		xp = template.xp,
 		minLevel = template.minLevel,
 		parTime = template.parTime,
-		tasks = Jobs.describe(template),
-		tools = Jobs.requiredTools(template),
-		starter = starter,
+		kind = kind,
 	}
-end
-
--- Tool names the job needs that nobody in the crew owns (or, with `loadedOnly`, has in the truck).
-local function missingTools(members: { Player }, offer, loadedOnly: boolean): { string }
-	local missing = {}
-	for _, category in offer.tools do
-		local found = false
-		for _, member in members do
-			local data = DataService:Get(member)
-			if data and data.equipped[category] and (data.loadout[category] or not loadedOnly) then
-				found = true
-				break
-			end
-		end
-		if not found then
-			table.insert(missing, Items.CategoryInfo[category].toolName)
-		end
-	end
-	return missing
 end
 
 local function damagePenalty(job): number
@@ -110,8 +139,9 @@ end
 
 local function refreshBoard()
 	table.clear(board)
+	table.clear(offerPreferences)
 	for index = 1, GameConfig.JobBoardSize do
-		table.insert(board, makeOffer(index <= GameConfig.StarterJobsOnBoard))
+		table.insert(board, makeOffer(slotKind(index)))
 	end
 	Net.event("JobBoardUpdated"):FireAllClients(board)
 end
@@ -131,8 +161,10 @@ local function sendUpdate(job)
 		state = job.state,
 		leader = job.party.leader,
 		tasks = if job.lawn then job.lawn:GetProgress() else nil,
+		todo = job.offer.todo,
+		customer = job.offer.customer,
+		story = job.offer.story,
 		parTime = job.offer.parTime,
-		tools = job.offer.tools,
 		-- Server clock time the crew started working, for the HUD timer.
 		startedAt = job.startedServerTime,
 		penalty = job.penalty,
@@ -258,17 +290,11 @@ end
 
 local function startDriving(job)
 	local party = job.party
-	local missing = missingTools(party.members, job.offer, true)
+	-- Which tools to bring is the crew's call; only an overloaded truck stops them.
 	local used, capacity = PartyService:GetTruckLoad(party.leader)
-	local problem = nil
-	if #missing > 0 then
-		problem = `The truck still needs: {table.concat(missing, ", ")}. Carry them from the tool rack to the truck.`
-	elseif used > capacity then
-		problem = `The truck is overloaded ({used}/{capacity} tools). Take some out or get a trailer.`
-	end
-	if problem then
+	if used > capacity then
 		for _, member in party.members do
-			notify(member, problem)
+			notify(member, `The truck is overloaded ({used}/{capacity} tools). Take some out or get a trailer.`)
 		end
 		return
 	end
@@ -333,15 +359,30 @@ local function completeJob(job)
 	local truckBonus = 1 + (if truck then truck.payoutBonus else 0)
 	local business = job.businessId and Items.get("Business", job.businessId)
 	local businessBonus = 1 + (if business then business.payoutBonus else 0)
-	local speed = GameConfig.speedMultiplier(elapsed, job.offer.parTime)
-	local pay = job.offer.payout * crewBonus * truckBonus * businessBonus * speed
-	local total = math.max(0, math.floor(pay - job.penalty))
+	-- Averages over all the work done, so the tool used most counts most.
+	local toolFit = if job.work > 0 then job.fitWork / job.work else 1
+	local quality = if job.work > 0 then job.qualityWork / job.work else 0.75
+	local weights = Jobs.Preferences[job.preference]
+	local total = GameConfig.jobPay({
+		basePay = job.offer.payout,
+		toolFit = toolFit,
+		quality = quality,
+		elapsed = elapsed,
+		parTime = job.offer.parTime,
+		weights = weights,
+		bonus = crewBonus * truckBonus * businessBonus,
+		penalty = job.penalty,
+	})
 	local share = math.floor(total / #members)
 
 	job.result = {
 		basePay = job.offer.payout,
 		time = elapsed,
-		speedMultiplier = speed,
+		preference = job.preference,
+		toolFit = toolFit,
+		quality = quality,
+		qualityMultiplier = GameConfig.qualityMultiplier(quality),
+		speedMultiplier = GameConfig.speedMultiplier(elapsed, job.offer.parTime),
 		crewBonus = crewBonus,
 		truckBonus = truckBonus,
 		businessBonus = businessBonus,
@@ -386,9 +427,11 @@ function JobService:ApplyWork(
 	player: Player,
 	position: Vector3,
 	radius: number,
-	taskName: string,
+	toolId: string,
 	amount: number,
-	damagesHazards: boolean
+	damagesHazards: boolean,
+	-- Don't tell them their tool won't work (a mower idling while they stand still).
+	quiet: boolean?
 )
 	local job = playerJobs[player]
 	if not job or job.state ~= "Working" then
@@ -407,14 +450,22 @@ function JobService:ApplyWork(
 		end
 	end
 
-	local changed = job.lawn:ApplyWork(position, radius, taskName, amount)
-	if changed then
+	local result = job.lawn:ApplyWork(position, radius, toolId, amount)
+	job.work += result.work
+	job.fitWork += result.fitWork
+	job.qualityWork += result.qualityWork
+	if result.blocked and not result.changed and not quiet and os.clock() - (wrongToolWarnings[player] or 0) > 4 then
+		-- Never say which tool would work: knowing your tools is the game.
+		wrongToolWarnings[player] = os.clock()
+		notify(player, "That won't work here.")
+	end
+	if result.changed then
 		job.dirty = true
 		if job.lawn:IsComplete() then
 			completeJob(job)
 		end
 	end
-	return changed
+	return result.changed
 end
 
 function JobService:AcceptJob(player: Player, offerId: string): (boolean, string)
@@ -445,26 +496,29 @@ function JobService:AcceptJob(player: Player, offerId: string): (boolean, string
 	if DataService:GetLevel(player) < offer.minLevel then
 		return false, `You need to be level {offer.minLevel} for this job.`
 	end
-	local missing = missingTools(party.members, offer, false)
-	if #missing > 0 then
-		return false, `Nobody in your crew owns: {table.concat(missing, ", ")}. Buy them at the hardware store.`
-	end
 
-	board[index] = makeOffer(offer.starter)
+	board[index] = makeOffer(offer.kind)
 	Net.event("JobBoardUpdated"):FireAllClients(board)
+	local preference = offerPreferences[offer.id] or "Balanced"
+	offerPreferences[offer.id] = nil
 
 	local job = {
 		id = offer.id,
 		offer = offer,
+		preference = preference,
 		party = party,
 		state = "Ready",
 		members = {},
 		penalty = 0,
 		damageCount = 0,
+		-- Work done, and the same work weighted by tool fit and finish quality.
+		work = 0,
+		fitWork = 0,
+		qualityWork = 0,
 	}
 	readyJobs[party] = job
 	sendUpdate(job)
-	return true, "Job accepted! Carry the tools it needs from the rack to the truck, then hop in."
+	return true, "Job accepted! Load the tools you think you'll need, then hop in the truck."
 end
 
 function JobService:Abandon(player: Player)
@@ -616,6 +670,7 @@ function JobService:Start()
 
 	Players.PlayerRemoving:Connect(function(player)
 		traveling[player] = nil
+		wrongToolWarnings[player] = nil
 		local job = playerJobs[player]
 		if job then
 			detach(job, player)

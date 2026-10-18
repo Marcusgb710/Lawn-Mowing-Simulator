@@ -45,6 +45,30 @@ local GameConfig = {
 	AutosaveInterval = 120,
 }
 
+-- How the finish (0-1) affects pay: 0.75, a decent residential mow, pays 1x.
+-- A near-perfect finish pays up to 1.3x and a poor one as little as 0.5x.
+function GameConfig.qualityMultiplier(quality: number): number
+	return math.clamp(1 + (quality - 0.75) * 1.5, 0.5, 1.3)
+end
+
+-- Pay for a finished job, before it's split between the crew:
+--   base pay x tool fit x (quality and time, weighted by what the customer wants)
+--   x crew/truck/business bonuses, minus damage.
+function GameConfig.jobPay(job: {
+	basePay: number,
+	toolFit: number,
+	quality: number,
+	elapsed: number,
+	parTime: number,
+	weights: { quality: number, time: number },
+	bonus: number,
+	penalty: number,
+}): number
+	local performance = job.weights.quality * GameConfig.qualityMultiplier(job.quality)
+		+ job.weights.time * GameConfig.speedMultiplier(job.elapsed, job.parTime)
+	return math.max(0, math.floor(job.basePay * job.toolFit * performance * job.bonus - job.penalty))
+end
+
 -- 1.25 when very fast, 1 at exactly par, 0.5 at twice par or slower.
 function GameConfig.speedMultiplier(elapsed: number, parTime: number): number
 	if elapsed <= parTime then

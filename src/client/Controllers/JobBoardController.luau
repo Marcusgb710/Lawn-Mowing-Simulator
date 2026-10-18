@@ -1,11 +1,11 @@
 -- The job board menu: lists open jobs and lets the crew leader accept one.
+-- Each job shows what the customer says and wants done, never which tools to use.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Format = require(Shared.Format)
-local Items = require(Shared.Config.Items)
 local Net = require(Shared.Net)
 
 local ClientState = require(script.Parent.Parent.ClientState)
@@ -41,54 +41,58 @@ local function render()
 	elseif not leader then
 		status.Text = `Only your crew leader ({ClientState.party.leader.DisplayName}) can accept jobs.`
 	else
-		status.Text = "Pick a job, load the tools it needs, then hop in the truck."
+		status.Text = "Read what the customer wants, load the right tools, then hop in the truck."
 	end
 
 	for index, offer in ClientState.board do
 		local locked = level < offer.minLevel
-		local toolNames = {}
-		for _, category in offer.tools do
-			table.insert(toolNames, Items.CategoryInfo[category].toolName)
-		end
 
 		local card = UI.new("Frame", {
-			Size = UDim2.new(1, -8, 0, 96),
+			Size = UDim2.new(1, -8, 0, 0),
+			AutomaticSize = Enum.AutomaticSize.Y,
 			BackgroundColor3 = UI.Colors.Card,
 			LayoutOrder = index,
 			Parent = list,
 		}, { UI.corner(8) })
 
-		UI.label(`{offer.name}  ·  {offer.address}`, {
-			Position = UDim2.fromOffset(12, 8),
-			Size = UDim2.new(1, -150, 0, 22),
-			TextSize = 20,
+		-- Text down the left; pay and the button sit on the right.
+		local text = UI.new("Frame", {
+			Size = UDim2.new(1, -140, 0, 0),
+			AutomaticSize = Enum.AutomaticSize.Y,
+			BackgroundTransparency = 1,
 			Parent = card,
-		})
-		UI.label(table.concat(offer.tasks, "  •  "), {
-			Position = UDim2.fromOffset(12, 32),
-			Size = UDim2.new(1, -150, 0, 18),
+		}, { UI.list(4), UI.padding(10) })
+		local function line(content: string, props)
+			props.Text = content
+			props.Size = UDim2.fromScale(1, 0)
+			props.AutomaticSize = Enum.AutomaticSize.Y
+			props.TextWrapped = true
+			props.Parent = text
+			return UI.label(content, props)
+		end
+
+		line(`{offer.name}  ·  {offer.address}`, { TextSize = 20, LayoutOrder = 1 })
+		line(`"{offer.story}"  - {offer.customer}`, {
 			TextSize = 15,
-			TextColor3 = UI.Colors.SubText,
-			Parent = card,
+			TextColor3 = UI.Colors.Text,
+			Font = Enum.Font.Gotham,
+			LayoutOrder = 2,
 		})
-		UI.label(`Bring: {table.concat(toolNames, ", ")}`, {
-			Position = UDim2.fromOffset(12, 52),
-			Size = UDim2.new(1, -150, 0, 16),
+		line(table.concat(offer.todo, "  •  "), {
 			TextSize = 14,
-			TextColor3 = UI.Colors.Accent,
-			Parent = card,
+			TextColor3 = UI.Colors.SubText,
+			LayoutOrder = 3,
 		})
-		local details = `Par time {Format.time(offer.parTime)}  ·  +{offer.xp} xp`
-		UI.label(if locked then `Needs level {offer.minLevel}` else details, {
-			Position = UDim2.fromOffset(12, 72),
-			Size = UDim2.new(1, -150, 0, 16),
+		local details = `{offer.tier} job  ·  Par time {Format.time(offer.parTime)}  ·  +{offer.xp} xp`
+		line(if locked then `Needs level {offer.minLevel}` else details, {
 			TextSize = 14,
 			TextColor3 = if locked then UI.Colors.Danger else UI.Colors.SubText,
-			Parent = card,
+			LayoutOrder = 4,
 		})
+
 		UI.label(Format.money(offer.payout), {
 			AnchorPoint = Vector2.new(1, 0),
-			Position = UDim2.new(1, -12, 0, 6),
+			Position = UDim2.new(1, -12, 0, 8),
 			Size = UDim2.fromOffset(120, 24),
 			TextSize = 22,
 			TextColor3 = UI.Colors.Money,
@@ -102,8 +106,8 @@ local function render()
 				accept(offer.id)
 			end
 		end, {
-			AnchorPoint = Vector2.new(1, 1),
-			Position = UDim2.new(1, -12, 1, -8),
+			AnchorPoint = Vector2.new(1, 0),
+			Position = UDim2.new(1, -12, 0, 40),
 			Size = UDim2.fromOffset(110, 32),
 			BackgroundColor3 = if canAccept then UI.Colors.Accent else UI.Colors.Disabled,
 			AutoButtonColor = canAccept,

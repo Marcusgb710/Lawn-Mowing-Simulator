@@ -14,12 +14,26 @@ local Net = require(Shared.Net)
 
 local DataService = {}
 
+-- Bump this whenever the save format changes, and add a step to MIGRATIONS that turns the
+-- previous version into the new one. Never delete a step: old saves still need it.
+local DATA_VERSION = 2
+
+-- MIGRATIONS[n] turns a version n - 1 save into version n. Steps must keep money, xp and every
+-- owned item.
+local MIGRATIONS = {
+	-- 1 -> 2, realistic tools (design phase A). Saves from before versioning have no `version`.
+	-- Tools kept their ids and shop categories, so nothing moves; reconcile() below fills in any
+	-- fields older saves are missing. Phase B (per-tool storage) will be step 3.
+	[2] = function(_data) end,
+}
+
 local store: DataStore? = nil
 -- [Player] = { data = {...}, canSave = boolean }
 local profiles = {}
 
 local function defaultData()
 	local data = {
+		version = DATA_VERSION,
 		money = GameConfig.StartingMoney,
 		xp = 0,
 		jobsCompleted = 0,
@@ -43,6 +57,24 @@ local function defaultData()
 		if data.equipped[category] then
 			data.loadout[category] = true
 		end
+	end
+	return data
+end
+
+local function versionOf(saved): number
+	return if typeof(saved) == "table" then tonumber(saved.version) or 1 else 1
+end
+
+-- Runs every migration step a save hasn't had yet.
+local function migrate(data)
+	local version = versionOf(data)
+	while version < DATA_VERSION do
+		version += 1
+		local step = MIGRATIONS[version]
+		if step then
+			step(data)
+		end
+		data.version = version
 	end
 	return data
 end
@@ -108,7 +140,24 @@ local function load(player: Player)
 	for attempt = 1, 3 do
 		local ok, result = pcall(store.GetAsync, store, keyFor(player))
 		if ok then
-			return reconcile(result or defaultData()), true
+			-- A save from a newer version of the game (say, during a rollback) is played as-is,
+			-- but never overwritten with the older format.
+			local newer = versionOf(result) > DATA_VERSION
+			local migrated, data = pcall(function()
+				if result ~= nil and typeof(result) ~= "table" then
+					error("the save isn't a table")
+				end
+				return reconcile(if newer then result else migrate(result or defaultData()))
+			end)
+			if migrated then
+				if newer then
+					warn(`{player.Name}'s save is from a newer version; not saving it this session`)
+				end
+				return data, not newer
+			end
+			-- Something in their save didn't fit; leave it untouched rather than risk losing it.
+			warn(`Couldn't migrate data for {player.Name}: {data}`)
+			break
 		end
 		warn(`Couldn't load data for {player.Name} (attempt {attempt}): {result}`)
 		if string.find(tostring(result), "StudioAccessToApisNotAllowed") then
@@ -126,7 +175,13 @@ local function save(player: Player)
 	if not (profile and profile.canSave and store) then
 		return
 	end
-	local ok, err = pcall(store.SetAsync, store, keyFor(player), profile.data, { player.UserId })
+	local ok, err = pcall(store.UpdateAsync, store, keyFor(player), function(stored)
+		-- Never write the older format over a save from a newer version of the game.
+		if versionOf(stored) > DATA_VERSION then
+			return nil
+		end
+		return profile.data, { player.UserId }
+	end)
 	if not ok then
 		warn(`Couldn't save data for {player.Name}: {err}`)
 	end
@@ -164,7 +219,12 @@ local function createLeaderstats(player: Player, data)
 end
 
 local function onPlayerAdded(player: Player)
-	local data, canSave = load(player)
+	local loaded, data, canSave = pcall(load, player)
+	if not loaded then
+		-- Always give them a profile so nothing waits on it forever, but don't save it.
+		warn(`Couldn't load data for {player.Name}: {data}`)
+		data, canSave = defaultData(), false
+	end
 	if player.Parent ~= Players then
 		return
 	end
