@@ -490,7 +490,6 @@ Tools.List = {
 		power = 1,
 		radius = 2,
 		quality = 0.85,
-		available = false,
 		color = Color3.fromRGB(160, 160, 165),
 		description = "Hand trowel. A short, scoop-shaped blade for digging small planting holes, "
 			.. "transplanting seedlings and potting up containers. Moves loose soil and potting mix well.",
@@ -507,7 +506,6 @@ Tools.List = {
 		power = 1,
 		radius = 2,
 		quality = 0.88,
-		available = false,
 		color = Color3.fromRGB(150, 150, 160),
 		description = "Hand transplanter. A narrow, deep trowel with depth markings on the blade, for "
 			.. "planting bulbs and plugs at an exact depth and working in tight spaces between plants. "
@@ -525,7 +523,6 @@ Tools.List = {
 		power = 1,
 		radius = 2,
 		quality = 0.85,
-		available = false,
 		color = Color3.fromRGB(120, 120, 130),
 		description = "Hand cultivator. A three-tined claw that loosens the top few inches of soil, breaks "
 			.. "up surface crust, mixes in compost and pulls shallow-rooted weeds.",
@@ -542,7 +539,6 @@ Tools.List = {
 		power = 1,
 		radius = 2,
 		quality = 0.9,
-		available = false,
 		color = Color3.fromRGB(170, 170, 170),
 		description = "Dandelion weeder. A long forked blade that slides down beside a taproot and levers "
 			.. "out dandelions and other taprooted weeds whole, with little damage to the lawn.",
@@ -559,7 +555,6 @@ Tools.List = {
 		power = 1.2,
 		radius = 2,
 		quality = 0.9,
-		available = false,
 		color = Color3.fromRGB(150, 110, 70),
 		description = "Dibber. A pointed shaft that pokes neat, even holes for seeds, seedlings, small "
 			.. "bulbs and onion sets. It can't scoop or move soil.",
@@ -576,7 +571,6 @@ Tools.List = {
 		power = 1,
 		radius = 2.5,
 		quality = 0.92,
-		available = false,
 		color = Color3.fromRGB(200, 40, 40),
 		description = "Bypass pruners. Two curved blades pass each other like scissors for clean cuts on "
 			.. "live, green stems up to about 3/4 inch: roses, shrubs and perennials.",
@@ -593,7 +587,6 @@ Tools.List = {
 		power = 1.2,
 		radius = 2.5,
 		quality = 0.85,
-		available = false,
 		color = Color3.fromRGB(230, 170, 30),
 		description = "Anvil pruners. One blade closes onto a flat anvil for a strong, crushing cut on dead, "
 			.. "dry and woody stems. It crushes live stems, so use bypass pruners on green growth.",
@@ -610,7 +603,6 @@ Tools.List = {
 		power = 1.3,
 		radius = 2,
 		quality = 0.95,
-		available = false,
 		color = Color3.fromRGB(240, 120, 160),
 		description = "Floral snips. Small, sharp scissors for deadheading, harvesting herbs and cutting "
 			.. "flowers for arrangements. They can't cut woody stems.",
@@ -627,7 +619,6 @@ Tools.List = {
 		power = 3,
 		radius = 4,
 		quality = 0.85,
-		available = false,
 		color = Color3.fromRGB(40, 140, 60),
 		description = "Garden hose with a long spray wand and adjustable pattern, for watering beds, shrubs "
 			.. "and hanging baskets. Fast, but too harsh for seedlings and fresh seed: it washes them out.",
@@ -644,7 +635,6 @@ Tools.List = {
 		power = 1,
 		radius = 2.5,
 		quality = 0.95,
-		available = false,
 		color = Color3.fromRGB(60, 120, 180),
 		description = "Watering can with a rose (sprinkler) head that gives a gentle shower for seedlings, "
 			.. "new seed, containers and fresh transplants. Slow on big areas.",
@@ -659,7 +649,6 @@ Tools.List = {
 		use = "Worn",
 		protects = { "Thorns" },
 		price = 15,
-		available = false,
 		color = Color3.fromRGB(60, 90, 160),
 		description = "Nitrile-coated work gloves for grip and protection in wet, muddy and rough work, plus "
 			.. "light protection from thorns and splinters. Not chemical-proof.",

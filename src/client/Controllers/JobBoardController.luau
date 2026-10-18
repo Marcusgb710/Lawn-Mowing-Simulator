@@ -72,6 +72,15 @@ local function render()
 		end
 
 		line(`{offer.name}  ·  {offer.address}`, { TextSize = 20, LayoutOrder = 1 })
+		-- Point brand-new players at the job their free gear can do.
+		local newPlayer = ClientState.profile and ClientState.profile.jobsCompleted == 0
+		if newPlayer and offer.kind == "StarterGear" then
+			line("Good first job: you already have what it takes.", {
+				TextSize = 15,
+				TextColor3 = UI.Colors.Money,
+				LayoutOrder = 0,
+			})
+		end
 		line(`"{offer.story}"  - {offer.customer}`, {
 			TextSize = 15,
 			TextColor3 = UI.Colors.Text,

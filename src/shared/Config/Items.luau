@@ -18,9 +18,24 @@ local Tools = require(script.Parent.Tools)
 
 local Items = {}
 
-Items.Categories = { "Mower", "Trimmer", "Rake", "Edger", "HedgeTrimmer", "Supplies", "Truck", "Trailer", "Business" }
 -- Shop tabs filled from Tools.luau. Everything in them is carried to the truck by hand.
-Items.ToolCategories = { "Mower", "Trimmer", "Rake", "Edger", "HedgeTrimmer", "Supplies" }
+Items.ToolCategories = {
+	"Mower",
+	"Trimmer",
+	"Rake",
+	"Edger",
+	"HedgeTrimmer",
+	"HandTool",
+	"Pruning",
+	"Watering",
+	"Protection",
+	"Supplies",
+}
+-- Every shop tab, in order: the tools, then vehicles and the business.
+Items.Categories = table.clone(Items.ToolCategories)
+for _, category in { "Truck", "Trailer", "Business" } do
+	table.insert(Items.Categories, category)
+end
 
 Items.CategoryInfo = {
 	Mower = { displayName = "Mowers", toolName = "Mower" },
@@ -28,6 +43,10 @@ Items.CategoryInfo = {
 	Rake = { displayName = "Rakes & Blowers", toolName = "Rake" },
 	Edger = { displayName = "Edgers", toolName = "Edger" },
 	HedgeTrimmer = { displayName = "Hedge Tools", toolName = "Hedge Tool" },
+	HandTool = { displayName = "Planting & Weeding", toolName = "Hand Tool" },
+	Pruning = { displayName = "Pruning", toolName = "Pruner" },
+	Watering = { displayName = "Watering", toolName = "Watering" },
+	Protection = { displayName = "Gloves", toolName = "Gloves" },
 	Supplies = { displayName = "Supplies", toolName = "Supplies" },
 	Truck = { displayName = "Trucks" },
 	Trailer = { displayName = "Trailers" },

@@ -117,6 +117,156 @@ Jobs.Templates = {
 		basePay = 90,
 		xp = 20,
 	},
+	-- Garden housework (design phase C): small hand-tool jobs for new players.
+	{
+		id = "PottingDay",
+		name = "Potting Day",
+		tier = "Homeowner",
+		minLevel = 1,
+		lawn = { columns = 6, rows = 5, flowerPatches = 1 },
+		tasks = { { type = "PotUpPlants", amount = 4 } },
+		notes = { "The nursery plants are lined up on the patio, and the potting mix is nice and loose." },
+		parTime = 60,
+		basePay = 45,
+		xp = 12,
+	},
+	{
+		id = "SpringBulbs",
+		name = "Spring Bulbs",
+		tier = "Homeowner",
+		minLevel = 1,
+		lawn = { columns = 6, rows = 5, flowerPatches = 1 },
+		tasks = { { type = "PlantBulbsAtDepth", amount = 8 } },
+		notes = { "Six inches deep, exactly. Any shallower and the squirrels get them, any deeper and they rot." },
+		parTime = 70,
+		basePay = 55,
+		xp = 14,
+	},
+	{
+		id = "SeedlingDay",
+		name = "Seedling Day",
+		tier = "Homeowner",
+		minLevel = 1,
+		lawn = { columns = 6, rows = 5, flowerPatches = 1 },
+		tasks = { { type = "TransplantSeedlings", amount = 8 }, { type = "WaterSeedlings", amount = 2 } },
+		notes = { "The seedlings are tiny plugs, and the trays have gone bone dry. Go gently on them." },
+		parTime = 85,
+		basePay = 65,
+		xp = 16,
+	},
+	{
+		id = "VegetablePatch",
+		name = "Vegetable Patch",
+		tier = "Homeowner",
+		minLevel = 1,
+		lawn = { columns = 6, rows = 5, flowerPatches = 0 },
+		tasks = { { type = "LoosenBedTopsoil", amount = 2 }, { type = "SowSeedRows", amount = 4 } },
+		notes = { "The soil crusted over after the last storm. The seed packets are waiting by the bed." },
+		parTime = 80,
+		basePay = 60,
+		xp = 15,
+	},
+	{
+		id = "DandelionPatrol",
+		name = "Dandelion Patrol",
+		tier = "Homeowner",
+		minLevel = 1,
+		lawn = { columns = 7, rows = 5, flowerPatches = 1 },
+		tasks = { { type = "RemoveDandelions", amount = 8 } },
+		notes = { "Get the whole root or they're back in a week. And please don't leave holes all over the lawn." },
+		parTime = 70,
+		basePay = 50,
+		xp = 13,
+	},
+	{
+		id = "BedTidy",
+		name = "Flower Bed Tidy",
+		tier = "Homeowner",
+		minLevel = 1,
+		lawn = { columns = 6, rows = 5, flowerPatches = 1 },
+		tasks = { { type = "PullShallowWeeds", amount = 6 }, { type = "WaterBeds", amount = 3 } },
+		notes = { "The weeds are only just coming up, and the beds haven't had a drink in days." },
+		parTime = 90,
+		basePay = 70,
+		xp = 18,
+	},
+	{
+		id = "CuttingGarden",
+		name = "Cutting Garden",
+		tier = "Homeowner",
+		minLevel = 1,
+		lawn = { columns = 6, rows = 5, flowerPatches = 1 },
+		tasks = { { type = "DeadheadAndCutFlowers", amount = 6 }, { type = "WaterBeds", amount = 2 } },
+		notes = { "Snip off the spent flowers, and cut us a bouquet of soft stems for the table." },
+		parTime = 70,
+		basePay = 60,
+		xp = 15,
+	},
+	{
+		id = "LawnAndWeeds",
+		name = "Lawn and Weeds",
+		tier = "Homeowner",
+		minLevel = 2,
+		lawn = { columns = 7, rows = 5, flowerPatches = 1 },
+		tasks = { { type = "MowSmallLawn" }, { type = "RemoveDandelions", amount = 5 } },
+		notes = { "Mowing only chops the dandelion tops off. They need to come out." },
+		parTime = 100,
+		basePay = 80,
+		xp = 20,
+	},
+	{
+		id = "RosePruning",
+		name = "Rose Pruning",
+		tier = "Homeowner",
+		minLevel = 2,
+		lawn = { columns = 6, rows = 5, flowerPatches = 1 },
+		tasks = { { type = "PruneRoses", amount = 3 }, { type = "CutDeadWood", amount = 2 } },
+		notes = { "The climbing roses are lovely and vicious. Some of the old shrubs are just dead sticks now." },
+		parTime = 100,
+		basePay = 85,
+		xp = 22,
+	},
+	{
+		id = "ShrubShaping",
+		name = "Shrub Shaping",
+		tier = "Homeowner",
+		minLevel = 2,
+		lawn = { columns = 6, rows = 5, flowerPatches = 1 },
+		tasks = { { type = "PruneLiveStems", amount = 3 }, { type = "CutDeadWood", amount = 3 } },
+		notes = { "Some branches are fresh and green, some are dry and brittle. Treat them differently." },
+		parTime = 100,
+		basePay = 80,
+		xp = 20,
+	},
+	{
+		id = "PerennialMove",
+		name = "Moving the Perennials",
+		tier = "Homeowner",
+		minLevel = 2,
+		lawn = { columns = 6, rows = 5, flowerPatches = 1 },
+		tasks = { { type = "TransplantPerennials", amount = 3 }, { type = "WaterBeds", amount = 3 } },
+		notes = { "The hostas got huge. Move them, big root balls and all, then soak them in." },
+		parTime = 110,
+		basePay = 85,
+		xp = 22,
+	},
+	{
+		id = "GrandmasGarden",
+		name = "Grandma's Garden",
+		tier = "Homeowner",
+		minLevel = 3,
+		lawn = { columns = 7, rows = 6, flowerPatches = 2 },
+		tasks = {
+			{ type = "PotUpPlants", amount = 3 },
+			{ type = "PlantBulbsAtDepth", amount = 5 },
+			{ type = "PruneRoses", amount = 2 },
+			{ type = "WaterSeedlings", amount = 2 },
+		},
+		notes = { "It's my grandmother's garden, and she'll be watching every move from the porch." },
+		parTime = 180,
+		basePay = 140,
+		xp = 35,
+	},
 	{
 		id = "HedgeShaping",
 		name = "Hedge Shaping",
@@ -230,8 +380,8 @@ local STREETS = {
 	"Clover Ln",
 }
 
--- Targets the yard builder places a set number of; the others (grass, edges) come from the lawn.
-local COUNTED_TARGETS = { Weed = true, LeafPile = true, Hedge = true }
+-- Targets that come from the lawn itself; every other kind is placed a set number of times.
+local LAWN_TARGETS = { Grass = true, Edge = true }
 
 -- Catch templates that would make a job that can't be finished.
 local byId = {}
@@ -244,7 +394,7 @@ for _, template in Jobs.Templates do
 		assert(taskType.target, `{template.id}: {task.type} has no yard targets until phase {taskType.phase}`)
 		assert(not targets[taskType.target], `{template.id}: two tasks use {taskType.target} targets`)
 		targets[taskType.target] = true
-		if COUNTED_TARGETS[taskType.target] then
+		if not LAWN_TARGETS[taskType.target] then
 			assert((task.amount or 0) > 0, `{template.id}: {task.type} needs an amount`)
 		end
 	end

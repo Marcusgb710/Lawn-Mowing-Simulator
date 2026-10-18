@@ -51,9 +51,29 @@ local traveling = {}
 local usedSlots = {}
 -- [Player] = when they were last told their tool won't work, so it isn't spammed
 local wrongToolWarnings = {}
+-- What happens to bare hands on work that needs gloves (never says which gloves).
+local HURT_MESSAGES = {
+	Thorns = "Ouch! Those thorns shred your bare hands.",
+	Chemicals = "You can't handle weed killer with your bare hands.",
+}
 
 local function notify(player: Player, message: string)
 	Net.event("Notify"):FireClient(player, message)
+end
+
+-- The hazards the gloves a player brought protect them from. Gloves in the truck get worn.
+local function protectionsOf(player: Player): { [string]: boolean }
+	local data = DataService:Get(player)
+	local protections = {}
+	if data then
+		for toolId in data.loadout do
+			local tool = Tools.get(toolId)
+			for _, hazard in if tool and tool.protects then tool.protects else {} do
+				protections[hazard] = true
+			end
+		end
+	end
+	return protections
 end
 
 -- Job board ----------------------------------------------------------------------------------
@@ -85,24 +105,28 @@ end
 
 -- What kind of job a board slot shows:
 --   "StarterGear"  a job new players can finish with the gear they start with (always one)
---   "Starter"      any level 1 job
+--   "Homeowner"    small yard and garden housework, mostly for newer players
 --   "Open"         anything up to a little above the best player's level
 local function poolFor(kind: string)
-	local maxLevel = if kind == "Open" then highestLevel() + 2 else 1
+	local maxLevel = if kind == "StarterGear" then 1 else highestLevel() + (if kind == "Open" then 2 else 1)
 	local pool = {}
 	for _, template in Jobs.Templates do
-		if template.minLevel <= maxLevel and (kind ~= "StarterGear" or doableWithStarterGear(template)) then
+		local fits = if kind == "StarterGear"
+			then doableWithStarterGear(template)
+			elseif kind == "Homeowner" then template.tier == "Homeowner"
+			else true
+		if template.minLevel <= maxLevel and fits then
 			table.insert(pool, template)
 		end
 	end
-	return if #pool > 0 then pool else poolFor("Starter")
+	return if #pool > 0 then pool else poolFor("StarterGear")
 end
 
 local function slotKind(index: number): string
 	if index == 1 then
 		return "StarterGear"
 	end
-	return if index <= GameConfig.StarterJobsOnBoard then "Starter" else "Open"
+	return if index <= GameConfig.HomeownerJobsOnBoard then "Homeowner" else "Open"
 end
 
 -- [offer id] = the customer's preference. Kept off the offers players can see: the story is
@@ -453,11 +477,15 @@ function JobService:ApplyWork(
 		end
 	end
 
-	local result = job.lawn:ApplyWork(position, radius, toolId, amount)
+	local result = job.lawn:ApplyWork(position, radius, toolId, amount, protectionsOf(player))
 	job.work += result.work
 	job.fitWork += result.fitWork
 	job.qualityWork += result.qualityWork
-	if result.blocked and not result.changed and not quiet and os.clock() - (wrongToolWarnings[player] or 0) > 4 then
+	local warnedRecently = os.clock() - (wrongToolWarnings[player] or 0) <= 4
+	if result.hurt and not result.changed and not warnedRecently then
+		wrongToolWarnings[player] = os.clock()
+		notify(player, HURT_MESSAGES[result.hurt] or "You need some protection for that.")
+	elseif result.blocked and not result.changed and not quiet and not warnedRecently then
 		-- Never say which tool would work: knowing your tools is the game.
 		wrongToolWarnings[player] = os.clock()
 		notify(player, "That won't work here.")

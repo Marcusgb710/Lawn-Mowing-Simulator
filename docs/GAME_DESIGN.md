@@ -209,6 +209,29 @@ slots are level 1 jobs. `Jobs.luau` also refuses templates that couldn't be fini
 - a counted task with no amount Jobs vary: some need one tool, others
 several. Later phases add task `protection`, ordering, and soil conditions for pro jobs.
 
+### Garden jobs (phase C)
+
+The homeowner tier is small housework: potting up, seedlings, perennials, bulbs, seed rows,
+loosening beds, pulling young weeds, dandelions, pruning shrubs and roses, dead wood,
+deadheading, and watering beds or seedlings. Twelve jobs (`PottingDay` to `GrandmasGarden`) mix
+them with the old mowing jobs.
+
+- **Where:** each garden task gets a plot in a **side garden** left of the yard (the fence is left
+  out when there's a garden). Plots stack from the sidewalk toward the house. Dandelions grow in
+  the lawn itself. Each kind of target has a look before and after (`GARDEN` in
+  `LawnService.luau`): a pot gets its plant, a flag becomes a planted bulb, dry soil darkens, dead
+  sticks come off a shrub.
+- **Gloves:** a task with `protection` can't be worked bare-handed. Gloves in the truck count as
+  worn on site (`NitrileGloves` protect from thorns, `ChemicalGloves` from chemicals). Without
+  them: "Ouch! Those thorns shred your bare hands." It never names the gloves.
+- **The board:** slot 1 is always a job the free gear can finish, slots 2-4 are homeowner jobs
+  (`HomeownerJobsOnBoard`), and the rest are open to every level.
+- **Learning tools:** the **Guide** menu lists every tool in the store with its "what it's for"
+  text, by shop tab. Until a player finishes their first job, a coach banner walks them through
+  it one step at a time (take the job, load the truck, drive, do the work), and the job board
+  marks the free-gear job as a good first job.
+- New shop tabs: Planting & Weeding, Pruning, Watering and Gloves.
+
 ### Task types
 
 | Phase | Task type | Verb | Ideal / Good / Poor |
@@ -371,8 +394,8 @@ Simple but real, for mowers and equipment (not the truck):
 | Phase | What | Status |
 | --- | --- | --- |
 | A | This doc; `Tools.luau`, `TaskTypes.luau` and the new `Jobs.luau` format; tool fit, quality and customer preference in pay; no tool names on the board or HUD; save versioning | done |
-| B | Storage per building, size-based truck and trailer space, shop gating by tier and storage, selling tools, EquipmentYard, EquipmentTrailer, ToolBucket | **this PR** |
-| C | Tier-1 jobs and yard targets: pots, planting spots with depths, bulbs, beds, lawn dandelions, rose bushes, dead stems, flowers, watering zones; gloves | next |
+| B | Storage per building, size-based truck and trailer space, shop gating by tier and storage, selling tools, EquipmentYard, EquipmentTrailer, ToolBucket | done |
+| C | Tier-1 jobs and yard targets: pots, planting spots with depths, bulbs, beds, lawn dandelions, rose bushes, dead stems, flowers, watering zones; gloves; tool guide and first-job coach | **this PR** |
 | D | Tier-2: holes, trenches and sod, deep beds, hauling from a pile to a bed, spreader and sprayer, branch thickness | |
 | E | Maintenance systems and supplies | |
 | F | Tier-3 pro equipment and the turf renovation sequence | |

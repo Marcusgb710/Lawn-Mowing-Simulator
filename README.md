@@ -67,8 +67,9 @@ Services*. Without it the game still runs, it just doesn't save progress.
    sell what you don't use (half price back) or upgrade.
 2. **Take a job.** At the job board the crew leader picks a job. Customers say what they want done
    and hint at how ("it has to look immaculate" or "just knock it down before noon"), but **no job
-   ever says which tool to use**. Every tool's description in the shop and the Truck checklist
-   says what it's for; knowing your tools is the game.
+   ever says which tool to use**. Every tool's description in the shop, the Truck checklist and
+   the **Guide** says what it's for; knowing your tools is the game. New players get a coach for
+   their first job.
 3. **Load the truck by hand.** Walk up to a tool in your storage and press **E** to pick it up (or
    tap **Grab** in the **Truck** menu), carry it to the truck and press **E** again to load it.
    Mowers are pushed along the ground instead of carried. To take a tool back out, press **R** on
@@ -80,7 +81,9 @@ Services*. Without it the game still runs, it just doesn't save progress.
 4. **Drive.** The leader hops in the truck. Everyone watches the drive cutscene and arrives at the
    house.
 5. **Do the yard.** Mow the grass, edge the sidewalk and driveway, cut back the long grass along
-   the house, clear the leaf piles and shape the hedges. Mowers work while equipped; every other
+   the house, clear the leaf piles and shape the hedges. Garden jobs happen in the side garden:
+   pot up plants, plant seedlings and bulbs, sow rows, weed and loosen beds, dig out dandelions,
+   prune shrubs and roses (bring gloves for the thorns) and water beds and seedlings. Mowers work while equipped; every other
    tool works while you hold the mouse button. A tool that can't do a job says "That won't work
    here"; a tool that can but isn't the best fit works slower and pays less.
 6. **Get paid.** Pay depends on:
