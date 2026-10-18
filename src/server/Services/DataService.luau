@@ -18,7 +18,7 @@ local DataService = {}
 
 -- Bump this whenever the save format changes, and add a step to MIGRATIONS that turns the
 -- previous version into the new one. Never delete a step: old saves still need it.
-local DATA_VERSION = 6
+local DATA_VERSION = 7
 
 -- MIGRATIONS[n] turns a version n - 1 save into version n. Steps must keep money, xp and every
 -- owned item. Don't use the live config to read an old save: write down what it looked like.
@@ -107,6 +107,17 @@ local MIGRATIONS = {
 	[6] = function(data)
 		data.deliveries = if typeof(data.deliveries) == "table" then data.deliveries else {}
 	end,
+
+	-- 6 -> 7, your business's own lawn (`homeLawn`, see HomeLawnService). It starts out
+	-- overgrown, ready for its first mow.
+	[7] = function(data)
+		local saved = if typeof(data.homeLawn) == "table" then data.homeLawn else {}
+		data.homeLawn = {
+			done = if typeof(saved.done) == "table" then saved.done else {},
+			tippedAt = if typeof(saved.tippedAt) == "number" then saved.tippedAt else 0,
+			tipReady = if typeof(saved.tipReady) == "boolean" then saved.tipReady else true,
+		}
+	end,
 }
 
 local store: DataStore? = nil
@@ -133,6 +144,10 @@ local function defaultData()
 		bucket = {},
 		-- { key, id, arrives (os.time) } for every order still in its box (see DeliveryService)
 		deliveries = {},
+		-- Your own lawn: { done = { [task type] = "0110..." per target }, tippedAt = os.time() of
+		-- the last tip for tidying it, tipReady = it's grown back enough since then for another }
+		-- (see HomeLawnService)
+		homeLawn = { done = {}, tippedAt = 0, tipReady = true },
 		trailerUnlocked = false,
 	}
 	for _, category in Items.Categories do

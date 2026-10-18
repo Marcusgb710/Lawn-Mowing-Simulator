@@ -1,0 +1,72 @@
+-- Your business's own front lawn and its curb appeal (docs/GAME_DESIGN.md, "Your own lawn"): the
+-- rules HomeLawnService, JobService and the HUD share.
+
+local GameConfig = require(script.Parent.Config.GameConfig)
+
+local HomeLawn = {}
+
+-- What's on it, besides the grass: the edge along the sidewalk and driveway, a few weeds and the
+-- odd pile of leaves. The same task types as customers' lawns, so the same tools fit.
+local TASKS = {
+	{ type = "MowSmallLawn" },
+	{ type = "EdgeSidewalk" },
+	{ type = "TrimAroundObstacles", amount = 5 },
+	{ type = "RakeLeaves", amount = 3 },
+}
+
+-- The lawn to build (see LawnService:Build), this many tiles across and deep.
+function HomeLawn.template(columns: number, rows: number)
+	return {
+		lawn = { columns = columns, rows = rows, flowerPatches = 0 },
+		tasks = table.clone(TASKS),
+	}
+end
+
+-- Which of a task's targets are done, saved as one character each ("1" done, "0" not), in the
+-- order the lawn builds them.
+function HomeLawn.encode(done: { boolean }): string
+	local characters = table.create(#done)
+	for index, isDone in done do
+		characters[index] = if isDone then "1" else "0"
+	end
+	return table.concat(characters)
+end
+
+-- The other way. Anything that doesn't fit `count` targets (a missing save, or a lawn that's been
+-- resized since) is all not done.
+function HomeLawn.decode(saved: unknown, count: number): { boolean }
+	local done = table.create(count, false)
+	if typeof(saved) ~= "string" or #saved ~= count then
+		return done
+	end
+	for index = 1, count do
+		done[index] = string.sub(saved, index, index) == "1"
+	end
+	return done
+end
+
+-- Curb appeal, 0-100, from how much of the lawn is done (0-1) and how well it's decorated (0-1).
+function HomeLawn.curbAppeal(lawnShare: number, decorShare: number?): number
+	local config = GameConfig.CurbAppeal
+	local points = math.clamp(lawnShare, 0, 1) * config.LawnPoints
+		+ math.clamp(decorShare or 0, 0, 1) * config.DecorPoints
+	return math.clamp(math.floor(points + 0.5), 0, 100)
+end
+
+-- Job pay multiplier for a crew whose business has this curb appeal.
+function HomeLawn.payBonus(curbAppeal: number): number
+	return 1 + GameConfig.CurbAppeal.MaxPayBonus * math.clamp(curbAppeal, 0, 100) / 100
+end
+
+-- Seconds of play between one bit of the lawn growing back, for a lawn with this many targets,
+-- so all of it is back in RegrowMinutes.
+function HomeLawn.growEvery(targets: number): number
+	return GameConfig.HomeLawn.RegrowMinutes * 60 / math.max(targets, 1)
+end
+
+-- Whether tidying the lawn at `now` (os.time) earns the neighbor's tip, given the last one.
+function HomeLawn.tipDue(lastTip: number?, now: number): boolean
+	return now - (lastTip or 0) >= GameConfig.HomeLawn.TidyTipCooldownMinutes * 60
+end
+
+return HomeLawn

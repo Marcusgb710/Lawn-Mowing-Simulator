@@ -8,6 +8,7 @@ local LOAD_ORDER = {
 	"WorldService",
 	"PartyService",
 	"LawnService",
+	"HomeLawnService",
 	"JobService",
 	"ToolService",
 	"TruckService",

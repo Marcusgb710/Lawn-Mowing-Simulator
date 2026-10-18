@@ -101,7 +101,8 @@ Services*. Without it the game still runs, it just doesn't save progress.
      to the par time, weighted by what the customer cares about.
    - **Accuracy:** each flower patch or garden gnome you run over with a mower, trimmer or edger
      costs 10% of the job's pay.
-   - **Bonuses:** bigger crews, better trucks and a bigger business all pay more.
+   - **Bonuses:** bigger crews, better trucks, a bigger business and your business's **curb
+     appeal** all pay more.
    The money is split evenly across the crew, then the truck drives everyone back to the business.
    Pro jobs mow show lawns, knee-high grass and tight lawns full of trees, and renovate turf in
    order: probe the soil, dethatch, aerate (moist soil!), overseed (50-65 F soil), fertilize and
@@ -116,6 +117,11 @@ Services*. Without it the game still runs, it just doesn't save progress.
    your shop a few seconds later, and you open it and put the tool away. Trucks, trailers and
    building upgrades are in the **Business** app. Serious gear needs level 3 and a garage; pro
    gear needs level 8 and a small office. Sell what you don't use from the Orders app.
+9. **Keep your own lawn.** Your business has a front lawn of its own, left of the driveway. Take
+   your tools off the wall and use them on it: they work and wear just like on a job. It grows
+   back while you play (all of it in about 40 minutes) and remembers where you left it. A tidy
+   lawn gives your business **curb appeal** (shown under your money), worth up to +15% on every
+   job, and tidying it up again now and then earns a neighbor's tip.
 
 ### Controls
 
