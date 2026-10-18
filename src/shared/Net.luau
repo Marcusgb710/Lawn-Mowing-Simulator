@@ -11,6 +11,8 @@ local EVENTS = {
 	"JobBoardUpdated",
 	"TravelStarted",
 	"PullingOut",
+	"PullOutCancelled",
+	"TruckDrive",
 	"PartyUpdated",
 	"PartyInvite",
 	"Notify",

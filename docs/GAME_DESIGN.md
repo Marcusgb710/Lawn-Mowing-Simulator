@@ -667,8 +667,12 @@ in the next PR).
   4. The truck pulls out of the driveway into the street (`GameConfig.PullOutTime`).
   5. The usual trip cutscene plays.
 
-  The crew rides along wherever they were. Coming back, the truck pulls back in from the street
-  and drops its tailgate so you can unload into storage. Placeholder trucks have a driver's door,
+  The crew rides along wherever they were. Each player's screen animates the truck's drive
+  itself, so the view from the cab is smooth. Calling the job off before the trip starts puts
+  everyone back on their feet with the truck at the door. The truck belongs to the leader who
+  drove off: it comes back with them, even if they leave the crew on the way. Coming back, the
+  truck pulls back in from the street and drops its tailgate so you can unload into storage.
+  Trucks, trailers and buildings can't be swapped while you're out on a job. Placeholder trucks have a driver's door,
   a `DriverSeat` and a hinged tailgate.
 
 ## Phases

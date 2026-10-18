@@ -26,7 +26,7 @@ local FADE_TIME = 0.35
 local LANE_OFFSET = 5
 
 -- Where each seat is from the driver's: passenger, then the back seat.
-local SEAT_OFFSETS = { Vector3.zero, Vector3.new(2.6, 0, 0), Vector3.new(0.4, 0, 2.4), Vector3.new(2.2, 0, 2.4) }
+local SEAT_OFFSETS = { Vector3.zero, Vector3.new(2.6, 0, 0), Vector3.new(0.4, 0, 1.6), Vector3.new(2.2, 0, 1.6) }
 -- Where the driver's eyes are on a truck without a DriverSeat attachment, from its pivot.
 local DEFAULT_SEAT = CFrame.new(-1.5, 4.8, -2.8)
 
@@ -147,6 +147,29 @@ local function cameraFor(truckPosition: Vector3, alpha: number): CFrame
 	return CFrame.lookAt(truckPosition + Vector3.new(0, 11, 30), truckPosition + Vector3.new(0, 0, -20))
 end
 
+-- [truck Model] = the drive it's on, so a newer one takes over
+local drives = setmetatable({}, { __mode = "k" })
+
+-- Moves a truck along its drive every frame until it's there.
+local function driveTruck(truck: Model, from: CFrame, to: CFrame, startTime: number, seconds: number)
+	local drive = {}
+	drives[truck] = drive
+	local connection
+	connection = RunService.RenderStepped:Connect(function()
+		if drives[truck] ~= drive or not truck.Parent then
+			connection:Disconnect()
+			return
+		end
+		local alpha = if seconds > 0 then math.clamp((workspace:GetServerTimeNow() - startTime) / seconds, 0, 1) else 1
+		local eased = TweenService:GetValue(alpha, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
+		truck:PivotTo(from:Lerp(to, eased))
+		if alpha >= 1 then
+			drives[truck] = nil
+			connection:Disconnect()
+		end
+	end)
+end
+
 -- Sits the camera in your seat in the cab while the truck pulls out of the driveway.
 local function startPullOut(info)
 	local truck = info.truck
@@ -189,6 +212,11 @@ local function play(info)
 		return currentToken == token
 	end
 
+	-- Out of the cab: the camera stays put while the screen fades, then it's onto the road.
+	if pullOut then
+		pullOut:Disconnect()
+		pullOut = nil
+	end
 	overlay.Enabled = true
 	tweenFade(0)
 	task.wait(FADE_TIME)
@@ -196,11 +224,6 @@ local function play(info)
 		return
 	end
 
-	-- Out of the cab, onto the road.
-	if pullOut then
-		pullOut:Disconnect()
-		pullOut = nil
-	end
 	local driveTime = math.max(info.duration - FADE_TIME * 2 - 0.2, 1)
 	local distance = DRIVE_SPEED * driveTime
 	local scene, truck = buildScene(info.truckId, info.trailerId, distance)
@@ -304,6 +327,31 @@ function CutsceneController:Start()
 		task.spawn(play, info)
 	end)
 	Net.event("PullingOut").OnClientEvent:Connect(startPullOut)
+	-- The job was called off before the truck left: back out of the cab.
+	Net.event("PullOutCancelled").OnClientEvent:Connect(function()
+		if pullOut then
+			pullOut:Disconnect()
+			pullOut = nil
+		end
+		if not currentToken then
+			restoreCamera()
+		end
+	end)
+	-- Trucks driving in and out of their driveways move smoothly here, not in jumps from the
+	-- server (see WorldService drive).
+	Net.event("TruckDrive").OnClientEvent:Connect(function(truck, from, to, startTime, seconds)
+		if
+			typeof(truck) ~= "Instance"
+			or not truck:IsA("Model")
+			or typeof(from) ~= "CFrame"
+			or typeof(to) ~= "CFrame"
+			or typeof(startTime) ~= "number"
+			or typeof(seconds) ~= "number"
+		then
+			return
+		end
+		driveTruck(truck, from, to, startTime, seconds)
+	end)
 end
 
 return CutsceneController

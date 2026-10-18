@@ -15,20 +15,18 @@
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local TweenService = game:GetService("TweenService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Assets = require(Shared.Assets)
 local GameConfig = require(Shared.Config.GameConfig)
 local Items = require(Shared.Config.Items)
+local Net = require(Shared.Net)
 local Signal = require(Shared.Signal)
 
 local BusinessStorage = require(script.Parent.Parent.BusinessStorage)
 local DataService = require(script.Parent.DataService)
 local Openings = require(script.Parent.Parent.Openings)
 
--- How close (studs from the plot's center) counts as "at your business".
-local PLOT_RADIUS = 64
 -- Deep enough for the building at the back, a driveway that fits a truck and trailer, and the
 -- front lawn beside it.
 local PLOT_SIZE = Vector3.new(90, 1, 90)
@@ -59,8 +57,9 @@ WorldService.PlotBuilt = Signal.new()
 local businessFolder: Folder
 
 local spawnCFrame = CFrame.new(0, 5, 0)
--- Each plot: { cframe = CFrame, owner = Player?, model = Model?, deliveryFrame = CFrame?,
---   truckHome = CFrame?, lawnFrame = CFrame?, lawnSize = Vector3? }
+-- Each plot: { cframe = CFrame, width = number, depth = number, owner = Player?, model = Model?,
+--   deliveryFrame = CFrame?, truckHome = CFrame?, lawnFrame = CFrame?, lawnSize = Vector3?,
+--   awayTruck = Model? (out on a trip, see PullOut), trip = {}? }
 local plots = {}
 -- [Player] = plot
 local playerPlots = {}
@@ -279,6 +278,13 @@ local function makeWalkable(building: Model, markers)
 	walls.Parent = building
 end
 
+-- Where a plot's truck ends up when it pulls out: straight ahead into the street.
+local function streetFrame(plot): CFrame
+	local home: CFrame = plot.truckHome
+	local ahead = plot.cframe:PointToObjectSpace(home.Position).Z + plot.depth / 2 + 12
+	return home + home.LookVector * ahead
+end
+
 -- Rebuilds everything on a plot to match its owner's business tier, truck and trailer.
 local function buildPlot(plot)
 	if plot.model then
@@ -341,7 +347,7 @@ local function buildPlot(plot)
 	plot.deliveryFrame = markers.delivery or at(-12, 0, math.min(2, frontZ - 2))
 
 	-- The driveway, from the street to the door.
-	local drivewayLength = frontZ + PLOT_SIZE.Z / 2
+	local drivewayLength = frontZ + plot.depth / 2
 	part(model, {
 		Name = "Driveway",
 		Size = Vector3.new(DRIVEWAY_WIDTH, 0.1, drivewayLength),
@@ -403,6 +409,19 @@ local function buildPlot(plot)
 		end
 	end
 	interactable(driverDoor or truck, "DriveToJob", "Get In", "Crew Truck", { OwnerUserId = owner.UserId })
+	-- The glass is part of the door, so looking at the window works too.
+	for _, descendant in truck:GetDescendants() do
+		if descendant:IsA("BasePart") and string.sub(descendant.Name, -17) == "__DriverDoorGlass" then
+			interactable(descendant, "DriveToJob", "Get In", "Crew Truck", { OwnerUserId = owner.UserId })
+		end
+	end
+	if plot.awayTruck then
+		-- Rebuilt while the crew's out: the new truck is the one that comes back.
+		plot.awayTruck:Destroy()
+		plot.awayTruck = truck
+		truck:PivotTo(streetFrame(plot))
+		truck.Parent = nil
+	end
 
 	model.Parent = businessFolder
 	plot.model = model
@@ -439,74 +458,92 @@ function WorldService:SetTruckOpen(player: Player, open: boolean)
 	end
 end
 
--- Moves a truck from one spot to another over `seconds`, easing in and out.
-local moving = setmetatable({}, { __mode = "k" })
+-- Drives a truck from one spot to another over `seconds`, easing in and out. Every client
+-- animates it smoothly (see CutsceneController), and the server puts it at the end once it's
+-- there. A newer drive of the same truck takes over.
+local driving = setmetatable({}, { __mode = "k" })
 local function drive(truck: Model, from: CFrame, to: CFrame, seconds: number, done: (() -> ())?)
 	local token = {}
-	moving[truck] = token
-	local value = Instance.new("CFrameValue")
-	value.Value = from
+	driving[truck] = token
 	truck:PivotTo(from)
-	local connection = value.Changed:Connect(function(frame)
-		if moving[truck] == token and truck.Parent then
-			truck:PivotTo(frame)
+	Net.event("TruckDrive"):FireAllClients(truck, from, to, workspace:GetServerTimeNow(), seconds)
+	task.delay(seconds, function()
+		if driving[truck] == token then
+			driving[truck] = nil
+			truck:PivotTo(to)
+			if done then
+				done()
+			end
 		end
 	end)
-	local tween =
-		TweenService:Create(value, TweenInfo.new(seconds, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
-			Value = to,
-		})
-	tween.Completed:Once(function()
-		connection:Disconnect()
-		value:Destroy()
-		if moving[truck] == token and done then
-			done()
-		end
-	end)
-	tween:Play()
-end
-
--- Where a plot's truck ends up when it pulls out: straight ahead into the street.
-local function streetFrame(plot): CFrame
-	local home: CFrame = plot.truckHome
-	local ahead = plot.cframe:PointToObjectSpace(home.Position).Z + PLOT_SIZE.Z / 2 + 12
-	return home + home.LookVector * ahead
 end
 
 -- The crew leaves from the business: the driver's door opens and shuts, then the truck pulls out
 -- of the driveway into the street (GameConfig.PullOutTime in all). While the crew is away the
--- truck is gone from the plot.
+-- truck is gone from the plot, until ReturnTruck brings it back.
 function WorldService:PullOut(player: Player)
 	local plot = playerPlots[player]
 	local truck = WorldService:GetPlotTruck(player)
-	if not (plot and truck and plot.truckHome) then
+	if not (plot and truck and plot.truckHome) or plot.awayTruck then
 		return
 	end
+	plot.awayTruck = truck
+	local trip = {}
+	plot.trip = trip
 	Openings.set(truck, true, 0.35, "DriverDoor")
 	task.delay(0.6, function()
-		Openings.set(truck, false, 0.35, "DriverDoor")
+		if plot.trip == trip then
+			Openings.set(truck, false, 0.35, "DriverDoor")
+		end
 	end)
 	local driveTime = math.max(GameConfig.PullOutTime - 1, 0.5)
 	task.delay(1, function()
-		if truck.Parent then
-			drive(truck, plot.truckHome, streetFrame(plot), driveTime, function()
-				-- Off to the job: out of sight until it's back.
-				truck:PivotTo(plot.truckHome + Vector3.new(0, -500, 0))
-			end)
+		if plot.trip ~= trip or not truck.Parent then
+			return
+		end
+		drive(truck, plot.truckHome, streetFrame(plot), driveTime, function()
+			-- Off to the job: out of sight until it's back.
+			if plot.trip == trip then
+				truck.Parent = nil
+			end
+		end)
+	end)
+end
+
+-- Brings the truck back from a trip: it pulls back in from the street and drops its tailgate,
+-- or, `instantly` (the trip was called off before it started), it's simply back at the door.
+-- Does nothing if it's already back.
+function WorldService:ReturnTruck(player: Player, instantly: boolean?)
+	local plot = playerPlots[player]
+	local truck = plot and plot.awayTruck
+	if not (plot and truck) then
+		return
+	end
+	plot.awayTruck = nil
+	local trip = {}
+	plot.trip = trip
+	if not plot.model then
+		truck:Destroy()
+		return
+	end
+	truck.Parent = plot.model
+	if instantly then
+		drive(truck, plot.truckHome, plot.truckHome, 0)
+		Openings.set(truck, false, 0.35, "DriverDoor")
+		Openings.set(truck, true, TAILGATE_TIME)
+		return
+	end
+	drive(truck, streetFrame(plot), plot.truckHome, DRIVE_TIME, function()
+		if plot.trip == trip then
+			Openings.set(truck, true, TAILGATE_TIME)
 		end
 	end)
 end
 
--- Back from a job: the truck pulls in from the street and drops its tailgate.
-function WorldService:PullIn(player: Player)
+-- True while this player's truck is out on a trip.
+function WorldService:IsTruckAway(player: Player): boolean
 	local plot = playerPlots[player]
-	local truck = WorldService:GetPlotTruck(player)
-	if not (plot and truck and plot.truckHome) then
-		return
-	end
-	drive(truck, streetFrame(plot), plot.truckHome, DRIVE_TIME, function()
-		Openings.set(truck, true, TAILGATE_TIME)
-	end)
+	return plot ~= nil and plot.awayTruck ~= nil
 end
 
 -- The front lawn of the player's own business, as (centre on the ground, size).
@@ -625,8 +662,8 @@ function WorldService:IsAtBusiness(player: Player): boolean
 	if not plot or not root or not root:IsA("BasePart") then
 		return false
 	end
-	local offset = root.Position - plot.cframe.Position
-	return Vector2.new(offset.X, offset.Z).Magnitude <= PLOT_RADIUS
+	local offset = plot.cframe:PointToObjectSpace(root.Position)
+	return math.abs(offset.X) <= plot.width / 2 and math.abs(offset.Z) <= plot.depth / 2
 end
 
 -- Lifecycle ----------------------------------------------------------------------------------
@@ -647,7 +684,11 @@ function WorldService:Init()
 		for _, pad in plotFolder:GetChildren() do
 			if pad:IsA("BasePart") then
 				-- Plot origin sits on top of the pad.
-				table.insert(plots, { cframe = pad.CFrame * CFrame.new(0, pad.Size.Y / 2, 0) })
+				table.insert(plots, {
+					cframe = pad.CFrame * CFrame.new(0, pad.Size.Y / 2, 0),
+					width = pad.Size.X,
+					depth = pad.Size.Z,
+				})
 			end
 		end
 	end
@@ -683,6 +724,11 @@ function WorldService:Start()
 		playerPlots[player] = nil
 		if plot then
 			plot.owner = nil
+			if plot.awayTruck then
+				plot.awayTruck:Destroy()
+				plot.awayTruck = nil
+			end
+			plot.trip = nil
 			buildPlot(plot)
 		end
 	end)

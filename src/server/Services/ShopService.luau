@@ -74,8 +74,8 @@ function ShopService:Buy(player: Player, category: string, itemId: string): (boo
 	if not allowed then
 		return false, reason or "You can't buy that."
 	end
-	if VEHICLE_CATEGORIES[category] and JobService:IsBusy(player) then
-		return false, "You can't swap vehicles in the middle of a job."
+	if PLOT_CATEGORIES[category] and JobService:IsBusy(player) then
+		return false, "You can't swap vehicles or buildings in the middle of a job."
 	end
 	if Items.isToolCategory(category) and JobService:IsBusy(player) then
 		-- What you brought is what you've got until you're back.
@@ -153,8 +153,8 @@ function ShopService:Equip(player: Player, category: string, itemId: string): (b
 	if not WorldService:IsAtComputer(player) then
 		return false, "Switch it over on the computer in your shop."
 	end
-	if VEHICLE_CATEGORIES[category] and JobService:IsBusy(player) then
-		return false, "You can't swap vehicles in the middle of a job."
+	if PLOT_CATEGORIES[category] and JobService:IsBusy(player) then
+		return false, "You can't swap vehicles or buildings in the middle of a job."
 	end
 	if data.equipped[category] == itemId then
 		return true, `The {item.name} is already yours.`
