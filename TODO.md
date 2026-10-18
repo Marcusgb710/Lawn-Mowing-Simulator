@@ -98,12 +98,17 @@ Yards (`src/server/Services/LawnService.luau`) now use the kit, falling back to 
       driveway, rocks in the flower bed and cones around the parked truck.
 - [ ] **Business plot decoration**: `Paver_Concrete_40cm`, `Prop_FuelCan_5L`, `Prop_Shovel` and
       friends around the shed, tool rack and truck.
-- [ ] **Moving parts**: wheels, cutter rotors, trimmer spools, the tractor steering wheel and the
-      zero-turn lap bars are separate meshes but welded rigid right now. Weld them with Motor6Ds or
-      HingeConstraints and spin them on the client while mowing.
-- [ ] **Riding mowers**: `RidingMower` and `ZeroTurnMower` are held by the steering wheel or lap
-      bars like a hand tool, the same as the placeholders. To look right they need a ride setup:
-      a seat, a sit animation, and the player moving the mower.
+- [x] **Moving parts**: `Assets.toTool` gives every `__Wheel*`, `__CutterRotor*` and `__Spool`
+      part a Motor6D (with a `Spin` attribute) instead of a rigid weld.
+      `src/client/Controllers/ToolFxController.luau` rolls wheels with the player's speed and
+      spins blades and spools while the tool's `Working` attribute is on. The steering wheel and
+      lap bars stay put.
+- [x] **Riding mowers**: `RidingMower` and `ZeroTurnMower` have a `ride` entry in `Items.luau`.
+      They aren't held: their handle becomes `RideRoot`, they're welded so the seat is under the
+      player, R15 players are lifted (HipHeight) so the wheels touch the ground, and the player's
+      own sit animation plays while riding. Still to check in Studio: tune `ride.seat` in
+      `Items.luau` until the player sits on the seat, and see how R6 avatars look (they aren't
+      lifted).
 - [ ] **Grip polish**: the push mower floats about 0.6 studs and the trimmer head about 1.3 studs
       above the ground, because the tool-hold pose keeps the hand at shoulder height. Lower the
       grips in `scripts/build-kit-tools.luau`, or add a push/hold animation.
