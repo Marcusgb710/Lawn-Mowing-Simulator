@@ -105,6 +105,11 @@ local function leaderOf(player: Player): Player
 	return if party then party.leader else player
 end
 
+-- Whether this tool is set down at a service spot to be worked on (see MaintenanceService).
+local function isServiced(player: Player, toolId: string): boolean
+	return player:GetAttribute("Servicing") == toolId
+end
+
 -- Carrying a tool, or placing a decoration (see DecorService).
 local function handsFull(player: Player): boolean
 	return carried[player] ~= nil or player:GetAttribute("PlacingDecor") ~= nil
@@ -469,6 +474,9 @@ function TruckService:PickUp(player: Player, toolId: string): (boolean, string)
 	if Deliveries.pending(data.deliveries, item.id) then
 		return false, "That's still in its box."
 	end
+	if isServiced(player, item.id) then
+		return false, "It's at the workbench. Pick it up from there."
+	end
 	if Maintenance.isStationary(item.id) then
 		return false, `The {item.name} stays in the building.`
 	end
@@ -492,7 +500,7 @@ end
 function TruckService:Hand(player: Player, toolId: string): boolean
 	local data = DataService:Get(player)
 	local item = data and ownedTool(data, toolId)
-	if not item or handsFull(player) or Maintenance.isStationary(item.id) then
+	if not item or handsFull(player) or Maintenance.isStationary(item.id) or isServiced(player, item.id) then
 		return false
 	end
 	return startCarrying(player, item)

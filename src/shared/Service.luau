@@ -29,7 +29,7 @@ end
 -- Whether its blade has to come off before it can be sharpened or swapped: a machine's heavy
 -- blade, on the floor. Edges in the vise are worked on where they are.
 function Service.bladeComesOff(tool, spot: Spot): boolean
-	return spot == "Floor" and Maintenance.bladeOf(tool) == "Heavy"
+	return spot == "Floor" and Maintenance.bladeOf(tool) == "Heavy" and not Maintenance.isReelMower(tool)
 end
 
 -- Whether it can be picked back up as it is.
@@ -81,8 +81,12 @@ function Service.step(tool, condition, supplyId: string, state: State, spot: Spo
 	if state.bladeOff then
 		if supplyId == "WrenchSet" then
 			return wrench("BladeOn", "Bolt the blade back on"), nil
-		elseif action == "Sharpen" or action == "SwapBlade" then
+		elseif action == "Sharpen" and Maintenance.bladeOf(tool) == supply.blade then
 			return apply(supplyId), nil
+		elseif action == "SwapBlade" and Maintenance.takesSpareBlade(tool) then
+			return apply(supplyId), nil
+		elseif action == "Sharpen" or action == "SwapBlade" then
+			return nil, "That won't help here."
 		end
 		return nil, "Bolt the blade back on first."
 	elseif state.wheelOff then
@@ -123,12 +127,15 @@ function Service.step(tool, condition, supplyId: string, state: State, spot: Spo
 	elseif action == "Sharpen" then
 		if not Maintenance.bladeOf(tool) then
 			return nil, "There's no edge on it to sharpen."
+		elseif Maintenance.bladeOf(tool) ~= supply.blade then
+			-- Like the HUD, this doesn't say what would work.
+			return nil, "That won't help here."
 		elseif Service.bladeComesOff(tool, spot) then
 			return nil, "Get the blade off first."
 		end
 		return apply(supplyId), nil
 	elseif action == "SwapBlade" then
-		if not Service.bladeComesOff(tool, spot) then
+		if not (Maintenance.takesSpareBlade(tool) and Service.bladeComesOff(tool, spot)) then
 			return nil, "That won't go on it."
 		end
 		return nil, "Get the blade off first."
@@ -143,10 +150,12 @@ end
 
 -- What a tool's part is, for the steps that care: "Wheel" for wheels and tires, "Spool" for a
 -- trimmer head, nil for the rest.
+-- Kit parts are named `<Asset>__Wheel...`, `__Tire...` and `__Spool...` (the same names that make
+-- them spin, see Assets); a placeholder's are just "Wheel" and "Spool".
 function Service.partKind(name: string): string?
-	if string.find(name, "Wheel", 1, true) or string.find(name, "Tire", 1, true) then
+	if string.find(name, "__Wheel", 1, true) or string.find(name, "__Tire", 1, true) or name == "Wheel" then
 		return "Wheel"
-	elseif string.find(name, "Spool", 1, true) then
+	elseif string.find(name, "__Spool", 1, true) or name == "Spool" then
 		return "Spool"
 	end
 	return nil

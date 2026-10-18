@@ -28,7 +28,7 @@ local CLUMPS = {
 local STRIPES = { Color3.fromRGB(120, 200, 75), Color3.fromRGB(100, 178, 62) }
 local RAGGED_STRIPE = Color3.fromRGB(150, 170, 80)
 -- Torn tufts on a ragged tile: how many, and how tall next to a tall clump.
-local RAGGED_TUFTS = 3
+local RAGGED_TUFTS = 1
 local TUFT_SCALE = 0.45
 local BLOCK_TALL_COLOR = Color3.fromRGB(70, 125, 45)
 

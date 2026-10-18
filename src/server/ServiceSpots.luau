@@ -1,7 +1,8 @@
 -- Where tools are set down to be worked on (see MaintenanceService): a spot on the floor for
 -- machines and a vise for hand and long tools. Every workbench has both (its ServiceSpot and
 -- VisePoint attachments, or in front of it and on its vise when the model has none), and so does
--- the crew truck on a job: on the ground behind it, and on its open tailgate.
+-- the crew truck on a job: on the ground beside its back end (the side away from the road), and
+-- on its side rail there.
 
 local ServiceSpots = {}
 
@@ -41,17 +42,27 @@ function ServiceSpots.forBench(bench: Model): (CFrame, CFrame)
 	return floor, grip
 end
 
--- A truck's on a job: on the ground behind it, and on its tailgate.
+-- A truck's on a job: beside its back end on the ground, on its left (the side a truck parked
+-- along the curb has to the sidewalk), and on the side rail there. A hitched trailer doesn't
+-- count: it comes off for a moment to measure the truck.
 function ServiceSpots.forTruck(truck: Model): (CFrame, CFrame)
+	local trailer = truck:FindFirstChild("Trailer")
+	if trailer then
+		trailer.Parent = nil
+	end
 	local box, size = truck:GetBoundingBox()
-	local floor = box * CFrame.new(0, -size.Y / 2, size.Z / 2 + 3)
-	local vise = box * CFrame.new(0, -size.Y / 2 + 3.4, size.Z / 2 - 0.6)
+	if trailer then
+		trailer.Parent = truck
+	end
+	local floor = box * CFrame.new(-size.X / 2 - 3, -size.Y / 2, size.Z / 2 - 2.5)
+	local vise = box * CFrame.new(-size.X / 2 - 0.4, -size.Y / 2 + 3.4, size.Z / 2 - 1.2)
 	return floor, vise
 end
 
--- Where a truck's tailgate supplies stand: a row beside the floor spot.
-function ServiceSpots.supplyRow(floor: CFrame, index: number): CFrame
-	return floor * CFrame.new(3.4 + (index - 1) * 1.5, 0, 0)
+-- Where a crew member's supplies stand by the truck on a job: a row each, along the truck from
+-- the floor spot, further out for each crew member.
+function ServiceSpots.supplyRow(floor: CFrame, member: number, index: number): CFrame
+	return floor * CFrame.new(-(member - 1) * 1.8, 0, -(3.2 + (index - 1) * 1.4))
 end
 
 return ServiceSpots

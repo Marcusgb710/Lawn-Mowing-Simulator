@@ -133,8 +133,10 @@ local function render()
 			Parent = details,
 		})
 
+		local servicing = Players.LocalPlayer:GetAttribute("Servicing") == item.id
 		local where = if boxed
 			then "In its delivery box"
+			elseif servicing then "At the workbench"
 			elseif inBucket and loaded then "In the bucket, in the truck"
 			elseif inBucket then "In the tool bucket"
 			elseif loaded then "In the truck"
@@ -151,7 +153,7 @@ local function render()
 		})
 		-- Pegboards get crowded, so you can also grab a tool from here while standing at storage.
 		local atBusiness = job == nil or job.state == "Ready"
-		if atBusiness and not loaded and not inBucket and not boxed and (held == nil or inHands) then
+		if atBusiness and not loaded and not inBucket and not boxed and not servicing and (held == nil or inHands) then
 			UI.button(if inHands then "Put back" else "Grab", function()
 				if inHands then
 					CarryController.putBack()
@@ -189,6 +191,11 @@ function TruckController:Start()
 
 	ClientState.Changed:Connect(function(key)
 		if (key == "profile" or key == "party" or key == "job") and window.Visible then
+			render()
+		end
+	end)
+	player:GetAttributeChangedSignal("Servicing"):Connect(function()
+		if window.Visible then
 			render()
 		end
 	end)

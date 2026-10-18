@@ -606,8 +606,9 @@ local function perform(target: Target, second: boolean)
 	end)
 end
 
--- Working on a tool happens while E (or the button) is held down.
-local holding = false
+-- Working on a tool happens while E (or the button) is held down. Each press is its own hold, so
+-- a late reply to an old one can't end a newer one.
+local holding: {}? = nil
 
 local function isHold(target: Target, second: boolean): boolean
 	return if second then target.second ~= nil and target.second.hold == true else target.hold == true
@@ -621,42 +622,51 @@ local function startHold(target: Target, second: boolean)
 		UI.notify(target.reason or "That won't work here.")
 		return
 	end
-	holding = true
+	local hold = {}
+	holding = hold
 	local fixture = if second and target.second then target.second.fixture else nil
 	task.spawn(function()
 		local ok, message = invoke("StartService", fixture, target.partName)
 		if typeof(message) == "string" then
 			UI.notify(message)
 		end
-		if not ok then
-			holding = false
+		if not ok and holding == hold then
+			holding = nil
 		end
 	end)
 end
 
 local function stopHold()
 	if holding then
-		holding = false
+		holding = nil
 		Net.event("StopService"):FireServer()
 	end
 end
 
--- The look-at button on a phone: tapped, or held down for work.
+-- The look-at button on a phone: tapped, or held down for work. What a press does is decided when
+-- it starts, and a hold ends when that touch ends, wherever the finger has slid to.
+local heldByButton = false
 local function pressable(gui: GuiButton, second: boolean)
 	gui.InputBegan:Connect(function(input)
 		local pressing = input.UserInputType == Enum.UserInputType.Touch
 			or input.UserInputType == Enum.UserInputType.MouseButton1
-		if pressing and current and isHold(current, second) then
-			startHold(current, second)
+		if not (pressing and current and isHold(current, second)) then
+			return
 		end
-	end)
-	gui.InputEnded:Connect(function(input)
-		if
-			input.UserInputType == Enum.UserInputType.Touch
-			or input.UserInputType == Enum.UserInputType.MouseButton1
-		then
-			stopHold()
-		end
+		heldByButton = true
+		startHold(current, second)
+		local connection
+		connection = input:GetPropertyChangedSignal("UserInputState"):Connect(function()
+			local state = input.UserInputState
+			if state == Enum.UserInputState.End or state == Enum.UserInputState.Cancel then
+				connection:Disconnect()
+				stopHold()
+				-- The tap that ends a hold isn't a tap.
+				task.defer(function()
+					heldByButton = false
+				end)
+			end
+		end)
 	end)
 end
 
@@ -711,7 +721,7 @@ function InteractController:Start()
 		Parent = screen,
 	})
 	button = UI.button("", function()
-		if current and not isHold(current, false) then
+		if current and not heldByButton and not isHold(current, false) then
 			perform(current, false)
 		end
 	end, {
@@ -725,7 +735,7 @@ function InteractController:Start()
 	})
 	UI.corner(55).Parent = button
 	secondButton = UI.button("", function()
-		if current and current.second and not isHold(current, true) then
+		if current and current.second and not heldByButton and not isHold(current, true) then
 			perform(current, true)
 		end
 	end, {
@@ -748,7 +758,7 @@ function InteractController:Start()
 
 	local function onInput(second: boolean)
 		return function(_, state: Enum.UserInputState)
-			if state == Enum.UserInputState.End then
+			if state == Enum.UserInputState.End or state == Enum.UserInputState.Cancel then
 				if holding then
 					stopHold()
 					return Enum.ContextActionResult.Sink

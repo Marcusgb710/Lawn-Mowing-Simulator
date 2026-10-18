@@ -503,7 +503,7 @@ The game is played in first person (`StarterPlayer.CameraMode = LockFirstPerson`
   keep their normal hold, since they're modelled as worn. Where the work happens doesn't change:
   just in front of you, whichever way you face.
 - **Menus and the mouse.** In first person the mouse is locked to the middle of the screen. While
-  any menu is open (jobs, shop, truck, crew, workbench, guide) it's freed, and locked again when
+  any menu is open (the shop computer, truck, crew, guide) it's freed, and locked again when
   you close it. Hold **Left Alt** to free it any time, to click the HUD or answer a crew invite
   (an invite doesn't free it by itself: you might be mowing). Each player can only have one
   invite out to the same person at a time.
@@ -609,14 +609,16 @@ Tools are worked on by hand instead of from a menu (`MaintenanceService`; the st
 - **Set it down.** Hold the machine and look at a service spot, then press E. Hand and long tools
   (pruners, loppers, spades, half-moon edgers) go in the vise instead. Every workbench has both:
   its `ServiceSpot` attachment (on the floor in front of the bench) and `VisePoint` (in the
-  vise). On a job, the truck has them too: on the ground behind it and on its tailgate. One tool
-  per spot. Look at it with empty hands to pick it back up.
+  vise). On a job, the truck has them too: on the ground beside its back end (the sidewalk side)
+  and on its side rail there. One tool per spot. Look at it with empty hands to pick it back up.
+  While it's set down it isn't in storage: it can't be grabbed, loaded or sold until it's picked
+  up again.
 - **Work on it.** Hold a supply and look at the tool. The hint says what it would do ("Pour in
   the fuel", "Pump up the tire", "Plug the puncture", "Wind on new line", "Hone the edge"), or
   what's in the way. **Hold E** (or the button on a phone) while it works: it takes the supply's
   time, and letting go or walking off stops it. Supplies come off your storage at the business.
-  On a job, the ones you brought stand by the tailgate: take one there, and look at the truck to
-  put it back.
+  On a job, the ones you brought stand in a row by the truck, one row per crew member: take one
+  there, and look at the truck to put it back.
 - **Steps.**
   - A mower's (or other floor machine's) heavy blade comes off first: the wrench on the machine
     ("Take the blade off"), and it lies on its side.
@@ -625,12 +627,14 @@ Tools are worked on by hand instead of from a menu (`MaintenanceService`; the st
   - Then the wrench again to bolt it back on. It can't be picked up with the blade off.
   - For a new tire, the wrench on a wheel takes it off, then the spare goes on.
   - A wrecked engine is fixed with the wrench first.
-  - The building's air compressor fills tires with empty hands (hold R).
+  - The air compressor fills tires with empty hands (hold R), and the bench grinder sharpens a
+    loose blade the same way: the building's own, or ones you bought and keep in storage.
 - **Condition you can see.** The HUD hints stay, and never name the fix, but tools also show it
   themselves (`ToolFxController`):
   - an engine low on fuel sputters with puffs of smoke while it runs, and a wrecked one smokes;
-  - soft tires sag and flat ones squash (parts named `__Wheel` or `__Tire`);
-  - a spool (`__Spool`) shows bare as the line runs out;
+  - soft tires sag and flat ones squash (parts named `<Id>__Wheel...` or `<Id>__Tire...`, or a
+    placeholder's `Wheel`);
+  - a spool (`<Id>__Spool...`) shows bare as the line runs out;
   - grass cut with a dull blade is left ragged, duller and with torn tufts sticking up
     (`LawnGrid.RAGGED`; GrassController draws it).
 

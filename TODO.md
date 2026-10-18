@@ -128,7 +128,7 @@ One PR per phase, each stacked on the one before. Every phase still needs a Stud
       driveway pile to the bed, how often one-wheeled barrows tip (`TIP_CHANCE` in
       `LawnService.luau`), the fertilizer dusting on big lawns.
 - [x] **E: maintenance (fuel, tires, blades, line).** To check: wear rates (`Maintenance.Wear`),
-      the Workbench menu on a phone, the workbench prop on each building.
+      the workbench prop on each building (the menu is now hands-on, see Immersion 3).
 - [x] **F: pro equipment and turf renovation.** To check: standing on stand-on machines
       (`ride.seat` in `Tools.luau`), the tow-behind aerator hitched behind a ride-on, tight lawns
       with trees, the renovation overlays and the soil reading in the HUD.

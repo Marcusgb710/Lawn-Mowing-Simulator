@@ -70,7 +70,7 @@ local function wearOf(container: Instance)
 	if known then
 		return known
 	end
-	known = { wheels = {}, spools = {}, nextPuff = 0, sputterUntil = 0, smoke = nil }
+	known = { wheels = {}, spools = {}, nextPuff = 0, sputterUntil = 0, smoke = nil, squash = 1, line = nil, rate = 0 }
 	for _, part in container:GetDescendants() do
 		if part:IsA("BasePart") then
 			local kind = Service.partKind(part.Name)
@@ -81,8 +81,10 @@ local function wearOf(container: Instance)
 			end
 		end
 	end
+	-- Only engines smoke.
+	local engine = container:GetAttribute("Fuel") ~= nil or container:GetAttribute("Broken") ~= nil
 	local handle = container:FindFirstChild("Handle") or container:FindFirstChildWhichIsA("BasePart", true)
-	if handle and handle:IsA("BasePart") then
+	if engine and handle and handle:IsA("BasePart") then
 		local smoke = Instance.new("ParticleEmitter")
 		smoke.Name = "WearSmoke"
 		smoke.Color = ColorSequence.new(Color3.fromRGB(70, 70, 70), Color3.fromRGB(150, 150, 150))
@@ -109,27 +111,30 @@ local function showWear(container: Instance, working: boolean, now: number): boo
 		then FLAT_SQUASH
 		elseif typeof(pressure) == "number" and pressure < Maintenance.LowPressure then SOFT_SQUASH
 		else 1
-	for _, wheel in known.wheels do
-		local size = wheel.size * Vector3.new(1, squash, 1)
-		if wheel.part.Size ~= size then
-			wheel.part.Size = size
+	-- Only written when they change, not every frame.
+	if squash ~= known.squash then
+		known.squash = squash
+		for _, wheel in known.wheels do
+			wheel.part.Size = wheel.size * Vector3.new(1, squash, 1)
 		end
 	end
 	local line = container:GetAttribute("Line")
-	for _, spool in known.spools do
-		local color = if typeof(line) == "number"
-			then BARE_SPOOL:Lerp(spool.color, math.clamp(line, 0, 1))
-			else spool.color
-		if spool.part.Color ~= color then
-			spool.part.Color = color
+	local shown = if typeof(line) == "number" then math.floor(math.clamp(line, 0, 1) * 20 + 0.5) / 20 else nil
+	if shown ~= known.line then
+		known.line = shown
+		for _, spool in known.spools do
+			spool.part.Color = if shown then BARE_SPOOL:Lerp(spool.color, shown) else spool.color
 		end
 	end
 	local smoke = known.smoke
 	if not smoke then
 		return false
 	end
-	local broken = container:GetAttribute("Broken") == true
-	smoke.Rate = if broken then 6 else 0
+	local rate = if container:GetAttribute("Broken") == true then 6 else 0
+	if rate ~= known.rate then
+		known.rate = rate
+		smoke.Rate = rate
+	end
 	local fuel = container:GetAttribute("Fuel")
 	local low = typeof(fuel) == "number" and fuel < Maintenance.LowFuel
 	if working and low and now >= known.nextPuff then
@@ -199,7 +204,10 @@ function ToolFxController:Start()
 		-- Tools set down to be worked on show their wear too.
 		local servicing = workspace:FindFirstChild("Servicing")
 		for _, model in if servicing then servicing:GetChildren() else {} do
-			showWear(model, false, os.clock())
+			-- Tools set down, not the supplies standing by a truck.
+			if model:GetAttribute("Interact") == "ServiceTool" then
+				showWear(model, false, os.clock())
+			end
 		end
 	end)
 end

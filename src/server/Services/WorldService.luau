@@ -716,6 +716,13 @@ end
 
 -- If the player is standing at their crew's workbench, the id of that business (its building
 -- decides which shop machines are there).
+-- The building (business item id) of the player's crew's business.
+function WorldService:GetCrewBusinessId(player: Player): string?
+	local plot = playerPlots[getLeader(player)] or playerPlots[player]
+	local ownerData = plot and plot.owner and DataService:Get(plot.owner)
+	return if ownerData then ownerData.equipped.Business or "Shed" else nil
+end
+
 function WorldService:GetWorkbenchBusiness(player: Player): string?
 	local leader = getLeader(player)
 	local plot = playerPlots[leader] or playerPlots[player]

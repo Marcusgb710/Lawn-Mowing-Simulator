@@ -27,6 +27,7 @@ local Tools = require(Shared.Config.Tools)
 
 local DataService = require(script.Parent.DataService)
 local JobService = require(script.Parent.JobService)
+local PartyService = require(script.Parent.PartyService)
 local ServiceSpots = require(script.Parent.Parent.ServiceSpots)
 local ToolService = require(script.Parent.ToolService)
 local TruckService = require(script.Parent.TruckService)
@@ -164,10 +165,12 @@ local function pose(entry)
 	local model = entry.model
 	if entry.spot == "Vise" then
 		model:PivotTo(frame)
-	elseif entry.state.bladeOff then
-		Assets.placeOnGround(model, frame * CFrame.Angles(0, 0, math.rad(90)))
 	else
-		Assets.placeOnGround(model, frame)
+		Assets.placeOnGround(model, if entry.state.bladeOff then frame * CFrame.Angles(0, 0, math.rad(90)) else frame)
+		-- Centred on the spot (a tipped mower turns about its handle, which isn't its middle).
+		local box = model:GetBoundingBox()
+		local off = frame.Position - box.Position
+		model:PivotTo(model:GetPivot() + Vector3.new(off.X, 0, off.Z))
 	end
 	local wheelHidden = false
 	for _, part in model:GetDescendants() do
@@ -186,7 +189,7 @@ local function pose(entry)
 end
 
 -- Takes a tool off its spot: back in storage at the business, back in the hotbar on a job.
-local function clearSpot(player: Player, giveBack: boolean)
+local function clearSpot(player: Player, giveBack: boolean, leaving: boolean?)
 	local pad = spotOf[player]
 	local entry = pad and serviced[pad]
 	spotOf[player] = nil
@@ -196,10 +199,14 @@ local function clearSpot(player: Player, giveBack: boolean)
 	serviced[pad] = nil
 	stopWork(player)
 	entry.model:Destroy()
+	if entry.watch then
+		entry.watch:Disconnect()
+	end
 	if pad.Parent then
 		pad:SetAttribute("Occupied", nil)
+		pad.CanQuery = true
 	end
-	if player.Parent == Players then
+	if player.Parent == Players and not leaving then
 		player:SetAttribute("Servicing", nil)
 		if entry.field then
 			ToolService:Withhold(player, entry.toolId, false)
@@ -236,15 +243,15 @@ local function layOutTailgate(player: Player)
 		return
 	end
 	local frame: CFrame = pad:GetAttribute("SpotFrame")
-	-- Room for six each, crew member by crew member.
-	local index = (table.find(job.members, player) or 1) * 6 - 5
+	local member = table.find(job.members, player) or 1
+	local index = 1
 	tailgate[player] = {}
 	for _, id in Maintenance.SupplyOrder do
 		if data.loadout[id] and not Maintenance.isStationary(id) then
 			local tool = Tools.get(id)
 			local model = Assets.toolDisplay(tool.category, id)
 			Assets.anchor(model)
-			Assets.placeOnGround(model, ServiceSpots.supplyRow(frame, index))
+			Assets.placeOnGround(model, ServiceSpots.supplyRow(frame, member, index))
 			index += 1
 			model.Name = "Tailgate_" .. id
 			model:SetAttribute("Interact", "TakeSupply")
@@ -313,11 +320,19 @@ function MaintenanceService:SetDown(player: Player, pad: Instance): (boolean, st
 	model:SetAttribute("ToolId", item.id)
 	model:SetAttribute("SpotKind", spot)
 	-- The building's own machines, used with empty hands.
+	-- (the building's own, and any you bought, which stand in your storage)
 	local fixtures = {}
 	if not field then
-		local business = Items.get("Business", WorldService:GetWorkbenchBusiness(player) or "")
+		local business = Items.get("Business", WorldService:GetCrewBusinessId(player) or "")
 		for _, fixture in business and business.fixtures or {} do
 			fixtures[fixture] = true
+		end
+		for _, owned in Items.ownedTools(data.owned) do
+			if Maintenance.isStationary(owned.id) then
+				fixtures[owned.id] = true
+			end
+		end
+		for fixture in fixtures do
 			model:SetAttribute("Has" .. fixture, true)
 		end
 	end
@@ -338,6 +353,14 @@ function MaintenanceService:SetDown(player: Player, pad: Instance): (boolean, st
 	serviced[pad] = entry
 	spotOf[player] = pad
 	pad:SetAttribute("Occupied", true)
+	-- Out of the way of looking at the tool on it.
+	pad.CanQuery = false
+	-- The bench or truck going away (a rebuild, the owner leaving) puts the tool back.
+	entry.watch = pad.AncestryChanged:Connect(function()
+		if not pad:IsDescendantOf(workspace) and spotOf[player] == pad then
+			clearSpot(player, false)
+		end
+	end)
 	player:SetAttribute("Servicing", item.id)
 	local soundAt = model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart", true)
 	if soundAt then
@@ -581,7 +604,7 @@ function MaintenanceService:Init()
 	local function guarded(method)
 		return function(player, ...)
 			if tooSoon(player) then
-				return false, nil
+				return false, "One thing at a time."
 			end
 			return method(self, player, ...)
 		end
@@ -651,9 +674,41 @@ function MaintenanceService:Start()
 	Players.PlayerAdded:Connect(watch)
 	for _, player in Players:GetPlayers() do
 		watch(player)
+		local character = player.Character
+		if character then
+			character.ChildAdded:Connect(function(child)
+				if child:IsA("Tool") and takenOff[player] then
+					MaintenanceService:PutBackSupply(player)
+				end
+			end)
+		end
 	end
+	-- Leaving a crew: a tool on its bench comes back.
+	PartyService.Changed:Connect(function()
+		for player, pad in spotOf do
+			local entry = serviced[pad]
+			local business = WorldService:GetCrewBusiness(player)
+			if entry and not entry.field and not (business and pad:IsDescendantOf(business)) then
+				clearSpot(player, false)
+			end
+		end
+	end)
+	-- Walking off stops the work (sideways only: hopping on the spot is fine).
+	task.spawn(function()
+		while true do
+			task.wait(0.5)
+			for player, current in working do
+				local root = rootOf(player)
+				local moved = if root and current.position then root.Position - current.position else nil
+				if not (moved and Vector2.new(moved.X, moved.Z).Magnitude <= STAY_RADIUS) then
+					stopWork(player)
+					notify(player, "You walked off before you finished.")
+				end
+			end
+		end
+	end)
 	Players.PlayerRemoving:Connect(function(player)
-		clearSpot(player, false)
+		clearSpot(player, false, true)
 		clearTailgate(player)
 		working[player] = nil
 		lastRequest[player] = nil
