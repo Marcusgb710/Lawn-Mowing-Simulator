@@ -320,8 +320,9 @@ end
 
 -- Gives the player the tools they loaded in the truck if they're at a job site, otherwise takes
 -- them away. Call after anything that could change that.
--- Builds the Tool for one of the player's tools, ready to put in their backpack.
-local function makeTool(player: Player, data, item, height: number?): Tool
+-- Builds the Tool for one of the player's tools, ready to put in their backpack. Only on a job
+-- does a ride-on that can tow pull the tow-behind aerator.
+local function makeTool(player: Player, data, item, height: number?, atJob: boolean): Tool
 	local tool = Assets.tool(item.category, item.id)
 	tool.Name = item.name
 	tool.ToolTip = Items.CategoryInfo[item.category].displayName
@@ -332,7 +333,7 @@ local function makeTool(player: Player, data, item, height: number?): Tool
 	if item.ride then
 		setUpRide(player, tool, item)
 		-- A ride-on that can tow pulls the tow-behind aerator, if it came along.
-		if item.tows and data.loadout.TowBehindAerator then
+		if atJob and item.tows and data.loadout.TowBehindAerator then
 			hitch(tool, "TowBehindAerator")
 		end
 	elseif height and GROUNDED[item.sizeClass] then
@@ -353,10 +354,19 @@ function ToolService:GiveRide(player: Player, itemId: string): Tool?
 	if not (data and item and item.ride and humanoid and backpack and humanoid.Health > 0) then
 		return nil
 	end
-	local tool = makeTool(player, data, item, nil)
+	local tool = makeTool(player, data, item, nil, false)
 	tool.Parent = backpack
 	humanoid:EquipTool(tool)
 	return tool
+end
+
+-- Puts a player back on their feet at normal speed after a ride-on goes away.
+function ToolService:ResetRider(player: Player)
+	local humanoid = getHumanoid(player)
+	if humanoid then
+		humanoid.WalkSpeed = GameConfig.DefaultWalkSpeed
+		restoreHipHeight(humanoid)
+	end
 end
 
 function ToolService:GiveTools(player: Player)
@@ -394,7 +404,7 @@ function ToolService:GiveTools(player: Player)
 		if NOT_HELD[item.use] then
 			continue
 		end
-		local tool = makeTool(player, data, item, height)
+		local tool = makeTool(player, data, item, height, true)
 		tool.Parent = backpack
 
 		-- Swapping gear shouldn't make you put your tool away.
@@ -434,6 +444,11 @@ local function workTick(elapsed: number)
 		local root = character and character:FindFirstChild("HumanoidRootPart")
 		if not (player and humanoid and root and root:IsA("BasePart")) or humanoid.Health <= 0 then
 			running[tool] = nil
+			continue
+		end
+		-- Driving a ride-on around the business does no work and no wear.
+		if not JobService:IsAtJobSite(player) then
+			setFx(tool, false)
 			continue
 		end
 

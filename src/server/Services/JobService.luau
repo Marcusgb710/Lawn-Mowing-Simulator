@@ -688,7 +688,15 @@ function JobService:Start()
 	refreshBoard()
 
 	-- Looking at the crew truck and pressing E (see InteractController) heads out.
+	local lastDrive = {}
+	Players.PlayerRemoving:Connect(function(player)
+		lastDrive[player] = nil
+	end)
 	Net.func("DriveToJob").OnServerInvoke = function(player)
+		if os.clock() - (lastDrive[player] or 0) < 1 then
+			return false, nil
+		end
+		lastDrive[player] = os.clock()
 		local party = PartyService:GetParty(player)
 		local leader = if party then party.leader else player
 		local job = party and readyJobs[party]

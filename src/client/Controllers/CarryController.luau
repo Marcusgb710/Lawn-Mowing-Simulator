@@ -86,6 +86,14 @@ local function spotsByKind(storage: Folder)
 	return byKind
 end
 
+-- [free-spot marker part] = the spot it's over
+local markerSpots = setmetatable({}, { __mode = "k" })
+
+-- The spot a free-spot marker (see marker below) is over.
+function CarryController.spotOfMarker(part: Instance): Attachment?
+	return markerSpots[part]
+end
+
 -- One storage spot of your crew's business, by kind and Index.
 function CarryController.spot(kind: string, index: number): Attachment?
 	local storage = CarryController.findStorage()
@@ -154,6 +162,7 @@ local function marker(folder: Folder, spot: Attachment)
 	part:SetAttribute("SpotIndex", spot:GetAttribute("Index"))
 	part:SetAttribute("ManualOnly", spot:GetAttribute("ManualOnly"))
 	part.Parent = folder
+	markerSpots[part] = spot
 	return part
 end
 
@@ -249,7 +258,7 @@ local function renderStorage()
 		end
 
 		display:SetAttribute("Interact", "PickUp")
-		display:SetAttribute("InteractText", if item.sizeClass == "Bay" then "Get on" else "Take")
+		display:SetAttribute("InteractText", if item.ride then "Get on" else "Take")
 		display:SetAttribute("InteractName", item.name)
 		display:SetAttribute("ToolId", item.id)
 		if item.id == Storage.BucketId then
@@ -313,13 +322,25 @@ function CarryController:Start()
 	UI.corner(8).Parent = carryLabel
 	UI.new("UISizeConstraint", { MaxSize = Vector2.new(460, math.huge), Parent = carryLabel })
 
+	-- Several changes come together (a load changes what you carry and your profile), so they
+	-- redraw storage once.
+	local queued = false
+	local function queueRender()
+		if not queued then
+			queued = true
+			task.defer(function()
+				queued = false
+				renderStorage()
+			end)
+		end
+	end
 	player:GetAttributeChangedSignal("Carrying"):Connect(function()
 		updateCarryLabel()
-		renderStorage()
+		queueRender()
 	end)
 	ClientState.Changed:Connect(function(key)
 		if key == "profile" or key == "party" then
-			renderStorage()
+			queueRender()
 		end
 	end)
 

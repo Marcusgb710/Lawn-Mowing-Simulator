@@ -76,7 +76,13 @@ local ghostId: string? = nil
 local ghostPlace: string? = nil
 local highlight: Highlight
 
-local truckCache = { truck = nil :: Model?, beds = {} :: { BedLayout.Bed }, bays = {} :: { BasePart }, at = 0 }
+local truckCache = {
+	truck = nil :: Model?,
+	beds = {} :: { BedLayout.Bed },
+	taken = {} :: { [number]: { [number]: boolean } },
+	bays = {} :: { BasePart },
+	at = 0,
+}
 
 local function carriedItem()
 	local id = player:GetAttribute("Carrying")
@@ -105,6 +111,10 @@ local function truckInfo()
 		local truck = crewTruck()
 		truckCache.truck = truck
 		truckCache.beds = if truck then BedLayout.read(truck) else {}
+		truckCache.taken = {}
+		for index, bed in truckCache.beds do
+			truckCache.taken[index] = BedLayout.taken(bed.part)
+		end
 		truckCache.bays = {}
 		if truck then
 			for _, descendant in truck:GetDescendants() do
@@ -199,7 +209,7 @@ local function targetFor(thing: Instance, item): Target?
 			fits = not noEngines,
 			reason = "No engines in here.",
 			spotIndex = index,
-			spot = CarryController.spot(kind, index),
+			spot = CarryController.spotOfMarker(thing),
 		}
 	end
 	return nil
@@ -210,7 +220,8 @@ local function bedTarget(item, origin: Vector3, direction: Vector3, reach: numbe
 	if not BedGrid.footprint(item.sizeClass) or Maintenance.isStationary(item.id) then
 		return nil
 	end
-	for _, bed in truckInfo().beds do
+	local info = truckInfo()
+	for index, bed in info.beds do
 		local column, row = BedLayout.aim(bed, origin, direction, reach)
 		if column and row then
 			local anchor = BedGrid.anchorAround(bed.grid, item.sizeClass, column, row)
@@ -219,7 +230,7 @@ local function bedTarget(item, origin: Vector3, direction: Vector3, reach: numbe
 				action = "Place",
 				text = "Place",
 				name = item.name,
-				fits = cells ~= nil and BedGrid.free(BedLayout.taken(bed.part), cells),
+				fits = cells ~= nil and BedGrid.free(info.taken[index] or {}, cells),
 				reason = if cells then "That won't fit there." else "That's too big for this bed.",
 				bed = bed,
 				anchor = anchor,
@@ -313,6 +324,8 @@ local function showGhost(target: Target?)
 	end
 	if ghostId ~= item.id or not ghost then
 		if ghost then
+			-- The highlight lives on; only the old copy goes.
+			highlight.Parent = nil
 			ghost:Destroy()
 		end
 		local model = Assets.toolDisplay(item.category, item.id)

@@ -42,7 +42,7 @@ local CARRY_WALK_SPEED = 12
 local CARRY_OFFSET = CFrame.new(0.6, 0.3, -1.4)
 -- Machines you push are rolled along the ground in front of you, this far ahead.
 local PUSH_GAP = 1.2
-local PUSHED = { FloorManual = true, FloorEngine = true }
+local PUSHED = { FloorManual = true, FloorEngine = true, Bay = true }
 -- Seconds between carry requests from one player, so they can't be spammed.
 local COOLDOWN = 0.25
 -- How close to the truck (its bounding box) you need to be to load or unload it.
@@ -113,6 +113,8 @@ local function stopCarrying(player: Player)
 		if humanoid then
 			humanoid.WalkSpeed = GameConfig.DefaultWalkSpeed
 		end
+		-- Off a ride-on: back down to the ground.
+		ToolService:ResetRider(player)
 	end
 end
 
@@ -134,19 +136,25 @@ local function startCarrying(player: Player, item): boolean
 		return false
 	end
 
-	-- Ride-ons are driven, not carried.
-	if item.sizeClass == "Bay" then
+	-- Ride-ons are driven, not carried. (A tow-behind attachment is rolled along like a mower.)
+	if item.sizeClass == "Bay" and item.ride then
 		local tool = ToolService:GiveRide(player, item.id)
 		if not tool then
 			return false
 		end
 		carried[player] = tool
 		player:SetAttribute("Carrying", item.id)
-		-- Putting it away in the hotbar parks it back in storage.
+		-- Putting it away in the hotbar parks it back in storage; anything else taking it away
+		-- (a crew change, a respawn) just ends the ride.
 		tool.Unequipped:Connect(function()
 			if carried[player] == tool then
 				stopCarrying(player)
 				notify(player, `You leave the {item.name} in its bay.`)
+			end
+		end)
+		tool.Destroying:Connect(function()
+			if carried[player] == tool then
+				stopCarrying(player)
 			end
 		end)
 		return true
@@ -374,11 +382,14 @@ local function renderCrew(party)
 	end
 end
 
--- Re-shows the truck this player's crew rides in, and their menus.
+-- Re-shows their menus and the truck their crew rides in (the crew refresh redraws its bed).
 local function refresh(player: Player)
 	DataService:Changed(player)
-	renderBed(leaderOf(player))
-	PartyService:Refresh(player)
+	if PartyService:GetParty(player) then
+		PartyService:Refresh(player)
+	else
+		renderBed(player)
+	end
 end
 
 -- Trailers unlock for the truck's owner (the crew leader) the first time its truck fills up.
@@ -451,7 +462,7 @@ function TruckService:PickUp(player: Player, toolId: string): (boolean, string)
 		return false, "You can't pick that up right now."
 	end
 	if item.sizeClass == "Bay" then
-		return true, `Drive the {item.name} up the trailer's ramp and park it on a bay.`
+		return true, `Take the {item.name} up the trailer's ramp and park it on a bay.`
 	end
 	return true, `Take the {item.name} to the truck.`
 end
@@ -508,7 +519,7 @@ function TruckService:Load(player: Player, bed: number?, anchor: number?): (bool
 		return false, `The {item.name} stays in the building.`
 	end
 	if item.sizeClass == "Bay" then
-		return false, "Drive it up the trailer's ramp and park it on a bay."
+		return false, "Take it up the trailer's ramp and park it on a bay."
 	end
 	if JobService:IsBusy(player) then
 		return false, "Not in the middle of a job."
@@ -525,29 +536,32 @@ function TruckService:Load(player: Player, bed: number?, anchor: number?): (bool
 	if not layout or #layout.beds == 0 then
 		return false, "There's no room in that truck."
 	end
-	local target = typeof(bed) == "number" and layout.beds[bed]
-	local cells = target and typeof(anchor) == "number" and BedGrid.cells(target.grid, item.sizeClass, anchor)
-	if target and cells then
-		if not BedGrid.free(layout.taken[target.index], cells) then
+	local target, at
+	if bed ~= nil or anchor ~= nil then
+		-- Where they aimed: it has to be a real bed and whole cells that are free.
+		local chosen = if typeof(bed) == "number" then layout.beds[bed] else nil
+		local cells = chosen and typeof(anchor) == "number" and BedGrid.cells(chosen.grid, item.sizeClass, anchor)
+		if not (chosen and cells and BedGrid.free(layout.taken[chosen.index], cells)) then
 			return false, "That won't fit there."
 		end
+		target, at = chosen, anchor :: number
 	else
 		-- No place given: the first one that fits.
 		for _, candidate in layout.beds do
 			local first = BedGrid.firstFit(candidate.grid, layout.taken[candidate.index], item.sizeClass)
 			if first then
-				target, anchor = candidate, first
+				target, at = candidate, first
 				break
 			end
 		end
-		if not target then
+		if not (target and at) then
 			unlockTrailers(player)
 			return false, "That won't fit. Take something out or hitch up a trailer."
 		end
 	end
 
 	placements[player] = placements[player] or {}
-	placements[player][item.id] = { bed = target.index, anchor = anchor }
+	placements[player][item.id] = { bed = target.index, anchor = at }
 	data.loadout[item.id] = true
 	DataService.reconcileStorage(data)
 	settling[player] = item.id
@@ -674,7 +688,7 @@ function TruckService:Park(player: Player): (boolean, string)
 	local item = data and ownedTool(data, player:GetAttribute("Carrying"))
 	local root = rootOf(player)
 	if not (item and item.sizeClass == "Bay" and root) then
-		return false, "You're not driving anything."
+		return false, "You've nothing to park."
 	end
 	local function across(position: Vector3): number
 		local offset = position - root.Position
@@ -718,6 +732,10 @@ end
 -- the truck bed and drops a carried tool they don't own anymore.
 function TruckService:GearChanged(player: Player)
 	local data = DataService:Get(player)
+	if data then
+		-- A sold tool leaves its spot and the bucket (and a sold bucket empties out).
+		DataService.reconcileStorage(data)
+	end
 	if player:GetAttribute("Carrying") and not (data and ownedTool(data, player:GetAttribute("Carrying"))) then
 		stopCarrying(player)
 	end

@@ -53,7 +53,8 @@ end
 -- inside the grid there.
 function BedGrid.cells(grid: Grid, sizeClass: string, anchor: number): { number }?
 	local width, height = BedGrid.footprint(sizeClass)
-	if not (width and height) or anchor < 1 or anchor > grid.cells then
+	-- Whole cells only (this also turns away NaN, which fails every comparison).
+	if not (width and height and anchor >= 1 and anchor <= grid.cells and anchor % 1 == 0) then
 		return nil
 	end
 	local column, row = BedGrid.position(grid, anchor)
