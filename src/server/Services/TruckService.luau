@@ -33,11 +33,24 @@ local PUSH_GAP = 1.2
 local PUSHED = { FloorManual = true, FloorEngine = true, Bay = true }
 -- Machines that stand up in the truck bed instead of lying across it.
 local STANDING = { FloorManual = true, FloorEngine = true }
+-- Seconds between carry requests from one player, so they can't be spammed.
+local COOLDOWN = 0.25
 
 local TruckService = {}
 
 -- [Player] = the tool model they're carrying
 local carried = {}
+-- [Player] = when they last picked up, put back, loaded or unloaded something
+local lastRequest = {}
+
+local function tooSoon(player: Player): boolean
+	local now = os.clock()
+	if now - (lastRequest[player] or 0) < COOLDOWN then
+		return true
+	end
+	lastRequest[player] = now
+	return false
+end
 
 local function notify(player: Player, message: string)
 	Net.event("Notify"):FireClient(player, message)
@@ -282,6 +295,9 @@ end
 -- Public API ---------------------------------------------------------------------------------
 
 function TruckService:PickUp(player: Player, toolId: string): (boolean, string)
+	if tooSoon(player) then
+		return false, "One thing at a time."
+	end
 	local data = DataService:Get(player)
 	local item = data and ownedTool(data, toolId)
 	if not item then
@@ -306,6 +322,9 @@ function TruckService:PickUp(player: Player, toolId: string): (boolean, string)
 end
 
 function TruckService:PutBack(player: Player): (boolean, string)
+	if tooSoon(player) then
+		return false, "One thing at a time."
+	end
 	local toolId = player:GetAttribute("Carrying")
 	local item = toolId and Tools.get(toolId)
 	if not item then
@@ -339,15 +358,16 @@ function TruckService:Load(player: Player, truckOwnerId: number)
 	local used, capacity, baysUsed, bays = PartyService:GetTruckLoad(player)
 	local extraSpace, extraBays = extraLoad(data, item.id)
 	if extraBays > 0 and baysUsed + extraBays > bays then
-		notify(
-			player,
-			if bays == 0
-				then "Ride-on machines only fit on an equipment trailer with a ramp."
-				else "The equipment trailer's bays are full."
-		)
+		if bays == 0 then
+			notify(player, "Ride-on machines only fit on an equipment trailer with a ramp.")
+			unlockTrailers(player)
+		else
+			notify(player, "The equipment trailer's bays are full.")
+		end
 		return
 	end
-	if used + extraSpace > capacity then
+	-- Something that takes no extra room (a ride-on, or a bucket that packs hand tools) always fits.
+	if extraSpace > 0 and used + extraSpace > capacity then
 		notify(player, "That won't fit. Take something out or hitch up a trailer.")
 		unlockTrailers(player)
 		return
@@ -377,6 +397,18 @@ function TruckService:Unload(player: Player, ownerId: number, toolId: string)
 	if carried[player] then
 		notify(player, "Your hands are full. Load or put back what you're carrying first.")
 		return
+	end
+	if item.id == Storage.BucketId then
+		-- Without the bucket its hand tools take a space each again.
+		local used, capacity = PartyService:GetTruckLoad(player)
+		local ids = Storage.loadedIds(data.loadout)
+		local withBucket = Storage.load(ids)
+		table.remove(ids, table.find(ids, item.id))
+		local withoutBucket = Storage.load(ids)
+		if used + withoutBucket - withBucket > capacity then
+			notify(player, "There's no room for the loose hand tools. Take some out of the bucket first.")
+			return
+		end
 	end
 
 	data.loadout[item.id] = nil
@@ -414,6 +446,9 @@ end
 function TruckService:Start()
 	ProximityPromptService.PromptTriggered:Connect(function(prompt, player)
 		local action = prompt:GetAttribute("Action")
+		if (action == "LoadTool" or action == "UnloadTool") and tooSoon(player) then
+			return
+		end
 		if action == "LoadTool" then
 			self:Load(player, prompt:GetAttribute("OwnerUserId"))
 		elseif action == "UnloadTool" then
@@ -439,6 +474,7 @@ function TruckService:Start()
 	end
 	Players.PlayerRemoving:Connect(function(player)
 		carried[player] = nil
+		lastRequest[player] = nil
 	end)
 end
 

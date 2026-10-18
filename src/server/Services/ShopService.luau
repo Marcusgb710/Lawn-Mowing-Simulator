@@ -1,6 +1,7 @@
 -- Buying and selling gear and business upgrades. The client only asks; every check happens here
 -- (the rules themselves are in Shared/Shop.luau, so the shop menu can show them too).
 
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -22,8 +23,22 @@ local WorldService = require(script.Parent.WorldService)
 local VEHICLE_CATEGORIES = { Truck = true, Trailer = true }
 -- Things that change what's built on your business plot.
 local PLOT_CATEGORIES = { Truck = true, Trailer = true, Business = true }
+-- Seconds between shop requests from one player, so they can't be spammed.
+local COOLDOWN = 0.25
 
 local ShopService = {}
+
+-- [Player] = when they last used the shop
+local lastRequest = {}
+
+local function tooSoon(player: Player): boolean
+	local now = os.clock()
+	if now - (lastRequest[player] or 0) < COOLDOWN then
+		return true
+	end
+	lastRequest[player] = now
+	return false
+end
 
 local function findItem(category, itemId)
 	if typeof(category) ~= "string" or typeof(itemId) ~= "string" then
@@ -109,6 +124,9 @@ function ShopService:Equip(player: Player, category: string, itemId: string): (b
 	if VEHICLE_CATEGORIES[category] and JobService:IsBusy(player) then
 		return false, "You can't swap vehicles in the middle of a job."
 	end
+	if data.equipped[category] == itemId then
+		return true, `The {item.name} is already yours.`
+	end
 	if category == "Business" then
 		local current = Items.get("Business", data.equipped.Business)
 		if current and current.rank > item.rank then
@@ -117,8 +135,12 @@ function ShopService:Equip(player: Player, category: string, itemId: string): (b
 	end
 
 	data.equipped[category] = itemId
-	-- A smaller truck or trailer might not fit everything anymore.
-	DataService.trimLoadout(data)
+	-- A smaller truck or trailer might not fit everything anymore. Crew members' tools ride in
+	-- the leader's truck, so only the leader's (or a solo player's) loadout depends on their own.
+	local party = PartyService:GetParty(player)
+	if VEHICLE_CATEGORIES[category] and (not party or party.leader == player) then
+		DataService.trimLoadout(data)
+	end
 	DataService:Changed(player)
 	ToolService:GiveTools(player)
 	if PLOT_CATEGORIES[category] then
@@ -130,15 +152,20 @@ function ShopService:Equip(player: Player, category: string, itemId: string): (b
 end
 
 function ShopService:Init()
-	Net.func("BuyItem").OnServerInvoke = function(player, category, itemId)
-		return self:Buy(player, category, itemId)
+	local function handle(method)
+		return function(player, category, itemId)
+			if tooSoon(player) then
+				return false, "One thing at a time."
+			end
+			return method(self, player, category, itemId)
+		end
 	end
-	Net.func("SellItem").OnServerInvoke = function(player, category, itemId)
-		return self:Sell(player, category, itemId)
-	end
-	Net.func("EquipItem").OnServerInvoke = function(player, category, itemId)
-		return self:Equip(player, category, itemId)
-	end
+	Net.func("BuyItem").OnServerInvoke = handle(self.Buy)
+	Net.func("SellItem").OnServerInvoke = handle(self.Sell)
+	Net.func("EquipItem").OnServerInvoke = handle(self.Equip)
+	Players.PlayerRemoving:Connect(function(player)
+		lastRequest[player] = nil
+	end)
 end
 
 return ShopService

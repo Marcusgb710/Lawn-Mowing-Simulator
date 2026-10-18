@@ -29,7 +29,9 @@ local OVERFLOW_ROW_GAP = 4
 
 local CarryController = {}
 
+-- The storage (and its spots, which can stream in later) that's drawn right now.
 local shownStorage: Instance? = nil
+local shownSpots: Instance? = nil
 local storageFolder: Folder? = nil
 local carryLabel: TextLabel
 
@@ -128,6 +130,7 @@ local function renderStorage()
 	end
 	local storage = CarryController.findStorage()
 	shownStorage = storage
+	shownSpots = storage and storage:FindFirstChild("Spots")
 	local profile = ClientState.profile
 	if not storage or not profile then
 		return
@@ -285,7 +288,8 @@ function CarryController:Start()
 	task.spawn(function()
 		while true do
 			task.wait(1)
-			if CarryController.findStorage() ~= shownStorage then
+			local storage = CarryController.findStorage()
+			if storage ~= shownStorage or (storage and storage:FindFirstChild("Spots")) ~= shownSpots then
 				renderStorage()
 			end
 		end
