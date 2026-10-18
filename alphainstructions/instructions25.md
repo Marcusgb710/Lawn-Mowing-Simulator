@@ -1,6 +1,8 @@
 # Instructions 25: High-poly pass, trucks and trailers
 
 > **Updated:** the game is now first person and much more immersive. Read the tailgate and ramp notes below, which changed after this file was first pushed.
+>
+> **Updated again:** players now get into the truck at the shop and drive off from there, in first person. Every truck also needs a separate driver door and a `DriverSeat` marker (see "For all trucks").
 
 The crew truck sits at every player's business and drives to every job. Right now the pickups
 look like boxy toy cab-overs; they need to look like real pickups.
@@ -109,6 +111,13 @@ For all trucks:
 - Keep the four `__Wheel_*` meshes separate: real tires with tread and sidewall, and rims with lug
   nuts.
 - Keep the bed floor at the current height, because `BedArea` stays where it is.
+- **The driver door is a separate mesh, `<Id>__DriverDoor`** (the left door, on the −X side), with
+  its glass as `<Id>__DriverDoorGlass`. Model it closed, with its origin on the hinge line at the
+  front edge of the door, so the game can swing it open around its own Y axis.
+- **`DriverSeat`** marker inside the cab: at the driver's eye position (about 0.7 studs above the
+  seat cushion and centred on the steering wheel), LookVector forward (−Z). The first-person camera
+  sits here while driving, so the dash, steering wheel, mirrors and the view out of the windshield
+  should look right from that spot. Add a first-person render from it to `Previews/`.
 
 ### `RustyPickup` (Trucks)
 An older compact pickup, gray with rust: dents, rust patches around the wheel arches, one door in a
@@ -154,4 +163,6 @@ machines drive up it. Keep the `BedArea` and two `BaySpot` markers where they ar
 - [ ] The old vs. new previews show a clear jump in detail for every model.
 - [ ] Tailgates, the box truck's rear door and the trailer ramps are separate meshes, with their
       origins on their hinges.
+- [ ] Every truck has a separate `__DriverDoor` (and `__DriverDoorGlass`) on its hinge and a
+      `DriverSeat` marker, with a first-person render from the driver's seat.
 - [ ] Nothing outside your folder changed.

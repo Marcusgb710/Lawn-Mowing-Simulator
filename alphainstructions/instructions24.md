@@ -1,6 +1,8 @@
 # Instructions 24: High-poly pass, yard props and buildings
 
 > **Updated:** the game is now first person and much more immersive. Read the walk-in building notes below, which changed after this file was first pushed.
+>
+> **Updated again:** almost everything now happens inside the shop. Each business building also needs a `Desk` spot for the job computer and a `DeliverySpot` for delivered boxes (see the markers and the table below). The desks and boxes themselves are in instructions 33.
 
 The customer's house and yard props appear in every job, and the business buildings are on screen
 all the time, so these are the most visible models in the game.
@@ -138,6 +140,13 @@ the door. Each business building must therefore be a real, enterable building.
     - Leave room for each fixture: Pegboard 4.5 wide × 3 tall (mount at about 2 studs high),
       WallRack 5 × 1.5 (about 3 high), WallHooks 3.5 × 1 (about 4.5 high), Shelf 4 × 6 (on the
       floor), Workbench 6.5 × 6 (on the floor), Compressor and Grinder about 2 × 2.
+  - `Desk`: on the floor where the job computer desk stands, with its LookVector pointing **out
+    from the desk toward where the player stands**. Leave a clear footprint for it: Shed 4.5 × 3,
+    Garage 5.5 × 3.5, SmallOffice and EquipmentYard 6 × 5.5, plus about 3 studs of open floor in
+    front to stand or sit. Put it near the door but out of the way of carrying tools to the truck.
+  - `DeliverySpot`: open floor just inside the main door where delivered boxes appear, about 6 × 4
+    studs on the Shed and Garage and 8 × 8 (room for a ride-on crate) on the SmallOffice and
+    EquipmentYard, LookVector into the room.
   - `FloorSpot` (attribute `Index`): open floor where a push mower or walk-behind machine stands,
     about 3 × 6 studs each, facing the door.
   - `EquipmentBay` (attribute `Index`): a parking space for a ride-on, about 7 × 9 studs, facing
@@ -151,10 +160,10 @@ the door. Each business building must therefore be a real, enterable building.
 
   | Building | Pegboard | WallRack | WallHooks | Shelf | FloorSpot | EquipmentBay | Also |
   | --- | --- | --- | --- | --- | --- | --- | --- |
-  | Shed | 2 | 1 | 1 | 1 | 1 | – | – |
-  | Garage | 3 | 2 | 2 | 2 | 2 | – | Workbench |
-  | SmallOffice | 4 | 3 | 3 | 2 | 4 | 2 | Workbench, Compressor |
-  | EquipmentYard | 6 | 4 | 5 | 3 | 6 | 5 | Workbench, Compressor, Grinder |
+  | Shed | 2 | 1 | 1 | 1 | 1 | – | Desk, DeliverySpot |
+  | Garage | 3 | 2 | 2 | 2 | 2 | – | Workbench, Desk, DeliverySpot |
+  | SmallOffice | 4 | 3 | 3 | 2 | 4 | 2 | Workbench, Compressor, Desk, DeliverySpot |
+  | EquipmentYard | 6 | 4 | 5 | 3 | 6 | 5 | Workbench, Compressor, Grinder, Desk, DeliverySpot |
 
 - **Sizes**: these buildings may grow beyond the 5% rule so the interiors fit, up to: Shed
   14 × 12 × 13 (W × H × D), Garage 28 × 16 × 24, SmallOffice 38 × 18 × 30, EquipmentYard
@@ -175,7 +184,7 @@ gutters, a concrete apron outside, and the markers above. The roll-up door is ab
 
 ### `SmallOffice` (Buildings)
 Now: a flat box. A small landscaping business: a front office (storefront glass door, window row,
-awning and blank sign, with a desk area that needs no markers) **plus a shop area behind or beside
+awning and blank sign, with the `Desk` spot for the job computer) **plus a shop area behind or beside
 it, reached through an open roll-up door**. The shop holds all the markers, including 2 equipment
 bays with a 9+ stud opening.
 
@@ -183,7 +192,7 @@ bays with a 9+ stud opening.
 Now: plain slab walls. Make a metal shop building with ribbed siding and roof panels, a **big
 roll-up door raised open** (about 16 × 12), a regular door, and an insulated interior with steel
 frames and shop lights. Add the open-front lean-to, with its **5 equipment bays as
-`EquipmentBay` markers**, and a concrete apron. Chain-link sections may run only along the sides.
+`EquipmentBay` markers**, and a concrete apron. Chain-link sections may run only along the sides. Put a small office corner inside the shop for the `Desk` spot.
 
 ## Done when
 
@@ -194,6 +203,6 @@ frames and shop lights. Add the open-front lean-to, with its **5 equipment bays 
 - [ ] Every mesh is under 20,000 triangles, and every model is inside its budget.
 - [ ] The old vs. new previews show a clear jump in detail for every model.
 - [ ] Every business building can be walked into through its open door, and has every `Mount`,
-      `FloorSpot`, `EquipmentBay`, `TruckParking` and `Light` marker in the table, with a render
+      `FloorSpot`, `EquipmentBay`, `Desk`, `DeliverySpot`, `TruckParking` and `Light` marker in the table, with a render
       looking in through the door.
 - [ ] Nothing outside your folder changed.
