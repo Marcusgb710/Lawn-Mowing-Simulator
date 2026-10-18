@@ -33,6 +33,7 @@ local FUNCTIONS = {
 	"TakeFromBucket",
 	"ParkRide",
 	"DriveToJob",
+	"OpenBox",
 	"GetWorkbench",
 	"Maintain",
 	"InviteToParty",

@@ -29,6 +29,10 @@ local FONT = Enum.Font.FredokaOne
 
 local screen: ScreenGui = nil
 local panels = {}
+-- While set, menus open inside this frame (the shop computer's screen) instead of on their own.
+local host: Frame? = nil
+local PANEL_SIZE = UDim2.fromScale(0.9, 0.75)
+local PANEL_MAX = Vector2.new(720, 520)
 
 -- UI.new("Frame", { Size = ... }, { children })
 function UI.new(className: string, props, children: { Instance }?): any
@@ -120,13 +124,13 @@ function UI.panel(name: string, title: string)
 		Name = name,
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.fromScale(0.5, 0.5),
-		Size = UDim2.new(0.9, 0, 0.75, 0),
+		Size = PANEL_SIZE,
 		BackgroundColor3 = UI.Colors.Background,
 		Visible = false,
-		Parent = UI.getScreen(),
+		Parent = host or UI.getScreen(),
 	}, {
 		UI.corner(12),
-		UI.new("UISizeConstraint", { MaxSize = Vector2.new(720, 520) }),
+		UI.new("UISizeConstraint", { MaxSize = PANEL_MAX }),
 		UI.label(title, {
 			Name = "Title",
 			Position = UDim2.fromOffset(16, 10),
@@ -184,6 +188,25 @@ function UI.clearList(list: Instance)
 	end
 end
 
+-- Puts a menu inside the host frame (filling it), or back on the screen on its own.
+local function dock(panel: Frame)
+	local constraint = panel:FindFirstChildOfClass("UISizeConstraint")
+	panel.Parent = host or UI.getScreen()
+	panel.Size = if host then UDim2.fromScale(1, 1) else PANEL_SIZE
+	if constraint then
+		constraint.MaxSize = if host then Vector2.new(math.huge, math.huge) else PANEL_MAX
+	end
+end
+
+-- Shows menus inside `frame` (the shop computer's screen) until it's set back to nil.
+function UI.setHost(frame: Frame?)
+	host = frame
+	for _, panel in panels do
+		dock(panel)
+	end
+	UI.CursorChanged:Fire()
+end
+
 -- Only one panel is open at a time.
 function UI.open(name: string)
 	for otherName, panel in panels do
@@ -209,14 +232,29 @@ function UI.isOpen(name: string): boolean
 	return panels[name] ~= nil and panels[name].Visible
 end
 
--- Whether a menu is open, which needs the mouse to click on.
-function UI.needsCursor(): boolean
+function UI.anyOpen(): boolean
 	for _, panel in panels do
 		if panel.Visible then
 			return true
 		end
 	end
 	return false
+end
+
+function UI.closeAll()
+	for _, panel in panels do
+		panel.Visible = false
+	end
+end
+
+-- A menu's window, to change its title.
+function UI.panelWindow(name: string): Frame?
+	return panels[name]
+end
+
+-- Whether a menu (or the shop computer) is open, which needs the mouse to click on.
+function UI.needsCursor(): boolean
+	return host ~= nil or UI.anyOpen()
 end
 
 -- Little message that pops up at the top of the screen.

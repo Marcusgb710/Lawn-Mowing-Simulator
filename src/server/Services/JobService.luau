@@ -577,6 +577,9 @@ function JobService:AcceptJob(player: Player, offerId: string): (boolean, string
 	if not party or party.leader ~= player then
 		return false, "Only your crew leader can accept jobs."
 	end
+	if not WorldService:IsAtComputer(player) then
+		return false, "Take jobs at the computer in your shop."
+	end
 	if readyJobs[party] then
 		return false, "You already have a job. Hop in the truck!"
 	end
@@ -704,7 +707,7 @@ function JobService:Start()
 		if not (truck and WorldService:IsNear(player, truck, TRUCK_REACH)) then
 			return false, "Get closer to your crew's truck."
 		elseif not job then
-			return false, if playerJobs[player] then nil else "Pick a job from the Job Board first."
+			return false, if playerJobs[player] then nil else "Pick a job at the computer first."
 		elseif leader ~= player then
 			return false, `Waiting for {leader.DisplayName} to start the truck.`
 		end

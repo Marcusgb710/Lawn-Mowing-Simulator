@@ -14,6 +14,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Assets = require(Shared.Assets)
+local Deliveries = require(Shared.Deliveries)
 local Items = require(Shared.Config.Items)
 local Net = require(Shared.Net)
 local Storage = require(Shared.Config.Storage)
@@ -225,7 +226,8 @@ local function renderStorage()
 
 	for _, item in tools do
 		local spot: Attachment? = spotOf[item.id]
-		if profile.loadout[item.id] or inBucket[item.id] then
+		-- In the truck, in the bucket or still in its delivery box: not on the wall.
+		if profile.loadout[item.id] or inBucket[item.id] or Deliveries.pending(profile.deliveries, item.id) then
 			continue
 		end
 		if held == item.id then

@@ -446,6 +446,142 @@ local function fixture(model: Model, color: Color3, size: Vector3, slots: { Vect
 	end
 end
 
+-- An attachment on the model's Root, at a spot in model space (the model is built at the origin).
+local function marker(model: Model, name: string, frame: CFrame)
+	local root = model.PrimaryPart :: BasePart
+	local attachment = Instance.new("Attachment")
+	attachment.Name = name
+	attachment.Parent = root
+	attachment.WorldCFrame = frame
+	return attachment
+end
+
+local function rootPart(model: Model, add)
+	model.PrimaryPart = add({
+		Name = "Root",
+		Size = Vector3.new(1, 1, 1),
+		Position = Vector3.new(0, 0.5, 0),
+		Transparency = 1,
+		CanCollide = false,
+		CanTouch = false,
+		CanQuery = false,
+	})
+end
+
+-- A job computer desk like the real ones (alphainstructions/instructions33.md): front toward -Z
+-- where the player sits, a flat 16:9 `<Id>__Screen` facing -Z, a `<Id>__Chair`, a UseSpot on
+-- the floor in front (facing the desk) and a ScreenView where the camera goes.
+local function desk(model: Model, id: string, size: Vector3, color: Color3, screens: number)
+	local add = propAdder(model)
+	rootPart(model, add)
+	local top = 2.5
+	add({
+		Name = id .. "__Body",
+		Size = Vector3.new(size.X, 0.25, size.Z),
+		Position = Vector3.new(0, top, 0),
+		Color = color,
+	})
+	for _, x in { -1, 1 } do
+		for _, z in { -1, 1 } do
+			add({
+				Name = id .. "__Body",
+				Size = Vector3.new(0.2, top, 0.2),
+				Position = Vector3.new(x * (size.X / 2 - 0.2), top / 2, z * (size.Z / 2 - 0.2)),
+				Color = Color3.fromRGB(80, 80, 85),
+			})
+		end
+	end
+	local screenWidth, screenHeight = 1.9, 1.9 * 9 / 16
+	local screenZ = size.Z / 2 - 0.6
+	local screenY = top + 0.35 + screenHeight / 2
+	for index = 1, screens do
+		local x = if screens == 1 then 0 else (index - 1.5) * (screenWidth + 0.3)
+		add({
+			Name = id .. "__Body",
+			Size = Vector3.new(screenWidth + 0.15, screenHeight + 0.15, 0.12),
+			Position = Vector3.new(x, screenY, screenZ + 0.07),
+			Color = Color3.fromRGB(35, 35, 40),
+		})
+		add({
+			Name = id .. "__Screen" .. (if index == 1 then "" else tostring(index)),
+			Size = Vector3.new(screenWidth, screenHeight, 0.02),
+			Position = Vector3.new(x, screenY, screenZ - 0.01),
+			Color = Color3.fromRGB(60, 62, 70),
+			Material = Enum.Material.SmoothPlastic,
+		})
+	end
+	add({
+		Name = id .. "__Chair",
+		Size = Vector3.new(1.4, 1.6, 1.4),
+		Position = Vector3.new(0, 0.8, -size.Z / 2 - 1),
+		Color = Color3.fromRGB(50, 55, 65),
+		CanCollide = false,
+	})
+	local mainX = if screens == 1 then 0 else -(screenWidth + 0.3) / 2
+	local screenCenter = Vector3.new(mainX, screenY, screenZ)
+	marker(model, "UseSpot", CFrame.lookAt(Vector3.new(mainX, 0, -size.Z / 2 - 2.2), Vector3.new(mainX, 0, screenZ)))
+	marker(model, "ScreenView", CFrame.lookAt(screenCenter + Vector3.new(0, 0.1, -2.5), screenCenter))
+end
+
+-- A delivery box: a body open at the top, its lid or flaps as their own parts with their pivot on
+-- their hinge, and a Contents attachment on the inside floor.
+local function box(model: Model, id: string, size: Vector3, lids: { any }, openFront: boolean?)
+	local add = propAdder(model)
+	rootPart(model, add)
+	local color = Color3.fromRGB(175, 135, 90)
+	local wall = 0.05
+	local sides = {
+		{ Vector3.new(size.X, size.Y, wall), Vector3.new(0, size.Y / 2, -size.Z / 2 + wall / 2) },
+		{ Vector3.new(size.X, size.Y, wall), Vector3.new(0, size.Y / 2, size.Z / 2 - wall / 2) },
+		{ Vector3.new(wall, size.Y, size.Z), Vector3.new(-size.X / 2 + wall / 2, size.Y / 2, 0) },
+		{ Vector3.new(wall, size.Y, size.Z), Vector3.new(size.X / 2 - wall / 2, size.Y / 2, 0) },
+		{ Vector3.new(size.X, wall, size.Z), Vector3.new(0, wall / 2, 0) },
+	}
+	-- A crate's front is its own panel instead.
+	for index, side in sides do
+		if not (openFront and index == 1) then
+			add({ Name = id .. "__Body", Size = side[1], Position = side[2], Color = color })
+		end
+	end
+	for _, lid in lids do
+		local piece = add({
+			Name = id .. "__" .. lid.name,
+			Size = lid.size,
+			Position = lid.position,
+			Color = Color3.fromRGB(190, 150, 100),
+		})
+		-- The pivot sits on the hinge line, as on the real models.
+		piece.PivotOffset = CFrame.new(lid.hinge - lid.position)
+	end
+	marker(model, "Contents", CFrame.new(0, wall, 0))
+end
+
+local function boxFlaps(size: Vector3, names: { string }): { any }
+	local flaps = {}
+	local top = size.Y
+	for _, name in names do
+		if name == "FlapL" or name == "FlapR" then
+			-- Hinged on the long top edges (front and back).
+			local sign = if name == "FlapL" then -1 else 1
+			table.insert(flaps, {
+				name = name,
+				size = Vector3.new(size.X, 0.04, size.Z / 2),
+				position = Vector3.new(0, top, sign * size.Z / 4),
+				hinge = Vector3.new(0, top, sign * size.Z / 2),
+			})
+		elseif name == "FlapF" or name == "FlapB" then
+			local sign = if name == "FlapF" then -1 else 1
+			table.insert(flaps, {
+				name = name,
+				size = Vector3.new(size.X / 2, 0.03, size.Z),
+				position = Vector3.new(sign * size.X / 4, top + 0.04, 0),
+				hinge = Vector3.new(sign * size.X / 2, top + 0.04, 0),
+			})
+		end
+	end
+	return flaps
+end
+
 local PROP_BUILDERS = {
 	-- 3 x 2 hooks for hand tools.
 	StoragePegboard = function(model: Model)
@@ -649,6 +785,55 @@ local PROP_BUILDERS = {
 		end
 	end,
 }
+
+-- Job computer desks, one per business tier.
+PROP_BUILDERS.JobLaptopTable = function(model: Model)
+	desk(model, "JobLaptopTable", Vector3.new(4.5, 0, 2.6), Color3.fromRGB(230, 230, 225), 1)
+end
+PROP_BUILDERS.JobComputerDesk = function(model: Model)
+	desk(model, "JobComputerDesk", Vector3.new(5.5, 0, 3), Color3.fromRGB(150, 155, 160), 1)
+end
+PROP_BUILDERS.JobOfficeDesk = function(model: Model)
+	desk(model, "JobOfficeDesk", Vector3.new(6, 0, 3.4), Color3.fromRGB(160, 120, 80), 2)
+end
+
+-- Delivery boxes, by size.
+PROP_BUILDERS.DeliveryBoxSmall = function(model: Model)
+	local size = Vector3.new(1.8, 1.1, 1.3)
+	box(model, "DeliveryBoxSmall", size, boxFlaps(size, { "FlapL", "FlapR" }))
+end
+PROP_BUILDERS.DeliveryBoxLong = function(model: Model)
+	local size = Vector3.new(6.2, 0.8, 0.8)
+	box(model, "DeliveryBoxLong", size, {
+		{
+			name = "Lid",
+			size = Vector3.new(size.X, 0.05, size.Z),
+			position = Vector3.new(0, size.Y, 0),
+			hinge = Vector3.new(0, size.Y, size.Z / 2),
+		},
+	})
+end
+PROP_BUILDERS.DeliveryBoxLarge = function(model: Model)
+	local size = Vector3.new(3.4, 2.4, 2.4)
+	box(model, "DeliveryBoxLarge", size, boxFlaps(size, { "FlapL", "FlapR", "FlapF", "FlapB" }))
+end
+PROP_BUILDERS.DeliveryCrate = function(model: Model)
+	local size = Vector3.new(5.4, 4.4, 7.2)
+	box(model, "DeliveryCrate", size, {
+		{
+			name = "Lid",
+			size = Vector3.new(size.X, 0.15, size.Z),
+			position = Vector3.new(0, size.Y, 0),
+			hinge = Vector3.new(0, size.Y, size.Z / 2),
+		},
+		{
+			name = "FrontPanel",
+			size = Vector3.new(size.X - 0.1, size.Y - 0.1, 0.15),
+			position = Vector3.new(0, size.Y / 2, -size.Z / 2 - 0.08),
+			hinge = Vector3.new(0, 0.05, -size.Z / 2 - 0.08),
+		},
+	}, true)
+end
 
 function Placeholders.prop(name: string): Model
 	local model = Instance.new("Model")

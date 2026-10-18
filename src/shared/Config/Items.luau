@@ -134,7 +134,8 @@ Items.Catalog = {
 	-- Your home base. Upgrades must be bought in order, and the building on your plot changes.
 	-- `storage` is how many tools of each kind it holds (see Storage.luau). `noEngines` means its
 	-- floor spots only take push machines without an engine. Every business has a workbench;
-	-- `fixtures` are shop machines that come with the building (see Maintenance.luau).
+	-- `fixtures` are shop machines that come with the building (see Maintenance.luau). `desk` is
+	-- the job computer desk that stands inside (Props/<desk>).
 	-- Model swap: put a model named after the id in ReplicatedStorage.Assets.Buildings.
 	Business = {
 		{
@@ -143,6 +144,7 @@ Items.Catalog = {
 			price = 0,
 			payoutBonus = 0,
 			storage = { Pegboard = 12, WallRack = 4, WallHooks = 1, Shelf = 4, Floor = 1, Bay = 0 },
+			desk = "JobLaptopTable",
 			noEngines = true,
 			color = Color3.fromRGB(150, 105, 65),
 			description = "Where every lawn empire starts. Room for hand tools, a few rakes, one trimmer and "
@@ -154,6 +156,7 @@ Items.Catalog = {
 			price = 4000,
 			payoutBonus = 0.1,
 			storage = { Pegboard = 16, WallRack = 8, WallHooks = 4, Shelf = 8, Floor = 2, Bay = 0 },
+			desk = "JobComputerDesk",
 			color = Color3.fromRGB(200, 200, 190),
 			description = "A real roll-up door, and floor room for gas mowers. Customers pay +10%.",
 		},
@@ -163,6 +166,7 @@ Items.Catalog = {
 			price = 20000,
 			payoutBonus = 0.25,
 			storage = { Pegboard = 24, WallRack = 12, WallHooks = 6, Shelf = 12, Floor = 4, Bay = 2 },
+			desk = "JobOfficeDesk",
 			fixtures = { "AirCompressor" },
 			color = Color3.fromRGB(70, 120, 60),
 			description = "You're official now, with two equipment bays for ride-on mowers and a shop air "
@@ -174,6 +178,7 @@ Items.Catalog = {
 			price = 75000,
 			payoutBonus = 0.4,
 			storage = { Pegboard = 32, WallRack = 16, WallHooks = 10, Shelf = 16, Floor = 6, Bay = 5 },
+			desk = "JobOfficeDesk",
 			fixtures = { "AirCompressor", "BenchGrinder" },
 			color = Color3.fromRGB(180, 185, 185),
 			description = "A metal shop with a big roll-up door, covered bays for five ride-on machines, an air "

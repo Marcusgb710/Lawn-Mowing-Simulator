@@ -7,6 +7,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Deliveries = require(Shared.Deliveries)
 local Items = require(Shared.Config.Items)
 local Maintenance = require(Shared.Config.Maintenance)
 local Storage = require(Shared.Config.Storage)
@@ -89,6 +90,7 @@ local function render()
 		local loaded = profile.loadout[item.id] == true
 		local inHands = held == item.id
 		local inBucket = profile.bucket ~= nil and profile.bucket[item.id] == true
+		local boxed = Deliveries.pending(profile.deliveries, item.id)
 
 		local card = UI.new("Frame", {
 			Size = UDim2.new(1, -8, 0, 0),
@@ -131,8 +133,9 @@ local function render()
 			Parent = details,
 		})
 
-		local where = if inBucket and loaded
-			then "In the bucket, in the truck"
+		local where = if boxed
+			then "In its delivery box"
+			elseif inBucket and loaded then "In the bucket, in the truck"
 			elseif inBucket then "In the tool bucket"
 			elseif loaded then "In the truck"
 			elseif inHands then "In your hands"
@@ -148,7 +151,7 @@ local function render()
 		})
 		-- Pegboards get crowded, so you can also grab a tool from here while standing at storage.
 		local atBusiness = job == nil or job.state == "Ready"
-		if atBusiness and not loaded and not inBucket and (held == nil or inHands) then
+		if atBusiness and not loaded and not inBucket and not boxed and (held == nil or inHands) then
 			UI.button(if inHands then "Put back" else "Grab", function()
 				if inHands then
 					CarryController.putBack()

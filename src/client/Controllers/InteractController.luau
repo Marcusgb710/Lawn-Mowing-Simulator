@@ -1,7 +1,9 @@
 -- Using things by looking at them (docs/GAME_DESIGN.md, "Immersion"): aim the dot in the middle
 -- of the screen at something within reach and press E, or tap the big button on a phone.
 -- Anything with an `Interact` attribute (on the part you look at, or a model it's in) can be used:
---   OpenPanel    opens the menu named in OpensPanel (job board, shop, workbench, tailgate)
+--   OpenPanel    opens the menu named in OpensPanel (workbench, tailgate)
+--   UseComputer  sits you down at the shop computer (see ComputerController)
+--   OpenBox      opens one of your delivery boxes (BoxKey, OnlyFor)
 --   DriveToJob   heads off in the crew truck
 --   PickUp       takes one of your tools out of storage (ToolId)
 --   PutBack      puts what you're carrying back in this free spot (SpotKind, SpotIndex)
@@ -31,6 +33,7 @@ local ClientState = require(script.Parent.Parent.ClientState)
 local UI = require(script.Parent.Parent.UI)
 local CameraController = require(script.Parent.CameraController)
 local CarryController = require(script.Parent.CarryController)
+local ComputerController = require(script.Parent.ComputerController)
 
 local player = Players.LocalPlayer
 
@@ -56,6 +59,8 @@ type Target = {
 	bed: BedLayout.Bed?,
 	anchor: number?,
 	cells: { number }?,
+	instance: Instance?,
+	key: number?,
 	second: { action: string, text: string }?,
 }
 
@@ -178,11 +183,24 @@ local function targetFor(thing: Instance, item): Target?
 	if action == "OpenPanel" then
 		local panel = thing:GetAttribute("OpensPanel")
 		return { action = action, text = text, name = name, fits = true, panel = panel }
-	elseif action == "DriveToJob" then
+	elseif action == "DriveToJob" or action == "UseComputer" then
 		if item then
 			return nil
 		end
-		return { action = action, text = text, name = name, fits = true }
+		return { action = action, text = text, name = name, fits = true, instance = thing }
+	elseif action == "OpenBox" then
+		local key = thing:GetAttribute("BoxKey")
+		if thing:GetAttribute("OnlyFor") ~= player.UserId or typeof(key) ~= "number" then
+			return nil
+		end
+		return {
+			action = action,
+			text = text,
+			name = name,
+			fits = item == nil,
+			reason = "your hands are full",
+			key = key,
+		}
 	elseif action == "PickUp" or action == "Unload" then
 		if action == "Unload" and thing:GetAttribute("OnlyFor") ~= player.UserId then
 			return nil
@@ -380,6 +398,12 @@ local function perform(target: Target, second: boolean)
 			UI.open(target.panel)
 		end
 		return
+	elseif action == "UseComputer" then
+		local desk = target.instance
+		if desk and desk:IsA("Model") then
+			ComputerController.use(desk)
+		end
+		return
 	end
 	busy = true
 	task.spawn(function()
@@ -400,6 +424,8 @@ local function perform(target: Target, second: boolean)
 			_, message = invoke("TakeFromBucket")
 		elseif action == "Park" then
 			_, message = invoke("ParkRide")
+		elseif action == "OpenBox" then
+			_, message = invoke("OpenBox", target.key)
 		end
 		if typeof(message) == "string" then
 			UI.notify(message)
