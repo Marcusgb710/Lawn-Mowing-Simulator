@@ -478,6 +478,45 @@ again.
   new players can look after their tools at home. Reel mowers are sharpened with a file (real
   ones are backlapped) and can't take a spare blade.
 
+## 7. Camera (first person)
+
+The game is played in first person (`StarterPlayer.CameraMode = LockFirstPerson`, field of view
+75 in `GameConfig.Camera`). Code: `src/client/Controllers/CameraController.luau` and
+`ArmsController.luau`.
+
+- **The drive cutscene** keeps its own scripted camera and hands back to first person when you
+  arrive. Riding and standing on ride-on machines stays first person, from the seat or the
+  platform: you see the hood or deck ahead and your hands on the controls.
+- **Your arms.** Roblox hides your whole character in first person, so a pair of simple arms is
+  drawn on your screen only (other players see your avatar as normal). Whenever you hold or use
+  anything (a tool, something you're carrying around the business, a pushed machine, a barrow, a
+  ride-on's controls) both hands grip it: on either side of a handlebar, up a rake's shaft, on a
+  trimmer's front handle. Empty-handed they drop out of view, and they blend up and down over a
+  quarter of a second when you take something or put it away. Models can place the hands exactly
+  with `GripLeft` / `GripRight` attachments (see `assets/README.md`).
+- **Tools in view.** On your screen only, the tool in your hands is posed for first person: push
+  machines and barrows stand on their wheels with the handlebar centred ahead of you, string
+  trimmers and edgers stand on the ground the way they were modelled, rakes, forks and shovels
+  lean out with their head on the ground (just far enough that the shaft stays below your eyes),
+  and small hand tools sit low on the right and follow your view part of the way. Nothing near
+  eye level gets closer than 0.7 studs to the camera. Backpack blowers and sprayers (`onBack`)
+  keep their normal hold, since they're modelled as worn. Where the work happens doesn't change:
+  just in front of you, whichever way you face.
+- **Menus and the mouse.** In first person the mouse is locked to the middle of the screen. While
+  any menu is open (jobs, shop, truck, crew, workbench, guide) it's freed, and locked again when
+  you close it. Hold **Left Alt** to free it any time, to click the HUD or answer a crew invite
+  (an invite doesn't free it by itself: you might be mowing). Each player can only have one
+  invite out to the same person at a time.
+  Keys: **J** jobs, **T** truck, **B** shop, **G** guide, **C** crew, shown on the buttons when
+  there's a keyboard. Phones keep the touch controls: drag to look, tap buttons and prompts.
+- **Aiming.** A small dot marks the middle of the screen. It's hidden while the mouse is free and
+  during the cutscene. ProximityPrompts are unchanged: they don't need line of sight and reach 8
+  to 12 studs, which is comfortable in first person.
+- **Camera motion.** A gentle head bob while walking and a slight shake while a gas engine you're
+  using is running. Players switch both off with **V** or the switch at the top of the Guide; set
+  `GameConfig.Camera.HeadBob` / `EngineShake` to false to turn them off for everyone. Both only
+  move `Humanoid.CameraOffset`, so they cost nothing on phones.
+
 ## Phases
 
 | Phase | What | Status |
@@ -487,7 +526,8 @@ again.
 | C | Tier-1 jobs and yard targets: pots, planting spots with depths, bulbs, beds, lawn dandelions, rose bushes, dead stems, flowers, watering zones; gloves; tool guide and first-job coach | done |
 | D | Tier-2: holes, trenches and sod, deep beds, hauling from a pile to a bed, spreader and sprayer, branch thickness | done |
 | E | Maintenance systems and supplies | done |
-| F | Tier-3 pro equipment and the turf renovation sequence | **this PR** |
+| F | Tier-3 pro equipment and the turf renovation sequence | done |
+| Camera | First person: arms, tools posed for the view, mouse and menus, crosshair, camera motion | **this PR** |
 
 New tools are already in `Tools.luau` with `available = false`, so they aren't sold until the
 phase that gives them work.

@@ -1,9 +1,11 @@
 -- Always-on screen stuff: money and level, menu buttons, the job tracker (tasks, timer, damage)
--- and the condition of the tool in your hands ("Running low on fuel").
+-- and the condition of the tool in your hands ("Running low on fuel"). On a keyboard the menus
+-- also open with a key (shown on each button), and V switches camera motion on and off.
 
 local Players = game:GetService("Players")
 local ProximityPromptService = game:GetService("ProximityPromptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Format = require(Shared.Format)
@@ -14,8 +16,19 @@ local Tools = require(Shared.Config.Tools)
 
 local ClientState = require(script.Parent.Parent.ClientState)
 local UI = require(script.Parent.Parent.UI)
+local CameraController = require(script.Parent.CameraController)
 
 local player = Players.LocalPlayer
+
+-- The menu buttons down the left, and the key that opens each one.
+local MENUS = {
+	{ name = "Jobs", key = Enum.KeyCode.J },
+	{ name = "Truck", key = Enum.KeyCode.T },
+	{ name = "Shop", key = Enum.KeyCode.B },
+	{ name = "Guide", key = Enum.KeyCode.G },
+	{ name = "Crew", key = Enum.KeyCode.C },
+}
+local MOTION_KEY = Enum.KeyCode.V
 
 local HudController = {}
 
@@ -127,10 +140,55 @@ local function buildMenuButtons()
 		Parent = UI.getScreen(),
 	}, { UI.list(8) })
 
-	for index, name in { "Jobs", "Truck", "Shop", "Guide", "Crew" } do
-		UI.button(name, function()
-			UI.toggle(name)
+	local keyboard = UserInputService.KeyboardEnabled
+	for index, menu in MENUS do
+		local button = UI.button(menu.name, function()
+			UI.toggle(menu.name)
 		end, { LayoutOrder = index, Parent = frame })
+		if keyboard then
+			button.TextXAlignment = Enum.TextXAlignment.Left
+			UI.padding(10).Parent = button
+			local badge = UI.label(UserInputService:GetStringForKeyCode(menu.key), {
+				AnchorPoint = Vector2.new(1, 0.5),
+				Position = UDim2.fromScale(1, 0.5),
+				Size = UDim2.fromOffset(20, 20),
+				BackgroundTransparency = 0.6,
+				BackgroundColor3 = UI.Colors.Background,
+				TextXAlignment = Enum.TextXAlignment.Center,
+				TextSize = 14,
+				Parent = button,
+			})
+			UI.corner(5).Parent = badge
+		end
+	end
+	if keyboard then
+		-- The mouse is locked to the middle of the screen in first person.
+		UI.label("Hold Alt for the mouse", {
+			Size = UDim2.fromOffset(150, 16),
+			TextSize = 13,
+			TextColor3 = UI.Colors.SubText,
+			TextStrokeTransparency = 0.6,
+			LayoutOrder = #MENUS + 1,
+			Parent = frame,
+		})
+	end
+end
+
+local function onKey(input: InputObject, processed: boolean)
+	-- `processed` is set while typing in chat or a text box.
+	if processed then
+		return
+	end
+	for _, menu in MENUS do
+		if input.KeyCode == menu.key then
+			UI.toggle(menu.name)
+			return
+		end
+	end
+	if input.KeyCode == MOTION_KEY and CameraController.hasMotion() then
+		local on = not CameraController.isMotionOn()
+		CameraController.setMotion(on)
+		UI.notify(if on then "Camera motion on" else "Camera motion off")
 	end
 end
 
@@ -351,6 +409,8 @@ function HudController:Start()
 			updateCondition()
 		end
 	end)
+
+	UserInputService.InputBegan:Connect(onKey)
 
 	ProximityPromptService.PromptTriggered:Connect(function(prompt)
 		local panel = prompt:GetAttribute("OpensPanel")

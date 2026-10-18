@@ -117,6 +117,7 @@ local function setGameUiVisible(visible: boolean)
 	pcall(StarterGui.SetCoreGuiEnabled, StarterGui, Enum.CoreGuiType.Backpack, visible)
 end
 
+-- Back to the normal camera, which is locked in first person (see CameraController).
 local function restoreCamera()
 	local camera = workspace.CurrentCamera
 	camera.CameraType = Enum.CameraType.Custom

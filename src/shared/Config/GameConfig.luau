@@ -44,6 +44,15 @@ local GameConfig = {
 	WorkTickRate = 0.1,
 	DefaultWalkSpeed = 16,
 
+	-- First person (see CameraController and ArmsController).
+	Camera = {
+		FieldOfView = 75,
+		-- Camera motion, both on by default. Players can switch it off with the "Motion" button
+		-- (or V); set these to false to switch it off for everyone.
+		HeadBob = true, -- a gentle bob while walking
+		EngineShake = true, -- a slight shake while a gas engine you're using runs
+	},
+
 	DataStoreName = "PlayerData_v1",
 	AutosaveInterval = 120,
 }

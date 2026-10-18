@@ -109,6 +109,14 @@ Services*. Without it the game still runs, it just doesn't save progress.
    propelled → riding → zero-turn, and so on for each tool), trucks, trailers and business
    upgrades. Serious gear needs level 3 and a garage; pro gear needs level 8 and a small office.
 
+### Controls
+
+You play in first person. Look around with the mouse (drag on a phone), move with WASD or the
+thumbstick and aim with the dot in the middle of the screen. Menus: **J** jobs, **T** truck,
+**B** shop, **G** guide, **C** crew, or tap the buttons. The mouse is locked to the middle of the
+screen; it's freed while a menu is open, or hold **Left Alt**. **V** switches camera motion (head
+bob, engine shake) on and off, and so does the switch at the top of the Guide.
+
 ### Crews
 
 Open **Crew** to invite players (up to 4). The crew hangs out at the leader's business and rides in
@@ -147,7 +155,7 @@ src/server/                  -> ServerScriptService.Server
 src/client/                  -> StarterPlayer.StarterPlayerScripts.Client
   init.client.luau              starts every controller
   Controllers/                  HUD, job board, shop, truck checklist, carrying tools, crew menu,
-                                drive cutscene
+                                drive cutscene, first-person camera and arms
 ```
 
 Most balancing happens in the files in `src/shared/Config/`, no other code changes needed. The

@@ -2,9 +2,16 @@
 -- When you design real UI in Studio, the controllers are the only things that need to change.
 
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 
+local Signal = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Signal"))
+
 local UI = {}
+
+-- Fired when a menu opens or closes. In first person the mouse is locked to the middle of the
+-- screen, so CameraController frees it while a menu is open (see UI.needsCursor).
+UI.CursorChanged = Signal.new()
 
 UI.Colors = {
 	Background = Color3.fromRGB(30, 40, 30),
@@ -147,6 +154,9 @@ function UI.panel(name: string, title: string)
 	})
 
 	panels[name] = window
+	window:GetPropertyChangedSignal("Visible"):Connect(function()
+		UI.CursorChanged:Fire()
+	end)
 	return window, content
 end
 
@@ -197,6 +207,16 @@ end
 
 function UI.isOpen(name: string): boolean
 	return panels[name] ~= nil and panels[name].Visible
+end
+
+-- Whether a menu is open, which needs the mouse to click on.
+function UI.needsCursor(): boolean
+	for _, panel in panels do
+		if panel.Visible then
+			return true
+		end
+	end
+	return false
 end
 
 -- Little message that pops up at the top of the screen.
