@@ -610,6 +610,10 @@ for _, template in Jobs.Templates do
 		if not LAWN_TARGETS[taskType.target] then
 			assert((task.amount or 0) > 0, `{template.id}: {task.type} needs an amount`)
 		end
+		if taskType.target == "Thatch" then
+			-- Tiles run up to 40% thinner than the lawn's thatch, and only 0.5 in or more needs work.
+			assert((template.lawn.thatch or 0.3) * 1.4 >= 0.5, `{template.id}: the thatch is too thin to dethatch`)
+		end
 	end
 end
 
@@ -656,13 +660,15 @@ end
 function Jobs.soil(rng: Random): ({ temperature: number, moisture: string }, string)
 	local temperature = rng:NextInteger(42, 74)
 	local moisture = if rng:NextNumber() < 0.6 then "Moist" else "Dry"
-	local weather = if temperature < 50
-		then "The mornings have been frosty lately."
-		elseif temperature > 65 then "It's been a real heat wave."
+	-- The customer's sense of the weather is rough; only the probe gives the real numbers.
+	local weather = if temperature < 54
+		then "The nights have been on the chilly side."
+		elseif temperature > 62 then "It's been warm lately."
 		else "The weather's been mild."
-	local rain = if moisture == "Dry"
-		then "We haven't had rain in weeks."
-		else "We had a good soaking rain two days ago."
+	local rain = if rng:NextNumber() < 0.35
+		then "No idea how wet the ground is, honestly."
+		elseif moisture == "Dry" then "We haven't had much rain."
+		else "We had some rain this week."
 	return { temperature = temperature, moisture = moisture }, `{weather} {rain}`
 end
 

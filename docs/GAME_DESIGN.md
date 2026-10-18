@@ -272,7 +272,7 @@ on the platform behind the control bars, lifted by the platform height plus your
 sit animation. The `RideOnSpreaderSprayer` is a seated ride. Ride-ons that `tows`
 (lawn tractor, zero-turns, ride-on spreader) pull the `TowBehindAerator` when it's in the truck:
 it rides along behind them (`use = "Towed"`, never in the hotbar) and aerates where it goes,
-wearing its own tires. It can't be pulled by the truck at the job site, since the truck doesn't
+wearing its own tires. While towing, the ride-on's own deck is up (it doesn't mow). It can't be pulled by the truck at the job site, since the truck doesn't
 drive there.
 
 **Turf renovation** happens on the lawn's own tiles, in order (`step` on the task types):
@@ -285,13 +285,17 @@ drive there.
 3. **Core aerate.** Dry soil: x0.7, unless the tile was watered first (watering an unseeded tile
    only wets it; it doesn't count as the last step).
 4. **Overseed.** Best right after aerating or dethatching (otherwise x0.75), and in 50-65 F soil
-   (otherwise x0.7).
+   (otherwise x0.7). If the probe shows the soil is too cold or hot, seeding and watering become
+   optional: a pro would seed another day, and skipping them costs nothing.
 5. **Fertilize** after the seed is down (otherwise x0.9).
 6. **Water** the new seed in.
 
-Each tile shows its latest step (an overlay). The multipliers lower the finish quality, and with
-it the pay. The soil is rolled per job offer and stays on the server; the customer hints at it
-("The mornings have been frosty lately. We haven't had rain in weeks."), never naming a tool.
+Each tile shows its latest step (one overlay per tile). A machine that can do two steps (the
+broadcast spreader seeds and feeds) does the earlier one on each tile first. Watering a tile that
+isn't seeded yet just wets it. The multipliers lower the finish quality, and with it the pay. The
+soil is rolled per job offer and stays on the server; the customer only hints at it, roughly ("The
+nights have been on the chilly side. We haven't had much rain."), never naming a tool, so the
+probe is the only way to know.
 
 ### Task types
 

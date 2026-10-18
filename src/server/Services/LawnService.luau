@@ -1457,11 +1457,14 @@ function Lawn:_buildFertilize(task, hazardTiles)
 				continue
 			end
 			local optional = nearHazard(hazardTiles, column, row, 1)
-			self:_addTarget(task, nil, LawnGrid.center(self.origin, tile, column, row), tile * 0.35, {
+			local index = LawnGrid.index(column, row, self.rows)
+			local target = self:_addTarget(task, nil, LawnGrid.center(self.origin, tile, column, row), tile * 0.35, {
 				folder = folder,
 				optional = optional,
-				index = LawnGrid.index(column, row, self.rows),
+				index = index,
 			})
+			task.byIndex = task.byIndex or {}
+			task.byIndex[index] = target
 			if optional then
 				task.optional += 1
 			end
@@ -1563,17 +1566,19 @@ local TURF_LOOKS = {
 function Lawn:_showTurf(target, look: string)
 	local style = TURF_LOOKS[look]
 	local tile = GameConfig.TileSize
-	if not target.overlay then
-		target.overlay = block(self.turfFolder, {
+	-- One overlay per tile, kept on the tile's record, however many steps it's had.
+	local turf = self:_turf(target.index or 0)
+	if not turf.overlay then
+		turf.overlay = block(self.turfFolder, {
 			Name = "Turf",
 			Size = Vector3.new(tile * 0.95, 0.03, tile * 0.95),
 			Position = target.position + Vector3.new(0, 0.06, 0),
 		})
-		target.overlay.CastShadow = false
+		turf.overlay.CastShadow = false
 	end
-	target.overlay.Color = style.color
-	target.overlay.Transparency = style.transparency
-	target.overlay.Material = style.material or Enum.Material.Grass
+	turf.overlay.Color = style.color
+	turf.overlay.Transparency = style.transparency
+	turf.overlay.Material = style.material or Enum.Material.Grass
 end
 
 -- A target on every lawn tile for a renovation step (thatch only where it's thick).
@@ -1599,6 +1604,8 @@ function Lawn:_buildTurfStep(task, hazardTiles, rng: Random)
 			end
 			local position = LawnGrid.center(self.origin, tile, column, row)
 			local target = self:_addTarget(task, nil, position, tile * 0.35, { index = index, lawn = self })
+			task.byIndex = task.byIndex or {}
+			task.byIndex[index] = target
 			if thick then
 				-- A spongy brown mat over the tile.
 				target.mat = block(self.turfFolder, {
@@ -1711,6 +1718,12 @@ function Lawn:_renovation(task, target): (boolean, number)
 	return true, scale
 end
 
+-- True if the soil is outside the range where new seed sprouts.
+function Lawn:_tooColdOrHot(): boolean
+	local temperature = self.soil.temperature
+	return temperature < SEED_TEMPERATURE.min or temperature > SEED_TEMPERATURE.max
+end
+
 -- Records a finished renovation step on its tile.
 local STEP_FLAGS =
 	{ Thatch = "dethatched", Aerate = "aerated", Overseed = "seeded", Fertilize = "fertilized", WaterSeed = "watered" }
@@ -1720,6 +1733,17 @@ function Lawn:_finishRenovation(task, target, result)
 		if not self.probed then
 			self.probed = true
 			result.message = `Soil reading: {self:SoilReading()}.`
+			-- A pro doesn't seed into soil that's too cold or hot: once the probe shows it, the
+			-- customer is happy to have the seeding done another day.
+			if self:_tooColdOrHot() then
+				for _, other in self.tasks do
+					local otherKind = other.type.target
+					if otherKind == "Overseed" or otherKind == "WaterSeed" then
+						other.optional = other.total
+					end
+				end
+				result.message ..= " Too cold or hot for new seed: the seeding can wait for another day."
+			end
 		end
 		return
 	end
@@ -1964,9 +1988,33 @@ function Lawn:ApplyWork(
 			-- Renovation steps depend on what's been done before (and may not count yet).
 			local scale = 1
 			if task.type.step then
+				-- A tool that can do two steps (a spreader seeds and feeds) does the earlier one first.
+				local earlier = false
+				for _, other in self.tasks do
+					local otherTarget = other.byIndex and target.index and other.byIndex[target.index]
+					if
+						other.type.step
+						and other.type.step < task.type.step
+						and fits[other]
+						and otherTarget
+						and otherTarget.work > 0
+					then
+						earlier = true
+						break
+					end
+				end
+				if earlier then
+					continue
+				end
 				local counts
 				counts, scale = self:_renovation(task, target)
 				if not counts then
+					-- Watering unseeded soil still wets it, which helps aerating.
+					result.changed = true
+					if not self.wetNoticeSent then
+						self.wetNoticeSent = true
+						result.message = "The soil soaks the water up."
+					end
 					continue
 				end
 			end

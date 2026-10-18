@@ -218,8 +218,25 @@ local function hitch(tool: Tool, towedId: string)
 	end
 	local model = Assets.toolDisplay(towed.category, towedId)
 	model.Name = "Towed"
-	local _, size = tool:GetBoundingBox()
-	model:PivotTo(base.CFrame * CFrame.new(0, 0, size.Z / 2 + 2))
+	-- Measure in the way the ride-on is held (upright, front -Z), whichever way its handle points.
+	local frame = base.CFrame * tool.Grip
+	local behind = 0
+	for _, part in tool:GetDescendants() do
+		if part:IsA("BasePart") then
+			local half = part.Size / 2
+			for _, x in { -1, 1 } do
+				for _, y in { -1, 1 } do
+					for _, z in { -1, 1 } do
+						local corner = part.CFrame:PointToWorldSpace(Vector3.new(x * half.X, y * half.Y, z * half.Z))
+						behind = math.max(behind, frame:PointToObjectSpace(corner).Z)
+					end
+				end
+			end
+		end
+	end
+	local _, towedSize = model:GetBoundingBox()
+	local ground = frame * CFrame.new(0, -depthBelow(tool, frame), behind + towedSize.Z / 2 + 0.8)
+	Assets.placeOnGround(model, ground)
 	for _, part in model:GetDescendants() do
 		if part:IsA("BasePart") then
 			part.Anchored = false
@@ -322,6 +339,17 @@ function ToolService:GiveTools(player: Player)
 	end
 
 	local height = player.Character and holdHeight(player.Character)
+	-- A tow-behind attachment does nothing without a ride-on that can pull it.
+	if data.loadout.TowBehindAerator then
+		local puller = false
+		for id in data.loadout do
+			local tool = Tools.get(id)
+			puller = puller or (tool ~= nil and tool.tows == true)
+		end
+		if not puller then
+			Net.event("Notify"):FireClient(player, "The tow-behind aerator needs a ride-on that can pull it.")
+		end
+	end
 	for _, itemId in Storage.loadedIds(data.loadout) do
 		local item = Tools.get(itemId)
 		if NOT_HELD[item.use] then
@@ -419,14 +447,19 @@ local function workTick(elapsed: number)
 			end
 		end
 
-		local position = root.Position + root.CFrame.LookVector * REACH_OFFSET
-		local cut = JobService:ApplyWork(player, position, item.radius, itemId, item.power * elapsed * speed, {
-			damagesHazards = Tools.damagesHazards(item),
-			quiet = item.use == "Passive" and not moving,
-			moving = moving,
-			seconds = elapsed,
-			qualityScale = quality,
-		})
+		-- While it tows, a ride-on's own deck is up: the attachment behind does the work.
+		local towedId = tool:GetAttribute("Towing")
+		local cut = false
+		if not towedId then
+			local position = root.Position + root.CFrame.LookVector * REACH_OFFSET
+			cut = JobService:ApplyWork(player, position, item.radius, itemId, item.power * elapsed * speed, {
+				damagesHazards = Tools.damagesHazards(item),
+				quiet = item.use == "Passive" and not moving,
+				moving = moving,
+				seconds = elapsed,
+				qualityScale = quality,
+			})
+		end
 		Maintenance.wear(item, condition, elapsed, true, moving, cut == true, rng:NextNumber())
 		syncCondition(tool, condition)
 		-- The Truck menu reads the profile, so send it when something new goes wrong.
@@ -439,11 +472,17 @@ local function workTick(elapsed: number)
 		end
 
 		-- Whatever it's towing works behind it, wearing its own tires.
-		local towedId = tool:GetAttribute("Towing")
 		local towed = towedId and Tools.get(towedId)
 		if towed and moving then
 			local towedCondition = data and data.condition[towedId] or {}
-			if not Maintenance.blocker(towed, towedCondition) then
+			local towBlocker = Maintenance.blocker(towed, towedCondition)
+			if tool:GetAttribute("TowBlocked") ~= towBlocker then
+				tool:SetAttribute("TowBlocked", towBlocker)
+				if towBlocker then
+					Net.event("Notify"):FireClient(player, `The {towed.name}: {towBlocker}`)
+				end
+			end
+			if not towBlocker then
 				local towSpeed, towQuality = Maintenance.effects(towedCondition)
 				local behind = root.Position - root.CFrame.LookVector * TOW_DISTANCE
 				local towedCut =
