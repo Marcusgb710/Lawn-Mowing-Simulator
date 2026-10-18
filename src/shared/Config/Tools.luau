@@ -46,14 +46,25 @@ Tools.Verbs = {
 	"Measure",
 }
 
+-- Size classes decide where a tool is stored at the business (`spot`, see Storage.luau) and how
+-- much room it takes in the truck (`space`). Ride-on machines take no truck space: they ride on
+-- an equipment trailer's bays instead.
 Tools.SizeClasses = {
-	Hand = { label = "Hand tool", storage = "Pegboard" },
-	Long = { label = "Long-handled tool", storage = "Wall rack" },
-	HangingPower = { label = "Handheld power tool", storage = "Wall hooks" },
-	FloorManual = { label = "Push machine", storage = "Floor spot" },
-	FloorEngine = { label = "Engine machine", storage = "Floor spot" },
-	Bay = { label = "Ride-on machine", storage = "Equipment bay" },
-	Supply = { label = "Supplies", storage = "Shelf" },
+	Hand = { label = "Hand tool", spot = "Pegboard", space = 1 },
+	Long = { label = "Long-handled tool", spot = "WallRack", space = 1 },
+	HangingPower = { label = "Handheld power tool", spot = "WallHooks", space = 2 },
+	FloorManual = { label = "Push machine", spot = "Floor", space = 4 },
+	FloorEngine = { label = "Engine machine", spot = "Floor", space = 4 },
+	Bay = { label = "Ride-on machine", spot = "Bay", space = 0 },
+	Supply = { label = "Supplies", spot = "Shelf", space = 1 },
+}
+
+-- What it takes to buy each tier at the hardware store: a player level and a business at least
+-- this big. Tools you already own stay yours either way.
+Tools.TierUnlocks = {
+	Homeowner = { level = 1, business = "Shed" },
+	Serious = { level = 3, business = "Garage" },
+	Pro = { level = 8, business = "SmallOffice" },
 }
 
 -- Tools that cut whatever they touch, so they wreck flower patches and gnomes.
@@ -1172,10 +1183,9 @@ Tools.List = {
 		sizeClass = "Supply",
 		use = "Supply",
 		price = 30,
-		available = false,
 		color = Color3.fromRGB(230, 120, 30),
-		description = "Bucket with a pocketed organizer. Carries a pile of hand tools in the truck while "
-			.. "taking up only a little space.",
+		description = "Bucket with a pocketed organizer. In the truck it holds up to 8 of your hand tools "
+			.. "(trowels, pruners, shears) in one space, instead of one space each.",
 	},
 	{
 		id = "GasCan",

@@ -1,6 +1,6 @@
 -- Crews of 1 to 4 players. Everyone is always in a crew; playing solo is just a crew of one.
 -- The crew hangs out at the leader's business and rides in the leader's truck, so everyone's
--- loaded tools share that one truck bed. The leader accepts jobs and drives.
+-- loaded tools share that one truck (and its trailer). The leader accepts jobs and drives.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -10,6 +10,7 @@ local GameConfig = require(Shared.Config.GameConfig)
 local Items = require(Shared.Config.Items)
 local Net = require(Shared.Net)
 local Signal = require(Shared.Signal)
+local Storage = require(Shared.Config.Storage)
 
 local DataService = require(script.Parent.DataService)
 local WorldService = require(script.Parent.WorldService)
@@ -37,22 +38,33 @@ local function notify(player: Player, message: string)
 	Net.event("Notify"):FireClient(player, message)
 end
 
--- How many tool slots the crew is using in the leader's truck, and how many it has.
-local function truckLoad(party): (number, number)
-	local used = 0
+-- How much space the crew's tools take in the leader's truck and how much it has, then the same
+-- for ride-on bays on the leader's trailer.
+local function truckLoad(party): (number, number, number, number)
+	local used, baysUsed = 0, 0
 	for _, member in party.members do
 		local data = DataService:Get(member)
 		if data then
-			used += Items.countLoaded(data.loadout)
+			local space, bays = Storage.load(Storage.loadedIds(data.loadout))
+			used += space
+			baysUsed += bays
 		end
 	end
 	local leaderData = DataService:Get(party.leader)
-	return used, if leaderData then Items.bedCapacity(leaderData.equipped) else 0
+	if not leaderData then
+		return used, 0, baysUsed, 0
+	end
+	local capacity, bays = Items.vehicleSpace(leaderData.equipped)
+	return used, capacity, baysUsed, bays
 end
 
 local function broadcast(party)
-	local used, capacity = truckLoad(party)
-	local payload = { leader = party.leader, members = party.members, truckUsed = used, truckCapacity = capacity }
+	local used, capacity, baysUsed, bays = truckLoad(party)
+	local payload = {
+		leader = party.leader,
+		members = party.members,
+		truck = { used = used, space = capacity, baysUsed = baysUsed, bays = bays },
+	}
 	for _, member in party.members do
 		Net.event("PartyUpdated"):FireClient(member, payload)
 	end
@@ -96,7 +108,8 @@ function PartyService:GetParty(player: Player)
 	return parties[player]
 end
 
-function PartyService:GetTruckLoad(player: Player): (number, number)
+-- Space used, space, bays used and bays in the truck this player's crew rides in.
+function PartyService:GetTruckLoad(player: Player): (number, number, number, number)
 	return truckLoad(parties[player] or { leader = player, members = { player } })
 end
 

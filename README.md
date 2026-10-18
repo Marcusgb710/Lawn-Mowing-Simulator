@@ -58,19 +58,25 @@ Services*. Without it the game still runs, it just doesn't save progress.
 
 ## How the game plays
 
-1. **Your business.** Everyone gets a business plot in town. It has a job board, a tool rack and
-   your crew truck parked out front. It starts as a **Tool Shed** and can be upgraded to a
-   **Garage** and then a **Small Office** (each upgrade pays more per job).
+1. **Your business.** Everyone gets a business plot in town. It has a job board, storage for your
+   tools and your crew truck parked out front. It starts as a **Tool Shed** and can be upgraded to
+   a **Garage**, a **Small Office** and an **Equipment Yard**. Each upgrade pays more per job and
+   stores more: hand tools hang on pegboards, long tools stand in wall racks, power tools hang on
+   hooks, supplies sit on shelves, mowers park on floor spots and ride-on machines in equipment
+   bays. You can't buy a tool you have nowhere to store (the shed has no room for a gas mower), so
+   sell what you don't use (half price back) or upgrade.
 2. **Take a job.** At the job board the crew leader picks a job. Customers say what they want done
    and hint at how ("it has to look immaculate" or "just knock it down before noon"), but **no job
    ever says which tool to use**. Every tool's description in the shop and the Truck checklist
    says what it's for; knowing your tools is the game.
-3. **Load the truck by hand.** Your tools are laid out in front of the tool rack. Walk up to one
-   and press **E** to pick it up, carry it to the truck and press **E** again to load it. To take
-   a tool back out, press **R** on it in the truck bed and carry it back to the rack. Only tools in
-   the truck come with you, and you only get them in your hotbar once you reach the house. The
-   truck bed holds **3 tools**. Once it's full, **trailers unlock** at the hardware store and give
-   you more room. The **Truck** button shows a checklist of what's loaded.
+3. **Load the truck by hand.** Walk up to a tool in your storage and press **E** to pick it up (or
+   tap **Grab** in the **Truck** menu), carry it to the truck and press **E** again to load it.
+   Mowers are pushed along the ground instead of carried. To take a tool back out, press **R** on
+   it in the truck and put it back. Only tools in the truck come with you, and you only get them in
+   your hotbar once you reach the house. Every tool takes truck space: hand and long tools 1, power
+   tools 2, mowers 4, and a **tool bucket** packs up to 8 hand tools into 1. The rusty pickup holds
+   **6**. Once it's full, **trailers unlock** at the hardware store. Riding mowers only travel on
+   an **equipment trailer**. The **Truck** menu shows every tool, its space and where it is.
 4. **Drive.** The leader hops in the truck. Everyone watches the drive cutscene and arrives at the
    house.
 5. **Do the yard.** Mow the grass, edge the sidewalk and driveway, cut back the long grass along
@@ -87,13 +93,13 @@ Services*. Without it the game still runs, it just doesn't save progress.
    The money is split evenly across the crew, then the truck drives everyone back to the business.
 7. **Upgrade.** Spend money at the hardware store on better tools (reel push mower → gas → self
    propelled → riding → zero-turn, and so on for each tool), trucks, trailers and business
-   upgrades.
+   upgrades. Serious gear needs level 3 and a garage; pro gear needs level 8 and a small office.
 
 ### Crews
 
 Open **Crew** to invite players (up to 4). The crew hangs out at the leader's business and rides in
-the leader's truck, so everyone carries their own tools to the leader's truck and shares its bed.
-Each player only sees their own tools at the rack, and only you can take your tools back out of the
+the leader's truck, so everyone carries their own tools to the leader's truck and shares its space.
+Each player only sees their own tools in storage, and only you can take your tools back out of the
 truck. Only the leader accepts jobs and drives. Leaving the crew in the middle of a job sends you back to your own business.
 
 ## Project layout
@@ -108,19 +114,22 @@ src/shared/                  -> ReplicatedStorage.Shared   code used by both ser
   Config/TaskTypes.luau         every kind of task and which tools fit it (ideal/good/poor)
   Config/Jobs.luau              job types: customers, stories, yard, tasks, par time, pay
   Config/Items.luau             the shop tabs: tools from Tools.luau, trucks, trailers, businesses
+  Config/Storage.luau           storage spots at the business and truck space
+  Shop.luau                     what a player may buy (shared by the server and the shop menu)
   Assets.luau                   finds a real model or falls back to a placeholder
   Placeholders.luau             the block models used until real ones exist
   Net.luau                      every RemoteEvent / RemoteFunction name
 src/server/                  -> ServerScriptService.Server
   init.server.luau              starts every service
-  Services/DataService          saving money, xp, gear and truck loadout
+  BusinessStorage.luau          lays out the pegboards, racks, hooks, shelves, floor spots and bays
+  Services/DataService          saving money, xp, gear and truck loadout (with save migrations)
   Services/WorldService         the town, business plots and buildings
   Services/PartyService         crews, invites, shared truck space
   Services/LawnService          builds each yard and tracks the work done
   Services/JobService           job board, driving, timing, payouts, damage
   Services/ToolService          gives tools and applies their work every tick
-  Services/TruckService         carrying tools from the rack to the truck and back
-  Services/ShopService          buying and equipping
+  Services/TruckService         carrying tools from storage to the truck and back
+  Services/ShopService          buying, selling and equipping
 src/client/                  -> StarterPlayer.StarterPlayerScripts.Client
   init.client.luau              starts every controller
   Controllers/                  HUD, job board, shop, truck checklist, carrying tools, crew menu,
@@ -139,10 +148,11 @@ Models live in `ReplicatedStorage.Assets`, sorted into folders. Name each model 
 | Folder | Name it | What it should be |
 | --- | --- | --- |
 | `Assets/Tools` | e.g. `GasPushMower`, `LeafBlower` | A `Tool` with a `Handle`, or just a Model (it gets wrapped in a Tool for you) |
-| `Assets/Trucks` | e.g. `RustyPickup` | A Model facing forward along its pivot's front (LookVector). Add an invisible Part named `BedArea` (with a number attribute `Slots`) where loaded tools should lie |
-| `Assets/Trailers` | `UtilityTrailer`, `LandscapeTrailer` | A Model with the hitch facing forward, plus its own `BedArea` part |
-| `Assets/Buildings` | `Shed`, `Garage`, `SmallOffice` | A Model with the front door facing forward |
+| `Assets/Trucks` | e.g. `RustyPickup` | A Model facing forward along its pivot's front (LookVector). Add an invisible Part named `BedArea` where loaded tools should lie (how much it holds comes from `Items.luau`) |
+| `Assets/Trailers` | `UtilityTrailer`, `LandscapeTrailer`, `EquipmentTrailer` | A Model with the hitch facing forward, plus its own `BedArea` part. The equipment trailer also has two `BaySpot` parts where ride-on machines park |
+| `Assets/Buildings` | `Shed`, `Garage`, `SmallOffice`, `EquipmentYard` | A Model with the front door facing forward |
 | `Assets/Props` | `House`, `FlowerPatch`, `GardenGnome` | Models for the customer's yard |
+| `Assets/Props` | `StoragePegboard`, `StorageWallRack`, `StorageWallHooks`, `StorageShelf` | Storage at the business: back flat on Z = 0, front toward -Z, with `Slot1`, `Slot2`... attachments where tools go |
 
 There are two ways to add them:
 

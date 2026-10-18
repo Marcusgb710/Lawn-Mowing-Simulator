@@ -4,7 +4,8 @@
 -- Mowers work the whole time they're equipped (the reel mower only while you're walking).
 -- Every other tool works while you hold down the mouse button / tap and hold.
 -- Riding mowers aren't held at all: they're welded under the player, who sits on them and
--- drives them around like walking. Tools say whether they're working with a "Working"
+-- drives them around like walking. Push mowers and other walk-behind machines are held low
+-- enough that their wheels touch the ground. Tools say whether they're working with a "Working"
 -- attribute, so ToolFxController can spin blades and spools.
 
 local Players = game:GetService("Players")
@@ -15,6 +16,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Assets = require(Shared.Assets)
 local GameConfig = require(Shared.Config.GameConfig)
 local Items = require(Shared.Config.Items)
+local Storage = require(Shared.Config.Storage)
 local Tools = require(Shared.Config.Tools)
 
 local DataService = require(script.Parent.DataService)
@@ -22,6 +24,10 @@ local JobService = require(script.Parent.JobService)
 
 -- How far in front of the player a tool does its work.
 local REACH_OFFSET = 2
+-- Machines that roll on the ground: held so their lowest point sits on it.
+local GROUNDED = { FloorManual = true, FloorEngine = true, Bay = true }
+-- Tools that never go in the hotbar: supplies, and gloves (worn, not used).
+local NOT_HELD = { Supply = true, Worn = true }
 
 -- Particle color by what the tool does (its first verb).
 local FX_COLORS = {
@@ -96,6 +102,31 @@ local function depthBelow(tool: Tool, frame: CFrame): number
 		end
 	end
 	return -lowest
+end
+
+-- How high above the ground the hand holding a tool is. While holding a tool the arm points
+-- forward, so the hand is at about shoulder height.
+local function holdHeight(character: Model): number?
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	local root = character:FindFirstChild("HumanoidRootPart")
+	local shoulder = character:FindFirstChild("RightShoulder", true) or character:FindFirstChild("Right Shoulder", true)
+	if not (humanoid and root and root:IsA("BasePart") and shoulder and shoulder:IsA("Motor6D") and shoulder.Part0) then
+		return nil
+	end
+	local legs = if humanoid.RigType == Enum.HumanoidRigType.R15 then humanoid.HipHeight else 2
+	local floor = root.Position.Y - root.Size.Y / 2 - legs
+	return (shoulder.Part0.CFrame * shoulder.C0).Position.Y - floor
+end
+
+-- Moves a machine's grip so that, held at `height`, its lowest point (its wheels) touches the
+-- ground, whether the model's handlebar is 2.6 or 4.3 studs up.
+local function groundGrip(tool: Tool, height: number)
+	local base = toolBase(tool)
+	if not base then
+		return
+	end
+	local depth = depthBelow(tool, base.CFrame * tool.Grip)
+	tool.Grip *= CFrame.new(0, height - depth, 0)
 end
 
 local function restoreHipHeight(humanoid: Humanoid?)
@@ -179,19 +210,20 @@ local function hookTool(player: Player, tool: Tool, item)
 	end)
 end
 
+-- Takes away every game tool, and returns the id of the one they were holding.
 local function clearTools(player: Player): string?
-	local equippedCategory = nil
+	local holding = nil
 	for _, container in { player:FindFirstChildOfClass("Backpack"), player.Character } do
 		for _, child in container and container:GetChildren() or {} do
-			if child:IsA("Tool") and child:GetAttribute("Category") then
+			if child:IsA("Tool") and child:GetAttribute("ItemId") then
 				if child.Parent == player.Character then
-					equippedCategory = child:GetAttribute("Category")
+					holding = child:GetAttribute("ItemId")
 				end
 				child:Destroy()
 			end
 		end
 	end
-	return equippedCategory
+	return holding
 end
 
 -- Public API ---------------------------------------------------------------------------------
@@ -216,27 +248,29 @@ function ToolService:GiveTools(player: Player)
 		return
 	end
 
-	for _, category in Items.ToolCategories do
-		local itemId = data.equipped[category]
-		if not (itemId and data.loadout[category]) then
+	local height = player.Character and holdHeight(player.Character)
+	for _, itemId in Storage.loadedIds(data.loadout) do
+		local item = Tools.get(itemId)
+		if NOT_HELD[item.use] then
 			continue
 		end
-		local item = Tools.get(itemId)
-		local tool = Assets.tool(category, itemId)
+		local tool = Assets.tool(item.category, itemId)
 		tool.Name = item.name
-		tool.ToolTip = Items.CategoryInfo[category].displayName
+		tool.ToolTip = Items.CategoryInfo[item.category].displayName
 		tool.CanBeDropped = false
-		tool:SetAttribute("Category", category)
+		tool:SetAttribute("Category", item.category)
 		tool:SetAttribute("ItemId", itemId)
 		if item.ride then
 			setUpRide(player, tool, item)
+		elseif height and GROUNDED[item.sizeClass] then
+			groundGrip(tool, height)
 		end
 		addFx(tool, item.verbs[1])
 		hookTool(player, tool, item)
 		tool.Parent = backpack
 
 		-- Swapping gear shouldn't make you put your tool away.
-		if category == wasHolding and humanoid then
+		if itemId == wasHolding and humanoid then
 			humanoid:EquipTool(tool)
 		end
 	end

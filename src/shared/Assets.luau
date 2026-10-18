@@ -7,9 +7,15 @@
 --   Kit/<asset>                                       the Lawn Mowing mobile kit templates (grass, weeds, props...)
 --   Trucks/<item id>    e.g. Trucks/RustyPickup       a Model whose front faces its pivot's LookVector
 --   Trailers/<item id>  e.g. Trailers/UtilityTrailer  a Model whose hitch faces its pivot's LookVector
+--                                                     (EquipmentTrailer also has "BaySpot" parts)
 --   Buildings/<item id> e.g. Buildings/Shed           a Model whose front door faces its pivot's LookVector
 --   Props/House                                       a Model whose front door faces its pivot's LookVector
 --   Props/FlowerPatch, Props/GardenGnome              things on the lawn players shouldn't hit
+--   Props/StoragePegboard, StorageWallRack,           storage at the business, back flat on Z = 0 with
+--         StorageWallHooks, StorageShelf              "Slot1", "Slot2"... attachments where tools go
+--
+-- New models have an invisible "Root" part as their PrimaryPart, 0.5 studs above the model's
+-- origin (see Assets.placeAt).
 --
 -- Item ids are listed in Shared/Config/Items.luau.
 
@@ -211,6 +217,33 @@ function Assets.prop(name: string): Model
 		return prepareModel(found:Clone())
 	end
 	return Placeholders.prop(name)
+end
+
+-- Moves a model so its origin lands on `frame`. The origin is 0.5 studs below its "Root" part
+-- (how the model specs build them: Root at (0, 0.5, 0), never rotated), or its pivot without one.
+function Assets.placeAt(model: Model, frame: CFrame)
+	local root = model:FindFirstChild("Root")
+	local origin = if root and root:IsA("BasePart") then root.CFrame * CFrame.new(0, -0.5, 0) else model:GetPivot()
+	model:PivotTo(frame * origin:ToObjectSpace(model:GetPivot()))
+end
+
+-- Turns a model so its longest side points along `long` and its thinnest side along `thin`
+-- (unit vectors at right angles), centered on `position`. Works on any model, whichever way it
+-- was built. Returns its longest, middle and thinnest sizes.
+function Assets.align(model: Model, position: Vector3, long: Vector3, thin: Vector3): (number, number, number)
+	local box, size = model:GetBoundingBox()
+	local sides = {
+		{ axis = box.RightVector, length = size.X },
+		{ axis = box.UpVector, length = size.Y },
+		{ axis = box.LookVector, length = size.Z },
+	}
+	table.sort(sides, function(a, b)
+		return a.length > b.length
+	end)
+	local from = CFrame.fromMatrix(box.Position, sides[1].axis, sides[3].axis)
+	local to = CFrame.fromMatrix(position, long, thin)
+	model:PivotTo(to * from:ToObjectSpace(model:GetPivot()))
+	return sides[1].length, sides[2].length, sides[3].length
 end
 
 -- Moves a model so its lowest point rests on `ground`, facing the same way as `ground`.

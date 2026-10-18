@@ -1,14 +1,18 @@
--- The "Truck" menu: a checklist of your tools (what each is for, and whether it's in the truck,
--- in your hands or on the rack) next to the customer's to-do list. It never says which tool a
--- job needs. Loading happens by hand (see CarryController).
+-- The "Truck" menu: a checklist of your tools (what each is for, how much room it takes, and
+-- whether it's in the truck, in your hands or in storage) next to the customer's to-do list. It
+-- never says which tool a job needs. Loading happens by hand (see CarryController); "Grab" here
+-- picks a tool out of storage for you when you're standing at it.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Items = require(Shared.Config.Items)
+local Storage = require(Shared.Config.Storage)
+local Tools = require(Shared.Config.Tools)
 
 local ClientState = require(script.Parent.Parent.ClientState)
+local CarryController = require(script.Parent.CarryController)
 local UI = require(script.Parent.Parent.UI)
 
 local player = Players.LocalPlayer
@@ -21,12 +25,22 @@ local hint: TextLabel
 local list: ScrollingFrame
 
 -- In a crew everyone shares the leader's truck, so the server tells us the crew totals.
-local function truckSpace(profile): (number, number)
+local function truckSpace(profile)
 	local party = ClientState.party
-	if party and #party.members > 1 and party.truckCapacity then
-		return party.truckUsed, party.truckCapacity
+	if party and #party.members > 1 and party.truck then
+		return party.truck
 	end
-	return Items.countLoaded(profile.loadout), profile.bedCapacity
+	return profile.truck
+end
+
+local function spaceText(item): string
+	if item.sizeClass == "Bay" then
+		return "Trailer bay"
+	elseif item.id == Storage.BucketId then
+		return `1 space, holds {Storage.BucketHolds} hand tools`
+	end
+	local space = Tools.SizeClasses[item.sizeClass].space
+	return if space == 1 then "1 space" else `{space} space`
 end
 
 local function render()
@@ -36,28 +50,30 @@ local function render()
 		return
 	end
 
-	local used, capacity = truckSpace(profile)
+	local truck = truckSpace(profile)
 	local party = ClientState.party
 	local owner = if party and party.leader ~= player then `{party.leader.DisplayName}'s truck` else "Your truck"
-	summary.Text = `{owner}: {used}/{capacity} tools loaded`
+	local text = `{owner}: {truck.used}/{truck.space} space`
+	if truck.bays > 0 or truck.baysUsed > 0 then
+		text ..= `  ·  ride-on bays {truck.baysUsed}/{truck.bays}`
+	end
+	summary.Text = text
 
 	local job = ClientState.job
 	if job and job.todo then
 		hint.Text = `The customer wants: {table.concat(job.todo, "; ")}.`
 	elseif not profile.trailerUnlocked then
-		hint.Text = "Fill the truck bed to unlock trailers at the hardware store."
+		hint.Text = "Fill the truck to unlock trailers at the hardware store. A tool bucket packs hand tools tight."
 	elseif not profile.equipped.Trailer then
 		hint.Text = "Trailers are unlocked! Buy one at the hardware store for more room."
 	else
-		hint.Text = "Carry tools from the rack to the truck. Only tools in the truck come with you."
+		hint.Text = "Carry tools from storage to the truck. Only tools in the truck come with you."
 	end
 
-	for index, category in Items.ToolCategories do
-		local info = Items.CategoryInfo[category]
-		local itemId = profile.equipped[category]
-		local item = itemId and Items.get(category, itemId)
-		local loaded = profile.loadout[category] == true
-		local held = player:GetAttribute("Carrying") == category
+	local held = player:GetAttribute("Carrying")
+	for index, item in Items.ownedTools(profile.owned) do
+		local loaded = profile.loadout[item.id] == true
+		local inHands = held == item.id
 
 		local card = UI.new("Frame", {
 			Size = UDim2.new(1, -8, 0, 0),
@@ -66,14 +82,14 @@ local function render()
 			LayoutOrder = index,
 			Parent = list,
 		}, { UI.corner(8) })
-		local text = UI.new("Frame", {
+		local details = UI.new("Frame", {
 			Size = UDim2.new(1, -150, 0, 0),
 			AutomaticSize = Enum.AutomaticSize.Y,
 			BackgroundTransparency = 1,
 			Parent = card,
 		}, { UI.list(2), UI.padding(8) })
-		UI.label(if item then item.name else info.toolName, { TextSize = 19, LayoutOrder = 1, Parent = text })
-		UI.label(if item then item.description else "None yet. Buy one at the hardware store.", {
+		UI.label(item.name, { TextSize = 19, LayoutOrder = 1, Parent = details })
+		UI.label(item.description, {
 			Size = UDim2.fromScale(1, 0),
 			AutomaticSize = Enum.AutomaticSize.Y,
 			TextWrapped = true,
@@ -81,17 +97,38 @@ local function render()
 			Font = Enum.Font.Gotham,
 			TextColor3 = UI.Colors.SubText,
 			LayoutOrder = 2,
-			Parent = text,
+			Parent = details,
+		})
+		UI.label(`{Items.CategoryInfo[item.category].toolName}  ·  {spaceText(item)}`, {
+			TextSize = 14,
+			TextColor3 = UI.Colors.SubText,
+			LayoutOrder = 3,
+			Parent = details,
 		})
 
-		if item then
-			UI.label(if loaded then "In the truck" elseif held then "In your hands" else "On the rack", {
+		UI.label(if loaded then "In the truck" elseif inHands then "In your hands" else "In storage", {
+			AnchorPoint = Vector2.new(1, 0),
+			Position = UDim2.new(1, -12, 0, 10),
+			Size = UDim2.fromOffset(130, 24),
+			TextSize = 17,
+			TextXAlignment = Enum.TextXAlignment.Right,
+			TextColor3 = if loaded then UI.Colors.Accent elseif inHands then UI.Colors.Money else UI.Colors.SubText,
+			Parent = card,
+		})
+		-- Pegboards get crowded, so you can also grab a tool from here while standing at storage.
+		local atBusiness = job == nil or job.state == "Ready"
+		if atBusiness and not loaded and (held == nil or inHands) then
+			UI.button(if inHands then "Put back" else "Grab", function()
+				if inHands then
+					CarryController.putBack()
+				else
+					CarryController.pickUp(item.id)
+				end
+			end, {
 				AnchorPoint = Vector2.new(1, 0),
-				Position = UDim2.new(1, -12, 0, 10),
-				Size = UDim2.fromOffset(130, 24),
-				TextSize = 17,
-				TextXAlignment = Enum.TextXAlignment.Right,
-				TextColor3 = if loaded then UI.Colors.Accent elseif held then UI.Colors.Money else UI.Colors.SubText,
+				Position = UDim2.new(1, -12, 0, 40),
+				Size = UDim2.fromOffset(110, 32),
+				TextSize = 16,
 				Parent = card,
 			})
 		end

@@ -4,8 +4,12 @@
 -- in its tab. Players start owning every item with price = 0 (the reel mower, the rusty pickup
 -- and the tool shed).
 --
--- Truck bed: each truck holds `bedSlots` tools. Only tools loaded in your truck bed come with you
--- to a job. Once your bed is full, trailers unlock and each one adds `extraSlots`.
+-- Truck space: every tool takes some `space` by its size class (Tools.SizeClasses), and each
+-- truck holds `space` units. Once the truck is full, trailers unlock and each one adds its own
+-- `space`. Ride-on machines don't fit in a truck at all: they need a trailer with `bays`.
+--
+-- Storage: each business building has room for a set number of tools of each kind (`storage`,
+-- see Storage.luau). You can't buy a tool without a free spot for it.
 --
 -- Model swap: put a model named after the item's `id` in ReplicatedStorage.Assets.Tools
 -- (or Assets.Trucks for trucks) and it replaces the placeholder automatically.
@@ -14,8 +18,9 @@ local Tools = require(script.Parent.Tools)
 
 local Items = {}
 
-Items.Categories = { "Mower", "Trimmer", "Rake", "Edger", "HedgeTrimmer", "Truck", "Trailer", "Business" }
-Items.ToolCategories = { "Mower", "Trimmer", "Rake", "Edger", "HedgeTrimmer" }
+Items.Categories = { "Mower", "Trimmer", "Rake", "Edger", "HedgeTrimmer", "Supplies", "Truck", "Trailer", "Business" }
+-- Shop tabs filled from Tools.luau. Everything in them is carried to the truck by hand.
+Items.ToolCategories = { "Mower", "Trimmer", "Rake", "Edger", "HedgeTrimmer", "Supplies" }
 
 Items.CategoryInfo = {
 	Mower = { displayName = "Mowers", toolName = "Mower" },
@@ -23,6 +28,7 @@ Items.CategoryInfo = {
 	Rake = { displayName = "Rakes & Blowers", toolName = "Rake" },
 	Edger = { displayName = "Edgers", toolName = "Edger" },
 	HedgeTrimmer = { displayName = "Hedge Tools", toolName = "Hedge Tool" },
+	Supplies = { displayName = "Supplies", toolName = "Supplies" },
 	Truck = { displayName = "Trucks" },
 	Trailer = { displayName = "Trailers" },
 	Business = { displayName = "Business" },
@@ -35,7 +41,7 @@ Items.Catalog = {
 			name = "Rusty Pickup",
 			price = 0,
 			payoutBonus = 0,
-			bedSlots = 3,
+			space = 6,
 			color = Color3.fromRGB(150, 90, 60),
 			description = "It runs. Mostly.",
 		},
@@ -44,7 +50,7 @@ Items.Catalog = {
 			name = "Work Pickup",
 			price = 5000,
 			payoutBonus = 0.1,
-			bedSlots = 3,
+			space = 8,
 			color = Color3.fromRGB(240, 240, 240),
 			description = "Customers trust a clean truck. +10% pay.",
 		},
@@ -53,42 +59,56 @@ Items.Catalog = {
 			name = "Heavy Duty Pickup",
 			price = 20000,
 			payoutBonus = 0.25,
-			bedSlots = 3,
+			space = 10,
 			color = Color3.fromRGB(30, 90, 170),
-			description = "Built tough. +25% pay.",
+			description = "Built tough, with a longer bed. +25% pay.",
 		},
 		{
 			id = "LandscapingTruck",
 			name = "Landscaping Box Truck",
 			price = 60000,
 			payoutBonus = 0.5,
-			bedSlots = 3,
+			space = 14,
 			color = Color3.fromRGB(40, 140, 60),
 			description = "You're a real business now. +50% pay.",
 		},
 	},
 
-	-- Locked until your truck bed is full. Only one trailer can be hitched at a time.
+	-- Locked until your truck is full. Only one trailer can be hitched at a time.
 	Trailer = {
 		{
 			id = "UtilityTrailer",
 			name = "Small Utility Trailer",
 			price = 1200,
-			extraSlots = 1,
+			space = 6,
+			bays = 0,
 			color = Color3.fromRGB(110, 110, 110),
-			description = "Hitch it up and carry one more tool.",
+			description = "An open trailer with low rails. Hitch it up for more room for tools and push machines.",
 		},
 		{
 			id = "LandscapeTrailer",
 			name = "Enclosed Landscape Trailer",
 			price = 3000,
-			extraSlots = 2,
+			space = 10,
+			bays = 0,
 			color = Color3.fromRGB(240, 240, 240),
-			description = "Room for two more tools, and it locks.",
+			description = "A big enclosed box trailer that locks. Lots of room, but no ramp for ride-on machines.",
+		},
+		{
+			id = "EquipmentTrailer",
+			name = "Equipment Trailer",
+			price = 6000,
+			space = 4,
+			bays = 2,
+			color = Color3.fromRGB(45, 45, 50),
+			description = "A low flatbed with a fold-down ramp. Two ride-on machines drive up onto it, with a "
+				.. "little room up front for tools. The only way to bring a riding mower to a job.",
 		},
 	},
 
 	-- Your home base. Upgrades must be bought in order, and the building on your plot changes.
+	-- `storage` is how many tools of each kind it holds (see Storage.luau). `noEngines` means its
+	-- floor spots only take push machines without an engine.
 	-- Model swap: put a model named after the id in ReplicatedStorage.Assets.Buildings.
 	Business = {
 		{
@@ -96,24 +116,39 @@ Items.Catalog = {
 			name = "Tool Shed",
 			price = 0,
 			payoutBonus = 0,
+			storage = { Pegboard = 12, WallRack = 4, WallHooks = 1, Shelf = 4, Floor = 1, Bay = 0 },
+			noEngines = true,
 			color = Color3.fromRGB(150, 105, 65),
-			description = "Where every lawn empire starts.",
+			description = "Where every lawn empire starts. Room for hand tools, a few rakes, one trimmer and "
+				.. "one push mower without an engine.",
 		},
 		{
 			id = "Garage",
 			name = "Garage",
 			price = 4000,
 			payoutBonus = 0.1,
+			storage = { Pegboard = 16, WallRack = 8, WallHooks = 4, Shelf = 8, Floor = 2, Bay = 0 },
 			color = Color3.fromRGB(200, 200, 190),
-			description = "A real roll-up door. Customers pay +10%.",
+			description = "A real roll-up door, and floor room for gas mowers. Customers pay +10%.",
 		},
 		{
 			id = "SmallOffice",
 			name = "Small Office",
 			price = 20000,
 			payoutBonus = 0.25,
+			storage = { Pegboard = 24, WallRack = 12, WallHooks = 6, Shelf = 12, Floor = 4, Bay = 2 },
 			color = Color3.fromRGB(70, 120, 60),
-			description = "You're official now. Customers pay +25%.",
+			description = "You're official now, with two equipment bays for ride-on mowers. Customers pay +25%.",
+		},
+		{
+			id = "EquipmentYard",
+			name = "Equipment Yard",
+			price = 75000,
+			payoutBonus = 0.4,
+			storage = { Pegboard = 32, WallRack = 16, WallHooks = 10, Shelf = 16, Floor = 6, Bay = 5 },
+			color = Color3.fromRGB(180, 185, 185),
+			description = "A metal shop with a big roll-up door and covered bays for five ride-on machines. "
+				.. "Customers pay +40%.",
 		},
 	},
 }
@@ -138,27 +173,50 @@ function Items.get(category: string, id: string)
 	return list and list[id]
 end
 
+function Items.isToolCategory(category): boolean
+	return typeof(category) == "string" and table.find(Items.ToolCategories, category) ~= nil
+end
+
 -- The free item a player starts with in this category, if there is one.
 function Items.starter(category: string)
 	local first = Items.Catalog[category][1]
 	return if first.price == 0 then first else nil
 end
 
--- How many tools fit in a truck bed (plus trailer) for these equipped items.
-function Items.bedCapacity(equipped): number
-	local truck = Items.get("Truck", equipped.Truck)
-	local trailer = equipped.Trailer and Items.get("Trailer", equipped.Trailer)
-	return (if truck then truck.bedSlots else 3) + (if trailer then trailer.extraSlots else 0)
-end
-
-function Items.countLoaded(loadout): number
-	local count = 0
+-- Every free tool a new player starts with, in shop order.
+function Items.starterTools()
+	local list = {}
 	for _, category in Items.ToolCategories do
-		if loadout[category] then
-			count += 1
+		for _, item in Items.Catalog[category] do
+			if item.price == 0 then
+				table.insert(list, item)
+			end
 		end
 	end
-	return count
+	return list
+end
+
+-- Every tool in `owned` ({ [category] = { [id] = true } }), in shop order.
+function Items.ownedTools(owned)
+	local list = {}
+	for _, category in Items.ToolCategories do
+		local ids = owned[category]
+		if ids then
+			for _, item in Items.Catalog[category] do
+				if ids[item.id] then
+					table.insert(list, item)
+				end
+			end
+		end
+	end
+	return list
+end
+
+-- Truck space and ride-on bays for these equipped vehicles.
+function Items.vehicleSpace(equipped): (number, number)
+	local truck = Items.get("Truck", equipped.Truck) or Items.Catalog.Truck[1]
+	local trailer = equipped.Trailer and Items.get("Trailer", equipped.Trailer)
+	return truck.space + (if trailer then trailer.space else 0), if trailer then trailer.bays else 0
 end
 
 return Items

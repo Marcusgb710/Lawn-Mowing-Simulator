@@ -146,7 +146,8 @@ end
 -- Trucks ------------------------------------------------------------------------------------
 
 -- Invisible part marking where loaded tools sit. Real models can include their own "BedArea"
--- parts (with a Slots attribute) to control where tools show up.
+-- parts to control where tools show up. (Its Slots attribute is only a hint for modelers: how
+-- much a vehicle carries comes from `space` in Items.luau.)
 local function bedArea(model: Model, size: Vector3, position: Vector3, slots: number)
 	local area = part({
 		Name = "BedArea",
@@ -201,7 +202,7 @@ function Placeholders.truck(itemId: string): Model
 		add({ Name = "Tailgate", Size = Vector3.new(7, 2, 0.4), Position = Vector3.new(0, 3.1, 7.8), Color = bedColor })
 	end
 
-	bedArea(model, Vector3.new(6, 0.2, 7.6), Vector3.new(0, 2.2, 4), item.bedSlots)
+	bedArea(model, Vector3.new(6, 0.2, 7.6), Vector3.new(0, 2.2, 4), item.space)
 
 	for _, x in { -3.6, 3.6 } do
 		for _, z in { -5.5, 5.5 } do
@@ -218,6 +219,56 @@ function Placeholders.truck(itemId: string): Model
 	return model
 end
 
+-- A low flatbed: a small BedArea for tools up front, then two "BaySpot" parts where ride-on
+-- machines park (like the real model, alphainstructions/instructions21.md).
+local function equipmentTrailer(model: Model, item, add): Model
+	local length = 16
+	model.PrimaryPart = add({
+		Name = "Deck",
+		Size = Vector3.new(7, 0.4, length),
+		Position = Vector3.new(0, 1.6, 0),
+		Color = item.color,
+	})
+	add({
+		Name = "Tongue",
+		Size = Vector3.new(0.6, 0.4, 3),
+		Position = Vector3.new(0, 1.5, -length / 2 - 1.5),
+		Color = Color3.fromRGB(40, 40, 40),
+	})
+	add({
+		Name = "Ramp",
+		Size = Vector3.new(6.4, 2.6, 0.2),
+		Position = Vector3.new(0, 3.1, length / 2 - 0.1),
+		Color = Color3.fromRGB(80, 80, 85),
+		Transparency = 0.3,
+	})
+	for _, x in { -3.7, 3.7 } do
+		for _, z in { -0.2, 1.8 } do
+			add({
+				Name = "Wheel",
+				Shape = Enum.PartType.Cylinder,
+				Size = Vector3.new(0.8, 1.8, 1.8),
+				Position = Vector3.new(x, 0.9, z),
+				Color = Color3.fromRGB(25, 25, 25),
+			})
+		end
+	end
+	local front = -length / 2
+	bedArea(model, Vector3.new(6, 0.2, 3), Vector3.new(0, 1.9, front + 1.7), item.space)
+	for index = 1, item.bays do
+		add({
+			Name = "BaySpot",
+			Size = Vector3.new(6, 0.2, 6),
+			Position = Vector3.new(0, 1.9, front + 3.4 + (index - 0.5) * 6.2),
+			Transparency = 1,
+			CanCollide = false,
+			CanTouch = false,
+			CanQuery = false,
+		})
+	end
+	return model
+end
+
 -- Trailers face -Z too, with the hitch at the front.
 function Placeholders.trailer(itemId: string): Model
 	local item = Items.get("Trailer", itemId)
@@ -229,6 +280,10 @@ function Placeholders.trailer(itemId: string): Model
 		local newPart = part(props)
 		newPart.Parent = model
 		return newPart
+	end
+
+	if itemId == "EquipmentTrailer" then
+		return equipmentTrailer(model, item, add)
 	end
 
 	local enclosed = itemId == "LandscapeTrailer"
@@ -268,7 +323,7 @@ function Placeholders.trailer(itemId: string): Model
 			Color = Color3.fromRGB(25, 25, 25),
 		})
 	end
-	bedArea(model, Vector3.new(6, 0.2, length - 1), Vector3.new(0, 2, 0), item.extraSlots)
+	bedArea(model, Vector3.new(6, 0.2, length - 1), Vector3.new(0, 2, 0), item.space)
 
 	return model
 end
@@ -280,6 +335,7 @@ local BUILDING_SIZES = {
 	Shed = Vector3.new(12, 10, 10),
 	Garage = Vector3.new(26, 14, 20),
 	SmallOffice = Vector3.new(36, 16, 24),
+	EquipmentYard = Vector3.new(44, 18, 30),
 }
 
 function Placeholders.building(itemId: string): Model
@@ -331,7 +387,7 @@ function Placeholders.building(itemId: string): Model
 			Color = Color3.fromRGB(110, 70, 40),
 		})
 	end
-	if itemId == "SmallOffice" then
+	if itemId == "SmallOffice" or itemId == "EquipmentYard" then
 		for _, x in { 2, 9 } do
 			add({
 				Name = "Window",
@@ -356,7 +412,107 @@ local function propAdder(model: Model)
 	end
 end
 
+-- Storage fixtures are built like the real models (alphainstructions/instructions23.md): back flat
+-- on Z = 0, front toward -Z, bottom at Y = 0, a "Root" part, and one "Slot" attachment per tool.
+local function fixture(model: Model, color: Color3, size: Vector3, slots: { Vector3 }, extras: { any })
+	local add = propAdder(model)
+	model.PrimaryPart = add({
+		Name = "Root",
+		Size = Vector3.new(1, 1, 1),
+		Position = Vector3.new(0, 0.5, 0),
+		Transparency = 1,
+		CanCollide = false,
+		CanTouch = false,
+		CanQuery = false,
+	})
+	local panel = add({
+		Name = "Panel",
+		Size = size,
+		Position = Vector3.new(0, size.Y / 2, -size.Z / 2),
+		Color = color,
+		Material = Enum.Material.Wood,
+		CanCollide = false,
+	})
+	for _, props in extras do
+		props.Color = props.Color or Color3.fromRGB(70, 70, 75)
+		props.CanCollide = false
+		add(props)
+	end
+	for index, position in slots do
+		local slot = Instance.new("Attachment")
+		slot.Name = "Slot" .. index
+		slot.Position = panel.CFrame:PointToObjectSpace(position)
+		slot.Parent = panel
+	end
+end
+
 local PROP_BUILDERS = {
+	-- 3 x 2 hooks for hand tools.
+	StoragePegboard = function(model: Model)
+		local slots, hooks = {}, {}
+		for _, y in { 2.4, 1.1 } do
+			for _, x in { -1.5, 0, 1.5 } do
+				table.insert(slots, Vector3.new(x, y, -0.6))
+				table.insert(
+					hooks,
+					{ Name = "Hook", Size = Vector3.new(0.1, 0.1, 0.45), Position = Vector3.new(x, y, -0.42) }
+				)
+			end
+		end
+		fixture(model, Color3.fromRGB(165, 125, 80), Vector3.new(4.5, 3, 0.2), slots, hooks)
+	end,
+
+	-- 4 holders that keep long-handled tools standing upright.
+	StorageWallRack = function(model: Model)
+		local slots = {}
+		for index = 1, 4 do
+			table.insert(slots, Vector3.new((index - 2.5) * 1.25, 0.75, -0.5))
+		end
+		fixture(model, Color3.fromRGB(120, 90, 60), Vector3.new(5, 1.5, 0.15), slots, {
+			{ Name = "Holders", Size = Vector3.new(5, 0.25, 0.15), Position = Vector3.new(0, 1.2, -0.72) },
+			{
+				Name = "Arms",
+				Size = Vector3.new(5, 0.25, 0.6),
+				Position = Vector3.new(0, 1.2, -0.45),
+				Transparency = 0.6,
+			},
+		})
+	end,
+
+	-- 2 big hooks for string trimmers and blowers.
+	StorageWallHooks = function(model: Model)
+		local slots, hooks = {}, {}
+		for _, x in { -0.9, 0.9 } do
+			table.insert(slots, Vector3.new(x, 0.5, -0.65))
+			table.insert(
+				hooks,
+				{ Name = "Hook", Size = Vector3.new(0.25, 0.25, 0.6), Position = Vector3.new(x, 0.5, -0.5) }
+			)
+		end
+		fixture(model, Color3.fromRGB(110, 80, 55), Vector3.new(3.5, 1, 0.2), slots, hooks)
+	end,
+
+	-- A floor-standing metal shelf: 3 boards with room for 2 supplies each.
+	StorageShelf = function(model: Model)
+		local slots, extras = {}, {}
+		for _, y in { 3.9, 2.1, 0.3 } do
+			table.insert(
+				extras,
+				{ Name = "Board", Size = Vector3.new(4, 0.15, 1.4), Position = Vector3.new(0, y - 0.075, -0.75) }
+			)
+			for _, x in { -1, 1 } do
+				table.insert(slots, Vector3.new(x, y, -0.75))
+			end
+		end
+		for _, x in { -1.95, 1.95 } do
+			table.insert(
+				extras,
+				{ Name = "Post", Size = Vector3.new(0.1, 5, 1.4), Position = Vector3.new(x, 2.5, -0.75) }
+			)
+		end
+		fixture(model, Color3.fromRGB(150, 150, 155), Vector3.new(4, 5, 0.05), slots, extras)
+	end,
+
 	-- A ring of mulch with flowers on it. Customers get upset if you mow these.
 	FlowerPatch = function(model: Model)
 		local add = propAdder(model)

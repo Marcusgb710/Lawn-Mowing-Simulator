@@ -37,6 +37,9 @@ local GameConfig = {
 	JobSiteOrigin = Vector3.new(0, 0, 3000),
 	JobSiteSpacing = 500,
 
+	-- Selling a tool back to the hardware store returns this fraction of its price.
+	SellRefund = 0.5,
+
 	-- How often tools do work, in seconds.
 	WorkTickRate = 0.1,
 	DefaultWalkSpeed = 16,

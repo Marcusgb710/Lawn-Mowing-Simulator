@@ -11,20 +11,51 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local GameConfig = require(Shared.Config.GameConfig)
 local Items = require(Shared.Config.Items)
 local Net = require(Shared.Net)
+local Storage = require(Shared.Config.Storage)
 
 local DataService = {}
 
 -- Bump this whenever the save format changes, and add a step to MIGRATIONS that turns the
 -- previous version into the new one. Never delete a step: old saves still need it.
-local DATA_VERSION = 2
+local DATA_VERSION = 3
 
 -- MIGRATIONS[n] turns a version n - 1 save into version n. Steps must keep money, xp and every
--- owned item.
+-- owned item. Don't use the live config to read an old save: write down what it looked like.
 local MIGRATIONS = {
 	-- 1 -> 2, realistic tools (design phase A). Saves from before versioning have no `version`.
 	-- Tools kept their ids and shop categories, so nothing moves; reconcile() below fills in any
-	-- fields older saves are missing. Phase B (per-tool storage) will be step 3.
+	-- fields older saves are missing.
 	[2] = function(_data) end,
+
+	-- 2 -> 3, storage and truck space (design phase B). Every tool is now owned and carried on
+	-- its own. A v2 save had one `equipped` tool per tool category, and `loadout[category]` was
+	-- true if that tool was in the truck. Now `loadout[toolId]` is.
+	[3] = function(data)
+		data.owned = data.owned or {}
+		data.equipped = data.equipped or {}
+		local oldLoadout = data.loadout or {}
+		local loadout = {}
+		for _, category in { "Mower", "Trimmer", "Rake", "Edger", "HedgeTrimmer" } do
+			local toolId = data.equipped[category]
+			if toolId and oldLoadout[category] then
+				loadout[toolId] = true
+			end
+			data.equipped[category] = nil
+		end
+		data.loadout = loadout
+
+		-- Ride-on mowers only travel on an equipment trailer now. Anyone who already bought one gets
+		-- the trailer free (hitched up if they had no trailer), so their mower still comes along.
+		local mowers = data.owned.Mower or {}
+		if mowers.RidingMower or mowers.ZeroTurnMower then
+			data.owned.Trailer = data.owned.Trailer or {}
+			data.owned.Trailer.EquipmentTrailer = true
+			data.trailerUnlocked = true
+			if not data.equipped.Trailer then
+				data.equipped.Trailer = "EquipmentTrailer"
+			end
+		end
+	end,
 }
 
 local store: DataStore? = nil
@@ -37,27 +68,28 @@ local function defaultData()
 		money = GameConfig.StartingMoney,
 		xp = 0,
 		jobsCompleted = 0,
-		-- [category] = { [itemId] = true }
+		-- [category] = { [itemId] = true } for every item they own, tools included
 		owned = {},
-		-- [category] = itemId, or nil if they own nothing in that category yet
+		-- [category] = itemId for the truck, trailer and business they're using (not for tools)
 		equipped = {},
-		-- [tool category] = true for the tools sitting in their truck bed
+		-- [toolId] = true for the tools sitting in their truck
 		loadout = {},
 		trailerUnlocked = false,
 	}
 	for _, category in Items.Categories do
-		local starter = Items.starter(category)
 		data.owned[category] = {}
-		if starter then
+		local starter = Items.starter(category)
+		if starter and not Items.isToolCategory(category) then
 			data.owned[category][starter.id] = true
 			data.equipped[category] = starter.id
 		end
 	end
-	for _, category in Items.ToolCategories do
-		if data.equipped[category] then
-			data.loadout[category] = true
-		end
+	-- New players start with their free tools, and as many of them in the truck as fit.
+	for _, tool in Items.starterTools() do
+		data.owned[tool.category][tool.id] = true
+		data.loadout[tool.id] = true
 	end
+	DataService.trimLoadout(data)
 	return data
 end
 
@@ -87,8 +119,18 @@ local function reconcile(data)
 		end
 	end
 	for _, category in Items.Categories do
-		local owned = data.owned[category] or {}
-		data.owned[category] = owned
+		data.owned[category] = data.owned[category] or {}
+	end
+	for _, tool in Items.starterTools() do
+		data.owned[tool.category][tool.id] = true
+	end
+	for _, category in Items.Categories do
+		local owned = data.owned[category]
+		if Items.isToolCategory(category) then
+			-- Tools are never "equipped"; you pick which ones to load into the truck.
+			data.equipped[category] = nil
+			continue
+		end
 		local starter = Items.starter(category)
 		if starter then
 			owned[starter.id] = true
@@ -108,23 +150,33 @@ local function reconcile(data)
 	return data
 end
 
--- Unloads tools that aren't owned or don't fit in the truck bed anymore.
+-- Unloads tools that aren't owned anymore or don't fit in their own truck and trailer.
 function DataService.trimLoadout(data)
-	local capacity = Items.bedCapacity(data.equipped)
-	local kept = 0
-	for _, category in Items.ToolCategories do
-		if data.loadout[category] then
-			if data.equipped[category] and kept < capacity then
-				kept += 1
-			else
-				data.loadout[category] = nil
+	local owned = {}
+	for _, tool in Items.ownedTools(data.owned) do
+		owned[tool.id] = true
+	end
+	local ids = Storage.loadedIds(data.loadout)
+	-- Load the bucket first, so the hand tools it carries don't count.
+	local bucket = table.find(ids, Storage.BucketId)
+	if bucket then
+		table.insert(ids, 1, table.remove(ids, bucket))
+	end
+
+	local space, bays = Items.vehicleSpace(data.equipped)
+	local kept = {}
+	for _, id in ids do
+		if owned[id] then
+			table.insert(kept, id)
+			local usedSpace, usedBays = Storage.load(kept)
+			if usedSpace > space or usedBays > bays then
+				table.remove(kept)
 			end
 		end
 	end
-	for category in data.loadout do
-		if not table.find(Items.ToolCategories, category) then
-			data.loadout[category] = nil
-		end
+	data.loadout = {}
+	for _, id in kept do
+		data.loadout[id] = true
 	end
 end
 
@@ -188,6 +240,8 @@ local function save(player: Player)
 end
 
 local function snapshot(data)
+	local space, bays = Items.vehicleSpace(data.equipped)
+	local usedSpace, usedBays = Storage.load(Storage.loadedIds(data.loadout))
 	return {
 		money = data.money,
 		xp = data.xp,
@@ -196,7 +250,8 @@ local function snapshot(data)
 		owned = data.owned,
 		equipped = data.equipped,
 		loadout = data.loadout,
-		bedCapacity = Items.bedCapacity(data.equipped),
+		-- Their own truck and trailer (in a crew, PartyUpdated has the leader's truck instead).
+		truck = { used = usedSpace, space = space, baysUsed = usedBays, bays = bays },
 		trailerUnlocked = data.trailerUnlocked,
 	}
 end

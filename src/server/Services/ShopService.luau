@@ -1,11 +1,15 @@
--- Buying gear and business upgrades. The client only asks; every check happens here.
+-- Buying and selling gear and business upgrades. The client only asks; every check happens here
+-- (the rules themselves are in Shared/Shop.luau, so the shop menu can show them too).
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Format = require(Shared.Format)
+local GameConfig = require(Shared.Config.GameConfig)
 local Items = require(Shared.Config.Items)
 local Net = require(Shared.Net)
+local Shop = require(Shared.Shop)
+local Storage = require(Shared.Config.Storage)
 
 local DataService = require(script.Parent.DataService)
 local JobService = require(script.Parent.JobService)
@@ -28,8 +32,13 @@ local function findItem(category, itemId)
 	return Items.get(category, itemId)
 end
 
-local function isTool(category: string): boolean
-	return table.find(Items.ToolCategories, category) ~= nil
+local function shopState(data)
+	return {
+		owned = data.owned,
+		equipped = data.equipped,
+		level = GameConfig.levelFromXp(data.xp),
+		trailerUnlocked = data.trailerUnlocked,
+	}
 end
 
 function ShopService:Buy(player: Player, category: string, itemId: string): (boolean, string)
@@ -38,17 +47,9 @@ function ShopService:Buy(player: Player, category: string, itemId: string): (boo
 	if not item or not data then
 		return false, "That item doesn't exist."
 	end
-	if data.owned[category][itemId] then
-		return false, "You already own that."
-	end
-	if category == "Trailer" and not data.trailerUnlocked then
-		return false, "Fill up your truck bed to unlock trailers."
-	end
-	if category == "Business" then
-		local previous = Items.Catalog.Business[item.rank - 1]
-		if previous and not data.owned.Business[previous.id] then
-			return false, `Upgrade to the {previous.name} first.`
-		end
+	local allowed, reason = Shop.canBuy(shopState(data), category, itemId)
+	if not allowed then
+		return false, reason or "You can't buy that."
 	end
 	if VEHICLE_CATEGORIES[category] and JobService:IsBusy(player) then
 		return false, "You can't swap vehicles in the middle of a job."
@@ -57,19 +58,52 @@ function ShopService:Buy(player: Player, category: string, itemId: string): (boo
 		return false, `You need {Format.money(item.price - data.money)} more.`
 	end
 
-	local isNewTool = isTool(category) and data.equipped[category] == nil
 	data.owned[category][itemId] = true
-	local ok, message = self:Equip(player, category, itemId)
-	if isNewTool then
-		message = `Bought {item.name}! Grab it from your tool rack and carry it to the truck.`
+	if not Items.isToolCategory(category) then
+		return self:Equip(player, category, itemId)
 	end
-	return ok, message
+	DataService:Changed(player)
+	TruckService:GearChanged(player)
+	local spot = Storage.Spots[Storage.spotOf(item)]
+	return true, `Bought the {item.name}! It's waiting in your storage ({string.lower(spot.name)}).`
 end
 
+-- Sells a tool back to the hardware store, to free up its storage spot.
+function ShopService:Sell(player: Player, category: string, itemId: string): (boolean, string)
+	local item = findItem(category, itemId)
+	local data = DataService:Get(player)
+	if not item or not data or not Items.isToolCategory(category) then
+		return false, "You can only sell tools and supplies."
+	end
+	if not data.owned[category][itemId] then
+		return false, "You don't own that."
+	end
+	if not Shop.canSell(item) then
+		return false, "You can't sell your starter gear."
+	end
+	if data.loadout[itemId] then
+		return false, "Take it out of the truck first."
+	end
+	if TruckService:IsCarrying(player, itemId) then
+		return false, "Put it down first."
+	end
+	if JobService:IsBusy(player) then
+		return false, "Not in the middle of a job."
+	end
+
+	local refund = Shop.sellPrice(item)
+	data.owned[category][itemId] = nil
+	DataService:AddMoney(player, refund)
+	TruckService:GearChanged(player)
+	return true, `Sold the {item.name} for {Format.money(refund)}.`
+end
+
+-- Switches to an owned truck, trailer or business. (Tools aren't equipped: you load the ones you
+-- want into the truck.)
 function ShopService:Equip(player: Player, category: string, itemId: string): (boolean, string)
 	local item = findItem(category, itemId)
 	local data = DataService:Get(player)
-	if not item or not data or not data.owned[category][itemId] then
+	if not item or not data or Items.isToolCategory(category) or not data.owned[category][itemId] then
 		return false, "You don't own that yet."
 	end
 	if VEHICLE_CATEGORIES[category] and JobService:IsBusy(player) then
@@ -83,21 +117,24 @@ function ShopService:Equip(player: Player, category: string, itemId: string): (b
 	end
 
 	data.equipped[category] = itemId
-	-- A smaller truck bed might not fit everything anymore.
+	-- A smaller truck or trailer might not fit everything anymore.
 	DataService.trimLoadout(data)
 	DataService:Changed(player)
 	ToolService:GiveTools(player)
 	if PLOT_CATEGORIES[category] then
 		WorldService:RefreshPlot(player)
 	end
-	TruckService:GearChanged(player, category)
+	TruckService:GearChanged(player)
 	PartyService:Refresh(player)
-	return true, `Equipped {item.name}.`
+	return true, `Equipped the {item.name}.`
 end
 
 function ShopService:Init()
 	Net.func("BuyItem").OnServerInvoke = function(player, category, itemId)
 		return self:Buy(player, category, itemId)
+	end
+	Net.func("SellItem").OnServerInvoke = function(player, category, itemId)
+		return self:Sell(player, category, itemId)
 	end
 	Net.func("EquipItem").OnServerInvoke = function(player, category, itemId)
 		return self:Equip(player, category, itemId)

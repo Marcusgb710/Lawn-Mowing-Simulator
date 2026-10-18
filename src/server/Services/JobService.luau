@@ -291,10 +291,13 @@ end
 local function startDriving(job)
 	local party = job.party
 	-- Which tools to bring is the crew's call; only an overloaded truck stops them.
-	local used, capacity = PartyService:GetTruckLoad(party.leader)
-	if used > capacity then
+	local used, capacity, baysUsed, bays = PartyService:GetTruckLoad(party.leader)
+	if used > capacity or baysUsed > bays then
+		local message = if used > capacity
+			then `The truck is overloaded ({used}/{capacity} space). Take something out or hitch up a trailer.`
+			else `There's no trailer bay for every ride-on machine ({baysUsed}/{bays}).`
 		for _, member in party.members do
-			notify(member, `The truck is overloaded ({used}/{capacity} tools). Take some out or get a trailer.`)
+			notify(member, message)
 		end
 		return
 	end
