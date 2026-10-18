@@ -1,0 +1,514 @@
+{
+  "asset": {
+    "generator": "Khronos glTF Blender I/O v4.3.47",
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        8
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "extras": {
+        "roblox_class": "Attachment",
+        "roblox_name": "Spout",
+        "attributes_json": "{}",
+        "parent_mesh": "TieredFountain__Body"
+      },
+      "name": "Spout",
+      "translation": [
+        0,
+        1.5148262977600098,
+        0
+      ]
+    },
+    {
+      "extras": {
+        "roblox_class": "Attachment",
+        "roblox_name": "Water1",
+        "attributes_json": "{}",
+        "parent_mesh": "TieredFountain__Body"
+      },
+      "name": "Water1",
+      "translation": [
+        0,
+        1.2519925832748413,
+        0
+      ]
+    },
+    {
+      "extras": {
+        "roblox_class": "Attachment",
+        "roblox_name": "Water2",
+        "attributes_json": "{}",
+        "parent_mesh": "TieredFountain__Body"
+      },
+      "name": "Water2",
+      "translation": [
+        0,
+        0.796979546546936,
+        0
+      ]
+    },
+    {
+      "extras": {
+        "roblox_class": "Attachment",
+        "roblox_name": "Water3",
+        "attributes_json": "{}",
+        "parent_mesh": "TieredFountain__Body"
+      },
+      "name": "Water3",
+      "translation": [
+        0,
+        0.19217947125434875,
+        0
+      ]
+    },
+    {
+      "children": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          -2.384185791015625e-07,
+          0.0,
+          -2.384185791015625e-07
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 0,
+      "name": "TieredFountain__Body"
+    },
+    {
+      "extras": {
+        "role": "glass",
+        "animation_axis": "",
+        "stud_origin": [
+          -2.384185791015625e-07,
+          0.0,
+          -2.384185791015625e-07
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 1,
+      "name": "TieredFountain__Water1"
+    },
+    {
+      "extras": {
+        "role": "glass",
+        "animation_axis": "",
+        "stud_origin": [
+          -2.384185791015625e-07,
+          0.0,
+          -2.384185791015625e-07
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 2,
+      "name": "TieredFountain__Water2"
+    },
+    {
+      "extras": {
+        "role": "glass",
+        "animation_axis": "",
+        "stud_origin": [
+          -2.384185791015625e-07,
+          0.0,
+          -2.384185791015625e-07
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 3,
+      "name": "TieredFountain__Water3"
+    },
+    {
+      "children": [
+        4,
+        5,
+        6,
+        7
+      ],
+      "extras": {
+        "folder": "Decorations",
+        "stud_to_meter": 0.28,
+        "primary_part": "Root",
+        "primary_position_studs": [
+          0.0,
+          0.5,
+          0.0
+        ],
+        "markers_json": "[{\"name\": \"Water1\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"TieredFountain__Body\", \"position_studs\": [-2.384185791015625e-07, 4.471402288675308, -2.384185791015625e-07], \"orientation_degrees\": [0.0, -0.0, -0.0], \"attributes\": {}, \"look_vector\": [0.0, 0.0, -1.0]}, {\"name\": \"Water2\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"TieredFountain__Body\", \"position_studs\": [-2.384185791015625e-07, 2.8463554072380064, -2.384185791015625e-07], \"orientation_degrees\": [0.0, -0.0, -0.0], \"attributes\": {}, \"look_vector\": [0.0, 0.0, -1.0]}, {\"name\": \"Water3\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"TieredFountain__Body\", \"position_studs\": [-2.384185791015625e-07, 0.6863552045822144, -2.384185791015625e-07], \"orientation_degrees\": [0.0, -0.0, -0.0], \"attributes\": {}, \"look_vector\": [0.0, 0.0, -1.0]}, {\"name\": \"Spout\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"TieredFountain__Body\", \"position_studs\": [-2.384185791015625e-07, 5.410093965530396, -2.384185791015625e-07], \"orientation_degrees\": [0.0, -0.0, -0.0], \"attributes\": {}, \"look_vector\": [0.0, 0.0, -1.0]}]",
+        "slots_json": "[]"
+      },
+      "name": "TieredFountain"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "HP shared PBR 34",
+      "normalTexture": {
+        "index": 0,
+        "scale": 0.44999998807907104
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 1
+        },
+        "metallicRoughnessTexture": {
+          "index": 2
+        }
+      }
+    },
+    {
+      "alphaMode": "BLEND",
+      "doubleSided": true,
+      "extras": {
+        "palette": "water",
+        "finish": "glass"
+      },
+      "name": "HP_water",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.07421357184648514,
+          0.24228112399578094,
+          0.2961382567882538,
+          0.41999998688697815
+        ],
+        "metallicFactor": 0.11999999731779099,
+        "roughnessFactor": 0.11999999731779099
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "TieredFountain__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "TieredFountain__Water1",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 4,
+            "NORMAL": 5,
+            "TEXCOORD_0": 6
+          },
+          "indices": 7,
+          "material": 1
+        }
+      ]
+    },
+    {
+      "name": "TieredFountain__Water2",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 8,
+            "NORMAL": 9,
+            "TEXCOORD_0": 10
+          },
+          "indices": 7,
+          "material": 1
+        }
+      ]
+    },
+    {
+      "name": "TieredFountain__Water3",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 11,
+            "NORMAL": 12,
+            "TEXCOORD_0": 13
+          },
+          "indices": 7,
+          "material": 1
+        }
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    }
+  ],
+  "images": [
+    {
+      "mimeType": "image/png",
+      "name": "HP34_Normal",
+      "uri": "../../Textures/HP34_Normal.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP34_Color",
+      "uri": "../../Textures/HP34_Color.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP34_Metalness-HP34_Roughness",
+      "uri": "../../Textures/HP34_Metalness-HP34_Roughness.png"
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 3696,
+      "max": [
+        0.8399999141693115,
+        1.5120002031326294,
+        0.8399999141693115
+      ],
+      "min": [
+        -0.8399999141693115,
+        0,
+        -0.8399999141693115
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 3696,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 3696,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "count": 19824,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 4,
+      "componentType": 5126,
+      "count": 192,
+      "max": [
+        0.20432431995868683,
+        1.2542535066604614,
+        0.20432431995868683
+      ],
+      "min": [
+        -0.20432431995868683,
+        1.2497316598892212,
+        -0.20432431995868683
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 5,
+      "componentType": 5126,
+      "count": 192,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 6,
+      "componentType": 5126,
+      "count": 192,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 7,
+      "componentType": 5123,
+      "count": 564,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 8,
+      "componentType": 5126,
+      "count": 192,
+      "max": [
+        0.417162150144577,
+        0.7992404103279114,
+        0.417162150144577
+      ],
+      "min": [
+        -0.417162150144577,
+        0.7947185635566711,
+        -0.417162150144577
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 9,
+      "componentType": 5126,
+      "count": 192,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 10,
+      "componentType": 5126,
+      "count": 192,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 11,
+      "componentType": 5126,
+      "count": 192,
+      "max": [
+        0.7321620583534241,
+        0.19444039463996887,
+        0.7321620583534241
+      ],
+      "min": [
+        -0.7321620583534241,
+        0.18991851806640625,
+        -0.7321620583534241
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 12,
+      "componentType": 5126,
+      "count": 192,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 13,
+      "componentType": 5126,
+      "count": 192,
+      "type": "VEC2"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 44352,
+      "byteOffset": 0,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 44352,
+      "byteOffset": 44352,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 29568,
+      "byteOffset": 88704,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 39648,
+      "byteOffset": 118272,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 2304,
+      "byteOffset": 157920,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 2304,
+      "byteOffset": 160224,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 1536,
+      "byteOffset": 162528,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 1128,
+      "byteOffset": 164064,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 2304,
+      "byteOffset": 165192,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 2304,
+      "byteOffset": 167496,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 1536,
+      "byteOffset": 169800,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 2304,
+      "byteOffset": 171336,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 2304,
+      "byteOffset": 173640,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 1536,
+      "byteOffset": 175944,
+      "target": 34962
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 177480,
+      "uri": "TieredFountain.bin"
+    }
+  ]
+}

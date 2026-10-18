@@ -1,0 +1,805 @@
+{
+  "asset": {
+    "generator": "Khronos glTF Blender I/O v4.3.47",
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        8
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "extras": {
+        "role": "collision_roof",
+        "animation_axis": "",
+        "stud_origin": [
+          0.007573843002319336,
+          0.0,
+          0.0
+        ],
+        "can_collide": true,
+        "collision_fidelity": "Hull",
+        "motion_mode": ""
+      },
+      "mesh": 0,
+      "name": "GardenArbor__Arch_-0.98",
+      "translation": [
+        0.0021206759847700596,
+        0,
+        0
+      ]
+    },
+    {
+      "extras": {
+        "role": "collision_roof",
+        "animation_axis": "",
+        "stud_origin": [
+          0.007573843002319336,
+          0.0,
+          0.0
+        ],
+        "can_collide": true,
+        "collision_fidelity": "Hull",
+        "motion_mode": ""
+      },
+      "mesh": 1,
+      "name": "GardenArbor__Arch_0.98",
+      "translation": [
+        0.0021206759847700596,
+        0,
+        0
+      ]
+    },
+    {
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          0.007573843002319336,
+          0.0,
+          0.0
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 2,
+      "name": "GardenArbor__Body",
+      "translation": [
+        0.0021206759847700596,
+        0,
+        0
+      ]
+    },
+    {
+      "extras": {
+        "role": "foliage",
+        "animation_axis": "",
+        "stud_origin": [
+          0.007573843002319336,
+          0.0,
+          0.0
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 3,
+      "name": "GardenArbor__Plants",
+      "translation": [
+        0.0021206759847700596,
+        0,
+        0
+      ]
+    },
+    {
+      "extras": {
+        "role": "collision_wall",
+        "animation_axis": "",
+        "stud_origin": [
+          0.007573843002319336,
+          0.0,
+          0.0
+        ],
+        "can_collide": true,
+        "collision_fidelity": "Hull",
+        "motion_mode": ""
+      },
+      "mesh": 4,
+      "name": "GardenArbor__Post_-1_-0.91",
+      "translation": [
+        0.0021206759847700596,
+        0,
+        0
+      ]
+    },
+    {
+      "extras": {
+        "role": "collision_wall",
+        "animation_axis": "",
+        "stud_origin": [
+          0.007573843002319336,
+          0.0,
+          0.0
+        ],
+        "can_collide": true,
+        "collision_fidelity": "Hull",
+        "motion_mode": ""
+      },
+      "mesh": 5,
+      "name": "GardenArbor__Post_-1_0.91",
+      "translation": [
+        0.0021206759847700596,
+        0,
+        0
+      ]
+    },
+    {
+      "extras": {
+        "role": "collision_wall",
+        "animation_axis": "",
+        "stud_origin": [
+          0.007573843002319336,
+          0.0,
+          0.0
+        ],
+        "can_collide": true,
+        "collision_fidelity": "Hull",
+        "motion_mode": ""
+      },
+      "mesh": 6,
+      "name": "GardenArbor__Post_1_-0.91",
+      "translation": [
+        0.0021206759847700596,
+        0,
+        0
+      ]
+    },
+    {
+      "extras": {
+        "role": "collision_wall",
+        "animation_axis": "",
+        "stud_origin": [
+          0.007573843002319336,
+          0.0,
+          0.0
+        ],
+        "can_collide": true,
+        "collision_fidelity": "Hull",
+        "motion_mode": ""
+      },
+      "mesh": 7,
+      "name": "GardenArbor__Post_1_0.91",
+      "translation": [
+        0.0021206759847700596,
+        0,
+        0
+      ]
+    },
+    {
+      "children": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "extras": {
+        "folder": "Decorations",
+        "stud_to_meter": 0.28,
+        "primary_part": "Root",
+        "primary_position_studs": [
+          0.0,
+          0.5,
+          0.0
+        ],
+        "markers_json": "[]",
+        "slots_json": "[]"
+      },
+      "name": "GardenArbor"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "HP shared PBR 34",
+      "normalTexture": {
+        "index": 0,
+        "scale": 0.44999998807907104
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 1
+        },
+        "metallicRoughnessTexture": {
+          "index": 2
+        }
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "GardenArbor__Arch_-0.98",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "GardenArbor__Arch_0.98",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 4,
+            "NORMAL": 5,
+            "TEXCOORD_0": 6
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "GardenArbor__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 7,
+            "NORMAL": 8,
+            "TEXCOORD_0": 9
+          },
+          "indices": 10,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "GardenArbor__Plants",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 11,
+            "NORMAL": 12,
+            "TEXCOORD_0": 13
+          },
+          "indices": 14,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "GardenArbor__Post_-1_-0.91",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 15,
+            "NORMAL": 16,
+            "TEXCOORD_0": 17
+          },
+          "indices": 18,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "GardenArbor__Post_-1_0.91",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 19,
+            "NORMAL": 20,
+            "TEXCOORD_0": 21
+          },
+          "indices": 18,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "GardenArbor__Post_1_-0.91",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 22,
+            "NORMAL": 23,
+            "TEXCOORD_0": 24
+          },
+          "indices": 18,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "GardenArbor__Post_1_0.91",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 25,
+            "NORMAL": 26,
+            "TEXCOORD_0": 27
+          },
+          "indices": 18,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    }
+  ],
+  "images": [
+    {
+      "mimeType": "image/png",
+      "name": "HP34_Normal",
+      "uri": "../../Textures/HP34_Normal.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP34_Color",
+      "uri": "../../Textures/HP34_Color.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP34_Metalness-HP34_Roughness",
+      "uri": "../../Textures/HP34_Metalness-HP34_Roughness.png"
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 456,
+      "max": [
+        0.6305959224700928,
+        2.2960000038146973,
+        -0.2533999979496002
+      ],
+      "min": [
+        -0.6305959224700928,
+        1.9601045846939087,
+        -0.2954000234603882
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 456,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 456,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "count": 2436,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 4,
+      "componentType": 5126,
+      "count": 456,
+      "max": [
+        0.6305959224700928,
+        2.2960000038146973,
+        0.2954000234603882
+      ],
+      "min": [
+        -0.6305959224700928,
+        1.9601045846939087,
+        0.2533999979496002
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 5,
+      "componentType": 5126,
+      "count": 456,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 6,
+      "componentType": 5126,
+      "count": 456,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 7,
+      "componentType": 5126,
+      "count": 2768,
+      "max": [
+        0.5945568084716797,
+        2.287574291229248,
+        0.30799999833106995
+      ],
+      "min": [
+        -0.5945568084716797,
+        0.1769394427537918,
+        -0.30799999833106995
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 8,
+      "componentType": 5126,
+      "count": 2768,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 9,
+      "componentType": 5126,
+      "count": 2768,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 10,
+      "componentType": 5123,
+      "count": 8964,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 11,
+      "componentType": 5126,
+      "count": 2468,
+      "max": [
+        0.6418793201446533,
+        2.2110869884490967,
+        0.21795162558555603
+      ],
+      "min": [
+        -0.6461206674575806,
+        0.0415157750248909,
+        -0.23097331821918488
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 12,
+      "componentType": 5126,
+      "count": 2468,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 13,
+      "componentType": 5126,
+      "count": 2468,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 14,
+      "componentType": 5123,
+      "count": 12840,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 15,
+      "componentType": 5126,
+      "count": 80,
+      "max": [
+        -0.5294188857078552,
+        2.022165060043335,
+        -0.22120000422000885
+      ],
+      "min": [
+        -0.5959426760673523,
+        0,
+        -0.28839999437332153
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 16,
+      "componentType": 5126,
+      "count": 80,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 17,
+      "componentType": 5126,
+      "count": 80,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 18,
+      "componentType": 5123,
+      "count": 324,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 19,
+      "componentType": 5126,
+      "count": 80,
+      "max": [
+        -0.5294188857078552,
+        2.022165060043335,
+        0.28839999437332153
+      ],
+      "min": [
+        -0.5959426760673523,
+        0,
+        0.22120000422000885
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 20,
+      "componentType": 5126,
+      "count": 80,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 21,
+      "componentType": 5126,
+      "count": 80,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 22,
+      "componentType": 5126,
+      "count": 80,
+      "max": [
+        0.5959426760673523,
+        2.022165060043335,
+        -0.22120000422000885
+      ],
+      "min": [
+        0.5294188857078552,
+        0,
+        -0.28839999437332153
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 23,
+      "componentType": 5126,
+      "count": 80,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 24,
+      "componentType": 5126,
+      "count": 80,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 25,
+      "componentType": 5126,
+      "count": 80,
+      "max": [
+        0.5959426760673523,
+        2.022165060043335,
+        0.28839999437332153
+      ],
+      "min": [
+        0.5294188857078552,
+        0,
+        0.22120000422000885
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 26,
+      "componentType": 5126,
+      "count": 80,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 27,
+      "componentType": 5126,
+      "count": 80,
+      "type": "VEC2"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 5472,
+      "byteOffset": 0,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 5472,
+      "byteOffset": 5472,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 3648,
+      "byteOffset": 10944,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 4872,
+      "byteOffset": 14592,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 5472,
+      "byteOffset": 19464,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 5472,
+      "byteOffset": 24936,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 3648,
+      "byteOffset": 30408,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 33216,
+      "byteOffset": 34056,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 33216,
+      "byteOffset": 67272,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 22144,
+      "byteOffset": 100488,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 17928,
+      "byteOffset": 122632,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 29616,
+      "byteOffset": 140560,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 29616,
+      "byteOffset": 170176,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 19744,
+      "byteOffset": 199792,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 25680,
+      "byteOffset": 219536,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 960,
+      "byteOffset": 245216,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 960,
+      "byteOffset": 246176,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 640,
+      "byteOffset": 247136,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 648,
+      "byteOffset": 247776,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 960,
+      "byteOffset": 248424,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 960,
+      "byteOffset": 249384,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 640,
+      "byteOffset": 250344,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 960,
+      "byteOffset": 250984,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 960,
+      "byteOffset": 251944,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 640,
+      "byteOffset": 252904,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 960,
+      "byteOffset": 253544,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 960,
+      "byteOffset": 254504,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 640,
+      "byteOffset": 255464,
+      "target": 34962
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 256104,
+      "uri": "GardenArbor.bin"
+    }
+  ]
+}

@@ -1,0 +1,308 @@
+{
+  "asset": {
+    "generator": "Khronos glTF Blender I/O v4.3.47",
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        2
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          0.0,
+          -0.008005678653717041
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 0,
+      "name": "ElectricInflator__Body",
+      "translation": [
+        0,
+        0,
+        -0.0022415900602936745
+      ]
+    },
+    {
+      "extras": {
+        "role": "glass",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          0.0,
+          -0.008005678653717041
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 1,
+      "name": "ElectricInflator__Glass_Display",
+      "translation": [
+        0,
+        0,
+        -0.0022415900602936745
+      ]
+    },
+    {
+      "children": [
+        0,
+        1
+      ],
+      "extras": {
+        "folder": "Tools",
+        "stud_to_meter": 0.28,
+        "primary_part": "Handle",
+        "primary_position_studs": [
+          0.0,
+          0.3100000023841858,
+          0.07999999821186066
+        ],
+        "markers_json": "[]",
+        "slots_json": "[]"
+      },
+      "name": "ElectricInflator"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "HP shared PBR 32",
+      "normalTexture": {
+        "index": 0,
+        "scale": 0.44999998807907104
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 1
+        },
+        "metallicRoughnessTexture": {
+          "index": 2
+        }
+      }
+    },
+    {
+      "alphaMode": "BLEND",
+      "doubleSided": true,
+      "extras": {
+        "palette": "glass",
+        "finish": "glass"
+      },
+      "name": "HP_glass",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.20507873594760895,
+          0.3967552185058594,
+          0.47353148460388184,
+          0.41999998688697815
+        ],
+        "metallicFactor": 0.11999999731779099,
+        "roughnessFactor": 0.11999999731779099
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "ElectricInflator__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "ElectricInflator__Glass_Display",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 4,
+            "NORMAL": 5,
+            "TEXCOORD_0": 6
+          },
+          "indices": 7,
+          "material": 1
+        }
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    }
+  ],
+  "images": [
+    {
+      "mimeType": "image/png",
+      "name": "HP32_Normal",
+      "uri": "../../Textures/HP32_Normal.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP32_Color",
+      "uri": "../../Textures/HP32_Color.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP32_Metalness-HP32_Roughness",
+      "uri": "../../Textures/HP32_Metalness-HP32_Roughness.png"
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 1224,
+      "max": [
+        0.05040000379085541,
+        0.2240000069141388,
+        0.06635920703411102
+      ],
+      "min": [
+        -0.05040000379085541,
+        0,
+        -0.15020819008350372
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 1224,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 1224,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "count": 5292,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 4,
+      "componentType": 5126,
+      "count": 80,
+      "max": [
+        0.028164707124233246,
+        0.20533335208892822,
+        0.06664158403873444
+      ],
+      "min": [
+        -0.028164707124233246,
+        0.1737436205148697,
+        0.06325303018093109
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 5,
+      "componentType": 5126,
+      "count": 80,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 6,
+      "componentType": 5126,
+      "count": 80,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 7,
+      "componentType": 5123,
+      "count": 324,
+      "type": "SCALAR"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 14688,
+      "byteOffset": 0,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 14688,
+      "byteOffset": 14688,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 9792,
+      "byteOffset": 29376,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 10584,
+      "byteOffset": 39168,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 960,
+      "byteOffset": 49752,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 960,
+      "byteOffset": 50712,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 640,
+      "byteOffset": 51672,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 648,
+      "byteOffset": 52312,
+      "target": 34963
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 52960,
+      "uri": "ElectricInflator.bin"
+    }
+  ]
+}

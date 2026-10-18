@@ -1,0 +1,902 @@
+{
+  "assets": [
+    {
+      "name": "SingleWheelbarrow",
+      "folder": "Tools",
+      "instruction": 31,
+      "triangle_budget": 20000,
+      "detail_guidance_min": 10000,
+      "dimensions_studs": [
+        2.4,
+        2.662659,
+        5.299575
+      ],
+      "bounds_min_studs": [
+        -1.1999999284744263,
+        -3.859006447726188e-09,
+        -2.8725812435150146
+      ],
+      "bounds_max_studs": [
+        1.2000000476837158,
+        2.662658929824829,
+        2.4269938468933105
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.0,
+        2.5999999046325684,
+        2.4012742042541504
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 9352,
+      "mesh_objects": 2,
+      "parts": [
+        {
+          "name": "SingleWheelbarrow__Body",
+          "triangles": 7268,
+          "origin_studs": [
+            8.344650268554688e-07,
+            0.13424769043922424,
+            0.04687976837158203
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "SingleWheelbarrow__Wheel_Front",
+          "triangles": 2084,
+          "origin_studs": [
+            8.344650268554688e-07,
+            0.7754160761833191,
+            -2.1685760021209717
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "hollow_rolled_edge_tray_and_bolted_saddles": 1,
+        "tire_type": "pneumatic_with_valve"
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 1168,
+      "authoring_fit": {
+        "scale": [
+          1.0434789657592773,
+          0.9864129424095154,
+          1.0549789667129517
+        ],
+        "offset": [
+          8.344650268554688e-07,
+          0.13424769043922424,
+          0.04687976837158203
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "name": "SingleWheelbarrowFlatFree",
+      "folder": "Tools",
+      "instruction": 31,
+      "triangle_budget": 20000,
+      "detail_guidance_min": 10000,
+      "dimensions_studs": [
+        2.4,
+        2.662659,
+        5.299575
+      ],
+      "bounds_min_studs": [
+        -1.1999999284744263,
+        -3.859006447726188e-09,
+        -2.8725812435150146
+      ],
+      "bounds_max_studs": [
+        1.2000000476837158,
+        2.662658929824829,
+        2.4269938468933105
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.0,
+        2.5999999046325684,
+        2.4012742042541504
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 9260,
+      "mesh_objects": 2,
+      "parts": [
+        {
+          "name": "SingleWheelbarrowFlatFree__Body",
+          "triangles": 7268,
+          "origin_studs": [
+            8.344650268554688e-07,
+            0.13424769043922424,
+            0.04687976837158203
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "SingleWheelbarrowFlatFree__Wheel_Front",
+          "triangles": 1992,
+          "origin_studs": [
+            8.344650268554688e-07,
+            0.7754160761833191,
+            -2.1685760021209717
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "hollow_rolled_edge_tray_and_bolted_saddles": 1,
+        "tire_type": "solid_foam"
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 932,
+      "authoring_fit": {
+        "scale": [
+          1.0434789657592773,
+          0.9864129424095154,
+          1.0549789667129517
+        ],
+        "offset": [
+          8.344650268554688e-07,
+          0.13424769043922424,
+          0.04687976837158203
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        2.2839999198913574,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "name": "DualWheelbarrow",
+      "folder": "Tools",
+      "instruction": 31,
+      "triangle_budget": 20000,
+      "detail_guidance_min": 10000,
+      "dimensions_studs": [
+        2.8,
+        2.671329,
+        4.967016
+      ],
+      "bounds_min_studs": [
+        -1.399999976158142,
+        3.7017429121988243e-09,
+        -2.689528703689575
+      ],
+      "bounds_max_studs": [
+        1.3999998569488525,
+        2.6713292598724365,
+        2.27748703956604
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.0,
+        2.5999999046325684,
+        2.1989529132843018
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 11088,
+      "mesh_objects": 3,
+      "parts": [
+        {
+          "name": "DualWheelbarrow__Body",
+          "triangles": 6920,
+          "origin_studs": [
+            9.5367431640625e-07,
+            0.13468484580516815,
+            -0.24652981758117676
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "DualWheelbarrow__Wheel_-1",
+          "triangles": 2084,
+          "origin_studs": [
+            -1.1309802532196045,
+            0.8076298236846924,
+            -1.4750336408615112
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "DualWheelbarrow__Wheel_1",
+          "triangles": 2084,
+          "origin_studs": [
+            1.1309821605682373,
+            0.8076298236846924,
+            -1.4750336408615112
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "hollow_rolled_edge_tray_and_bolted_saddles": 1,
+        "tire_type": "pneumatic_with_valve"
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 1912,
+      "authoring_fit": {
+        "scale": [
+          1.098039984703064,
+          0.9896249771118164,
+          1.1168216466903687
+        ],
+        "offset": [
+          9.5367431640625e-07,
+          0.13468484580516815,
+          -0.24652981758117676
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        4.567999839782715,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "name": "PolyCart",
+      "folder": "Tools",
+      "instruction": 31,
+      "triangle_budget": 20000,
+      "detail_guidance_min": 10000,
+      "dimensions_studs": [
+        2.639011,
+        2.859622,
+        4.5
+      ],
+      "bounds_min_studs": [
+        -1.3195055723190308,
+        2.0250467969162855e-12,
+        -2.1314752101898193
+      ],
+      "bounds_max_studs": [
+        1.3195058107376099,
+        2.85962176322937,
+        2.3685245513916016
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.0,
+        2.799999952316284,
+        2.2954347133636475
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 8552,
+      "mesh_objects": 3,
+      "parts": [
+        {
+          "name": "PolyCart__Body",
+          "triangles": 4568,
+          "origin_studs": [
+            1.1920928955078125e-07,
+            0.008662281557917595,
+            0.0029532909393310547
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "PolyCart__Wheel_-1",
+          "triangles": 1992,
+          "origin_studs": [
+            -1.1003000736236572,
+            0.6956404447555542,
+            -1.1423497200012207
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "PolyCart__Wheel_1",
+          "triangles": 1992,
+          "origin_studs": [
+            1.1003003120422363,
+            0.6956404447555542,
+            -1.1423497200012207
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "hollow_rolled_edge_tray_and_bolted_saddles": 1,
+        "tire_type": "solid_foam"
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 1048,
+      "authoring_fit": {
+        "scale": [
+          1.068252682685852,
+          1.0102620124816895,
+          1.0411845445632935
+        ],
+        "offset": [
+          1.1920928955078125e-07,
+          0.008662281557917595,
+          0.0029532909393310547
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        0.0,
+        0.0,
+        -2.9838809967041016
+      ]
+    },
+    {
+      "name": "BroadcastSpreader",
+      "folder": "Tools",
+      "instruction": 31,
+      "triangle_budget": 20000,
+      "detail_guidance_min": 10000,
+      "dimensions_studs": [
+        2.463162,
+        3.571329,
+        3.0
+      ],
+      "bounds_min_studs": [
+        -1.2105811834335327,
+        2.473736770980395e-10,
+        -1.360824704170227
+      ],
+      "bounds_max_studs": [
+        1.252581238746643,
+        3.571329355239868,
+        1.6391751766204834
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.0,
+        3.5,
+        1.5463917255401611
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 9136,
+      "mesh_objects": 4,
+      "parts": [
+        {
+          "name": "BroadcastSpreader__Body",
+          "triangles": 4132,
+          "origin_studs": [
+            0.021000027656555176,
+            0.011246251873672009,
+            -0.029587864875793457
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "BroadcastSpreader__Wheel_-1",
+          "triangles": 2084,
+          "origin_studs": [
+            -1.0061285495758057,
+            0.559411346912384,
+            -0.3440532684326172
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "BroadcastSpreader__Wheel_1",
+          "triangles": 2084,
+          "origin_studs": [
+            1.048128604888916,
+            0.559411346912384,
+            -0.3440532684326172
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "BroadcastSpreader__CutterRotor",
+          "triangles": 836,
+          "origin_studs": [
+            0.021000027656555176,
+            0.9182103276252747,
+            -0.3440532684326172
+          ],
+          "role": "rotor",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "Y",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "conical_hopper_axle_gearbox_gate_and_finned_spinner": 1
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 1704,
+      "authoring_fit": {
+        "scale": [
+          1.0811879634857178,
+          0.9966638088226318,
+          1.048218011856079
+        ],
+        "offset": [
+          0.021000027656555176,
+          0.011246251873672009,
+          -0.029587864875793457
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        2.2839999198913574,
+        0.0,
+        -2.9838809967041016
+      ]
+    },
+    {
+      "name": "WalkBehindEdger",
+      "folder": "Tools",
+      "instruction": 31,
+      "triangle_budget": 20000,
+      "detail_guidance_min": 10000,
+      "dimensions_studs": [
+        2.21,
+        4.345,
+        4.11
+      ],
+      "bounds_min_studs": [
+        -0.98499995470047,
+        -0.03500000759959221,
+        -4.0
+      ],
+      "bounds_max_studs": [
+        1.2250001430511475,
+        4.309999942779541,
+        0.10999983549118042
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0,
+        4.2,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 18048,
+      "mesh_objects": 6,
+      "parts": [
+        {
+          "name": "WalkBehindEdger__Body",
+          "triangles": 8228,
+          "origin_studs": [
+            -0.02897864580154419,
+            -0.026340510696172714,
+            0.030810832977294922
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "WalkBehindEdger__Wheel_F-1",
+          "triangles": 1992,
+          "origin_studs": [
+            -0.8483113050460815,
+            0.3035542964935303,
+            -3.378715753555298
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "WalkBehindEdger__Wheel_R-1",
+          "triangles": 1992,
+          "origin_studs": [
+            -0.8483113050460815,
+            0.3898344933986664,
+            -2.003906726837158
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "WalkBehindEdger__Wheel_F1",
+          "triangles": 3624,
+          "origin_studs": [
+            0.7903540134429932,
+            0.3035542964935303,
+            -3.378715753555298
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "WalkBehindEdger__Wheel_R1",
+          "triangles": 1992,
+          "origin_studs": [
+            0.7903540134429932,
+            0.3898344933986664,
+            -2.003906726837158
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "WalkBehindEdger__Wheel_Blade",
+          "triangles": 220,
+          "origin_studs": [
+            1.1700447797775269,
+            0.5319430828094482,
+            -3.433708429336548
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "engine_bolted_to_frame": 1,
+        "guarded_belt_drive_and_adjustable_depth": 1,
+        "vertical_blade_with_guard_and_curb_wheel": 1
+      },
+      "baseline_source_pack": "model-source/RevisedLawnModels",
+      "baseline_triangles": 6096,
+      "authoring_fit": {
+        "scale": [
+          0.9991861581802368,
+          1.0150610208511353,
+          1.0998473167419434
+        ],
+        "offset": [
+          -0.02897864580154419,
+          -0.026340510696172714,
+          0.030810832977294922
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        4.567999839782715,
+        0.0,
+        -2.9838809967041016
+      ]
+    },
+    {
+      "name": "SlitOverseeder",
+      "folder": "Tools",
+      "instruction": 31,
+      "triangle_budget": 20000,
+      "detail_guidance_min": 10000,
+      "dimensions_studs": [
+        2.2,
+        3.571329,
+        4.999999
+      ],
+      "bounds_min_studs": [
+        -1.100000023841858,
+        -1.0030554165041394e-10,
+        -2.222222089767456
+      ],
+      "bounds_max_studs": [
+        1.100000023841858,
+        3.571329355239868,
+        2.7777769565582275
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.0,
+        3.5,
+        2.6666665077209473
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 15880,
+      "mesh_objects": 4,
+      "parts": [
+        {
+          "name": "SlitOverseeder__Body",
+          "triangles": 9740,
+          "origin_studs": [
+            0.0,
+            0.009944814257323742,
+            -0.503110408782959
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "SlitOverseeder__Wheel_Rear-1",
+          "triangles": 2084,
+          "origin_studs": [
+            -0.9141274094581604,
+            0.48851829767227173,
+            -0.19163374602794647
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "SlitOverseeder__Wheel_Rear1",
+          "triangles": 2084,
+          "origin_studs": [
+            0.9141274094581604,
+            0.48851829767227173,
+            -0.19163374602794647
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "SlitOverseeder__Wheel_Blades",
+          "triangles": 1972,
+          "origin_studs": [
+            0.0,
+            0.4685777425765991,
+            -1.3776410818099976
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "engine_bolted_to_frame": 1,
+        "guarded_belt_drive_and_adjustable_depth": 1,
+        "seed_hopper_and_ten_slicing_discs": 1
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 2488,
+      "authoring_fit": {
+        "scale": [
+          1.0882469415664673,
+          0.997028112411499,
+          1.1979871988296509
+        ],
+        "offset": [
+          0.0,
+          0.009944814257323742,
+          -0.503110408782959
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        0.0,
+        0.0,
+        -5.967761993408203
+      ]
+    },
+    {
+      "name": "PowerRakeDethatcher",
+      "folder": "Tools",
+      "instruction": 31,
+      "triangle_budget": 20000,
+      "detail_guidance_min": 10000,
+      "dimensions_studs": [
+        2.0,
+        3.571329,
+        4.5
+      ],
+      "bounds_min_studs": [
+        -1.0,
+        -1.0030554165041394e-10,
+        -2.0
+      ],
+      "bounds_max_studs": [
+        1.0,
+        3.571329355239868,
+        2.5
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.0,
+        3.5,
+        2.4000000953674316
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 17916,
+      "mesh_objects": 4,
+      "parts": [
+        {
+          "name": "PowerRakeDethatcher__Body",
+          "triangles": 8056,
+          "origin_studs": [
+            0.0,
+            0.009944814257323742,
+            -0.3471972942352295
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "PowerRakeDethatcher__Wheel_Rear-1",
+          "triangles": 2084,
+          "origin_studs": [
+            -0.8310248851776123,
+            0.48851829767227173,
+            -0.047734811902046204
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "PowerRakeDethatcher__Wheel_Rear1",
+          "triangles": 2084,
+          "origin_studs": [
+            0.8310248851776123,
+            0.48851829767227173,
+            -0.047734811902046204
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "PowerRakeDethatcher__Wheel_Flails",
+          "triangles": 5692,
+          "origin_studs": [
+            0.0,
+            0.4685777425765991,
+            -1.1879959106445312
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "engine_bolted_to_frame": 1,
+        "guarded_belt_drive_and_adjustable_depth": 1,
+        "swinging_flail_reel": 1
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 2288,
+      "authoring_fit": {
+        "scale": [
+          0.989315390586853,
+          0.997028112411499,
+          1.1517788171768188
+        ],
+        "offset": [
+          0.0,
+          0.009944814257323742,
+          -0.3471972942352295
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        2.2839999198913574,
+        0.0,
+        -5.967761993408203
+      ]
+    }
+  ],
+  "meters_per_stud": 0.28,
+  "source_main_commit": "2377b19",
+  "original_packs_preserved": true,
+  "studio_import_tested": false
+}

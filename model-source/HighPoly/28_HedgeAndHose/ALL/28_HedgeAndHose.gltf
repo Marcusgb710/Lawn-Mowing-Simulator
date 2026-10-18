@@ -1,0 +1,1057 @@
+{
+  "asset": {
+    "generator": "Khronos glTF Blender I/O v4.3.47",
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        1,
+        4,
+        7,
+        10,
+        12,
+        14
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          -0.4779534339904785,
+          -0.016159772872924805
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 0,
+      "name": "HandHedgeShears__Body",
+      "translation": [
+        0,
+        -0.13382695615291595,
+        -0.004524736199527979
+      ]
+    },
+    {
+      "children": [
+        0
+      ],
+      "extras": {
+        "folder": "Tools",
+        "stud_to_meter": 0.28,
+        "primary_part": "Handle",
+        "primary_position_studs": [
+          0.26,
+          0.3,
+          0.0
+        ],
+        "markers_json": "[]",
+        "slots_json": "[]"
+      },
+      "name": "HandHedgeShears"
+    },
+    {
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          0.01825336366891861,
+          -0.03406047821044922
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 1,
+      "name": "ElectricHedgeTrimmer__Body",
+      "translation": [
+        0,
+        0.005110941827297211,
+        -0.009536934085190296
+      ]
+    },
+    {
+      "extras": {
+        "role": "glass",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          0.01825336366891861,
+          -0.03406047821044922
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 2,
+      "name": "ElectricHedgeTrimmer__Glass_HandGuard",
+      "translation": [
+        0,
+        0.005110941827297211,
+        -0.009536934085190296
+      ]
+    },
+    {
+      "children": [
+        2,
+        3
+      ],
+      "extras": {
+        "folder": "Tools",
+        "stud_to_meter": 0.28,
+        "primary_part": "Handle",
+        "primary_position_studs": [
+          0.0,
+          0.4,
+          0.0
+        ],
+        "markers_json": "[]",
+        "slots_json": "[]"
+      },
+      "name": "ElectricHedgeTrimmer",
+      "translation": [
+        1.8079999685287476,
+        0,
+        0
+      ]
+    },
+    {
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          -0.027074432000517845,
+          -0.023096084594726562
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 3,
+      "name": "CordlessHedgeTrimmer__Body",
+      "translation": [
+        0,
+        -0.007580840960144997,
+        -0.0064669037237763405
+      ]
+    },
+    {
+      "extras": {
+        "role": "glass",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          -0.027074432000517845,
+          -0.023096084594726562
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 4,
+      "name": "CordlessHedgeTrimmer__Glass_HandGuard",
+      "translation": [
+        0,
+        -0.007580840960144997,
+        -0.0064669037237763405
+      ]
+    },
+    {
+      "children": [
+        5,
+        6
+      ],
+      "extras": {
+        "folder": "Tools",
+        "stud_to_meter": 0.28,
+        "primary_part": "Handle",
+        "primary_position_studs": [
+          0.0,
+          0.4,
+          0.0
+        ],
+        "markers_json": "[]",
+        "slots_json": "[]"
+      },
+      "name": "CordlessHedgeTrimmer",
+      "translation": [
+        3.615999937057495,
+        0,
+        0
+      ]
+    },
+    {
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          -0.07366050779819489,
+          -0.331082820892334
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 5,
+      "name": "GasHedgeTrimmer__Body",
+      "translation": [
+        0,
+        -0.02062494307756424,
+        -0.09270310401916504
+      ]
+    },
+    {
+      "extras": {
+        "role": "glass",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          -0.07366050779819489,
+          -0.331082820892334
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 6,
+      "name": "GasHedgeTrimmer__Glass_HandGuard",
+      "translation": [
+        0,
+        -0.02062494307756424,
+        -0.09270310401916504
+      ]
+    },
+    {
+      "children": [
+        8,
+        9
+      ],
+      "extras": {
+        "folder": "Tools",
+        "stud_to_meter": 0.28,
+        "primary_part": "Handle",
+        "primary_position_studs": [
+          0.0,
+          0.4,
+          0.0
+        ],
+        "markers_json": "[]",
+        "slots_json": "[]"
+      },
+      "name": "GasHedgeTrimmer",
+      "translation": [
+        0,
+        0,
+        -3.673673391342163
+      ]
+    },
+    {
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          0.05632945895195007,
+          -0.10162226855754852,
+          0.14507055282592773
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 7,
+      "name": "ArticulatingHedgeTrimmer__Body",
+      "translation": [
+        0.015772223472595215,
+        -0.028454234823584557,
+        0.040619850158691406
+      ]
+    },
+    {
+      "children": [
+        11
+      ],
+      "extras": {
+        "folder": "Tools",
+        "stud_to_meter": 0.28,
+        "primary_part": "Handle",
+        "primary_position_studs": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "markers_json": "[]",
+        "slots_json": "[]"
+      },
+      "name": "ArticulatingHedgeTrimmer",
+      "translation": [
+        1.8079999685287476,
+        0,
+        -3.673673391342163
+      ]
+    },
+    {
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          -0.00017952919006347656,
+          0.01051032543182373,
+          0.12058901786804199
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 8,
+      "name": "GardenHoseWand__Body",
+      "translation": [
+        -5.030632019042969e-05,
+        0.0029428910929709673,
+        0.03376483917236328
+      ]
+    },
+    {
+      "children": [
+        13
+      ],
+      "extras": {
+        "folder": "Tools",
+        "stud_to_meter": 0.28,
+        "primary_part": "Handle",
+        "primary_position_studs": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "markers_json": "[]",
+        "slots_json": "[]"
+      },
+      "name": "GardenHoseWand",
+      "translation": [
+        3.615999937057495,
+        0,
+        -3.673673391342163
+      ]
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "HP shared PBR 28",
+      "normalTexture": {
+        "index": 0,
+        "scale": 0.44999998807907104
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 1
+        },
+        "metallicRoughnessTexture": {
+          "index": 2
+        }
+      }
+    },
+    {
+      "alphaMode": "BLEND",
+      "doubleSided": true,
+      "extras": {
+        "palette": "clear",
+        "finish": "glass"
+      },
+      "name": "HP_clear",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.6307571530342102,
+          0.7529422044754028,
+          0.7835378050804138,
+          0.30000001192092896
+        ],
+        "metallicFactor": 0.11999999731779099,
+        "roughnessFactor": 0.11999999731779099
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "HandHedgeShears__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "ElectricHedgeTrimmer__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 4,
+            "NORMAL": 5,
+            "TEXCOORD_0": 6
+          },
+          "indices": 7,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "ElectricHedgeTrimmer__Glass_HandGuard",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 8,
+            "NORMAL": 9,
+            "TEXCOORD_0": 10
+          },
+          "indices": 11,
+          "material": 1
+        }
+      ]
+    },
+    {
+      "name": "CordlessHedgeTrimmer__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 12,
+            "NORMAL": 13,
+            "TEXCOORD_0": 14
+          },
+          "indices": 15,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "CordlessHedgeTrimmer__Glass_HandGuard",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 16,
+            "NORMAL": 17,
+            "TEXCOORD_0": 18
+          },
+          "indices": 11,
+          "material": 1
+        }
+      ]
+    },
+    {
+      "name": "GasHedgeTrimmer__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 19,
+            "NORMAL": 20,
+            "TEXCOORD_0": 21
+          },
+          "indices": 22,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "GasHedgeTrimmer__Glass_HandGuard",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 23,
+            "NORMAL": 24,
+            "TEXCOORD_0": 25
+          },
+          "indices": 11,
+          "material": 1
+        }
+      ]
+    },
+    {
+      "name": "ArticulatingHedgeTrimmer__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 26,
+            "NORMAL": 27,
+            "TEXCOORD_0": 28
+          },
+          "indices": 29,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "GardenHoseWand__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 30,
+            "NORMAL": 31,
+            "TEXCOORD_0": 32
+          },
+          "indices": 33,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    }
+  ],
+  "images": [
+    {
+      "mimeType": "image/png",
+      "name": "HP28_Normal",
+      "uri": "../Textures/HP28_Normal.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP28_Color",
+      "uri": "../Textures/HP28_Color.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP28_Metalness-HP28_Roughness",
+      "uri": "../Textures/HP28_Metalness-HP28_Roughness.png"
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 3600,
+      "max": [
+        0.10612981766462326,
+        0.3054060935974121,
+        0.09283630549907684
+      ],
+      "min": [
+        -0.10612981766462326,
+        0.18706120550632477,
+        -0.7039857506752014
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 3600,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 3600,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "count": 14604,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 4,
+      "componentType": 5126,
+      "count": 7072,
+      "max": [
+        0.15399999916553497,
+        0.3098890781402588,
+        0.16994702816009521
+      ],
+      "min": [
+        -0.15399999916553497,
+        0.02902188152074814,
+        -0.872463047504425
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 5,
+      "componentType": 5126,
+      "count": 7072,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 6,
+      "componentType": 5126,
+      "count": 7072,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 7,
+      "componentType": 5123,
+      "count": 24996,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 8,
+      "componentType": 5126,
+      "count": 80,
+      "max": [
+        0.12445621937513351,
+        0.22100190818309784,
+        -0.27463746070861816
+      ],
+      "min": [
+        -0.12445621937513351,
+        0.1089446023106575,
+        -0.2818838357925415
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 9,
+      "componentType": 5126,
+      "count": 80,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 10,
+      "componentType": 5126,
+      "count": 80,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 11,
+      "componentType": 5123,
+      "count": 324,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 12,
+      "componentType": 5126,
+      "count": 7048,
+      "max": [
+        0.15399999916553497,
+        0.32258084416389465,
+        0.16746680438518524
+      ],
+      "min": [
+        -0.15399999916553497,
+        0.014580841176211834,
+        -1.0715330839157104
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 13,
+      "componentType": 5126,
+      "count": 7048,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 14,
+      "componentType": 5126,
+      "count": 7048,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 15,
+      "componentType": 5123,
+      "count": 24684,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 16,
+      "componentType": 5126,
+      "count": 80,
+      "max": [
+        0.12445621937513351,
+        0.23005324602127075,
+        -0.27365973591804504
+      ],
+      "min": [
+        -0.12445621937513351,
+        0.11340651661157608,
+        -0.28088030219078064
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 17,
+      "componentType": 5126,
+      "count": 80,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 18,
+      "componentType": 5126,
+      "count": 80,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 19,
+      "componentType": 5126,
+      "count": 8624,
+      "max": [
+        0.15399999916553497,
+        0.33562493324279785,
+        0.16270330548286438
+      ],
+      "min": [
+        -0.15399999916553497,
+        0.05562494695186615,
+        -1.153296947479248
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 20,
+      "componentType": 5126,
+      "count": 8624,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 21,
+      "componentType": 5126,
+      "count": 8624,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 22,
+      "componentType": 5123,
+      "count": 30000,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 23,
+      "componentType": 5126,
+      "count": 80,
+      "max": [
+        0.12445621937513351,
+        0.23935583233833313,
+        -0.26587560772895813
+      ],
+      "min": [
+        -0.12445621937513351,
+        0.11799230426549911,
+        -0.2728908061981201
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 24,
+      "componentType": 5126,
+      "count": 80,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 25,
+      "componentType": 5126,
+      "count": 80,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 26,
+      "componentType": 5126,
+      "count": 6992,
+      "max": [
+        0.11253774911165237,
+        0.806854248046875,
+        0.19528035819530487
+      ],
+      "min": [
+        -0.10677224397659302,
+        -0.0681457594037056,
+        -1.9783929586410522
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 27,
+      "componentType": 5126,
+      "count": 6992,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 28,
+      "componentType": 5126,
+      "count": 6992,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 29,
+      "componentType": 5123,
+      "count": 22344,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 30,
+      "componentType": 5126,
+      "count": 3208,
+      "max": [
+        0.09920454770326614,
+        0.013857100158929825,
+        0.08509141951799393
+      ],
+      "min": [
+        -0.09919529408216476,
+        -0.3314119577407837,
+        -0.7505650520324707
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 31,
+      "componentType": 5126,
+      "count": 3208,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 32,
+      "componentType": 5126,
+      "count": 3208,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 33,
+      "componentType": 5123,
+      "count": 14616,
+      "type": "SCALAR"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 43200,
+      "byteOffset": 0,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 43200,
+      "byteOffset": 43200,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 28800,
+      "byteOffset": 86400,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 29208,
+      "byteOffset": 115200,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 84864,
+      "byteOffset": 144408,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 84864,
+      "byteOffset": 229272,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 56576,
+      "byteOffset": 314136,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 49992,
+      "byteOffset": 370712,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 960,
+      "byteOffset": 420704,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 960,
+      "byteOffset": 421664,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 640,
+      "byteOffset": 422624,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 648,
+      "byteOffset": 423264,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 84576,
+      "byteOffset": 423912,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 84576,
+      "byteOffset": 508488,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 56384,
+      "byteOffset": 593064,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 49368,
+      "byteOffset": 649448,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 960,
+      "byteOffset": 698816,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 960,
+      "byteOffset": 699776,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 640,
+      "byteOffset": 700736,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 103488,
+      "byteOffset": 701376,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 103488,
+      "byteOffset": 804864,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 68992,
+      "byteOffset": 908352,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 60000,
+      "byteOffset": 977344,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 960,
+      "byteOffset": 1037344,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 960,
+      "byteOffset": 1038304,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 640,
+      "byteOffset": 1039264,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 83904,
+      "byteOffset": 1039904,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 83904,
+      "byteOffset": 1123808,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 55936,
+      "byteOffset": 1207712,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 44688,
+      "byteOffset": 1263648,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 38496,
+      "byteOffset": 1308336,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 38496,
+      "byteOffset": 1346832,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 25664,
+      "byteOffset": 1385328,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 29232,
+      "byteOffset": 1410992,
+      "target": 34963
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 1440224,
+      "uri": "28_HedgeAndHose.bin"
+    }
+  ]
+}

@@ -1,0 +1,150 @@
+{
+  "source_main_commit": "2377b19",
+  "assets": 8,
+  "checks": [
+    "source_files_and_buffers",
+    "exact_ids_and_folders",
+    "actual_exported_triangle_counts_and_20k_mesh_limit",
+    "finite_positions_normals_and_UVs",
+    "nondegenerate_triangles",
+    "actual_bounds_and_size_tolerances",
+    "preserved_grips_slots_and_old_markers",
+    "hinge_and_axle_local_frames",
+    "attachment_positions_parents_and_LookVectors",
+    "untextured_16_9_screens",
+    "interaction_marker_counts",
+    "combined_library_translation_only_roots",
+    "portable_PBR_textures_at_most_2048",
+    "binary_FBX_header",
+    "closed_authoring_components_after_coincident_vertex_matching",
+    "FBX_import_triangle_mesh_count_and_world_bounds"
+  ],
+  "issues": [],
+  "studio_import_tested": false,
+  "geometry": [
+    {
+      "name": "ReelMower",
+      "triangles": 8708,
+      "counts": {
+        "components": 117
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "SelfPropelledMower",
+      "triangles": 15696,
+      "counts": {
+        "components": 236
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "CommercialReelMower",
+      "triangles": 9796,
+      "counts": {
+        "components": 70
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "CommercialZeroTurn",
+      "triangles": 19244,
+      "counts": {
+        "components": 226
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "StandOnMower",
+      "triangles": 17496,
+      "counts": {
+        "components": 214
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "StandOnAerator",
+      "triangles": 21116,
+      "counts": {
+        "components": 211
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "TowBehindAerator",
+      "triangles": 13292,
+      "counts": {
+        "components": 144
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "RideOnSpreaderSprayer",
+      "triangles": 14840,
+      "counts": {
+        "components": 205
+      },
+      "topology_issues": []
+    }
+  ],
+  "fbx_roundtrip": [
+    {
+      "name": "ReelMower",
+      "triangles": 8708,
+      "mesh_objects": 4,
+      "bounds_error_studs": 6.92903995513916e-07,
+      "passed": true
+    },
+    {
+      "name": "SelfPropelledMower",
+      "triangles": 15696,
+      "mesh_objects": 6,
+      "bounds_error_studs": 6.854534149169922e-07,
+      "passed": true
+    },
+    {
+      "name": "CommercialReelMower",
+      "triangles": 9796,
+      "mesh_objects": 3,
+      "bounds_error_studs": 5.960464477539062e-07,
+      "passed": true
+    },
+    {
+      "name": "CommercialZeroTurn",
+      "triangles": 19244,
+      "mesh_objects": 8,
+      "bounds_error_studs": 9.5367431640625e-07,
+      "passed": true
+    },
+    {
+      "name": "StandOnMower",
+      "triangles": 17496,
+      "mesh_objects": 7,
+      "bounds_error_studs": 4.76837158203125e-07,
+      "passed": true
+    },
+    {
+      "name": "StandOnAerator",
+      "triangles": 21116,
+      "mesh_objects": 4,
+      "bounds_error_studs": 4.76837158203125e-07,
+      "passed": true
+    },
+    {
+      "name": "TowBehindAerator",
+      "triangles": 13292,
+      "mesh_objects": 4,
+      "bounds_error_studs": 4.76837158203125e-07,
+      "passed": true
+    },
+    {
+      "name": "RideOnSpreaderSprayer",
+      "triangles": 14840,
+      "mesh_objects": 5,
+      "bounds_error_studs": 4.76837158203125e-07,
+      "passed": true
+    }
+  ],
+  "protected_files_unchanged_count": 541,
+  "preview_status": "rendering"
+}

@@ -1,0 +1,287 @@
+{
+  "asset": {
+    "generator": "Khronos glTF Blender I/O v4.3.47",
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        7
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "extras": {
+        "roblox_class": "Attachment",
+        "roblox_name": "Slot1",
+        "attributes_json": "{}",
+        "parent_mesh": "StorageShelf__Body"
+      },
+      "name": "Slot1",
+      "translation": [
+        -0.29253730177879333,
+        0.09882353246212006,
+        -0.2142857164144516
+      ]
+    },
+    {
+      "extras": {
+        "roblox_class": "Attachment",
+        "roblox_name": "Slot2",
+        "attributes_json": "{}",
+        "parent_mesh": "StorageShelf__Body"
+      },
+      "name": "Slot2",
+      "translation": [
+        0.29253730177879333,
+        0.09882353246212006,
+        -0.2142857164144516
+      ]
+    },
+    {
+      "extras": {
+        "roblox_class": "Attachment",
+        "roblox_name": "Slot3",
+        "attributes_json": "{}",
+        "parent_mesh": "StorageShelf__Body"
+      },
+      "name": "Slot3",
+      "translation": [
+        -0.29253730177879333,
+        0.8047059178352356,
+        -0.2142857164144516
+      ]
+    },
+    {
+      "extras": {
+        "roblox_class": "Attachment",
+        "roblox_name": "Slot4",
+        "attributes_json": "{}",
+        "parent_mesh": "StorageShelf__Body"
+      },
+      "name": "Slot4",
+      "translation": [
+        0.29253730177879333,
+        0.8047059178352356,
+        -0.2142857164144516
+      ]
+    },
+    {
+      "extras": {
+        "roblox_class": "Attachment",
+        "roblox_name": "Slot5",
+        "attributes_json": "{}",
+        "parent_mesh": "StorageShelf__Body"
+      },
+      "name": "Slot5",
+      "translation": [
+        -0.29253730177879333,
+        1.51058828830719,
+        -0.2142857164144516
+      ]
+    },
+    {
+      "extras": {
+        "roblox_class": "Attachment",
+        "roblox_name": "Slot6",
+        "attributes_json": "{}",
+        "parent_mesh": "StorageShelf__Body"
+      },
+      "name": "Slot6",
+      "translation": [
+        0.29253730177879333,
+        1.51058828830719,
+        -0.2142857164144516
+      ]
+    },
+    {
+      "children": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          -0.02521008625626564,
+          0.010204076766967773
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 0,
+      "name": "StorageShelf__Body",
+      "translation": [
+        0,
+        -0.0070588244125247,
+        0.0028571414295583963
+      ]
+    },
+    {
+      "children": [
+        6
+      ],
+      "extras": {
+        "folder": "Props",
+        "stud_to_meter": 0.28,
+        "primary_part": "Root",
+        "primary_position_studs": [
+          0.0,
+          0.5,
+          0.0
+        ],
+        "markers_json": "[{\"name\": \"Slot1\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"StorageShelf__Body\", \"position_studs\": [-1.0447761029005052, 0.32773111090064044, -0.7551020383834839], \"orientation_degrees\": [0, 0, 0], \"attributes\": {}, \"look_vector\": [0.0, 0.0, -1.0]}, {\"name\": \"Slot2\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"StorageShelf__Body\", \"position_studs\": [1.0447761029005052, 0.32773111090064044, -0.7551020383834839], \"orientation_degrees\": [0, 0, 0], \"attributes\": {}, \"look_vector\": [0.0, 0.0, -1.0]}, {\"name\": \"Slot3\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"StorageShelf__Body\", \"position_studs\": [-1.0447761029005052, 2.8487396620213987, -0.7551020383834839], \"orientation_degrees\": [0, 0, 0], \"attributes\": {}, \"look_vector\": [0.0, 0.0, -1.0]}, {\"name\": \"Slot4\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"StorageShelf__Body\", \"position_studs\": [1.0447761029005052, 2.8487396620213987, -0.7551020383834839], \"orientation_degrees\": [0, 0, 0], \"attributes\": {}, \"look_vector\": [0.0, 0.0, -1.0]}, {\"name\": \"Slot5\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"StorageShelf__Body\", \"position_studs\": [-1.0447761029005052, 5.369748213142156, -0.7551020383834839], \"orientation_degrees\": [0, 0, 0], \"attributes\": {}, \"look_vector\": [0.0, 0.0, -1.0]}, {\"name\": \"Slot6\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"StorageShelf__Body\", \"position_studs\": [1.0447761029005052, 5.369748213142156, -0.7551020383834839], \"orientation_degrees\": [0, 0, 0], \"attributes\": {}, \"look_vector\": [0.0, 0.0, -1.0]}]",
+        "slots_json": "[[-1.0447761029005052, 0.32773111090064044, -0.7551020383834839], [1.0447761029005052, 0.32773111090064044, -0.7551020383834839], [-1.0447761029005052, 2.8487396620213987, -0.7551020383834839], [1.0447761029005052, 2.8487396620213987, -0.7551020383834839], [-1.0447761029005052, 5.369748213142156, -0.7551020383834839], [1.0447761029005052, 5.369748213142156, -0.7551020383834839]]"
+      },
+      "name": "StorageShelf"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "HP shared PBR 32",
+      "normalTexture": {
+        "index": 0,
+        "scale": 0.44999998807907104
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 1
+        },
+        "metallicRoughnessTexture": {
+          "index": 2
+        }
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "StorageShelf__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    }
+  ],
+  "images": [
+    {
+      "mimeType": "image/png",
+      "name": "HP32_Normal",
+      "uri": "../../Textures/HP32_Normal.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP32_Color",
+      "uri": "../../Textures/HP32_Color.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP32_Metalness-HP32_Roughness",
+      "uri": "../../Textures/HP32_Metalness-HP32_Roughness.png"
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 2968,
+      "max": [
+        0.5600000023841858,
+        1.687058925628662,
+        -0.0028571428265422583
+      ],
+      "min": [
+        -0.5600000023841858,
+        0.0070588244125247,
+        -0.4228571355342865
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 2968,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 2968,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "count": 6492,
+      "type": "SCALAR"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 35616,
+      "byteOffset": 0,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 35616,
+      "byteOffset": 35616,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 23744,
+      "byteOffset": 71232,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 12984,
+      "byteOffset": 94976,
+      "target": 34963
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 107960,
+      "uri": "StorageShelf.bin"
+    }
+  ]
+}

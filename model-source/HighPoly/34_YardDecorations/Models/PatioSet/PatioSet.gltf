@@ -1,0 +1,369 @@
+{
+  "asset": {
+    "generator": "Khronos glTF Blender I/O v4.3.47",
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        6
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "extras": {
+        "roblox_class": "Attachment",
+        "roblox_name": "Seat1",
+        "attributes_json": "{}",
+        "parent_mesh": "PatioSet__Body"
+      },
+      "name": "Seat1",
+      "translation": [
+        0,
+        0.43610620498657227,
+        1.0207825899124146
+      ]
+    },
+    {
+      "extras": {
+        "roblox_class": "Attachment",
+        "roblox_name": "Seat2",
+        "attributes_json": "{}",
+        "parent_mesh": "PatioSet__Body"
+      },
+      "name": "Seat2",
+      "rotation": [
+        0,
+        0.7071067094802856,
+        0,
+        0.7071068286895752
+      ],
+      "translation": [
+        1.0207825899124146,
+        0.43610620498657227,
+        0
+      ]
+    },
+    {
+      "extras": {
+        "roblox_class": "Attachment",
+        "roblox_name": "Seat3",
+        "attributes_json": "{}",
+        "parent_mesh": "PatioSet__Body"
+      },
+      "name": "Seat3",
+      "rotation": [
+        0,
+        1,
+        0,
+        7.549790126404332e-08
+      ],
+      "translation": [
+        0,
+        0.43610620498657227,
+        -1.0207825899124146
+      ]
+    },
+    {
+      "extras": {
+        "roblox_class": "Attachment",
+        "roblox_name": "Seat4",
+        "attributes_json": "{}",
+        "parent_mesh": "PatioSet__Body"
+      },
+      "name": "Seat4",
+      "rotation": [
+        0,
+        -0.7071068286895752,
+        0,
+        0.7071068286895752
+      ],
+      "translation": [
+        -1.0207825899124146,
+        0.43610620498657227,
+        0
+      ]
+    },
+    {
+      "children": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          -0.05056890472769737,
+          4.76837158203125e-07
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 0,
+      "name": "PatioSet__Body",
+      "translation": [
+        0,
+        -0.014159293845295906,
+        0
+      ]
+    },
+    {
+      "extras": {
+        "role": "canopy",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          -0.05056890472769737,
+          4.76837158203125e-07
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 1,
+      "name": "PatioSet__Umbrella",
+      "translation": [
+        0,
+        -0.014159293845295906,
+        0
+      ]
+    },
+    {
+      "children": [
+        4,
+        5
+      ],
+      "extras": {
+        "folder": "Decorations",
+        "stud_to_meter": 0.28,
+        "primary_part": "Root",
+        "primary_position_studs": [
+          0.0,
+          0.5,
+          0.0
+        ],
+        "markers_json": "[{\"name\": \"Seat1\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"PatioSet__Body\", \"position_studs\": [0.0, 1.506953292042017, 3.6456528566194493], \"orientation_degrees\": [0.0, 0.0, 0.0], \"attributes\": {}, \"look_vector\": [-0.0, 0.0, -1.0]}, {\"name\": \"Seat2\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"PatioSet__Body\", \"position_studs\": [3.6456520078493213, 1.506953292042017, 4.768371584263568e-07], \"orientation_degrees\": [0.0, 90.00000250447816, 0.0], \"attributes\": {}, \"look_vector\": [-1.0, 0.0, -6.123234262925839e-17]}, {\"name\": \"Seat3\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"PatioSet__Body\", \"position_studs\": [4.464636358936633e-16, 1.506953292042017, -3.645651902945133], \"orientation_degrees\": [-0.0, 180.00000500895632, -0.0], \"attributes\": {}, \"look_vector\": [-1.2246468525851679e-16, 0.0, 1.0]}, {\"name\": \"Seat4\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"PatioSet__Body\", \"position_studs\": [-3.6456520078493213, 1.506953292042017, 4.768371575334295e-07], \"orientation_degrees\": [0.0, -90.00000250447816, 0.0], \"attributes\": {}, \"look_vector\": [1.0, 0.0, 1.8369701465288538e-16]}]",
+        "slots_json": "[]"
+      },
+      "name": "PatioSet"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "HP shared PBR 34",
+      "normalTexture": {
+        "index": 0,
+        "scale": 0.44999998807907104
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 1
+        },
+        "metallicRoughnessTexture": {
+          "index": 2
+        }
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "PatioSet__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "PatioSet__Umbrella",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 4,
+            "NORMAL": 5,
+            "TEXCOORD_0": 6
+          },
+          "indices": 7,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    }
+  ],
+  "images": [
+    {
+      "mimeType": "image/png",
+      "name": "HP34_Normal",
+      "uri": "../../Textures/HP34_Normal.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP34_Color",
+      "uri": "../../Textures/HP34_Color.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP34_Metalness-HP34_Roughness",
+      "uri": "../../Textures/HP34_Metalness-HP34_Roughness.png"
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 6496,
+      "max": [
+        1.2039998769760132,
+        2.2513272762298584,
+        1.2040001153945923
+      ],
+      "min": [
+        -1.2040001153945923,
+        0.014159293845295906,
+        -1.2040002346038818
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 6496,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 6496,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "count": 23292,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 4,
+      "componentType": 5126,
+      "count": 864,
+      "max": [
+        1.0633151531219482,
+        2.2541592121124268,
+        1.0633152723312378
+      ],
+      "min": [
+        -1.0633151531219482,
+        1.9454869031906128,
+        -1.0633152723312378
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 5,
+      "componentType": 5126,
+      "count": 864,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 6,
+      "componentType": 5126,
+      "count": 864,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 7,
+      "componentType": 5123,
+      "count": 3936,
+      "type": "SCALAR"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 77952,
+      "byteOffset": 0,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 77952,
+      "byteOffset": 77952,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 51968,
+      "byteOffset": 155904,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 46584,
+      "byteOffset": 207872,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 10368,
+      "byteOffset": 254456,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 10368,
+      "byteOffset": 264824,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 6912,
+      "byteOffset": 275192,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 7872,
+      "byteOffset": 282104,
+      "target": 34963
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 289976,
+      "uri": "PatioSet.bin"
+    }
+  ]
+}

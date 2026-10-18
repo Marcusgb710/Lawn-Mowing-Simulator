@@ -1,0 +1,784 @@
+{
+  "asset": {
+    "generator": "Khronos glTF Blender I/O v4.3.47",
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        9
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "extras": {
+        "roblox_class": "Attachment",
+        "roblox_name": "ScreenView",
+        "attributes_json": "{}",
+        "parent_mesh": "JobLaptopTable__Body"
+      },
+      "name": "ScreenView",
+      "rotation": [
+        0,
+        0.9968553185462952,
+        0.07924441993236542,
+        7.580774052939887e-08
+      ],
+      "translation": [
+        -0.19599999487400055,
+        1.0080000162124634,
+        -0.4927999973297119
+      ]
+    },
+    {
+      "extras": {
+        "roblox_class": "Attachment",
+        "roblox_name": "UseSpot",
+        "attributes_json": "{}",
+        "parent_mesh": "JobLaptopTable__Body"
+      },
+      "name": "UseSpot",
+      "rotation": [
+        0,
+        1,
+        0,
+        7.549790126404332e-08
+      ],
+      "translation": [
+        -0.19599999487400055,
+        0,
+        -0.8260000348091125
+      ]
+    },
+    {
+      "children": [
+        0,
+        1
+      ],
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 0,
+      "name": "JobLaptopTable__Body"
+    },
+    {
+      "extras": {
+        "role": "collision_chair",
+        "animation_axis": "",
+        "stud_origin": [
+          -0.699999988079071,
+          0.0,
+          -1.1399999856948853
+        ],
+        "can_collide": true,
+        "collision_fidelity": "Hull",
+        "motion_mode": ""
+      },
+      "mesh": 1,
+      "name": "JobLaptopTable__Chair",
+      "translation": [
+        -0.19599999487400055,
+        0,
+        -0.3192000091075897
+      ]
+    },
+    {
+      "extras": {
+        "role": "clutter",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 2,
+      "name": "JobLaptopTable__Clutter"
+    },
+    {
+      "extras": {
+        "role": "collision_leg",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "can_collide": true,
+        "collision_fidelity": "Hull",
+        "motion_mode": ""
+      },
+      "mesh": 3,
+      "name": "JobLaptopTable__Leg_-1"
+    },
+    {
+      "extras": {
+        "role": "collision_leg",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "can_collide": true,
+        "collision_fidelity": "Hull",
+        "motion_mode": ""
+      },
+      "mesh": 4,
+      "name": "JobLaptopTable__Leg_1"
+    },
+    {
+      "extras": {
+        "role": "screen",
+        "animation_axis": "",
+        "stud_origin": [
+          -0.699999988079071,
+          3.200000047683716,
+          0.7400000095367432
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 5,
+      "name": "JobLaptopTable__Screen",
+      "translation": [
+        -0.19599999487400055,
+        0.8960000276565552,
+        0.20720000565052032
+      ]
+    },
+    {
+      "extras": {
+        "role": "collision_worktop",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "can_collide": true,
+        "collision_fidelity": "Hull",
+        "motion_mode": ""
+      },
+      "mesh": 6,
+      "name": "JobLaptopTable__Top"
+    },
+    {
+      "children": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "extras": {
+        "folder": "Props",
+        "stud_to_meter": 0.28,
+        "primary_part": "Root",
+        "primary_position_studs": [
+          0.0,
+          0.5,
+          0.0
+        ],
+        "markers_json": "[{\"name\": \"UseSpot\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"JobLaptopTable__Body\", \"position_studs\": [-0.7, 0, -2.95], \"orientation_degrees\": [-0.0, -180.00000500895632, 0.0], \"attributes\": {}, \"look_vector\": [0.0, 0.0, 1.0]}, {\"name\": \"ScreenView\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"JobLaptopTable__Body\", \"position_studs\": [-0.699999988079071, 3.5999999046325684, -1.7599999904632568], \"orientation_degrees\": [9.090274006934228, -180.00000500895632, 0.0], \"attributes\": {}, \"look_vector\": [0.0, -0.1579904556274414, 0.9874407052993774]}]",
+        "slots_json": "[]"
+      },
+      "name": "JobLaptopTable"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "HP shared PBR 33",
+      "normalTexture": {
+        "index": 0,
+        "scale": 0.44999998807907104
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 1
+        },
+        "metallicRoughnessTexture": {
+          "index": 2
+        }
+      }
+    },
+    {
+      "doubleSided": true,
+      "extras": {
+        "palette": "screen_gray",
+        "finish": "screen"
+      },
+      "name": "HP_screen_gray",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.017641954123973846,
+          0.020288562402129173,
+          0.022173885256052017,
+          1
+        ],
+        "metallicFactor": 0,
+        "roughnessFactor": 0.3799999952316284
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "JobLaptopTable__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "JobLaptopTable__Chair",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 4,
+            "NORMAL": 5,
+            "TEXCOORD_0": 6
+          },
+          "indices": 7,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "JobLaptopTable__Clutter",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 8,
+            "NORMAL": 9,
+            "TEXCOORD_0": 10
+          },
+          "indices": 11,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "JobLaptopTable__Leg_-1",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 12,
+            "NORMAL": 13,
+            "TEXCOORD_0": 14
+          },
+          "indices": 15,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "JobLaptopTable__Leg_1",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 16,
+            "NORMAL": 17,
+            "TEXCOORD_0": 18
+          },
+          "indices": 15,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "JobLaptopTable__Screen",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 19,
+            "NORMAL": 20,
+            "TEXCOORD_0": 21
+          },
+          "indices": 22,
+          "material": 1
+        }
+      ]
+    },
+    {
+      "name": "JobLaptopTable__Top",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 23,
+            "NORMAL": 24,
+            "TEXCOORD_0": 25
+          },
+          "indices": 26,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    }
+  ],
+  "images": [
+    {
+      "mimeType": "image/png",
+      "name": "HP33_Normal",
+      "uri": "../../Textures/HP33_Normal.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP33_Color",
+      "uri": "../../Textures/HP33_Color.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP33_Metalness-HP33_Roughness",
+      "uri": "../../Textures/HP33_Metalness-HP33_Roughness.png"
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 512,
+      "max": [
+        0.581000030040741,
+        0.6705999970436096,
+        0.3149999976158142
+      ],
+      "min": [
+        -0.581000030040741,
+        0.3060400187969208,
+        -0.17499999701976776
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 512,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 512,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "count": 1548,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 4,
+      "componentType": 5126,
+      "count": 704,
+      "max": [
+        0.12600000202655792,
+        0.3927000164985657,
+        0.09579701721668243
+      ],
+      "min": [
+        -0.12600000202655792,
+        0.012914926744997501,
+        -0.09579701721668243
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 5,
+      "componentType": 5126,
+      "count": 704,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 6,
+      "componentType": 5126,
+      "count": 704,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 7,
+      "componentType": 5123,
+      "count": 2100,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 8,
+      "componentType": 5126,
+      "count": 3510,
+      "max": [
+        0.5750271081924438,
+        1.017799973487854,
+        0.4242642819881439
+      ],
+      "min": [
+        -0.49559998512268066,
+        -0.02025149203836918,
+        -0.02892763912677765
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 9,
+      "componentType": 5126,
+      "count": 3510,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 10,
+      "componentType": 5126,
+      "count": 3510,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 11,
+      "componentType": 5123,
+      "count": 11748,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 12,
+      "componentType": 5126,
+      "count": 288,
+      "max": [
+        -0.39340001344680786,
+        0.6669945120811462,
+        0.2939999997615814
+      ],
+      "min": [
+        -0.4185999929904938,
+        0.004199998918920755,
+        -0.15399999916553497
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 13,
+      "componentType": 5126,
+      "count": 288,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 14,
+      "componentType": 5126,
+      "count": 288,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 15,
+      "componentType": 5123,
+      "count": 828,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 16,
+      "componentType": 5126,
+      "count": 288,
+      "max": [
+        0.4185999929904938,
+        0.6669945120811462,
+        0.2939999997615814
+      ],
+      "min": [
+        0.39340001344680786,
+        0.004199998918920755,
+        -0.15399999916553497
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 17,
+      "componentType": 5126,
+      "count": 288,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 18,
+      "componentType": 5126,
+      "count": 288,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 19,
+      "componentType": 5126,
+      "count": 24,
+      "max": [
+        0.16519999504089355,
+        0.09292502701282501,
+        -0.0026599906850606203
+      ],
+      "min": [
+        -0.16519999504089355,
+        -0.09292502701282501,
+        -0.0029400039929896593
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 20,
+      "componentType": 5126,
+      "count": 24,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 21,
+      "componentType": 5126,
+      "count": 24,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 22,
+      "componentType": 5123,
+      "count": 36,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 23,
+      "componentType": 5126,
+      "count": 80,
+      "max": [
+        0.6299999952316284,
+        0.7167999744415283,
+        0.3499999940395355
+      ],
+      "min": [
+        -0.6299999952316284,
+        0.6720000505447388,
+        -0.21000000834465027
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 24,
+      "componentType": 5126,
+      "count": 80,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 25,
+      "componentType": 5126,
+      "count": 80,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 26,
+      "componentType": 5123,
+      "count": 324,
+      "type": "SCALAR"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 6144,
+      "byteOffset": 0,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 6144,
+      "byteOffset": 6144,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 4096,
+      "byteOffset": 12288,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 3096,
+      "byteOffset": 16384,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 8448,
+      "byteOffset": 19480,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 8448,
+      "byteOffset": 27928,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 5632,
+      "byteOffset": 36376,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 4200,
+      "byteOffset": 42008,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 42120,
+      "byteOffset": 46208,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 42120,
+      "byteOffset": 88328,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 28080,
+      "byteOffset": 130448,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 23496,
+      "byteOffset": 158528,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 3456,
+      "byteOffset": 182024,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 3456,
+      "byteOffset": 185480,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 2304,
+      "byteOffset": 188936,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 1656,
+      "byteOffset": 191240,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 3456,
+      "byteOffset": 192896,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 3456,
+      "byteOffset": 196352,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 2304,
+      "byteOffset": 199808,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 288,
+      "byteOffset": 202112,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 288,
+      "byteOffset": 202400,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 192,
+      "byteOffset": 202688,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 72,
+      "byteOffset": 202880,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 960,
+      "byteOffset": 202952,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 960,
+      "byteOffset": 203912,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 640,
+      "byteOffset": 204872,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 648,
+      "byteOffset": 205512,
+      "target": 34963
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 206160,
+      "uri": "JobLaptopTable.bin"
+    }
+  ]
+}

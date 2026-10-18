@@ -1,0 +1,289 @@
+{
+  "asset": {
+    "generator": "Khronos glTF Blender I/O v4.3.47",
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        2
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          -0.0377197265625,
+          0.0,
+          0.08745813369750977
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 0,
+      "name": "JapaneseMaple__Body",
+      "translation": [
+        -0.010561523027718067,
+        0,
+        0.024488277733325958
+      ]
+    },
+    {
+      "extras": {
+        "role": "foliage",
+        "animation_axis": "",
+        "stud_origin": [
+          -0.0377197265625,
+          0.0,
+          0.08745813369750977
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 1,
+      "name": "JapaneseMaple__Canopy",
+      "translation": [
+        -0.010561523027718067,
+        0,
+        0.024488277733325958
+      ]
+    },
+    {
+      "children": [
+        0,
+        1
+      ],
+      "extras": {
+        "folder": "Decorations",
+        "stud_to_meter": 0.28,
+        "primary_part": "Root",
+        "primary_position_studs": [
+          0.0,
+          0.5,
+          0.0
+        ],
+        "markers_json": "[]",
+        "slots_json": "[]"
+      },
+      "name": "JapaneseMaple"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "HP shared PBR 34",
+      "normalTexture": {
+        "index": 0,
+        "scale": 0.44999998807907104
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 1
+        },
+        "metallicRoughnessTexture": {
+          "index": 2
+        }
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "JapaneseMaple__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "JapaneseMaple__Canopy",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 4,
+            "NORMAL": 5,
+            "TEXCOORD_0": 6
+          },
+          "indices": 7,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    }
+  ],
+  "images": [
+    {
+      "mimeType": "image/png",
+      "name": "HP34_Normal",
+      "uri": "../../Textures/HP34_Normal.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP34_Color",
+      "uri": "../../Textures/HP34_Color.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP34_Metalness-HP34_Roughness",
+      "uri": "../../Textures/HP34_Metalness-HP34_Roughness.png"
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 2208,
+      "max": [
+        1.0702050924301147,
+        2.2306711673736572,
+        1.0948318243026733
+      ],
+      "min": [
+        -1.0535463094711304,
+        0,
+        -1.132337212562561
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 2208,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 2208,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "count": 6420,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 4,
+      "componentType": 5126,
+      "count": 4500,
+      "max": [
+        1.270561695098877,
+        2.5199999809265137,
+        1.2355118989944458
+      ],
+      "min": [
+        -1.2494385242462158,
+        1.3992329835891724,
+        -1.284488320350647
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 5,
+      "componentType": 5126,
+      "count": 4500,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 6,
+      "componentType": 5126,
+      "count": 4500,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 7,
+      "componentType": 5123,
+      "count": 24300,
+      "type": "SCALAR"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 26496,
+      "byteOffset": 0,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 26496,
+      "byteOffset": 26496,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 17664,
+      "byteOffset": 52992,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 12840,
+      "byteOffset": 70656,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 54000,
+      "byteOffset": 83496,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 54000,
+      "byteOffset": 137496,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 36000,
+      "byteOffset": 191496,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 48600,
+      "byteOffset": 227496,
+      "target": 34963
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 276096,
+      "uri": "JapaneseMaple.bin"
+    }
+  ]
+}

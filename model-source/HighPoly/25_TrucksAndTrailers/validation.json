@@ -1,0 +1,135 @@
+{
+  "source_main_commit": "2377b19",
+  "assets": 7,
+  "checks": [
+    "source_files_and_buffers",
+    "exact_ids_and_folders",
+    "actual_exported_triangle_counts_and_20k_mesh_limit",
+    "finite_positions_normals_and_UVs",
+    "nondegenerate_triangles",
+    "actual_bounds_and_size_tolerances",
+    "preserved_grips_slots_and_old_markers",
+    "hinge_and_axle_local_frames",
+    "attachment_positions_parents_and_LookVectors",
+    "untextured_16_9_screens",
+    "interaction_marker_counts",
+    "combined_library_translation_only_roots",
+    "portable_PBR_textures_at_most_2048",
+    "binary_FBX_header",
+    "closed_authoring_components_after_coincident_vertex_matching",
+    "FBX_import_triangle_mesh_count_and_world_bounds"
+  ],
+  "issues": [],
+  "studio_import_tested": false,
+  "geometry": [
+    {
+      "name": "RustyPickup",
+      "triangles": 25412,
+      "counts": {
+        "components": 353
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "WorkPickup",
+      "triangles": 24756,
+      "counts": {
+        "components": 341
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "HeavyDutyPickup",
+      "triangles": 29964,
+      "counts": {
+        "components": 441
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "LandscapingTruck",
+      "triangles": 26576,
+      "counts": {
+        "components": 430
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "UtilityTrailer",
+      "triangles": 13148,
+      "counts": {
+        "components": 197
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "LandscapeTrailer",
+      "triangles": 17644,
+      "counts": {
+        "components": 305
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "EquipmentTrailer",
+      "triangles": 17940,
+      "counts": {
+        "components": 291
+      },
+      "topology_issues": []
+    }
+  ],
+  "fbx_roundtrip": [
+    {
+      "name": "RustyPickup",
+      "triangles": 25412,
+      "mesh_objects": 14,
+      "bounds_error_studs": 9.797513484954834e-07,
+      "passed": true
+    },
+    {
+      "name": "WorkPickup",
+      "triangles": 24756,
+      "mesh_objects": 14,
+      "bounds_error_studs": 1.430511474609375e-06,
+      "passed": true
+    },
+    {
+      "name": "HeavyDutyPickup",
+      "triangles": 29964,
+      "mesh_objects": 16,
+      "bounds_error_studs": 1.087784767150879e-06,
+      "passed": true
+    },
+    {
+      "name": "LandscapingTruck",
+      "triangles": 26576,
+      "mesh_objects": 14,
+      "bounds_error_studs": 1.1920928955078125e-06,
+      "passed": true
+    },
+    {
+      "name": "UtilityTrailer",
+      "triangles": 13148,
+      "mesh_objects": 4,
+      "bounds_error_studs": 9.5367431640625e-07,
+      "passed": true
+    },
+    {
+      "name": "LandscapeTrailer",
+      "triangles": 17644,
+      "mesh_objects": 6,
+      "bounds_error_studs": 9.5367431640625e-07,
+      "passed": true
+    },
+    {
+      "name": "EquipmentTrailer",
+      "triangles": 17940,
+      "mesh_objects": 6,
+      "bounds_error_studs": 1.6689300537109375e-06,
+      "passed": true
+    }
+  ],
+  "protected_files_unchanged_count": 541,
+  "preview_status": "rendering"
+}

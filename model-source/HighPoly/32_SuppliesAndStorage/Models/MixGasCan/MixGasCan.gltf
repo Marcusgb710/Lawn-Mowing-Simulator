@@ -1,0 +1,195 @@
+{
+  "asset": {
+    "generator": "Khronos glTF Blender I/O v4.3.47",
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        1
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0012414157390594482,
+          -0.03106900304555893,
+          0.02015399932861328
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 0,
+      "name": "MixGasCan__Body",
+      "translation": [
+        0.0003475964185781777,
+        -0.008699321188032627,
+        0.005643120035529137
+      ]
+    },
+    {
+      "children": [
+        0
+      ],
+      "extras": {
+        "folder": "Tools",
+        "stud_to_meter": 0.28,
+        "primary_part": "Handle",
+        "primary_position_studs": [
+          0.0,
+          0.9100000262260437,
+          0.10000000149011612
+        ],
+        "markers_json": "[]",
+        "slots_json": "[]"
+      },
+      "name": "MixGasCan"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "HP shared PBR 32",
+      "normalTexture": {
+        "index": 0,
+        "scale": 0.44999998807907104
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 1
+        },
+        "metallicRoughnessTexture": {
+          "index": 2
+        }
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "MixGasCan__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    }
+  ],
+  "images": [
+    {
+      "mimeType": "image/png",
+      "name": "HP32_Normal",
+      "uri": "../../Textures/HP32_Normal.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP32_Color",
+      "uri": "../../Textures/HP32_Color.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP32_Metalness-HP32_Roughness",
+      "uri": "../../Textures/HP32_Metalness-HP32_Roughness.png"
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 1888,
+      "max": [
+        0.08841241151094437,
+        0.3133930563926697,
+        0.1273568570613861
+      ],
+      "min": [
+        -0.08841241151094437,
+        0.008699321188032627,
+        -0.21041567623615265
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 1888,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 1888,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "count": 6960,
+      "type": "SCALAR"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 22656,
+      "byteOffset": 0,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 22656,
+      "byteOffset": 22656,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 15104,
+      "byteOffset": 45312,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 13920,
+      "byteOffset": 60416,
+      "target": 34963
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 74336,
+      "uri": "MixGasCan.bin"
+    }
+  ]
+}

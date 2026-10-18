@@ -1,0 +1,135 @@
+{
+  "source_main_commit": "2377b19",
+  "assets": 7,
+  "checks": [
+    "source_files_and_buffers",
+    "exact_ids_and_folders",
+    "actual_exported_triangle_counts_and_20k_mesh_limit",
+    "finite_positions_normals_and_UVs",
+    "nondegenerate_triangles",
+    "actual_bounds_and_size_tolerances",
+    "preserved_grips_slots_and_old_markers",
+    "hinge_and_axle_local_frames",
+    "attachment_positions_parents_and_LookVectors",
+    "untextured_16_9_screens",
+    "interaction_marker_counts",
+    "combined_library_translation_only_roots",
+    "portable_PBR_textures_at_most_2048",
+    "binary_FBX_header",
+    "closed_authoring_components_after_coincident_vertex_matching",
+    "FBX_import_triangle_mesh_count_and_world_bounds"
+  ],
+  "issues": [],
+  "studio_import_tested": false,
+  "geometry": [
+    {
+      "name": "JobLaptopTable",
+      "triangles": 5804,
+      "counts": {
+        "components": 96
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "JobComputerDesk",
+      "triangles": 9808,
+      "counts": {
+        "components": 125
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "JobOfficeDesk",
+      "triangles": 10644,
+      "counts": {
+        "components": 140
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "DeliveryBoxSmall",
+      "triangles": 1128,
+      "counts": {
+        "components": 38
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "DeliveryBoxLong",
+      "triangles": 900,
+      "counts": {
+        "components": 27
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "DeliveryBoxLarge",
+      "triangles": 2232,
+      "counts": {
+        "components": 66
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "DeliveryCrate",
+      "triangles": 5876,
+      "counts": {
+        "components": 103
+      },
+      "topology_issues": []
+    }
+  ],
+  "fbx_roundtrip": [
+    {
+      "name": "JobLaptopTable",
+      "triangles": 5804,
+      "mesh_objects": 7,
+      "bounds_error_studs": 3.5762786865234375e-07,
+      "passed": true
+    },
+    {
+      "name": "JobComputerDesk",
+      "triangles": 9808,
+      "mesh_objects": 10,
+      "bounds_error_studs": 3.5762786865234375e-07,
+      "passed": true
+    },
+    {
+      "name": "JobOfficeDesk",
+      "triangles": 10644,
+      "mesh_objects": 13,
+      "bounds_error_studs": 4.76837158203125e-07,
+      "passed": true
+    },
+    {
+      "name": "DeliveryBoxSmall",
+      "triangles": 1128,
+      "mesh_objects": 3,
+      "bounds_error_studs": 1.1920928955078125e-07,
+      "passed": true
+    },
+    {
+      "name": "DeliveryBoxLong",
+      "triangles": 900,
+      "mesh_objects": 2,
+      "bounds_error_studs": 1.1920928955078125e-07,
+      "passed": true
+    },
+    {
+      "name": "DeliveryBoxLarge",
+      "triangles": 2232,
+      "mesh_objects": 5,
+      "bounds_error_studs": 4.76837158203125e-07,
+      "passed": true
+    },
+    {
+      "name": "DeliveryCrate",
+      "triangles": 5876,
+      "mesh_objects": 4,
+      "bounds_error_studs": 5.655972872276038e-07,
+      "passed": true
+    }
+  ],
+  "protected_files_unchanged_count": 541,
+  "preview_status": "rendering"
+}

@@ -1,0 +1,289 @@
+{
+  "asset": {
+    "generator": "Khronos glTF Blender I/O v4.3.47",
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        2
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          -0.005463980603963137,
+          -0.0007464946247637272,
+          0.0008109383634291589
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 0,
+      "name": "Brushcutter__Body",
+      "translation": [
+        -0.0015299145597964525,
+        -0.0002090185007546097,
+        0.00022706274467054754
+      ]
+    },
+    {
+      "extras": {
+        "role": "rotor",
+        "animation_axis": "Y",
+        "stud_origin": [
+          -0.005463980603963137,
+          0.22929644584655762,
+          -4.687066555023193
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": "Rotate"
+      },
+      "mesh": 1,
+      "name": "Brushcutter__CutterRotor",
+      "translation": [
+        -0.0015299145597964525,
+        0.06420300155878067,
+        -1.3123786449432373
+      ]
+    },
+    {
+      "children": [
+        0,
+        1
+      ],
+      "extras": {
+        "folder": "Tools",
+        "stud_to_meter": 0.28,
+        "primary_part": "Handle",
+        "primary_position_studs": [
+          1.15,
+          4.0,
+          -0.1
+        ],
+        "markers_json": "[]",
+        "slots_json": "[]"
+      },
+      "name": "Brushcutter"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "HP shared PBR 27",
+      "normalTexture": {
+        "index": 0,
+        "scale": 0.44999998807907104
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 1
+        },
+        "metallicRoughnessTexture": {
+          "index": 2
+        }
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "Brushcutter__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "Brushcutter__CutterRotor",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 4,
+            "NORMAL": 5,
+            "TEXCOORD_0": 6
+          },
+          "indices": 7,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    }
+  ],
+  "images": [
+    {
+      "mimeType": "image/png",
+      "name": "HP27_Normal",
+      "uri": "../../Textures/HP27_Normal.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP27_Color",
+      "uri": "../../Textures/HP27_Color.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP27_Metalness-HP27_Roughness",
+      "uri": "../../Textures/HP27_Metalness-HP27_Roughness.png"
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 5726,
+      "max": [
+        0.3486238420009613,
+        1.145769476890564,
+        0.3347729444503784
+      ],
+      "min": [
+        -0.34556400775909424,
+        0.07001306861639023,
+        -1.356329321861267
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 5726,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 5726,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "count": 22752,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 4,
+      "componentType": 5126,
+      "count": 768,
+      "max": [
+        0.1571219116449356,
+        0.0037807065527886152,
+        0.15262125432491302
+      ],
+      "min": [
+        -0.1571219265460968,
+        -0.016103005036711693,
+        -0.15262138843536377
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 5,
+      "componentType": 5126,
+      "count": 768,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 6,
+      "componentType": 5126,
+      "count": 768,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 7,
+      "componentType": 5123,
+      "count": 1620,
+      "type": "SCALAR"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 68712,
+      "byteOffset": 0,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 68712,
+      "byteOffset": 68712,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 45808,
+      "byteOffset": 137424,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 45504,
+      "byteOffset": 183232,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 9216,
+      "byteOffset": 228736,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 9216,
+      "byteOffset": 237952,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 6144,
+      "byteOffset": 247168,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 3240,
+      "byteOffset": 253312,
+      "target": 34963
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 256552,
+      "uri": "Brushcutter.bin"
+    }
+  ]
+}

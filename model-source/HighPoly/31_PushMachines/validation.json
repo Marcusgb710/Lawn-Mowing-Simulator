@@ -1,0 +1,150 @@
+{
+  "source_main_commit": "2377b19",
+  "assets": 8,
+  "checks": [
+    "source_files_and_buffers",
+    "exact_ids_and_folders",
+    "actual_exported_triangle_counts_and_20k_mesh_limit",
+    "finite_positions_normals_and_UVs",
+    "nondegenerate_triangles",
+    "actual_bounds_and_size_tolerances",
+    "preserved_grips_slots_and_old_markers",
+    "hinge_and_axle_local_frames",
+    "attachment_positions_parents_and_LookVectors",
+    "untextured_16_9_screens",
+    "interaction_marker_counts",
+    "combined_library_translation_only_roots",
+    "portable_PBR_textures_at_most_2048",
+    "binary_FBX_header",
+    "closed_authoring_components_after_coincident_vertex_matching",
+    "FBX_import_triangle_mesh_count_and_world_bounds"
+  ],
+  "issues": [],
+  "studio_import_tested": false,
+  "geometry": [
+    {
+      "name": "SingleWheelbarrow",
+      "triangles": 9352,
+      "counts": {
+        "components": 78
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "SingleWheelbarrowFlatFree",
+      "triangles": 9260,
+      "counts": {
+        "components": 77
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "DualWheelbarrow",
+      "triangles": 11088,
+      "counts": {
+        "components": 117
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "PolyCart",
+      "triangles": 8552,
+      "counts": {
+        "components": 119
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "BroadcastSpreader",
+      "triangles": 9136,
+      "counts": {
+        "components": 118
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "WalkBehindEdger",
+      "triangles": 18048,
+      "counts": {
+        "components": 244
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "SlitOverseeder",
+      "triangles": 15880,
+      "counts": {
+        "components": 176
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "PowerRakeDethatcher",
+      "triangles": 17916,
+      "counts": {
+        "components": 216
+      },
+      "topology_issues": []
+    }
+  ],
+  "fbx_roundtrip": [
+    {
+      "name": "SingleWheelbarrow",
+      "triangles": 9352,
+      "mesh_objects": 2,
+      "bounds_error_studs": 4.76837158203125e-07,
+      "passed": true
+    },
+    {
+      "name": "SingleWheelbarrowFlatFree",
+      "triangles": 9260,
+      "mesh_objects": 2,
+      "bounds_error_studs": 4.76837158203125e-07,
+      "passed": true
+    },
+    {
+      "name": "DualWheelbarrow",
+      "triangles": 11088,
+      "mesh_objects": 3,
+      "bounds_error_studs": 7.152557373046875e-07,
+      "passed": true
+    },
+    {
+      "name": "PolyCart",
+      "triangles": 8552,
+      "mesh_objects": 3,
+      "bounds_error_studs": 4.76837158203125e-07,
+      "passed": true
+    },
+    {
+      "name": "BroadcastSpreader",
+      "triangles": 9136,
+      "mesh_objects": 4,
+      "bounds_error_studs": 4.76837158203125e-07,
+      "passed": true
+    },
+    {
+      "name": "WalkBehindEdger",
+      "triangles": 18048,
+      "mesh_objects": 6,
+      "bounds_error_studs": 6.92903995513916e-07,
+      "passed": true
+    },
+    {
+      "name": "SlitOverseeder",
+      "triangles": 15880,
+      "mesh_objects": 4,
+      "bounds_error_studs": 4.76837158203125e-07,
+      "passed": true
+    },
+    {
+      "name": "PowerRakeDethatcher",
+      "triangles": 17916,
+      "mesh_objects": 4,
+      "bounds_error_studs": 7.152557373046875e-07,
+      "passed": true
+    }
+  ],
+  "protected_files_unchanged_count": 541,
+  "preview_status": "rendering"
+}

@@ -1,0 +1,1015 @@
+{
+  "asset": {
+    "generator": "Khronos glTF Blender I/O v4.3.47",
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        12
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "extras": {
+        "roblox_class": "Attachment",
+        "roblox_name": "ScreenView",
+        "attributes_json": "{}",
+        "parent_mesh": "JobComputerDesk__Body"
+      },
+      "name": "ScreenView",
+      "rotation": [
+        0,
+        0.9999500513076782,
+        0.009998510591685772,
+        7.550286085233893e-08
+      ],
+      "translation": [
+        -0.15399999916553497,
+        1.0080000162124634,
+        -0.4424000084400177
+      ]
+    },
+    {
+      "extras": {
+        "roblox_class": "Attachment",
+        "roblox_name": "UseSpot",
+        "attributes_json": "{}",
+        "parent_mesh": "JobComputerDesk__Body"
+      },
+      "name": "UseSpot",
+      "rotation": [
+        0,
+        1,
+        0,
+        7.549790126404332e-08
+      ],
+      "translation": [
+        -0.15399999916553497,
+        0,
+        -0.812000036239624
+      ]
+    },
+    {
+      "children": [
+        0,
+        1
+      ],
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 0,
+      "name": "JobComputerDesk__Body"
+    },
+    {
+      "extras": {
+        "role": "collision_cabinet",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "can_collide": true,
+        "collision_fidelity": "Hull",
+        "motion_mode": ""
+      },
+      "mesh": 1,
+      "name": "JobComputerDesk__Cabinet"
+    },
+    {
+      "extras": {
+        "role": "collision_chair",
+        "animation_axis": "",
+        "stud_origin": [
+          -0.550000011920929,
+          0.0,
+          -1.2899999618530273
+        ],
+        "can_collide": true,
+        "collision_fidelity": "Hull",
+        "motion_mode": ""
+      },
+      "mesh": 2,
+      "name": "JobComputerDesk__Chair",
+      "translation": [
+        -0.15399999916553497,
+        0,
+        -0.3612000048160553
+      ]
+    },
+    {
+      "extras": {
+        "role": "clutter",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 3,
+      "name": "JobComputerDesk__Clutter"
+    },
+    {
+      "extras": {
+        "role": "collision_leg",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "can_collide": true,
+        "collision_fidelity": "Hull",
+        "motion_mode": ""
+      },
+      "mesh": 4,
+      "name": "JobComputerDesk__Leg_0"
+    },
+    {
+      "extras": {
+        "role": "collision_leg",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "can_collide": true,
+        "collision_fidelity": "Hull",
+        "motion_mode": ""
+      },
+      "mesh": 5,
+      "name": "JobComputerDesk__Leg_1"
+    },
+    {
+      "extras": {
+        "role": "collision_leg",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "can_collide": true,
+        "collision_fidelity": "Hull",
+        "motion_mode": ""
+      },
+      "mesh": 6,
+      "name": "JobComputerDesk__Leg_2"
+    },
+    {
+      "extras": {
+        "role": "collision_leg",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "can_collide": true,
+        "collision_fidelity": "Hull",
+        "motion_mode": ""
+      },
+      "mesh": 7,
+      "name": "JobComputerDesk__Leg_3"
+    },
+    {
+      "extras": {
+        "role": "screen",
+        "animation_axis": "",
+        "stud_origin": [
+          -0.550000011920929,
+          3.549999952316284,
+          0.9200000166893005
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 8,
+      "name": "JobComputerDesk__Screen",
+      "translation": [
+        -0.15399999916553497,
+        0.9940000176429749,
+        0.25760000944137573
+      ]
+    },
+    {
+      "extras": {
+        "role": "collision_worktop",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "can_collide": true,
+        "collision_fidelity": "Hull",
+        "motion_mode": ""
+      },
+      "mesh": 9,
+      "name": "JobComputerDesk__Top"
+    },
+    {
+      "children": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "extras": {
+        "folder": "Props",
+        "stud_to_meter": 0.28,
+        "primary_part": "Root",
+        "primary_position_studs": [
+          0.0,
+          0.5,
+          0.0
+        ],
+        "markers_json": "[{\"name\": \"UseSpot\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"JobComputerDesk__Body\", \"position_studs\": [-0.55, 0, -2.9000000000000004], \"orientation_degrees\": [-0.0, -180.00000500895632, 0.0], \"attributes\": {}, \"look_vector\": [0.0, 0.0, 1.0]}, {\"name\": \"ScreenView\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"JobComputerDesk__Body\", \"position_studs\": [-0.550000011920929, 3.5999999046325684, -1.5800000429153442], \"orientation_degrees\": [1.145761778670406, -180.00000500895632, 0.0], \"attributes\": {}, \"look_vector\": [0.0, -0.019995981827378273, 0.9998000264167786]}]",
+        "slots_json": "[]"
+      },
+      "name": "JobComputerDesk"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "HP shared PBR 33",
+      "normalTexture": {
+        "index": 0,
+        "scale": 0.44999998807907104
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 1
+        },
+        "metallicRoughnessTexture": {
+          "index": 2
+        }
+      }
+    },
+    {
+      "doubleSided": true,
+      "extras": {
+        "palette": "screen_gray",
+        "finish": "screen"
+      },
+      "name": "HP_screen_gray",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.017641954123973846,
+          0.020288562402129173,
+          0.022173885256052017,
+          1
+        ],
+        "metallicFactor": 0,
+        "roughnessFactor": 0.3799999952316284
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "JobComputerDesk__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "JobComputerDesk__Cabinet",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 4,
+            "NORMAL": 5,
+            "TEXCOORD_0": 6
+          },
+          "indices": 7,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "JobComputerDesk__Chair",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 8,
+            "NORMAL": 9,
+            "TEXCOORD_0": 10
+          },
+          "indices": 11,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "JobComputerDesk__Clutter",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 12,
+            "NORMAL": 13,
+            "TEXCOORD_0": 14
+          },
+          "indices": 15,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "JobComputerDesk__Leg_0",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 16,
+            "NORMAL": 17,
+            "TEXCOORD_0": 18
+          },
+          "indices": 19,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "JobComputerDesk__Leg_1",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 20,
+            "NORMAL": 21,
+            "TEXCOORD_0": 22
+          },
+          "indices": 19,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "JobComputerDesk__Leg_2",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 23,
+            "NORMAL": 24,
+            "TEXCOORD_0": 25
+          },
+          "indices": 19,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "JobComputerDesk__Leg_3",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 26,
+            "NORMAL": 27,
+            "TEXCOORD_0": 28
+          },
+          "indices": 19,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "JobComputerDesk__Screen",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 29,
+            "NORMAL": 30,
+            "TEXCOORD_0": 31
+          },
+          "indices": 32,
+          "material": 1
+        }
+      ]
+    },
+    {
+      "name": "JobComputerDesk__Top",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 33,
+            "NORMAL": 34,
+            "TEXCOORD_0": 35
+          },
+          "indices": 19,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    }
+  ],
+  "images": [
+    {
+      "mimeType": "image/png",
+      "name": "HP33_Normal",
+      "uri": "../../Textures/HP33_Normal.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP33_Color",
+      "uri": "../../Textures/HP33_Color.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP33_Metalness-HP33_Roughness",
+      "uri": "../../Textures/HP33_Metalness-HP33_Roughness.png"
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 240,
+      "max": [
+        0.7210000157356262,
+        0.7182000279426575,
+        0.4129999876022339
+      ],
+      "min": [
+        -0.7210000157356262,
+        0.23240000009536743,
+        -0.16099999845027924
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 240,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 240,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "count": 972,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 4,
+      "componentType": 5126,
+      "count": 608,
+      "max": [
+        0.7070000171661377,
+        0.6384000182151794,
+        0.33740001916885376
+      ],
+      "min": [
+        0.38499999046325684,
+        0,
+        -0.09884000569581985
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 5,
+      "componentType": 5126,
+      "count": 608,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 6,
+      "componentType": 5126,
+      "count": 608,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 7,
+      "componentType": 5123,
+      "count": 2124,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 8,
+      "componentType": 5126,
+      "count": 1336,
+      "max": [
+        0.13945385813713074,
+        0.45080000162124634,
+        0.1729256808757782
+      ],
+      "min": [
+        -0.16939999163150787,
+        -2.086162576020456e-09,
+        -0.1729256510734558
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 9,
+      "componentType": 5126,
+      "count": 1336,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 10,
+      "componentType": 5126,
+      "count": 1336,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 11,
+      "componentType": 5123,
+      "count": 4020,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 12,
+      "componentType": 5126,
+      "count": 5666,
+      "max": [
+        0.5151999592781067,
+        1.190000057220459,
+        0.40460002422332764
+      ],
+      "min": [
+        -0.792400062084198,
+        0,
+        -0.08959999680519104
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 13,
+      "componentType": 5126,
+      "count": 5666,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 14,
+      "componentType": 5126,
+      "count": 5666,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 15,
+      "componentType": 5123,
+      "count": 20652,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 16,
+      "componentType": 5126,
+      "count": 80,
+      "max": [
+        -0.7027999758720398,
+        0.7084000110626221,
+        -0.1371999979019165
+      ],
+      "min": [
+        -0.7363999485969543,
+        0,
+        -0.17080000042915344
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 17,
+      "componentType": 5126,
+      "count": 80,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 18,
+      "componentType": 5126,
+      "count": 80,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 19,
+      "componentType": 5123,
+      "count": 324,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 20,
+      "componentType": 5126,
+      "count": 80,
+      "max": [
+        -0.7027999758720398,
+        0.7084000110626221,
+        0.4228000044822693
+      ],
+      "min": [
+        -0.7363999485969543,
+        0,
+        0.38920003175735474
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 21,
+      "componentType": 5126,
+      "count": 80,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 22,
+      "componentType": 5126,
+      "count": 80,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 23,
+      "componentType": 5126,
+      "count": 80,
+      "max": [
+        0.7363999485969543,
+        0.7084000110626221,
+        -0.1371999979019165
+      ],
+      "min": [
+        0.7027999758720398,
+        0,
+        -0.17080000042915344
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 24,
+      "componentType": 5126,
+      "count": 80,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 25,
+      "componentType": 5126,
+      "count": 80,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 26,
+      "componentType": 5126,
+      "count": 80,
+      "max": [
+        0.7363999485969543,
+        0.7084000110626221,
+        0.4228000044822693
+      ],
+      "min": [
+        0.7027999758720398,
+        0,
+        0.38920003175735474
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 27,
+      "componentType": 5126,
+      "count": 80,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 28,
+      "componentType": 5126,
+      "count": 80,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 29,
+      "componentType": 5126,
+      "count": 24,
+      "max": [
+        0.2632000148296356,
+        0.14805005490779877,
+        -0.0026599906850606203
+      ],
+      "min": [
+        -0.2632000148296356,
+        -0.1480499804019928,
+        -0.0029400039929896593
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 30,
+      "componentType": 5126,
+      "count": 24,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 31,
+      "componentType": 5126,
+      "count": 24,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 32,
+      "componentType": 5123,
+      "count": 36,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 33,
+      "componentType": 5126,
+      "count": 80,
+      "max": [
+        0.7699999809265137,
+        0.7644000053405762,
+        0.4479999840259552
+      ],
+      "min": [
+        -0.7699999809265137,
+        0.7196000218391418,
+        -0.19599999487400055
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 34,
+      "componentType": 5126,
+      "count": 80,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 35,
+      "componentType": 5126,
+      "count": 80,
+      "type": "VEC2"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 2880,
+      "byteOffset": 0,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 2880,
+      "byteOffset": 2880,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 1920,
+      "byteOffset": 5760,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 1944,
+      "byteOffset": 7680,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 7296,
+      "byteOffset": 9624,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 7296,
+      "byteOffset": 16920,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 4864,
+      "byteOffset": 24216,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 4248,
+      "byteOffset": 29080,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 16032,
+      "byteOffset": 33328,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 16032,
+      "byteOffset": 49360,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 10688,
+      "byteOffset": 65392,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 8040,
+      "byteOffset": 76080,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 67992,
+      "byteOffset": 84120,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 67992,
+      "byteOffset": 152112,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 45328,
+      "byteOffset": 220104,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 41304,
+      "byteOffset": 265432,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 960,
+      "byteOffset": 306736,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 960,
+      "byteOffset": 307696,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 640,
+      "byteOffset": 308656,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 648,
+      "byteOffset": 309296,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 960,
+      "byteOffset": 309944,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 960,
+      "byteOffset": 310904,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 640,
+      "byteOffset": 311864,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 960,
+      "byteOffset": 312504,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 960,
+      "byteOffset": 313464,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 640,
+      "byteOffset": 314424,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 960,
+      "byteOffset": 315064,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 960,
+      "byteOffset": 316024,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 640,
+      "byteOffset": 316984,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 288,
+      "byteOffset": 317624,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 288,
+      "byteOffset": 317912,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 192,
+      "byteOffset": 318200,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 72,
+      "byteOffset": 318392,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 960,
+      "byteOffset": 318464,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 960,
+      "byteOffset": 319424,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 640,
+      "byteOffset": 320384,
+      "target": 34962
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 321024,
+      "uri": "JobComputerDesk.bin"
+    }
+  ]
+}

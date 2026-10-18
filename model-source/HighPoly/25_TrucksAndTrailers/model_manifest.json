@@ -1,0 +1,1764 @@
+{
+  "assets": [
+    {
+      "name": "RustyPickup",
+      "folder": "Trucks",
+      "instruction": 25,
+      "triangle_budget": 30000,
+      "detail_guidance_min": 20000,
+      "dimensions_studs": [
+        7.095,
+        6.635,
+        16.177828
+      ],
+      "bounds_min_studs": [
+        -3.5475001335144043,
+        -0.03500005975365639,
+        -8.0
+      ],
+      "bounds_max_studs": [
+        3.547499656677246,
+        6.600000381469727,
+        8.177827835083008
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [
+        {
+          "name": "BedArea",
+          "position_studs": [
+            0,
+            2.73,
+            3.75
+          ],
+          "size_studs": [
+            6,
+            0.2,
+            7.6
+          ],
+          "Slots": 3
+        },
+        {
+          "name": "DriverSeat",
+          "instance_type": "Attachment",
+          "parent_mesh": "RustyPickup__Body",
+          "position_studs": [
+            -1.451682027994161,
+            4.634524637907743,
+            -1.8117615692679536
+          ],
+          "orientation_degrees": [
+            0,
+            0,
+            0
+          ],
+          "attributes": {},
+          "look_vector": [
+            0,
+            0,
+            -1
+          ]
+        }
+      ],
+      "slots": [],
+      "triangles": 25412,
+      "mesh_objects": 14,
+      "parts": [
+        {
+          "name": "RustyPickup__Body",
+          "triangles": 15344,
+          "origin_studs": [
+            -2.384185791015625e-07,
+            -0.010684926062822342,
+            -0.16675615310668945
+          ],
+          "role": "static",
+          "can_collide": true,
+          "collision_fidelity": "PreciseConvexDecomposition",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "RustyPickup__Wheel_FL",
+          "triangles": 2084,
+          "origin_studs": [
+            -3.104053020477295,
+            1.205073356628418,
+            -5.568993091583252
+          ],
+          "role": "wheel",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "RustyPickup__Wheel_RL",
+          "triangles": 2084,
+          "origin_studs": [
+            -3.104053020477295,
+            1.205073356628418,
+            5.03869104385376
+          ],
+          "role": "wheel",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "RustyPickup__Wheel_FR",
+          "triangles": 2084,
+          "origin_studs": [
+            3.1040525436401367,
+            1.205073356628418,
+            -5.568993091583252
+          ],
+          "role": "wheel",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "RustyPickup__Wheel_RR",
+          "triangles": 2084,
+          "origin_studs": [
+            3.1040525436401367,
+            1.205073356628418,
+            5.03869104385376
+          ],
+          "role": "wheel",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "RustyPickup__Glass_Windshield",
+          "triangles": 12,
+          "origin_studs": [
+            -2.384185791015625e-07,
+            -0.010684926062822342,
+            -0.16675615310668945
+          ],
+          "role": "glass",
+          "can_collide": true,
+          "collision_fidelity": "PreciseConvexDecomposition",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "RustyPickup__DriverDoor",
+          "triangles": 940,
+          "origin_studs": [
+            -2.871805429458618,
+            2.8260841369628906,
+            -3.427565813064575
+          ],
+          "role": "hinged_door",
+          "can_collide": true,
+          "collision_fidelity": "PreciseConvexDecomposition",
+          "animation_axis": "Y",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "RustyPickup__DriverDoorGlass",
+          "triangles": 12,
+          "origin_studs": [
+            -2.871805429458618,
+            2.8260841369628906,
+            -3.427565813064575
+          ],
+          "role": "hinged_door_glass",
+          "can_collide": true,
+          "collision_fidelity": "PreciseConvexDecomposition",
+          "animation_axis": "Y",
+          "motion_mode": "Rotate",
+          "moves_with": "RustyPickup__DriverDoor"
+        },
+        {
+          "name": "RustyPickup__Glass_Mirror-1",
+          "triangles": 108,
+          "origin_studs": [
+            -2.871805429458618,
+            2.8260841369628906,
+            -3.427565813064575
+          ],
+          "role": "hinged_door_glass",
+          "can_collide": true,
+          "collision_fidelity": "PreciseConvexDecomposition",
+          "animation_axis": "Y",
+          "motion_mode": "Rotate",
+          "moves_with": "RustyPickup__DriverDoor"
+        },
+        {
+          "name": "RustyPickup__Glass_Side1_0",
+          "triangles": 12,
+          "origin_studs": [
+            -2.384185791015625e-07,
+            -0.010684926062822342,
+            -0.16675615310668945
+          ],
+          "role": "glass",
+          "can_collide": true,
+          "collision_fidelity": "PreciseConvexDecomposition",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "RustyPickup__Glass_Mirror1",
+          "triangles": 108,
+          "origin_studs": [
+            -2.384185791015625e-07,
+            -0.010684926062822342,
+            -0.16675615310668945
+          ],
+          "role": "glass",
+          "can_collide": true,
+          "collision_fidelity": "PreciseConvexDecomposition",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "RustyPickup__Glass_Headlamp-1",
+          "triangles": 108,
+          "origin_studs": [
+            -2.384185791015625e-07,
+            -0.010684926062822342,
+            -0.16675615310668945
+          ],
+          "role": "glass",
+          "can_collide": true,
+          "collision_fidelity": "PreciseConvexDecomposition",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "RustyPickup__Glass_Headlamp1",
+          "triangles": 108,
+          "origin_studs": [
+            -2.384185791015625e-07,
+            -0.010684926062822342,
+            -0.16675615310668945
+          ],
+          "role": "glass",
+          "can_collide": true,
+          "collision_fidelity": "PreciseConvexDecomposition",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "RustyPickup__Tailgate",
+          "triangles": 324,
+          "origin_studs": [
+            -2.384185791015625e-07,
+            2.8362154960632324,
+            7.5694684982299805
+          ],
+          "role": "tailgate",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "closed_left_driver_door_with_front_hinge": 1,
+        "driver_eye_height_above_seat_studs": 0.7,
+        "four_separate_wheel_assemblies": 4,
+        "glazed_cabin_with_interior": 1,
+        "storage_bed_floor_height": 2.83
+      },
+      "baseline_source_pack": "model-source/RevisedLawnModels",
+      "baseline_triangles": 9032,
+      "authoring_fit": {
+        "scale": [
+          1.035547137260437,
+          1.013131856918335,
+          0.9733759760856628
+        ],
+        "offset": [
+          -2.384185791015625e-07,
+          -0.010684926062822342,
+          -0.16675615310668945
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "name": "WorkPickup",
+      "folder": "Trucks",
+      "instruction": 25,
+      "triangle_budget": 30000,
+      "detail_guidance_min": 20000,
+      "dimensions_studs": [
+        7.095,
+        6.835,
+        16.650002
+      ],
+      "bounds_min_studs": [
+        -3.5475001335144043,
+        -0.03500005975365639,
+        -8.25
+      ],
+      "bounds_max_studs": [
+        3.547499656677246,
+        6.799999713897705,
+        8.40000057220459
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [
+        {
+          "name": "BedArea",
+          "position_studs": [
+            0,
+            2.73,
+            4.0
+          ],
+          "size_studs": [
+            6,
+            0.2,
+            7.6
+          ],
+          "Slots": 3
+        },
+        {
+          "name": "DriverSeat",
+          "instance_type": "Attachment",
+          "parent_mesh": "WorkPickup__Body",
+          "position_studs": [
+            -1.451682027994161,
+            4.567938812375068,
+            -1.8135580921229468
+          ],
+          "orientation_degrees": [
+            0,
+            0,
+            0
+          ],
+          "attributes": {},
+          "look_vector": [
+            0,
+            0,
+            -1
+          ]
+        }
+      ],
+      "slots": [],
+      "triangles": 24756,
+      "mesh_objects": 14,
+      "parts": [
+        {
+          "name": "WorkPickup__Body",
+          "triangles": 14688,
+          "origin_studs": [
+            -2.384185791015625e-07,
+            -0.011031650006771088,
+            -0.16730976104736328
+          ],
+          "role": "static",
+          "can_collide": true,
+          "collision_fidelity": "PreciseConvexDecomposition",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "WorkPickup__Wheel_FL",
+          "triangles": 2084,
+          "origin_studs": [
+            -3.104053020477295,
+            1.1873903274536133,
+            -5.8171563148498535
+          ],
+          "role": "wheel",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "WorkPickup__Wheel_RL",
+          "triangles": 2084,
+          "origin_studs": [
+            -3.104053020477295,
+            1.1873903274536133,
+            5.2584919929504395
+          ],
+          "role": "wheel",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "WorkPickup__Wheel_FR",
+          "triangles": 2084,
+          "origin_studs": [
+            3.1040525436401367,
+            1.1873903274536133,
+            -5.8171563148498535
+          ],
+          "role": "wheel",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "WorkPickup__Wheel_RR",
+          "triangles": 2084,
+          "origin_studs": [
+            3.1040525436401367,
+            1.1873903274536133,
+            5.2584919929504395
+          ],
+          "role": "wheel",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "WorkPickup__Glass_Windshield",
+          "triangles": 12,
+          "origin_studs": [
+            -2.384185791015625e-07,
+            -0.011031650006771088,
+            -0.16730976104736328
+          ],
+          "role": "glass",
+          "can_collide": true,
+          "collision_fidelity": "PreciseConvexDecomposition",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "WorkPickup__DriverDoor",
+          "triangles": 940,
+          "origin_studs": [
+            -2.871805429458618,
+            2.7852861881256104,
+            -3.6741111278533936
+          ],
+          "role": "hinged_door",
+          "can_collide": true,
+          "collision_fidelity": "PreciseConvexDecomposition",
+          "animation_axis": "Y",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "WorkPickup__DriverDoorGlass",
+          "triangles": 12,
+          "origin_studs": [
+            -2.871805429458618,
+            2.7852861881256104,
+            -3.6741111278533936
+          ],
+          "role": "hinged_door_glass",
+          "can_collide": true,
+          "collision_fidelity": "PreciseConvexDecomposition",
+          "animation_axis": "Y",
+          "motion_mode": "Rotate",
+          "moves_with": "WorkPickup__DriverDoor"
+        },
+        {
+          "name": "WorkPickup__Glass_Mirror-1",
+          "triangles": 108,
+          "origin_studs": [
+            -2.871805429458618,
+            2.7852861881256104,
+            -3.6741111278533936
+          ],
+          "role": "hinged_door_glass",
+          "can_collide": true,
+          "collision_fidelity": "PreciseConvexDecomposition",
+          "animation_axis": "Y",
+          "motion_mode": "Rotate",
+          "moves_with": "WorkPickup__DriverDoor"
+        },
+        {
+          "name": "WorkPickup__Glass_Side1_0",
+          "triangles": 12,
+          "origin_studs": [
+            -2.384185791015625e-07,
+            -0.011031650006771088,
+            -0.16730976104736328
+          ],
+          "role": "glass",
+          "can_collide": true,
+          "collision_fidelity": "PreciseConvexDecomposition",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "WorkPickup__Glass_Mirror1",
+          "triangles": 108,
+          "origin_studs": [
+            -2.384185791015625e-07,
+            -0.011031650006771088,
+            -0.16730976104736328
+          ],
+          "role": "glass",
+          "can_collide": true,
+          "collision_fidelity": "PreciseConvexDecomposition",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "WorkPickup__Glass_Headlamp-1",
+          "triangles": 108,
+          "origin_studs": [
+            -2.384185791015625e-07,
+            -0.011031650006771088,
+            -0.16730976104736328
+          ],
+          "role": "glass",
+          "can_collide": true,
+          "collision_fidelity": "PreciseConvexDecomposition",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "WorkPickup__Glass_Headlamp1",
+          "triangles": 108,
+          "origin_studs": [
+            -2.384185791015625e-07,
+            -0.011031650006771088,
+            -0.16730976104736328
+          ],
+          "role": "glass",
+          "can_collide": true,
+          "collision_fidelity": "PreciseConvexDecomposition",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "WorkPickup__Tailgate",
+          "triangles": 324,
+          "origin_studs": [
+            -2.384185791015625e-07,
+            2.7952730655670166,
+            7.791182041168213
+          ],
+          "role": "tailgate",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "closed_left_driver_door_with_front_hinge": 1,
+        "driver_eye_height_above_seat_studs": 0.7,
+        "four_separate_wheel_assemblies": 4,
+        "glazed_cabin_with_interior": 1,
+        "storage_bed_floor_height": 2.83
+      },
+      "baseline_source_pack": "model-source/RevisedLawnModels",
+      "baseline_triangles": 9056,
+      "authoring_fit": {
+        "scale": [
+          1.035547137260437,
+          0.9986849427223206,
+          0.9741114974021912
+        ],
+        "offset": [
+          -2.384185791015625e-07,
+          -0.011031650006771088,
+          -0.16730976104736328
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        3.766599655151367,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "name": "HeavyDutyPickup",
+      "folder": "Trucks",
+      "instruction": 25,
+      "triangle_budget": 30000,
+      "detail_guidance_min": 20000,
+      "dimensions_studs": [
+        8.094999,
+        7.534999,
+        18.150002
+      ],
+      "bounds_min_studs": [
+        -4.047499656677246,
+        -0.03500005975365639,
+        -9.0
+      ],
+      "bounds_max_studs": [
+        4.047499656677246,
+        7.499999523162842,
+        9.15000057220459
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [
+        {
+          "name": "BedArea",
+          "position_studs": [
+            0,
+            2.73,
+            4.75
+          ],
+          "size_studs": [
+            6,
+            0.2,
+            7.6
+          ],
+          "Slots": 3
+        },
+        {
+          "name": "DriverSeat",
+          "instance_type": "Attachment",
+          "parent_mesh": "HeavyDutyPickup__Body",
+          "position_studs": [
+            -1.6882428925555875,
+            4.627918930798769,
+            -1.5735576297146892
+          ],
+          "orientation_degrees": [
+            0,
+            0,
+            0
+          ],
+          "attributes": {},
+          "look_vector": [
+            0,
+            0,
+            -1
+          ]
+        }
+      ],
+      "slots": [],
+      "triangles": 29964,
+      "mesh_objects": 16,
+      "parts": [
+        {
+          "name": "HeavyDutyPickup__Body",
+          "triangles": 15704,
+          "origin_studs": [
+            0.0,
+            -0.008873384445905685,
+            -0.1678295135498047
+          ],
+          "role": "static",
+          "can_collide": true,
+          "collision_fidelity": "PreciseConvexDecomposition",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "HeavyDutyPickup__Wheel_FL",
+          "triangles": 2084,
+          "origin_studs": [
+            -3.6183652877807617,
+            1.2956984043121338,
+            -6.561939716339111
+          ],
+          "role": "wheel",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "HeavyDutyPickup__Wheel_RL",
+          "triangles": 4168,
+          "origin_studs": [
+            -3.6183652877807617,
+            1.2956984043121338,
+            6.001756191253662
+          ],
+          "role": "wheel",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "HeavyDutyPickup__Wheel_FR",
+          "triangles": 2084,
+          "origin_studs": [
+            3.6183652877807617,
+            1.2956984043121338,
+            -6.561939716339111
+          ],
+          "role": "wheel",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "HeavyDutyPickup__Wheel_RR",
+          "triangles": 4168,
+          "origin_studs": [
+            3.6183652877807617,
+            1.2956984043121338,
+            6.001756191253662
+          ],
+          "role": "wheel",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "HeavyDutyPickup__Glass_Windshield",
+          "triangles": 12,
+          "origin_studs": [
+            0.0,
+            -0.008873384445905685,
+            -0.1678295135498047
+          ],
+          "role": "glass",
+          "can_collide": true,
+          "collision_fidelity": "PreciseConvexDecomposition",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "HeavyDutyPickup__DriverDoor",
+          "triangles": 940,
+          "origin_studs": [
+            -3.339784860610962,
+            2.8227555751800537,
+            -3.9261999130249023
+          ],
+          "role": "hinged_door",
+          "can_collide": true,
+          "collision_fidelity": "PreciseConvexDecomposition",
+          "animation_axis": "Y",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "HeavyDutyPickup__DriverDoorGlass",
+          "triangles": 12,
+          "origin_studs": [
+            -3.339784860610962,
+            2.8227555751800537,
+            -3.9261999130249023
+          ],
+          "role": "hinged_door_glass",
+          "can_collide": true,
+          "collision_fidelity": "PreciseConvexDecomposition",
+          "animation_axis": "Y",
+          "motion_mode": "Rotate",
+          "moves_with": "HeavyDutyPickup__DriverDoor"
+        },
+        {
+          "name": "HeavyDutyPickup__Glass_Side-1_1",
+          "triangles": 12,
+          "origin_studs": [
+            0.0,
+            -0.008873384445905685,
+            -0.1678295135498047
+          ],
+          "role": "glass",
+          "can_collide": true,
+          "collision_fidelity": "PreciseConvexDecomposition",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "HeavyDutyPickup__Glass_Mirror-1",
+          "triangles": 108,
+          "origin_studs": [
+            -3.339784860610962,
+            2.8227555751800537,
+            -3.9261999130249023
+          ],
+          "role": "hinged_door_glass",
+          "can_collide": true,
+          "collision_fidelity": "PreciseConvexDecomposition",
+          "animation_axis": "Y",
+          "motion_mode": "Rotate",
+          "moves_with": "HeavyDutyPickup__DriverDoor"
+        },
+        {
+          "name": "HeavyDutyPickup__Glass_Side1_0",
+          "triangles": 12,
+          "origin_studs": [
+            0.0,
+            -0.008873384445905685,
+            -0.1678295135498047
+          ],
+          "role": "glass",
+          "can_collide": true,
+          "collision_fidelity": "PreciseConvexDecomposition",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "HeavyDutyPickup__Glass_Side1_1",
+          "triangles": 12,
+          "origin_studs": [
+            0.0,
+            -0.008873384445905685,
+            -0.1678295135498047
+          ],
+          "role": "glass",
+          "can_collide": true,
+          "collision_fidelity": "PreciseConvexDecomposition",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "HeavyDutyPickup__Glass_Mirror1",
+          "triangles": 108,
+          "origin_studs": [
+            0.0,
+            -0.008873384445905685,
+            -0.1678295135498047
+          ],
+          "role": "glass",
+          "can_collide": true,
+          "collision_fidelity": "PreciseConvexDecomposition",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "HeavyDutyPickup__Glass_Headlamp-1",
+          "triangles": 108,
+          "origin_studs": [
+            0.0,
+            -0.008873384445905685,
+            -0.1678295135498047
+          ],
+          "role": "glass",
+          "can_collide": true,
+          "collision_fidelity": "PreciseConvexDecomposition",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "HeavyDutyPickup__Glass_Headlamp1",
+          "triangles": 108,
+          "origin_studs": [
+            0.0,
+            -0.008873384445905685,
+            -0.1678295135498047
+          ],
+          "role": "glass",
+          "can_collide": true,
+          "collision_fidelity": "PreciseConvexDecomposition",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "HeavyDutyPickup__Tailgate",
+          "triangles": 324,
+          "origin_studs": [
+            0.0,
+            2.8328683376312256,
+            8.539875984191895
+          ],
+          "role": "tailgate",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "closed_left_driver_door_with_front_hinge": 1,
+        "driver_eye_height_above_seat_studs": 0.7,
+        "four_separate_wheel_assemblies": 4,
+        "glazed_cabin_with_interior": 1,
+        "storage_bed_floor_height": 2.83
+      },
+      "baseline_source_pack": "model-source/RevisedLawnModels",
+      "baseline_triangles": 8924,
+      "authoring_fit": {
+        "scale": [
+          1.0345577001571655,
+          1.011296033859253,
+          0.9762001037597656
+        ],
+        "offset": [
+          0.0,
+          -0.008873384445905685,
+          -0.1678295135498047
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        7.533199310302734,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "name": "LandscapingTruck",
+      "folder": "Trucks",
+      "instruction": 25,
+      "triangle_budget": 30000,
+      "detail_guidance_min": 20000,
+      "dimensions_studs": [
+        7.495,
+        9.035001,
+        18.150002
+      ],
+      "bounds_min_studs": [
+        -3.747499942779541,
+        -0.03500005975365639,
+        -9.0
+      ],
+      "bounds_max_studs": [
+        3.747499942779541,
+        9.000000953674316,
+        9.15000057220459
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [
+        {
+          "name": "BedArea",
+          "position_studs": [
+            0,
+            2.73,
+            4.75
+          ],
+          "size_studs": [
+            6,
+            0.2,
+            7.6
+          ],
+          "Slots": 3
+        },
+        {
+          "name": "DriverSeat",
+          "instance_type": "Attachment",
+          "parent_mesh": "LandscapingTruck__Body",
+          "position_studs": [
+            -1.5517265390853714,
+            4.618292661607265,
+            -3.745602860580168
+          ],
+          "orientation_degrees": [
+            0,
+            0,
+            0
+          ],
+          "attributes": {},
+          "look_vector": [
+            0,
+            0,
+            -1
+          ]
+        }
+      ],
+      "slots": [],
+      "triangles": 26576,
+      "mesh_objects": 14,
+      "parts": [
+        {
+          "name": "LandscapingTruck__Body",
+          "triangles": 11800,
+          "origin_studs": [
+            0.0,
+            -0.010769449174404144,
+            -0.1678295135498047
+          ],
+          "role": "static",
+          "can_collide": true,
+          "collision_fidelity": "PreciseConvexDecomposition",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "LandscapingTruck__Wheel_FL",
+          "triangles": 2084,
+          "origin_studs": [
+            -3.3213813304901123,
+            1.2007626295089722,
+            -6.854800224304199
+          ],
+          "role": "wheel",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "LandscapingTruck__Wheel_RL",
+          "triangles": 4168,
+          "origin_studs": [
+            -3.3213813304901123,
+            1.2007626295089722,
+            6.001756191253662
+          ],
+          "role": "wheel",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "LandscapingTruck__Wheel_FR",
+          "triangles": 2084,
+          "origin_studs": [
+            3.3213813304901123,
+            1.2007626295089722,
+            -6.854800224304199
+          ],
+          "role": "wheel",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "LandscapingTruck__Wheel_RR",
+          "triangles": 4168,
+          "origin_studs": [
+            3.3213813304901123,
+            1.2007626295089722,
+            6.001756191253662
+          ],
+          "role": "wheel",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "LandscapingTruck__Glass_Windshield",
+          "triangles": 12,
+          "origin_studs": [
+            0.0,
+            -0.010769449174404144,
+            -0.1678295135498047
+          ],
+          "role": "glass",
+          "can_collide": true,
+          "collision_fidelity": "PreciseConvexDecomposition",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "LandscapingTruck__DriverDoor",
+          "triangles": 940,
+          "origin_studs": [
+            -3.0697197914123535,
+            2.816138744354248,
+            -8.27029037475586
+          ],
+          "role": "hinged_door",
+          "can_collide": true,
+          "collision_fidelity": "PreciseConvexDecomposition",
+          "animation_axis": "Y",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "LandscapingTruck__DriverDoorGlass",
+          "triangles": 12,
+          "origin_studs": [
+            -3.0697197914123535,
+            2.816138744354248,
+            -8.27029037475586
+          ],
+          "role": "hinged_door_glass",
+          "can_collide": true,
+          "collision_fidelity": "PreciseConvexDecomposition",
+          "animation_axis": "Y",
+          "motion_mode": "Rotate",
+          "moves_with": "LandscapingTruck__DriverDoor"
+        },
+        {
+          "name": "LandscapingTruck__Glass_Mirror-1",
+          "triangles": 108,
+          "origin_studs": [
+            -3.0697197914123535,
+            2.816138744354248,
+            -8.27029037475586
+          ],
+          "role": "hinged_door_glass",
+          "can_collide": true,
+          "collision_fidelity": "PreciseConvexDecomposition",
+          "animation_axis": "Y",
+          "motion_mode": "Rotate",
+          "moves_with": "LandscapingTruck__DriverDoor"
+        },
+        {
+          "name": "LandscapingTruck__Glass_Side1_0",
+          "triangles": 12,
+          "origin_studs": [
+            0.0,
+            -0.010769449174404144,
+            -0.1678295135498047
+          ],
+          "role": "glass",
+          "can_collide": true,
+          "collision_fidelity": "PreciseConvexDecomposition",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "LandscapingTruck__Glass_Mirror1",
+          "triangles": 108,
+          "origin_studs": [
+            0.0,
+            -0.010769449174404144,
+            -0.1678295135498047
+          ],
+          "role": "glass",
+          "can_collide": true,
+          "collision_fidelity": "PreciseConvexDecomposition",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "LandscapingTruck__Glass_Headlamp-1",
+          "triangles": 108,
+          "origin_studs": [
+            0.0,
+            -0.010769449174404144,
+            -0.1678295135498047
+          ],
+          "role": "glass",
+          "can_collide": true,
+          "collision_fidelity": "PreciseConvexDecomposition",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "LandscapingTruck__Glass_Headlamp1",
+          "triangles": 108,
+          "origin_studs": [
+            0.0,
+            -0.010769449174404144,
+            -0.1678295135498047
+          ],
+          "role": "glass",
+          "can_collide": true,
+          "collision_fidelity": "PreciseConvexDecomposition",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "LandscapingTruck__RearDoor",
+          "triangles": 864,
+          "origin_studs": [
+            0.0,
+            2.8464269638061523,
+            8.539875984191895
+          ],
+          "role": "rear_door",
+          "can_collide": true,
+          "collision_fidelity": "PreciseConvexDecomposition",
+          "animation_axis": "Y",
+          "motion_mode": "TranslateY",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "closed_left_driver_door_with_front_hinge": 1,
+        "driver_eye_height_above_seat_studs": 0.7,
+        "four_separate_wheel_assemblies": 4,
+        "glazed_cabin_with_interior": 1,
+        "storage_bed_floor_height": 2.83
+      },
+      "baseline_source_pack": "model-source/RevisedLawnModels",
+      "baseline_triangles": 8696,
+      "authoring_fit": {
+        "scale": [
+          1.038743257522583,
+          1.0096100568771362,
+          0.9762001037597656
+        ],
+        "offset": [
+          0.0,
+          -0.010769449174404144,
+          -0.1678295135498047
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        0.0,
+        0.0,
+        -6.582000732421875
+      ]
+    },
+    {
+      "name": "UtilityTrailer",
+      "folder": "Trailers",
+      "instruction": 25,
+      "triangle_budget": 18000,
+      "detail_guidance_min": 8000,
+      "dimensions_studs": [
+        7.1,
+        3.015,
+        12.41
+      ],
+      "bounds_min_studs": [
+        -3.549999952316284,
+        2.4301627377099067e-10,
+        -6.750000476837158
+      ],
+      "bounds_max_studs": [
+        3.549999952316284,
+        3.015000104904175,
+        5.659999370574951
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [
+        {
+          "name": "BedArea",
+          "position_studs": [
+            0,
+            1.775,
+            1
+          ],
+          "size_studs": [
+            6,
+            0.2,
+            8
+          ],
+          "Slots": 1
+        }
+      ],
+      "slots": [],
+      "triangles": 13148,
+      "mesh_objects": 4,
+      "parts": [
+        {
+          "name": "UtilityTrailer__Body",
+          "triangles": 8492,
+          "origin_studs": [
+            0.0,
+            0.016673842445015907,
+            -0.008888721466064453
+          ],
+          "role": "static",
+          "can_collide": true,
+          "collision_fidelity": "PreciseConvexDecomposition",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "UtilityTrailer__Wheel_-1_0",
+          "triangles": 2084,
+          "origin_studs": [
+            -3.188563346862793,
+            0.8196154236793518,
+            1.8724671602249146
+          ],
+          "role": "wheel",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "UtilityTrailer__Wheel_1_0",
+          "triangles": 2084,
+          "origin_studs": [
+            3.188563346862793,
+            0.8196154236793518,
+            1.8724671602249146
+          ],
+          "role": "wheel",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "UtilityTrailer__Ramp",
+          "triangles": 488,
+          "origin_studs": [
+            0.0,
+            1.9223896265029907,
+            5.51107931137085
+          ],
+          "role": "ramp",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "leaf_spring_axles": 1,
+        "separate_animated_wheels": 2,
+        "physical_safety_chain_links": 8,
+        "cargo_markers_preserved": 1
+      },
+      "baseline_source_pack": "model-source/RevisedLawnModels",
+      "baseline_triangles": 2124,
+      "authoring_fit": {
+        "scale": [
+          0.9902371168136597,
+          1.0163817405700684,
+          0.9927999973297119
+        ],
+        "offset": [
+          0.0,
+          0.016673842445015907,
+          -0.008888721466064453
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        3.766599655151367,
+        0.0,
+        -6.582000732421875
+      ]
+    },
+    {
+      "name": "LandscapeTrailer",
+      "folder": "Trailers",
+      "instruction": 25,
+      "triangle_budget": 18000,
+      "detail_guidance_min": 8000,
+      "dimensions_studs": [
+        7.300001,
+        7.5,
+        15.140942
+      ],
+      "bounds_min_studs": [
+        -3.6500003337860107,
+        -5.905578248643906e-10,
+        -7.25
+      ],
+      "bounds_max_studs": [
+        3.6500003337860107,
+        7.499999523162842,
+        7.890941619873047
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [
+        {
+          "name": "BedArea",
+          "position_studs": [
+            0,
+            1.775,
+            1
+          ],
+          "size_studs": [
+            6,
+            0.2,
+            10
+          ],
+          "Slots": 2
+        }
+      ],
+      "slots": [],
+      "triangles": 17644,
+      "mesh_objects": 6,
+      "parts": [
+        {
+          "name": "LandscapeTrailer__Body",
+          "triangles": 8368,
+          "origin_studs": [
+            0.0,
+            0.016512084752321243,
+            -0.019691944122314453
+          ],
+          "role": "static",
+          "can_collide": true,
+          "collision_fidelity": "PreciseConvexDecomposition",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "LandscapeTrailer__Wheel_-1_0",
+          "triangles": 2084,
+          "origin_studs": [
+            -3.2884669303894043,
+            0.8116641640663147,
+            1.825545072555542
+          ],
+          "role": "wheel",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "LandscapeTrailer__Wheel_-1_1",
+          "triangles": 2084,
+          "origin_studs": [
+            -3.2884669303894043,
+            0.8116641640663147,
+            3.809168815612793
+          ],
+          "role": "wheel",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "LandscapeTrailer__Wheel_1_0",
+          "triangles": 2084,
+          "origin_studs": [
+            3.2884669303894043,
+            0.8116641640663147,
+            1.825545072555542
+          ],
+          "role": "wheel",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "LandscapeTrailer__Wheel_1_1",
+          "triangles": 2084,
+          "origin_studs": [
+            3.2884669303894043,
+            0.8116641640663147,
+            3.809168815612793
+          ],
+          "role": "wheel",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "LandscapeTrailer__RampDoor",
+          "triangles": 940,
+          "origin_studs": [
+            0.0,
+            1.9037400484085083,
+            7.707456111907959
+          ],
+          "role": "ramp",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "leaf_spring_axles": 2,
+        "separate_animated_wheels": 4,
+        "physical_safety_chain_links": 8,
+        "cargo_markers_preserved": 1
+      },
+      "baseline_source_pack": "model-source/RevisedLawnModels",
+      "baseline_triangles": 2436,
+      "authoring_fit": {
+        "scale": [
+          0.9905020594596863,
+          1.0065215826034546,
+          0.9918118715286255
+        ],
+        "offset": [
+          0.0,
+          0.016512084752321243,
+          -0.019691944122314453
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        7.533199310302734,
+        0.0,
+        -6.582000732421875
+      ]
+    },
+    {
+      "name": "EquipmentTrailer",
+      "folder": "Trailers",
+      "instruction": 25,
+      "triangle_budget": 18000,
+      "detail_guidance_min": 8000,
+      "dimensions_studs": [
+        7.5,
+        3.07,
+        17.994999
+      ],
+      "bounds_min_studs": [
+        -3.749999761581421,
+        8.572520471261669e-11,
+        -8.924999237060547
+      ],
+      "bounds_max_studs": [
+        3.749999761581421,
+        3.069999933242798,
+        9.069999694824219
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [
+        {
+          "name": "BedArea",
+          "position_studs": [
+            0,
+            1.7,
+            -4.5
+          ],
+          "size_studs": [
+            6,
+            0.2,
+            3
+          ],
+          "Slots": 4
+        },
+        {
+          "name": "BaySpot",
+          "position_studs": [
+            0,
+            1.7,
+            0
+          ],
+          "size_studs": [
+            6,
+            0.2,
+            6
+          ]
+        },
+        {
+          "name": "BaySpot",
+          "position_studs": [
+            0,
+            1.7,
+            6
+          ],
+          "size_studs": [
+            6,
+            0.2,
+            6
+          ]
+        }
+      ],
+      "slots": [],
+      "triangles": 17940,
+      "mesh_objects": 6,
+      "parts": [
+        {
+          "name": "EquipmentTrailer__Body",
+          "triangles": 9116,
+          "origin_studs": [
+            0.0,
+            0.016668949276208878,
+            -0.004614830017089844
+          ],
+          "role": "static",
+          "can_collide": true,
+          "collision_fidelity": "PreciseConvexDecomposition",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "EquipmentTrailer__Wheel_-1_2.8",
+          "triangles": 2084,
+          "origin_studs": [
+            -3.3883748054504395,
+            0.8193749189376831,
+            1.5998607873916626
+          ],
+          "role": "wheel",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "EquipmentTrailer__Wheel_-1_5.3",
+          "triangles": 2084,
+          "origin_studs": [
+            -3.3883748054504395,
+            0.8193749189376831,
+            3.589907646179199
+          ],
+          "role": "wheel",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "EquipmentTrailer__Wheel_1_2.8",
+          "triangles": 2084,
+          "origin_studs": [
+            3.3883748054504395,
+            0.8193749189376831,
+            1.5998607873916626
+          ],
+          "role": "wheel",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "EquipmentTrailer__Wheel_1_5.3",
+          "triangles": 2084,
+          "origin_studs": [
+            3.3883748054504395,
+            0.8193749189376831,
+            3.589907646179199
+          ],
+          "role": "wheel",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "EquipmentTrailer__Ramp",
+          "triangles": 488,
+          "origin_studs": [
+            0.0,
+            1.8456192016601562,
+            8.920744895935059
+          ],
+          "role": "ramp",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "leaf_spring_axles": 2,
+        "separate_animated_wheels": 4,
+        "physical_safety_chain_links": 8,
+        "cargo_markers_preserved": 3
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 4712,
+      "authoring_fit": {
+        "scale": [
+          0.9907528758049011,
+          1.0160834789276123,
+          0.9950234889984131
+        ],
+        "offset": [
+          0.0,
+          0.016668949276208878,
+          -0.004614830017089844
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        0.0,
+        0.0,
+        -13.16400146484375
+      ]
+    }
+  ],
+  "meters_per_stud": 0.28,
+  "source_main_commit": "2377b19",
+  "original_packs_preserved": true,
+  "studio_import_tested": false
+}

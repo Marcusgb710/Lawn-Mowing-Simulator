@@ -1,0 +1,135 @@
+{
+  "source_main_commit": "2377b19",
+  "assets": 7,
+  "checks": [
+    "source_files_and_buffers",
+    "exact_ids_and_folders",
+    "actual_exported_triangle_counts_and_20k_mesh_limit",
+    "finite_positions_normals_and_UVs",
+    "nondegenerate_triangles",
+    "actual_bounds_and_size_tolerances",
+    "preserved_grips_slots_and_old_markers",
+    "hinge_and_axle_local_frames",
+    "attachment_positions_parents_and_LookVectors",
+    "untextured_16_9_screens",
+    "interaction_marker_counts",
+    "combined_library_translation_only_roots",
+    "portable_PBR_textures_at_most_2048",
+    "binary_FBX_header",
+    "closed_authoring_components_after_coincident_vertex_matching",
+    "FBX_import_triangle_mesh_count_and_world_bounds"
+  ],
+  "issues": [],
+  "studio_import_tested": false,
+  "geometry": [
+    {
+      "name": "House",
+      "triangles": 17004,
+      "counts": {
+        "components": 725
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "FlowerPatch",
+      "triangles": 5230,
+      "counts": {
+        "components": 110
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "GardenGnome",
+      "triangles": 5452,
+      "counts": {
+        "components": 27
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "Shed",
+      "triangles": 19588,
+      "counts": {
+        "components": 420
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "Garage",
+      "triangles": 17336,
+      "counts": {
+        "components": 810
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "SmallOffice",
+      "triangles": 13468,
+      "counts": {
+        "components": 353
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "EquipmentYard",
+      "triangles": 20476,
+      "counts": {
+        "components": 497
+      },
+      "topology_issues": []
+    }
+  ],
+  "fbx_roundtrip": [
+    {
+      "name": "House",
+      "triangles": 17004,
+      "mesh_objects": 5,
+      "bounds_error_studs": 1.9073486328125e-06,
+      "passed": true
+    },
+    {
+      "name": "FlowerPatch",
+      "triangles": 5230,
+      "mesh_objects": 7,
+      "bounds_error_studs": 2.713242990282083e-07,
+      "passed": true
+    },
+    {
+      "name": "GardenGnome",
+      "triangles": 5452,
+      "mesh_objects": 1,
+      "bounds_error_studs": 2.086162567138672e-07,
+      "passed": true
+    },
+    {
+      "name": "Shed",
+      "triangles": 19588,
+      "mesh_objects": 17,
+      "bounds_error_studs": 1.038619302562438e-06,
+      "passed": true
+    },
+    {
+      "name": "Garage",
+      "triangles": 17336,
+      "mesh_objects": 20,
+      "bounds_error_studs": 1.92653692465683e-06,
+      "passed": true
+    },
+    {
+      "name": "SmallOffice",
+      "triangles": 13468,
+      "mesh_objects": 32,
+      "bounds_error_studs": 2.4152989226422505e-06,
+      "passed": true
+    },
+    {
+      "name": "EquipmentYard",
+      "triangles": 20476,
+      "mesh_objects": 26,
+      "bounds_error_studs": 2.7411404062149813e-06,
+      "passed": true
+    }
+  ],
+  "protected_files_unchanged_count": 541,
+  "preview_status": "rendering"
+}

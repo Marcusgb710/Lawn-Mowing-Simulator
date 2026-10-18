@@ -1,0 +1,477 @@
+{
+  "asset": {
+    "generator": "Khronos glTF Blender I/O v4.3.47",
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        4
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          0.016673842445015907,
+          -0.008888721466064453
+        ],
+        "can_collide": true,
+        "collision_fidelity": "PreciseConvexDecomposition",
+        "motion_mode": ""
+      },
+      "mesh": 0,
+      "name": "UtilityTrailer__Body",
+      "translation": [
+        0,
+        0.0046686758287250996,
+        -0.002488842001184821
+      ]
+    },
+    {
+      "extras": {
+        "role": "ramp",
+        "animation_axis": "X",
+        "stud_origin": [
+          0.0,
+          1.9223896265029907,
+          5.51107931137085
+        ],
+        "can_collide": true,
+        "collision_fidelity": "Hull",
+        "motion_mode": "Rotate"
+      },
+      "mesh": 1,
+      "name": "UtilityTrailer__Ramp",
+      "translation": [
+        0,
+        0.5382691025733948,
+        1.5431022644042969
+      ]
+    },
+    {
+      "extras": {
+        "role": "wheel",
+        "animation_axis": "X",
+        "stud_origin": [
+          -3.188563346862793,
+          0.8196154236793518,
+          1.8724671602249146
+        ],
+        "can_collide": true,
+        "collision_fidelity": "Hull",
+        "motion_mode": "Rotate"
+      },
+      "mesh": 2,
+      "name": "UtilityTrailer__Wheel_-1_0",
+      "translation": [
+        -0.8927977681159973,
+        0.22949232161045074,
+        0.5242908000946045
+      ]
+    },
+    {
+      "extras": {
+        "role": "wheel",
+        "animation_axis": "X",
+        "stud_origin": [
+          3.188563346862793,
+          0.8196154236793518,
+          1.8724671602249146
+        ],
+        "can_collide": true,
+        "collision_fidelity": "Hull",
+        "motion_mode": "Rotate"
+      },
+      "mesh": 3,
+      "name": "UtilityTrailer__Wheel_1_0",
+      "translation": [
+        0.8927977681159973,
+        0.22949232161045074,
+        0.5242908000946045
+      ]
+    },
+    {
+      "children": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "extras": {
+        "folder": "Trailers",
+        "stud_to_meter": 0.28,
+        "primary_part": "Root",
+        "primary_position_studs": [
+          0.0,
+          0.5,
+          0.0
+        ],
+        "markers_json": "[{\"name\": \"BedArea\", \"position_studs\": [0, 1.775, 1], \"size_studs\": [6, 0.2, 8], \"Slots\": 1}]",
+        "slots_json": "[]"
+      },
+      "name": "UtilityTrailer"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "HP shared PBR 25",
+      "normalTexture": {
+        "index": 0,
+        "scale": 0.44999998807907104
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 1
+        },
+        "metallicRoughnessTexture": {
+          "index": 2
+        }
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "UtilityTrailer__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "UtilityTrailer__Ramp",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 4,
+            "NORMAL": 5,
+            "TEXCOORD_0": 6
+          },
+          "indices": 7,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "UtilityTrailer__Wheel_-1_0",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 8,
+            "NORMAL": 9,
+            "TEXCOORD_0": 10
+          },
+          "indices": 11,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "UtilityTrailer__Wheel_1_0",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 12,
+            "NORMAL": 13,
+            "TEXCOORD_0": 14
+          },
+          "indices": 15,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    }
+  ],
+  "images": [
+    {
+      "mimeType": "image/png",
+      "name": "HP25_Normal",
+      "uri": "../../Textures/HP25_Normal.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP25_Color",
+      "uri": "../../Textures/HP25_Color.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP25_Metalness-HP25_Roughness",
+      "uri": "../../Textures/HP25_Metalness-HP25_Roughness.png"
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 5980,
+      "max": [
+        0.9940000176429749,
+        0.8381083607673645,
+        1.5872886180877686
+      ],
+      "min": [
+        -0.9940000176429749,
+        0.10387422144412994,
+        -1.8875112533569336
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 5980,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 5980,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "count": 25476,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 4,
+      "componentType": 5126,
+      "count": 576,
+      "max": [
+        0.8346804976463318,
+        0.3059309422969818,
+        0.015289001166820526
+      ],
+      "min": [
+        -0.8346804976463318,
+        -0.015652261674404144,
+        -0.01528913527727127
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 5,
+      "componentType": 5126,
+      "count": 576,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 6,
+      "componentType": 5126,
+      "count": 576,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 7,
+      "componentType": 5123,
+      "count": 1464,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 8,
+      "componentType": 5126,
+      "count": 1968,
+      "max": [
+        0.07269919663667679,
+        0.22949229180812836,
+        0.22531788051128387
+      ],
+      "min": [
+        -0.07780098170042038,
+        -0.22949232161045074,
+        -0.22531791031360626
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 9,
+      "componentType": 5126,
+      "count": 1968,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 10,
+      "componentType": 5126,
+      "count": 1968,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 11,
+      "componentType": 5123,
+      "count": 6252,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 12,
+      "componentType": 5126,
+      "count": 1968,
+      "max": [
+        0.07780098170042038,
+        0.22949229180812836,
+        0.22531788051128387
+      ],
+      "min": [
+        -0.07269919663667679,
+        -0.22949232161045074,
+        -0.22531791031360626
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 13,
+      "componentType": 5126,
+      "count": 1968,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 14,
+      "componentType": 5126,
+      "count": 1968,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 15,
+      "componentType": 5123,
+      "count": 6252,
+      "type": "SCALAR"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 71760,
+      "byteOffset": 0,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 71760,
+      "byteOffset": 71760,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 47840,
+      "byteOffset": 143520,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 50952,
+      "byteOffset": 191360,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 6912,
+      "byteOffset": 242312,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 6912,
+      "byteOffset": 249224,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 4608,
+      "byteOffset": 256136,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 2928,
+      "byteOffset": 260744,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 23616,
+      "byteOffset": 263672,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 23616,
+      "byteOffset": 287288,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 15744,
+      "byteOffset": 310904,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 12504,
+      "byteOffset": 326648,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 23616,
+      "byteOffset": 339152,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 23616,
+      "byteOffset": 362768,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 15744,
+      "byteOffset": 386384,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 12504,
+      "byteOffset": 402128,
+      "target": 34963
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 414632,
+      "uri": "UtilityTrailer.bin"
+    }
+  ]
+}

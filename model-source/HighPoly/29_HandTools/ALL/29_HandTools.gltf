@@ -1,0 +1,1941 @@
+{
+  "asset": {
+    "generator": "Khronos glTF Blender I/O v4.3.47",
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        1,
+        3,
+        5,
+        7,
+        9,
+        11,
+        13,
+        15,
+        17,
+        19,
+        21,
+        23,
+        25,
+        27,
+        30
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          -0.0014936327934265137,
+          -0.029944777488708496
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 0,
+      "name": "HandTrowel__Body",
+      "translation": [
+        0,
+        -0.00041821718332357705,
+        -0.008384537883102894
+      ]
+    },
+    {
+      "children": [
+        0
+      ],
+      "extras": {
+        "folder": "Tools",
+        "stud_to_meter": 0.28,
+        "primary_part": "Handle",
+        "primary_position_studs": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "markers_json": "[]",
+        "slots_json": "[]"
+      },
+      "name": "HandTrowel"
+    },
+    {
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          -7.450580596923828e-09,
+          -0.0058901309967041016,
+          -0.032726287841796875
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 1,
+      "name": "HandTransplanter__Body",
+      "translation": [
+        0,
+        -0.001649236655794084,
+        -0.00916336104273796
+      ]
+    },
+    {
+      "children": [
+        2
+      ],
+      "extras": {
+        "folder": "Tools",
+        "stud_to_meter": 0.28,
+        "primary_part": "Handle",
+        "primary_position_studs": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "markers_json": "[]",
+        "slots_json": "[]"
+      },
+      "name": "HandTransplanter",
+      "translation": [
+        1.8331999778747559,
+        0,
+        0
+      ]
+    },
+    {
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          3.445148468017578e-05,
+          -0.03685241937637329
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 2,
+      "name": "HandCultivator__Body",
+      "translation": [
+        0,
+        9.64641549217049e-06,
+        -0.010318677872419357
+      ]
+    },
+    {
+      "children": [
+        4
+      ],
+      "extras": {
+        "folder": "Tools",
+        "stud_to_meter": 0.28,
+        "primary_part": "Handle",
+        "primary_position_studs": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "markers_json": "[]",
+        "slots_json": "[]"
+      },
+      "name": "HandCultivator",
+      "translation": [
+        3.6663999557495117,
+        0,
+        0
+      ]
+    },
+    {
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          -0.0055855512619018555,
+          -0.02474457025527954
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 3,
+      "name": "DandelionWeeder__Body",
+      "translation": [
+        0,
+        -0.0015639543998986483,
+        -0.006928479764610529
+      ]
+    },
+    {
+      "children": [
+        6
+      ],
+      "extras": {
+        "folder": "Tools",
+        "stud_to_meter": 0.28,
+        "primary_part": "Handle",
+        "primary_position_studs": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "markers_json": "[]",
+        "slots_json": "[]"
+      },
+      "name": "DandelionWeeder",
+      "translation": [
+        5.499599933624268,
+        0,
+        0
+      ]
+    },
+    {
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          -0.002024829387664795,
+          0.0
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 4,
+      "name": "Dibber__Body",
+      "translation": [
+        0,
+        -0.0005669522215612233,
+        0
+      ]
+    },
+    {
+      "children": [
+        8
+      ],
+      "extras": {
+        "folder": "Tools",
+        "stud_to_meter": 0.28,
+        "primary_part": "Handle",
+        "primary_position_studs": [
+          0.0,
+          0.10000000149011612,
+          0.0
+        ],
+        "markers_json": "[]",
+        "slots_json": "[]"
+      },
+      "name": "Dibber",
+      "translation": [
+        0,
+        0,
+        -2.3128044605255127
+      ]
+    },
+    {
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          -0.001346152275800705,
+          0.05512070655822754
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 5,
+      "name": "BypassPruners__Body",
+      "translation": [
+        0,
+        -0.0003769226314034313,
+        0.015433788299560547
+      ]
+    },
+    {
+      "children": [
+        10
+      ],
+      "extras": {
+        "folder": "Tools",
+        "stud_to_meter": 0.28,
+        "primary_part": "Handle",
+        "primary_position_studs": [
+          0.0,
+          0.0,
+          0.05000000074505806
+        ],
+        "markers_json": "[]",
+        "slots_json": "[]"
+      },
+      "name": "BypassPruners",
+      "translation": [
+        1.8331999778747559,
+        0,
+        -2.3128044605255127
+      ]
+    },
+    {
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          -0.01211538165807724,
+          0.04720866680145264
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 6,
+      "name": "AnvilPruners__Body",
+      "translation": [
+        0,
+        -0.0033923068549484015,
+        0.013218402862548828
+      ]
+    },
+    {
+      "children": [
+        12
+      ],
+      "extras": {
+        "folder": "Tools",
+        "stud_to_meter": 0.28,
+        "primary_part": "Handle",
+        "primary_position_studs": [
+          0.0,
+          0.0,
+          0.05000000074505806
+        ],
+        "markers_json": "[]",
+        "slots_json": "[]"
+      },
+      "name": "AnvilPruners",
+      "translation": [
+        3.6663999557495117,
+        0,
+        -2.3128044605255127
+      ]
+    },
+    {
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          -0.00017236173152923584,
+          0.0031538475304841995,
+          0.009135931730270386
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 7,
+      "name": "FloralSnips__Body",
+      "translation": [
+        -4.8160552978515625e-05,
+        0.0008830773294903338,
+        0.002557992935180664
+      ]
+    },
+    {
+      "children": [
+        14
+      ],
+      "extras": {
+        "folder": "Tools",
+        "stud_to_meter": 0.28,
+        "primary_part": "Handle",
+        "primary_position_studs": [
+          0.05999999865889549,
+          0.0,
+          0.07999999821186066
+        ],
+        "markers_json": "[]",
+        "slots_json": "[]"
+      },
+      "name": "FloralSnips",
+      "translation": [
+        5.499599933624268,
+        0,
+        -2.3128044605255127
+      ]
+    },
+    {
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          0.017499998211860657,
+          -0.10488289594650269,
+          0.0712592601776123
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 8,
+      "name": "PruningSaw__Body",
+      "translation": [
+        0.004899999592453241,
+        -0.02936721034348011,
+        0.019952774047851562
+      ]
+    },
+    {
+      "children": [
+        16
+      ],
+      "extras": {
+        "folder": "Tools",
+        "stud_to_meter": 0.28,
+        "primary_part": "Handle",
+        "primary_position_studs": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "markers_json": "[]",
+        "slots_json": "[]"
+      },
+      "name": "PruningSaw",
+      "translation": [
+        0,
+        0,
+        -4.625608921051025
+      ]
+    },
+    {
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          -2.9802322387695312e-08,
+          -0.004230771213769913,
+          0.052416324615478516
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 9,
+      "name": "Loppers__Body",
+      "translation": [
+        0,
+        -0.001184615888632834,
+        0.014676570892333984
+      ]
+    },
+    {
+      "children": [
+        18
+      ],
+      "extras": {
+        "folder": "Tools",
+        "stud_to_meter": 0.28,
+        "primary_part": "Handle",
+        "primary_position_studs": [
+          0.25,
+          0.0,
+          0.07999999821186066
+        ],
+        "markers_json": "[]",
+        "slots_json": "[]"
+      },
+      "name": "Loppers",
+      "translation": [
+        1.8331999778747559,
+        0,
+        -4.625608921051025
+      ]
+    },
+    {
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 10,
+      "name": "GardenShears__Body"
+    },
+    {
+      "children": [
+        20
+      ],
+      "extras": {
+        "folder": "Tools",
+        "stud_to_meter": 0.28,
+        "primary_part": "Handle",
+        "primary_position_studs": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "markers_json": "[]",
+        "slots_json": "[]"
+      },
+      "name": "GardenShears",
+      "translation": [
+        3.6663999557495117,
+        0,
+        -4.625608921051025
+      ]
+    },
+    {
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          -2.9802322387695312e-08,
+          -0.0842902809381485,
+          0.13704919815063477
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 11,
+      "name": "WateringCan__Body",
+      "translation": [
+        0,
+        -0.02360127866268158,
+        0.03837394714355469
+      ]
+    },
+    {
+      "children": [
+        22
+      ],
+      "extras": {
+        "folder": "Tools",
+        "stud_to_meter": 0.28,
+        "primary_part": "Handle",
+        "primary_position_studs": [
+          0.0,
+          0.949999988079071,
+          0.0
+        ],
+        "markers_json": "[]",
+        "slots_json": "[]"
+      },
+      "name": "WateringCan",
+      "translation": [
+        5.499599933624268,
+        0,
+        -4.625608921051025
+      ]
+    },
+    {
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          0.07781579345464706,
+          0.02425938844680786
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 12,
+      "name": "NitrileGloves__Body",
+      "translation": [
+        0,
+        0.021788422018289566,
+        0.006792545318603516
+      ]
+    },
+    {
+      "children": [
+        24
+      ],
+      "extras": {
+        "folder": "Tools",
+        "stud_to_meter": 0.28,
+        "primary_part": "Handle",
+        "primary_position_studs": [
+          0.0,
+          0.10000000149011612,
+          0.0
+        ],
+        "markers_json": "[]",
+        "slots_json": "[]"
+      },
+      "name": "NitrileGloves",
+      "translation": [
+        0,
+        0,
+        -6.938413143157959
+      ]
+    },
+    {
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          0.07796710729598999,
+          0.026819318532943726
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 13,
+      "name": "ChemicalGloves__Body",
+      "translation": [
+        0,
+        0.021830789744853973,
+        0.0075092315673828125
+      ]
+    },
+    {
+      "children": [
+        26
+      ],
+      "extras": {
+        "folder": "Tools",
+        "stud_to_meter": 0.28,
+        "primary_part": "Handle",
+        "primary_position_studs": [
+          0.0,
+          0.10000000149011612,
+          0.0
+        ],
+        "markers_json": "[]",
+        "slots_json": "[]"
+      },
+      "name": "ChemicalGloves",
+      "translation": [
+        1.8331999778747559,
+        0,
+        -6.938413143157959
+      ]
+    },
+    {
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          0.0,
+          0.003838382661342621
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 14,
+      "name": "SoilProbe__Body",
+      "translation": [
+        0,
+        0,
+        0.0010747909545898438
+      ]
+    },
+    {
+      "extras": {
+        "role": "glass",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          0.0,
+          0.003838382661342621
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 15,
+      "name": "SoilProbe__Glass_Display",
+      "translation": [
+        0,
+        0,
+        0.0010747909545898438
+      ]
+    },
+    {
+      "children": [
+        28,
+        29
+      ],
+      "extras": {
+        "folder": "Tools",
+        "stud_to_meter": 0.28,
+        "primary_part": "Handle",
+        "primary_position_studs": [
+          0.0,
+          3.194999933242798,
+          0.0
+        ],
+        "markers_json": "[]",
+        "slots_json": "[]"
+      },
+      "name": "SoilProbe",
+      "translation": [
+        3.6663999557495117,
+        0,
+        -6.938413143157959
+      ]
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "HP shared PBR 29",
+      "normalTexture": {
+        "index": 0,
+        "scale": 0.44999998807907104
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 1
+        },
+        "metallicRoughnessTexture": {
+          "index": 2
+        }
+      }
+    },
+    {
+      "alphaMode": "BLEND",
+      "doubleSided": true,
+      "extras": {
+        "palette": "glass",
+        "finish": "glass"
+      },
+      "name": "HP_glass",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.20507873594760895,
+          0.3967552185058594,
+          0.47353148460388184,
+          0.41999998688697815
+        ],
+        "metallicFactor": 0.11999999731779099,
+        "roughnessFactor": 0.11999999731779099
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "HandTrowel__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "HandTransplanter__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 4,
+            "NORMAL": 5,
+            "TEXCOORD_0": 6
+          },
+          "indices": 7,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "HandCultivator__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 8,
+            "NORMAL": 9,
+            "TEXCOORD_0": 10
+          },
+          "indices": 11,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "DandelionWeeder__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 12,
+            "NORMAL": 13,
+            "TEXCOORD_0": 14
+          },
+          "indices": 15,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "Dibber__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 16,
+            "NORMAL": 17,
+            "TEXCOORD_0": 18
+          },
+          "indices": 19,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "BypassPruners__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 20,
+            "NORMAL": 21,
+            "TEXCOORD_0": 22
+          },
+          "indices": 23,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "AnvilPruners__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 24,
+            "NORMAL": 25,
+            "TEXCOORD_0": 26
+          },
+          "indices": 27,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "FloralSnips__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 28,
+            "NORMAL": 29,
+            "TEXCOORD_0": 30
+          },
+          "indices": 31,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "PruningSaw__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 32,
+            "NORMAL": 33,
+            "TEXCOORD_0": 34
+          },
+          "indices": 35,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "Loppers__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 36,
+            "NORMAL": 37,
+            "TEXCOORD_0": 38
+          },
+          "indices": 39,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "GardenShears__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 40,
+            "NORMAL": 41,
+            "TEXCOORD_0": 42
+          },
+          "indices": 43,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "WateringCan__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 44,
+            "NORMAL": 45,
+            "TEXCOORD_0": 46
+          },
+          "indices": 47,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "NitrileGloves__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 48,
+            "NORMAL": 49,
+            "TEXCOORD_0": 50
+          },
+          "indices": 51,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "ChemicalGloves__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 52,
+            "NORMAL": 53,
+            "TEXCOORD_0": 54
+          },
+          "indices": 55,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "SoilProbe__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 56,
+            "NORMAL": 57,
+            "TEXCOORD_0": 58
+          },
+          "indices": 59,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "SoilProbe__Glass_Display",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 60,
+            "NORMAL": 61,
+            "TEXCOORD_0": 62
+          },
+          "indices": 63,
+          "material": 1
+        }
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    }
+  ],
+  "images": [
+    {
+      "mimeType": "image/png",
+      "name": "HP29_Normal",
+      "uri": "../Textures/HP29_Normal.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP29_Color",
+      "uri": "../Textures/HP29_Color.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP29_Metalness-HP29_Roughness",
+      "uri": "../Textures/HP29_Metalness-HP29_Roughness.png"
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 2936,
+      "max": [
+        0.03998729959130287,
+        0.02017650566995144,
+        0.1036997064948082
+      ],
+      "min": [
+        -0.03998729959130287,
+        -0.14207623898983002,
+        -0.19336317479610443
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 2936,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 2936,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "count": 14424,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 4,
+      "componentType": 5126,
+      "count": 3056,
+      "max": [
+        0.026658199727535248,
+        0.021407531574368477,
+        0.10447852313518524
+      ],
+      "min": [
+        -0.026658199727535248,
+        -0.1507447063922882,
+        -0.20248384773731232
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 5,
+      "componentType": 5126,
+      "count": 3056,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 6,
+      "componentType": 5126,
+      "count": 3056,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 7,
+      "componentType": 5123,
+      "count": 14604,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 8,
+      "componentType": 5126,
+      "count": 2888,
+      "max": [
+        0.05136605724692345,
+        0.019700393080711365,
+        0.105943962931633
+      ],
+      "min": [
+        -0.05136605724692345,
+        -0.11918990314006805,
+        -0.18959742784500122
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 9,
+      "componentType": 5126,
+      "count": 2888,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 10,
+      "componentType": 5126,
+      "count": 2888,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 11,
+      "componentType": 5123,
+      "count": 13404,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 12,
+      "componentType": 5126,
+      "count": 2250,
+      "max": [
+        0.023240000009536743,
+        0.021273992955684662,
+        0.10255376249551773
+      ],
+      "min": [
+        -0.023240000009536743,
+        -0.22529751062393188,
+        -0.26741868257522583
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 13,
+      "componentType": 5126,
+      "count": 2250,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 14,
+      "componentType": 5126,
+      "count": 2250,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 15,
+      "componentType": 5123,
+      "count": 9852,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 16,
+      "componentType": 5126,
+      "count": 1904,
+      "max": [
+        0.06440000236034393,
+        0.046766944229602814,
+        0.01987999863922596
+      ],
+      "min": [
+        -0.06440000236034393,
+        -0.24583305418491364,
+        -0.01987999863922596
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 17,
+      "componentType": 5126,
+      "count": 1904,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 18,
+      "componentType": 5126,
+      "count": 1904,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 19,
+      "componentType": 5123,
+      "count": 9252,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 20,
+      "componentType": 5126,
+      "count": 2882,
+      "max": [
+        0.03920000046491623,
+        0.015076923184096813,
+        0.036013923585414886
+      ],
+      "min": [
+        -0.03920000046491623,
+        -0.012923077680170536,
+        -0.18903380632400513
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 21,
+      "componentType": 5126,
+      "count": 2882,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 22,
+      "componentType": 5126,
+      "count": 2882,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 23,
+      "componentType": 5123,
+      "count": 12600,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 24,
+      "componentType": 5126,
+      "count": 2998,
+      "max": [
+        0.03774383291602135,
+        0.018092308193445206,
+        0.038229309022426605
+      ],
+      "min": [
+        -0.03774383291602135,
+        -0.015507691539824009,
+        -0.16721844673156738
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 25,
+      "componentType": 5126,
+      "count": 2998,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 26,
+      "componentType": 5126,
+      "count": 2998,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 27,
+      "componentType": 5123,
+      "count": 13092,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 28,
+      "componentType": 5126,
+      "count": 1216,
+      "max": [
+        0.04882918298244476,
+        0.008216923102736473,
+        0.05561533197760582
+      ],
+      "min": [
+        -0.04882918298244476,
+        -0.007043077144771814,
+        -0.12855805456638336
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 29,
+      "componentType": 5126,
+      "count": 1216,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 30,
+      "componentType": 5126,
+      "count": 1216,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 31,
+      "componentType": 5123,
+      "count": 6612,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 32,
+      "componentType": 5126,
+      "count": 2048,
+      "max": [
+        0.028699999675154686,
+        0.04920435696840286,
+        0.07476602494716644
+      ],
+      "min": [
+        -0.028699999675154686,
+        -0.026383765041828156,
+        -0.4343526065349579
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 33,
+      "componentType": 5126,
+      "count": 2048,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 34,
+      "componentType": 5126,
+      "count": 2048,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 35,
+      "componentType": 5123,
+      "count": 7248,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 36,
+      "componentType": 5126,
+      "count": 2962,
+      "max": [
+        0.0853789746761322,
+        0.016584614291787148,
+        0.03652772679924965
+      ],
+      "min": [
+        -0.0853789746761322,
+        -0.014215383678674698,
+        -0.7762765884399414
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 37,
+      "componentType": 5126,
+      "count": 2962,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 38,
+      "componentType": 5126,
+      "count": 2962,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 39,
+      "componentType": 5123,
+      "count": 12924,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 40,
+      "componentType": 5126,
+      "count": 3200,
+      "max": [
+        0.06917407363653183,
+        0.06725874543190002,
+        0.12334734946489334
+      ],
+      "min": [
+        -0.06917407363653183,
+        -0.29642626643180847,
+        -0.3390788435935974
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 41,
+      "componentType": 5126,
+      "count": 3200,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 42,
+      "componentType": 5126,
+      "count": 3200,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 43,
+      "componentType": 5123,
+      "count": 14376,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 44,
+      "componentType": 5126,
+      "count": 2624,
+      "max": [
+        0.10359999537467957,
+        0.33160126209259033,
+        0.20251326262950897
+      ],
+      "min": [
+        -0.10359999537467957,
+        0.04040127992630005,
+        -0.3401687741279602
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 45,
+      "componentType": 5126,
+      "count": 2624,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 46,
+      "componentType": 5126,
+      "count": 2624,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 47,
+      "componentType": 5123,
+      "count": 12432,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 48,
+      "componentType": 5126,
+      "count": 2424,
+      "max": [
+        0.16660000383853912,
+        0.02217157930135727,
+        0.08280736207962036
+      ],
+      "min": [
+        -0.16660000383853912,
+        -0.006388422101736069,
+        -0.1383926421403885
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 49,
+      "componentType": 5126,
+      "count": 2424,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 50,
+      "componentType": 5126,
+      "count": 2424,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 51,
+      "componentType": 5123,
+      "count": 10704,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 52,
+      "componentType": 5126,
+      "count": 3364,
+      "max": [
+        0.16660000383853912,
+        0.019889211282134056,
+        0.2080906182527542
+      ],
+      "min": [
+        -0.16660000383853912,
+        -0.005730789620429277,
+        -0.13910941779613495
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 53,
+      "componentType": 5126,
+      "count": 3364,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 54,
+      "componentType": 5126,
+      "count": 3364,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 55,
+      "componentType": 5123,
+      "count": 13872,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 56,
+      "componentType": 5126,
+      "count": 2144,
+      "max": [
+        0.12600000202655792,
+        0.9086000323295593,
+        0.021325252950191498
+      ],
+      "min": [
+        -0.12600000202655792,
+        0,
+        -0.027394745498895645
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 57,
+      "componentType": 5126,
+      "count": 2144,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 58,
+      "componentType": 5126,
+      "count": 2144,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 59,
+      "componentType": 5123,
+      "count": 8568,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 60,
+      "componentType": 5126,
+      "count": 80,
+      "max": [
+        0.03359999880194664,
+        0.8557846546173096,
+        -0.02263757586479187
+      ],
+      "min": [
+        -0.03359999880194664,
+        0.8054444789886475,
+        -0.025262223556637764
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 61,
+      "componentType": 5126,
+      "count": 80,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 62,
+      "componentType": 5126,
+      "count": 80,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 63,
+      "componentType": 5123,
+      "count": 324,
+      "type": "SCALAR"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 35232,
+      "byteOffset": 0,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 35232,
+      "byteOffset": 35232,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 23488,
+      "byteOffset": 70464,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 28848,
+      "byteOffset": 93952,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 36672,
+      "byteOffset": 122800,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 36672,
+      "byteOffset": 159472,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 24448,
+      "byteOffset": 196144,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 29208,
+      "byteOffset": 220592,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 34656,
+      "byteOffset": 249800,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 34656,
+      "byteOffset": 284456,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 23104,
+      "byteOffset": 319112,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 26808,
+      "byteOffset": 342216,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 27000,
+      "byteOffset": 369024,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 27000,
+      "byteOffset": 396024,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 18000,
+      "byteOffset": 423024,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 19704,
+      "byteOffset": 441024,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 22848,
+      "byteOffset": 460728,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 22848,
+      "byteOffset": 483576,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 15232,
+      "byteOffset": 506424,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 18504,
+      "byteOffset": 521656,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 34584,
+      "byteOffset": 540160,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 34584,
+      "byteOffset": 574744,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 23056,
+      "byteOffset": 609328,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 25200,
+      "byteOffset": 632384,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 35976,
+      "byteOffset": 657584,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 35976,
+      "byteOffset": 693560,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 23984,
+      "byteOffset": 729536,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 26184,
+      "byteOffset": 753520,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 14592,
+      "byteOffset": 779704,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 14592,
+      "byteOffset": 794296,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 9728,
+      "byteOffset": 808888,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 13224,
+      "byteOffset": 818616,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 24576,
+      "byteOffset": 831840,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 24576,
+      "byteOffset": 856416,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 16384,
+      "byteOffset": 880992,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 14496,
+      "byteOffset": 897376,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 35544,
+      "byteOffset": 911872,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 35544,
+      "byteOffset": 947416,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 23696,
+      "byteOffset": 982960,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 25848,
+      "byteOffset": 1006656,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 38400,
+      "byteOffset": 1032504,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 38400,
+      "byteOffset": 1070904,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 25600,
+      "byteOffset": 1109304,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 28752,
+      "byteOffset": 1134904,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 31488,
+      "byteOffset": 1163656,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 31488,
+      "byteOffset": 1195144,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 20992,
+      "byteOffset": 1226632,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 24864,
+      "byteOffset": 1247624,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 29088,
+      "byteOffset": 1272488,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 29088,
+      "byteOffset": 1301576,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 19392,
+      "byteOffset": 1330664,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 21408,
+      "byteOffset": 1350056,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 40368,
+      "byteOffset": 1371464,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 40368,
+      "byteOffset": 1411832,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 26912,
+      "byteOffset": 1452200,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 27744,
+      "byteOffset": 1479112,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 25728,
+      "byteOffset": 1506856,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 25728,
+      "byteOffset": 1532584,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 17152,
+      "byteOffset": 1558312,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 17136,
+      "byteOffset": 1575464,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 960,
+      "byteOffset": 1592600,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 960,
+      "byteOffset": 1593560,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 640,
+      "byteOffset": 1594520,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 648,
+      "byteOffset": 1595160,
+      "target": 34963
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 1595808,
+      "uri": "29_HandTools.bin"
+    }
+  ]
+}

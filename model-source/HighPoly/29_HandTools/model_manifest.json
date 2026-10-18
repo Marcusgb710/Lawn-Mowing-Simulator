@@ -1,0 +1,1141 @@
+{
+  "assets": [
+    {
+      "name": "HandTrowel",
+      "folder": "Tools",
+      "instruction": 29,
+      "triangle_budget": 5000,
+      "detail_guidance_min": 2000,
+      "dimensions_studs": [
+        0.285624,
+        0.579474,
+        1.060939
+      ],
+      "bounds_min_studs": [
+        -0.14281179010868073,
+        -0.508908748626709,
+        -0.7205275297164917
+      ],
+      "bounds_max_studs": [
+        0.14281179010868073,
+        0.07056531310081482,
+        0.34041130542755127
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 4808,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "HandTrowel__Body",
+          "triangles": 4808,
+          "origin_studs": [
+            0.0,
+            -0.0014936327934265137,
+            -0.029944777488708496
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "forged_tang_ferrule_and_contoured_grip": 1,
+        "real_curved_tool_head": 1
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 200,
+      "authoring_fit": {
+        "scale": [
+          0.9602042436599731,
+          1.0008187294006348,
+          0.937610387802124
+        ],
+        "offset": [
+          0.0,
+          -0.0014936327934265137,
+          -0.029944777488708496
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "name": "HandTransplanter",
+      "folder": "Tools",
+      "instruction": 29,
+      "triangle_budget": 5000,
+      "detail_guidance_min": 2000,
+      "dimensions_studs": [
+        0.190416,
+        0.614829,
+        1.096294
+      ],
+      "bounds_min_studs": [
+        -0.09520786255598068,
+        -0.5442640781402588,
+        -0.7558828592300415
+      ],
+      "bounds_max_studs": [
+        0.09520784765481949,
+        0.07056533545255661,
+        0.34041130542755127
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 4868,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "HandTransplanter__Body",
+          "triangles": 4868,
+          "origin_studs": [
+            -7.450580596923828e-09,
+            -0.0058901309967041016,
+            -0.032726287841796875
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "forged_tang_ferrule_and_contoured_grip": 1,
+        "real_curved_tool_head": 1
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 272,
+      "authoring_fit": {
+        "scale": [
+          1.1370288133621216,
+          1.0618815422058105,
+          0.9446521997451782
+        ],
+        "offset": [
+          -7.450580596923828e-09,
+          -0.0058901309967041016,
+          -0.032726287841796875
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        1.8331999778747559,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "name": "HandCultivator",
+      "folder": "Tools",
+      "instruction": 29,
+      "triangle_budget": 5000,
+      "detail_guidance_min": 2000,
+      "dimensions_studs": [
+        0.3669,
+        0.496037,
+        1.055505
+      ],
+      "bounds_min_studs": [
+        -0.18345020711421967,
+        -0.42564377188682556,
+        -0.7139860987663269
+      ],
+      "bounds_max_studs": [
+        0.18345020711421967,
+        0.07039299607276917,
+        0.3415188789367676
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 4468,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "HandCultivator__Body",
+          "triangles": 4468,
+          "origin_studs": [
+            0.0,
+            3.445148468017578e-05,
+            -0.03685241937637329
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "forged_tang_ferrule_and_contoured_grip": 1,
+        "real_curved_tool_head": 1
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 196,
+      "authoring_fit": {
+        "scale": [
+          1.1254613399505615,
+          0.9772020578384399,
+          0.9579020738601685
+        ],
+        "offset": [
+          0.0,
+          3.445148468017578e-05,
+          -0.03685241937637329
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        3.6663999557495117,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "name": "DandelionWeeder",
+      "folder": "Tools",
+      "instruction": 29,
+      "triangle_budget": 5000,
+      "detail_guidance_min": 2000,
+      "dimensions_studs": [
+        0.166,
+        0.880612,
+        1.32133
+      ],
+      "bounds_min_studs": [
+        -0.08299999684095383,
+        -0.8102195262908936,
+        -0.9798112511634827
+      ],
+      "bounds_max_studs": [
+        0.08299999684095383,
+        0.07039299607276917,
+        0.3415188789367676
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 3284,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "DandelionWeeder__Body",
+          "triangles": 3284,
+          "origin_studs": [
+            0.0,
+            -0.0055855512619018555,
+            -0.02474457025527954
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "forged_tang_ferrule_and_contoured_grip": 1,
+        "real_curved_tool_head": 1
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 192,
+      "authoring_fit": {
+        "scale": [
+          1.2928348779678345,
+          1.0552576780319214,
+          0.9272492527961731
+        ],
+        "offset": [
+          0.0,
+          -0.0055855512619018555,
+          -0.02474457025527954
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        5.499599933624268,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "name": "Dibber",
+      "folder": "Tools",
+      "instruction": 29,
+      "triangle_budget": 5000,
+      "detail_guidance_min": 2000,
+      "dimensions_studs": [
+        0.46,
+        1.045,
+        0.142
+      ],
+      "bounds_min_studs": [
+        -0.23000000417232513,
+        -0.8799999952316284,
+        -0.07099999487400055
+      ],
+      "bounds_max_studs": [
+        0.23000000417232513,
+        0.16499997675418854,
+        0.07099999487400055
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.0,
+        0.10000000149011612,
+        0.0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 3084,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "Dibber__Body",
+          "triangles": 3084,
+          "origin_studs": [
+            0.0,
+            -0.002024829387664795,
+            0.0
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "engraved_depth_grooves": 5
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 276,
+      "authoring_fit": {
+        "scale": [
+          1.0,
+          0.9976990818977356,
+          1.014285683631897
+        ],
+        "offset": [
+          0.0,
+          -0.002024829387664795,
+          0.0
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        0.0,
+        0.0,
+        -2.3128044605255127
+      ]
+    },
+    {
+      "name": "BypassPruners",
+      "folder": "Tools",
+      "instruction": 29,
+      "triangle_budget": 5000,
+      "detail_guidance_min": 2000,
+      "dimensions_studs": [
+        0.28,
+        0.1,
+        0.803742
+      ],
+      "bounds_min_studs": [
+        -0.14000000059604645,
+        -0.04749999940395355,
+        -0.6200000047683716
+      ],
+      "bounds_max_studs": [
+        0.14000000059604645,
+        0.05250000208616257,
+        0.18374186754226685
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.0,
+        0.0,
+        0.05000000074505806
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 4200,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "BypassPruners__Body",
+          "triangles": 4200,
+          "origin_studs": [
+            0.0,
+            -0.001346152275800705,
+            0.05512070655822754
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "distinct_cutting_mechanism": 1,
+        "pivot_spring_and_latch": 1
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 638,
+      "authoring_fit": {
+        "scale": [
+          1.076923131942749,
+          0.7692307829856873,
+          1.0229101181030273
+        ],
+        "offset": [
+          0.0,
+          -0.001346152275800705,
+          0.05512070655822754
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        1.8331999778747559,
+        0.0,
+        -2.3128044605255127
+      ]
+    },
+    {
+      "name": "AnvilPruners",
+      "folder": "Tools",
+      "instruction": 29,
+      "triangle_budget": 5000,
+      "detail_guidance_min": 2000,
+      "dimensions_studs": [
+        0.269599,
+        0.12,
+        0.733742
+      ],
+      "bounds_min_studs": [
+        -0.13479940593242645,
+        -0.06749999523162842,
+        -0.5500000715255737
+      ],
+      "bounds_max_studs": [
+        0.13479940593242645,
+        0.05249999836087227,
+        0.18374191224575043
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.0,
+        0.0,
+        0.05000000074505806
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 4364,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "AnvilPruners__Body",
+          "triangles": 4364,
+          "origin_studs": [
+            0.0,
+            -0.01211538165807724,
+            0.04720866680145264
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "distinct_cutting_mechanism": 1,
+        "pivot_spring_and_latch": 1
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 610,
+      "authoring_fit": {
+        "scale": [
+          1.0534898042678833,
+          0.923076868057251,
+          1.08583402633667
+        ],
+        "offset": [
+          0.0,
+          -0.01211538165807724,
+          0.04720866680145264
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        3.6663999557495117,
+        0.0,
+        -2.3128044605255127
+      ]
+    },
+    {
+      "name": "FloralSnips",
+      "folder": "Tools",
+      "instruction": 29,
+      "triangle_budget": 5000,
+      "detail_guidance_min": 2000,
+      "dimensions_studs": [
+        0.34878,
+        0.0545,
+        0.657762
+      ],
+      "bounds_min_studs": [
+        -0.17456230521202087,
+        -0.02199999988079071,
+        -0.44999998807907104
+      ],
+      "bounds_max_studs": [
+        0.1742175817489624,
+        0.0325000025331974,
+        0.20776212215423584
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.05999999865889549,
+        0.0,
+        0.07999999821186066
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 2204,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "FloralSnips__Body",
+          "triangles": 2204,
+          "origin_studs": [
+            -0.00017236173152923584,
+            0.0031538475304841995,
+            0.009135931730270386
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "distinct_cutting_mechanism": 1,
+        "pivot_spring_and_latch": 1
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 296,
+      "authoring_fit": {
+        "scale": [
+          0.9634804129600525,
+          0.41923075914382935,
+          0.9981215596199036
+        ],
+        "offset": [
+          -0.00017236173152923584,
+          0.0031538475304841995,
+          0.009135931730270386
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        5.499599933624268,
+        0.0,
+        -2.3128044605255127
+      ]
+    },
+    {
+      "name": "PruningSaw",
+      "folder": "Tools",
+      "instruction": 29,
+      "triangle_budget": 5000,
+      "detail_guidance_min": 2000,
+      "dimensions_studs": [
+        0.205,
+        0.269958,
+        1.818281
+      ],
+      "bounds_min_studs": [
+        -0.08500000089406967,
+        -0.19911062717437744,
+        -1.4800000190734863
+      ],
+      "bounds_max_studs": [
+        0.11999999731779099,
+        0.07084694504737854,
+        0.3382807672023773
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 2416,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "PruningSaw__Body",
+          "triangles": 2416,
+          "origin_studs": [
+            0.017499998211860657,
+            -0.10488289594650269,
+            0.0712592601776123
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "raked_saw_teeth": 32
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 224,
+      "authoring_fit": {
+        "scale": [
+          1.28125,
+          0.8730644583702087,
+          1.0481481552124023
+        ],
+        "offset": [
+          0.017499998211860657,
+          -0.10488289594650269,
+          0.0712592601776123
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        0.0,
+        0.0,
+        -4.625608921051025
+      ]
+    },
+    {
+      "name": "Loppers",
+      "folder": "Tools",
+      "instruction": 29,
+      "triangle_budget": 5000,
+      "detail_guidance_min": 2000,
+      "dimensions_studs": [
+        0.60985,
+        0.11,
+        2.902873
+      ],
+      "bounds_min_studs": [
+        -0.30492493510246277,
+        -0.054999999701976776,
+        -2.7200000286102295
+      ],
+      "bounds_max_studs": [
+        0.304924875497818,
+        0.05499999597668648,
+        0.1828724890947342
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.25,
+        0.0,
+        0.07999999821186066
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 4308,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "Loppers__Body",
+          "triangles": 4308,
+          "origin_studs": [
+            -2.9802322387695312e-08,
+            -0.004230771213769913,
+            0.052416324615478516
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "distinct_cutting_mechanism": 1,
+        "pivot_spring_and_latch": 1
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 200,
+      "authoring_fit": {
+        "scale": [
+          1.0139491558074951,
+          0.8461537957191467,
+          1.0501576662063599
+        ],
+        "offset": [
+          -2.9802322387695312e-08,
+          -0.004230771213769913,
+          0.052416324615478516
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        1.8331999778747559,
+        0.0,
+        -4.625608921051025
+      ]
+    },
+    {
+      "name": "GardenShears",
+      "folder": "Tools",
+      "instruction": 29,
+      "triangle_budget": 5000,
+      "detail_guidance_min": 2000,
+      "dimensions_studs": [
+        0.494101,
+        1.298875,
+        1.651522
+      ],
+      "bounds_min_studs": [
+        -0.24705025553703308,
+        -1.0586652755737305,
+        -1.2109959125518799
+      ],
+      "bounds_max_studs": [
+        0.24705025553703308,
+        0.24020980298519135,
+        0.44052624702453613
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0,
+        0,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 4792,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "GardenShears__Body",
+          "triangles": 4792,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "distinct_cutting_mechanism": 1,
+        "pivot_spring_and_latch": 1
+      },
+      "baseline_source_pack": "model-source/RevisedLawnModels",
+      "baseline_triangles": 320,
+      "authoring_fit": {
+        "scale": [
+          1.1201831102371216,
+          1.119846224784851,
+          1.9058669805526733
+        ],
+        "offset": [
+          0.006792187690734863,
+          -0.21059298515319824,
+          0.23233866691589355
+        ],
+        "piecewise_grip_pin": {
+          "source": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "target": [
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        3.6663999557495117,
+        0.0,
+        -4.625608921051025
+      ]
+    },
+    {
+      "name": "WateringCan",
+      "folder": "Tools",
+      "instruction": 29,
+      "triangle_budget": 5000,
+      "detail_guidance_min": 2000,
+      "dimensions_studs": [
+        0.74,
+        1.04,
+        1.93815
+      ],
+      "bounds_min_studs": [
+        -0.3700000047683716,
+        0.05999999865889549,
+        -1.0778392553329468
+      ],
+      "bounds_max_studs": [
+        0.3699999451637268,
+        1.0999999046325684,
+        0.8603108525276184
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.0,
+        0.949999988079071,
+        0.0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 4144,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "WateringCan__Body",
+          "triangles": 4144,
+          "origin_studs": [
+            -2.9802322387695312e-08,
+            -0.0842902809381485,
+            0.13704919815063477
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "open_fill_mouth_and_perforated_rose": 1
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 760,
+      "authoring_fit": {
+        "scale": [
+          1.0452426671981812,
+          1.1099252700805664,
+          0.9715607166290283
+        ],
+        "offset": [
+          -2.9802322387695312e-08,
+          -0.0842902809381485,
+          0.13704919815063477
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        5.499599933624268,
+        0.0,
+        -4.625608921051025
+      ]
+    },
+    {
+      "name": "NitrileGloves",
+      "folder": "Tools",
+      "instruction": 29,
+      "triangle_budget": 5000,
+      "detail_guidance_min": 2000,
+      "dimensions_studs": [
+        1.19,
+        0.102,
+        0.79
+      ],
+      "bounds_min_studs": [
+        -0.5950000286102295,
+        0.054999999701976776,
+        -0.4700000286102295
+      ],
+      "bounds_max_studs": [
+        0.5950000286102295,
+        0.15700000524520874,
+        0.31999996304512024
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.0,
+        0.10000000149011612,
+        0.0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 3568,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "NitrileGloves__Body",
+          "triangles": 3568,
+          "origin_studs": [
+            0.0,
+            0.07781579345464706,
+            0.02425938844680786
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "separate_fingers_abducted_thumb_and_open_cuff": 1,
+        "dipped_palm_and_fingertips": 1
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 392,
+      "authoring_fit": {
+        "scale": [
+          0.995218813419342,
+          0.26842108368873596,
+          0.9858018755912781
+        ],
+        "offset": [
+          0.0,
+          0.07781579345464706,
+          0.02425938844680786
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        0.0,
+        0.0,
+        -6.938413143157959
+      ]
+    },
+    {
+      "name": "ChemicalGloves",
+      "folder": "Tools",
+      "instruction": 29,
+      "triangle_budget": 5000,
+      "detail_guidance_min": 2000,
+      "dimensions_studs": [
+        1.19,
+        0.0915,
+        1.24
+      ],
+      "bounds_min_studs": [
+        -0.5950000286102295,
+        0.057500001043081284,
+        -0.4700000286102295
+      ],
+      "bounds_max_studs": [
+        0.5950000286102295,
+        0.14900000393390656,
+        0.7700000405311584
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.0,
+        0.10000000149011612,
+        0.0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 4624,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "ChemicalGloves__Body",
+          "triangles": 4624,
+          "origin_studs": [
+            0.0,
+            0.07796710729598999,
+            0.026819318532943726
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "separate_fingers_abducted_thumb_and_open_cuff": 1,
+        "long_flared_cuff_and_grip_ridges": 1
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 328,
+      "authoring_fit": {
+        "scale": [
+          0.995218813419342,
+          0.2407894879579544,
+          0.990907609462738
+        ],
+        "offset": [
+          0.0,
+          0.07796710729598999,
+          0.026819318532943726
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        1.8331999778747559,
+        0.0,
+        -6.938413143157959
+      ]
+    },
+    {
+      "name": "SoilProbe",
+      "folder": "Tools",
+      "instruction": 29,
+      "triangle_budget": 5000,
+      "detail_guidance_min": 2000,
+      "dimensions_studs": [
+        0.9,
+        3.245,
+        0.174
+      ],
+      "bounds_min_studs": [
+        -0.44999998807907104,
+        0.0,
+        -0.09399999678134918
+      ],
+      "bounds_max_studs": [
+        0.44999998807907104,
+        3.245000123977661,
+        0.07999999821186066
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.0,
+        3.194999933242798,
+        0.0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 2964,
+      "mesh_objects": 2,
+      "parts": [
+        {
+          "name": "SoilProbe__Body",
+          "triangles": 2856,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.003838382661342621
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "SoilProbe__Glass_Display",
+          "triangles": 108,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.003838382661342621
+          ],
+          "role": "glass",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "digital_meter_pointed_rod_and_T_grip": 1
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 128,
+      "authoring_fit": {
+        "scale": [
+          1.0,
+          0.9988150000572205,
+          1.1717171669006348
+        ],
+        "offset": [
+          0.0,
+          0.0,
+          0.003838382661342621
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        3.6663999557495117,
+        0.0,
+        -6.938413143157959
+      ]
+    }
+  ],
+  "meters_per_stud": 0.28,
+  "source_main_commit": "2377b19",
+  "original_packs_preserved": true,
+  "studio_import_tested": false
+}

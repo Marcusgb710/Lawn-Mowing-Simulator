@@ -1,0 +1,700 @@
+{
+  "assets": [
+    {
+      "name": "Brushcutter",
+      "folder": "Tools",
+      "instruction": 27,
+      "triangle_budget": 12000,
+      "detail_guidance_min": 6000,
+      "dimensions_studs": [
+        2.479242,
+        3.919501,
+        6.428572
+      ],
+      "bounds_min_studs": [
+        -1.2396211624145508,
+        0.17178571224212646,
+        -5.232142925262451
+      ],
+      "bounds_max_studs": [
+        1.2396211624145508,
+        4.091287136077881,
+        1.196428656578064
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        1.15,
+        4,
+        -0.1
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 8124,
+      "mesh_objects": 2,
+      "parts": [
+        {
+          "name": "Brushcutter__Body",
+          "triangles": 7584,
+          "origin_studs": [
+            -0.005463980603963137,
+            -0.0007464946247637272,
+            0.0008109383634291589
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "Brushcutter__CutterRotor",
+          "triangles": 540,
+          "origin_studs": [
+            -0.005463980603963137,
+            0.22929644584655762,
+            -4.687066555023193
+          ],
+          "role": "rotor",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "Y",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "gearhead_mounted_cutting_assembly": 1,
+        "drive_shaft_diameter_studs": 0.11
+      },
+      "baseline_source_pack": "model-source/RevisedLawnModels",
+      "baseline_triangles": 2112,
+      "authoring_fit": {
+        "scale": [
+          1.0093250274658203,
+          1.0020456314086914,
+          0.9822866916656494
+        ],
+        "offset": [
+          0.00015401840209960938,
+          -0.0010671764612197876,
+          0.03143644332885742
+        ],
+        "piecewise_grip_pin": {
+          "source": [
+            1.149999976158142,
+            4.0,
+            -0.10000000149011612
+          ],
+          "target": [
+            1.15,
+            4,
+            -0.1
+          ]
+        }
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "name": "StraightShaftTrimmer",
+      "folder": "Tools",
+      "instruction": 27,
+      "triangle_budget": 12000,
+      "detail_guidance_min": 6000,
+      "dimensions_studs": [
+        1.448614,
+        4.392,
+        5.29
+      ],
+      "bounds_min_studs": [
+        -1.3141156435012817,
+        -3.6999995708465576,
+        -4.619999885559082
+      ],
+      "bounds_max_studs": [
+        0.13449883460998535,
+        0.6920000314712524,
+        0.6700000762939453
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 6824,
+      "mesh_objects": 2,
+      "parts": [
+        {
+          "name": "StraightShaftTrimmer__Body",
+          "triangles": 6484,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "StraightShaftTrimmer__Spool",
+          "triangles": 340,
+          "origin_studs": [
+            -0.6833401322364807,
+            -3.5524210929870605,
+            -4.374595642089844
+          ],
+          "role": "rotor",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "Y",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "gearhead_mounted_cutting_assembly": 1,
+        "drive_shaft_diameter_studs": 0.11
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 792,
+      "authoring_fit": {
+        "scale": [
+          0.9549028873443604,
+          1.1565197706222534,
+          0.9965338110923767
+        ],
+        "offset": [
+          -0.12048709392547607,
+          0.35938477516174316,
+          -0.3050084114074707
+        ],
+        "piecewise_grip_pin": {
+          "source": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "target": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        2.201777458190918,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "name": "LeafBlower",
+      "folder": "Tools",
+      "instruction": 27,
+      "triangle_budget": 12000,
+      "detail_guidance_min": 6000,
+      "dimensions_studs": [
+        1.218082,
+        3.182129,
+        4.038373
+      ],
+      "bounds_min_studs": [
+        -0.5230817794799805,
+        1.4828709363937378,
+        -3.288372755050659
+      ],
+      "bounds_max_studs": [
+        0.6949999928474426,
+        4.664999961853027,
+        0.75
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0,
+        4.3,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 8076,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "LeafBlower__Body",
+          "triangles": 8076,
+          "origin_studs": [
+            0.0,
+            0.08806029707193375,
+            0.0
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "detailed_fan_volute_and_intake": 1,
+        "fuel_tank_and_top_handle": 1
+      },
+      "baseline_source_pack": "model-source/RevisedLawnModels",
+      "baseline_triangles": 608,
+      "authoring_fit": {
+        "scale": [
+          0.9369860291481018,
+          1.0144578218460083,
+          1.0489217042922974
+        ],
+        "offset": [
+          0.08595913648605347,
+          0.038311004638671875,
+          0.2255392074584961
+        ],
+        "piecewise_grip_pin": {
+          "source": [
+            0.0,
+            4.300000190734863,
+            0.0
+          ],
+          "target": [
+            0,
+            4.3,
+            0
+          ]
+        }
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        4.403554916381836,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "name": "BackpackBlower",
+      "folder": "Tools",
+      "instruction": 27,
+      "triangle_budget": 12000,
+      "detail_guidance_min": 6000,
+      "dimensions_studs": [
+        2.506348,
+        2.917129,
+        6.188373
+      ],
+      "bounds_min_studs": [
+        -1.850000023841858,
+        1.4828709363937378,
+        -3.2883732318878174
+      ],
+      "bounds_max_studs": [
+        0.6563481688499451,
+        4.400000095367432,
+        2.8999998569488525
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0,
+        4.3,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 11700,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "BackpackBlower__Body",
+          "triangles": 11700,
+          "origin_studs": [
+            0.0,
+            0.08806029707193375,
+            0.0
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "detailed_fan_volute_and_intake": 1,
+        "harness_and_flexible_hose": 1
+      },
+      "baseline_source_pack": "model-source/RevisedLawnModels",
+      "baseline_triangles": 840,
+      "authoring_fit": {
+        "scale": [
+          1.2747459411621094,
+          0.9920464754104614,
+          1.0632901191711426
+        ],
+        "offset": [
+          0.46292126178741455,
+          0.07022416591644287,
+          0.27367305755615234
+        ],
+        "piecewise_grip_pin": {
+          "source": [
+            0.0,
+            4.300000190734863,
+            0.0
+          ],
+          "target": [
+            0,
+            4.3,
+            0
+          ]
+        }
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        0.0,
+        0.0,
+        -3.3000001907348633
+      ]
+    },
+    {
+      "name": "ElectricEdger",
+      "folder": "Tools",
+      "instruction": 27,
+      "triangle_budget": 12000,
+      "detail_guidance_min": 6000,
+      "dimensions_studs": [
+        1.17,
+        4.735001,
+        5.220633
+      ],
+      "bounds_min_studs": [
+        -0.8699999451637268,
+        0.26500001549720764,
+        -3.9000000953674316
+      ],
+      "bounds_max_studs": [
+        0.30000004172325134,
+        5.000000476837158,
+        1.320632815361023
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0,
+        4.2,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 7808,
+      "mesh_objects": 3,
+      "parts": [
+        {
+          "name": "ElectricEdger__Body",
+          "triangles": 5956,
+          "origin_studs": [
+            0.0,
+            -0.0326312817633152,
+            0.0
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "ElectricEdger__Wheel_Blade",
+          "triangles": 220,
+          "origin_studs": [
+            -0.3454665243625641,
+            0.6526519060134888,
+            -3.399850845336914
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "ElectricEdger__Wheel_Guide",
+          "triangles": 1632,
+          "origin_studs": [
+            -0.771541953086853,
+            0.5317195653915405,
+            -3.205573558807373
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "gearhead_mounted_cutting_assembly": 1,
+        "drive_shaft_diameter_studs": 0.11
+      },
+      "baseline_source_pack": "model-source/RevisedLawnModels",
+      "baseline_triangles": 2084,
+      "authoring_fit": {
+        "scale": [
+          1.26784086227417,
+          1.1735800504684448,
+          1.0273268222808838
+        ],
+        "offset": [
+          0.08785384893417358,
+          -0.08160126209259033,
+          0.2245960235595703
+        ],
+        "piecewise_grip_pin": {
+          "source": [
+            0.0,
+            4.199999809265137,
+            0.0
+          ],
+          "target": [
+            0,
+            4.2,
+            0
+          ]
+        }
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        2.201777458190918,
+        0.0,
+        -3.3000001907348633
+      ]
+    },
+    {
+      "name": "GasStickEdger",
+      "folder": "Tools",
+      "instruction": 27,
+      "triangle_budget": 12000,
+      "detail_guidance_min": 6000,
+      "dimensions_studs": [
+        1.17,
+        4.735001,
+        5.05
+      ],
+      "bounds_min_studs": [
+        -0.8699999451637268,
+        0.26500001549720764,
+        -3.9000000953674316
+      ],
+      "bounds_max_studs": [
+        0.30000004172325134,
+        5.000000476837158,
+        1.149999976158142
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0,
+        4.2,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 9032,
+      "mesh_objects": 3,
+      "parts": [
+        {
+          "name": "GasStickEdger__Body",
+          "triangles": 7180,
+          "origin_studs": [
+            0.0,
+            -0.0326312817633152,
+            0.0
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "GasStickEdger__Wheel_Blade",
+          "triangles": 220,
+          "origin_studs": [
+            -0.3454665243625641,
+            0.6526519060134888,
+            -3.399850845336914
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "GasStickEdger__Wheel_Guide",
+          "triangles": 1632,
+          "origin_studs": [
+            -0.771541953086853,
+            0.5317195653915405,
+            -3.205573558807373
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "gearhead_mounted_cutting_assembly": 1,
+        "drive_shaft_diameter_studs": 0.11
+      },
+      "baseline_source_pack": "model-source/RevisedLawnModels",
+      "baseline_triangles": 2024,
+      "authoring_fit": {
+        "scale": [
+          1.1442228555679321,
+          1.145861268043518,
+          0.9837760925292969
+        ],
+        "offset": [
+          -0.005539536476135254,
+          -0.0734148919582367,
+          0.04974484443664551
+        ],
+        "piecewise_grip_pin": {
+          "source": [
+            0.0,
+            4.199999809265137,
+            0.0
+          ],
+          "target": [
+            0,
+            4.2,
+            0
+          ]
+        }
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        4.403554916381836,
+        0.0,
+        -3.3000001907348633
+      ]
+    },
+    {
+      "name": "BackpackSprayer",
+      "folder": "Tools",
+      "instruction": 27,
+      "triangle_budget": 12000,
+      "detail_guidance_min": 6000,
+      "dimensions_studs": [
+        2.211682,
+        1.958758,
+        4.51118
+      ],
+      "bounds_min_studs": [
+        -1.784999966621399,
+        -1.899999976158142,
+        -1.8111801147460938
+      ],
+      "bounds_max_studs": [
+        0.4266819655895233,
+        0.05875783413648605,
+        2.6999998092651367
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 7076,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "BackpackSprayer__Body",
+          "triangles": 7076,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "connected_pump_linkage_hose_and_valve": 1,
+        "padded_backpack_harness": 1
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 540,
+      "authoring_fit": {
+        "scale": [
+          0.9737370014190674,
+          1.0256156921386719,
+          1.0751482248306274
+        ],
+        "offset": [
+          0.025031089782714844,
+          -0.19197094440460205,
+          0.01212918758392334
+        ],
+        "piecewise_grip_pin": {
+          "source": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "target": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        0.0,
+        0.0,
+        -6.600000381469727
+      ]
+    }
+  ],
+  "meters_per_stud": 0.28,
+  "source_main_commit": "2377b19",
+  "original_packs_preserved": true,
+  "studio_import_tested": false
+}

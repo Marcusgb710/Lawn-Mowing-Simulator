@@ -1,0 +1,195 @@
+{
+  "asset": {
+    "generator": "Khronos glTF Blender I/O v4.3.47",
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        1
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          -2.9802322387695312e-08,
+          -0.004230771213769913,
+          0.052416324615478516
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 0,
+      "name": "Loppers__Body",
+      "translation": [
+        0,
+        -0.001184615888632834,
+        0.014676570892333984
+      ]
+    },
+    {
+      "children": [
+        0
+      ],
+      "extras": {
+        "folder": "Tools",
+        "stud_to_meter": 0.28,
+        "primary_part": "Handle",
+        "primary_position_studs": [
+          0.25,
+          0.0,
+          0.07999999821186066
+        ],
+        "markers_json": "[]",
+        "slots_json": "[]"
+      },
+      "name": "Loppers"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "HP shared PBR 29",
+      "normalTexture": {
+        "index": 0,
+        "scale": 0.44999998807907104
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 1
+        },
+        "metallicRoughnessTexture": {
+          "index": 2
+        }
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "Loppers__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    }
+  ],
+  "images": [
+    {
+      "mimeType": "image/png",
+      "name": "HP29_Normal",
+      "uri": "../../Textures/HP29_Normal.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP29_Color",
+      "uri": "../../Textures/HP29_Color.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP29_Metalness-HP29_Roughness",
+      "uri": "../../Textures/HP29_Metalness-HP29_Roughness.png"
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 2962,
+      "max": [
+        0.0853789746761322,
+        0.016584614291787148,
+        0.03652772679924965
+      ],
+      "min": [
+        -0.0853789746761322,
+        -0.014215383678674698,
+        -0.7762765884399414
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 2962,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 2962,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "count": 12924,
+      "type": "SCALAR"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 35544,
+      "byteOffset": 0,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 35544,
+      "byteOffset": 35544,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 23696,
+      "byteOffset": 71088,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 25848,
+      "byteOffset": 94784,
+      "target": 34963
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 120632,
+      "uri": "Loppers.bin"
+    }
+  ]
+}

@@ -1,0 +1,228 @@
+{
+  "asset": {
+    "generator": "Khronos glTF Blender I/O v4.3.47",
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        3
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "extras": {
+        "roblox_class": "Attachment",
+        "roblox_name": "SnapL",
+        "attributes_json": "{}",
+        "parent_mesh": "PaverPathSection__Body"
+      },
+      "name": "SnapL",
+      "translation": [
+        0,
+        0.0280000027269125,
+        -0.6020000576972961
+      ]
+    },
+    {
+      "extras": {
+        "roblox_class": "Attachment",
+        "roblox_name": "SnapR",
+        "attributes_json": "{}",
+        "parent_mesh": "PaverPathSection__Body"
+      },
+      "name": "SnapR",
+      "rotation": [
+        0,
+        1,
+        0,
+        7.549790126404332e-08
+      ],
+      "translation": [
+        0,
+        0.0280000027269125,
+        0.6020000576972961
+      ]
+    },
+    {
+      "children": [
+        0,
+        1
+      ],
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 0,
+      "name": "PaverPathSection__Body"
+    },
+    {
+      "children": [
+        2
+      ],
+      "extras": {
+        "folder": "Decorations",
+        "stud_to_meter": 0.28,
+        "primary_part": "Root",
+        "primary_position_studs": [
+          0.0,
+          0.5,
+          0.0
+        ],
+        "markers_json": "[{\"name\": \"SnapL\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"PaverPathSection__Body\", \"position_studs\": [0.0, 0.10000000522417185, -2.1500000791683362], \"orientation_degrees\": [0.0, -0.0, -0.0], \"attributes\": {}, \"look_vector\": [0.0, 0.0, -1.0]}, {\"name\": \"SnapR\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"PaverPathSection__Body\", \"position_studs\": [0.0, 0.10000000522417185, 2.1500000791683362], \"orientation_degrees\": [0.0, -180.00000500895632, -0.0], \"attributes\": {}, \"look_vector\": [0.0, 0.0, 1.0]}]",
+        "slots_json": "[]"
+      },
+      "name": "PaverPathSection"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "HP shared PBR 34",
+      "normalTexture": {
+        "index": 0,
+        "scale": 0.44999998807907104
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 1
+        },
+        "metallicRoughnessTexture": {
+          "index": 2
+        }
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "PaverPathSection__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    }
+  ],
+  "images": [
+    {
+      "mimeType": "image/png",
+      "name": "HP34_Normal",
+      "uri": "../../Textures/HP34_Normal.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP34_Color",
+      "uri": "../../Textures/HP34_Color.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP34_Metalness-HP34_Roughness",
+      "uri": "../../Textures/HP34_Metalness-HP34_Roughness.png"
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 4992,
+      "max": [
+        0.6020000576972961,
+        0.056000005453825,
+        0.6020000576972961
+      ],
+      "min": [
+        -0.6020000576972961,
+        0,
+        -0.6020000576972961
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 4992,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 4992,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "count": 8736,
+      "type": "SCALAR"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 59904,
+      "byteOffset": 0,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 59904,
+      "byteOffset": 59904,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 39936,
+      "byteOffset": 119808,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 17472,
+      "byteOffset": 159744,
+      "target": 34963
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 177216,
+      "uri": "PaverPathSection.bin"
+    }
+  ]
+}

@@ -1,0 +1,496 @@
+{
+  "assets": [
+    {
+      "name": "HandHedgeShears",
+      "folder": "Tools",
+      "instruction": 28,
+      "triangle_budget": 5000,
+      "detail_guidance_min": 2000,
+      "dimensions_studs": [
+        0.75807,
+        0.42266,
+        2.845793
+      ],
+      "bounds_min_studs": [
+        -0.3790350556373596,
+        0.1901223063468933,
+        -2.5303945541381836
+      ],
+      "bounds_max_studs": [
+        0.3790350556373596,
+        0.6127825975418091,
+        0.3153984546661377
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.26,
+        0.3,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 4868,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "HandHedgeShears__Body",
+          "triangles": 4868,
+          "origin_studs": [
+            0.0,
+            -0.4779534339904785,
+            -0.016159772872924805
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "paired_wavy_blades_and_bumper": 1
+      },
+      "baseline_source_pack": "model-source/RevisedLawnModels",
+      "baseline_triangles": 416,
+      "authoring_fit": {
+        "scale": [
+          1.086296558380127,
+          2.726840019226074,
+          1.022046685218811
+        ],
+        "offset": [
+          0.0,
+          -0.4779534339904785,
+          -0.016159772872924805
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "name": "ElectricHedgeTrimmer",
+      "folder": "Tools",
+      "instruction": 28,
+      "triangle_budget": 12000,
+      "detail_guidance_min": 6000,
+      "dimensions_studs": [
+        1.1,
+        1.003097,
+        3.722893
+      ],
+      "bounds_min_studs": [
+        -0.550000011920929,
+        0.1219029426574707,
+        -3.1499998569488525
+      ],
+      "bounds_max_studs": [
+        0.550000011920929,
+        1.125,
+        0.5728932023048401
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0,
+        0.4,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 8440,
+      "mesh_objects": 2,
+      "parts": [
+        {
+          "name": "ElectricHedgeTrimmer__Body",
+          "triangles": 8332,
+          "origin_studs": [
+            0.0,
+            0.01825336366891861,
+            -0.03406047821044922
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "ElectricHedgeTrimmer__Glass_HandGuard",
+          "triangles": 108,
+          "origin_studs": [
+            0.0,
+            0.01825336366891861,
+            -0.03406047821044922
+          ],
+          "role": "glass",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "double_sided_reciprocating_teeth": 1,
+        "bolted_bar_and_safety_guard": 1
+      },
+      "baseline_source_pack": "model-source/RevisedLawnModels",
+      "baseline_triangles": 684,
+      "authoring_fit": {
+        "scale": [
+          1.3268253803253174,
+          1.1116796731948853,
+          1.0351958274841309
+        ],
+        "offset": [
+          0.0,
+          0.01825336366891861,
+          -0.03406047821044922
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        1.8079999685287476,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "name": "CordlessHedgeTrimmer",
+      "folder": "Tools",
+      "instruction": 28,
+      "triangle_budget": 12000,
+      "detail_guidance_min": 6000,
+      "dimensions_studs": [
+        1.1,
+        1.1,
+        4.425
+      ],
+      "bounds_min_studs": [
+        -0.550000011920929,
+        0.02499999850988388,
+        -3.8499999046325684
+      ],
+      "bounds_max_studs": [
+        0.550000011920929,
+        1.125,
+        0.5749996304512024
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0,
+        0.4,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 8336,
+      "mesh_objects": 2,
+      "parts": [
+        {
+          "name": "CordlessHedgeTrimmer__Body",
+          "triangles": 8228,
+          "origin_studs": [
+            0.0,
+            -0.027074432000517845,
+            -0.023096084594726562
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "CordlessHedgeTrimmer__Glass_HandGuard",
+          "triangles": 108,
+          "origin_studs": [
+            0.0,
+            -0.027074432000517845,
+            -0.023096084594726562
+          ],
+          "role": "glass",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "double_sided_reciprocating_teeth": 1,
+        "bolted_bar_and_safety_guard": 1
+      },
+      "baseline_source_pack": "model-source/RevisedLawnModels",
+      "baseline_triangles": 756,
+      "authoring_fit": {
+        "scale": [
+          1.3268253803253174,
+          1.1572095155715942,
+          1.0315104722976685
+        ],
+        "offset": [
+          0.0,
+          -0.027074432000517845,
+          -0.023096084594726562
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        3.615999937057495,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "name": "GasHedgeTrimmer",
+      "folder": "Tools",
+      "instruction": 28,
+      "triangle_budget": 12000,
+      "detail_guidance_min": 6000,
+      "dimensions_studs": [
+        1.1,
+        1.0,
+        4.700001
+      ],
+      "bounds_min_studs": [
+        -0.550000011920929,
+        0.1250000149011612,
+        -4.450000286102295
+      ],
+      "bounds_max_studs": [
+        0.550000011920929,
+        1.125,
+        0.2500004172325134
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0,
+        0.4,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 10108,
+      "mesh_objects": 2,
+      "parts": [
+        {
+          "name": "GasHedgeTrimmer__Body",
+          "triangles": 10000,
+          "origin_studs": [
+            0.0,
+            -0.07366050779819489,
+            -0.331082820892334
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "GasHedgeTrimmer__Glass_HandGuard",
+          "triangles": 108,
+          "origin_studs": [
+            0.0,
+            -0.07366050779819489,
+            -0.331082820892334
+          ],
+          "role": "glass",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "double_sided_reciprocating_teeth": 1,
+        "bolted_bar_and_safety_guard": 1
+      },
+      "baseline_source_pack": "model-source/RevisedLawnModels",
+      "baseline_triangles": 792,
+      "authoring_fit": {
+        "scale": [
+          1.3268253803253174,
+          1.2040032148361206,
+          1.0021697282791138
+        ],
+        "offset": [
+          0.0,
+          -0.07366050779819489,
+          -0.331082820892334
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        0.0,
+        0.0,
+        -3.673673391342163
+      ]
+    },
+    {
+      "name": "ArticulatingHedgeTrimmer",
+      "folder": "Tools",
+      "instruction": 28,
+      "triangle_budget": 12000,
+      "detail_guidance_min": 6000,
+      "dimensions_studs": [
+        0.78325,
+        3.125,
+        7.763119
+      ],
+      "bounds_min_studs": [
+        -0.32499998807907104,
+        -0.3449999690055847,
+        -6.920618534088135
+      ],
+      "bounds_max_studs": [
+        0.4582499861717224,
+        2.7799999713897705,
+        0.8425003886222839
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 7448,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "ArticulatingHedgeTrimmer__Body",
+          "triangles": 7448,
+          "origin_studs": [
+            0.05632945895195007,
+            -0.10162226855754852,
+            0.14507055282592773
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "double_sided_reciprocating_teeth": 1,
+        "bolted_bar_and_safety_guard": 1
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 748,
+      "authoring_fit": {
+        "scale": [
+          0.9346310496330261,
+          1.1930278539657593,
+          1.0317009687423706
+        ],
+        "offset": [
+          0.05632945895195007,
+          -0.10162226855754852,
+          0.14507055282592773
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        1.8079999685287476,
+        0.0,
+        -3.673673391342163
+      ]
+    },
+    {
+      "name": "GardenHoseWand",
+      "folder": "Tools",
+      "instruction": 28,
+      "triangle_budget": 5000,
+      "detail_guidance_min": 2000,
+      "dimensions_studs": [
+        0.708571,
+        1.233104,
+        2.984487
+      ],
+      "bounds_min_studs": [
+        -0.35444843769073486,
+        -1.1731038093566895,
+        -2.560000419616699
+      ],
+      "bounds_max_studs": [
+        0.35412243008613586,
+        0.059999968856573105,
+        0.4244869351387024
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 4872,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "GardenHoseWand__Body",
+          "triangles": 4872,
+          "origin_studs": [
+            -0.00017952919006347656,
+            0.01051032543182373,
+            0.12058901786804199
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "bent_wand_shower_head_and_connected_hose": 1,
+        "hose_diameter_studs": 0.06
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 670,
+      "authoring_fit": {
+        "scale": [
+          1.2010414600372314,
+          1.0474573373794556,
+          1.0479239225387573
+        ],
+        "offset": [
+          -0.00017952919006347656,
+          0.01051032543182373,
+          0.12058901786804199
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        3.615999937057495,
+        0.0,
+        -3.673673391342163
+      ]
+    }
+  ],
+  "meters_per_stud": 0.28,
+  "source_main_commit": "2377b19",
+  "original_packs_preserved": true,
+  "studio_import_tested": false
+}
