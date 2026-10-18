@@ -188,6 +188,17 @@ One PR per phase, each stacked on the one before. Every phase still needs a Stud
       - regrowth over a long session, and the lawn coming back the same after a rejoin;
       - the neighbor's tip, the HUD's curb appeal and the "Curb appeal" pay line;
       - frame rate with your lawn and a neighbor's in view.
+- [ ] **Hub 3b: decorations.** Waiting on the decoration models (instructions34). To check in
+      Studio:
+      - ordering from the Decorations tab, solo and in a crew (it's the leader's);
+      - opening a decoration box and placing it: the ghost, turning, red where it can't go;
+      - fence sections, edging, paths and beds snapping end to end;
+      - picking one up and moving it, and a building upgrade boxing what's in the way;
+      - lamps, the fire pit, the fountain's water, sitting on the bench and patio chairs, the
+        mailbox door and flag, the windmill's sails;
+      - trimming a shaggy shrub with a hedge tool, and it growing back;
+      - curb appeal going up as the yard fills (and leveling off);
+      - everything with block placeholders, and on a phone.
 
 ## Before release
 

@@ -638,7 +638,7 @@ Tools are worked on by hand instead of from a menu (`MaintenanceService`; the st
 
 Almost everything happens in your shop. You pick jobs and order gear at the computer inside,
 unbox deliveries by the door, take tools off the walls, load the truck parked at the door and
-drive off from there. Outside, you look after your own front lawn (and, next, decorate it),
+drive off from there. Outside, you look after your own front lawn and decorate the yard,
 which earns your business curb appeal and a bonus on every job.
 
 - **The job computer.** A desk stands on the building's `Desk` marker (on older buildings, out
@@ -736,11 +736,51 @@ which earns your business curb appeal and a bonus on every job.
   crew's under your money and level.
   - Up to `CurbAppeal.LawnPoints` (60) come from the lawn, in proportion to how much of it is
     done.
-  - Up to `DecorPoints` (40) will come from decorations (next PR).
+  - Up to `DecorPoints` (40) come from decorations (below). Each extra one of a kind counts
+    `DecorRepeat` (0.6) of the one before, an overgrown shrub counts `OvergrownShare` (half), and
+    the total levels off: `DecorHalfPoints` (30) appeal points earn half the decoration points.
+    A few good pieces beat a yard full of flamingos.
 
   Every job the crew does pays up to `MaxPayBonus` (+15%) more at 100, less below it, using the
   leader's curb appeal when the crew sets off. The pay breakdown shows it as a "Curb appeal" line.
   Tuning is in `GameConfig.HomeLawn` and `GameConfig.CurbAppeal`.
+- **Decorations** (`DecorService`, `DecorController`, `src/shared/Config/Decorations.luau`,
+  `src/shared/DecorPlacement.luau`; models in alphainstructions/instructions34.md). 24 of them,
+  at real-world prices, from a $12 pink flamingo to a $900 tiered fountain, in the **Decorations**
+  tab of the Orders app.
+  - **They're for your crew's yard** (the leader's): whoever orders one pays, and it's the
+    leader's business that gets it. It comes in a box at the delivery spot like a tool, and
+    anyone in the crew can open it. A crewmate can have at most 4 unopened boxes waiting at
+    someone else's shop, and can't order for a leader whose progress isn't being saved. At most
+    2 decoration boxes stand at the shop at once; the rest wait their turn.
+  - **Placing** is in first person. A see-through copy stands where you look: green if it can go
+    there, red (with why) if not. R turns it 15° (Shift+R back), E puts it down, Q puts it back;
+    phones get Place, Turn and Put back buttons. The business's owner can also send it back for
+    half its price (F, or Send back). It can't go on the driveway, in or right next to the
+    building, desk, workbench, sign, outdoor storage or delivery spot, or off the plot. It can't
+    overlap another decoration either, except in or on ground cover (`holds`: a mulch bed's
+    shrubs, a bench on pavers). Only
+    small things on a stake or post (`onLawn`: mailbox, lamp post, path light, bird feeder,
+    birdhouse, flamingo, gnome) can stand on the grass. The server checks the same rules.
+  - **Joining:** fence sections, stone edging, paver paths and mulch beds snap end to end when
+    one's `SnapL` comes near another's free `SnapR` (or the other way round).
+  - **Moving:** look at a placed decoration and press E to pick it up and place it again (it
+    keeps its turn). Where everything stands is saved (`decor`). If a bigger building needs the
+    room, what's in the way goes back in its box, shrubs keeping their trim. A truck or trailer
+    swap doesn't disturb the yard.
+  - **What the markers do:**
+    - `Light`: a lamp.
+    - `Fire`: flames and a glow.
+    - `Spout`: water running.
+    - `Seat`, `Seat1`-`Seat4`: seats you can sit on.
+    - `Mailbox__Door` and `Mailbox__Flag`: R opens and closes them (for the crew), about each part's pivot X axis
+      (door −95°, flag +90°; an `OpenAngle` attribute in degrees changes it).
+    - `GardenWindmill__Spinner`: turns about its own Z axis on every screen.
+  - **Shrubs** (`BoxwoodShrub`, `HydrangeaBush`) start shaggy, showing `<Id>__Overgrowth`, until
+    trimmed with a hedge tool (fit and wear as for hedges on a job). They're shaggy again
+    `GameConfig.ShrubRegrowMinutes` (30) of play later.
+  - **Limits:** up to 60 per business. With no model they're block placeholders built to the
+    same conventions.
 
 ## Phases
 
@@ -758,6 +798,7 @@ which earns your business curb appeal and a bonus on every job.
 | Hub 1 | Job computer, Orders and Business apps, deliveries in boxes | done |
 | Hub 2 | Bigger plots with a driveway, leaving from the truck's driver door, pulling back in | done |
 | Hub 3 | Your own lawn (regrowing, saved, worked with your own tools) and curb appeal's pay bonus | done |
+| Hub 3b | Decorations: ordering, boxes, first-person placing with snapping, markers, shrubs to trim, curb appeal | done |
 | Immersion 3 | Hands-on maintenance at service spots and the vise, steps for blades and wheels, tailgate supplies on a job, visible wear and ragged grass | **this PR** |
 
 New tools are already in `Tools.luau` with `available = false`, so they aren't sold until the
@@ -791,6 +832,8 @@ phase that gives them work.
 - **Version 7 (your own lawn)** adds `homeLawn`: which parts of the lawn are done, one character
   per target and task, when the last tidy tip was paid, and whether another is due. Existing players' lawns start
   overgrown.
+- **Version 8 (decorations)** adds `decor`: the decorations `placed` in the yard (id, where in
+  plot space, and a shrub's trim state) and those still in their `boxes`. Nobody has any yet.
 
 ## New item ids for modelers
 
@@ -878,4 +921,10 @@ by a part named `Handle` (see `assets/README.md`).
 | DeliveryBoxLong | `Assets/Props` | Long narrow box, `__Lid` hinged at the back, `Contents` |
 | DeliveryBoxLarge | `Assets/Props` | Large box, `__FlapL` / `__FlapR` / `__FlapF` / `__FlapB`, `Contents` |
 | DeliveryCrate | `Assets/Props` | Wooden crate on a pallet, `__Lid` and `__FrontPanel` (hinged at the bottom into a ramp), `Contents` |
+| PicketFenceSection, StoneEdgingSection, PaverPathSection, MulchBedSection | `Assets/Decorations` | Borders and paths that join end to end with `SnapL` / `SnapR` (instructions34) |
+| BoxwoodShrub, HydrangeaBush | `Assets/Decorations` | Shrubs, with `<Id>__Overgrowth` shown until trimmed |
+| JapaneseMaple, TerracottaPlanter, RaisedGardenBed | `Assets/Decorations` | Plants (`__Canopy`, `__Plants`) |
+| BirdBath, TieredFountain, GardenArbor, GardenBench, PatioSet, FirePit | `Assets/Decorations` | Features: `Water` / `Water1`-`3`, `Spout`, `Seat` / `Seat1`-`4`, `Fire` markers |
+| Mailbox, LampPost, SolarPathLight, BirdFeeder, Birdhouse, PinkFlamingo, GardenWindmill | `Assets/Decorations` | `Mailbox__Door` / `__Flag` on hinges, `Light` markers, `GardenWindmill__Spinner` |
+| GardenGnome, FlowerPatch | `Assets/Decorations` (or `Assets/Props`) | Sold as decorations too; the yard props are used if there's no decoration model |
 | All trucks | `Assets/Trucks` | Add `<Id>__DriverDoor` and `<Id>__DriverDoorGlass` (left door, origin on the hinge) and a `DriverSeat` attachment at the driver's eyes (instructions25) |

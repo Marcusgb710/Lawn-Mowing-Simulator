@@ -15,6 +15,7 @@
 --     HomeLawnService). Everything on the plot is placed relative to that part.
 -- Otherwise a placeholder town is built here.
 
+local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -39,6 +40,11 @@ local DRIVEWAY_WIDTH = 10
 -- Where the business's own lawn goes (see HomeLawnService), on the left of the driveway, in plot
 -- space: its edge runs a couple of studs from the driveway.
 local LAWN_CENTER, LAWN_SIZE = Vector3.new(-21.5, 0, -25), Vector3.new(30, 0, 34)
+-- Decorations keep this far from the driveway, the building and what stands around it.
+local DECOR_CLEARANCE = 1
+-- The patch in front of the delivery spot where boxes stand (see DeliveryService), in its space:
+-- room for the rows of boxes it shows at once.
+local DELIVERY_PATCH = { x = 0, z = -8, width = 10, depth = 16 }
 -- The crew truck pulls out of the driveway and back in over this many seconds.
 local DRIVE_TIME = 2.5
 -- How close you need to be to your business's storage to grab or put back a tool.
@@ -290,6 +296,52 @@ local function streetFrame(plot): CFrame
 	return home + home.LookVector * ahead
 end
 
+-- Where something stands, as a rectangle in plot space (see DecorPlacement), grown by `margin`.
+local function plotRect(origin: CFrame, frame: CFrame, size: Vector3, margin: number)
+	local relative = origin:ToObjectSpace(frame)
+	local look = relative.LookVector
+	return {
+		x = relative.Position.X,
+		z = relative.Position.Z,
+		turn = math.atan2(-look.X, -look.Z),
+		width = size.X + margin * 2,
+		depth = size.Z + margin * 2,
+	}
+end
+
+-- Where decorations can't go on a plot: the driveway, the building, and everything standing
+-- around it (desk, workbench, sign, storage out front, where delivery boxes stand). Saved on the
+-- plot and on its model (attribute DecorArea, JSON) so the client can colour its ghost.
+local function decorArea(plot, model: Model)
+	local origin = plot.cframe
+	local blocked = {}
+	local function block(instance: Instance)
+		if instance:IsA("Model") then
+			local frame, size = instance:GetBoundingBox()
+			table.insert(blocked, plotRect(origin, frame, size, DECOR_CLEARANCE))
+		elseif instance:IsA("BasePart") and not (instance.Transparency >= 1 and not instance.CanCollide) then
+			table.insert(blocked, plotRect(origin, instance.CFrame, instance.Size, DECOR_CLEARANCE))
+		end
+	end
+	for _, child in model:GetChildren() do
+		if child.Name == "Storage" then
+			for _, fixture in child:GetChildren() do
+				block(fixture)
+			end
+		elseif child.Name ~= "CrewTruck" and child.Name ~= "Deliveries" then
+			block(child)
+		end
+	end
+	if plot.deliveryFrame then
+		local patch = plot.deliveryFrame * CFrame.new(DELIVERY_PATCH.x, 0, DELIVERY_PATCH.z)
+		table.insert(blocked, plotRect(origin, patch, Vector3.new(DELIVERY_PATCH.width, 0, DELIVERY_PATCH.depth), 0))
+	end
+	local lawn = if plot.lawnFrame and plot.lawnSize then plotRect(origin, plot.lawnFrame, plot.lawnSize, 0) else nil
+	plot.decor = { width = plot.width, depth = plot.depth, blocked = blocked, lawn = lawn }
+	model:SetAttribute("PlotFrame", origin)
+	model:SetAttribute("DecorArea", HttpService:JSONEncode(plot.decor))
+end
+
 -- Rebuilds everything on a plot to match its owner's business tier, truck and trailer.
 local function buildPlot(plot)
 	if plot.model then
@@ -422,6 +474,7 @@ local function buildPlot(plot)
 			interactable(descendant, "DriveToJob", "Get In", "Crew Truck", { OwnerUserId = owner.UserId })
 		end
 	end
+	decorArea(plot, model)
 	if plot.awayTruck then
 		-- Rebuilt while the crew's out: the new truck is the one that comes back.
 		plot.awayTruck:Destroy()
@@ -545,6 +598,23 @@ function WorldService:ReturnTruck(player: Player, instantly: boolean?)
 			Openings.set(truck, true, TAILGATE_TIME)
 		end
 	end)
+end
+
+-- Where decorations may go on this player's own plot: its frame (plot space is relative to it)
+-- and its DecorPlacement area ({ width, depth, blocked, lawn }).
+function WorldService:GetDecorArea(player: Player): (CFrame?, any)
+	local plot = playerPlots[player]
+	if not (plot and plot.model and plot.decor) then
+		return nil, nil
+	end
+	return plot.cframe, plot.decor
+end
+
+-- The plot's DecorArea as saved on its model (JSON), to tell when it changed.
+function WorldService:GetDecorAreaRaw(player: Player): string?
+	local plot = playerPlots[player]
+	local raw = plot and plot.model and plot.model:GetAttribute("DecorArea")
+	return if typeof(raw) == "string" then raw else nil
 end
 
 -- True while this player's truck is out on a trip.

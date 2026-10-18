@@ -124,6 +124,11 @@ Services*. Without it the game still runs, it just doesn't save progress.
    back while you play (all of it in about 40 minutes) and remembers where you left it. A tidy
    lawn gives your business **curb appeal** (shown under your money), worth up to +15% on every
    job, and tidying it up again now and then earns a neighbor's tip.
+10. **Decorate.** The Orders app's **Decorations** tab has fences, edging, paths, mulch beds,
+    shrubs, a maple, planters, a bird bath, a fountain, an arbor, a bench, a patio set, a fire pit,
+    a mailbox, lights, a windmill and the odd flamingo. Each comes in a box: open it and put it
+    where you like in first person (R turns it, fences and paths snap together). Decorations add
+    to curb appeal, and shrubs need a trim now and then.
 
 ### Controls
 
