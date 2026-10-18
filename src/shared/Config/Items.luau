@@ -9,6 +9,9 @@
 --   radius    how far around you the tool reaches, in studs
 --   walkSpeed only for mowers, your speed while pushing/riding it
 --   motorized only for mowers, false means it only cuts while you're moving
+--   ride      only for riding mowers: you sit on it instead of holding it. `seat` is where you sit,
+--             in studs from where the tool's hand grip is (the steering wheel or lap bars):
+--             X right, Y up, Z back. Tune it in Studio until the player sits on the seat.
 --
 -- Model swap: put a model named after the item's `id` in ReplicatedStorage.Assets.Tools
 -- (or Assets.Trucks for trucks) and it replaces the placeholder automatically.
@@ -73,6 +76,7 @@ Items.Catalog = {
 			radius = 6,
 			walkSpeed = 24,
 			motorized = true,
+			ride = { seat = Vector3.new(0, -0.9, 1.2) },
 			color = Color3.fromRGB(40, 150, 60),
 			description = "Sit down and mow big lawns quickly.",
 		},
@@ -84,6 +88,7 @@ Items.Catalog = {
 			radius = 8,
 			walkSpeed = 32,
 			motorized = true,
+			ride = { seat = Vector3.new(0, -0.6, 1) },
 			color = Color3.fromRGB(240, 160, 20),
 			description = "What the pros use. Very fast, very wide.",
 		},

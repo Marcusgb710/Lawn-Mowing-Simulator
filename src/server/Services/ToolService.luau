@@ -3,6 +3,9 @@
 --
 -- Mowers work the whole time they're equipped (the reel mower only while you're walking).
 -- Every other tool works while you hold down the mouse button / tap and hold.
+-- Riding mowers aren't held at all: they're welded under the player, who sits on them and
+-- drives them around like walking. Tools say whether they're working with a "Working"
+-- attribute, so ToolFxController can spin blades and spools.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -37,16 +40,25 @@ local function getHumanoid(player: Player): Humanoid?
 	return character and character:FindFirstChildOfClass("Humanoid")
 end
 
+-- The part everything in a tool is welded to: "Handle", or "RideRoot" on riding mowers.
+local function toolBase(tool: Tool): BasePart?
+	local base = tool:FindFirstChild("Handle") or tool:FindFirstChild("RideRoot")
+	return if base and base:IsA("BasePart") then base else nil
+end
+
 local function setFx(tool: Tool, enabled: boolean)
-	local handle = tool:FindFirstChild("Handle")
-	local emitter = handle and handle:FindFirstChild("WorkFx")
+	local base = toolBase(tool)
+	local emitter = base and base:FindFirstChild("WorkFx")
 	if emitter and emitter:IsA("ParticleEmitter") and emitter.Enabled ~= enabled then
 		emitter.Enabled = enabled
+	end
+	if tool:GetAttribute("Working") ~= enabled then
+		tool:SetAttribute("Working", enabled)
 	end
 end
 
 local function addFx(tool: Tool, taskName: string)
-	local handle = tool:FindFirstChild("Handle")
+	local handle = toolBase(tool)
 	if not handle or handle:FindFirstChild("WorkFx") then
 		return
 	end
@@ -63,6 +75,59 @@ local function addFx(tool: Tool, taskName: string)
 	emitter.Parent = handle
 end
 
+-- Lowest point of a tool, in studs below `frame`.
+local function depthBelow(tool: Tool, frame: CFrame): number
+	local lowest = 0
+	for _, part in tool:GetDescendants() do
+		if part:IsA("BasePart") then
+			local half = part.Size / 2
+			for _, x in { -1, 1 } do
+				for _, y in { -1, 1 } do
+					for _, z in { -1, 1 } do
+						local corner = part.CFrame:PointToWorldSpace(Vector3.new(x * half.X, y * half.Y, z * half.Z))
+						lowest = math.min(lowest, frame:PointToObjectSpace(corner).Y)
+					end
+				end
+			end
+		end
+	end
+	return -lowest
+end
+
+local function restoreHipHeight(humanoid: Humanoid?)
+	local base = humanoid and humanoid:GetAttribute("BaseHipHeight")
+	if humanoid and typeof(base) == "number" then
+		humanoid.HipHeight = base
+		humanoid:SetAttribute("BaseHipHeight", nil)
+	end
+end
+
+-- Turns a riding mower into something you sit on. Without a part named "Handle" Roblox doesn't
+-- put it in your hand; instead it's welded so the seat sits under the HumanoidRootPart.
+local function setUpRide(player: Player, tool: Tool, item)
+	local base = tool:FindFirstChild("Handle")
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	if not (base and base:IsA("BasePart") and root and root:IsA("BasePart")) then
+		return
+	end
+	base.Name = "RideRoot"
+	tool.RequiresHandle = false
+	tool:SetAttribute("Ride", true)
+
+	-- The weld only does anything once the tool is equipped and in the character.
+	local seat: Vector3 = item.ride.seat
+	local weld = Instance.new("Weld")
+	weld.Name = "RideWeld"
+	weld.Part0 = root
+	weld.Part1 = base
+	weld.C0 = CFrame.new(0, -root.Size.Y / 2, 0) * CFrame.new(-seat)
+	weld.C1 = tool.Grip
+	weld.Parent = base
+	-- How high the seat is off the ground, which is how high the player needs to float.
+	tool:SetAttribute("SeatHeight", depthBelow(tool, base.CFrame * tool.Grip) + seat.Y)
+end
+
 local function hookTool(player: Player, tool: Tool, category: string, item)
 	local isMower = category == "Mower"
 
@@ -70,6 +135,14 @@ local function hookTool(player: Player, tool: Tool, category: string, item)
 		local humanoid = getHumanoid(player)
 		if humanoid and item.walkSpeed then
 			humanoid.WalkSpeed = item.walkSpeed
+		end
+		-- Lift R15 characters so the riding mower's wheels touch the ground under them.
+		local seatHeight = tool:GetAttribute("SeatHeight")
+		if humanoid and typeof(seatHeight) == "number" and humanoid.RigType == Enum.HumanoidRigType.R15 then
+			if humanoid:GetAttribute("BaseHipHeight") == nil then
+				humanoid:SetAttribute("BaseHipHeight", humanoid.HipHeight)
+			end
+			humanoid.HipHeight = seatHeight
 		end
 		if isMower then
 			running[tool] = true
@@ -82,6 +155,7 @@ local function hookTool(player: Player, tool: Tool, category: string, item)
 		local humanoid = getHumanoid(player)
 		if humanoid then
 			humanoid.WalkSpeed = GameConfig.DefaultWalkSpeed
+			restoreHipHeight(humanoid)
 		end
 	end)
 
@@ -129,8 +203,9 @@ function ToolService:GiveTools(player: Player)
 	local wasHolding = clearTools(player)
 	local humanoid = getHumanoid(player)
 	if humanoid and wasHolding then
-		-- Mowers change your speed, so undo that when the mower goes away.
+		-- Mowers change your speed and riding mowers your height, so undo that when they go away.
 		humanoid.WalkSpeed = GameConfig.DefaultWalkSpeed
+		restoreHipHeight(humanoid)
 	end
 	if not JobService:IsAtJobSite(player) then
 		return
@@ -148,6 +223,9 @@ function ToolService:GiveTools(player: Player)
 		tool.CanBeDropped = false
 		tool:SetAttribute("Category", category)
 		tool:SetAttribute("ItemId", itemId)
+		if item.ride then
+			setUpRide(player, tool, item)
+		end
 		addFx(tool, Items.CategoryInfo[category].task)
 		hookTool(player, tool, category, item)
 		tool.Parent = backpack
