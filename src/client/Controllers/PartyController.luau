@@ -105,6 +105,7 @@ local function showInvite(from: Player, timeout: number)
 		BackgroundColor3 = UI.Colors.Background,
 		Parent = UI.getScreen(),
 	}, { UI.corner(10), UI.padding(10) })
+	UI.holdCursor(popup)
 
 	UI.label(`{from.DisplayName} invited you to their crew!`, {
 		TextXAlignment = Enum.TextXAlignment.Center,

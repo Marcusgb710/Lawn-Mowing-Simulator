@@ -7,6 +7,10 @@ placeholder, as long as it's named after the item's `id` in `src/shared/Config/I
   A `Tool` with a part named `Handle` works best. A plain Model also works, and its PrimaryPart
   becomes the handle. The hand holds the handle's center with the handle's +Y pointing up and its
   front (LookVector) pointing forward. The kit tools are built by `scripts/build-kit-tools.luau`.
+  In first person the player's hands grip the tool where that kind of tool is usually held (both
+  sides of a handlebar, up a shaft, on a trimmer's front handle). To place them exactly, add
+  `Attachment`s named `GripRight` and `GripLeft` where each hand goes (for ride-ons, on the
+  steering wheel or lap bars).
 - `Kit/`: the Lawn Mowing mobile kit (grass, weeds, mowers, trimmers, props) as static templates.
   Each pivot sits on the ground under the asset and faces its front. Made by
   `scripts/OrganizeLawnKit.luau` + `scripts/export-kit.luau`.

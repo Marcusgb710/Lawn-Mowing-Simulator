@@ -106,10 +106,11 @@ Yards (`src/server/Services/LawnService.luau`) now use the kit, falling back to 
       `Items.luau` until the player sits on the seat, and see how R6 avatars look (they aren't
       lifted).
 - [ ] **Grip polish**: push and walk-behind machines are now held so their wheels touch the
-      ground, worked out from the player's shoulder height (phase B); check it in Studio. The
-      trimmer head still floats about 1.3 studs, because the tool-hold pose keeps the hand at
-      shoulder height. Lower the trimmer grips in `scripts/build-kit-tools.luau`, or add a hold
-      animation.
+      ground, worked out from the player's shoulder height (phase B); check it in Studio. In
+      first person every tool is posed for the view (trimmer heads on the ground), but other
+      players still see the trimmer head float about 1.3 studs, because the tool-hold pose keeps
+      the hand at shoulder height. Lower the trimmer grips in `scripts/build-kit-tools.luau`, or
+      add a hold animation.
 
 ## Design phases (docs/GAME_DESIGN.md)
 
@@ -131,6 +132,16 @@ One PR per phase, each stacked on the one before. Every phase still needs a Stud
 - [x] **F: pro equipment and turf renovation.** To check: standing on stand-on machines
       (`ride.seat` in `Tools.luau`), the tow-behind aerator hitched behind a ride-on, tight lawns
       with trees, the renovation overlays and the soil reading in the HUD.
+- [ ] **Camera: first person.** To check in Studio, R15 and R6:
+      - the arms (`ArmsController.luau`): sizes and colors, elbows bending the right way, hands
+        on the handlebar and up the rake's shaft, the blend up and down;
+      - each kind of tool in view (`MACHINE_AHEAD`, `LONG_*`, `REACH_*`, `HAND_POSE`): nothing
+        clipping the camera, rake and trimmer heads on the ground, backpack tools;
+      - the view from each ride-on seat and stand-on platform, and where the hands sit on the
+        controls (`RIDE_RIGHT`, or add `GripLeft` / `GripRight` attachments to the models);
+      - carried tools in view at the business;
+      - the mouse freeing while menus are open, Left Alt, the keys, and the dot;
+      - head bob and engine shake strength, and motion sickness on a phone.
 
 ## Before release
 

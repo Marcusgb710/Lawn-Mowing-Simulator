@@ -8,6 +8,7 @@ local UI = require(script.UI)
 
 local Controllers = script:WaitForChild("Controllers")
 local CONTROLLERS = {
+	"CameraController",
 	"HudController",
 	"JobBoardController",
 	"ShopController",
@@ -18,6 +19,7 @@ local CONTROLLERS = {
 	"CarryController",
 	"GrassController",
 	"ToolFxController",
+	"ArmsController",
 	"PartyController",
 	"CutsceneController",
 }
