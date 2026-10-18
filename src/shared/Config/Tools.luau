@@ -14,6 +14,7 @@
 --   engine       "None", "Electric", "Battery", "FourStroke" (regular gas) or "TwoStroke" (gas-oil mix)
 --   tires        "Air" (can go flat) or "FlatFree", nil if it has no tires to maintain
 --   protects     for gloves: the hazards they protect from ("Thorns", "Chemicals")
+--   tips         one-wheeled barrows that can tip over under a heavy load
 --   available    false until the phase that adds its jobs; it isn't sold before then
 --
 -- Mowers also have: cutQuality, maxGrassHeight (inches it can cut), maneuverability (0-1),
@@ -669,7 +670,6 @@ Tools.List = {
 		power = 2,
 		radius = 3,
 		quality = 0.85,
-		available = false,
 		color = Color3.fromRGB(110, 110, 115),
 		description = "Round-point shovel. A pointed, dished blade for digging holes, breaking into soil "
 			.. "and scooping loose material like soil, gravel and mulch.",
@@ -686,7 +686,6 @@ Tools.List = {
 		power = 1.8,
 		radius = 3,
 		quality = 0.88,
-		available = false,
 		color = Color3.fromRGB(100, 100, 105),
 		description = "Garden spade. A flat, straight-edged blade for cutting clean bed edges, slicing sod, "
 			.. "digging straight-sided holes and trenches, and dividing perennials. Poor at scooping "
@@ -704,7 +703,6 @@ Tools.List = {
 		power = 2,
 		radius = 3.5,
 		quality = 0.92,
-		available = false,
 		color = Color3.fromRGB(120, 90, 60),
 		description = "Broadfork. A wide, two-handled fork that loosens and aerates beds 12-16 inches deep "
 			.. "without flipping the soil layers.",
@@ -721,7 +719,6 @@ Tools.List = {
 		power = 1.8,
 		radius = 3,
 		quality = 0.86,
-		available = false,
 		color = Color3.fromRGB(90, 90, 95),
 		description = "Digging fork. Strong, flat tines for turning compacted, heavy or stony soil, lifting "
 			.. "root crops, dividing perennials and turning compost.",
@@ -738,7 +735,6 @@ Tools.List = {
 		power = 1.5,
 		radius = 4,
 		quality = 0.88,
-		available = false,
 		color = Color3.fromRGB(80, 80, 85),
 		description = "Bow rake. Short, rigid steel tines for leveling soil and seedbeds, breaking up clods, "
 			.. "and spreading mulch, gravel and topsoil. On a lawn it tears the turf.",
@@ -755,7 +751,6 @@ Tools.List = {
 		power = 2.5,
 		radius = 3,
 		quality = 0.85,
-		available = false,
 		color = Color3.fromRGB(150, 120, 80),
 		description = "Stirrup (hula) hoe. A loop blade that rocks back and forth, slicing young weeds just "
 			.. "under the surface on both the push and the pull. Fast between rows, useless on "
@@ -773,7 +768,6 @@ Tools.List = {
 		power = 2.5,
 		radius = 3,
 		quality = 0.8,
-		available = false,
 		color = Color3.fromRGB(70, 70, 75),
 		description = "Mattock. A heavy pick-and-adze head for breaking hard, compacted or rocky ground and "
 			.. "chopping through roots.",
@@ -790,7 +784,6 @@ Tools.List = {
 		power = 1.5,
 		radius = 3,
 		quality = 0.9,
-		available = false,
 		color = Color3.fromRGB(200, 60, 40),
 		description = "Loppers. Long-handled bypass pruners with the leverage to cut branches about 1-2 "
 			.. "inches thick.",
@@ -807,7 +800,6 @@ Tools.List = {
 		power = 1.2,
 		radius = 2.5,
 		quality = 0.88,
-		available = false,
 		color = Color3.fromRGB(230, 140, 30),
 		description = "Folding pruning saw. A curved blade for cutting live or dead branches over about 1.5 "
 			.. "inches, even in tight spots.",
@@ -819,13 +811,14 @@ Tools.List = {
 		tier = "Serious",
 		verbs = { "Haul" },
 		sizeClass = "FloorManual",
-		use = "Hold",
+		use = "Passive",
+		walkSpeed = 13,
+		tips = true,
 		price = 150,
 		power = 2,
 		radius = 3,
 		quality = 0.85,
 		tires = "Air",
-		available = false,
 		color = Color3.fromRGB(40, 110, 50),
 		description = "Single-wheel wheelbarrow with one air-filled tire. The most maneuverable way to move "
 			.. "soil, gravel and mulch, but it can tip on slopes or with a lopsided load.",
@@ -837,13 +830,14 @@ Tools.List = {
 		tier = "Serious",
 		verbs = { "Haul" },
 		sizeClass = "FloorManual",
-		use = "Hold",
+		use = "Passive",
+		walkSpeed = 12,
+		tips = true,
 		price = 180,
 		power = 1.8,
 		radius = 3,
 		quality = 0.85,
 		tires = "FlatFree",
-		available = false,
 		color = Color3.fromRGB(180, 40, 40),
 		description = "Single-wheel wheelbarrow with a solid foam tire. It never goes flat, but it's "
 			.. "heavier and rides rougher, so it's a little slower.",
@@ -855,13 +849,13 @@ Tools.List = {
 		tier = "Serious",
 		verbs = { "Haul" },
 		sizeClass = "FloorManual",
-		use = "Hold",
+		use = "Passive",
+		walkSpeed = 12,
 		price = 220,
 		power = 2.4,
 		radius = 3,
 		quality = 0.88,
 		tires = "Air",
-		available = false,
 		color = Color3.fromRGB(230, 170, 30),
 		description = "Two-wheel wheelbarrow with air tires. Stable and carries heavy loads of soil and "
 			.. "stone, but it's less nimble in tight spaces.",
@@ -873,13 +867,13 @@ Tools.List = {
 		tier = "Serious",
 		verbs = { "Haul" },
 		sizeClass = "FloorManual",
-		use = "Hold",
+		use = "Passive",
+		walkSpeed = 13,
 		price = 200,
 		power = 2.2,
 		radius = 3.5,
 		quality = 0.88,
 		tires = "FlatFree",
-		available = false,
 		color = Color3.fromRGB(40, 90, 160),
 		description = "Two-wheel plastic yard cart with flat-free tires. Light, with a big tub for bulky, "
 			.. "light loads like leaves and mulch, and stable on lawns.",
@@ -891,13 +885,14 @@ Tools.List = {
 		tier = "Serious",
 		verbs = { "Spread", "Seed" },
 		sizeClass = "FloorManual",
-		use = "Hold",
+		use = "Passive",
+		walkSpeed = 13,
+		motorized = false,
 		price = 120,
 		power = 3,
 		radius = 6,
 		quality = 0.85,
 		tires = "Air",
-		available = false,
 		color = Color3.fromRGB(230, 120, 30),
 		description = "Walk-behind broadcast spreader. A spinning plate under the hopper throws granular "
 			.. "fertilizer, seed or lime in an even arc across a lawn.",
@@ -914,7 +909,6 @@ Tools.List = {
 		power = 2,
 		radius = 3,
 		quality = 0.88,
-		available = false,
 		color = Color3.fromRGB(240, 200, 40),
 		description = "Backpack sprayer. A hand-pumped, pressurized tank with a wand for spot-spraying "
 			.. "liquid herbicide, fertilizer and pest treatments on beds and lawns.",
@@ -929,7 +923,6 @@ Tools.List = {
 		use = "Worn",
 		protects = { "Chemicals" },
 		price = 20,
-		available = false,
 		color = Color3.fromRGB(40, 160, 90),
 		description = "Fully nitrile, chemical-resistant gloves for mixing and spraying herbicides and other "
 			.. "chemicals. Coated work gloves aren't chemical-proof.",

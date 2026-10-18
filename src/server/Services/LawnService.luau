@@ -24,6 +24,7 @@ local Assets = require(Shared.Assets)
 local GameConfig = require(Shared.Config.GameConfig)
 local LawnGrid = require(Shared.LawnGrid)
 local TaskTypes = require(Shared.Config.TaskTypes)
+local Tools = require(Shared.Config.Tools)
 
 local COLORS = {
 	Turf = Color3.fromRGB(70, 125, 45),
@@ -40,6 +41,13 @@ local COLORS = {
 	Dead = Color3.fromRGB(110, 80, 50),
 	Terracotta = Color3.fromRGB(190, 95, 60),
 	NurseryPot = Color3.fromRGB(30, 30, 30),
+	Clay = Color3.fromRGB(170, 100, 55),
+	Hardpan = Color3.fromRGB(120, 110, 100),
+	Stone = Color3.fromRGB(140, 140, 135),
+	Bark = Color3.fromRGB(95, 70, 45),
+	Sod = Color3.fromRGB(80, 140, 55),
+	Gravel = Color3.fromRGB(160, 155, 145),
+	Fertilizer = Color3.fromRGB(225, 235, 210),
 	OvergrownEdge = Color3.fromRGB(80, 140, 50),
 	HedgeOvergrown = Color3.fromRGB(90, 150, 60),
 	HedgeTrimmed = Color3.fromRGB(40, 100, 40),
@@ -1016,20 +1024,271 @@ local GARDEN = {
 		end,
 	},
 }
+-- Serious-gardener work (design phase D) ------------------------------------------------------
+
+-- A few stones scattered around a spot (rocky or hard ground).
+local function stones(parent: Instance, ground: CFrame, count: number, rng: Random, spread: number)
+	for _ = 1, count do
+		local angle = rng:NextNumber(0, math.pi * 2)
+		local distance = rng:NextNumber(0.4, spread)
+		ball(
+			parent,
+			(ground * CFrame.new(math.cos(angle) * distance, 0.15, math.sin(angle) * distance)).Position,
+			rng:NextNumber(0.3, 0.6),
+			COLORS.Stone
+		).Material =
+			Enum.Material.Slate
+	end
+end
+
+-- A bare tree trunk with one branch to cut off, as thick as `thickness`.
+local function branchTree(parent: Instance, ground: CFrame, thickness: number, rng: Random)
+	stick(parent, ground.Position, ground.Position + Vector3.new(0, 4, 0), 0.7, COLORS.Bark)
+	ball(parent, ground.Position + Vector3.new(0, 4.8, 0), 3, COLORS.Leaf)
+	local angle = rng:NextNumber(0, math.pi * 2)
+	local base = ground.Position + Vector3.new(0, rng:NextNumber(1.8, 2.8), 0)
+	local tip = base + Vector3.new(math.cos(angle) * 2.4, 0.8, math.sin(angle) * 2.4)
+	local branch = stick(parent, base, tip, thickness, COLORS.Bark)
+	local leaves = ball(parent, tip, 1.2, COLORS.Leaf)
+	return branch, { leaves = leaves }
+end
+
+local function cutBranch(target, fraction: number)
+	if fraction >= 1 then
+		target.leaves:Destroy()
+		target.part:Destroy()
+	end
+end
+
+GARDEN.PlantingHole = {
+	spacing = 4,
+	columns = 3,
+	base = COLORS.Sod,
+	-- A marked spot with the shrub waiting beside it, some of them in rocky ground.
+	build = function(parent, ground: CFrame, rng: Random, task)
+		local mark = disc(parent, ground, 1.8, Color3.fromRGB(235, 235, 225), 0.04)
+		local rootball = ball(parent, (ground * CFrame.new(1.4, 0.5, 0)).Position, 1, Color3.fromRGB(160, 130, 90))
+		local sapling = ball(parent, (ground * CFrame.new(1.4, 1.5, 0)).Position, 1.4, COLORS.Leaf)
+		local extra = { rootball = rootball, sapling = sapling }
+		if rng:NextNumber() < (task.rocky or 0) then
+			stones(parent, ground, 5, rng, 1.2)
+			extra.speedHits = task.type.rocky
+		end
+		return mark, extra
+	end,
+	visual = function(target, fraction: number)
+		if fraction >= 1 then
+			target.part.Color = COLORS.Soil
+			target.rootball.Position = (target.ground * CFrame.new(0, 0.3, 0)).Position
+			target.sapling.Position = (target.ground * CFrame.new(0, 1.3, 0)).Position
+		end
+	end,
+}
+
+GARDEN.Sod = {
+	cell = Vector2.new(2.8, 2),
+	oneRow = true,
+	base = COLORS.Soil,
+	-- A strip of turf to slice free and lift along the new bed's edge.
+	build = function(parent, ground: CFrame)
+		return block(parent, {
+			Name = "Sod",
+			Size = Vector3.new(2.6, 0.3, 1.8),
+			CFrame = ground * CFrame.new(0, 0.15, 0),
+			Color = COLORS.Sod,
+			Material = Enum.Material.Grass,
+		}),
+			{}
+	end,
+	visual = function(target, fraction: number)
+		if fraction >= 1 then
+			target.part:Destroy()
+		else
+			target.part.CFrame = target.ground
+				* CFrame.new(0, 0.15 + fraction * 0.3, 0)
+				* CFrame.Angles(fraction * 0.3, 0, 0)
+		end
+	end,
+	reach = 1.4,
+}
+
+GARDEN.DeepBed = {
+	spacing = 3.6,
+	columns = 2,
+	base = COLORS.Mulch,
+	-- Packed-down soil that turns deep and fluffy.
+	build = function(parent, ground: CFrame)
+		return block(parent, {
+			Name = "PackedSoil",
+			Size = Vector3.new(3.2, 0.15, 3.2),
+			CFrame = ground * CFrame.new(0, 0.075, 0),
+			Color = COLORS.Hardpan:Lerp(COLORS.Soil, 0.4),
+			Material = Enum.Material.Slate,
+		}),
+			{}
+	end,
+	visual = function(target, fraction: number)
+		target.part.Color = COLORS.Hardpan:Lerp(COLORS.Soil, 0.4 + 0.6 * fraction)
+		if fraction >= 1 then
+			target.part.Material = Enum.Material.Ground
+			target.part.Size = Vector3.new(3.2, 0.4, 3.2)
+			target.part.CFrame = target.ground * CFrame.new(0, 0.2, 0)
+		end
+	end,
+	reach = 1.8,
+}
+
+GARDEN.HeavySoil = {
+	spacing = 3.4,
+	columns = 3,
+	base = COLORS.Mulch,
+	-- Sticky clay with old roots through it.
+	build = function(parent, ground: CFrame, rng: Random)
+		local clay = block(parent, {
+			Name = "Clay",
+			Size = Vector3.new(3, 0.18, 3),
+			CFrame = ground * CFrame.new(0, 0.09, 0),
+			Color = COLORS.Clay,
+			Material = Enum.Material.Slate,
+		})
+		local roots = sprigs(parent, ground * CFrame.new(0, -0.1, 0), 0.2, 3, 0.3, COLORS.Bark, rng)
+		return clay, { roots = roots }
+	end,
+	visual = function(target, fraction: number)
+		target.part.Color = COLORS.Clay:Lerp(COLORS.Soil, fraction)
+		if fraction >= 1 then
+			target.part.Material = Enum.Material.Ground
+			destroyAll(target.roots)
+		end
+	end,
+	reach = 1.6,
+}
+
+GARDEN.HardGround = {
+	spacing = 3.4,
+	columns = 3,
+	base = COLORS.Mulch,
+	-- Rock-hard ground full of stones.
+	build = function(parent, ground: CFrame, rng: Random)
+		local hard = block(parent, {
+			Name = "Hardpan",
+			Size = Vector3.new(3, 0.2, 3),
+			CFrame = ground * CFrame.new(0, 0.1, 0),
+			Color = COLORS.Hardpan,
+			Material = Enum.Material.Slate,
+		})
+		stones(parent, ground, 4, rng, 1.2)
+		return hard, {}
+	end,
+	visual = function(target, fraction: number)
+		target.part.Color = COLORS.Hardpan:Lerp(COLORS.Soil, fraction)
+		if fraction >= 1 then
+			target.part.Material = Enum.Material.Ground
+		end
+	end,
+	reach = 1.6,
+}
+
+GARDEN.MulchHeap = {
+	spacing = 3.6,
+	columns = 3,
+	base = COLORS.Soil,
+	-- A dumped heap that gets raked out flat across the bed.
+	build = function(parent, ground: CFrame, rng: Random)
+		local gravel = rng:NextNumber() < 0.3
+		local heap = block(parent, {
+			Name = "Heap",
+			Shape = Enum.PartType.Ball,
+			Size = Vector3.new(1.8, 1.2, 1.8),
+			Position = (ground * CFrame.new(0, 0.3, 0)).Position,
+			Color = if gravel then COLORS.Gravel else COLORS.Mulch,
+			Material = if gravel then Enum.Material.Pebble else Enum.Material.Ground,
+		})
+		return heap, {}
+	end,
+	visual = function(target, fraction: number)
+		local size = Vector3.new(1.8, 1.2, 1.8):Lerp(Vector3.new(3.2, 0.2, 3.2), fraction)
+		target.part.Shape = if fraction >= 1 then Enum.PartType.Block else Enum.PartType.Ball
+		target.part.Size = size
+		target.part.CFrame = target.ground * CFrame.new(0, size.Y / 2, 0)
+	end,
+	reach = 1.8,
+}
+
+GARDEN.RowWeeds = {
+	cell = Vector2.new(1.8, 6),
+	oneRow = true,
+	base = COLORS.Soil,
+	-- Weeds coming up between two rows of vegetables.
+	build = function(parent, ground: CFrame, rng: Random)
+		for _, side in { -0.6, 0.6 } do
+			for z = -2, 2, 1 do
+				ball(parent, (ground * CFrame.new(side, 0.3, z)).Position, 0.5, COLORS.Leaf)
+			end
+		end
+		local weeds = {}
+		for _ = 1, 4 do
+			table.insert(
+				weeds,
+				ball(parent, (ground * CFrame.new(0, 0.15, rng:NextNumber(-2.4, 2.4))).Position, 0.35, COLORS.Weed)
+			)
+		end
+		local strip = block(parent, {
+			Name = "Gap",
+			Size = Vector3.new(0.5, 0.04, 5.4),
+			CFrame = ground * CFrame.new(0, 0.02, 0),
+			Color = COLORS.Soil,
+			Material = Enum.Material.Ground,
+		})
+		return strip, { weeds = weeds }
+	end,
+	visual = function(target, fraction: number)
+		if fraction >= 1 then
+			destroyAll(target.weeds)
+		end
+	end,
+	reach = 2.6,
+}
+
+GARDEN.BranchMedium = {
+	spacing = 5,
+	columns = 3,
+	base = COLORS.Sod,
+	build = function(parent, ground: CFrame, rng: Random)
+		return branchTree(parent, ground, 0.22, rng)
+	end,
+	visual = cutBranch,
+	reach = 2.4,
+}
+
+GARDEN.BranchThick = {
+	spacing = 5,
+	columns = 3,
+	base = COLORS.Sod,
+	build = function(parent, ground: CFrame, rng: Random)
+		return branchTree(parent, ground, 0.45, rng)
+	end,
+	visual = cutBranch,
+	reach = 2.4,
+}
+
 for kind, style in GARDEN do
 	VISUALS[kind] = style.visual
 end
+-- Hauling, fertilizing and spraying keep their own state (see below), so they draw themselves.
+for _, kind in { "HaulHeavy", "HaulLight", "Fertilize", "SprayWeed" } do
+	VISUALS[kind] = VISUALS[kind] or function() end
+end
 
--- One plot in the side garden for a garden task, with a target per thing to do. Plots stack
--- from the sidewalk toward the house, then start a new column further left.
-function Lawn:_buildGardenPlot(task, rng: Random)
-	local style = GARDEN[task.type.target]
-	local count = math.max(1, task.amount)
-	local columns = if style.oneRow then count else math.min(count, style.columns or 4)
-	local rows = math.ceil(count / columns)
-	local cell = style.cell or Vector2.new(style.spacing, style.spacing)
-	local size = Vector2.new(columns * cell.X + 1, rows * cell.Y + 1)
-
+-- Finds room for a plot `size` big (X wide, Y deep) in the side garden and returns its
+-- front-right corner. Plots stack from the sidewalk toward the house, then start a new column
+-- further left.
+function Lawn:_nextPlot(size: Vector2): Vector3
+	if not self.garden then
+		self.garden = Instance.new("Folder")
+		self.garden.Name = "Garden"
+		self.garden.Parent = self.folder
+	end
 	local cursor = self.gardenCursor
 	if cursor.z > 0 and cursor.z + size.Y > self.depth + BED_DEPTH then
 		cursor.x -= cursor.columnWidth + GARDEN_GAP
@@ -1039,7 +1298,19 @@ function Lawn:_buildGardenPlot(task, rng: Random)
 	local corner = self.origin + Vector3.new(cursor.x - size.X, 0, cursor.z)
 	cursor.z += size.Y + GARDEN_GAP
 	cursor.columnWidth = math.max(cursor.columnWidth, size.X)
+	return corner
+end
 
+-- One plot in the side garden for a garden task, with a target per thing to do.
+function Lawn:_buildGardenPlot(task, rng: Random)
+	local style = GARDEN[task.type.target]
+	local count = math.max(1, task.amount)
+	local columns = if style.oneRow then count else math.min(count, style.columns or 4)
+	local rows = math.ceil(count / columns)
+	local cell = style.cell or Vector2.new(style.spacing, style.spacing)
+	local size = Vector2.new(columns * cell.X + 1, rows * cell.Y + 1)
+
+	local corner = self:_nextPlot(size)
 	local folder = Instance.new("Folder")
 	folder.Name = task.id
 	folder.Parent = self.garden
@@ -1055,11 +1326,150 @@ function Lawn:_buildGardenPlot(task, rng: Random)
 		local row = (index - 1) // columns
 		local position = corner + Vector3.new(0.5 + (column + 0.5) * cell.X, 0.3, 0.5 + (row + 0.5) * cell.Y)
 		local ground = CFrame.new(position)
-		local part, extra = style.build(folder, ground, rng)
+		local part, extra = style.build(folder, ground, rng, task)
 		extra.ground = ground
 		extra.parent = folder
 		extra.startSize = extra.startSize or part.Size
 		self:_addTarget(task, part, position, style.reach or 1, extra)
+	end
+end
+
+-- A delivered pile on the driveway and an empty bed in the side garden: each load gets filled
+-- at the pile and dumped in the bed (see Lawn:_applyHaul).
+function Lawn:_buildHaul(task)
+	local heavy = task.type.heavy == true
+	local loads = math.max(1, task.amount)
+	local folder = Instance.new("Folder")
+	folder.Name = task.id
+	folder.Parent = self.folder
+
+	local pileIndex = self.piles or 0
+	self.piles = pileIndex + 1
+	local pileAt = self.origin + Vector3.new(self.width + DRIVEWAY_WIDTH / 2, 0.3, 4 + pileIndex * 7)
+	local pileColor = if heavy then COLORS.Clay else COLORS.Mulch
+	local pileSize = Vector3.new(5, 2.2, 5)
+	local pile = block(folder, {
+		Name = "Pile",
+		Shape = Enum.PartType.Ball,
+		Size = pileSize,
+		Position = pileAt + Vector3.new(0, pileSize.Y * 0.3, 0),
+		Color = pileColor,
+		Material = if heavy then Enum.Material.Slate else Enum.Material.Ground,
+	})
+	if heavy then
+		stones(folder, CFrame.new(pileAt), 6, Random.new(), 2.2)
+	end
+
+	local bedSize = Vector2.new(6, 4)
+	local corner = self:_nextPlot(bedSize)
+	local bedAt = corner + Vector3.new(bedSize.X / 2, 0, bedSize.Y / 2)
+	block(self.garden, {
+		Name = "EmptyBed",
+		Size = Vector3.new(bedSize.X, 0.2, bedSize.Y),
+		Position = bedAt + Vector3.new(0, 0.1, 0),
+		Color = COLORS.Hardpan,
+		Material = Enum.Material.Ground,
+	})
+	local fill = block(self.garden, {
+		Name = "Fill",
+		Size = Vector3.new(bedSize.X - 0.4, 0.05, bedSize.Y - 0.4),
+		Position = bedAt + Vector3.new(0, 0.22, 0),
+		Color = pileColor,
+		Material = Enum.Material.Ground,
+		Transparency = 1,
+	})
+
+	task.haul = {
+		heavy = heavy,
+		pile = pile,
+		pileAt = pileAt,
+		pileSize = pileSize,
+		bedAt = bedAt,
+		fill = fill,
+		-- [holder] = how full their barrow is (0 to the task's workPerTarget)
+		loads = {},
+	}
+	for _ = 1, loads do
+		self:_addTarget(task, nil, bedAt, 3)
+	end
+end
+
+-- Every lawn tile gets an even pass of fertilizer; a pale dusting shows where it's landed.
+function Lawn:_buildFertilize(task, hazardTiles)
+	local tile = GameConfig.TileSize
+	local folder = Instance.new("Folder")
+	folder.Name = "Fertilizer"
+	folder.Parent = self.folder
+	task.dustFolder = folder
+	for column = 0, self.columns - 1 do
+		for row = 0, self.rows - 1 do
+			if nearHazard(hazardTiles, column, row, 0) then
+				continue
+			end
+			local optional = nearHazard(hazardTiles, column, row, 1)
+			self:_addTarget(task, nil, LawnGrid.center(self.origin, tile, column, row), tile * 0.35, {
+				folder = folder,
+				optional = optional,
+			})
+			if optional then
+				task.optional += 1
+			end
+		end
+	end
+end
+
+VISUALS.Fertilize = function(target, fraction: number)
+	if fraction >= 1 then
+		local tile = GameConfig.TileSize
+		local dust = block(target.folder, {
+			Name = "Dust",
+			Size = Vector3.new(tile * 0.9, 0.02, tile * 0.9),
+			Position = target.position + Vector3.new(0, 0.05, 0),
+			Color = COLORS.Fertilizer,
+			Material = Enum.Material.Sand,
+			Transparency = 0.6,
+		})
+		dust.CastShadow = false
+	end
+end
+
+-- Weeds in the lawn and the driveway cracks that need a dose of weed killer. Sprayed ones wilt.
+function Lawn:_buildSprayWeeds(task, rng: Random, hazardTiles)
+	local tile = GameConfig.TileSize
+	local folder = Instance.new("Folder")
+	folder.Name = "SprayWeeds"
+	folder.Parent = self.folder
+	for index = 1, task.amount do
+		local position
+		if index % 3 == 0 then
+			position = self.origin
+				+ Vector3.new(self.width + rng:NextNumber(1, DRIVEWAY_WIDTH - 1), 0.3, rng:NextNumber(1, self.depth))
+		else
+			local column, row = rng:NextInteger(0, self.columns - 1), rng:NextInteger(0, self.rows - 1)
+			if nearHazard(hazardTiles, column, row, 1) then
+				column, row = 0, 0
+			end
+			position = LawnGrid.center(self.origin, tile, column, row)
+				+ Vector3.new(rng:NextNumber(-1.2, 1.2), 0, rng:NextNumber(-1.2, 1.2))
+		end
+		local ground = CFrame.new(position) * CFrame.Angles(0, rng:NextNumber(0, math.pi * 2), 0)
+		local part, isKit = kitOrBlock(if rng:NextNumber() < 0.5 then "Weed_Thistle" else "Weed_Broadleaf", folder, {
+			Name = "Weed",
+			Color = COLORS.Weed,
+			Material = Enum.Material.Grass,
+		})
+		local size = if isKit then part.Size * 1.8 else Vector3.new(1, 1.2, 1)
+		Assets.standOn(part, ground, size)
+		self:_addTarget(task, part, position, 0.8, { ground = ground, startSize = size, isKit = isKit })
+	end
+end
+
+VISUALS.SprayWeed = function(target, fraction: number)
+	if fraction >= 1 then
+		shrink(target, Vector3.new(1, 0.4, 1))
+		if not target.isKit then
+			target.part.Color = COLORS.Dead
+		end
 	end
 end
 
@@ -1129,6 +1539,8 @@ function LawnService:Build(template, origin: Vector3, address: string)
 			id = entry.type,
 			type = taskType,
 			amount = entry.amount or 0,
+			-- Share of this task's targets in rocky ground (see TaskTypes `rocky`).
+			rocky = entry.rocky,
 			targets = {},
 			total = 0,
 			done = 0,
@@ -1159,14 +1571,18 @@ function LawnService:Build(template, origin: Vector3, address: string)
 	if byTarget.Dandelion then
 		lawn:_buildDandelions(byTarget.Dandelion, rng, hazardTiles)
 	end
+	if byTarget.Fertilize then
+		lawn:_buildFertilize(byTarget.Fertilize, hazardTiles)
+	end
+	if byTarget.SprayWeed then
+		lawn:_buildSprayWeeds(byTarget.SprayWeed, rng, hazardTiles)
+	end
 	for _, task in lawn.tasks do
-		if task.type.target and GARDEN[task.type.target] then
-			if not lawn.garden then
-				lawn.garden = Instance.new("Folder")
-				lawn.garden.Name = "Garden"
-				lawn.garden.Parent = folder
-			end
+		local kind = task.type.target
+		if kind and GARDEN[kind] then
 			lawn:_buildGardenPlot(task, rng)
+		elseif kind == "HaulHeavy" or kind == "HaulLight" then
+			lawn:_buildHaul(task)
 		end
 	end
 	lawn:_buildDecor(rng)
@@ -1193,19 +1609,38 @@ export type WorkResult = {
 	qualityWork: number,
 	-- The protection ("Thorns", "Chemicals") the player needed but didn't have.
 	hurt: string?,
+	-- Something worth telling the player (a barrow filled up, tipped over...).
+	message: string?,
 }
 
+-- Who's doing the work and how, for things that depend on it.
+--   protections  hazards their gloves protect from
+--   holder       whose barrow a load is in (one load per player)
+--   moving       whether they're walking
+--   seconds      how long this bit of work took
+export type WorkContext = {
+	protections: { [string]: boolean }?,
+	holder: any?,
+	moving: boolean?,
+	seconds: number?,
+}
+
+-- A one-wheeled barrow carrying something heavy tips over about this often per second of walking.
+local TIP_CHANCE = 0.05
+local tipRng = Random.new()
+
 -- Uses tool `toolId` on everything within `radius` of `position` that it can work on. `amount`
--- is the work a perfectly fitting tool would do this tick; worse fits do less. `protections` are
--- the hazards the player's gloves protect from; thorny or chemical work needs them.
+-- is the work a perfectly fitting tool would do this tick; worse fits do less.
 function Lawn:ApplyWork(
 	position: Vector3,
 	radius: number,
 	toolId: string,
 	amount: number,
-	protections: { [string]: boolean }?
+	context: WorkContext?
 ): WorkResult
-	local result = { changed = false, blocked = false, work = 0, fitWork = 0, qualityWork = 0, hurt = nil }
+	local result =
+		{ changed = false, blocked = false, work = 0, fitWork = 0, qualityWork = 0, hurt = nil, message = nil }
+	local protections = context and context.protections
 
 	-- Lawn grass is everywhere, so walking a tool across it on the way to its real work isn't a
 	-- mistake. Grass only counts as "wrong tool" when the tool has nothing left to do here.
@@ -1220,6 +1655,10 @@ function Lawn:ApplyWork(
 
 	for _, task in self.tasks do
 		local fit = fits[task]
+		if task.haul then
+			self:_applyHaul(task, fit, position, radius, toolId, amount, context, result)
+			continue
+		end
 		local needs = task.type.protection
 		local unprotected = needs ~= nil and not (protections and protections[needs])
 		for _, target in task.targets do
@@ -1240,7 +1679,9 @@ function Lawn:ApplyWork(
 				result.hurt = needs
 				break
 			end
-			local applied = math.min(target.work, amount * fit.speed)
+			-- Some targets are harder for some tools (rocky ground).
+			local hit = target.speedHits and target.speedHits[toolId] or 1
+			local applied = math.min(target.work, amount * fit.speed * hit)
 			target.work -= applied
 			VISUALS[target.kind](target, 1 - target.work / target.maxWork)
 			if target.work <= 0 then
@@ -1260,6 +1701,82 @@ function Lawn:ApplyWork(
 		self.grassFolder:SetAttribute("State", table.concat(self.grassState))
 	end
 	return result
+end
+
+-- Hauling: fill your barrow at the pile, push it to the bed and dump it. Each player carries one
+-- load at a time. A one-wheeled barrow full of soil or stone can tip if you walk it around.
+function Lawn:_applyHaul(
+	task,
+	fit,
+	position: Vector3,
+	radius: number,
+	toolId: string,
+	amount: number,
+	context: WorkContext?,
+	result
+)
+	local haul = task.haul
+	local function near(point: Vector3, reach: number): boolean
+		local offset = point - position
+		return Vector2.new(offset.X, offset.Z).Magnitude <= radius + reach
+	end
+	local atPile, atBed = near(haul.pileAt, 3), near(haul.bedAt, 3)
+	if task.done >= task.total then
+		return
+	end
+	if not fit then
+		if atPile or atBed then
+			result.blocked = true
+		end
+		return
+	end
+
+	local holder = context and context.holder or "crew"
+	local loadSize = task.type.workPerTarget
+	local load = haul.loads[holder] or 0
+	if load < loadSize then
+		if not atPile then
+			return
+		end
+		local applied = math.min(loadSize - load, amount * fit.speed)
+		haul.loads[holder] = load + applied
+		result.changed = true
+		result.work += applied
+		result.fitWork += applied * fit.pay
+		result.qualityWork += applied * fit.quality
+		if load + applied >= loadSize then
+			result.message = "Loaded up. Take it to the bed."
+		end
+		return
+	end
+
+	if atBed then
+		haul.loads[holder] = nil
+		for _, target in task.targets do
+			if target.work > 0 then
+				target.work = 0
+				break
+			end
+		end
+		task.done += 1
+		local fraction = task.done / task.total
+		haul.fill.Transparency = 0
+		haul.fill.Size = Vector3.new(haul.fill.Size.X, 0.05 + fraction * 0.5, haul.fill.Size.Z)
+		haul.fill.Position = haul.bedAt + Vector3.new(0, 0.2 + haul.fill.Size.Y / 2, 0)
+		local remaining = 1 - fraction
+		if remaining <= 0 then
+			haul.pile:Destroy()
+		else
+			haul.pile.Size = haul.pileSize * (0.35 + 0.65 * remaining)
+		end
+		result.changed = true
+	elseif haul.heavy and context and context.moving then
+		local tool = Tools.get(toolId)
+		if tool and tool.tips and tipRng:NextNumber() < TIP_CHANCE * (context.seconds or 0.1) then
+			haul.loads[holder] = nil
+			result.message = "Whoa! The barrow tipped over and dumped the load."
+		end
+	end
 end
 
 -- Wrecks any flower patch or gnome within `radius` of `position`. Returns the ones that just got hit.

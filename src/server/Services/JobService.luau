@@ -465,6 +465,13 @@ function JobService:IsBusy(player: Player): boolean
 	return playerJobs[player] ~= nil or traveling[player] ~= nil
 end
 
+-- How a bit of work was done, from ToolService:
+--   damagesHazards  the tool cuts (and wrecks flowers and gnomes)
+--   quiet           don't tell them their tool won't work (a mower idling while they stand still)
+--   moving          they're walking
+--   seconds         how long this bit of work took
+export type WorkOptions = { damagesHazards: boolean?, quiet: boolean?, moving: boolean?, seconds: number? }
+
 -- Called by ToolService every tick a player is using a tool.
 function JobService:ApplyWork(
 	player: Player,
@@ -472,16 +479,14 @@ function JobService:ApplyWork(
 	radius: number,
 	toolId: string,
 	amount: number,
-	damagesHazards: boolean,
-	-- Don't tell them their tool won't work (a mower idling while they stand still).
-	quiet: boolean?
+	options: WorkOptions
 )
 	local job = playerJobs[player]
 	if not job or job.state ~= "Working" then
 		return false
 	end
 
-	if damagesHazards then
+	if options.damagesHazards then
 		for _, hazard in job.lawn:CheckHazards(position, radius) do
 			local penalty = damagePenalty(job)
 			job.penalty += penalty
@@ -493,7 +498,15 @@ function JobService:ApplyWork(
 		end
 	end
 
-	local result = job.lawn:ApplyWork(position, radius, toolId, amount, protectionsOf(player))
+	local result = job.lawn:ApplyWork(position, radius, toolId, amount, {
+		protections = protectionsOf(player),
+		holder = player,
+		moving = options.moving,
+		seconds = options.seconds,
+	})
+	if result.message then
+		notify(player, result.message)
+	end
 	job.work += result.work
 	job.fitWork += result.fitWork
 	job.qualityWork += result.qualityWork
@@ -501,7 +514,7 @@ function JobService:ApplyWork(
 	if result.hurt and not warnedRecently then
 		wrongToolWarnings[player] = os.clock()
 		notify(player, HURT_MESSAGES[result.hurt] or "You need some protection for that.")
-	elseif result.blocked and not result.changed and not quiet and not warnedRecently then
+	elseif result.blocked and not result.changed and not options.quiet and not warnedRecently then
 		-- Never say which tool would work: knowing your tools is the game.
 		wrongToolWarnings[player] = os.clock()
 		notify(player, "That won't work here.")

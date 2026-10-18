@@ -83,7 +83,10 @@ Services*. Without it the game still runs, it just doesn't save progress.
 5. **Do the yard.** Mow the grass, edge the sidewalk and driveway, cut back the long grass along
    the house, clear the leaf piles and shape the hedges. Garden jobs happen in the side garden:
    pot up plants, plant seedlings and bulbs, sow rows, weed and loosen beds, dig out dandelions,
-   prune shrubs and roses (bring gloves for the thorns) and water beds and seedlings. Mowers work while equipped; every other
+   prune shrubs and roses (bring gloves for the thorns) and water beds and seedlings. Serious
+   jobs dig planting holes (some in rocky ground), lift sod, loosen and turn beds, spread mulch,
+   cut branches, haul soil, stone and leaves from a delivered pile with a barrow (one wheel can
+   tip!), feed the lawn and spot-spray weeds (with chemical gloves). Mowers work while equipped; every other
    tool works while you hold the mouse button. A tool that can't do a job says "That won't work
    here"; a tool that can but isn't the best fit works slower and pays less.
 6. **Get paid.** Pay depends on:
