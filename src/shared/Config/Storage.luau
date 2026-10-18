@@ -71,10 +71,11 @@ function Storage.hasRoom(owned, businessId: string?, tool): (boolean, string?)
 end
 
 -- Truck space and ride-on bays one player's loaded tools take, given as tool ids.
--- Their tool bucket (if loaded) carries up to BucketHolds of their hand tools for free.
-function Storage.load(toolIds: { string }): (number, number)
+-- Hand tools in their tool bucket (`inBucket`, { [toolId] = true }) ride free while the bucket is
+-- loaded too. Without `inBucket`, a loaded bucket carries up to BucketHolds of the hand tools.
+function Storage.load(toolIds: { string }, inBucket: { [string]: boolean }?): (number, number)
 	local space, bays, hand = 0, 0, 0
-	local bucket = false
+	local bucket = table.find(toolIds, Storage.BucketId) ~= nil
 	for _, id in toolIds do
 		local tool = Tools.get(id)
 		if not tool then
@@ -83,17 +84,27 @@ function Storage.load(toolIds: { string }): (number, number)
 		if tool.sizeClass == "Bay" then
 			bays += 1
 		elseif tool.sizeClass == "Hand" then
-			hand += 1
+			if not (inBucket and bucket and inBucket[id]) then
+				hand += 1
+			end
 		else
 			space += Storage.spaceOf(tool)
 		end
-		if id == Storage.BucketId then
-			bucket = true
-		end
 	end
 	local handSpace = Tools.SizeClasses.Hand.space
-	local looseHand = if bucket then math.max(0, hand - Storage.BucketHolds) else hand
+	local looseHand = if bucket and not inBucket then math.max(0, hand - Storage.BucketHolds) else hand
 	return space + looseHand * handSpace, bays
+end
+
+-- How many tools are in this bucket list ({ [toolId] = true }).
+function Storage.bucketCount(inBucket: { [string]: boolean }?): number
+	local count = 0
+	if inBucket then
+		for _ in inBucket do
+			count += 1
+		end
+	end
+	return count
 end
 
 -- The tool ids in a loadout ({ [id] = true }), in shop order.

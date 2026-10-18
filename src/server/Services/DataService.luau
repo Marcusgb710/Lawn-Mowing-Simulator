@@ -18,7 +18,7 @@ local DataService = {}
 
 -- Bump this whenever the save format changes, and add a step to MIGRATIONS that turns the
 -- previous version into the new one. Never delete a step: old saves still need it.
-local DATA_VERSION = 4
+local DATA_VERSION = 5
 
 -- MIGRATIONS[n] turns a version n - 1 save into version n. Steps must keep money, xp and every
 -- owned item. Don't use the live config to read an old save: write down what it looked like.
@@ -63,6 +63,44 @@ local MIGRATIONS = {
 	[4] = function(data)
 		data.condition = if typeof(data.condition) == "table" then data.condition else {}
 	end,
+
+	-- 4 -> 5, loading by hand (Immersion). Tools now go in a storage spot you pick (`spots`), and
+	-- hand tools go in the tool bucket one by one (`bucket`). A v4 bucket in the truck carried up
+	-- to 8 of the hand tools in the truck, so those go in the bucket now and the load stays the same.
+	[5] = function(data)
+		data.spots = if typeof(data.spots) == "table" then data.spots else {}
+		data.bucket = if typeof(data.bucket) == "table" then data.bucket else {}
+		local loadout = if typeof(data.loadout) == "table" then data.loadout else {}
+		if not loadout.ToolBucket then
+			return
+		end
+		local count = 0
+		-- The hand tools of the v4 catalog.
+		for _, toolId in
+			{
+				"GardenShears",
+				"HandHedgeShears",
+				"HandTrowel",
+				"HandTransplanter",
+				"HandCultivator",
+				"DandelionWeeder",
+				"Dibber",
+				"BypassPruners",
+				"AnvilPruners",
+				"FloralSnips",
+				"WateringCan",
+				"NitrileGloves",
+				"PruningSaw",
+				"ChemicalGloves",
+				"SoilProbe",
+			}
+		do
+			if loadout[toolId] and count < 8 then
+				data.bucket[toolId] = true
+				count += 1
+			end
+		end
+	end,
 }
 
 local store: DataStore? = nil
@@ -83,6 +121,10 @@ local function defaultData()
 		loadout = {},
 		-- [toolId] = fuel, tires, blade and line of every owned tool (see Maintenance.luau)
 		condition = {},
+		-- [toolId] = which storage spot of its kind it goes back to (otherwise the first free one)
+		spots = {},
+		-- [toolId] = true for hand tools in their tool bucket (they go wherever the bucket goes)
+		bucket = {},
 		trailerUnlocked = false,
 	}
 	for _, category in Items.Categories do
@@ -188,7 +230,7 @@ function DataService.trimLoadout(data)
 	for _, id in ids do
 		if owned[id] then
 			table.insert(kept, id)
-			local usedSpace, usedBays = Storage.load(kept)
+			local usedSpace, usedBays = Storage.load(kept, data.bucket)
 			if usedSpace > space or usedBays > bays then
 				table.remove(kept)
 			end
@@ -197,6 +239,37 @@ function DataService.trimLoadout(data)
 	data.loadout = {}
 	for _, id in kept do
 		data.loadout[id] = true
+	end
+	DataService.reconcileStorage(data)
+end
+
+-- Forgets storage spots and bucket places of tools they don't own anymore, and keeps the tools
+-- in the bucket wherever the bucket is: in the truck exactly when it is.
+function DataService.reconcileStorage(data)
+	local owned = {}
+	for _, tool in Items.ownedTools(data.owned) do
+		owned[tool.id] = tool
+	end
+	data.spots = if typeof(data.spots) == "table" then data.spots else {}
+	data.bucket = if typeof(data.bucket) == "table" then data.bucket else {}
+	for id in data.spots do
+		if not owned[id] then
+			data.spots[id] = nil
+		end
+	end
+	local hasBucket = owned[Storage.BucketId] ~= nil
+	local count = 0
+	for id in data.bucket do
+		local tool = owned[id]
+		if not (hasBucket and tool and tool.sizeClass == "Hand") or count >= Storage.BucketHolds then
+			data.bucket[id] = nil
+		else
+			count += 1
+		end
+	end
+	local bucketLoaded = data.loadout[Storage.BucketId] ~= nil
+	for id in data.bucket do
+		data.loadout[id] = if bucketLoaded then true else nil
 	end
 end
 
@@ -261,7 +334,7 @@ end
 
 local function snapshot(data)
 	local space, bays = Items.vehicleSpace(data.equipped)
-	local usedSpace, usedBays = Storage.load(Storage.loadedIds(data.loadout))
+	local usedSpace, usedBays = Storage.load(Storage.loadedIds(data.loadout), data.bucket)
 	return {
 		money = data.money,
 		xp = data.xp,
@@ -271,6 +344,8 @@ local function snapshot(data)
 		equipped = data.equipped,
 		loadout = data.loadout,
 		condition = data.condition,
+		spots = data.spots,
+		bucket = data.bucket,
 		-- Their own truck and trailer (in a crew, PartyUpdated has the leader's truck instead).
 		truck = { used = usedSpace, space = space, baysUsed = usedBays, bays = bays },
 		trailerUnlocked = data.trailerUnlocked,

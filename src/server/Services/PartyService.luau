@@ -45,7 +45,7 @@ local function truckLoad(party): (number, number, number, number)
 	for _, member in party.members do
 		local data = DataService:Get(member)
 		if data then
-			local space, bays = Storage.load(Storage.loadedIds(data.loadout))
+			local space, bays = Storage.load(Storage.loadedIds(data.loadout), data.bucket)
 			used += space
 			baysUsed += bays
 		end

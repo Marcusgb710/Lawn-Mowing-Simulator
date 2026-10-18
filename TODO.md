@@ -150,6 +150,14 @@ One PR per phase, each stacked on the one before. Every phase still needs a Stud
       - the truck on `TruckParking` with its rear at the door, the tailgate, ramp and rear door
         opening and closing (hinge pivots), the ramp reaching the ground;
       - interior lights on phones.
+- [ ] **Immersion 2: look-at loading.** To check in Studio:
+      - aiming at tools on every fixture, at the bed (the ghost on the right cells, green or red),
+        and at free spots;
+      - the E key and the phone button, and R on the bucket;
+      - tools lying well on their cells, and the settle;
+      - driving a ride-on up a ramp and parking it on a bay;
+      - two players loading one truck;
+      - fill in the sound ids in `src/shared/Sounds.luau`.
 
 ## Before release
 

@@ -3,12 +3,13 @@
 -- Your own tools are laid out in your crew's business storage (only on your screen, so crew
 -- members each see their own): hand tools hang on pegboards, long tools stand in wall racks,
 -- power tools hang on hooks, supplies sit on shelves and machines park on floor spots and in
--- equipment bays (see BusinessStorage on the server). Anything without a free spot sits on the
--- ground nearby. Walk up and pick one up, carry it to the truck and load it.
--- This also hides truck prompts that don't apply to you right now.
+-- equipment bays (see BusinessStorage on the server). Each tool goes in the spot you last put it
+-- in (profile.spots), or the first free one of its kind; anything without a free spot sits on
+-- the ground nearby. Hand tools in your tool bucket are in the bucket, not on the wall.
+-- Every tool can be taken by looking at it, and every free spot has an invisible marker you can
+-- look at to put something back (see InteractController).
 
 local Players = game:GetService("Players")
-local ProximityPromptService = game:GetService("ProximityPromptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -53,23 +54,24 @@ function CarryController.findStorage(): Folder?
 	return nil
 end
 
-local function addPrompt(parent: BasePart, actionText: string, objectText: string, action: string, toolId: string)
-	local prompt = Instance.new("ProximityPrompt")
-	prompt.ActionText = actionText
-	prompt.ObjectText = objectText
-	prompt.HoldDuration = 0
-	prompt.MaxActivationDistance = 8
-	prompt.RequiresLineOfSight = false
-	prompt:SetAttribute("LocalAction", action)
-	prompt:SetAttribute("ToolId", toolId)
-	prompt.Parent = parent
-end
+-- What putting a tool back in each kind of spot is called.
+local PUT_BACK_TEXT = {
+	Pegboard = "Hang up",
+	WallHooks = "Hang up",
+	WallRack = "Put in rack",
+	Shelf = "Put on shelf",
+	Floor = "Set down",
+	Bay = "Park",
+}
 
 -- Every storage spot, by kind, in order.
 local function spotsByKind(storage: Folder)
 	local byKind = {}
 	local holder = storage:FindFirstChild("Spots")
-	for _, attachment in if holder then holder:GetChildren() else {} do
+	if not holder then
+		return byKind
+	end
+	for _, attachment in holder:GetChildren() do
 		local kind = attachment:GetAttribute("Spot")
 		if attachment:IsA("Attachment") and kind then
 			byKind[kind] = byKind[kind] or {}
@@ -84,9 +86,33 @@ local function spotsByKind(storage: Folder)
 	return byKind
 end
 
+-- [free-spot marker part] = the spot it's over
+local markerSpots = setmetatable({}, { __mode = "k" })
+
+-- The spot a free-spot marker (see marker below) is over.
+function CarryController.spotOfMarker(part: Instance): Attachment?
+	return markerSpots[part]
+end
+
+-- One storage spot of your crew's business, by kind and Index.
+function CarryController.spot(kind: string, index: number): Attachment?
+	local storage = CarryController.findStorage()
+	for _, attachment in if storage then spotsByKind(storage)[kind] or {} else {} do
+		if attachment:GetAttribute("Index") == index then
+			return attachment
+		end
+	end
+	return nil
+end
+
+function CarryController.floorY(): number
+	local storage = CarryController.findStorage()
+	return storage and storage:GetAttribute("FloorY") or 0
+end
+
 -- Puts a tool in its spot: hung on a pegboard or hook, stood up in a wall rack, or placed on a
 -- shelf or the floor.
-local function placeInSpot(display: Model, spot: Attachment, floorY: number)
+function CarryController.placeInSpot(display: Model, spot: Attachment, floorY: number)
 	local frame = spot.WorldCFrame
 	local mount = spot:GetAttribute("Mount")
 	if mount == "Place" then
@@ -108,17 +134,35 @@ local function placeInSpot(display: Model, spot: Attachment, floorY: number)
 	display:PivotTo(display:GetPivot() + (center - frame.Position))
 end
 
--- An invisible part to hold a tool's prompt, so "Put Back" shows up in the empty spot.
-local function marker(folder: Folder, at: Vector3)
+-- An invisible part over a free spot, to look at to put a tool back there.
+local function marker(folder: Folder, spot: Attachment)
+	local kind = spot:GetAttribute("Spot")
+	local mount = spot:GetAttribute("Mount")
+	local frame = spot.WorldCFrame
 	local part = Instance.new("Part")
+	part.Name = "FreeSpot"
 	part.Anchored = true
 	part.Transparency = 1
 	part.CanCollide = false
-	part.CanQuery = false
 	part.CanTouch = false
-	part.Size = Vector3.new(1.5, 2, 1.5)
-	part.CFrame = CFrame.new(at)
+	if kind == "Floor" or kind == "Bay" then
+		part.Size = if kind == "Bay" then Vector3.new(5, 1, 7) else Vector3.new(3, 1.2, 4)
+		part.CFrame = frame * CFrame.new(0, part.Size.Y / 2, 0)
+	elseif mount == "Place" then
+		part.Size = Vector3.new(1.4, 1.2, 1.4)
+		part.CFrame = frame * CFrame.new(0, 0.6, 0)
+	else
+		-- Tools hang (or stand) below their slot.
+		part.Size = Vector3.new(1.2, 2.4, 1.2)
+		part.CFrame = frame * CFrame.new(0, -1, -0.4)
+	end
+	part:SetAttribute("Interact", "PutBack")
+	part:SetAttribute("InteractText", PUT_BACK_TEXT[kind] or "Put back")
+	part:SetAttribute("SpotKind", kind)
+	part:SetAttribute("SpotIndex", spot:GetAttribute("Index"))
+	part:SetAttribute("ManualOnly", spot:GetAttribute("ManualOnly"))
 	part.Parent = folder
+	markerSpots[part] = spot
 	return part
 end
 
@@ -147,27 +191,55 @@ local function renderStorage()
 		else nil
 	local overflowX, overflowRow = 0, 0
 	local held = carrying()
+	local chosen = profile.spots or {}
+	local inBucket = profile.bucket or {}
+	local function fits(candidate: Attachment, item): boolean
+		return not taken[candidate] and not (candidate:GetAttribute("ManualOnly") and item.sizeClass == "FloorEngine")
+	end
 
-	for _, item in Items.ownedTools(profile.owned) do
-		-- Find this tool's spot: the first free one of its kind that takes it.
-		local spot: Attachment? = nil
+	-- Every tool keeps a spot, even while it's in the truck, in your hands or in the bucket, so
+	-- storage doesn't shuffle around: first the spots you picked, then the first free ones.
+	local tools = Items.ownedTools(profile.owned)
+	local spotOf = {}
+	for _, item in tools do
 		for _, candidate in spots[Storage.spotOf(item)] or {} do
-			if
-				not taken[candidate] and not (candidate:GetAttribute("ManualOnly") and item.sizeClass == "FloorEngine")
-			then
-				spot = candidate
+			if candidate:GetAttribute("Index") == chosen[item.id] and fits(candidate, item) then
+				spotOf[item.id] = candidate
 				taken[candidate] = true
 				break
 			end
 		end
-		if profile.loadout[item.id] then
+	end
+	for _, item in tools do
+		if spotOf[item.id] then
+			continue
+		end
+		for _, candidate in spots[Storage.spotOf(item)] or {} do
+			if fits(candidate, item) then
+				spotOf[item.id] = candidate
+				taken[candidate] = true
+				break
+			end
+		end
+	end
+
+	for _, item in tools do
+		local spot: Attachment? = spotOf[item.id]
+		if profile.loadout[item.id] or inBucket[item.id] then
+			continue
+		end
+		if held == item.id then
+			-- In your hands: its spot is free to put it back in.
+			if spot then
+				taken[spot] = nil
+			end
 			continue
 		end
 
 		local display = Assets.toolDisplay(item.category, item.id)
 		Assets.anchor(display)
 		if spot then
-			placeInSpot(display, spot, floorY)
+			CarryController.placeInSpot(display, spot, floorY)
 		elseif overflowFrame then
 			-- No spot for it here: keep it on the ground, in rows.
 			local _, size = display:GetBoundingBox()
@@ -185,41 +257,30 @@ local function renderStorage()
 			continue
 		end
 
-		local center = display:GetBoundingBox().Position
-		if held == item.id then
-			display:Destroy()
-			addPrompt(marker(folder, center), "Put Back", item.name, "PutBack", item.id)
-		else
-			display.Parent = folder
-			addPrompt(marker(folder, center), "Pick Up", item.name, "PickUp", item.id)
+		display:SetAttribute("Interact", "PickUp")
+		display:SetAttribute("InteractText", if item.ride then "Get on" else "Take")
+		display:SetAttribute("InteractName", item.name)
+		display:SetAttribute("ToolId", item.id)
+		if item.id == Storage.BucketId then
+			local count = 0
+			for _ in inBucket do
+				count += 1
+			end
+			display:SetAttribute("BucketCount", count)
+		end
+		display.Parent = folder
+	end
+
+	-- Free spots, to put things back in.
+	for _, list in spots do
+		for _, spot in list do
+			if not taken[spot] then
+				marker(folder, spot)
+			end
 		end
 	end
 	folder.Parent = workspace
 	storageFolder = folder
-end
-
--- Server prompts: only show "Take Out" on your own tools, "Load Tool" while carrying,
--- and "Drive" while your hands are free.
-local function filterPrompt(prompt: ProximityPrompt)
-	local onlyFor = prompt:GetAttribute("OnlyFor")
-	local action = prompt:GetAttribute("Action")
-	local held = carrying() ~= nil
-	if onlyFor ~= nil then
-		prompt.Enabled = onlyFor == player.UserId and not held
-	elseif action == "LoadTool" then
-		prompt.Enabled = held
-	elseif action == "DriveToJob" then
-		prompt.Enabled = not held
-	end
-end
-
-local function filterAllPrompts()
-	local businesses = workspace:FindFirstChild("Businesses")
-	for _, descendant in if businesses then businesses:GetDescendants() else {} do
-		if descendant:IsA("ProximityPrompt") then
-			filterPrompt(descendant)
-		end
-	end
 end
 
 local function updateCarryLabel()
@@ -227,7 +288,9 @@ local function updateCarryLabel()
 	local tool = held and Tools.get(held)
 	carryLabel.Visible = tool ~= nil
 	if tool then
-		carryLabel.Text = `Carrying your {tool.name}. Load it into the truck or put it back.`
+		carryLabel.Text = if tool.sizeClass == "Bay"
+			then `Driving your {tool.name}. Park it on a trailer bay, or back in its bay.`
+			else `Carrying your {tool.name}. Look at the truck bed to load it, or at a free spot to put it back.`
 	end
 end
 
@@ -236,6 +299,7 @@ function CarryController.pickUp(toolId: string)
 	UI.notify(message)
 end
 
+-- Puts what you're carrying back where it was.
 function CarryController.putBack()
 	local _, message = Net.func("PutBackTool"):InvokeServer()
 	UI.notify(message)
@@ -258,31 +322,27 @@ function CarryController:Start()
 	UI.corner(8).Parent = carryLabel
 	UI.new("UISizeConstraint", { MaxSize = Vector2.new(460, math.huge), Parent = carryLabel })
 
-	ProximityPromptService.PromptTriggered:Connect(function(prompt)
-		local action = prompt:GetAttribute("LocalAction")
-		if action == "PickUp" then
-			CarryController.pickUp(prompt:GetAttribute("ToolId"))
-		elseif action == "PutBack" then
-			CarryController.putBack()
+	-- Several changes come together (a load changes what you carry and your profile), so they
+	-- redraw storage once.
+	local queued = false
+	local function queueRender()
+		if not queued then
+			queued = true
+			task.defer(function()
+				queued = false
+				renderStorage()
+			end)
 		end
-	end)
-
+	end
 	player:GetAttributeChangedSignal("Carrying"):Connect(function()
 		updateCarryLabel()
-		filterAllPrompts()
-		renderStorage()
+		queueRender()
 	end)
 	ClientState.Changed:Connect(function(key)
 		if key == "profile" or key == "party" then
-			renderStorage()
+			queueRender()
 		end
 	end)
-	workspace.DescendantAdded:Connect(function(descendant)
-		if descendant:IsA("ProximityPrompt") then
-			filterPrompt(descendant)
-		end
-	end)
-	filterAllPrompts()
 
 	-- Storage can appear later (streaming in, or the business getting rebuilt after an upgrade).
 	task.spawn(function()
