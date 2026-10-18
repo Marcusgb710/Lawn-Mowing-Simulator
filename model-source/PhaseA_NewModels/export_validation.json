@@ -1,0 +1,412 @@
+{
+  "validated_assets": 58,
+  "checks": [
+    {
+      "asset": "HandTrowel",
+      "triangles": 200,
+      "budget": 800,
+      "gltf_primitives": 1,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "HandTransplanter",
+      "triangles": 272,
+      "budget": 800,
+      "gltf_primitives": 1,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "HandCultivator",
+      "triangles": 196,
+      "budget": 800,
+      "gltf_primitives": 1,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "DandelionWeeder",
+      "triangles": 192,
+      "budget": 600,
+      "gltf_primitives": 1,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "Dibber",
+      "triangles": 276,
+      "budget": 600,
+      "gltf_primitives": 1,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "BypassPruners",
+      "triangles": 638,
+      "budget": 1000,
+      "gltf_primitives": 1,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "AnvilPruners",
+      "triangles": 610,
+      "budget": 1000,
+      "gltf_primitives": 1,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "FloralSnips",
+      "triangles": 296,
+      "budget": 800,
+      "gltf_primitives": 1,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "Loppers",
+      "triangles": 200,
+      "budget": 1500,
+      "gltf_primitives": 1,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "PruningSaw",
+      "triangles": 224,
+      "budget": 1000,
+      "gltf_primitives": 1,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "GardenHoseWand",
+      "triangles": 670,
+      "budget": 3000,
+      "gltf_primitives": 1,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "WateringCan",
+      "triangles": 760,
+      "budget": 1500,
+      "gltf_primitives": 1,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "NitrileGloves",
+      "triangles": 392,
+      "budget": 800,
+      "gltf_primitives": 1,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "ChemicalGloves",
+      "triangles": 328,
+      "budget": 800,
+      "gltf_primitives": 1,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "RoundPointShovel",
+      "triangles": 200,
+      "budget": 1500,
+      "gltf_primitives": 1,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "GardenSpade",
+      "triangles": 168,
+      "budget": 1500,
+      "gltf_primitives": 1,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "Broadfork",
+      "triangles": 340,
+      "budget": 2000,
+      "gltf_primitives": 1,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "DiggingFork",
+      "triangles": 248,
+      "budget": 1500,
+      "gltf_primitives": 1,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "Mattock",
+      "triangles": 136,
+      "budget": 1500,
+      "gltf_primitives": 1,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "BowRake",
+      "triangles": 344,
+      "budget": 1500,
+      "gltf_primitives": 1,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "StirrupHoe",
+      "triangles": 100,
+      "budget": 1200,
+      "gltf_primitives": 1,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "SingleWheelbarrow",
+      "triangles": 1168,
+      "budget": 4000,
+      "gltf_primitives": 2,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "SingleWheelbarrowFlatFree",
+      "triangles": 932,
+      "budget": 4000,
+      "gltf_primitives": 2,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "DualWheelbarrow",
+      "triangles": 1912,
+      "budget": 4500,
+      "gltf_primitives": 2,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "PolyCart",
+      "triangles": 1048,
+      "budget": 4000,
+      "gltf_primitives": 2,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "BroadcastSpreader",
+      "triangles": 1704,
+      "budget": 4000,
+      "gltf_primitives": 3,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "BackpackSprayer",
+      "triangles": 540,
+      "budget": 3000,
+      "gltf_primitives": 1,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "CommercialZeroTurn",
+      "triangles": 5104,
+      "budget": 12000,
+      "gltf_primitives": 6,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "StandOnMower",
+      "triangles": 4056,
+      "budget": 10000,
+      "gltf_primitives": 5,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "CommercialReelMower",
+      "triangles": 1192,
+      "budget": 8000,
+      "gltf_primitives": 3,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "StraightShaftTrimmer",
+      "triangles": 792,
+      "budget": 4000,
+      "gltf_primitives": 2,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "ArticulatingHedgeTrimmer",
+      "triangles": 748,
+      "budget": 4500,
+      "gltf_primitives": 1,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "SoilProbe",
+      "triangles": 128,
+      "budget": 800,
+      "gltf_primitives": 1,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "StandOnAerator",
+      "triangles": 3432,
+      "budget": 9000,
+      "gltf_primitives": 3,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "TowBehindAerator",
+      "triangles": 3516,
+      "budget": 6000,
+      "gltf_primitives": 3,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "SlitOverseeder",
+      "triangles": 2488,
+      "budget": 7000,
+      "gltf_primitives": 3,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "PowerRakeDethatcher",
+      "triangles": 2288,
+      "budget": 7000,
+      "gltf_primitives": 3,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "RideOnSpreaderSprayer",
+      "triangles": 2640,
+      "budget": 10000,
+      "gltf_primitives": 4,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "GasCan",
+      "triangles": 324,
+      "budget": 1000,
+      "gltf_primitives": 1,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "MixGasCan",
+      "triangles": 324,
+      "budget": 1000,
+      "gltf_primitives": 1,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "TrimmerLine",
+      "triangles": 590,
+      "budget": 600,
+      "gltf_primitives": 1,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "FootPump",
+      "triangles": 754,
+      "budget": 1200,
+      "gltf_primitives": 1,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "ElectricInflator",
+      "triangles": 176,
+      "budget": 1200,
+      "gltf_primitives": 2,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "AirCompressor",
+      "triangles": 1518,
+      "budget": 2000,
+      "gltf_primitives": 1,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "TirePatchKit",
+      "triangles": 200,
+      "budget": 800,
+      "gltf_primitives": 1,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "SpareTire",
+      "triangles": 692,
+      "budget": 1000,
+      "gltf_primitives": 1,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "WrenchSet",
+      "triangles": 1104,
+      "budget": 1500,
+      "gltf_primitives": 1,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "BladeFile",
+      "triangles": 376,
+      "budget": 400,
+      "gltf_primitives": 1,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "SharpeningStone",
+      "triangles": 44,
+      "budget": 200,
+      "gltf_primitives": 1,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "BenchGrinder",
+      "triangles": 936,
+      "budget": 2000,
+      "gltf_primitives": 3,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "SpareMowerBlade",
+      "triangles": 152,
+      "budget": 300,
+      "gltf_primitives": 1,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "ToolBucket",
+      "triangles": 1532,
+      "budget": 2000,
+      "gltf_primitives": 1,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "EquipmentTrailer",
+      "triangles": 4712,
+      "budget": 10000,
+      "gltf_primitives": 2,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "EquipmentYard",
+      "triangles": 4420,
+      "budget": 20000,
+      "gltf_primitives": 1,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "Workbench",
+      "triangles": 3896,
+      "budget": 4000,
+      "gltf_primitives": 6,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "StoragePegboard",
+      "triangles": 1088,
+      "budget": 1500,
+      "gltf_primitives": 1,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "StorageWallRack",
+      "triangles": 268,
+      "budget": 1500,
+      "gltf_primitives": 1,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "StorageWallHooks",
+      "triangles": 164,
+      "budget": 1000,
+      "gltf_primitives": 1,
+      "buffers_and_textures_resolve": true
+    }
+  ],
+  "studio_import_tested": false
+}
