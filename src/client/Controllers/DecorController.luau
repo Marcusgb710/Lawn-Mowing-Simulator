@@ -3,8 +3,9 @@
 --
 -- While you're placing one (the server sets your PlacingDecor attribute, see DecorService), a
 -- see-through copy stands where you look, green if it can go there and red if not (the same
--- rules the server checks, from the plot's DecorArea attribute). R turns it, E puts it down,
--- Q puts it back; on a phone there are buttons. Fence sections, edging, paths and beds snap to
+-- rules the server checks, from the plot's DecorArea attribute and the decorations already there).
+-- R turns it, E puts it down, Q puts it back, and the business's owner can send one back with F
+-- for part of its price; on a phone there are buttons. Fence sections, edging, paths and beds snap to
 -- a piece like them when their ends come close (SnapL on one meets SnapR on the other).
 --
 -- Windmill sails (`<Id>__Spinner`) turn about their own Z axis on every screen.
@@ -50,8 +51,10 @@ local ghost: Model? = nil
 local highlight: Highlight
 local hint: TextLabel
 local buttons: Frame
+local returnButton: TextButton? = nil
 local spot: { x: number, z: number, turn: number, fits: boolean, reason: string? }? = nil
 local busy = false
+local excludeAt = 0
 local rayParams = RaycastParams.new()
 rayParams.FilterType = Enum.RaycastFilterType.Exclude
 -- [business Model] = { raw = attribute JSON, area = decoded }
@@ -203,13 +206,17 @@ local function update()
 		spot = nil
 		return
 	end
-	local exclude: { Instance } = { workspace.CurrentCamera }
-	for _, other in Players:GetPlayers() do
-		if other.Character then
-			table.insert(exclude, other.Character)
+	-- Everyone's characters, looked up again now and then rather than every frame.
+	if os.clock() - excludeAt > 0.5 then
+		excludeAt = os.clock()
+		local exclude: { Instance } = { workspace.CurrentCamera }
+		for _, other in Players:GetPlayers() do
+			if other.Character then
+				table.insert(exclude, other.Character)
+			end
 		end
+		rayParams.FilterDescendantsInstances = exclude
 	end
-	rayParams.FilterDescendantsInstances = exclude
 	local result = workspace:Raycast(camera.CFrame.Position, camera.CFrame.LookVector * REACH, rayParams)
 	if not result then
 		if ghost then
@@ -235,9 +242,37 @@ local function update()
 		end
 	end
 
+	-- The other decorations in the yard (the one being moved is gone from it while it's moved).
+	local others = {}
+	local yard = workspace:FindFirstChild("Decorations")
+	local mine = yard and yard:FindFirstChild("Decor_" .. crewLeaderId())
+	for _, model in if mine then mine:GetChildren() else {} do
+		local otherId, ox, oz, oturn =
+			model:GetAttribute("DecorId"),
+			model:GetAttribute("DecorX"),
+			model:GetAttribute("DecorZ"),
+			model:GetAttribute("DecorTurn")
+		local other = Decorations.get(otherId)
+		if other and typeof(ox) == "number" and typeof(oz) == "number" and typeof(oturn) == "number" then
+			local ax, az, aw, ad = Assets.decorFootprint(other.id)
+			table.insert(
+				others,
+				{ rect = DecorPlacement.footprint(ox, oz, oturn, ax, az, aw, ad), holds = other.holds }
+			)
+		end
+	end
 	local offsetX, offsetZ, width, depth = Assets.decorFootprint(id)
 	local rect = DecorPlacement.footprint(x, z, spin, offsetX, offsetZ, width, depth)
-	local fits, reason = DecorPlacement.check(rect, area.width, area.depth, area.blocked, area.lawn, decoration.onLawn)
+	local fits, reason = DecorPlacement.check(
+		rect,
+		area.width,
+		area.depth,
+		area.blocked,
+		area.lawn,
+		decoration.onLawn,
+		others,
+		decoration.holds
+	)
 	spot = { x = x, z = z, turn = spin, fits = fits, reason = reason }
 
 	if not ghost then
@@ -248,7 +283,11 @@ local function update()
 	model.Parent = workspace.CurrentCamera
 	highlight.FillColor = if fits then GHOST_FITS else GHOST_BLOCKED
 	highlight.OutlineColor = highlight.FillColor
-	local keys = if UserInputService.KeyboardEnabled then "[E] Put it here   [R] Turn   [Q] Put it back" else ""
+	local own = player:GetAttribute("PlacingOwn") == true
+	local keys = if UserInputService.KeyboardEnabled
+		then "[E] Put it here   [R] Turn   [Q] Put it back" .. (if own then "   [F] Send it back" else "")
+		elseif UserInputService.GamepadEnabled then "[X] Put it here   [Y] Turn   [B] Put it back"
+		else ""
 	hint.Text = if fits then `{decoration.name}\n{keys}` else `{decoration.name}: {reason}\n{keys}`
 	hint.TextColor3 = if fits then UI.Colors.Text else UI.Colors.Danger
 end
@@ -276,12 +315,28 @@ local function putBack()
 	task.spawn(invoke, "CancelDecor")
 end
 
+-- Sends it back for part of its price (the business's owner only).
+local function sendBack()
+	if busy then
+		return
+	end
+	busy = true
+	task.spawn(function()
+		local _, message = invoke("ReturnDecor")
+		if typeof(message) == "string" then
+			UI.notify(message)
+		end
+		busy = false
+	end)
+end
+
 local function turnBy(step: number)
 	turn = DecorPlacement.wrap(turn + step)
 end
 
 local function onAction(name: string, state: Enum.UserInputState, input: InputObject)
-	if state ~= Enum.UserInputState.Begin or not placingId then
+	-- Not while a menu, the computer or the trip cutscene has the screen.
+	if state ~= Enum.UserInputState.Begin or not placingId or UI.needsCursor() or not UI.getScreen().Enabled then
 		return Enum.ContextActionResult.Pass
 	end
 	if name == "DecorPlace" then
@@ -289,6 +344,11 @@ local function onAction(name: string, state: Enum.UserInputState, input: InputOb
 	elseif name == "DecorTurn" then
 		local back = input.KeyCode == Enum.KeyCode.R and UserInputService:IsKeyDown(Enum.KeyCode.LeftShift)
 		turnBy(if back then -TURN_STEP else TURN_STEP)
+	elseif name == "DecorReturn" then
+		if player:GetAttribute("PlacingOwn") ~= true then
+			return Enum.ContextActionResult.Pass
+		end
+		sendBack()
 	else
 		putBack()
 	end
@@ -303,8 +363,13 @@ local function setPlacing(id: string?)
 	placingId = id
 	hint.Visible = id ~= nil
 	buttons.Visible = id ~= nil and UserInputService.TouchEnabled
+	if returnButton then
+		returnButton.Visible = player:GetAttribute("PlacingOwn") == true
+	end
 	if id then
-		turn = 0
+		-- Turned the way it stood, when it's being moved.
+		local startTurn = player:GetAttribute("PlacingTurn")
+		turn = if typeof(startTurn) == "number" then startTurn else 0
 		-- Above the look-at keys (see InteractController), so E puts it down.
 		local priority = Enum.ContextActionPriority.High.Value + 1
 		ContextActionService:BindActionAtPriority(
@@ -331,8 +396,9 @@ local function setPlacing(id: string?)
 			Enum.KeyCode.Q,
 			Enum.KeyCode.ButtonB
 		)
+		ContextActionService:BindActionAtPriority("DecorReturn", onAction, false, priority, Enum.KeyCode.F)
 	else
-		for _, name in { "DecorPlace", "DecorTurn", "DecorBack" } do
+		for _, name in { "DecorPlace", "DecorTurn", "DecorBack", "DecorReturn" } do
 			ContextActionService:UnbindAction(name)
 		end
 	end
@@ -363,30 +429,38 @@ function DecorController:Start()
 		Visible = false,
 		Parent = screen,
 	})
-	-- Phone buttons, on the right where the look-at button usually is.
+	-- Phone buttons, on the right where the look-at button usually is, clear of the jump button.
 	buttons = UI.new("Frame", {
 		AnchorPoint = Vector2.new(1, 0.5),
-		Position = UDim2.new(1, -24, 0.55, 0),
-		Size = UDim2.fromOffset(110, 190),
+		Position = UDim2.new(1, -24, 0.4, 0),
+		Size = UDim2.fromOffset(110, 240),
 		BackgroundTransparency = 1,
 		Visible = false,
 		Parent = screen,
 	}, { UI.list(8) })
 	for index, entry in
-		{ { "Place", place }, {
-			"Turn",
-			function()
-				turnBy(TURN_STEP)
-			end,
-		}, { "Put back", putBack } }
+		{
+			{ "Place", place },
+			{
+				"Turn",
+				function()
+					turnBy(TURN_STEP)
+				end,
+			},
+			{ "Put back", putBack },
+			{ "Send back", sendBack },
+		}
 	do
-		UI.button(entry[1], entry[2], {
+		local made = UI.button(entry[1], entry[2], {
 			LayoutOrder = index,
 			Size = UDim2.fromOffset(110, if index == 1 then 80 else 44),
 			TextSize = if index == 1 then 22 else 16,
 			BackgroundColor3 = if index == 1 then UI.Colors.Accent else UI.Colors.Card,
 			Parent = buttons,
 		})
+		if index == 4 then
+			returnButton = made
+		end
 	end
 
 	highlight = Instance.new("Highlight")
@@ -399,6 +473,11 @@ function DecorController:Start()
 		setPlacing(if typeof(id) == "string" and Decorations.get(id) then id else nil)
 	end
 	player:GetAttributeChangedSignal("PlacingDecor"):Connect(onPlacingChanged)
+	player:GetAttributeChangedSignal("PlacingOwn"):Connect(function()
+		if returnButton then
+			returnButton.Visible = player:GetAttribute("PlacingOwn") == true
+		end
+	end)
 	onPlacingChanged()
 
 	task.spawn(function()
@@ -421,7 +500,10 @@ function DecorController:Start()
 		for part, rest in spinners do
 			if not part.Parent then
 				spinners[part] = nil
-			elseif (rest.Position - camera.CFrame.Position).Magnitude < SPIN_DISTANCE then
+			elseif
+				part:IsDescendantOf(workspace)
+				and (rest.Position - camera.CFrame.Position).Magnitude < SPIN_DISTANCE
+			then
 				part:PivotTo(rest * CFrame.Angles(0, 0, angle))
 			end
 		end

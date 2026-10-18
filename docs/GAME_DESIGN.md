@@ -717,24 +717,30 @@ which earns your business curb appeal and a bonus on every job.
   tab of the Orders app.
   - **They're for your crew's yard** (the leader's): whoever orders one pays, and it's the
     leader's business that gets it. It comes in a box at the delivery spot like a tool, and
-    anyone in the crew can open it.
+    anyone in the crew can open it. A crewmate can have at most 4 unopened boxes waiting at
+    someone else's shop, and can't order for a leader whose progress isn't being saved. At most
+    2 decoration boxes stand at the shop at once; the rest wait their turn.
   - **Placing** is in first person. A see-through copy stands where you look: green if it can go
     there, red (with why) if not. R turns it 15° (Shift+R back), E puts it down, Q puts it back;
-    phones get Place, Turn and Put back buttons. It can't go on the driveway, in or right next to
-    the building, desk, workbench, sign, outdoor storage or delivery spot, or off the plot. Only
+    phones get Place, Turn and Put back buttons. The business's owner can also send it back for
+    half its price (F, or Send back). It can't go on the driveway, in or right next to the
+    building, desk, workbench, sign, outdoor storage or delivery spot, or off the plot. It can't
+    overlap another decoration either, except in or on ground cover (`holds`: a mulch bed's
+    shrubs, a bench on pavers). Only
     small things on a stake or post (`onLawn`: mailbox, lamp post, path light, bird feeder,
     birdhouse, flamingo, gnome) can stand on the grass. The server checks the same rules.
   - **Joining:** fence sections, stone edging, paver paths and mulch beds snap end to end when
     one's `SnapL` comes near another's free `SnapR` (or the other way round).
-  - **Moving:** look at a placed decoration and press E to pick it up and place it again. Where
-    everything stands is saved (`decor`). If a bigger building needs the room, what's in the way
-    goes back in its box.
+  - **Moving:** look at a placed decoration and press E to pick it up and place it again (it
+    keeps its turn). Where everything stands is saved (`decor`). If a bigger building needs the
+    room, what's in the way goes back in its box, shrubs keeping their trim. A truck or trailer
+    swap doesn't disturb the yard.
   - **What the markers do:**
     - `Light`: a lamp.
     - `Fire`: flames and a glow.
     - `Spout`: water running.
     - `Seat`, `Seat1`-`Seat4`: seats you can sit on.
-    - `Mailbox__Door` and `Mailbox__Flag`: R opens and closes them, about each part's pivot X axis
+    - `Mailbox__Door` and `Mailbox__Flag`: R opens and closes them (for the crew), about each part's pivot X axis
       (door −95°, flag +90°; an `OpenAngle` attribute in degrees changes it).
     - `GardenWindmill__Spinner`: turns about its own Z axis on every screen.
   - **Shrubs** (`BoxwoodShrub`, `HydrangeaBush`) start shaggy, showing `<Id>__Overgrowth`, until

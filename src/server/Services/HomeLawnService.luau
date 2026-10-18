@@ -266,14 +266,14 @@ end
 
 -- Public API ---------------------------------------------------------------------------------
 
--- True if the player's tool has work here: they're on their crew's home lawn, or by one of its
--- overgrown shrubs.
-function HomeLawnService:CanWork(player: Player): boolean
+-- True if the player's tool has work here: they're on their crew's home lawn, or it's a hedge
+-- tool by one of the yard's overgrown shrubs.
+function HomeLawnService:CanWork(player: Player, toolId: string): boolean
 	if lawnUnder(player) then
 		return true
 	end
 	local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-	return root ~= nil and root:IsA("BasePart") and DecorService:HasWorkNear(leaderOf(player), root.Position)
+	return root ~= nil and root:IsA("BasePart") and DecorService:HasWorkNear(leaderOf(player), root.Position, toolId)
 end
 
 -- The curb appeal (0-100) of this owner's business.

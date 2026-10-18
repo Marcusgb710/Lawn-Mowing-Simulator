@@ -442,6 +442,13 @@ function DataService:Get(player: Player)
 	return profile and profile.data
 end
 
+-- Whether this player's progress will be saved: false when their save couldn't be loaded, or is
+-- from a newer version of the game.
+function DataService:CanSave(player: Player): boolean
+	local profile = profiles[player]
+	return profile ~= nil and profile.canSave == true
+end
+
 function DataService:WaitForData(player: Player)
 	while not profiles[player] and player.Parent == Players do
 		task.wait(0.1)

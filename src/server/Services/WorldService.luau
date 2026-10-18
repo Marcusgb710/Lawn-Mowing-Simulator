@@ -608,6 +608,13 @@ function WorldService:GetDecorArea(player: Player): (CFrame?, any)
 	return plot.cframe, plot.decor
 end
 
+-- The plot's DecorArea as saved on its model (JSON), to tell when it changed.
+function WorldService:GetDecorAreaRaw(player: Player): string?
+	local plot = playerPlots[player]
+	local raw = plot and plot.model and plot.model:GetAttribute("DecorArea")
+	return if typeof(raw) == "string" then raw else nil
+end
+
 -- True while this player's truck is out on a trip.
 function WorldService:IsTruckAway(player: Player): boolean
 	local plot = playerPlots[player]

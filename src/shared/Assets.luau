@@ -243,8 +243,33 @@ function Assets.decorFootprint(id: string): (number, number, number, number)
 	if not known then
 		local model = Assets.decoration(id)
 		Assets.placeDecoration(model, CFrame.identity)
-		local box, size = model:GetBoundingBox()
-		known = { box.Position.X, box.Position.Z, size.X, size.Z }
+		-- Every part's corners but the invisible Root's.
+		local low, high = Vector3.one * math.huge, -Vector3.one * math.huge
+		for _, part in model:GetDescendants() do
+			if part:IsA("BasePart") and part.Name ~= "Root" then
+				local half = part.Size / 2
+				for _, sign in
+					{
+						Vector3.new(-1, -1, -1),
+						Vector3.new(1, 1, 1),
+						Vector3.new(-1, 1, 1),
+						Vector3.new(1, -1, -1),
+						Vector3.new(1, -1, 1),
+						Vector3.new(-1, 1, -1),
+						Vector3.new(1, 1, -1),
+						Vector3.new(-1, -1, 1),
+					}
+				do
+					local corner = part.CFrame:PointToWorldSpace(half * sign)
+					low, high = low:Min(corner), high:Max(corner)
+				end
+			end
+		end
+		if low.X > high.X then
+			low, high = Vector3.new(-0.5, 0, -0.5), Vector3.new(0.5, 1, 0.5)
+		end
+		local center, size = (low + high) / 2, high - low
+		known = { center.X, center.Z, size.X, size.Z }
 		footprints[id] = known
 		model:Destroy()
 	end

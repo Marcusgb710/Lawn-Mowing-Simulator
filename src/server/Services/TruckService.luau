@@ -492,7 +492,7 @@ end
 function TruckService:Hand(player: Player, toolId: string): boolean
 	local data = DataService:Get(player)
 	local item = data and ownedTool(data, toolId)
-	if not item or carried[player] or Maintenance.isStationary(item.id) then
+	if not item or handsFull(player) or Maintenance.isStationary(item.id) then
 		return false
 	end
 	return startCarrying(player, item)

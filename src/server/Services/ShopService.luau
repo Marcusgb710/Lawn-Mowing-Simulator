@@ -63,7 +63,7 @@ local function shopState(data)
 end
 
 function ShopService:Buy(player: Player, category: string, itemId: string): (boolean, string)
-	-- Decorations are for the crew's yard, and you can have as many as you like.
+	-- Decorations are for the crew's yard, and you can have several of each (see DecorService).
 	if category == "Decorations" then
 		return DecorService:Buy(player, itemId)
 	end

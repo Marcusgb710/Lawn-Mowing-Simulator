@@ -40,6 +40,7 @@ local FUNCTIONS = {
 	"PlaceDecor",
 	"MoveDecor",
 	"CancelDecor",
+	"ReturnDecor",
 	"UseMailbox",
 	"GetWorkbench",
 	"Maintain",

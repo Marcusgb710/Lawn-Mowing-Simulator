@@ -80,10 +80,16 @@ function DecorPlacement.inside(rect: Rect, plotWidth: number, plotDepth: number)
 	return true
 end
 
+-- Another decoration already in the yard: where it stands, and whether it's ground cover that
+-- things stand in or on (a mulch bed, a paver path).
+export type Placed = { rect: Rect, holds: boolean? }
+
 -- Whether a decoration with this footprint can go there:
 --   plotWidth, plotDepth  the plot
 --   blocked               the driveway, the building and what stands around it
 --   lawn                  the front lawn's grass, which only `onLawn` decorations may stand on
+--   others                the yard's other decorations: it can't overlap one, unless one of the
+--                         two is ground cover (`holds`) and the other isn't
 -- Returns false and why if it can't.
 function DecorPlacement.check(
 	rect: Rect,
@@ -91,7 +97,9 @@ function DecorPlacement.check(
 	plotDepth: number,
 	blocked: { Rect },
 	lawn: Rect?,
-	onLawn: boolean?
+	onLawn: boolean?,
+	others: { Placed }?,
+	holds: boolean?
 ): (boolean, string?)
 	if not DecorPlacement.inside(rect, plotWidth, plotDepth) then
 		return false, "Keep it on your plot."
@@ -103,6 +111,13 @@ function DecorPlacement.check(
 	end
 	if lawn and not onLawn and DecorPlacement.overlaps(rect, lawn) then
 		return false, "That's too big for the lawn. Put it beside the grass."
+	end
+	if others then
+		for _, other in others do
+			if (holds == true) == (other.holds == true) and DecorPlacement.overlaps(rect, other.rect) then
+				return false, "Something's already there."
+			end
+		end
 	end
 	return true, nil
 end

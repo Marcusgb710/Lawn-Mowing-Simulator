@@ -9,6 +9,7 @@
 --   onLawn   small enough to stand on the grass (a stake or a post); everything else stays off it
 --   snaps    joins end to end with others like it (SnapL / SnapR markers)
 --   shrub    shows its `<Id>__Overgrowth` until it's trimmed with a hedge tool, then grows back
+--   holds    ground cover other decorations stand in or on (a bed's shrubs, a bench on pavers)
 --
 -- Model swap: put a model named after the id in ReplicatedStorage.Assets.Decorations.
 
@@ -46,6 +47,7 @@ Decorations.List = {
 		size = Vector3.new(4.3, 0.2, 4.3),
 		box = "DeliveryBoxLarge",
 		snaps = true,
+		holds = true,
 		color = Color3.fromRGB(175, 160, 145),
 		description = "A square of herringbone pavers. Lay a few in a row for a path to the door.",
 	},
@@ -57,6 +59,7 @@ Decorations.List = {
 		size = Vector3.new(8.6, 0.4, 4.3),
 		box = "DeliveryBoxLarge",
 		snaps = true,
+		holds = true,
 		color = Color3.fromRGB(110, 75, 50),
 		description = "Steel-edged bed of shredded bark, ready for shrubs and planters.",
 	},
