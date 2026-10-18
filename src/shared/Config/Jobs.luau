@@ -7,7 +7,8 @@
 --   lawn      the yard: columns and rows (tiles of GameConfig.TileSize studs) and how many
 --             flower patches / gnomes the crew must not hit
 --   tasks     { type = a TaskTypes id, amount = how many } in the order the customer lists them.
---             A job without a mowing task gets an already-mown lawn.
+--             A job without a mowing task gets an already-mown lawn. `rocky` (0-1) is the share of
+--             a task's targets in rocky ground, for tasks with TaskTypes `rocky`.
 --   notes     extra things this customer might say (one is picked at random)
 --   parTime   seconds a solo player should take; beating it pays more on Speed jobs
 --   basePay, xp, minLevel
@@ -267,6 +268,140 @@ Jobs.Templates = {
 		basePay = 140,
 		xp = 35,
 	},
+	-- Serious gardening (design phase D): digging, hauling, feeding and spraying.
+	{
+		id = "NewShrubBorder",
+		name = "New Shrub Border",
+		tier = "Serious",
+		minLevel = 3,
+		lawn = { columns = 8, rows = 6, flowerPatches = 1 },
+		tasks = {
+			{ type = "CutBedEdgeOrSod", amount = 4 },
+			{ type = "DigPlantingHole", amount = 3, rocky = 0.3 },
+			{ type = "LevelSoilSpreadMulch", amount = 2 },
+		},
+		notes = { "The back corner of this yard is full of old rubble." },
+		parTime = 200,
+		basePay = 230,
+		xp = 55,
+	},
+	{
+		id = "TreePlanting",
+		name = "Tree Planting",
+		tier = "Serious",
+		minLevel = 4,
+		lawn = { columns = 8, rows = 6, flowerPatches = 1 },
+		tasks = {
+			{ type = "DigPlantingHole", amount = 4, rocky = 0.6 },
+			{ type = "HaulHeavyMaterial", amount = 3 },
+		},
+		notes = { "The builders buried half their rubble here. Expect to hit rock, and bring in fresh topsoil." },
+		parTime = 240,
+		basePay = 300,
+		xp = 70,
+	},
+	{
+		id = "VegetableBeds",
+		name = "Vegetable Beds",
+		tier = "Serious",
+		minLevel = 3,
+		lawn = { columns = 8, rows = 6, flowerPatches = 0 },
+		tasks = {
+			{ type = "DeepLoosenBed", amount = 2 },
+			{ type = "HoeRowWeeds", amount = 4 },
+			{ type = "HaulBulkyLight", amount = 3 },
+		},
+		notes = { "Loosen the beds deep down, but don't flip the soil over. The leaf mulch pile is on the driveway." },
+		parTime = 220,
+		basePay = 240,
+		xp = 55,
+	},
+	{
+		id = "ClayGarden",
+		name = "Clay Garden",
+		tier = "Serious",
+		minLevel = 4,
+		lawn = { columns = 8, rows = 6, flowerPatches = 1 },
+		tasks = {
+			{ type = "TurnHeavySoilOrLiftRoots", amount = 3 },
+			{ type = "BreakHardGround", amount = 2 },
+		},
+		notes = { "Heavy clay, old roots everywhere, and one patch that's practically concrete." },
+		parTime = 220,
+		basePay = 260,
+		xp = 60,
+	},
+	{
+		id = "TreeTrimming",
+		name = "Tree Trimming",
+		tier = "Serious",
+		minLevel = 3,
+		lawn = { columns = 8, rows = 6, flowerPatches = 1 },
+		tasks = {
+			{ type = "CutBranchesMedium", amount = 4 },
+			{ type = "CutBranchesThick", amount = 2 },
+			{ type = "HaulBulkyLight", amount = 2 },
+		},
+		notes = { "Most of the branches are thumb-thick, but a couple are as thick as my wrist." },
+		parTime = 210,
+		basePay = 250,
+		xp = 58,
+	},
+	{
+		id = "LawnFeed",
+		name = "Lawn Feed",
+		tier = "Serious",
+		minLevel = 3,
+		lawn = { columns = 9, rows = 7, flowerPatches = 2 },
+		tasks = { { type = "MowMediumLawn" }, { type = "FertilizeLawn" } },
+		notes = { "The lawn looks hungry. Feed it evenly: no stripes, no bald patches." },
+		parTime = 200,
+		basePay = 220,
+		xp = 50,
+	},
+	{
+		id = "WeedControl",
+		name = "Weed Control",
+		tier = "Serious",
+		minLevel = 4,
+		lawn = { columns = 9, rows = 7, flowerPatches = 2 },
+		tasks = { { type = "SpotSprayWeeds", amount = 6 }, { type = "FertilizeLawn" } },
+		notes = { "Kill the thistles, not my lawn. And be careful handling that weed killer." },
+		parTime = 220,
+		basePay = 260,
+		xp = 60,
+	},
+	{
+		id = "GravelPath",
+		name = "Gravel Path",
+		tier = "Serious",
+		minLevel = 5,
+		lawn = { columns = 8, rows = 6, flowerPatches = 1 },
+		tasks = {
+			{ type = "HaulHeavyMaterial", amount = 5 },
+			{ type = "LevelSoilSpreadMulch", amount = 3 },
+		},
+		notes = { "The gravel for the new path got dumped on the driveway. It's heavy, so don't spill it." },
+		parTime = 260,
+		basePay = 340,
+		xp = 80,
+	},
+	{
+		id = "FallCleanup",
+		name = "Fall Cleanup",
+		tier = "Serious",
+		minLevel = 4,
+		lawn = { columns = 9, rows = 7, flowerPatches = 1 },
+		tasks = {
+			{ type = "RakeLeaves", amount = 6 },
+			{ type = "HaulBulkyLight", amount = 4 },
+			{ type = "CutBranchesMedium", amount = 2 },
+		},
+		notes = { "Clear up every leaf, and take the big pile on the driveway out back to the compost." },
+		parTime = 240,
+		basePay = 280,
+		xp = 65,
+	},
 	{
 		id = "HedgeShaping",
 		name = "Hedge Shaping",
@@ -380,8 +515,8 @@ local STREETS = {
 	"Clover Ln",
 }
 
--- Targets that come from the lawn itself; every other kind is placed a set number of times.
-local LAWN_TARGETS = { Grass = true, Edge = true }
+-- Targets that cover the lawn itself; every other kind is placed a set number of times.
+local LAWN_TARGETS = { Grass = true, Edge = true, Fertilize = true }
 
 -- Catch templates that would make a job that can't be finished.
 local byId = {}

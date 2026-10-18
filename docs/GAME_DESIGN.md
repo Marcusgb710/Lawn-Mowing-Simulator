@@ -232,6 +232,29 @@ them with the old mowing jobs.
   marks the free-gear job as a good first job.
 - New shop tabs: Planting & Weeding, Pruning, Watering and Gloves.
 
+### Serious gardening (phase D)
+
+Nine serious-tier jobs (`NewShrubBorder` to `FallCleanup`, level 3-5) use the tier-2 tools.
+
+- **Rocky ground:** a job can put some planting holes in rocky ground (`rocky` on the task). The
+  task type's `rocky` table changes each tool's speed there: a mattock tears through (x2.4), a
+  shovel barely bites (x0.45). Rocky spots show stones around the marker, and the job's note
+  warns about rubble.
+- **Hauling:** a delivered pile sits on the driveway and an empty bed waits in the side garden.
+  Fill your barrow at the pile, push it to the bed and dump it; each player carries one load at a
+  time. Barrows, carts and the broadcast spreader are pushed (they work while held, like
+  mowers); the spreader only spreads while you walk. Soil and stone (`heavy`) can tip a
+  one-wheeled barrow (`tips`) while you walk it: about a 5% chance per second, and the load goes
+  back on the pile. The fit tables pick the right barrow for the load: carts for light, bulky
+  loads; two wheels for heavy ones.
+- **Fertilizing** covers every lawn tile (like mowing); a pale dusting shows where it landed.
+- **Spot-spraying** kills weeds in the lawn and the driveway cracks (they wilt). It needs
+  chemical-proof gloves; work gloves aren't enough.
+- **Branches:** loppers for 1-2 inch branches, a pruning saw for thicker; pruners can't cut either.
+- Leaf rakes only level mulch poorly (and leave it lumpy); a bow rake still tears turf when raking
+  leaves.
+- New shop tabs: Digging, Barrows & Carts and Lawn Care.
+
 ### Task types
 
 | Phase | Task type | Verb | Ideal / Good / Poor |
@@ -395,8 +418,8 @@ Simple but real, for mowers and equipment (not the truck):
 | --- | --- | --- |
 | A | This doc; `Tools.luau`, `TaskTypes.luau` and the new `Jobs.luau` format; tool fit, quality and customer preference in pay; no tool names on the board or HUD; save versioning | done |
 | B | Storage per building, size-based truck and trailer space, shop gating by tier and storage, selling tools, EquipmentYard, EquipmentTrailer, ToolBucket | done |
-| C | Tier-1 jobs and yard targets: pots, planting spots with depths, bulbs, beds, lawn dandelions, rose bushes, dead stems, flowers, watering zones; gloves; tool guide and first-job coach | **this PR** |
-| D | Tier-2: holes, trenches and sod, deep beds, hauling from a pile to a bed, spreader and sprayer, branch thickness | |
+| C | Tier-1 jobs and yard targets: pots, planting spots with depths, bulbs, beds, lawn dandelions, rose bushes, dead stems, flowers, watering zones; gloves; tool guide and first-job coach | done |
+| D | Tier-2: holes, trenches and sod, deep beds, hauling from a pile to a bed, spreader and sprayer, branch thickness | **this PR** |
 | E | Maintenance systems and supplies | |
 | F | Tier-3 pro equipment and the turf renovation sequence | |
 

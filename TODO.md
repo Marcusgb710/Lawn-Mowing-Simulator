@@ -123,6 +123,9 @@ One PR per phase, each stacked on the one before. Every phase still needs a Stud
 - [x] **C: homeowner garden jobs, gloves, the Guide and the first-job coach.** To check: the side
       garden plots (`GARDEN` in `LawnService.luau`), dandelions in the lawn, the coach banner on a
       phone.
+- [x] **D: serious gardening (digging, hauling, feeding, spraying).** To check: hauling from the
+      driveway pile to the bed, how often one-wheeled barrows tip (`TIP_CHANCE` in
+      `LawnService.luau`), the fertilizer dusting on big lawns.
 
 ## Before release
 

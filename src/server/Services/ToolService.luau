@@ -40,6 +40,8 @@ local FX_COLORS = {
 	Prune = Color3.fromRGB(60, 130, 50),
 	Weed = Color3.fromRGB(110, 150, 50),
 	Water = Color3.fromRGB(110, 170, 230),
+	Dig = Color3.fromRGB(110, 80, 50),
+	Cultivate = Color3.fromRGB(90, 65, 45),
 	Spread = Color3.fromRGB(235, 235, 220),
 	Spray = Color3.fromRGB(170, 210, 150),
 	Seed = Color3.fromRGB(200, 180, 120),
@@ -194,6 +196,9 @@ local function hookTool(player: Player, tool: Tool, item)
 	tool.Unequipped:Connect(function()
 		running[tool] = nil
 		setFx(tool, false)
+		if Tools.hasVerb(item, "Haul") then
+			JobService:PutAway(player)
+		end
 		local humanoid = getHumanoid(player)
 		if humanoid then
 			humanoid.WalkSpeed = GameConfig.DefaultWalkSpeed
@@ -304,16 +309,12 @@ local function workTick(elapsed: number)
 		end
 
 		local position = root.Position + root.CFrame.LookVector * REACH_OFFSET
-		local idling = item.use == "Passive" and not moving
-		JobService:ApplyWork(
-			player,
-			position,
-			item.radius,
-			itemId,
-			item.power * elapsed,
-			Tools.damagesHazards(item),
-			idling
-		)
+		JobService:ApplyWork(player, position, item.radius, itemId, item.power * elapsed, {
+			damagesHazards = Tools.damagesHazards(item),
+			quiet = item.use == "Passive" and not moving,
+			moving = moving,
+			seconds = elapsed,
+		})
 		setFx(tool, true)
 	end
 end
