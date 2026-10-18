@@ -1,0 +1,137 @@
+name: Work on Alpha instructions
+
+on:
+  push:
+    branches: [main]
+    paths: ['alphainstructions/**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Each push gets its own run and PR. Do not cancel earlier instruction tasks.
+jobs:
+  work:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    outputs:
+      has_changes: ${{ steps.changes.outputs.has_changes }}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Check API credential
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          if [ -z "$OPENAI_API_KEY" ]; then
+            echo '::error::Add OPENAI_API_KEY in repository Settings > Secrets and variables > Actions.'
+            exit 1
+          fi
+
+      - name: Select new or updated instructions
+        id: select
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          python3 .github/scripts/prepare-alpha-task.py \
+            --before "$BEFORE_SHA" --event "$EVENT_NAME" \
+            --output-dir "$RUNNER_TEMP/alpha-task"
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          selected = json.loads((Path(os.environ['RUNNER_TEMP']) / 'alpha-task/instructions.json').read_text())
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write(f'has_tasks={str(bool(selected)).lower()}\n')
+          PY
+
+      - name: Install pinned development tools
+        if: steps.select.outputs.has_tasks == 'true'
+        run: python3 .github/scripts/install-alpha-tools.py
+
+      - name: Run Codex
+        if: steps.select.outputs.has_tasks == 'true'
+        uses: openai/codex-action@1d82a3dba7c7988ec71ecae1ed5b8e8db96495c5 # v1
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          permission-profile: ':workspace'
+          safety-strategy: drop-sudo
+          prompt-file: ${{ runner.temp }}/alpha-task/prompt.md
+          output-file: ${{ runner.temp }}/alpha-task/report.md
+
+      - name: Capture repository changes
+        id: changes
+        if: steps.select.outputs.has_tasks == 'true'
+        run: |
+          # The agent has no write token. Only the separate publish job can push.
+          git add --intent-to-add --all
+          python3 - <<'PY'
+          import subprocess
+          paths = subprocess.check_output(['git', 'diff', '--name-only', '-z', 'HEAD']).decode().split('\0')
+          protected = [p for p in paths if p.startswith(('.github/', 'alphainstructions/'))]
+          if protected:
+              raise SystemExit('Refusing to publish changes to automation or instructions: ' + repr(protected))
+          PY
+          git diff --binary HEAD > "$RUNNER_TEMP/alpha-task/changes.patch"
+          if [ -s "$RUNNER_TEMP/alpha-task/changes.patch" ]; then
+            echo 'has_changes=true' >> "$GITHUB_OUTPUT"
+          fi
+          cat "$RUNNER_TEMP/alpha-task/report.md" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Retain task report and changes
+        if: always() && steps.select.outputs.has_tasks == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: alpha-task
+          path: |
+            ${{ runner.temp }}/alpha-task/report.md
+            ${{ runner.temp }}/alpha-task/instructions.json
+            ${{ runner.temp }}/alpha-task/changes.patch
+          if-no-files-found: warn
+
+  open-pr:
+    needs: work
+    if: needs.work.outputs.has_changes == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ github.sha }}
+
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: alpha-task
+          path: ${{ runner.temp }}/alpha-result
+
+      - name: Apply changes and prepare review description
+        run: |
+          git apply --binary "$RUNNER_TEMP/alpha-result/changes.patch"
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          result = Path(os.environ['RUNNER_TEMP']) / 'alpha-result'
+          report = (result / 'report.md').read_text()
+          run_url = f"{os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}"
+          (result / 'pr-body.md').write_text(
+              f'Automatic work on alphainstructions updates. Review before merging.\n\nRun: {run_url}\n\n' + report[:50000]
+          )
+          PY
+
+      - name: Open a pull request for review
+        uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7
+        with:
+          token: ${{ github.token }}
+          base: main
+          branch: codex/alpha-${{ github.run_id }}
+          title: 'Codex: work on Alpha instructions (${{ github.run_id }})'
+          body-path: ${{ runner.temp }}/alpha-result/pr-body.md
+          commit-message: 'Implement updated Alpha instructions'
