@@ -219,8 +219,12 @@ local function renderStorage()
 
 	for _, item in tools do
 		local spot: Attachment? = spotOf[item.id]
-		-- In the truck, in the bucket or still in its delivery box: not on the wall.
+		-- In the truck, in the bucket, still in its delivery box or set down at the workbench: not
+		-- on the wall (its spot stays its own).
 		if profile.loadout[item.id] or inBucket[item.id] or Deliveries.pending(profile.deliveries, item.id) then
+			continue
+		end
+		if player:GetAttribute("Servicing") == item.id then
 			continue
 		end
 		if held == item.id then
@@ -336,6 +340,7 @@ function CarryController:Start()
 		updateCarryLabel()
 		queueRender()
 	end)
+	player:GetAttributeChangedSignal("Servicing"):Connect(queueRender)
 	ClientState.Changed:Connect(function(key)
 		if key == "profile" or key == "party" then
 			queueRender()

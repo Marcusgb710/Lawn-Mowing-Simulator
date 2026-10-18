@@ -465,8 +465,8 @@ again.
   own, plus the building's machines: the Small Office has an air compressor, the Equipment Yard
   an air compressor and a bench grinder), or at the **tailgate** of the truck on a job (only what
   you loaded). Supplies take truck space like any tool.
-- **How:** the Workbench menu: pick a tool, then a supply. Each job takes a few seconds and you
-  have to stay put. Parts for a repair are paid when it's done. Tools and supplies can't be bought
+- **How:** by hand (see "Hands-on maintenance" in section 8). The Workbench menu is gone. Each
+  job takes a few seconds and you have to stay put. Parts for a repair are paid when it's done. Tools and supplies can't be bought
   mid-job (what you brought is what you've got), and a half-used consumable sells for what's
   left in it. Nothing says which supply fits which tool, and using the wrong one does what
   it really would.
@@ -503,7 +503,7 @@ The game is played in first person (`StarterPlayer.CameraMode = LockFirstPerson`
   keep their normal hold, since they're modelled as worn. Where the work happens doesn't change:
   just in front of you, whichever way you face.
 - **Menus and the mouse.** In first person the mouse is locked to the middle of the screen. While
-  any menu is open (jobs, shop, truck, crew, workbench, guide) it's freed, and locked again when
+  any menu is open (the shop computer, truck, crew, guide) it's freed, and locked again when
   you close it. Hold **Left Alt** to free it any time, to click the HUD or answer a crew invite
   (an invite doesn't free it by itself: you might be mowing). Each player can only have one
   invite out to the same person at a time.
@@ -600,6 +600,43 @@ it fits.
   ProximityPrompts with `OpensPanel` still work.
 - **Feedback.** Things set down in the bed drop the last stud into place. Sounds are named
   placeholders in `src/shared/Sounds.luau` (Thunk, Pickup, Hang, Bucket) until ids are filled in.
+
+### Hands-on maintenance
+
+Tools are worked on by hand instead of from a menu (`MaintenanceService`; the steps are in
+`src/shared/Service.luau`, what each supply does is in `Maintenance.luau`).
+
+- **Set it down.** Hold the machine and look at a service spot, then press E. Hand and long tools
+  (pruners, loppers, spades, half-moon edgers) go in the vise instead. Every workbench has both:
+  its `ServiceSpot` attachment (on the floor in front of the bench) and `VisePoint` (in the
+  vise). On a job, the truck has them too: on the ground beside its back end (the sidewalk side)
+  and on its side rail there. One tool per spot. Look at it with empty hands to pick it back up.
+  While it's set down it isn't in storage: it can't be grabbed, loaded or sold until it's picked
+  up again.
+- **Work on it.** Hold a supply and look at the tool. The hint says what it would do ("Pour in
+  the fuel", "Pump up the tire", "Plug the puncture", "Wind on new line", "Hone the edge"), or
+  what's in the way. **Hold E** (or the button on a phone) while it works: it takes the supply's
+  time, and letting go or walking off stops it. Supplies come off your storage at the business.
+  On a job, the ones you brought stand in a row by the truck, one row per crew member: take one
+  there, and look at the truck to put it back.
+- **Steps.**
+  - A mower's (or other floor machine's) heavy blade comes off first: the wrench on the machine
+    ("Take the blade off"), and it lies on its side.
+  - Then sharpen it with the file, or with the building's bench grinder (empty hands, hold R),
+    or fit a spare blade.
+  - Then the wrench again to bolt it back on. It can't be picked up with the blade off.
+  - For a new tire, the wrench on a wheel takes it off, then the spare goes on.
+  - A wrecked engine is fixed with the wrench first.
+  - The air compressor fills tires with empty hands (hold R), and the bench grinder sharpens a
+    loose blade the same way: the building's own, or ones you bought and keep in storage.
+- **Condition you can see.** The HUD hints stay, and never name the fix, but tools also show it
+  themselves (`ToolFxController`):
+  - an engine low on fuel sputters with puffs of smoke while it runs, and a wrecked one smokes;
+  - soft tires sag and flat ones squash (parts named `<Id>__Wheel...` or `<Id>__Tire...`, or a
+    placeholder's `Wheel`);
+  - a spool (`<Id>__Spool...`) shows bare as the line runs out;
+  - grass cut with a dull blade is left ragged, duller and with torn tufts sticking up
+    (`LawnGrid.RAGGED`; GrassController draws it).
 
 ## 9. The shop as the hub
 
@@ -765,7 +802,8 @@ which earns your business curb appeal and a bonus on every job.
 | Hub 1 | Job computer, Orders and Business apps, deliveries in boxes | done |
 | Hub 2 | Bigger plots with a driveway, leaving from the truck's driver door, pulling back in | done |
 | Hub 3 | Your own lawn (regrowing, saved, worked with your own tools) and curb appeal's pay bonus | done |
-| Hub 3b | Decorations: ordering, boxes, first-person placing with snapping, markers, shrubs to trim, curb appeal | **this PR** |
+| Hub 3b | Decorations: ordering, boxes, first-person placing with snapping, markers, shrubs to trim, curb appeal | done |
+| Immersion 3 | Hands-on maintenance at service spots and the vise, steps for blades and wheels, tailgate supplies on a job, visible wear and ragged grass | **this PR** |
 
 New tools are already in `Tools.luau` with `available = false`, so they aren't sold until the
 phase that gives them work.
@@ -876,7 +914,7 @@ by a part named `Handle` (see `assets/README.md`).
 | EquipmentTrailer | `Assets/Trailers` | Low tandem-axle flatbed with a fold-down rear ramp and a `BedArea` part |
 | StorageShelf | `Assets/Props` | Floor-standing gray metal shelf, about 4 wide x 5 tall x 1.4 deep, 3 boards; `Slot1`-`Slot6` attachments (2 per board) |
 | EquipmentYard | `Assets/Buildings` | Business tier 4: fenced yard with a big roll-up-door shop and covered equipment bays |
-| Workbench | `Assets/Props` | Sturdy wooden bench with a vise and a pegboard back |
+| Workbench | `Assets/Props` | Sturdy wooden bench with a vise and a pegboard back; a `ServiceSpot` attachment on the floor in front (where a machine is set down) and a `VisePoint` in the vise jaws |
 | StoragePegboard | `Assets/Props` | Wall pegboard panel with hooks for hand tools |
 | StorageWallRack | `Assets/Props` | Wall rack with slots for long-handled tools |
 | StorageWallHooks | `Assets/Props` | Row of heavy wall hooks for trimmers and blowers |

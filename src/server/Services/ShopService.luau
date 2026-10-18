@@ -126,6 +126,9 @@ function ShopService:Sell(player: Player, category: string, itemId: string): (bo
 	if not Shop.canSell(item) then
 		return false, "You can't sell your starter gear."
 	end
+	if player:GetAttribute("Servicing") == itemId then
+		return false, "Pick it up off the workbench first."
+	end
 	if data.loadout[itemId] then
 		return false, "Take it out of the truck first."
 	end

@@ -29,6 +29,7 @@ local Signal = require(Shared.Signal)
 local BusinessStorage = require(script.Parent.Parent.BusinessStorage)
 local DataService = require(script.Parent.DataService)
 local Openings = require(script.Parent.Parent.Openings)
+local ServiceSpots = require(script.Parent.Parent.ServiceSpots)
 
 -- Deep enough for the building at the back, a driveway that fits a truck and trailer, and the
 -- front lawn beside it.
@@ -438,7 +439,8 @@ local function buildPlot(plot)
 			machine.Parent = model
 		end
 	end
-	interactable(bench, "OpenPanel", "Work on Tools", "Workbench", { OpensPanel = "Workbench" })
+	-- Machines are set down in front of it to be worked on, and hand tools go in its vise.
+	ServiceSpots.add(bench, ServiceSpots.forBench(bench))
 
 	local truck = Assets.truck(data.equipped.Truck or Items.Catalog.Truck[1].id, data.equipped.Trailer)
 	Assets.anchor(truck)
@@ -714,6 +716,13 @@ end
 
 -- If the player is standing at their crew's workbench, the id of that business (its building
 -- decides which shop machines are there).
+-- The building (business item id) of the player's crew's business.
+function WorldService:GetCrewBusinessId(player: Player): string?
+	local plot = playerPlots[getLeader(player)] or playerPlots[player]
+	local ownerData = plot and plot.owner and DataService:Get(plot.owner)
+	return if ownerData then ownerData.equipped.Business or "Shed" else nil
+end
+
 function WorldService:GetWorkbenchBusiness(player: Player): string?
 	local leader = getLeader(player)
 	local plot = playerPlots[leader] or playerPlots[player]

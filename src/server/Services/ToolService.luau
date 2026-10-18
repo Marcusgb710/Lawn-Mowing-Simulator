@@ -63,6 +63,11 @@ local running = {}
 local rng = Random.new()
 -- [Tool] = its last list of warnings, so the player's profile is refreshed when one appears
 local lastWarnings = setmetatable({}, { __mode = "k" })
+-- [Player] = { [toolId] = true } for tools set down to be worked on (see MaintenanceService),
+-- which stay out of their hotbar on a job until they pick them back up
+local withheld = {}
+-- A blade cutting below this finish leaves the grass torn and ragged (see GrassController).
+local RAGGED_BELOW = 0.8
 
 -- Condition fields copied onto Tool attributes, and their attribute names.
 local CONDITION_ATTRIBUTES =
@@ -70,7 +75,7 @@ local CONDITION_ATTRIBUTES =
 
 -- Copies a tool's condition onto it for the HUD. Numbers only update once they've moved a bit,
 -- so a running mower doesn't send an update every tick.
-local function syncCondition(tool: Tool, condition)
+local function syncCondition(tool: Instance, condition)
 	for key, attribute in CONDITION_ATTRIBUTES do
 		local value = condition[key]
 		local current = tool:GetAttribute(attribute)
@@ -411,7 +416,7 @@ function ToolService:GiveTools(player: Player)
 	end
 	for _, itemId in Storage.loadedIds(data.loadout) do
 		local item = Tools.get(itemId)
-		if not Tools.isHeld(item) then
+		if not Tools.isHeld(item) or (withheld[player] and withheld[player][itemId]) then
 			continue
 		end
 		local tool = makeTool(player, data, item, height, true)
@@ -420,6 +425,35 @@ function ToolService:GiveTools(player: Player)
 		-- Swapping gear shouldn't make you put your tool away.
 		if itemId == wasHolding and humanoid then
 			humanoid:EquipTool(tool)
+		end
+	end
+end
+
+-- Copies a tool's condition onto any Instance as attributes (Fuel, Pressure, Flat, Sharpness,
+-- Line, Broken), for the HUD and for how it looks (see ToolFxController).
+ToolService.showCondition = syncCondition
+
+-- Keeps a loaded tool out of the player's hotbar while it's set down to be worked on, or gives
+-- it back (in their hands) once they pick it up.
+function ToolService:Withhold(player: Player, toolId: string, keep: boolean)
+	withheld[player] = withheld[player] or {}
+	withheld[player][toolId] = if keep then true else nil
+	if keep then
+		for _, container in { player:FindFirstChildOfClass("Backpack"), player.Character } do
+			for _, child in container and container:GetChildren() or {} do
+				if child:IsA("Tool") and child:GetAttribute("ItemId") == toolId then
+					child:Destroy()
+				end
+			end
+		end
+		return
+	end
+	self:GiveTools(player)
+	local backpack = player:FindFirstChildOfClass("Backpack")
+	local humanoid = getHumanoid(player)
+	for _, child in backpack and backpack:GetChildren() or {} do
+		if child:IsA("Tool") and child:GetAttribute("ItemId") == toolId and humanoid then
+			humanoid:EquipTool(child)
 		end
 	end
 end
@@ -523,6 +557,7 @@ local function workTick(elapsed: number)
 				moving = moving,
 				seconds = elapsed,
 				qualityScale = quality,
+				ragged = quality < RAGGED_BELOW,
 			})
 		end
 		Maintenance.wear(item, condition, elapsed, true, moving, cut == true, rng:NextNumber())
@@ -556,6 +591,7 @@ local function workTick(elapsed: number)
 						moving = true,
 						seconds = elapsed,
 						qualityScale = towQuality,
+						ragged = towQuality < RAGGED_BELOW,
 					})
 				Maintenance.wear(towed, towedCondition, elapsed, false, true, towedCut == true, rng:NextNumber())
 			end
@@ -587,6 +623,9 @@ function ToolService:Start()
 	for _, player in Players:GetPlayers() do
 		task.spawn(onPlayerAdded, player)
 	end
+	Players.PlayerRemoving:Connect(function(player)
+		withheld[player] = nil
+	end)
 
 	local accumulated = 0
 	RunService.Heartbeat:Connect(function(deltaTime)

@@ -126,9 +126,10 @@ end
 -- How each kind of yard target looks as it gets worked on. `fraction` goes from 0 (untouched)
 -- to 1 (done). The kinds match TaskTypes' `target` field.
 local VISUALS = {
+	-- A dull blade leaves it torn and ragged (see GrassController).
 	Grass = function(target, fraction: number)
 		if fraction >= 1 then
-			target.lawn:_setGrass(target.index, LawnGrid.MOWED)
+			target.lawn:_setGrass(target.index, if target.raggedCut then LawnGrid.RAGGED else LawnGrid.MOWED)
 		end
 	end,
 
@@ -1966,11 +1967,13 @@ export type WorkResult = {
 --   holder       whose barrow a load is in (one load per player)
 --   moving       whether they're walking
 --   seconds      how long this bit of work took
+--   ragged       a dull blade: mowed grass is left torn
 export type WorkContext = {
 	protections: { [string]: boolean }?,
 	holder: any?,
 	moving: boolean?,
 	seconds: number?,
+	ragged: boolean?,
 }
 
 -- Targets that cover the whole lawn. Walking a tool across them on the way to its real work isn't
@@ -2066,6 +2069,7 @@ function Lawn:ApplyWork(
 			local hit = target.speedHits and target.speedHits[toolId] or 1
 			local applied = math.min(target.work, amount * fit.speed * hit)
 			target.work -= applied
+			target.raggedCut = context ~= nil and context.ragged == true
 			VISUALS[target.kind](target, 1 - target.work / target.maxWork)
 			if target.work <= 0 then
 				target.work = 0

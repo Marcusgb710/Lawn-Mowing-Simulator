@@ -94,6 +94,15 @@ function Maintenance.bladeOf(tool): string?
 	return nil
 end
 
+-- Rotary mowers take a spare blade; reel mowers' cylinders don't come off.
+function Maintenance.takesSpareBlade(tool): boolean
+	return Tools.hasVerb(tool, "Mow") and not REEL_MOWERS[tool.id]
+end
+
+function Maintenance.isReelMower(tool): boolean
+	return REEL_MOWERS[tool.id] == true
+end
+
 function Maintenance.burnsFuel(tool): boolean
 	return tool.engine == "FourStroke" or tool.engine == "TwoStroke"
 end

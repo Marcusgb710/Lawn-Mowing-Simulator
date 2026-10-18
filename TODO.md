@@ -128,7 +128,7 @@ One PR per phase, each stacked on the one before. Every phase still needs a Stud
       driveway pile to the bed, how often one-wheeled barrows tip (`TIP_CHANCE` in
       `LawnService.luau`), the fertilizer dusting on big lawns.
 - [x] **E: maintenance (fuel, tires, blades, line).** To check: wear rates (`Maintenance.Wear`),
-      the Workbench menu on a phone, the workbench prop on each building.
+      the workbench prop on each building (the menu is now hands-on, see Immersion 3).
 - [x] **F: pro equipment and turf renovation.** To check: standing on stand-on machines
       (`ride.seat` in `Tools.luau`), the tow-behind aerator hitched behind a ride-on, tight lawns
       with trees, the renovation overlays and the soil reading in the HUD.
@@ -173,6 +173,14 @@ One PR per phase, each stacked on the one before. Every phase still needs a Stud
       - the view from `DriverSeat` and the other seats;
       - the pull-out into the street and the pull-in;
       - nothing standing on the driveway or the front lawn.
+- [ ] **Immersion 3: hands-on maintenance.** To check in Studio:
+      - setting a mower down at the workbench's `ServiceSpot` and a pair of pruners in the vise;
+      - holding E to pour, pump, plug, wind and file, on PC and phone (hold the button);
+      - the blade off (the mower on its side), the grinder's sparks, the blade back on;
+      - a wheel off for the spare;
+      - the tailgate on a job: supplies by the truck, taking one and putting it back;
+      - sputtering smoke, sagging and flat tires and a bare spool on the kit tools;
+      - ragged grass after mowing with a dull blade.
 - [ ] **Hub 3: your own lawn and curb appeal.** To check in Studio:
       - the lawn on each plot, its grass drawn like a job's, and the edge along the right sides;
       - mowing, edging, trimming and raking it with tools straight off the wall, on PC and phone;

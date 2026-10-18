@@ -19,6 +19,7 @@ local EVENTS = {
 	-- client -> server
 	"AbandonJob",
 	"LeaveParty",
+	"StopService",
 }
 
 local FUNCTIONS = {
@@ -42,8 +43,11 @@ local FUNCTIONS = {
 	"CancelDecor",
 	"ReturnDecor",
 	"UseMailbox",
-	"GetWorkbench",
-	"Maintain",
+	"SetDownTool",
+	"PickUpServiced",
+	"StartService",
+	"TakeSupply",
+	"PutBackSupply",
 	"InviteToParty",
 	"RespondToInvite",
 	"KickFromParty",
