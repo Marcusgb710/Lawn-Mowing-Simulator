@@ -1,4 +1,5 @@
--- The hardware store: one tab per category. Buy tools, trucks, trailers and business upgrades.
+-- The hardware store: one tab per category. Buy tools, trucks, trailers and business upgrades,
+-- and sell tools you don't need to free up storage.
 -- Every tool says what it's for: that's how players learn which tool fits which job.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -7,25 +8,55 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Format = require(Shared.Format)
 local Items = require(Shared.Config.Items)
 local Net = require(Shared.Net)
+local Shop = require(Shared.Shop)
+local Storage = require(Shared.Config.Storage)
+local Tools = require(Shared.Config.Tools)
 
 local ClientState = require(script.Parent.Parent.ClientState)
 local UI = require(script.Parent.Parent.UI)
+
+-- Selling takes a second tap within this many seconds, so it can't happen by accident.
+local SELL_CONFIRM_TIME = 3
 
 local ShopController = {}
 
 local selectedCategory = Items.Categories[1]
 local tabButtons = {}
 local list: ScrollingFrame
+-- The tool id waiting for a second tap to sell, and when the first tap was.
+local confirmingSell: string? = nil
+local confirmingSince = 0
+
+local function storageText(business): string
+	local parts = {}
+	for _, spot in Storage.SpotOrder do
+		local count = business.storage[spot] or 0
+		if count > 0 then
+			local name = Storage.Spots[spot].name
+			table.insert(parts, `{name} {count}`)
+		end
+	end
+	return table.concat(parts, "  ·  ") .. (if business.noEngines then "  ·  no engines" else "")
+end
 
 local function statsText(item): string
 	if item.category == "Truck" then
-		return `Job pay +{math.floor(item.payoutBonus * 100)}%  ·  Holds {item.bedSlots} tools`
+		return `Job pay +{math.floor(item.payoutBonus * 100)}%  ·  Holds {item.space} space`
 	elseif item.category == "Trailer" then
-		return `+{item.extraSlots} truck bed slots`
+		local text = `+{item.space} space`
+		return if item.bays > 0 then `{text}  ·  {item.bays} ride-on bays` else text
 	elseif item.category == "Business" then
-		return `Job pay +{math.floor(item.payoutBonus * 100)}%`
+		return `Job pay +{math.floor(item.payoutBonus * 100)}%\nStores: {storageText(item)}`
 	end
-	local parts = { item.tier, `Power {item.power}`, `Reach {item.radius}` }
+	local size = Tools.SizeClasses[item.sizeClass]
+	local truck = if item.sizeClass == "Bay"
+		then "needs a trailer bay"
+		elseif item.id == Storage.BucketId then `1 space, holds {Storage.BucketHolds} hand tools`
+		else `{size.space} truck space`
+	local parts = { item.tier, `{size.label}, {string.lower(Storage.Spots[size.spot].name)}, {truck}` }
+	if item.power then
+		table.insert(parts, `Power {item.power}  ·  Reach {item.radius}`)
+	end
 	if item.cutQuality then
 		table.insert(parts, `Cut {math.floor(item.cutQuality * 100)}%`)
 	end
@@ -38,7 +69,70 @@ local function statsText(item): string
 	return table.concat(parts, "  ·  ")
 end
 
-local function render()
+-- How full each kind of storage is at your business, for the tool tabs.
+local function storageSummary(profile): string
+	local parts = {}
+	for _, spot in Storage.SpotOrder do
+		local capacity = Storage.capacity(profile.equipped.Business, spot)
+		local used = Storage.used(profile.owned, spot)
+		if capacity > 0 or used > 0 then
+			table.insert(parts, `{Storage.Spots[spot].name} {used}/{capacity}`)
+		end
+	end
+	return "Your storage: " .. table.concat(parts, "  ·  ")
+end
+
+local render
+
+local function act(action: string, item)
+	if action == "SellItem" and confirmingSell ~= item.id then
+		confirmingSell = item.id
+		confirmingSince = os.clock()
+		render()
+		task.delay(SELL_CONFIRM_TIME, function()
+			if confirmingSell == item.id and os.clock() - confirmingSince >= SELL_CONFIRM_TIME then
+				confirmingSell = nil
+				render()
+			end
+		end)
+		return
+	end
+	confirmingSell = nil
+	local _, message = Net.func(action):InvokeServer(selectedCategory, item.id)
+	UI.notify(message)
+end
+
+-- What the button on an item's card says and does, plus why it's locked (if it is).
+local function buttonFor(profile, item): (string, Color3, string?, string?)
+	local category = selectedCategory
+	local owned = profile.owned[category] and profile.owned[category][item.id]
+	if Items.isToolCategory(category) then
+		if owned then
+			if not Shop.canSell(item) then
+				return "Starter", UI.Colors.Disabled, nil, nil
+			elseif confirmingSell == item.id then
+				return "Tap to sell", UI.Colors.Danger, "SellItem", nil
+			end
+			return `Sell {Format.money(Shop.sellPrice(item))}`, UI.Colors.Card, "SellItem", nil
+		end
+	elseif profile.equipped[category] == item.id then
+		return if category == "Business" then "Current" else "Equipped", UI.Colors.Disabled, nil, nil
+	elseif owned then
+		if category == "Business" then
+			return "Owned", UI.Colors.Disabled, nil, nil
+		end
+		return "Equip", UI.Colors.Accent, "EquipItem", nil
+	end
+
+	local allowed, reason = Shop.canBuy(profile, category, item.id)
+	if not allowed then
+		return "Locked", UI.Colors.Disabled, nil, reason
+	end
+	local affordable = profile.money >= item.price
+	return Format.money(item.price), if affordable then UI.Colors.Money else UI.Colors.Disabled, "BuyItem", nil
+end
+
+function render()
 	for category, button in tabButtons do
 		button.BackgroundColor3 = if category == selectedCategory then UI.Colors.Accent else UI.Colors.Card
 	end
@@ -48,8 +142,18 @@ local function render()
 	if not profile then
 		return
 	end
+	local header = nil
 	if selectedCategory == "Trailer" and not profile.trailerUnlocked then
-		UI.label("Fill up your truck bed to unlock trailers.", {
+		header = "Fill up your truck to unlock trailers."
+	elseif Items.isToolCategory(selectedCategory) then
+		header = storageSummary(profile)
+	end
+	if header then
+		UI.label(header, {
+			Size = UDim2.new(1, -8, 0, 0),
+			AutomaticSize = Enum.AutomaticSize.Y,
+			TextWrapped = true,
+			TextSize = 15,
 			TextColor3 = UI.Colors.Money,
 			LayoutOrder = 0,
 			Parent = list,
@@ -57,9 +161,6 @@ local function render()
 	end
 
 	for index, item in Items.Catalog[selectedCategory] do
-		local owned = profile.owned[selectedCategory] and profile.owned[selectedCategory][item.id]
-		local equipped = profile.equipped[selectedCategory] == item.id
-
 		local card = UI.new("Frame", {
 			Size = UDim2.new(1, -8, 0, 0),
 			AutomaticSize = Enum.AutomaticSize.Y,
@@ -87,38 +188,30 @@ local function render()
 			Parent = details,
 		})
 		UI.label(statsText(item), {
-			Size = UDim2.new(1, 0, 0, 16),
+			Size = UDim2.fromScale(1, 0),
+			AutomaticSize = Enum.AutomaticSize.Y,
+			TextWrapped = true,
 			TextSize = 14,
 			TextColor3 = UI.Colors.SubText,
 			LayoutOrder = 3,
 			Parent = details,
 		})
 
-		local text, color, action
-		local previous = Items.Catalog[selectedCategory][item.rank - 1]
-		local locked = (selectedCategory == "Trailer" and not profile.trailerUnlocked)
-			or (selectedCategory == "Business" and previous and not profile.owned.Business[previous.id])
-		if equipped then
-			text, color = if selectedCategory == "Business" then "Current" else "Equipped", UI.Colors.Disabled
-		elseif owned then
-			if selectedCategory == "Business" then
-				text, color = "Owned", UI.Colors.Disabled
-			else
-				text, color, action = "Equip", UI.Colors.Accent, "EquipItem"
-			end
-		elseif locked then
-			text, color = "Locked", UI.Colors.Disabled
-		else
-			local affordable = profile.money >= item.price
-			text = Format.money(item.price)
-			color = if affordable then UI.Colors.Money else UI.Colors.Disabled
-			action = "BuyItem"
+		local text, color, action, lockedBecause = buttonFor(profile, item)
+		if lockedBecause then
+			UI.label(lockedBecause, {
+				Size = UDim2.fromScale(1, 0),
+				AutomaticSize = Enum.AutomaticSize.Y,
+				TextWrapped = true,
+				TextSize = 14,
+				TextColor3 = UI.Colors.Money,
+				LayoutOrder = 4,
+				Parent = details,
+			})
 		end
-
 		UI.button(text, function()
 			if action then
-				local _, message = Net.func(action):InvokeServer(selectedCategory, item.id)
-				UI.notify(message)
+				act(action, item)
 			end
 		end, {
 			AnchorPoint = Vector2.new(1, 0.5),
@@ -126,6 +219,7 @@ local function render()
 			Size = UDim2.fromOffset(120, 36),
 			BackgroundColor3 = color,
 			TextColor3 = if color == UI.Colors.Money then UI.Colors.Background else UI.Colors.Text,
+			TextScaled = true,
 			Parent = card,
 		})
 	end
@@ -148,6 +242,7 @@ function ShopController:Start()
 	for index, category in Items.Categories do
 		tabButtons[category] = UI.button(Items.CategoryInfo[category].displayName, function()
 			selectedCategory = category
+			confirmingSell = nil
 			render()
 		end, {
 			Size = UDim2.fromOffset(0, 32),

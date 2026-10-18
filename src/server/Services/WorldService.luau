@@ -1,6 +1,7 @@
 -- The town: a hardware store in the middle and a business plot for every player.
--- Your business (shed -> garage -> small office) is where your crew hangs out between jobs:
--- check the job board, carry tools from the tool rack to the truck, then drive off.
+-- Your business (shed -> garage -> small office -> equipment yard) is where your crew hangs out
+-- between jobs: check the job board, carry tools from storage to the truck, then drive off.
+-- What's in storage is laid out by BusinessStorage.
 --
 -- To build the town yourself in Studio, make a Model named "Town" in Workspace with:
 --   * a SpawnLocation
@@ -17,13 +18,14 @@ local Assets = require(Shared.Assets)
 local Items = require(Shared.Config.Items)
 local Signal = require(Shared.Signal)
 
+local BusinessStorage = require(script.Parent.Parent.BusinessStorage)
 local DataService = require(script.Parent.DataService)
 
 -- How close (studs from the plot's center) counts as "at your business".
 local PLOT_RADIUS = 40
 local PLOT_SIZE = Vector3.new(60, 1, 60)
--- How close you need to be to the tool rack to grab or put back a tool.
-local RACK_REACH = 14
+-- How close you need to be to your business's storage to grab or put back a tool.
+local STORAGE_REACH = 10
 
 local WorldService = {}
 -- Fired with (owner) after a business plot is (re)built, so the truck bed can be refilled.
@@ -193,14 +195,8 @@ local function buildPlot(plot)
 	sign(board, "JOBS", Enum.NormalId.Front)
 	prompt(board, "View Jobs", "Job Board", { OpensPanel = "Jobs" })
 
-	-- Each player's own tools are shown in front of the rack on their screen (see CarryController).
-	local rack = part(model, {
-		Name = "ToolRack",
-		Size = Vector3.new(15, 6, 1),
-		CFrame = at(16, 3, -2),
-		Color = Color3.fromRGB(90, 90, 95),
-	})
-	sign(rack, "TOOLS", Enum.NormalId.Front)
+	-- Each player sees their own tools in storage on their screen (see CarryController).
+	BusinessStorage.build(model, origin, data.equipped.Business or "Shed")
 
 	local truck = Assets.truck(data.equipped.Truck or Items.Catalog.Truck[1].id, data.equipped.Trailer)
 	Assets.anchor(truck)
@@ -250,16 +246,37 @@ function WorldService:GetPlotTruck(player: Player): Model?
 	return if truck and truck:IsA("Model") then truck else nil
 end
 
--- True if the player is standing at the tool rack of their crew's business.
-function WorldService:IsNearRack(player: Player): boolean
+-- How far a point is from the nearest point of a part.
+local function distanceTo(target: BasePart, point: Vector3): number
+	local offset = target.CFrame:PointToObjectSpace(point)
+	local half = target.Size / 2
+	local inside = Vector3.new(
+		math.clamp(offset.X, -half.X, half.X),
+		math.clamp(offset.Y, -half.Y, half.Y),
+		math.clamp(offset.Z, -half.Z, half.Z)
+	)
+	return (offset - inside).Magnitude
+end
+
+-- True if the player is standing at the storage of their crew's business.
+function WorldService:IsNearStorage(player: Player): boolean
 	local plot = playerPlots[getLeader(player)] or playerPlots[player]
-	local rack = plot and plot.model and plot.model:FindFirstChild("ToolRack")
+	local storage = plot and plot.model and plot.model:FindFirstChild("Storage")
 	local character = player.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart")
-	if not (rack and rack:IsA("BasePart") and root and root:IsA("BasePart")) then
+	if not (storage and root and root:IsA("BasePart")) then
 		return false
 	end
-	return (root.Position - rack.Position).Magnitude <= RACK_REACH
+	for _, child in storage:GetChildren() do
+		if
+			child:IsA("BasePart")
+			and child:GetAttribute("StorageArea")
+			and distanceTo(child, root.Position) <= STORAGE_REACH
+		then
+			return true
+		end
+	end
+	return false
 end
 
 function WorldService:IsAtBusiness(player: Player): boolean

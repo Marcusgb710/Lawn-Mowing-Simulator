@@ -67,8 +67,15 @@ quiet.
 ## 2. Tools by tier
 
 The full catalog, with stats and the player-facing descriptions, is
-`src/shared/Config/Tools.luau`. Every shop tab progresses Homeowner, then Serious, then Pro;
-gating by player level and business building comes in phase B.
+`src/shared/Config/Tools.luau`. Every shop tab progresses Homeowner, then Serious, then Pro.
+Buying a tier needs a player level and a business at least this big (`Tools.TierUnlocks`); tools
+you already own stay yours either way:
+
+| Tier | Level | Business |
+| --- | --- | --- |
+| Homeowner | 1 | Shed |
+| Serious | 3 | Garage |
+| Pro | 8 | Small Office |
 
 **Size classes** decide where a tool is stored and how much truck space it takes:
 
@@ -267,39 +274,71 @@ fertilize, water. Out of order or in bad conditions lowers quality.
 
 ## 5. Storage and hauling (phase B)
 
-Replaces "one tool per category": players own many tools and pick what to bring to each job.
-Owned items live in storage spots in the business building, shown visually, and are carried to
-the truck with today's carry flow. You can't buy an item without a free spot of its class.
+Players own many tools and pick what to bring to each job. Owned tools live in storage at the
+business, shown on the plot, and are carried to the truck by hand. Push and ride-on machines are
+rolled along the ground in front of you instead of lifted. The rules are in
+`src/shared/Config/Storage.luau` and `src/shared/Shop.luau`; the plot layout is
+`src/server/BusinessStorage.luau`.
 
-Proposed capacities (to tune):
+### Storage
 
-| Building | Pegboard (Hand) | Wall rack (Long) | Wall hooks (HangingPower) | Floor spots | Bays | Fixtures |
-| --- | --- | --- | --- | --- | --- | --- |
-| Shed | 12 | 4 | 1 | 1, manual only (no engine) | 0 | - |
-| Garage | 16 | 8 | 4 | 2 | 0 | workbench |
-| SmallOffice | 24 | 12 | 6 | 4 | 2 | workbench, air compressor |
-| EquipmentYard (new) | 32 | 16 | 10 | 6 | 5 | workbench, air compressor, bench grinder |
+Each building has a number of spots of each kind (`storage` on each business in `Items.luau`):
 
-Proposed truck space, in units:
+| Building | Pegboard (Hand) | Wall rack (Long) | Wall hooks (HangingPower) | Shelf (Supply) | Floor spots | Bays | Price |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Shed | 12 | 4 | 1 | 4 | 1, push machines without an engine only | 0 | free |
+| Garage | 16 | 8 | 4 | 8 | 2 | 0 | $4,000 |
+| SmallOffice | 24 | 12 | 6 | 12 | 4 | 2 | $20,000 |
+| EquipmentYard (new) | 32 | 16 | 10 | 16 | 6 | 5 | $75,000 |
+
+- You can't buy a tool without a free spot of its kind. Sell one (half price back; free starter
+  gear can't be sold) or upgrade the business.
+- Tools you already own are never lost. Anything without a spot (from an older save, or a crew
+  member's tools at a smaller business) sits on the ground in front of the storage, and still
+  works.
+- The shed can't store a gas push mower, so the first engine mower needs a garage. (The spec asked
+  for this. It makes the garage the first big goal, so its price may want lowering.)
+- Shelves are an addition: the spec had no spot for supplies (`StorageShelf`, below). They only
+  hold the tool bucket until phase E.
+- Workbenches and the air compressor are phase E.
+
+On the plot (the street is toward -Z): pegboards (two high) and wall racks run along the right
+edge, wall hooks and shelves along the left edge, floor spots and equipment bays are painted on the
+ground in between, and tools without a spot sit near the front. Fixtures are the
+`StoragePegboard` (6 hooks), `StorageWallRack` (4 holders), `StorageWallHooks` (2 hooks) and
+`StorageShelf` (6 places) props, tiled until there are enough spots. Each tool goes on a `Slot`
+attachment: hand tools hang flat on pegboards, long tools stand upright in wall racks, power tools
+hang edge-on from hooks. Real fixture models without `Slot` attachments get them spread over
+their front. Mount heights are `MOUNT_HEIGHT` in `BusinessStorage.luau`, to tune in Studio.
+
+### Truck space
 
 | Item | Space |
 | --- | --- |
-| hand tools | 1 each, or up to 8 in one `ToolBucket` (which takes 1) |
+| hand tools | 1 each, or up to 8 of your own in one `ToolBucket` ($30), which takes 1 |
 | long tools | 1 |
 | handheld power tools | 2 |
-| floor machines | 4 |
+| push and walk-behind machines | 4 |
 | supplies | 1 |
-| bay machines | only on an `EquipmentTrailer` (ramp), 2 per trailer |
+| ride-on machines | no truck space: 1 bay on an `EquipmentTrailer` each |
 
-| Vehicle | Space |
-| --- | --- |
-| RustyPickup | 6 |
-| WorkPickup | 8 |
-| HeavyDutyPickup | 10 |
-| LandscapingTruck | 14 |
-| UtilityTrailer | +6 |
-| LandscapeTrailer | +10 |
-| EquipmentTrailer | +4, plus 2 bay machines |
+| Vehicle | Space | Ride-on bays | Price |
+| --- | --- | --- | --- |
+| RustyPickup | 6 | 0 | free |
+| WorkPickup | 8 | 0 | $5,000 |
+| HeavyDutyPickup | 10 | 0 | $20,000 |
+| LandscapingTruck | 14 | 0 | $60,000 |
+| UtilityTrailer | +6 | 0 | $1,200 |
+| LandscapeTrailer | +10 | 0 | $3,000 |
+| EquipmentTrailer (new) | +4 | 2 | $6,000 |
+
+- A crew shares the leader's truck and trailer. The truck won't leave overloaded.
+- Trailers unlock the first time the truck is full (a load that fills it, or one that won't fit).
+- A new player owns the reel mower, and it starts in the truck (4 of 6 space).
+- In the truck bed every tool gets a stretch of bed as long as its space; push machines stand,
+  everything else lies across. Ride-on machines park on the trailer's `BaySpot` parts.
+- Push and walk-behind machines are held so their lowest point touches the ground, from the
+  player's real shoulder height, whatever height the model's handlebar is.
 
 ## 6. Maintenance (phase E)
 
@@ -331,9 +370,9 @@ Simple but real, for mowers and equipment (not the truck):
 
 | Phase | What | Status |
 | --- | --- | --- |
-| A | This doc; `Tools.luau`, `TaskTypes.luau` and the new `Jobs.luau` format; tool fit, quality and customer preference in pay; no tool names on the board or HUD; save versioning | **this PR** |
-| B | Storage per building, size-based truck and trailer space, shop gating by tier and storage, EquipmentYard, EquipmentTrailer, ToolBucket | next |
-| C | Tier-1 jobs and yard targets: pots, planting spots with depths, bulbs, beds, lawn dandelions, rose bushes, dead stems, flowers, watering zones; gloves | |
+| A | This doc; `Tools.luau`, `TaskTypes.luau` and the new `Jobs.luau` format; tool fit, quality and customer preference in pay; no tool names on the board or HUD; save versioning | done |
+| B | Storage per building, size-based truck and trailer space, shop gating by tier and storage, selling tools, EquipmentYard, EquipmentTrailer, ToolBucket | **this PR** |
+| C | Tier-1 jobs and yard targets: pots, planting spots with depths, bulbs, beds, lawn dandelions, rose bushes, dead stems, flowers, watering zones; gloves | next |
 | D | Tier-2: holes, trenches and sod, deep beds, hauling from a pile to a bed, spreader and sprayer, branch thickness | |
 | E | Maintenance systems and supplies | |
 | F | Tier-3 pro equipment and the turf renovation sequence | |
@@ -353,7 +392,12 @@ phase that gives them work.
   still gets a profile, so nothing waits on them forever.
 - There's no session locking yet. A very fast server hop could still lose the last session;
   moving to ProfileStore or a session lock would fix that.
-- **Phase B** will add version 3, moving owned tools into per-tool storage.
+- **Version 3 (phase B)** moves to per-tool storage. A v2 save had one equipped tool per tool
+  category and `loadout[category]`; now every owned tool stands alone and `loadout[toolId]` says
+  it's in the truck. Each category's equipped tool that was in the truck stays in the truck, and
+  `equipped` only holds the truck, trailer and business. Players who own a riding or zero-turn
+  mower get the `EquipmentTrailer` free (hitched up if they had no trailer), since ride-ons only
+  travel on one now. Money, level and owned items carry over.
 
 ## New item ids for modelers
 
@@ -428,6 +472,7 @@ by a part named `Handle` (see `assets/README.md`).
 | Id | Folder | Look |
 | --- | --- | --- |
 | EquipmentTrailer | `Assets/Trailers` | Low tandem-axle flatbed with a fold-down rear ramp and a `BedArea` part |
+| StorageShelf | `Assets/Props` | Floor-standing gray metal shelf, about 4 wide x 5 tall x 1.4 deep, 3 boards; `Slot1`-`Slot6` attachments (2 per board) |
 | EquipmentYard | `Assets/Buildings` | Business tier 4: fenced yard with a big roll-up-door shop and covered equipment bays |
 | Workbench | `Assets/Props` | Sturdy wooden bench with a vise and a pegboard back |
 | StoragePegboard | `Assets/Props` | Wall pegboard panel with hooks for hand tools |
