@@ -138,6 +138,8 @@ One PR per phase, each stacked on the one before. Every phase still needs a Stud
 - [x] **D: serious gardening (digging, hauling, feeding, spraying).** To check: hauling from the
       driveway pile to the bed, how often one-wheeled barrows tip (`TIP_CHANCE` in
       `LawnService.luau`), the fertilizer dusting on big lawns.
+- [x] **E: maintenance (fuel, tires, blades, line).** To check: wear rates (`Maintenance.Wear`),
+      the Workbench menu on a phone, the workbench prop on each building.
 
 ## Before release
 
