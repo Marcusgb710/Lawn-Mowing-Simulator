@@ -1,7 +1,12 @@
 -- Using things by looking at them (docs/GAME_DESIGN.md, "Immersion"): aim the dot in the middle
 -- of the screen at something within reach and press E, or tap the big button on a phone.
 -- Anything with an `Interact` attribute (on the part you look at, or a model it's in) can be used:
---   OpenPanel    opens the menu named in OpensPanel (workbench, tailgate)
+--   OpenPanel    opens the menu named in OpensPanel
+--   SetDown      sets the tool you're holding down to work on it (SpotKind "Floor" or "Vise"),
+--                at a workbench or by the truck on a job; see MaintenanceService
+--   ServiceTool  your tool set down: hold a supply and hold E to use it on it (R for the
+--                building's own machines), or pick it back up
+--   TakeSupply   one of the supplies you brought, by the tailgate on a job; the truck takes it back
 --   UseComputer  sits you down at the shop computer (see ComputerController)
 --   OpenBox      opens one of your delivery boxes (BoxKey, OnlyFor)
 --   DriveToJob   heads off in the crew truck
@@ -26,6 +31,7 @@ local BedGrid = require(Shared.BedGrid)
 local BedLayout = require(Shared.BedLayout)
 local Maintenance = require(Shared.Config.Maintenance)
 local Net = require(Shared.Net)
+local Service = require(Shared.Service)
 local Storage = require(Shared.Config.Storage)
 local Tools = require(Shared.Config.Tools)
 
@@ -63,7 +69,10 @@ type Target = {
 	cells: { number }?,
 	instance: Instance?,
 	key: number?,
-	second: { action: string, text: string }?,
+	-- Held down to do it (working on a tool), not just pressed.
+	hold: boolean?,
+	partName: string?,
+	second: { action: string, text: string, hold: boolean?, fixture: string? }?,
 }
 
 local InteractController = {}
@@ -166,7 +175,69 @@ local function bucketTarget(thing: Instance, item, take: string): Target?
 	}
 end
 
-local function targetFor(thing: Instance, item): Target?
+-- The tool in your hands you could work on: carried at the business, equipped on a job.
+local function heldTool()
+	local item = carriedItem()
+	if item then
+		return if Maintenance.Supplies[item.id] then nil else item
+	end
+	local tool = player.Character and player.Character:FindFirstChildOfClass("Tool")
+	local id = tool and tool:GetAttribute("ItemId")
+	return if typeof(id) == "string" then Tools.get(id) else nil
+end
+
+-- Your tool set down to be worked on: what the supply in your hands does to it, or picking it
+-- back up (and the building's machines) with empty hands.
+local function serviceTarget(thing: Instance, item, hit: Instance?): Target?
+	local toolId = thing:GetAttribute("ToolId")
+	local tool = if typeof(toolId) == "string" then Tools.get(toolId) else nil
+	local profile = ClientState.profile
+	if not (tool and profile) then
+		return nil
+	end
+	local condition = profile.condition and profile.condition[tool.id] or {}
+	local state =
+		{ bladeOff = thing:GetAttribute("BladeOff") == true, wheelOff = thing:GetAttribute("WheelOff") == true }
+	local spot = if thing:GetAttribute("SpotKind") == "Vise" then "Vise" else "Floor"
+	local partName = if hit then hit.Name else nil
+	local part = Service.partKind(partName or "")
+	if item then
+		if not Maintenance.Supplies[item.id] then
+			return nil
+		end
+		local step, reason = Service.step(tool, condition, item.id, state, spot, part)
+		return {
+			action = "Service",
+			text = if step then step.text else "Use",
+			name = tool.name,
+			fits = step ~= nil,
+			reason = reason,
+			hold = true,
+			partName = partName,
+		}
+	end
+	local second = nil
+	for _, fixture in { "AirCompressor", "BenchGrinder" } do
+		if thing:GetAttribute("Has" .. fixture) and not second then
+			local step = Service.step(tool, condition, fixture, state, spot, part)
+			if step then
+				second = { action = "Service", text = step.text, hold = true, fixture = fixture }
+			end
+		end
+	end
+	local ready, reason = Service.canPickUp(state)
+	return {
+		action = "PickUpServiced",
+		text = "Pick up",
+		name = tool.name,
+		fits = ready,
+		reason = reason,
+		partName = partName,
+		second = second,
+	}
+end
+
+local function targetFor(thing: Instance, item, hit: Instance?): Target?
 	local action = thing:GetAttribute("Interact")
 	local text = thing:GetAttribute("InteractText")
 	local name = thing:GetAttribute("InteractName")
@@ -175,6 +246,36 @@ local function targetFor(thing: Instance, item): Target?
 	if action == "OpenPanel" then
 		local panel = thing:GetAttribute("OpensPanel")
 		return { action = action, text = text, name = name, fits = true, panel = panel }
+	elseif action == "SetDown" then
+		local held = heldTool()
+		if not held or thing:GetAttribute("Occupied") then
+			return nil
+		end
+		local spot = Service.spotFor(held)
+		return {
+			action = action,
+			text = text,
+			name = held.name,
+			fits = spot == thing:GetAttribute("SpotKind"),
+			reason = if spot == "Vise" then "that goes in the vise" else "that goes on the floor",
+			instance = thing,
+		}
+	elseif action == "ServiceTool" then
+		if thing:GetAttribute("OnlyFor") ~= player.UserId then
+			return nil
+		end
+		return serviceTarget(thing, item, hit)
+	elseif action == "TakeSupply" then
+		local toolId = thing:GetAttribute("ToolId")
+		if item or thing:GetAttribute("OnlyFor") ~= player.UserId or typeof(toolId) ~= "string" then
+			return nil
+		end
+		return { action = action, text = text, name = name, fits = true, toolId = toolId }
+	elseif action == "Tailgate" then
+		if not (item and Maintenance.Supplies[item.id]) then
+			return nil
+		end
+		return { action = "PutBackSupply", text = text, name = item.name, fits = true }
 	elseif action == "DriveToJob" or action == "UseComputer" then
 		if item then
 			return nil
@@ -321,8 +422,9 @@ local function resolve(): Target?
 		result = workspace:Raycast(origin, direction * REACH, rayParams)
 		thing = result and interactableOf(result.Instance)
 	end
-	local target = thing and targetFor(thing, item)
-	if target and (target.action == "PutBack" or target.action == "PutInBucket") then
+	local target = thing and targetFor(thing, item, result and result.Instance)
+	local here = target and target.action
+	if here == "PutBack" or here == "PutInBucket" or here == "SetDown" or here == "Service" then
 		return target
 	end
 	if item then
@@ -440,11 +542,73 @@ local function perform(target: Target, second: boolean)
 			_, message = invoke("ParkRide")
 		elseif action == "OpenBox" then
 			_, message = invoke("OpenBox", target.key)
+		elseif action == "SetDown" then
+			_, message = invoke("SetDownTool", target.instance)
+		elseif action == "PickUpServiced" then
+			_, message = invoke("PickUpServiced")
+		elseif action == "TakeSupply" then
+			_, message = invoke("TakeSupply", target.toolId)
+		elseif action == "PutBackSupply" then
+			_, message = invoke("PutBackSupply")
 		end
 		if typeof(message) == "string" then
 			UI.notify(message)
 		end
 		busy = false
+	end)
+end
+
+-- Working on a tool happens while E (or the button) is held down.
+local holding = false
+
+local function isHold(target: Target, second: boolean): boolean
+	return if second then target.second ~= nil and target.second.hold == true else target.hold == true
+end
+
+local function startHold(target: Target, second: boolean)
+	if holding or busy then
+		return
+	end
+	if not second and not target.fits then
+		UI.notify(target.reason or "That won't work here.")
+		return
+	end
+	holding = true
+	local fixture = if second and target.second then target.second.fixture else nil
+	task.spawn(function()
+		local ok, message = invoke("StartService", fixture, target.partName)
+		if typeof(message) == "string" then
+			UI.notify(message)
+		end
+		if not ok then
+			holding = false
+		end
+	end)
+end
+
+local function stopHold()
+	if holding then
+		holding = false
+		Net.event("StopService"):FireServer()
+	end
+end
+
+-- The look-at button on a phone: tapped, or held down for work.
+local function pressable(gui: GuiButton, second: boolean)
+	gui.InputBegan:Connect(function(input)
+		local pressing = input.UserInputType == Enum.UserInputType.Touch
+			or input.UserInputType == Enum.UserInputType.MouseButton1
+		if pressing and current and isHold(current, second) then
+			startHold(current, second)
+		end
+	end)
+	gui.InputEnded:Connect(function(input)
+		if
+			input.UserInputType == Enum.UserInputType.Touch
+			or input.UserInputType == Enum.UserInputType.MouseButton1
+		then
+			stopHold()
+		end
 	end)
 end
 
@@ -462,9 +626,9 @@ local function updateUI()
 		label ..= `  ({target.reason or "won't work"})`
 	end
 	if UserInputService.KeyboardEnabled then
-		label = `[E] {label}`
+		label = (if target.hold then "[Hold E] " else "[E] ") .. label
 		if target.second then
-			label ..= `\n[R] {target.second.text}`
+			label ..= (if target.second.hold then "\n[Hold R] " else "\n[R] ") .. target.second.text
 		end
 	end
 	hint.Text = label
@@ -499,7 +663,7 @@ function InteractController:Start()
 		Parent = screen,
 	})
 	button = UI.button("", function()
-		if current then
+		if current and not isHold(current, false) then
 			perform(current, false)
 		end
 	end, {
@@ -513,7 +677,7 @@ function InteractController:Start()
 	})
 	UI.corner(55).Parent = button
 	secondButton = UI.button("", function()
-		if current and current.second then
+		if current and current.second and not isHold(current, true) then
 			perform(current, true)
 		end
 	end, {
@@ -531,15 +695,29 @@ function InteractController:Start()
 	highlight.OutlineTransparency = 0.2
 	highlight.DepthMode = Enum.HighlightDepthMode.Occluded
 
+	pressable(button, false)
+	pressable(secondButton, true)
+
 	local function onInput(second: boolean)
 		return function(_, state: Enum.UserInputState)
+			if state == Enum.UserInputState.End then
+				if holding then
+					stopHold()
+					return Enum.ContextActionResult.Sink
+				end
+				return Enum.ContextActionResult.Pass
+			end
 			if state ~= Enum.UserInputState.Begin or not current then
 				return Enum.ContextActionResult.Pass
 			end
 			if second and not current.second then
 				return Enum.ContextActionResult.Pass
 			end
-			perform(current, second)
+			if isHold(current, second) then
+				startHold(current, second)
+			else
+				perform(current, second)
+			end
 			return Enum.ContextActionResult.Sink
 		end
 	end

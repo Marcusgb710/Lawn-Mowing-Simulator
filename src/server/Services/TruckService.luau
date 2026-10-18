@@ -493,6 +493,22 @@ function TruckService:Hand(player: Player, toolId: string): boolean
 	return startCarrying(player, item)
 end
 
+-- Puts something into the player's hands without changing where it's saved to be (the tailgate
+-- supplies on a job, see MaintenanceService). False if their hands are full or it can't be held.
+function TruckService:Carry(player: Player, toolId: string): boolean
+	local data = DataService:Get(player)
+	local item = data and ownedTool(data, toolId)
+	if not item or carried[player] then
+		return false
+	end
+	return startCarrying(player, item)
+end
+
+-- Takes whatever the player is carrying out of their hands, without putting it anywhere.
+function TruckService:Release(player: Player)
+	stopCarrying(player)
+end
+
 function TruckService:IsCarryingAnything(player: Player): boolean
 	return carried[player] ~= nil
 end

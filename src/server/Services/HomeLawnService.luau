@@ -283,7 +283,7 @@ function HomeLawnService:ApplyWork(
 	radius: number,
 	toolId: string,
 	amount: number,
-	options: { quiet: boolean?, moving: boolean?, seconds: number? }
+	options: { quiet: boolean?, moving: boolean?, seconds: number?, ragged: boolean? }
 ): boolean
 	local entry = lawnUnder(player)
 	local data = DataService:Get(player)
@@ -295,6 +295,7 @@ function HomeLawnService:ApplyWork(
 		holder = player,
 		moving = options.moving,
 		seconds = options.seconds,
+		ragged = options.ragged,
 	})
 	if result.message then
 		notify(player, result.message)

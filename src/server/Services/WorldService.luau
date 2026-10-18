@@ -28,6 +28,7 @@ local Signal = require(Shared.Signal)
 local BusinessStorage = require(script.Parent.Parent.BusinessStorage)
 local DataService = require(script.Parent.DataService)
 local Openings = require(script.Parent.Parent.Openings)
+local ServiceSpots = require(script.Parent.Parent.ServiceSpots)
 
 -- Deep enough for the building at the back, a driveway that fits a truck and trailer, and the
 -- front lawn beside it.
@@ -386,7 +387,8 @@ local function buildPlot(plot)
 			machine.Parent = model
 		end
 	end
-	interactable(bench, "OpenPanel", "Work on Tools", "Workbench", { OpensPanel = "Workbench" })
+	-- Machines are set down in front of it to be worked on, and hand tools go in its vise.
+	ServiceSpots.add(bench, ServiceSpots.forBench(bench))
 
 	local truck = Assets.truck(data.equipped.Truck or Items.Catalog.Truck[1].id, data.equipped.Trailer)
 	Assets.anchor(truck)

@@ -27,6 +27,7 @@ local Tools = require(Shared.Config.Tools)
 local Signal = require(Shared.Signal)
 
 local Openings = require(script.Parent.Parent.Openings)
+local ServiceSpots = require(script.Parent.Parent.ServiceSpots)
 local DataService = require(script.Parent.DataService)
 local HomeLawnService = require(script.Parent.HomeLawnService)
 local LawnService = require(script.Parent.LawnService)
@@ -420,11 +421,12 @@ local function startDriving(job)
 	-- Parked at the house with the tailgate down: it's where you work on your tools.
 	Openings.set(truck, true)
 	truck.Parent = job.lawn.folder
-	-- Supplies you brought can be used on your tools at the tailgate (see MaintenanceService):
-	-- look at the truck and press E.
-	truck:SetAttribute("Interact", "OpenPanel")
-	truck:SetAttribute("OpensPanel", "Workbench")
-	truck:SetAttribute("InteractText", "Work on Tools")
+	-- Tools are worked on at the tailgate, with the supplies you brought (see MaintenanceService):
+	-- a spot on the ground behind it and a vise on the tailgate. A supply you took goes back by
+	-- looking at the truck.
+	ServiceSpots.add(job.lawn.folder, ServiceSpots.forTruck(truck))
+	truck:SetAttribute("Interact", "Tailgate")
+	truck:SetAttribute("InteractText", "Put it back")
 	truck:SetAttribute("InteractName", "Tailgate")
 	job.lawn.folder.Name = "JobSite_" .. job.id
 	job.lawn.folder.Parent = sitesFolder
@@ -542,12 +544,14 @@ end
 --   moving          they're walking
 --   seconds         how long this bit of work took
 --   qualityScale    how the tool's condition changes its finish (a dull blade tears instead of cutting)
+--   ragged          the cut is torn enough to see in the grass
 export type WorkOptions = {
 	damagesHazards: boolean?,
 	quiet: boolean?,
 	moving: boolean?,
 	seconds: number?,
 	qualityScale: number?,
+	ragged: boolean?,
 }
 
 -- Called by ToolService every tick a player is using a tool.
@@ -581,6 +585,7 @@ function JobService:ApplyWork(
 		holder = player,
 		moving = options.moving,
 		seconds = options.seconds,
+		ragged = options.ragged,
 	})
 	if result.message then
 		notify(player, result.message)

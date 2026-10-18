@@ -688,6 +688,10 @@ local PROP_BUILDERS = {
 			Position = Vector3.new(-2.8, 3.6, -0.9),
 			Color = Color3.fromRGB(60, 70, 90),
 		})
+		-- Where a machine is set down to be worked on (on the floor in front), and where a hand
+		-- tool's grip goes in the vise (see MaintenanceService).
+		marker(model, "ServiceSpot", CFrame.new(0, 0, -3.4))
+		marker(model, "VisePoint", CFrame.new(-2.8, 4.1, -0.9))
 	end,
 
 	-- A floor-standing metal shelf: 3 boards with room for 2 supplies each.
