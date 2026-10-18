@@ -14,6 +14,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Assets = require(Shared.Assets)
+local Deliveries = require(Shared.Deliveries)
 local Items = require(Shared.Config.Items)
 local Net = require(Shared.Net)
 local Storage = require(Shared.Config.Storage)
@@ -42,16 +43,9 @@ end
 
 -- The Storage folder at your crew leader's business.
 function CarryController.findStorage(): Folder?
-	local party = ClientState.party
-	local leaderId = if party then party.leader.UserId else player.UserId
-	local businesses = workspace:FindFirstChild("Businesses")
-	for _, business in if businesses then businesses:GetChildren() else {} do
-		if business:GetAttribute("OwnerUserId") == leaderId then
-			local storage = business:FindFirstChild("Storage")
-			return if storage and storage:IsA("Folder") then storage else nil
-		end
-	end
-	return nil
+	local business = ClientState.crewBusiness()
+	local storage = business and business:FindFirstChild("Storage")
+	return if storage and storage:IsA("Folder") then storage else nil
 end
 
 -- What putting a tool back in each kind of spot is called.
@@ -225,7 +219,8 @@ local function renderStorage()
 
 	for _, item in tools do
 		local spot: Attachment? = spotOf[item.id]
-		if profile.loadout[item.id] or inBucket[item.id] then
+		-- In the truck, in the bucket or still in its delivery box: not on the wall.
+		if profile.loadout[item.id] or inBucket[item.id] or Deliveries.pending(profile.deliveries, item.id) then
 			continue
 		end
 		if held == item.id then

@@ -1,6 +1,7 @@
--- The town: a hardware store in the middle and a business plot for every player.
--- Your business (shed -> garage -> small office -> equipment yard) is where your crew hangs out
--- between jobs: check the job board, carry tools from storage to the truck, then drive off.
+-- The town: a business plot for every player. Your business (shed -> garage -> small office ->
+-- equipment yard) is the hub (docs/GAME_DESIGN.md, "The shop as the hub"): the crew picks jobs and
+-- orders gear on the computer inside, unboxes deliveries by the door, carries tools from storage
+-- to the truck and drives off from there.
 -- What's in storage is laid out by BusinessStorage. Walk-in buildings (docs/GAME_DESIGN.md,
 -- "Immersion") have their storage, workbench, lights and truck parking marked inside the model,
 -- and their doors are modelled open. The truck waits at the door with its tailgate (or ramp, or
@@ -8,7 +9,6 @@
 --
 -- To build the town yourself in Studio, make a Model named "Town" in Workspace with:
 --   * a SpawnLocation
---   * a part with attributes Interact = "OpenPanel" and OpensPanel = "Shop" (the hardware store)
 --   * a Folder named "Plots" with one Part per business plot. A plot's front (LookVector)
 --     should face the street. Everything on the plot is placed relative to that part.
 -- Otherwise a placeholder town is built here.
@@ -34,6 +34,8 @@ local STORAGE_REACH = 10
 local WORKBENCH_REACH = 14
 -- How long the truck's tailgate takes to open or close.
 local TAILGATE_TIME = 0.6
+-- How close to the job computer's desk you need to be to use it (and buy, sell or take jobs).
+local COMPUTER_REACH = 8
 -- The building's own machines, for its Compressor and Grinder mounts.
 local SHOP_MACHINES = { Compressor = "AirCompressor", Grinder = "BenchGrinder" }
 -- Walls put up for a walk-in building whose walls don't collide properly (see makeWalkable).
@@ -46,7 +48,7 @@ WorldService.PlotBuilt = Signal.new()
 local businessFolder: Folder
 
 local spawnCFrame = CFrame.new(0, 5, 0)
--- Each plot: { cframe = CFrame, owner = Player?, model = Model? }
+-- Each plot: { cframe = CFrame, owner = Player?, model = Model?, deliveryFrame = CFrame? }
 local plots = {}
 -- [Player] = plot
 local playerPlots = {}
@@ -124,21 +126,6 @@ local function buildPlaceholderTown(): Model
 	spawnLocation.Duration = 0
 	spawnLocation.Color = Color3.fromRGB(240, 200, 60)
 	spawnLocation.Parent = town
-
-	local store = part(town, {
-		Name = "HardwareStore",
-		Size = Vector3.new(40, 16, 20),
-		CFrame = CFrame.lookAt(Vector3.new(-70, 8, -30), Vector3.new(0, 8, -30)),
-		Color = Color3.fromRGB(60, 90, 160),
-	})
-	sign(store, "HARDWARE STORE", Enum.NormalId.Front)
-	local counter = part(town, {
-		Name = "StoreCounter",
-		Size = Vector3.new(4, 4, 12),
-		Position = Vector3.new(-46, 2, -30),
-		Color = Color3.fromRGB(120, 85, 50),
-	})
-	interactable(counter, "OpenPanel", "Shop", "Hardware Store", { OpensPanel = "Shop" })
 
 	-- Business plots line both streets. Front of each plot faces its street.
 	local plotFolder = Instance.new("Folder")
@@ -327,14 +314,16 @@ local function buildPlot(plot)
 	})
 	sign(signPost, `{owner.DisplayName}'s Lawn Care`, Enum.NormalId.Front)
 
-	local board = part(model, {
-		Name = "JobBoard",
-		Size = Vector3.new(8, 6, 0.6),
-		CFrame = at(-16, 4, -4),
-		Color = Color3.fromRGB(120, 85, 50),
-	})
-	sign(board, "JOBS", Enum.NormalId.Front)
-	interactable(board, "OpenPanel", "View Jobs", "Job Board", { OpensPanel = "Jobs" })
+	-- The job computer: jobs, orders, upgrades and the crew, at the desk (see ComputerController).
+	local businessItem = Items.get("Business", data.equipped.Business or "Shed") or Items.Catalog.Business[1]
+	local desk = Assets.prop(businessItem.desk)
+	Assets.anchor(desk)
+	-- Older buildings can't be walked into, so the desk stands out front, facing the street.
+	Assets.placeAt(desk, markers.desk or at(-14, 0, -2))
+	desk.Name = "Desk"
+	desk.Parent = model
+	interactable(desk, "UseComputer", "Use Computer", "Shop Computer", {})
+	plot.deliveryFrame = markers.delivery or at(9, 0, 1)
 
 	-- Each player sees their own tools in storage on their screen (see CarryController).
 	BusinessStorage.build(model, origin, data.equipped.Business or "Shed", markers)
@@ -452,6 +441,25 @@ function WorldService:IsNear(player: Player, model: Model, reach: number): boole
 			math.clamp(offset.Z, -half.Z, half.Z)
 		)
 	return outside.Magnitude <= reach
+end
+
+-- True if the player is at their crew's job computer.
+function WorldService:IsAtComputer(player: Player): boolean
+	local plot = playerPlots[getLeader(player)] or playerPlots[player]
+	local desk = plot and plot.model and plot.model:FindFirstChild("Desk")
+	return desk ~= nil and desk:IsA("Model") and WorldService:IsNear(player, desk, COMPUTER_REACH)
+end
+
+-- Where delivered boxes go at the player's crew's business.
+function WorldService:GetDeliveryFrame(player: Player): CFrame?
+	local plot = playerPlots[getLeader(player)] or playerPlots[player]
+	return plot and plot.model and plot.deliveryFrame
+end
+
+-- The business model the player's crew hangs out at.
+function WorldService:GetCrewBusiness(player: Player): Model?
+	local plot = playerPlots[getLeader(player)] or playerPlots[player]
+	return plot and plot.model
 end
 
 -- True if the player is standing at the storage of their crew's business.

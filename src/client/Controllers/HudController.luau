@@ -20,11 +20,10 @@ local CameraController = require(script.Parent.CameraController)
 
 local player = Players.LocalPlayer
 
--- The menu buttons down the left, and the key that opens each one.
+-- The menu buttons down the left, and the key that opens each one. Jobs and orders are on the
+-- computer in your shop (see ComputerController).
 local MENUS = {
-	{ name = "Jobs", key = Enum.KeyCode.J },
 	{ name = "Truck", key = Enum.KeyCode.T },
-	{ name = "Shop", key = Enum.KeyCode.B },
 	{ name = "Guide", key = Enum.KeyCode.G },
 	{ name = "Crew", key = Enum.KeyCode.C },
 }

@@ -1,5 +1,7 @@
--- Buying and selling gear and business upgrades. The client only asks; every check happens here
--- (the rules themselves are in Shared/Shop.luau, so the shop menu can show them too).
+-- Buying and selling gear and business upgrades, on the computer in your shop (the Orders and
+-- Business apps). The client only asks; every check happens here (the rules themselves are in
+-- Shared/Shop.luau, so the menus can show them too). Tools and supplies arrive in a box at the
+-- shop (DeliveryService); trucks, trailers and buildings are there straight away.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -14,6 +16,7 @@ local Shop = require(Shared.Shop)
 local Storage = require(Shared.Config.Storage)
 
 local DataService = require(script.Parent.DataService)
+local DeliveryService = require(script.Parent.DeliveryService)
 local JobService = require(script.Parent.JobService)
 local PartyService = require(script.Parent.PartyService)
 local ToolService = require(script.Parent.ToolService)
@@ -64,6 +67,9 @@ function ShopService:Buy(player: Player, category: string, itemId: string): (boo
 	if not item or not data then
 		return false, "That item doesn't exist."
 	end
+	if not WorldService:IsAtComputer(player) then
+		return false, "Order it from the computer in your shop."
+	end
 	local allowed, reason = Shop.canBuy(shopState(data), category, itemId)
 	if not allowed then
 		return false, reason or "You can't buy that."
@@ -73,7 +79,7 @@ function ShopService:Buy(player: Player, category: string, itemId: string): (boo
 	end
 	if Items.isToolCategory(category) and JobService:IsBusy(player) then
 		-- What you brought is what you've got until you're back.
-		return false, "Finish the job first. The hardware store will still be here."
+		return false, "Finish the job first. Your orders can wait."
 	end
 	if not DataService:TrySpend(player, item.price) then
 		return false, `You need {Format.money(item.price - data.money)} more.`
@@ -92,10 +98,11 @@ function ShopService:Buy(player: Player, category: string, itemId: string): (boo
 	if not Items.isToolCategory(category) then
 		return self:Equip(player, category, itemId)
 	end
-	DataService:Changed(player)
+	DeliveryService:Order(player, itemId)
 	TruckService:GearChanged(player)
 	local spot = Storage.Spots[Storage.spotOf(item)]
-	return true, `Bought the {item.name}! It's waiting in your storage ({string.lower(spot.name)}).`
+	return true,
+		`Ordered the {item.name}! It'll be delivered to your shop. Unbox it and put it on the {string.lower(spot.name)}.`
 end
 
 -- Sells a tool back to the hardware store, to free up its storage spot.
@@ -107,6 +114,9 @@ function ShopService:Sell(player: Player, category: string, itemId: string): (bo
 	end
 	if not data.owned[category][itemId] then
 		return false, "You don't own that."
+	end
+	if not WorldService:IsAtComputer(player) then
+		return false, "Sell it from the computer in your shop."
 	end
 	if not Shop.canSell(item) then
 		return false, "You can't sell your starter gear."
@@ -124,8 +134,11 @@ function ShopService:Sell(player: Player, category: string, itemId: string): (bo
 	local refund = Shop.sellPrice(item, data.condition[itemId])
 	data.owned[category][itemId] = nil
 	data.condition[itemId] = nil
+	-- Out of its spot, the bucket and any box it was still in.
+	DataService.reconcileStorage(data)
 	DataService:AddMoney(player, refund)
 	TruckService:GearChanged(player)
+	DeliveryService:Refresh(player)
 	return true, `Sold the {item.name} for {Format.money(refund)}.`
 end
 
@@ -136,6 +149,9 @@ function ShopService:Equip(player: Player, category: string, itemId: string): (b
 	local data = DataService:Get(player)
 	if not item or not data or Items.isToolCategory(category) or not data.owned[category][itemId] then
 		return false, "You don't own that yet."
+	end
+	if not WorldService:IsAtComputer(player) then
+		return false, "Switch it over on the computer in your shop."
 	end
 	if VEHICLE_CATEGORIES[category] and JobService:IsBusy(player) then
 		return false, "You can't swap vehicles in the middle of a job."

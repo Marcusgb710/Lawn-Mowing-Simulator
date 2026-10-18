@@ -20,6 +20,8 @@
 --   EquipmentBay   a bay for a ride-on machine (Index)
 --   TruckParking   where the truck parks (its ground centre, facing the way the truck faces)
 --   Light          a ceiling light
+--   Desk           where the job computer desk stands (LookVector from the desk to the player)
+--   DeliverySpot   where delivered boxes appear, just inside the door
 -- Anything a building has no attachments for (older models, placeholders) is laid out outdoors:
 --
 -- Outdoor layout, in the plot's own space (the street is toward -Z, the building's front at z = 14):
@@ -64,6 +66,8 @@ export type Markers = {
 	bays: { CFrame },
 	lights: { Attachment },
 	parking: CFrame?,
+	desk: CFrame?,
+	delivery: CFrame?,
 }
 
 local COLORS = {
@@ -156,7 +160,8 @@ end
 
 -- The interior attachments of a building model (see the top of this file), each list in Index order.
 function BusinessStorage.markers(building: Instance?): Markers
-	local markers: Markers = { mounts = {}, floor = {}, bays = {}, lights = {}, parking = nil }
+	local markers: Markers =
+		{ mounts = {}, floor = {}, bays = {}, lights = {}, parking = nil, desk = nil, delivery = nil }
 	if not building then
 		return markers
 	end
@@ -181,6 +186,10 @@ function BusinessStorage.markers(building: Instance?): Markers
 			table.insert(markers.lights, descendant)
 		elseif name == "TruckParking" then
 			markers.parking = descendant.WorldCFrame
+		elseif name == "Desk" then
+			markers.desk = descendant.WorldCFrame
+		elseif name == "DeliverySpot" then
+			markers.delivery = descendant.WorldCFrame
 		end
 	end
 	local function ordered(list: string): { CFrame }

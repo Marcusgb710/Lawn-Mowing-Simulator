@@ -158,6 +158,14 @@ One PR per phase, each stacked on the one before. Every phase still needs a Stud
       - driving a ride-on up a ramp and parking it on a bay;
       - two players loading one truck;
       - fill in the sound ids in `src/shared/Sounds.luau`.
+- [ ] **Hub 1: job computer and deliveries.** Waiting on the desk and box models (instructions33).
+      To check in Studio:
+      - stepping up to each desk and the camera easing in to `ScreenView`, then back;
+      - the apps inside the monitor on PC and on a phone;
+      - leaving by walking away;
+      - boxes standing at `DeliverySpot`, their flaps and crate front swinging the right way, and
+        the tool coming up into your hands;
+      - boxes coming back after a rejoin.
 
 ## Before release
 

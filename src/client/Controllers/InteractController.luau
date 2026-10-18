@@ -1,7 +1,9 @@
 -- Using things by looking at them (docs/GAME_DESIGN.md, "Immersion"): aim the dot in the middle
 -- of the screen at something within reach and press E, or tap the big button on a phone.
 -- Anything with an `Interact` attribute (on the part you look at, or a model it's in) can be used:
---   OpenPanel    opens the menu named in OpensPanel (job board, shop, workbench, tailgate)
+--   OpenPanel    opens the menu named in OpensPanel (workbench, tailgate)
+--   UseComputer  sits you down at the shop computer (see ComputerController)
+--   OpenBox      opens one of your delivery boxes (BoxKey, OnlyFor)
 --   DriveToJob   heads off in the crew truck
 --   PickUp       takes one of your tools out of storage (ToolId)
 --   PutBack      puts what you're carrying back in this free spot (SpotKind, SpotIndex)
@@ -31,6 +33,7 @@ local ClientState = require(script.Parent.Parent.ClientState)
 local UI = require(script.Parent.Parent.UI)
 local CameraController = require(script.Parent.CameraController)
 local CarryController = require(script.Parent.CarryController)
+local ComputerController = require(script.Parent.ComputerController)
 
 local player = Players.LocalPlayer
 
@@ -38,6 +41,8 @@ local player = Players.LocalPlayer
 local REACH = 10
 -- How close (across the ground) a ride-on has to be to a bay to park on it.
 local PARK_REACH = 6
+-- How many of your crewmates' delivery boxes you can look past to one of yours behind them.
+local OTHERS_BOXES = 4
 -- The truck's beds and bays are read again this often (seconds), not every frame.
 local TRUCK_REFRESH = 0.4
 local GHOST_FITS = Color3.fromRGB(120, 220, 90)
@@ -56,6 +61,8 @@ type Target = {
 	bed: BedLayout.Bed?,
 	anchor: number?,
 	cells: { number }?,
+	instance: Instance?,
+	key: number?,
 	second: { action: string, text: string }?,
 }
 
@@ -91,19 +98,9 @@ end
 
 -- Your crew's truck, at the crew leader's business.
 local function crewTruck(): Model?
-	local party = ClientState.party
-	local leaderId = if party then party.leader.UserId else player.UserId
-	local businesses = workspace:FindFirstChild("Businesses")
-	if not businesses then
-		return nil
-	end
-	for _, business in businesses:GetChildren() do
-		if business:GetAttribute("OwnerUserId") == leaderId then
-			local truck = business:FindFirstChild("CrewTruck")
-			return if truck and truck:IsA("Model") then truck else nil
-		end
-	end
-	return nil
+	local business = ClientState.crewBusiness()
+	local truck = business and business:FindFirstChild("CrewTruck")
+	return if truck and truck:IsA("Model") then truck else nil
 end
 
 local function truckInfo()
@@ -178,11 +175,32 @@ local function targetFor(thing: Instance, item): Target?
 	if action == "OpenPanel" then
 		local panel = thing:GetAttribute("OpensPanel")
 		return { action = action, text = text, name = name, fits = true, panel = panel }
-	elseif action == "DriveToJob" then
+	elseif action == "DriveToJob" or action == "UseComputer" then
 		if item then
 			return nil
 		end
-		return { action = action, text = text, name = name, fits = true }
+		local business = ClientState.crewBusiness()
+		return {
+			action = action,
+			text = text,
+			name = name,
+			fits = business ~= nil and thing:IsDescendantOf(business),
+			reason = "not your crew's",
+			instance = thing,
+		}
+	elseif action == "OpenBox" then
+		local key = thing:GetAttribute("BoxKey")
+		if thing:GetAttribute("OnlyFor") ~= player.UserId or typeof(key) ~= "number" then
+			return nil
+		end
+		return {
+			action = action,
+			text = text,
+			name = name,
+			fits = item == nil,
+			reason = "your hands are full",
+			key = key,
+		}
 	elseif action == "PickUp" or action == "Unload" then
 		if action == "Unload" and thing:GetAttribute("OnlyFor") ~= player.UserId then
 			return nil
@@ -286,9 +304,23 @@ local function resolve(): Target?
 	end
 
 	local origin, direction = camera.CFrame.Position, camera.CFrame.LookVector
-	rayParams.FilterDescendantsInstances = { character }
+	local ignore: { Instance } = { character }
+	rayParams.FilterDescendantsInstances = ignore
 	local result = workspace:Raycast(origin, direction * REACH, rayParams)
 	local thing = result and interactableOf(result.Instance)
+	-- Look past your crewmates' delivery boxes, to yours.
+	for _ = 1, OTHERS_BOXES do
+		if not (thing and thing:GetAttribute("Interact") == "OpenBox") then
+			break
+		end
+		if thing:GetAttribute("OnlyFor") == player.UserId then
+			break
+		end
+		table.insert(ignore, thing)
+		rayParams.FilterDescendantsInstances = ignore
+		result = workspace:Raycast(origin, direction * REACH, rayParams)
+		thing = result and interactableOf(result.Instance)
+	end
 	local target = thing and targetFor(thing, item)
 	if target and (target.action == "PutBack" or target.action == "PutInBucket") then
 		return target
@@ -380,6 +412,12 @@ local function perform(target: Target, second: boolean)
 			UI.open(target.panel)
 		end
 		return
+	elseif action == "UseComputer" then
+		local desk = target.instance
+		if desk and desk:IsA("Model") then
+			ComputerController.use(desk)
+		end
+		return
 	end
 	busy = true
 	task.spawn(function()
@@ -400,6 +438,8 @@ local function perform(target: Target, second: boolean)
 			_, message = invoke("TakeFromBucket")
 		elseif action == "Park" then
 			_, message = invoke("ParkRide")
+		elseif action == "OpenBox" then
+			_, message = invoke("OpenBox", target.key)
 		end
 		if typeof(message) == "string" then
 			UI.notify(message)

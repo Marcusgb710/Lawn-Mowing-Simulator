@@ -11,6 +11,7 @@ local LOAD_ORDER = {
 	"JobService",
 	"ToolService",
 	"TruckService",
+	"DeliveryService",
 	"ShopService",
 	"MaintenanceService",
 }

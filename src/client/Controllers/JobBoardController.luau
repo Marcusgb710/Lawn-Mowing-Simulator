@@ -1,4 +1,4 @@
--- The job board menu: lists open jobs and lets the crew leader accept one.
+-- The Jobs app on the shop computer: lists open jobs and lets the crew leader accept one.
 -- Each job shows what the customer says and wants done, never which tools to use.
 
 local Players = game:GetService("Players")
@@ -126,7 +126,7 @@ local function render()
 end
 
 function JobBoardController:Start()
-	local window, content = UI.panel("Jobs", "Job Board")
+	local window, content = UI.panel("Jobs", "Jobs")
 	status = UI.label("", { TextColor3 = UI.Colors.SubText, Parent = content })
 	list = UI.scrollingList(content, {
 		Position = UDim2.fromOffset(0, 30),

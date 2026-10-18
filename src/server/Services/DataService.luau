@@ -18,7 +18,7 @@ local DataService = {}
 
 -- Bump this whenever the save format changes, and add a step to MIGRATIONS that turns the
 -- previous version into the new one. Never delete a step: old saves still need it.
-local DATA_VERSION = 5
+local DATA_VERSION = 6
 
 -- MIGRATIONS[n] turns a version n - 1 save into version n. Steps must keep money, xp and every
 -- owned item. Don't use the live config to read an old save: write down what it looked like.
@@ -101,6 +101,12 @@ local MIGRATIONS = {
 			end
 		end
 	end,
+
+	-- 5 -> 6, the shop as the hub. Orders arrive in a box (`deliveries`); everything bought before
+	-- is already unpacked.
+	[6] = function(data)
+		data.deliveries = if typeof(data.deliveries) == "table" then data.deliveries else {}
+	end,
 }
 
 local store: DataStore? = nil
@@ -125,6 +131,8 @@ local function defaultData()
 		spots = {},
 		-- [toolId] = true for hand tools in their tool bucket (they go wherever the bucket goes)
 		bucket = {},
+		-- { key, id, arrives (os.time) } for every order still in its box (see DeliveryService)
+		deliveries = {},
 		trailerUnlocked = false,
 	}
 	for _, category in Items.Categories do
@@ -252,6 +260,21 @@ function DataService.reconcileStorage(data)
 	end
 	data.spots = if typeof(data.spots) == "table" then data.spots else {}
 	data.bucket = if typeof(data.bucket) == "table" then data.bucket else {}
+	-- Boxes for things they don't own anymore (or broken entries) go away.
+	local deliveries = {}
+	local saved = if typeof(data.deliveries) == "table" then data.deliveries else {}
+	for _, delivery in saved do
+		if
+			typeof(delivery) == "table"
+			and typeof(delivery.id) == "string"
+			and owned[delivery.id]
+			and typeof(delivery.key) == "number"
+			and typeof(delivery.arrives) == "number"
+		then
+			table.insert(deliveries, delivery)
+		end
+	end
+	data.deliveries = deliveries
 	for id in data.spots do
 		if not owned[id] then
 			data.spots[id] = nil
@@ -346,6 +369,7 @@ local function snapshot(data)
 		condition = data.condition,
 		spots = data.spots,
 		bucket = data.bucket,
+		deliveries = data.deliveries,
 		-- Their own truck and trailer (in a crew, PartyUpdated has the leader's truck instead).
 		truck = { used = usedSpace, space = space, baysUsed = usedBays, bays = bays },
 		trailerUnlocked = data.trailerUnlocked,

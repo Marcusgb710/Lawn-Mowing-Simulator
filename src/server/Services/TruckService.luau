@@ -22,6 +22,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Assets = require(Shared.Assets)
 local BedGrid = require(Shared.BedGrid)
 local BedLayout = require(Shared.BedLayout)
+local Deliveries = require(Shared.Deliveries)
 local GameConfig = require(Shared.Config.GameConfig)
 local Items = require(Shared.Config.Items)
 local Maintenance = require(Shared.Config.Maintenance)
@@ -449,6 +450,9 @@ function TruckService:PickUp(player: Player, toolId: string): (boolean, string)
 	if data.bucket[item.id] then
 		return false, "That's in your tool bucket."
 	end
+	if Deliveries.pending(data.deliveries, item.id) then
+		return false, "That's still in its box."
+	end
 	if Maintenance.isStationary(item.id) then
 		return false, `The {item.name} stays in the building.`
 	end
@@ -465,6 +469,21 @@ function TruckService:PickUp(player: Player, toolId: string): (boolean, string)
 		return true, `Take the {item.name} up the trailer's ramp and park it on a bay.`
 	end
 	return true, `Take the {item.name} to the truck.`
+end
+
+-- Puts a tool straight into the player's hands, as it comes out of its delivery box (the caller
+-- checks they can take it).
+function TruckService:Hand(player: Player, toolId: string): boolean
+	local data = DataService:Get(player)
+	local item = data and ownedTool(data, toolId)
+	if not item or carried[player] or Maintenance.isStationary(item.id) then
+		return false
+	end
+	return startCarrying(player, item)
+end
+
+function TruckService:IsCarryingAnything(player: Player): boolean
+	return carried[player] ~= nil
 end
 
 -- Puts what you're carrying back in storage: in spot `index` of its kind if you say which (and

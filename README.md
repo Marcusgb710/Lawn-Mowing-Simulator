@@ -1,7 +1,7 @@
 # Lawn Mowing Simulator
 
-A Roblox lawn care game for crews of 1–4 players. Run your own lawn care business, take jobs from
-the job board, load the right tools into your truck, drive out to the house and get the yard done
+A Roblox lawn care game for crews of 1–4 players. Run your own lawn care business, take jobs on
+the computer in your shop, load the right tools into your truck, drive out to the house and get the yard done
 fast without wrecking the customer's flowers. Earn money, upgrade your gear, and grow your business
 from a tool shed into a small office.
 
@@ -58,14 +58,16 @@ Services*. Without it the game still runs, it just doesn't save progress.
 
 ## How the game plays
 
-1. **Your business.** Everyone gets a business plot in town. It has a job board, storage for your
-   tools and your crew truck parked out front. It starts as a **Tool Shed** and can be upgraded to
+1. **Your business.** Everyone gets a business plot in town: the shop is your hub. Inside are
+   the job computer, storage for your tools and a spot by the door where deliveries arrive, and
+   your crew truck waits out front. It starts as a **Tool Shed** and can be upgraded to
    a **Garage**, a **Small Office** and an **Equipment Yard**. Each upgrade pays more per job and
    stores more: hand tools hang on pegboards, long tools stand in wall racks, power tools hang on
    hooks, supplies sit on shelves, mowers park on floor spots and ride-on machines in equipment
    bays. You can't buy a tool you have nowhere to store (the shed has no room for a gas mower), so
    sell what you don't use (half price back) or upgrade.
-2. **Take a job.** At the job board the crew leader picks a job. Customers say what they want done
+2. **Take a job.** At the shop computer (look at it and press E) the crew leader picks a job in
+   the **Jobs** app; everyone can look. Customers say what they want done
    and hint at how ("it has to look immaculate" or "just knock it down before noon"), but **no job
    ever says which tool to use**. Every tool's description in the shop, the Truck checklist and
    the **Guide** says what it's for; knowing your tools is the game. New players get a coach for
@@ -79,7 +81,7 @@ Services*. Without it the game still runs, it just doesn't save progress.
    spot in storage to put a tool back there. Only tools in the truck come with you, and you only get them in
    your hotbar once you reach the house. Every tool takes truck space: hand and long tools 1, power
    tools 2, mowers 4, and a **tool bucket** packs up to 8 hand tools into 1. The rusty pickup holds
-   **6**. Once it's full, **trailers unlock** at the hardware store. Riding mowers only travel on
+   **6**. Once it's full, **trailers unlock** in the Business app. Riding mowers only travel on
    an **equipment trailer**. The **Truck** menu shows every tool, its space and where it is.
 4. **Drive.** The leader hops in the truck. Everyone watches the drive cutscene and arrives at the
    house.
@@ -108,9 +110,11 @@ Services*. Without it the game still runs, it just doesn't save progress.
    and trimmers run out of line. The HUD tells you when something's wrong, never how to fix it.
    Fix things at the workbench at your business, or at the truck's tailgate on a job with the
    supplies you brought.
-8. **Upgrade.** Spend money at the hardware store on better tools (reel push mower → gas → self
-   propelled → riding → zero-turn, and so on for each tool), trucks, trailers and business
-   upgrades. Serious gear needs level 3 and a garage; pro gear needs level 8 and a small office.
+8. **Upgrade.** Order better tools on the shop computer's **Orders** app (reel push mower → gas →
+   self propelled → riding → zero-turn, and so on for each tool): they're delivered in a box to
+   your shop a few seconds later, and you open it and put the tool away. Trucks, trailers and
+   building upgrades are in the **Business** app. Serious gear needs level 3 and a garage; pro
+   gear needs level 8 and a small office. Sell what you don't use from the Orders app.
 
 ### Controls
 
@@ -152,13 +156,14 @@ src/server/                  -> ServerScriptService.Server
   Services/WorldService         the town, business plots and buildings
   Services/PartyService         crews, invites, shared truck space
   Services/LawnService          builds each yard and tracks the work done
-  Services/JobService           job board, driving, timing, payouts, damage
+  Services/JobService           jobs, driving, timing, payouts, damage
+  Services/DeliveryService      ordered tools arriving in boxes at the shop
   Services/ToolService          gives tools and applies their work every tick
   Services/TruckService         carrying tools from storage to the truck and back
   Services/ShopService          buying, selling and equipping
 src/client/                  -> StarterPlayer.StarterPlayerScripts.Client
   init.client.luau              starts every controller
-  Controllers/                  HUD, job board, shop, truck checklist, carrying tools, crew menu,
+  Controllers/                  HUD, shop computer (jobs, orders, business), truck checklist, carrying tools, crew menu,
                                 drive cutscene, first-person camera and arms
 ```
 
@@ -189,8 +194,7 @@ There are two ways to add them:
   the game.
 
 You can also build your own town in Studio: make a Model named `Town` in Workspace with a
-`SpawnLocation`, a ProximityPrompt with the attribute `OpensPanel = "Shop"` for the hardware store,
-and a `Plots` folder with one Part per business plot (front facing the street). The placeholder
+`SpawnLocation` and a `Plots` folder with one Part per business plot (front facing the street). The placeholder
 town is only built when there's no `Town`.
 
 Set the place's max players to 12 or fewer (Game Settings → Places), since the placeholder town has

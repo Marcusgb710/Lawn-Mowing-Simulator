@@ -228,7 +228,7 @@ them with the old mowing jobs.
   to the best player's level (`HomeownerJobsOnBoard`), and the rest go a little above it.
 - **Learning tools:** the **Guide** menu lists every tool in the store with its "what it's for"
   text, by shop tab. Until a player finishes their first job, a coach banner walks them through
-  it one step at a time (take the job, load the truck, drive, do the work), and the job board
+  it one step at a time (take the job, load the truck, drive, do the work), and the Jobs app
   marks the free-gear job as a good first job.
 - New shop tabs: Planting & Weeding, Pruning, Watering and Gloves.
 
@@ -595,11 +595,58 @@ it fits.
 - **Putting tools back.** Every free spot of the right kind can be looked at to hang, rack,
   shelve, set down or park the tool there, with a ghost showing where. Each tool remembers its
   spot (`spots` in the save). Loaded tools keep theirs, so storage doesn't shuffle.
-- **Prompts.** The job board, workbench, hardware store counter, tailgate and "Drive to Job" on
-  the crew truck work the same way, so no ProximityPrompts are left. A custom town's
+- **Prompts.** The shop computer, delivery boxes, workbench, tailgate and "Drive to Job" on the
+  crew truck work the same way, so no ProximityPrompts are left. A custom town's
   ProximityPrompts with `OpensPanel` still work.
 - **Feedback.** Things set down in the bed drop the last stud into place. Sounds are named
   placeholders in `src/shared/Sounds.luau` (Thunk, Pickup, Hang, Bucket) until ids are filled in.
+
+## 9. The shop as the hub
+
+Almost everything happens in your shop. You pick jobs and order gear at the computer inside,
+unbox deliveries by the door, take tools off the walls, load the truck parked at the door and
+drive off from there. Outside, you only decorate and mow your own lawn, for bonus money (coming
+in the next PR).
+
+- **The job computer.** A desk stands on the building's `Desk` marker (on older buildings, out
+  front facing the street). Which desk goes with which building is `desk` in `Items.luau`:
+  `JobLaptopTable` for the Shed, `JobComputerDesk` for the Garage, and `JobOfficeDesk` for the
+  SmallOffice and EquipmentYard. Look at the desk and press E (`ComputerController`):
+  1. you step up to its `UseSpot`;
+  2. the camera eases in to `ScreenView` and the field of view narrows;
+  3. the desktop opens, with four apps:
+     - **Jobs:** today's board, with hints only. Anyone can look; only the crew leader can take
+       a job.
+     - **Orders:** tools and supplies, plus a Sell tab for tools in storage.
+     - **Business:** building, truck and trailer upgrades.
+     - **Crew.**
+
+  The apps are drawn in a ScreenGui framed as the monitor, so they stay readable on phones. Back,
+  walking away, or the crew heading out eases the camera back to first person. The server only
+  takes jobs, purchases, sales and upgrades from someone standing at their crew's computer.
+  There's no town hardware store any more, and no outdoor job board. HUD keys: T truck, G guide,
+  C crew.
+- **Deliveries** (`DeliveryService`, `src/shared/Deliveries.luau`). A tool or supply is yours as
+  soon as it's bought (Shop.luau's tier, storage and money rules are unchanged). It arrives in a
+  box at the building's `DeliverySpot` after `GameConfig.DeliveryTime` (15 s), or straight away
+  if you were out on a job when you ordered.
+
+  | Size class | Box |
+  | --- | --- |
+  | Hand, Supply | `DeliveryBoxSmall` |
+  | Long | `DeliveryBoxLong` |
+  | HangingPower, FloorManual, FloorEngine | `DeliveryBoxLarge` |
+  | Bay (ride-ons) | `DeliveryCrate` |
+
+  Look at your box and press E: its flaps (lid, crate front) swing open on their hinges, the
+  tool shows at `Contents`, then it comes up into your hands (on a ride-on, you're in the seat)
+  and the empty box goes away. Hang it up or load it like any tool. Until it's opened the tool
+  is in its box: not in storage, and it can't be loaded. Unopened boxes are saved
+  (`deliveries`) and turn up again when you rejoin. Selling a boxed tool sends the box back.
+  Restocking a consumable refills it at once, and trucks, trailers and buildings don't come in a
+  box. Choice made: opening a box puts the tool straight into your hands, instead of leaving it
+  in the open box to pick up, so there's no half-open state to save.
+- Boxes stand in rows at the crew's delivery spot, and move with the crew.
 
 ## Phases
 
@@ -611,7 +658,10 @@ it fits.
 | D | Tier-2: holes, trenches and sod, deep beds, hauling from a pile to a bed, spreader and sprayer, branch thickness | done |
 | E | Maintenance systems and supplies | done |
 | F | Tier-3 pro equipment and the turf renovation sequence | done |
-| Camera | First person: arms, tools posed for the view, mouse and menus, crosshair, camera motion | **this PR** |
+| Camera | First person: arms, tools posed for the view, mouse and menus, crosshair, camera motion | done |
+| Immersion 1 | Walk-in buildings, truck parked at the door, tailgates and ramps | done |
+| Immersion 2 | Look-at loading, bed grid, tool bucket, ride-ons on the trailer | done |
+| Hub 1 | Job computer, Orders and Business apps, deliveries in boxes | **this PR** |
 
 New tools are already in `Tools.luau` with `available = false`, so they aren't sold until the
 phase that gives them work.
@@ -639,6 +689,8 @@ phase that gives them work.
 - **Version 5 (Immersion)** adds `spots` (the storage spot each tool goes back to) and `bucket`
   (the hand tools in the tool bucket). A v4 bucket in the truck carried up to 8 of the hand tools
   loaded with it, so those go in the bucket and the load stays the same.
+- **Version 6 (the shop as the hub)** adds `deliveries`, the orders still in their box. Everything
+  bought before is already unpacked.
 
 ## New item ids for modelers
 
@@ -719,3 +771,10 @@ by a part named `Handle` (see `assets/README.md`).
 | StoragePegboard | `Assets/Props` | Wall pegboard panel with hooks for hand tools |
 | StorageWallRack | `Assets/Props` | Wall rack with slots for long-handled tools |
 | StorageWallHooks | `Assets/Props` | Row of heavy wall hooks for trimmers and blowers |
+| JobLaptopTable | `Assets/Props` | Shed job computer: folding table, rugged laptop (`__Screen`), stool (`__Chair`), `UseSpot`, `ScreenView` (instructions33) |
+| JobComputerDesk | `Assets/Props` | Garage job computer: steel tanker desk, monitor (`__Screen`), shop stool (`__Chair`), `UseSpot`, `ScreenView` |
+| JobOfficeDesk | `Assets/Props` | SmallOffice and EquipmentYard job computer: L-desk, two monitors (`__Screen`, `__Screen2`), office chair (`__Chair`), `UseSpot`, `ScreenView` |
+| DeliveryBoxSmall | `Assets/Props` | Small taped box, `__FlapL` / `__FlapR` on their hinges, `Contents` |
+| DeliveryBoxLong | `Assets/Props` | Long narrow box, `__Lid` hinged at the back, `Contents` |
+| DeliveryBoxLarge | `Assets/Props` | Large box, `__FlapL` / `__FlapR` / `__FlapF` / `__FlapB`, `Contents` |
+| DeliveryCrate | `Assets/Props` | Wooden crate on a pallet, `__Lid` and `__FrontPanel` (hinged at the bottom into a ramp), `Contents` |

@@ -39,6 +39,9 @@ local GameConfig = {
 
 	-- Selling a tool back to the hardware store returns this fraction of its price.
 	SellRefund = 0.5,
+	-- Seconds until something you order on the shop computer is delivered to the shop (at once if
+	-- you're away on a job when you order).
+	DeliveryTime = 15,
 
 	-- How often tools do work, in seconds.
 	WorkTickRate = 0.1,
