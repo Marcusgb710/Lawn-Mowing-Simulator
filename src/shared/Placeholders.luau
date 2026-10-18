@@ -492,6 +492,40 @@ local PROP_BUILDERS = {
 		fixture(model, Color3.fromRGB(110, 80, 55), Vector3.new(3.5, 1, 0.2), slots, hooks)
 	end,
 
+	-- A sturdy bench with a vise and a pegboard back, standing at -Z.
+	Workbench = function(model: Model)
+		local add = propAdder(model)
+		model.PrimaryPart = add({
+			Name = "Root",
+			Size = Vector3.new(1, 1, 1),
+			Position = Vector3.new(0, 0.5, 0),
+			Transparency = 1,
+			CanCollide = false,
+			CanTouch = false,
+			CanQuery = false,
+		})
+		local wood = Color3.fromRGB(150, 110, 70)
+		add({ Name = "Top", Size = Vector3.new(6.5, 0.3, 2.2), Position = Vector3.new(0, 3.15, 0), Color = wood })
+		add({ Name = "Shelf", Size = Vector3.new(6.1, 0.2, 1.9), Position = Vector3.new(0, 0.8, 0), Color = wood })
+		for _, x in { -3, 3 } do
+			for _, z in { -0.9, 0.9 } do
+				add({ Name = "Leg", Size = Vector3.new(0.3, 3, 0.3), Position = Vector3.new(x, 1.5, z), Color = wood })
+			end
+		end
+		add({
+			Name = "Pegboard",
+			Size = Vector3.new(6.5, 2.7, 0.15),
+			Position = Vector3.new(0, 4.65, 1.05),
+			Color = Color3.fromRGB(175, 135, 90),
+		})
+		add({
+			Name = "Vise",
+			Size = Vector3.new(0.7, 0.6, 0.8),
+			Position = Vector3.new(-2.8, 3.6, -0.9),
+			Color = Color3.fromRGB(60, 70, 90),
+		})
+	end,
+
 	-- A floor-standing metal shelf: 3 boards with room for 2 supplies each.
 	StorageShelf = function(model: Model)
 		local slots, extras = {}, {}

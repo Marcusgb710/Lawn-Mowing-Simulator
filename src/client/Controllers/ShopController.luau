@@ -7,6 +7,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Format = require(Shared.Format)
 local Items = require(Shared.Config.Items)
+local Maintenance = require(Shared.Config.Maintenance)
 local Net = require(Shared.Net)
 local Shop = require(Shared.Shop)
 local Storage = require(Shared.Config.Storage)
@@ -66,6 +67,13 @@ local function statsText(item): string
 	if item.motorized == false then
 		table.insert(parts, "No motor")
 	end
+	local supply = Maintenance.Supplies[item.id]
+	if supply and supply.uses then
+		table.insert(parts, if supply.uses == 1 then "One use" else `{supply.uses} uses, then restock`)
+	end
+	if supply and supply.stationary then
+		table.insert(parts, "Stays in the building")
+	end
 	return table.concat(parts, "  ·  ")
 end
 
@@ -108,7 +116,13 @@ local function buttonFor(profile, item): (string, Color3, string?, string?)
 	local owned = profile.owned[category] and profile.owned[category][item.id]
 	if Items.isToolCategory(category) then
 		if owned then
-			if not Shop.canSell(item) then
+			if Shop.canRestock(profile, item.id) then
+				local affordable = profile.money >= item.price
+				return `Restock {Format.money(item.price)}`,
+					if affordable then UI.Colors.Money else UI.Colors.Disabled,
+					"BuyItem",
+					nil
+			elseif not Shop.canSell(item) then
 				return "Starter", UI.Colors.Disabled, nil, nil
 			elseif confirmingSell == item.id then
 				return "Tap to sell", UI.Colors.Danger, "SellItem", nil

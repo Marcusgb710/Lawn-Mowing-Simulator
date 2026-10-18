@@ -15,6 +15,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Assets = require(Shared.Assets)
 local GameConfig = require(Shared.Config.GameConfig)
 local Items = require(Shared.Config.Items)
+local Maintenance = require(Shared.Config.Maintenance)
 local Net = require(Shared.Net)
 local Storage = require(Shared.Config.Storage)
 local Tools = require(Shared.Config.Tools)
@@ -308,6 +309,9 @@ function TruckService:PickUp(player: Player, toolId: string): (boolean, string)
 	end
 	if data.loadout[item.id] then
 		return false, "That's already in the truck."
+	end
+	if Maintenance.isStationary(item.id) then
+		return false, `The {item.name} stays in the building.`
 	end
 	if JobService:IsBusy(player) then
 		return false, "Not in the middle of a job."

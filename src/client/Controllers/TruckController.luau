@@ -1,6 +1,6 @@
--- The "Truck" menu: a checklist of your tools (what each is for, how much room it takes, and
--- whether it's in the truck, in your hands or in storage) next to the customer's to-do list. It
--- never says which tool a job needs. Loading happens by hand (see CarryController); "Grab" here
+-- The "Truck" menu: a checklist of your tools (what each is for, how much room it takes, what
+-- shape it's in, and whether it's in the truck, in your hands or in storage) next to the
+-- customer's to-do list. It never says which tool a job needs, or which supply fixes a tool. Loading happens by hand (see CarryController); "Grab" here
 -- picks a tool out of storage for you when you're standing at it.
 
 local Players = game:GetService("Players")
@@ -8,6 +8,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Items = require(Shared.Config.Items)
+local Maintenance = require(Shared.Config.Maintenance)
 local Storage = require(Shared.Config.Storage)
 local Tools = require(Shared.Config.Tools)
 
@@ -41,6 +42,19 @@ local function spaceText(item): string
 	end
 	local space = Tools.SizeClasses[item.sizeClass].space
 	return if space == 1 then "1 space" else `{space} space`
+end
+
+-- What shape a tool is in, in words ("Tire looks soft"), and whether that's a problem.
+local function conditionText(item, condition): (string, boolean)
+	local warnings = Maintenance.warnings(item, condition or {})
+	if #warnings > 0 then
+		return table.concat(warnings, "  ·  "), true
+	end
+	local supply = Maintenance.Supplies[item.id]
+	if supply and supply.uses and condition and condition.uses then
+		return `{condition.uses} of {supply.uses} left`, false
+	end
+	return "In good shape", false
 end
 
 local function render()
@@ -103,6 +117,16 @@ local function render()
 			TextSize = 14,
 			TextColor3 = UI.Colors.SubText,
 			LayoutOrder = 3,
+			Parent = details,
+		})
+		local shape, worn = conditionText(item, profile.condition and profile.condition[item.id])
+		UI.label(shape, {
+			Size = UDim2.fromScale(1, 0),
+			AutomaticSize = Enum.AutomaticSize.Y,
+			TextWrapped = true,
+			TextSize = 14,
+			TextColor3 = if worn then UI.Colors.Money else UI.Colors.Accent,
+			LayoutOrder = 4,
 			Parent = details,
 		})
 

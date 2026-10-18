@@ -8,6 +8,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Format = require(Shared.Format)
 local GameConfig = require(Shared.Config.GameConfig)
 local Items = require(Shared.Config.Items)
+local Maintenance = require(Shared.Config.Maintenance)
 local Net = require(Shared.Net)
 local Shop = require(Shared.Shop)
 local Storage = require(Shared.Config.Storage)
@@ -53,6 +54,7 @@ local function shopState(data)
 		equipped = data.equipped,
 		level = GameConfig.levelFromXp(data.xp),
 		trailerUnlocked = data.trailerUnlocked,
+		condition = data.condition,
 	}
 end
 
@@ -73,7 +75,16 @@ function ShopService:Buy(player: Player, category: string, itemId: string): (boo
 		return false, `You need {Format.money(item.price - data.money)} more.`
 	end
 
+	if data.owned[category][itemId] then
+		-- Buying a consumable you already have refills it.
+		data.condition[itemId] = Maintenance.fresh(item)
+		DataService:Changed(player)
+		return true, `Restocked the {item.name}.`
+	end
 	data.owned[category][itemId] = true
+	if Items.isToolCategory(category) then
+		data.condition[itemId] = Maintenance.fresh(item)
+	end
 	if not Items.isToolCategory(category) then
 		return self:Equip(player, category, itemId)
 	end
@@ -108,6 +119,7 @@ function ShopService:Sell(player: Player, category: string, itemId: string): (bo
 
 	local refund = Shop.sellPrice(item)
 	data.owned[category][itemId] = nil
+	data.condition[itemId] = nil
 	DataService:AddMoney(player, refund)
 	TruckService:GearChanged(player)
 	return true, `Sold the {item.name} for {Format.money(refund)}.`

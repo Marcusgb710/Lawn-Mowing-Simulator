@@ -7,6 +7,10 @@
 -- drives them around like walking. Push mowers and other walk-behind machines are held low
 -- enough that their wheels touch the ground. Tools say whether they're working with a "Working"
 -- attribute, so ToolFxController can spin blades and spools.
+--
+-- Tools wear out as they work (fuel, tires, blades, trimmer line; see Maintenance.luau). Their
+-- condition is copied onto the Tool as attributes (Fuel, Pressure, Flat, Sharpness, Line,
+-- Broken) for the HUD.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -16,6 +20,8 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Assets = require(Shared.Assets)
 local GameConfig = require(Shared.Config.GameConfig)
 local Items = require(Shared.Config.Items)
+local Maintenance = require(Shared.Config.Maintenance)
+local Net = require(Shared.Net)
 local Storage = require(Shared.Config.Storage)
 local Tools = require(Shared.Config.Tools)
 
@@ -52,6 +58,26 @@ local ToolService = {}
 
 -- [Tool] = true while the tool is running
 local running = {}
+local rng = Random.new()
+
+-- Condition fields copied onto Tool attributes, and their attribute names.
+local CONDITION_ATTRIBUTES =
+	{ fuel = "Fuel", pressure = "Pressure", flat = "Flat", sharpness = "Sharpness", line = "Line", broken = "Broken" }
+
+-- Copies a tool's condition onto it for the HUD. Numbers only update once they've moved a bit,
+-- so a running mower doesn't send an update every tick.
+local function syncCondition(tool: Tool, condition)
+	for key, attribute in CONDITION_ATTRIBUTES do
+		local value = condition[key]
+		local current = tool:GetAttribute(attribute)
+		local changed = if typeof(value) == "number" and typeof(current) == "number"
+			then math.abs(value - current) >= 0.01 or (value <= 0) ~= (current <= 0)
+			else value ~= current
+		if changed then
+			tool:SetAttribute(attribute, value)
+		end
+	end
+end
 
 local function getHumanoid(player: Player): Humanoid?
 	local character = player.Character
@@ -271,6 +297,7 @@ function ToolService:GiveTools(player: Player)
 		tool.CanBeDropped = false
 		tool:SetAttribute("Category", item.category)
 		tool:SetAttribute("ItemId", itemId)
+		syncCondition(tool, data.condition[itemId] or {})
 		if item.ride then
 			setUpRide(player, tool, item)
 		elseif height and GROUNDED[item.sizeClass] then
@@ -283,6 +310,23 @@ function ToolService:GiveTools(player: Player)
 		-- Swapping gear shouldn't make you put your tool away.
 		if itemId == wasHolding and humanoid then
 			humanoid:EquipTool(tool)
+		end
+	end
+end
+
+-- Call after a player's tools were worked on, so the HUD shows their new condition.
+function ToolService:RefreshCondition(player: Player)
+	local data = DataService:Get(player)
+	if not data then
+		return
+	end
+	for _, container in { player:FindFirstChildOfClass("Backpack"), player.Character } do
+		for _, child in container and container:GetChildren() or {} do
+			local itemId = child:IsA("Tool") and child:GetAttribute("ItemId")
+			if itemId and data.condition[itemId] then
+				syncCondition(child, data.condition[itemId])
+				child:SetAttribute("Blocked", nil)
+			end
 		end
 	end
 end
@@ -302,19 +346,46 @@ local function workTick(elapsed: number)
 
 		local itemId = tool:GetAttribute("ItemId")
 		local item = Tools.get(itemId)
+		local data = DataService:Get(player)
+		local condition = data and data.condition[itemId] or {}
 		local moving = humanoid.MoveDirection.Magnitude > 0.1
+
+		-- Out of fuel, a flat, no line or a wrecked engine: it just won't go. Say so once.
+		local blocker = Maintenance.blocker(item, condition)
+		if tool:GetAttribute("Blocked") ~= blocker then
+			tool:SetAttribute("Blocked", blocker)
+			if blocker then
+				Net.event("Notify"):FireClient(player, blocker)
+			end
+		end
+		if blocker then
+			setFx(tool, false)
+			continue
+		end
 		if item.motorized == false and not moving then
 			setFx(tool, false)
 			continue
 		end
 
+		-- Soft tires slow you down; a dull blade cuts slower and rougher.
+		local speed, quality = Maintenance.effects(condition)
+		if item.walkSpeed and tool.Parent == character then
+			local walkSpeed = item.walkSpeed * Maintenance.tireFactor(condition)
+			if math.abs(humanoid.WalkSpeed - walkSpeed) > 0.1 then
+				humanoid.WalkSpeed = walkSpeed
+			end
+		end
+
 		local position = root.Position + root.CFrame.LookVector * REACH_OFFSET
-		JobService:ApplyWork(player, position, item.radius, itemId, item.power * elapsed, {
+		local cut = JobService:ApplyWork(player, position, item.radius, itemId, item.power * elapsed * speed, {
 			damagesHazards = Tools.damagesHazards(item),
 			quiet = item.use == "Passive" and not moving,
 			moving = moving,
 			seconds = elapsed,
+			qualityScale = quality,
 		})
+		Maintenance.wear(item, condition, elapsed, true, moving, cut == true, rng:NextNumber())
+		syncCondition(tool, condition)
 		setFx(tool, true)
 	end
 end

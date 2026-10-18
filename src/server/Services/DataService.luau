@@ -10,6 +10,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local GameConfig = require(Shared.Config.GameConfig)
 local Items = require(Shared.Config.Items)
+local Maintenance = require(Shared.Config.Maintenance)
 local Net = require(Shared.Net)
 local Storage = require(Shared.Config.Storage)
 
@@ -17,7 +18,7 @@ local DataService = {}
 
 -- Bump this whenever the save format changes, and add a step to MIGRATIONS that turns the
 -- previous version into the new one. Never delete a step: old saves still need it.
-local DATA_VERSION = 3
+local DATA_VERSION = 4
 
 -- MIGRATIONS[n] turns a version n - 1 save into version n. Steps must keep money, xp and every
 -- owned item. Don't use the live config to read an old save: write down what it looked like.
@@ -56,6 +57,12 @@ local MIGRATIONS = {
 			end
 		end
 	end,
+
+	-- 3 -> 4, maintenance (design phase E). Every owned tool gets a condition (fuel, tires, blade,
+	-- line). reconcile() fills it in as good as new, so nobody's gear starts out worn.
+	[4] = function(data)
+		data.condition = if typeof(data.condition) == "table" then data.condition else {}
+	end,
 }
 
 local store: DataStore? = nil
@@ -74,6 +81,8 @@ local function defaultData()
 		equipped = {},
 		-- [toolId] = true for the tools sitting in their truck
 		loadout = {},
+		-- [toolId] = fuel, tires, blade and line of every owned tool (see Maintenance.luau)
+		condition = {},
 		trailerUnlocked = false,
 	}
 	for _, category in Items.Categories do
@@ -90,6 +99,7 @@ local function defaultData()
 		data.loadout[tool.id] = true
 	end
 	DataService.trimLoadout(data)
+	DataService.reconcileCondition(data)
 	return data
 end
 
@@ -147,7 +157,17 @@ local function reconcile(data)
 		end
 	end
 	DataService.trimLoadout(data)
+	DataService.reconcileCondition(data)
 	return data
+end
+
+-- Gives every owned tool a condition (new ones start as good as new) and forgets sold ones.
+function DataService.reconcileCondition(data)
+	local condition = {}
+	for _, tool in Items.ownedTools(data.owned) do
+		condition[tool.id] = Maintenance.reconcile(tool, data.condition[tool.id])
+	end
+	data.condition = condition
 end
 
 -- Unloads tools that aren't owned anymore or don't fit in their own truck and trailer.
@@ -250,6 +270,7 @@ local function snapshot(data)
 		owned = data.owned,
 		equipped = data.equipped,
 		loadout = data.loadout,
+		condition = data.condition,
 		-- Their own truck and trailer (in a crew, PartyUpdated has the leader's truck instead).
 		truck = { used = usedSpace, space = space, baysUsed = usedBays, bays = bays },
 		trailerUnlocked = data.trailerUnlocked,
