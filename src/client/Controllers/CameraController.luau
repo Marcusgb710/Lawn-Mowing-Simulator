@@ -1,7 +1,7 @@
 -- First person (docs/GAME_DESIGN.md, "Camera"). The camera is locked in first person
 -- (StarterPlayer.CameraMode, set again here), except during the drive cutscene, which runs its
 -- own camera and hands it back after. This also:
---   * frees the mouse while a menu or popup is open, or while you hold Left Alt: in first person
+--   * frees the mouse while a menu is open, or while you hold Left Alt: in first person
 --     it's locked to the middle of the screen, so menu buttons couldn't be clicked otherwise
 --   * draws the dot in the middle of the screen that you aim with
 --   * bobs the camera a little as you walk and shakes it slightly while a gas engine you're using
@@ -59,12 +59,17 @@ function CameraController.isFirstPerson(): boolean
 	return (camera.CFrame.Position - head.Position).Magnitude < FIRST_PERSON_RANGE
 end
 
+-- Whether the game has any camera motion at all (GameConfig.Camera), for the switch to show.
+function CameraController.hasMotion(): boolean
+	return Settings.HeadBob or Settings.EngineShake
+end
+
 function CameraController.isMotionOn(): boolean
 	return motionOn
 end
 
 function CameraController.setMotion(on: boolean)
-	if motionOn ~= on then
+	if CameraController.hasMotion() and motionOn ~= on then
 		motionOn = on
 		CameraController.MotionChanged:Fire(on)
 	end
@@ -130,7 +135,7 @@ function CameraController:Start()
 	player.CameraMode = Enum.CameraMode.LockFirstPerson
 	setUpCamera()
 	workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(setUpCamera)
-	motionOn = Settings.HeadBob or Settings.EngineShake
+	motionOn = CameraController.hasMotion()
 
 	cursorButton = UI.new("TextButton", {
 		Name = "FreeCursor",

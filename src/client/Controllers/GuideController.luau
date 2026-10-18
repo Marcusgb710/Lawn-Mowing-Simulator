@@ -26,30 +26,32 @@ local function render()
 	UI.clearList(list)
 	local profile = ClientState.profile
 
-	local motion = UI.new("Frame", {
-		Size = UDim2.new(1, -8, 0, 44),
-		BackgroundColor3 = UI.Colors.Card,
-		LayoutOrder = -1,
-		Parent = list,
-	}, { UI.corner(8) })
-	UI.label("Camera motion (head bob, engine shake)", {
-		Position = UDim2.fromOffset(10, 0),
-		Size = UDim2.new(1, -120, 1, 0),
-		TextSize = 15,
-		TextWrapped = true,
-		Parent = motion,
-	})
-	local on = CameraController.isMotionOn()
-	UI.button(if on then "On" else "Off", function()
-		CameraController.setMotion(not CameraController.isMotionOn())
-		render()
-	end, {
-		AnchorPoint = Vector2.new(1, 0.5),
-		Position = UDim2.new(1, -8, 0.5, 0),
-		Size = UDim2.fromOffset(90, 30),
-		BackgroundColor3 = if on then UI.Colors.Accent else UI.Colors.Disabled,
-		Parent = motion,
-	})
+	if CameraController.hasMotion() then
+		local motion = UI.new("Frame", {
+			Size = UDim2.new(1, -8, 0, 44),
+			BackgroundColor3 = UI.Colors.Card,
+			LayoutOrder = -1,
+			Parent = list,
+		}, { UI.corner(8) })
+		UI.label("Camera motion (head bob, engine shake)", {
+			Position = UDim2.fromOffset(10, 0),
+			Size = UDim2.new(1, -120, 1, 0),
+			TextSize = 15,
+			TextWrapped = true,
+			Parent = motion,
+		})
+		local on = CameraController.isMotionOn()
+		-- MotionChanged redraws the Guide.
+		UI.button(if on then "On" else "Off", function()
+			CameraController.setMotion(not CameraController.isMotionOn())
+		end, {
+			AnchorPoint = Vector2.new(1, 0.5),
+			Position = UDim2.new(1, -8, 0.5, 0),
+			Size = UDim2.fromOffset(90, 30),
+			BackgroundColor3 = if on then UI.Colors.Accent else UI.Colors.Disabled,
+			Parent = motion,
+		})
+	end
 
 	UI.label("Jobs never say which tool to use. Here's what each one is for.", {
 		Size = UDim2.new(1, -8, 0, 0),

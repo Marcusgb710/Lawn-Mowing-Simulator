@@ -185,7 +185,7 @@ local function onKey(input: InputObject, processed: boolean)
 			return
 		end
 	end
-	if input.KeyCode == MOTION_KEY then
+	if input.KeyCode == MOTION_KEY and CameraController.hasMotion() then
 		local on = not CameraController.isMotionOn()
 		CameraController.setMotion(on)
 		UI.notify(if on then "Camera motion on" else "Camera motion off")

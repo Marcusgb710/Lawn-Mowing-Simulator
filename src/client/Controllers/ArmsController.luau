@@ -74,7 +74,7 @@ local ArmsController = {}
 
 type Shape = {
 	parts: { BasePart },
-	corners: { Vector3 }, -- every part's corners, relative to the handle
+	corners: { Vector3 }, -- the corners of the tool's box, relative to the handle
 	below: number, -- how far the tool reaches below the handle
 	above: number, -- and above it
 	far: Vector3, -- its point farthest from the handle
@@ -111,6 +111,7 @@ local function shapeOf(container: Instance, handle: BasePart): Shape
 	end
 	local shape: Shape = { parts = {}, corners = {}, below = 0, above = 0, far = Vector3.zero }
 	local frame = handle.CFrame
+	local low, high = Vector3.zero, Vector3.zero
 	for _, descendant in container:GetDescendants() do
 		if descendant:IsA("BasePart") then
 			table.insert(shape.parts, descendant)
@@ -121,9 +122,7 @@ local function shapeOf(container: Instance, handle: BasePart): Shape
 						for _, z in { -1, 1 } do
 							local world = descendant.CFrame:PointToWorldSpace(half * Vector3.new(x, y, z))
 							local corner = frame:PointToObjectSpace(world)
-							table.insert(shape.corners, corner)
-							shape.below = math.max(shape.below, -corner.Y)
-							shape.above = math.max(shape.above, corner.Y)
+							low, high = low:Min(corner), high:Max(corner)
 							if corner.Magnitude > shape.far.Magnitude then
 								shape.far = corner
 							end
@@ -139,6 +138,16 @@ local function shapeOf(container: Instance, handle: BasePart): Shape
 			end
 		end
 	end
+	-- Only the corners of the whole tool's box are kept, so posing it every frame stays cheap
+	-- however detailed the model is.
+	for _, x in { low.X, high.X } do
+		for _, y in { low.Y, high.Y } do
+			for _, z in { low.Z, high.Z } do
+				table.insert(shape.corners, Vector3.new(x, y, z))
+			end
+		end
+	end
+	shape.below, shape.above = -low.Y, high.Y
 	shapes[container] = shape
 	return shape
 end

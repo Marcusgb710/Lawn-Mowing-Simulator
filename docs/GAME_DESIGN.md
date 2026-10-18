@@ -503,8 +503,10 @@ The game is played in first person (`StarterPlayer.CameraMode = LockFirstPerson`
   keep their normal hold, since they're modelled as worn. Where the work happens doesn't change:
   just in front of you, whichever way you face.
 - **Menus and the mouse.** In first person the mouse is locked to the middle of the screen. While
-  any menu or popup is open (jobs, shop, truck, crew, workbench, guide, a crew invite) it's freed,
-  and locked again when you close it. Hold **Left Alt** to free it any time (to click the HUD).
+  any menu is open (jobs, shop, truck, crew, workbench, guide) it's freed, and locked again when
+  you close it. Hold **Left Alt** to free it any time, to click the HUD or answer a crew invite
+  (an invite doesn't free it by itself: you might be mowing). Each player can only have one
+  invite out to the same person at a time.
   Keys: **J** jobs, **T** truck, **B** shop, **G** guide, **C** crew, shown on the buttons when
   there's a keyboard. Phones keep the touch controls: drag to look, tap buttons and prompts.
 - **Aiming.** A small dot marks the middle of the screen. It's hidden while the mouse is free and

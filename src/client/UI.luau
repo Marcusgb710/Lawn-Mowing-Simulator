@@ -9,9 +9,8 @@ local Signal = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Si
 
 local UI = {}
 
--- Fired when a menu opens or closes, or something starts or stops needing the mouse (see
--- UI.needsCursor). In first person the mouse is locked to the middle of the screen, so
--- CameraController frees it while a menu is open.
+-- Fired when a menu opens or closes. In first person the mouse is locked to the middle of the
+-- screen, so CameraController frees it while a menu is open (see UI.needsCursor).
 UI.CursorChanged = Signal.new()
 
 UI.Colors = {
@@ -30,8 +29,6 @@ local FONT = Enum.Font.FredokaOne
 
 local screen: ScreenGui = nil
 local panels = {}
--- [Instance] = true for popups outside the menus that have buttons to click (crew invites).
-local cursorHolders = {}
 
 -- UI.new("Frame", { Size = ... }, { children })
 function UI.new(className: string, props, children: { Instance }?): any
@@ -212,26 +209,14 @@ function UI.isOpen(name: string): boolean
 	return panels[name] ~= nil and panels[name].Visible
 end
 
--- Keeps the mouse free while `holder` (a popup with buttons) is on screen.
-function UI.holdCursor(holder: Instance)
-	cursorHolders[holder] = true
-	UI.CursorChanged:Fire()
-	holder.AncestryChanged:Connect(function()
-		if not holder:IsDescendantOf(game) and cursorHolders[holder] then
-			cursorHolders[holder] = nil
-			UI.CursorChanged:Fire()
-		end
-	end)
-end
-
--- Whether a menu or popup is open that needs the mouse to click on.
+-- Whether a menu is open, which needs the mouse to click on.
 function UI.needsCursor(): boolean
 	for _, panel in panels do
 		if panel.Visible then
 			return true
 		end
 	end
-	return next(cursorHolders) ~= nil
+	return false
 end
 
 -- Little message that pops up at the top of the screen.
