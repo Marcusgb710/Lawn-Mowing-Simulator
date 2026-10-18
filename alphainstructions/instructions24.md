@@ -1,5 +1,9 @@
 # Instructions 24: High-poly pass, yard props and buildings
 
+> **Updated:** the game is now first person and much more immersive. Read the walk-in building notes below, which changed after this file was first pushed.
+>
+> **Updated again:** almost everything now happens inside the shop. Each business building also needs a `Desk` spot for the job computer and a `DeliverySpot` for delivered boxes (see the markers and the table below). The desks and boxes themselves are in instructions 33.
+
 The customer's house and yard props appear in every job, and the business buildings are on screen
 all the time, so these are the most visible models in the game.
 
@@ -110,25 +114,85 @@ Now: chunky and blocky. Sculpt a classic garden gnome: a pointed hat with folds,
 nose and eyes, coat buttons, a belt with buckle, boots and a small base. Make it read as painted
 resin.
 
+### Walk-in buildings (Shed, Garage, SmallOffice, EquipmentYard)
+
+The game is now **first person**, and the business building is where the player keeps their
+tools. They **walk inside**, take tools off the walls, and carry them out to the truck parked at
+the door. Each business building must therefore be a real, enterable building.
+
+- **Open doorway**: the Shed's door is a separate mesh `<Id>__Door`, shown swung open. Garage
+  doors are separate meshes `<Id>__GarageDoor`, shown rolled up. Openings must be big enough to walk
+  through with a push mower: at least 4 studs wide and 7 tall for doors, and at least 9 studs wide
+  for roll-up doors on buildings that store ride-ons.
+- **Real interior**: a floor (concrete or plank) and walls with real thickness (about 0.4 studs)
+  that look finished on both sides. Show the underside of the roof with rafters or purlins, a
+  light fixture, and windows that let light in. No furniture blocking the walls; the game mounts the
+  storage itself.
+- **Collision**: walls, roof and floor are **separate meshes** (`<Id>__Walls`, `<Id>__Roof`,
+  `<Id>__Floor`, plus separate wall pieces if that keeps them simple). Door and garage-door openings
+  must be real holes in the wall mesh, so the game's collision lets players and machines through.
+- **Markers** (Attachments, children of the `<Id>__Floor` mesh, Orientation as described):
+  - `Mount` on the interior walls, one per fixture, with attributes `Kind` (`"Pegboard"`,
+    `"WallRack"`, `"WallHooks"`, `"Shelf"`, `"Workbench"`, `"Compressor"` or `"Grinder"`) and
+    `Index` (1, 2, …).
+    - The attachment sits on the wall surface at the fixture's bottom-centre, and its front
+      (LookVector) points **into the room**.
+    - Leave room for each fixture: Pegboard 4.5 wide × 3 tall (mount at about 2 studs high),
+      WallRack 5 × 1.5 (about 3 high), WallHooks 3.5 × 1 (about 4.5 high), Shelf 4 × 6 (on the
+      floor), Workbench 6.5 × 6 (on the floor), Compressor and Grinder about 2 × 2.
+  - `Desk`: on the floor where the job computer desk stands, with its LookVector pointing **out
+    from the desk toward where the player stands**. Leave a clear footprint for it: Shed 4.5 × 3,
+    Garage 5.5 × 3.5, SmallOffice and EquipmentYard 6 × 5.5, plus about 3 studs of open floor in
+    front to stand or sit. Put it near the door but out of the way of carrying tools to the truck.
+  - `DeliverySpot`: open floor just inside the main door where delivered boxes appear, about 6 × 4
+    studs on the Shed and Garage and 8 × 8 (room for a ride-on crate) on the SmallOffice and
+    EquipmentYard, LookVector into the room.
+  - `FloorSpot` (attribute `Index`): open floor where a push mower or walk-behind machine stands,
+    about 3 × 6 studs each, facing the door.
+  - `EquipmentBay` (attribute `Index`): a parking space for a ride-on, about 7 × 9 studs, facing
+    out of an opening.
+  - `TruckParking`: outside, on the ground about 9–12 studs in front of the main door. Its
+    LookVector points **away from the building, toward the street (−Z)**, so the truck's tailgate
+    faces the door.
+  - `Light`: under the roof, where the game puts a lamp.
+- **How many of each.** If the building is too small to fit them, make it bigger (see sizes) rather
+  than leaving any out:
+
+  | Building | Pegboard | WallRack | WallHooks | Shelf | FloorSpot | EquipmentBay | Also |
+  | --- | --- | --- | --- | --- | --- | --- | --- |
+  | Shed | 2 | 1 | 1 | 1 | 1 | – | Desk, DeliverySpot |
+  | Garage | 3 | 2 | 2 | 2 | 2 | – | Workbench, Desk, DeliverySpot |
+  | SmallOffice | 4 | 3 | 3 | 2 | 4 | 2 | Workbench, Compressor, Desk, DeliverySpot |
+  | EquipmentYard | 6 | 4 | 5 | 3 | 6 | 5 | Workbench, Compressor, Grinder, Desk, DeliverySpot |
+
+- **Sizes**: these buildings may grow beyond the 5% rule so the interiors fit, up to: Shed
+  14 × 12 × 13 (W × H × D), Garage 28 × 16 × 24, SmallOffice 38 × 18 × 30, EquipmentYard
+  46 × 22 × 34. They must still fit at the back of a 60 × 60 plot. Origin on the ground at the
+  centre, front facing −Z.
+
 ### `Shed` (Buildings)
-Now: a flat box. Make a wooden tool shed with board-and-batten siding, a shingled gable roof with
-trim, a door with Z-bracing, hinges and a handle, a window with a frame, and a concrete or timber
-base.
+Now: a flat box. Make a wooden tool shed you can walk into: board-and-batten siding, a shingled
+gable roof with exposed rafters inside, a plank floor, and a door with Z-bracing and hinges shown
+open. Add a small window, a bare-bulb light at the `Light` marker, and the markers above. Keep it
+cosy but walkable in first person; aim for an interior of about 12 × 10 studs.
 
 ### `Garage` (Buildings)
-Now: a flat box. Build a detached work garage with siding and trim, a sectional roll-up door with
-panels and windows, a regular door with frame, wall lights, a roof with overhang and gutters, and a
-concrete apron.
+Now: a flat box. Make a detached work garage with a **sectional roll-up door raised open** and a
+side door, siding and trim, and a concrete floor with a drain. Add exposed trusses, shop lights,
+gutters, a concrete apron outside, and the markers above. The roll-up door is about 12 wide and
+10 tall.
 
 ### `SmallOffice` (Buildings)
-Now: a flat box. Build a small landscaping business office: a storefront glass door with frame, a
-window row with mullions, an awning, a blank sign board, planters, downspouts and a parapet.
+Now: a flat box. A small landscaping business: a front office (storefront glass door, window row,
+awning and blank sign, with the `Desk` spot for the job computer) **plus a shop area behind or beside
+it, reached through an open roll-up door**. The shop holds all the markers, including 2 equipment
+bays with a 9+ stud opening.
 
 ### `EquipmentYard` (Buildings)
-Now: plain slab walls and roofs. Use ribbed metal-building siding and roof panels with trim, a
-large sectional roll-up door, a regular door, and an open lean-to with 3 bays on steel posts. Add
-wall packs (lights, no glow), downspouts and a concrete apron. Chain-link sections may run only
-along the sides.
+Now: plain slab walls. Make a metal shop building with ribbed siding and roof panels, a **big
+roll-up door raised open** (about 16 × 12), a regular door, and an insulated interior with steel
+frames and shop lights. Add the open-front lean-to, with its **5 equipment bays as
+`EquipmentBay` markers**, and a concrete apron. Chain-link sections may run only along the sides. Put a small office corner inside the shop for the `Desk` spot.
 
 ## Done when
 
@@ -138,4 +202,7 @@ along the sides.
       (or the manifest says where they moved).
 - [ ] Every mesh is under 20,000 triangles, and every model is inside its budget.
 - [ ] The old vs. new previews show a clear jump in detail for every model.
+- [ ] Every business building can be walked into through its open door, and has every `Mount`,
+      `FloorSpot`, `EquipmentBay`, `Desk`, `DeliverySpot`, `TruckParking` and `Light` marker in the table, with a render
+      looking in through the door.
 - [ ] Nothing outside your folder changed.

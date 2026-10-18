@@ -1,5 +1,9 @@
 # Instructions 25: High-poly pass, trucks and trailers
 
+> **Updated:** the game is now first person and much more immersive. Read the tailgate and ramp notes below, which changed after this file was first pushed.
+>
+> **Updated again:** players now get into the truck at the shop and drive off from there, in first person. Every truck also needs a separate driver door and a `DriverSeat` marker (see "For all trucks").
+
 The crew truck sits at every player's business and drives to every job. Right now the pickups
 look like boxy toy cab-overs; they need to look like real pickups.
 
@@ -94,6 +98,10 @@ the models into the game.
 ## Models and what to fix
 
 For all trucks:
+- **The tailgate is a separate mesh, `<Id>__Tailgate`**, modelled closed, with its origin on the
+  hinge line at its bottom edge so the game can swing it down around its own X axis. Players carry
+  tools to the back of the truck and place them in the bed, so the bed floor must be clear and
+  flat, with a real surface (ribbed steel or a bedliner).
 - Real pickup proportions: a **long hood in front of the cab**, a raked windshield, and A/B/C
   pillars.
 - Doors with seams and handles, mirrors, wheel arches with flares, bumpers, a grille with
@@ -103,6 +111,13 @@ For all trucks:
 - Keep the four `__Wheel_*` meshes separate: real tires with tread and sidewall, and rims with lug
   nuts.
 - Keep the bed floor at the current height, because `BedArea` stays where it is.
+- **The driver door is a separate mesh, `<Id>__DriverDoor`** (the left door, on the −X side), with
+  its glass as `<Id>__DriverDoorGlass`. Model it closed, with its origin on the hinge line at the
+  front edge of the door, so the game can swing it open around its own Y axis.
+- **`DriverSeat`** marker inside the cab: at the driver's eye position (about 0.7 studs above the
+  seat cushion and centred on the steering wheel), LookVector forward (−Z). The first-person camera
+  sits here while driving, so the dash, steering wheel, mirrors and the view out of the windshield
+  should look right from that spot. Add a first-person render from it to `Previews/`.
 
 ### `RustyPickup` (Trucks)
 An older compact pickup, gray with rust: dents, rust patches around the wheel arches, one door in a
@@ -117,22 +132,26 @@ A blue heavy-duty crew-cab with dual rear wheels and fender flares, a tall grill
 and tow mirrors.
 
 ### `LandscapingTruck` (Trucks)
-A cab-forward box truck: a green box with ribbed panels and a rear roll-up door shown open, a
-white cab, and dual rear wheels.
+A cab-forward box truck: a green box with ribbed panels, a white cab and dual rear wheels. The
+**rear roll-up door is a separate mesh, `LandscapingTruck__RearDoor`**, modelled closed so the game
+can raise it. The box floor is the cargo bed. There is no tailgate on this one.
 
 ### `UtilityTrailer` (Trailers)
 Now: OK, but thin. Build a steel channel frame, a mesh or wood floor, rails with uprights, fenders,
 lights, a fold-down gate, an A-frame tongue with coupler, safety chains and a jack.
 
 ### `LandscapeTrailer` (Trailers)
-An enclosed trailer: V-nose, ribbed aluminium skin with corner trim, rear ramp door down, tandem
+An enclosed trailer: V-nose, ribbed aluminium skin with corner trim. The **rear ramp door is a
+separate mesh, `LandscapeTrailer__RampDoor`**, modelled closed, with its origin on the bottom hinge.
+Add tandem
 axles, fenders, lights, coupler and jack.
 
 ### `EquipmentTrailer` (Trailers)
 Now: a flat brown slab deck. Build a wood plank deck on a steel frame with D-rings, stake pockets
-and fenders. Add tandem axles with leaf springs, an upright mesh ramp gate, lights, an A-frame
-tongue with coupler, chains and a jack. Keep the `BedArea` and two `BaySpot` markers where they
-are.
+and fenders. Add tandem axles with leaf springs, lights, an A-frame tongue with coupler, chains
+and a jack. **The mesh ramp gate is a separate mesh, `EquipmentTrailer__Ramp`**, modelled upright,
+with its origin on the hinge line at the rear of the deck so the game can lower it. Ride-on
+machines drive up it. Keep the `BedArea` and two `BaySpot` markers where they are.
 
 ## Done when
 
@@ -142,4 +161,8 @@ are.
       (or the manifest says where they moved).
 - [ ] Every mesh is under 20,000 triangles, and every model is inside its budget.
 - [ ] The old vs. new previews show a clear jump in detail for every model.
+- [ ] Tailgates, the box truck's rear door and the trailer ramps are separate meshes, with their
+      origins on their hinges.
+- [ ] Every truck has a separate `__DriverDoor` (and `__DriverDoorGlass`) on its hinge and a
+      `DriverSeat` marker, with a first-person render from the driver's seat.
 - [ ] Nothing outside your folder changed.

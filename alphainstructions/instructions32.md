@@ -1,5 +1,7 @@
 # Instructions 32: High-poly pass, supplies, workbench and storage
 
+> **Updated:** the game is now first person and much more immersive. Read the workbench and new `StorageShelf` notes below, which changed after this file was first pushed.
+
 Maintenance supplies and the business storage fixtures. Most are readable already; a few don't
 look like what they are.
 
@@ -137,7 +139,11 @@ pockets holding a few tool handles.
 ### `Workbench` (Props)
 Refine it: a thick hardwood top with edge detail, legs and stretchers, a lower shelf, a bench vise
 with jaws and handle, and a pegboard back with a few tools. Keep the worktop and legs as separate
-meshes named with `worktop` and `leg`.
+meshes named with `worktop` and `leg`. Repairs are now done by hand in first person, so add two
+Attachments to the worktop:
+- **`ServiceSpot`**: on the floor about 2.5 studs in front of the bench, where a mower is parked and
+  tipped up for service. Its LookVector faces the bench.
+- **`VisePoint`**: between the vise jaws, where hand tools are clamped for sharpening.
 
 ### `StoragePegboard` (Props)
 Now: a board with dots and no visible hooks. Make a pegboard with a hole grid and frame, and **6
@@ -149,9 +155,17 @@ A steel rail with **4 U-holders** for long tools, plus mounting brackets.
 ### `StorageWallHooks` (Props)
 A wooden board with **2 big vinyl-coated utility hooks**.
 
+### `StorageShelf` (Props): new, no current version
+A freestanding steel shelving unit for supplies (gas cans, line, pumps, kits): about **4 wide × 6
+tall × 1.5 deep**, with 3 shelves, upright posts with bolt holes, and a scuffed grey finish. Build it
+like the other fixtures, with its back flat on the Z = 0 plane, front toward −Z, and bottom at Y = 0.
+Make its main mesh `StorageShelf__Body` and give it **6 Attachments, `Slot1` to `Slot6`**, two per
+shelf, on the shelf surface where a supply sits. Its manifest entry uses `folder` `Props`,
+`primary_part` `Root` at (0, 0.5, 0), and lists the slots. Budget: 1,500–3,000 triangles.
+
 ## Done when
 
-- [ ] `GasCan`, `MixGasCan`, `TrimmerLine`, `FootPump`, `ElectricInflator`, `AirCompressor`, `TirePatchKit`, `SpareTire`, `WrenchSet`, `BladeFile`, `SharpeningStone`, `SpareMowerBlade`, `BenchGrinder`, `ToolBucket`, `Workbench`, `StoragePegboard`, `StorageWallRack`, `StorageWallHooks` are rebuilt in `model-source/HighPoly/32_SuppliesAndStorage/`, with the combined
+- [ ] `GasCan`, `MixGasCan`, `TrimmerLine`, `FootPump`, `ElectricInflator`, `AirCompressor`, `TirePatchKit`, `SpareTire`, `WrenchSet`, `BladeFile`, `SharpeningStone`, `SpareMowerBlade`, `BenchGrinder`, `ToolBucket`, `Workbench`, `StoragePegboard`, `StorageWallRack`, `StorageWallHooks`, `StorageShelf` are rebuilt in `model-source/HighPoly/32_SuppliesAndStorage/`, with the combined
       `ALL/32_SuppliesAndStorage.gltf`, the manifest, textures and previews.
 - [ ] Every model's size is within 5% of the current one, and its grip and markers are within 0.1 stud
       (or the manifest says where they moved).
