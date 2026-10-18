@@ -1907,7 +1907,7 @@ export type WorkContext = {
 
 -- Targets that cover the whole lawn. Walking a tool across them on the way to its real work isn't
 -- a mistake, so they only count as "wrong tool" when the tool has nothing left to do here.
-local LAWN_WIDE = { Grass = true, Fertilize = true }
+local LAWN_WIDE = { Grass = true, Fertilize = true, Thatch = true, Aerate = true, Overseed = true, WaterSeed = true }
 
 -- A one-wheeled barrow carrying something heavy tips over about this often per second of walking.
 local TIP_CHANCE = 0.05
