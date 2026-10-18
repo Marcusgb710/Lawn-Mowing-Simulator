@@ -3,7 +3,10 @@
 -- Anything with an `Interact` attribute (on the part you look at, or a model it's in) can be used:
 --   OpenPanel    opens the menu named in OpensPanel (workbench, tailgate)
 --   UseComputer  sits you down at the shop computer (see ComputerController)
---   OpenBox      opens one of your delivery boxes (BoxKey, OnlyFor)
+--   OpenBox      opens one of your delivery boxes (BoxKey, OnlyFor), or one of your crew's
+--                decoration boxes (BoxKind "Decor", ForCrew)
+--   MoveDecor    picks up one of your crew's yard decorations to move it (DecorOwner, DecorKey;
+--                R opens the mailbox), see DecorController
 --   DriveToJob   heads off in the crew truck
 --   PickUp       takes one of your tools out of storage (ToolId)
 --   PutBack      puts what you're carrying back in this free spot (SpotKind, SpotIndex)
@@ -63,6 +66,8 @@ type Target = {
 	cells: { number }?,
 	instance: Instance?,
 	key: number?,
+	kind: string?,
+	ownerId: number?,
 	second: { action: string, text: string }?,
 }
 
@@ -90,6 +95,12 @@ local truckCache = {
 	bays = {} :: { BasePart },
 	at = 0,
 }
+
+-- The crew leader's user id (yours when you're on your own): whose shop and yard you're at.
+local function crewLeaderId(): number
+	local party = ClientState.party
+	return if party then party.leader.UserId else player.UserId
+end
 
 local function carriedItem()
 	local id = player:GetAttribute("Carrying")
@@ -187,6 +198,36 @@ local function targetFor(thing: Instance, item): Target?
 			fits = business ~= nil and thing:IsDescendantOf(business),
 			reason = "not your crew's",
 			instance = thing,
+		}
+	elseif action == "OpenBox" and thing:GetAttribute("BoxKind") == "Decor" then
+		local key = thing:GetAttribute("BoxKey")
+		if thing:GetAttribute("ForCrew") ~= crewLeaderId() or typeof(key) ~= "number" then
+			return nil
+		end
+		return {
+			action = action,
+			text = text,
+			name = name,
+			fits = item == nil,
+			reason = "your hands are full",
+			key = key,
+			kind = "Decor",
+		}
+	elseif action == "MoveDecor" then
+		local ownerId, key = thing:GetAttribute("DecorOwner"), thing:GetAttribute("DecorKey")
+		if ownerId ~= crewLeaderId() or typeof(key) ~= "number" then
+			return nil
+		end
+		local mailbox = thing:GetAttribute("DecorId") == "Mailbox"
+		return {
+			action = action,
+			text = text,
+			name = name,
+			fits = item == nil,
+			reason = "your hands are full",
+			key = key,
+			ownerId = ownerId,
+			second = if mailbox then { action = "UseMailbox", text = "Open or close" } else nil,
 		}
 	elseif action == "OpenBox" then
 		local key = thing:GetAttribute("BoxKey")
@@ -291,6 +332,8 @@ local function resolve(): Target?
 	local camera = workspace.CurrentCamera
 	if
 		busy
+		-- Placing a decoration has its own keys (see DecorController).
+		or player:GetAttribute("PlacingDecor") ~= nil
 		or not (character and root and root:IsA("BasePart") and camera)
 		or not CameraController.isFirstPerson()
 		or UI.needsCursor()
@@ -313,7 +356,8 @@ local function resolve(): Target?
 		if not (thing and thing:GetAttribute("Interact") == "OpenBox") then
 			break
 		end
-		if thing:GetAttribute("OnlyFor") == player.UserId then
+		local crewBox = thing:GetAttribute("BoxKind") == "Decor" and thing:GetAttribute("ForCrew") == crewLeaderId()
+		if crewBox or thing:GetAttribute("OnlyFor") == player.UserId then
 			break
 		end
 		table.insert(ignore, thing)
@@ -439,7 +483,11 @@ local function perform(target: Target, second: boolean)
 		elseif action == "Park" then
 			_, message = invoke("ParkRide")
 		elseif action == "OpenBox" then
-			_, message = invoke("OpenBox", target.key)
+			_, message = invoke("OpenBox", target.key, target.kind)
+		elseif action == "MoveDecor" then
+			_, message = invoke("MoveDecor", target.ownerId, target.key)
+		elseif action == "UseMailbox" then
+			_, message = invoke("UseMailbox", target.ownerId, target.key)
 		end
 		if typeof(message) == "string" then
 			UI.notify(message)

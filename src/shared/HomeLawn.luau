@@ -1,6 +1,7 @@
 -- Your business's own front lawn and its curb appeal (docs/GAME_DESIGN.md, "Your own lawn"): the
 -- rules HomeLawnService, JobService and the HUD share.
 
+local Decorations = require(script.Parent.Config.Decorations)
 local GameConfig = require(script.Parent.Config.GameConfig)
 
 local HomeLawn = {}
@@ -51,6 +52,33 @@ function HomeLawn.curbAppeal(lawnShare: number, decorShare: number?): number
 	local points = math.clamp(lawnShare, 0, 1) * config.LawnPoints
 		+ math.clamp(decorShare or 0, 0, 1) * config.DecorPoints
 	return math.clamp(math.floor(points + 0.5), 0, 100)
+end
+
+-- How well decorated the yard is, 0-1, from what's placed there ({ id, overgrown? } each). Every
+-- extra one of a kind is worth less (DecorRepeat), an overgrown shrub counts for less
+-- (OvergrownShare), and the total levels off, so a few good pieces beat a yard full of flamingos.
+function HomeLawn.decorShare(placed: { { id: string, overgrown: boolean? } }): number
+	local config = GameConfig.CurbAppeal
+	local byKind = {}
+	for _, entry in placed do
+		local decoration = Decorations.get(entry.id)
+		if decoration then
+			byKind[decoration.id] = byKind[decoration.id] or {}
+			table.insert(byKind[decoration.id], if entry.overgrown then config.OvergrownShare else 1)
+		end
+	end
+	local points = 0
+	for id, shares in byKind do
+		-- The tidy ones count first, so it's the overgrown ones that lose out.
+		table.sort(shares, function(a, b)
+			return a > b
+		end)
+		local appeal = Decorations.get(id).appeal
+		for index, share in shares do
+			points += appeal * share * config.DecorRepeat ^ (index - 1)
+		end
+	end
+	return points / (points + config.DecorHalfPoints)
 end
 
 -- Job pay multiplier for a crew whose business has this curb appeal.

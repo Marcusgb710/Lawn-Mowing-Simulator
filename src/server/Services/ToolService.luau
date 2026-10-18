@@ -475,7 +475,7 @@ local function workTick(elapsed: number)
 		-- Off the job, tools only work on your own lawn: driving a ride-on or carrying a mower
 		-- around the business does no work and no wear.
 		local atJob = JobService:IsAtJobSite(player)
-		if not (atJob or HomeLawnService:IsOnLawn(player)) then
+		if not (atJob or HomeLawnService:CanWork(player, tool:GetAttribute("ItemId"))) then
 			setFx(tool, false)
 			continue
 		end

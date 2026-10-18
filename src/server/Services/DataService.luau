@@ -18,7 +18,7 @@ local DataService = {}
 
 -- Bump this whenever the save format changes, and add a step to MIGRATIONS that turns the
 -- previous version into the new one. Never delete a step: old saves still need it.
-local DATA_VERSION = 7
+local DATA_VERSION = 8
 
 -- MIGRATIONS[n] turns a version n - 1 save into version n. Steps must keep money, xp and every
 -- owned item. Don't use the live config to read an old save: write down what it looked like.
@@ -118,6 +118,15 @@ local MIGRATIONS = {
 			tipReady = if typeof(saved.tipReady) == "boolean" then saved.tipReady else true,
 		}
 	end,
+
+	-- 7 -> 8, yard decorations (`decor`, see DecorService): none yet.
+	[8] = function(data)
+		local saved = if typeof(data.decor) == "table" then data.decor else {}
+		data.decor = {
+			placed = if typeof(saved.placed) == "table" then saved.placed else {},
+			boxes = if typeof(saved.boxes) == "table" then saved.boxes else {},
+		}
+	end,
 }
 
 local store: DataStore? = nil
@@ -148,6 +157,9 @@ local function defaultData()
 		-- the last tip for tidying it, tipReady = it's grown back enough since then for another }
 		-- (see HomeLawnService)
 		homeLawn = { done = {}, tippedAt = 0, tipReady = true },
+		-- Decorations for your business's yard: `placed` ones ({ key, id, x, z, turn, overgrown,
+		-- grown }) and ones still in their `boxes` ({ key, id, arrives }) (see DecorService)
+		decor = { placed = {}, boxes = {} },
 		trailerUnlocked = false,
 	}
 	for _, category in Items.Categories do
@@ -428,6 +440,13 @@ end
 function DataService:Get(player: Player)
 	local profile = profiles[player]
 	return profile and profile.data
+end
+
+-- Whether this player's progress will be saved: false when their save couldn't be loaded, or is
+-- from a newer version of the game.
+function DataService:CanSave(player: Player): boolean
+	local profile = profiles[player]
+	return profile ~= nil and profile.canSave == true
 end
 
 function DataService:WaitForData(player: Player)

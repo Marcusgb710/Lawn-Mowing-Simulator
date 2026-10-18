@@ -64,7 +64,16 @@ local GameConfig = {
 		DecorPoints = 40,
 		-- Job pay bonus at 100 curb appeal (less below it), for every job your crew does.
 		MaxPayBonus = 0.15,
+		-- Decorations: each extra one of the same kind is worth this much of the one before, an
+		-- overgrown shrub this share of a trimmed one, and a yard with this many appeal points gets
+		-- half the decoration points (more points level off toward all of them).
+		DecorRepeat = 0.6,
+		OvergrownShare = 0.5,
+		DecorHalfPoints = 30,
 	},
+	-- Shrubs you've placed (see DecorService) are overgrown again this many minutes of play after
+	-- you trim them.
+	ShrubRegrowMinutes = 30,
 
 	-- How often tools do work, in seconds.
 	WorkTickRate = 0.1,

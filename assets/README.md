@@ -25,6 +25,11 @@ placeholder, as long as it's named after the item's `id` in `src/shared/Config/I
   door facing forward.
 - `Props/`: `House` (the customer's house), `FlowerPatch` and `GardenGnome` (things players
   must not mow over). If a part in `FlowerPatch` is named `Flower`, it wilts when hit.
+- `Decorations/`: the yard decorations players buy for their business (ids in
+  `src/shared/Config/Decorations.luau`, specs in alphainstructions/instructions34.md). Origin on
+  the ground at the centre, front toward -Z, a `Root` part, markers as attachments on it
+  (`SnapL`/`SnapR`, `Light`, `Fire`, `Spout`, `Water`, `Seat`), and the moving pieces named
+  `<Id>__Overgrowth`, `Mailbox__Door`, `Mailbox__Flag` and `GardenWindmill__Spinner`.
 - `Props/`: `StoragePegboard`, `StorageWallRack`, `StorageWallHooks`, `StorageShelf`, the storage
   fixtures at the business. Back flat on Z = 0, front toward -Z, bottom at Y = 0, an invisible
   `Root` part as the PrimaryPart at (0, 0.5, 0), and `Slot1`, `Slot2`... attachments where tools
