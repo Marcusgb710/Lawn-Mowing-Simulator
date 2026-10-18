@@ -17,6 +17,7 @@ local CONTROLLERS = {
 	"TutorialController",
 	"WorkbenchController",
 	"CarryController",
+	"InteractController",
 	"GrassController",
 	"ToolFxController",
 	"ArmsController",

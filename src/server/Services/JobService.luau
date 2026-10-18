@@ -12,7 +12,6 @@
 -- damage for every flower patch or gnome the crew ran over. Then it's split evenly.
 
 local Players = game:GetService("Players")
-local ProximityPromptService = game:GetService("ProximityPromptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -31,6 +30,9 @@ local DataService = require(script.Parent.DataService)
 local LawnService = require(script.Parent.LawnService)
 local PartyService = require(script.Parent.PartyService)
 local WorldService = require(script.Parent.WorldService)
+
+-- How close to the truck (its bounding box) you have to be to drive off.
+local TRUCK_REACH = 10
 
 local JobService = {}
 -- Fired with (player) when they head out on a job, arrive at the house, or leave the job.
@@ -385,15 +387,12 @@ local function startDriving(job)
 	-- Parked at the house with the tailgate down: it's where you work on your tools.
 	Openings.set(truck, true)
 	truck.Parent = job.lawn.folder
-	-- Supplies you brought can be used on your tools at the tailgate (see MaintenanceService).
-	local tailgate = Instance.new("ProximityPrompt")
-	tailgate.ActionText = "Work on Tools"
-	tailgate.ObjectText = "Tailgate"
-	tailgate.HoldDuration = 0
-	tailgate.MaxActivationDistance = 12
-	tailgate.RequiresLineOfSight = false
-	tailgate:SetAttribute("OpensPanel", "Workbench")
-	tailgate.Parent = truck.PrimaryPart or truck:FindFirstChildWhichIsA("BasePart", true)
+	-- Supplies you brought can be used on your tools at the tailgate (see MaintenanceService):
+	-- look at the truck and press E.
+	truck:SetAttribute("Interact", "OpenPanel")
+	truck:SetAttribute("OpensPanel", "Workbench")
+	truck:SetAttribute("InteractText", "Work on Tools")
+	truck:SetAttribute("InteractName", "Tailgate")
 	job.lawn.folder.Name = "JobSite_" .. job.id
 	job.lawn.folder.Parent = sitesFolder
 
@@ -688,24 +687,22 @@ end
 function JobService:Start()
 	refreshBoard()
 
-	ProximityPromptService.PromptTriggered:Connect(function(prompt, player)
-		if prompt:GetAttribute("Action") ~= "DriveToJob" then
-			return
-		end
+	-- Looking at the crew truck and pressing E (see InteractController) heads out.
+	Net.func("DriveToJob").OnServerInvoke = function(player)
 		local party = PartyService:GetParty(player)
+		local leader = if party then party.leader else player
 		local job = party and readyJobs[party]
-		if party and prompt:GetAttribute("OwnerUserId") ~= party.leader.UserId then
-			notify(player, "That's not your crew's truck.")
+		local truck = WorldService:GetPlotTruck(leader)
+		if not (truck and WorldService:IsNear(player, truck, TRUCK_REACH)) then
+			return false, "Get closer to your crew's truck."
 		elseif not job then
-			if not playerJobs[player] then
-				notify(player, "Pick a job from the Job Board first.")
-			end
-		elseif party.leader ~= player then
-			notify(player, `Waiting for {party.leader.DisplayName} to start the truck.`)
-		else
-			startDriving(job)
+			return false, if playerJobs[player] then nil else "Pick a job from the Job Board first."
+		elseif leader ~= player then
+			return false, `Waiting for {leader.DisplayName} to start the truck.`
 		end
-	end)
+		startDriving(job)
+		return true, nil
+	end
 
 	PartyService.Changed:Connect(function(party)
 		local ready = readyJobs[party]

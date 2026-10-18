@@ -70,10 +70,13 @@ Services*. Without it the game still runs, it just doesn't save progress.
    ever says which tool to use**. Every tool's description in the shop, the Truck checklist and
    the **Guide** says what it's for; knowing your tools is the game. New players get a coach for
    their first job.
-3. **Load the truck by hand.** Walk up to a tool in your storage and press **E** to pick it up (or
-   tap **Grab** in the **Truck** menu), carry it to the truck and press **E** again to load it.
-   Mowers are pushed along the ground instead of carried. To take a tool back out, press **R** on
-   it in the truck and put it back. Only tools in the truck come with you, and you only get them in
+3. **Load the truck by hand.** Look at a tool in your storage and press **E** (or tap the big
+   button on a phone, or **Grab** in the **Truck** menu) to take it, carry it to the truck, look
+   at the bed and press **E** to set it down where the ghost shows (red means it won't fit there).
+   Mowers are pushed along the ground instead of carried, and ride-ons are driven up the equipment
+   trailer's ramp and parked on a bay. Hand tools can go in the **tool bucket** (look at it while
+   holding one; **R** takes one back out). Look at a loaded tool to take it back out, and at a free
+   spot in storage to put a tool back there. Only tools in the truck come with you, and you only get them in
    your hotbar once you reach the house. Every tool takes truck space: hand and long tools 1, power
    tools 2, mowers 4, and a **tool bucket** packs up to 8 hand tools into 1. The rusty pickup holds
    **6**. Once it's full, **trailers unlock** at the hardware store. Riding mowers only travel on
@@ -112,7 +115,8 @@ Services*. Without it the game still runs, it just doesn't save progress.
 ### Controls
 
 You play in first person. Look around with the mouse (drag on a phone), move with WASD or the
-thumbstick and aim with the dot in the middle of the screen. Menus: **J** jobs, **T** truck,
+thumbstick and aim with the dot in the middle of the screen: **E** (or the big button on a phone)
+uses what you're looking at, and **R** takes a tool out of the tool bucket. Menus: **J** jobs, **T** truck,
 **B** shop, **G** guide, **C** crew, or tap the buttons. The mouse is locked to the middle of the
 screen; it's freed while a menu is open, or hold **Left Alt**. **V** switches camera motion (head
 bob, engine shake) on and off, and so does the switch at the top of the Guide.

@@ -14,8 +14,9 @@ local function step(job): string
 		return "Welcome to your lawn care business! Tap Jobs and take the first job on the board. "
 			.. "Your reel mower is already in the truck."
 	elseif job.state == "Ready" then
-		return "Read what the customer wants. Not sure what a tool is for? Tap Guide. Carry what you "
-			.. "need from storage to the truck, then walk up to the truck and drive."
+		return "Read what the customer wants. Not sure what a tool is for? Tap Guide. Look at a tool in "
+			.. "storage and press E (or tap the button) to take it, set it down in the truck bed, then look "
+			.. "at the truck and drive."
 	elseif job.state == "Traveling" then
 		return "On the way to the customer's house..."
 	elseif job.state == "Working" then

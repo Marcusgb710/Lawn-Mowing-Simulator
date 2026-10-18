@@ -8,7 +8,7 @@
 --
 -- To build the town yourself in Studio, make a Model named "Town" in Workspace with:
 --   * a SpawnLocation
---   * a ProximityPrompt with attribute OpensPanel = "Shop" (the hardware store)
+--   * a part with attributes Interact = "OpenPanel" and OpensPanel = "Shop" (the hardware store)
 --   * a Folder named "Plots" with one Part per business plot. A plot's front (LookVector)
 --     should face the street. Everything on the plot is placed relative to that part.
 -- Otherwise a placeholder town is built here.
@@ -84,17 +84,15 @@ local function sign(target: BasePart, text: string, face: Enum.NormalId)
 	gui.Parent = target
 end
 
-local function prompt(target: BasePart, actionText: string, objectText: string, attributes)
-	local proximityPrompt = Instance.new("ProximityPrompt")
-	proximityPrompt.ActionText = actionText
-	proximityPrompt.ObjectText = objectText
-	proximityPrompt.HoldDuration = 0
-	proximityPrompt.MaxActivationDistance = 12
-	proximityPrompt.RequiresLineOfSight = false
+-- Makes something usable by looking at it and pressing E (see InteractController): "OpenPanel"
+-- opens a menu (attribute OpensPanel), anything else asks the server.
+local function interactable(target: Instance, action: string, actionText: string, objectText: string, attributes)
+	target:SetAttribute("Interact", action)
+	target:SetAttribute("InteractText", actionText)
+	target:SetAttribute("InteractName", objectText)
 	for key, value in attributes do
-		proximityPrompt:SetAttribute(key, value)
+		target:SetAttribute(key, value)
 	end
-	proximityPrompt.Parent = target
 end
 
 local function buildPlaceholderTown(): Model
@@ -140,7 +138,7 @@ local function buildPlaceholderTown(): Model
 		Position = Vector3.new(-46, 2, -30),
 		Color = Color3.fromRGB(120, 85, 50),
 	})
-	prompt(counter, "Shop", "Hardware Store", { OpensPanel = "Shop" })
+	interactable(counter, "OpenPanel", "Shop", "Hardware Store", { OpensPanel = "Shop" })
 
 	-- Business plots line both streets. Front of each plot faces its street.
 	local plotFolder = Instance.new("Folder")
@@ -336,7 +334,7 @@ local function buildPlot(plot)
 		Color = Color3.fromRGB(120, 85, 50),
 	})
 	sign(board, "JOBS", Enum.NormalId.Front)
-	prompt(board, "View Jobs", "Job Board", { OpensPanel = "Jobs" })
+	interactable(board, "OpenPanel", "View Jobs", "Job Board", { OpensPanel = "Jobs" })
 
 	-- Each player sees their own tools in storage on their screen (see CarryController).
 	BusinessStorage.build(model, origin, data.equipped.Business or "Shed", markers)
@@ -358,10 +356,7 @@ local function buildPlot(plot)
 			machine.Parent = model
 		end
 	end
-	local benchPart = bench.PrimaryPart or bench:FindFirstChildWhichIsA("BasePart", true)
-	if benchPart then
-		prompt(benchPart, "Work on Tools", "Workbench", { OpensPanel = "Workbench" })
-	end
+	interactable(bench, "OpenPanel", "Work on Tools", "Workbench", { OpensPanel = "Workbench" })
 
 	local truck = Assets.truck(data.equipped.Truck or Items.Catalog.Truck[1].id, data.equipped.Trailer)
 	Assets.anchor(truck)
@@ -376,15 +371,8 @@ local function buildPlot(plot)
 	truck.Parent = model
 	-- Parked with the tailgate down (and the trailer's ramp), ready to load.
 	Openings.set(truck, true)
-	prompt(truck.PrimaryPart :: BasePart, "Drive to Job", "Crew Truck", {
-		Action = "DriveToJob",
-		OwnerUserId = owner.UserId,
-	})
-	local bed = truck:FindFirstChild("BedArea", true)
-	prompt(if bed and bed:IsA("BasePart") then bed else truck.PrimaryPart :: BasePart, "Load Tool", "Truck Bed", {
-		Action = "LoadTool",
-		OwnerUserId = owner.UserId,
-	})
+	-- Carried tools go in its bed by looking at the bed (see InteractController).
+	interactable(truck, "DriveToJob", "Drive to Job", "Crew Truck", { OwnerUserId = owner.UserId })
 
 	model.Parent = businessFolder
 	plot.model = model
@@ -438,6 +426,32 @@ local function distanceTo(target: BasePart, point: Vector3): number
 		math.clamp(offset.Z, -half.Z, half.Z)
 	)
 	return (offset - inside).Magnitude
+end
+
+-- The storage of the player's crew's business (where their own tools are laid out).
+function WorldService:GetCrewStorage(player: Player): Folder?
+	local plot = playerPlots[getLeader(player)] or playerPlots[player]
+	local storage = plot and plot.model and plot.model:FindFirstChild("Storage")
+	return if storage and storage:IsA("Folder") then storage else nil
+end
+
+-- True if the player is standing within `reach` studs of the model (its bounding box).
+function WorldService:IsNear(player: Player, model: Model, reach: number): boolean
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	if not (root and root:IsA("BasePart")) then
+		return false
+	end
+	local box, size = model:GetBoundingBox()
+	local offset = box:PointToObjectSpace(root.Position)
+	local half = size / 2
+	local outside = offset
+		- Vector3.new(
+			math.clamp(offset.X, -half.X, half.X),
+			math.clamp(offset.Y, -half.Y, half.Y),
+			math.clamp(offset.Z, -half.Z, half.Z)
+		)
+	return outside.Magnitude <= reach
 end
 
 -- True if the player is standing at the storage of their crew's business.

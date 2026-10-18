@@ -320,6 +320,45 @@ end
 
 -- Gives the player the tools they loaded in the truck if they're at a job site, otherwise takes
 -- them away. Call after anything that could change that.
+-- Builds the Tool for one of the player's tools, ready to put in their backpack.
+local function makeTool(player: Player, data, item, height: number?): Tool
+	local tool = Assets.tool(item.category, item.id)
+	tool.Name = item.name
+	tool.ToolTip = Items.CategoryInfo[item.category].displayName
+	tool.CanBeDropped = false
+	tool:SetAttribute("Category", item.category)
+	tool:SetAttribute("ItemId", item.id)
+	syncCondition(tool, data.condition[item.id] or {})
+	if item.ride then
+		setUpRide(player, tool, item)
+		-- A ride-on that can tow pulls the tow-behind aerator, if it came along.
+		if item.tows and data.loadout.TowBehindAerator then
+			hitch(tool, "TowBehindAerator")
+		end
+	elseif height and GROUNDED[item.sizeClass] then
+		groundGrip(tool, height)
+	end
+	addFx(tool, item.verbs[1])
+	hookTool(player, tool, item)
+	return tool
+end
+
+-- A ride-on machine to drive around the business (up the trailer's ramp, back to its bay),
+-- equipped straight away. TruckService takes it away again when it's parked.
+function ToolService:GiveRide(player: Player, itemId: string): Tool?
+	local data = DataService:Get(player)
+	local item = Tools.get(itemId)
+	local humanoid = getHumanoid(player)
+	local backpack = player:FindFirstChildOfClass("Backpack")
+	if not (data and item and item.ride and humanoid and backpack and humanoid.Health > 0) then
+		return nil
+	end
+	local tool = makeTool(player, data, item, nil)
+	tool.Parent = backpack
+	humanoid:EquipTool(tool)
+	return tool
+end
+
 function ToolService:GiveTools(player: Player)
 	local data = DataService:Get(player)
 	local backpack = player:FindFirstChildOfClass("Backpack")
@@ -355,24 +394,7 @@ function ToolService:GiveTools(player: Player)
 		if NOT_HELD[item.use] then
 			continue
 		end
-		local tool = Assets.tool(item.category, itemId)
-		tool.Name = item.name
-		tool.ToolTip = Items.CategoryInfo[item.category].displayName
-		tool.CanBeDropped = false
-		tool:SetAttribute("Category", item.category)
-		tool:SetAttribute("ItemId", itemId)
-		syncCondition(tool, data.condition[itemId] or {})
-		if item.ride then
-			setUpRide(player, tool, item)
-			-- A ride-on that can tow pulls the tow-behind aerator, if it came along.
-			if item.tows and data.loadout.TowBehindAerator then
-				hitch(tool, "TowBehindAerator")
-			end
-		elseif height and GROUNDED[item.sizeClass] then
-			groundGrip(tool, height)
-		end
-		addFx(tool, item.verbs[1])
-		hookTool(player, tool, item)
+		local tool = makeTool(player, data, item, height)
 		tool.Parent = backpack
 
 		-- Swapping gear shouldn't make you put your tool away.

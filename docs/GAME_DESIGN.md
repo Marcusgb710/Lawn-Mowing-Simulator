@@ -562,6 +562,45 @@ Making the business, loading and maintenance hands-on, built on first person. On
   ground. Everything closes as the crew drives off and opens again when they're back. At the job
   site the truck parks with its tailgate down, since that's where you work on your tools.
 
+### Look-at loading
+
+Everything at the business is used by looking at it (the dot in the middle of the screen) and
+pressing **E**, or the big button on a phone (`src/client/Controllers/InteractController.luau`).
+Things you can use carry an `Interact` attribute. The client only says what you want to do
+("put this tool on bed 1 at cell 3"); the server checks you're holding it, you're in reach and
+it fits.
+
+- **Taking tools.** Look at one of your tools on a wall, shelf, floor spot or bay and take it.
+  One thing at a time. Push machines are rolled in front of you, and ride-ons are driven: you
+  get on, drive up the equipment trailer's ramp and park on a free `BaySpot` (E), or park it back
+  in an equipment bay.
+- **The truck bed is a grid** (`src/shared/BedGrid.luau`): two cells across and one cell per
+  unit of the vehicle's `space`, so the rusty pickup is 2 × 3 and the landscaping truck 2 × 7. A
+  trailer has its own grid. Tools cover cells by size class:
+
+  | Size class | Cells | Lies |
+  | --- | --- | --- |
+  | Hand, Supply (and the tool bucket) | 1 | across (supplies stand) |
+  | Long | 1 | lengthwise |
+  | HangingPower | 2, one behind the other | lengthwise |
+  | FloorManual, FloorEngine | 4, a 2 × 2 block | standing |
+
+  Look at the bed and a ghost of what you're holding sits on the cells under the dot: green if
+  it fits, red if not. E sets it down, and it settles into place. Look at a loaded tool to take it
+  back out. Where each tool lies lasts for the session. Anything loaded before, or that doesn't
+  fit where it was, goes in the first free cells.
+- **The tool bucket** holds up to 8 hand tools in its one cell. Look at it, in storage or in the
+  truck, while holding a hand tool to drop the tool in. With empty hands, E takes the bucket (and
+  everything in it) and R takes one tool out.
+- **Putting tools back.** Every free spot of the right kind can be looked at to hang, rack,
+  shelve, set down or park the tool there, with a ghost showing where. Each tool remembers its
+  spot (`spots` in the save). Loaded tools keep theirs, so storage doesn't shuffle.
+- **Prompts.** The job board, workbench, hardware store counter, tailgate and "Drive to Job" on
+  the crew truck work the same way, so no ProximityPrompts are left. A custom town's
+  ProximityPrompts with `OpensPanel` still work.
+- **Feedback.** Things set down in the bed drop the last stud into place. Sounds are named
+  placeholders in `src/shared/Sounds.luau` (Thunk, Pickup, Hang, Bucket) until ids are filled in.
+
 ## Phases
 
 | Phase | What | Status |
@@ -597,6 +636,9 @@ phase that gives them work.
   travel on one now. Money, level and owned items carry over.
 - **Version 4 (phase E)** adds `condition` (fuel, tires, blade, line, supply uses) for every owned
   tool. Existing tools start as good as new.
+- **Version 5 (Immersion)** adds `spots` (the storage spot each tool goes back to) and `bucket`
+  (the hand tools in the tool bucket). A v4 bucket in the truck carried up to 8 of the hand tools
+  loaded with it, so those go in the bucket and the load stays the same.
 
 ## New item ids for modelers
 
