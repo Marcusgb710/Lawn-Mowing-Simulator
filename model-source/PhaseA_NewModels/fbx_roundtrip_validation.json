@@ -1,0 +1,53 @@
+{
+  "checked": [
+    {
+      "name": "BypassPruners",
+      "triangles": 638,
+      "dimensions_preserved": true,
+      "texture_paths_portable": true
+    },
+    {
+      "name": "CommercialZeroTurn",
+      "triangles": 5104,
+      "dimensions_preserved": true,
+      "texture_paths_portable": true
+    },
+    {
+      "name": "EquipmentTrailer",
+      "triangles": 4712,
+      "dimensions_preserved": true,
+      "texture_paths_portable": true
+    },
+    {
+      "name": "EquipmentYard",
+      "triangles": 4420,
+      "dimensions_preserved": true,
+      "texture_paths_portable": true
+    },
+    {
+      "name": "Workbench",
+      "triangles": 3896,
+      "dimensions_preserved": true,
+      "texture_paths_portable": true
+    },
+    {
+      "name": "StorageWallRack",
+      "triangles": 268,
+      "dimensions_preserved": true,
+      "texture_paths_portable": true
+    },
+    {
+      "name": "GasCan",
+      "triangles": 324,
+      "dimensions_preserved": true,
+      "texture_paths_portable": true
+    },
+    {
+      "name": "BenchGrinder",
+      "triangles": 936,
+      "dimensions_preserved": true,
+      "texture_paths_portable": true
+    }
+  ],
+  "studio_tested": false
+}
