@@ -55,7 +55,8 @@ Everything below still uses a block placeholder. Name each model after its id an
 matching `assets/` folder (see the README section *Swapping in real models*).
 
 ChatGPT, connected to Studio, builds these from the specs in `alphainstructions/instructions1.md`
-to `instructions9.md`, most important first. It puts the models straight into
+to `instructions9.md`, most important first. The 58 new items from `docs/GAME_DESIGN.md` are
+specced in `instructions10.md` to `instructions23.md`. It puts the models straight into
 `ReplicatedStorage.Assets` in the Team Create place.
 
 - [ ] Once they're built, export them into `assets/` so they're in git too. Save a local copy of

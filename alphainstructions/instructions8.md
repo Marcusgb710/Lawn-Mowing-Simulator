@@ -80,21 +80,21 @@ part's X axis. It then turns as the player walks.
 - Main color: blue rgb(60, 160, 220).
 - Budget: 4,000 triangles.
 
-### `GasStickEdger` (Gas Stick Edger)
+### `GasStickEdger` (Pro Stick Edger, the best edger)
 
 - A gas stick edger: a small engine at the top rear, a straight shaft, and an angled gear head at
   the bottom with a vertical blade, a blade guard and a guide wheel.
 - Same hold as `ElectricEdger`.
-- Main color: orange rgb(230, 120, 30).
+- Main color: red rgb(200, 30, 30).
 - Budget: 5,000 triangles.
 
-### `WalkBehindEdger` (Walk-Behind Edger, the best edger)
+### `WalkBehindEdger` (Walk-Behind Edger)
 
 - A walk-behind edger: a small wheeled frame with an engine, a vertical blade with a guard at the
   front right, and a push handle. About 2.5 wide × 4.5 long.
 - This one is pushed along the ground like a mower: its wheels touch the ground, and the `Handle` is
   at the handlebar, **4.0–4.3 studs above the bottom of the wheels**.
-- Main color: red rgb(200, 30, 30).
+- Main color: orange rgb(230, 120, 30).
 - Moving parts: `WalkBehindEdger__Wheel_*` for each wheel.
 - Budget: 8,000 triangles.
 
