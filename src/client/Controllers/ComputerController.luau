@@ -331,9 +331,12 @@ function ComputerController:Start()
 			ComputerController.leave()
 		end
 	end)
-	Net.event("TravelStarted").OnClientEvent:Connect(function()
-		ComputerController.leave(true, true)
-	end)
+	-- The crew heading out takes the camera (to the cab, then the road).
+	for _, name in { "PullingOut", "TravelStarted" } do
+		Net.event(name).OnClientEvent:Connect(function()
+			ComputerController.leave(true, true)
+		end)
+	end
 	ClientState.Changed:Connect(function(key)
 		-- Driving off to a job: the cutscene takes the camera.
 		if key == "job" and using and ClientState.job and ClientState.job.state == "Traveling" then

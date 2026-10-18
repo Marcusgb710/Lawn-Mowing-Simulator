@@ -1,6 +1,9 @@
 -- The "drive" between your business and a job: a little road scene built only on this player's screen,
 -- with the crew's truck driving down it. Swap this out for whatever cutscene you want later;
 -- the server only needs it to last about `info.duration` seconds.
+-- Before it, at the business, you're in the cab: the camera sits in your seat (the truck's
+-- DriverSeat attachment, or beside it for the rest of the crew) while the truck pulls out of the
+-- driveway.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -22,6 +25,11 @@ local DRIVE_SPEED = 70
 local FADE_TIME = 0.35
 local LANE_OFFSET = 5
 
+-- Where each seat is from the driver's: passenger, then the back seat.
+local SEAT_OFFSETS = { Vector3.zero, Vector3.new(2.6, 0, 0), Vector3.new(0.4, 0, 2.4), Vector3.new(2.2, 0, 2.4) }
+-- Where the driver's eyes are on a truck without a DriverSeat attachment, from its pivot.
+local DEFAULT_SEAT = CFrame.new(-1.5, 4.8, -2.8)
+
 local CutsceneController = {}
 
 local overlay: ScreenGui
@@ -29,6 +37,8 @@ local fade: Frame
 local title: TextLabel
 local subtitle: TextLabel
 local currentToken = nil
+-- The camera's ride in the cab while the truck pulls out, until the trip starts.
+local pullOut: RBXScriptConnection? = nil
 
 local function part(parent: Instance, props)
 	local newPart = Instance.new("Part")
@@ -137,6 +147,41 @@ local function cameraFor(truckPosition: Vector3, alpha: number): CFrame
 	return CFrame.lookAt(truckPosition + Vector3.new(0, 11, 30), truckPosition + Vector3.new(0, 0, -20))
 end
 
+-- Sits the camera in your seat in the cab while the truck pulls out of the driveway.
+local function startPullOut(info)
+	local truck = info.truck
+	if typeof(truck) ~= "Instance" or not truck:IsA("Model") then
+		return
+	end
+	if pullOut then
+		pullOut:Disconnect()
+	end
+	local seat = truck:FindFirstChild("DriverSeat", true)
+	local driver = if seat and seat:IsA("Attachment")
+		then truck:GetPivot():ToObjectSpace(seat.WorldCFrame)
+		else DEFAULT_SEAT
+	local offset = SEAT_OFFSETS[math.clamp(tonumber(info.seat) or 1, 1, #SEAT_OFFSETS)]
+	local view = driver * CFrame.new(offset)
+	local camera = workspace.CurrentCamera
+	camera.CameraType = Enum.CameraType.Scriptable
+	pullOut = RunService.RenderStepped:Connect(function()
+		if truck.Parent then
+			camera.CFrame = truck:GetPivot() * view
+		end
+	end)
+	-- In case the trip never comes (the job was called off), give the camera back.
+	local connection = pullOut
+	task.delay((tonumber(info.duration) or 3) + 1.5, function()
+		if pullOut == connection and pullOut then
+			pullOut:Disconnect()
+			pullOut = nil
+			if not currentToken then
+				restoreCamera()
+			end
+		end
+	end)
+end
+
 local function play(info)
 	local token = {}
 	currentToken = token
@@ -151,6 +196,11 @@ local function play(info)
 		return
 	end
 
+	-- Out of the cab, onto the road.
+	if pullOut then
+		pullOut:Disconnect()
+		pullOut = nil
+	end
 	local driveTime = math.max(info.duration - FADE_TIME * 2 - 0.2, 1)
 	local distance = DRIVE_SPEED * driveTime
 	local scene, truck = buildScene(info.truckId, info.trailerId, distance)
@@ -253,6 +303,7 @@ function CutsceneController:Start()
 	Net.event("TravelStarted").OnClientEvent:Connect(function(info)
 		task.spawn(play, info)
 	end)
+	Net.event("PullingOut").OnClientEvent:Connect(startPullOut)
 end
 
 return CutsceneController

@@ -166,6 +166,13 @@ One PR per phase, each stacked on the one before. Every phase still needs a Stud
       - boxes standing at `DeliverySpot`, their flaps and crate front swinging the right way, and
         the tool coming up into your hands;
       - boxes coming back after a rejoin.
+- [ ] **Hub 2: driveway and leaving from the truck.** To check in Studio:
+      - the 90 × 90 plots and the town's spacing;
+      - the driveway and where the truck parks;
+      - the driver's door swinging out and back;
+      - the view from `DriverSeat` and the other seats;
+      - the pull-out into the street and the pull-in;
+      - nothing standing on the driveway or the front lawn.
 
 ## Before release
 

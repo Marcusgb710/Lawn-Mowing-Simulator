@@ -339,9 +339,9 @@ local function sendHome(job, players: { Player })
 	}, function(index, player)
 		return WorldService:GetHomeCFrame(player, index)
 	end, function()
-		-- Back at the business: the truck's tailgate comes down for unloading.
+		-- Back at the business: the truck pulls back in and drops its tailgate for unloading.
 		if leader and table.find(going, leader) then
-			WorldService:SetTruckOpen(leader, true)
+			WorldService:PullIn(leader)
 		end
 	end)
 end
@@ -365,7 +365,19 @@ local function startDriving(job)
 	readyJobs[party] = nil
 	activeJobs[job] = true
 	job.state = "Traveling"
+	-- Everyone gets in: the tailgate shuts, the driver's door opens and closes, and the truck
+	-- pulls out of the driveway (each crew member watches from their seat) before the trip.
 	WorldService:SetTruckOpen(party.leader, false)
+	WorldService:PullOut(party.leader)
+	local plotTruck = WorldService:GetPlotTruck(party.leader)
+	for seat, member in job.members do
+		setFrozen(member, true)
+		Net.event("PullingOut"):FireClient(member, {
+			truck = plotTruck,
+			seat = seat,
+			duration = GameConfig.PullOutTime,
+		})
+	end
 	job.members = table.clone(party.members)
 	for _, member in job.members do
 		playerJobs[member] = job
@@ -397,6 +409,13 @@ local function startDriving(job)
 	job.lawn.folder.Parent = sitesFolder
 
 	sendUpdate(job)
+	task.wait(GameConfig.PullOutTime)
+	if not (activeJobs[job] and job.state == "Traveling") then
+		for _, member in job.members do
+			setFrozen(member, false)
+		end
+		return
+	end
 	travel(job.members, {
 		direction = "ToJob",
 		title = job.offer.name,
@@ -711,7 +730,8 @@ function JobService:Start()
 		elseif leader ~= player then
 			return false, `Waiting for {leader.DisplayName} to start the truck.`
 		end
-		startDriving(job)
+		-- The pull-out takes a few seconds; don't keep the client waiting.
+		task.spawn(startDriving, job)
 		return true, nil
 	end
 

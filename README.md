@@ -83,8 +83,9 @@ Services*. Without it the game still runs, it just doesn't save progress.
    tools 2, mowers 4, and a **tool bucket** packs up to 8 hand tools into 1. The rusty pickup holds
    **6**. Once it's full, **trailers unlock** in the Business app. Riding mowers only travel on
    an **equipment trailer**. The **Truck** menu shows every tool, its space and where it is.
-4. **Drive.** The leader hops in the truck. Everyone watches the drive cutscene and arrives at the
-   house.
+4. **Drive.** The leader looks at the truck's driver door and gets in. Everyone's view moves
+   into the cab as the truck pulls out of the driveway, then the drive cutscene plays and the
+   crew arrives at the house. Back home, the truck pulls back in at the door.
 5. **Do the yard.** Mow the grass, edge the sidewalk and driveway, cut back the long grass along
    the house, clear the leaf piles and shape the hedges. Garden jobs happen in the side garden:
    pot up plants, plant seedlings and bulbs, sow rows, weed and loosen beds, dig out dandelions,

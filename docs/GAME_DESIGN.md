@@ -647,6 +647,29 @@ in the next PR).
   box. Choice made: opening a box puts the tool straight into your hands, instead of leaving it
   in the open box to pick up, so there's no half-open state to save.
 - Boxes stand in rows at the crew's delivery spot, and move with the crew.
+- **The plot** is 90 × 90 studs:
+  - the building at the back;
+  - a concrete driveway from the street to the door, with the truck (and trailer) on it;
+  - the front lawn on the left of the driveway (see Hub 3);
+  - on the right, the outdoor storage for older buildings, the business sign and where you
+    spawn.
+
+  The placeholder town spaces its 12 plots to fit.
+- **Leaving from the truck.** The truck parks on `TruckParking` (older buildings: about 10
+  studs out from the door) with its tailgate to the door. With a trailer, the trailer's ramp
+  faces the door and the truck sits ahead of it. To leave, the crew leader looks at the driver's
+  door (`<Id>__DriverDoor`, or the truck if it has none) and gets in. Without an accepted job you
+  get "Pick a job at the computer first".
+  1. The tailgate shuts.
+  2. The driver's door (with `<Id>__DriverDoorGlass`) swings open about its hinge and shuts again.
+  3. Every crew member's camera sits in a seat in the cab: the driver at the truck's
+     `DriverSeat`, the others beside and behind.
+  4. The truck pulls out of the driveway into the street (`GameConfig.PullOutTime`).
+  5. The usual trip cutscene plays.
+
+  The crew rides along wherever they were. Coming back, the truck pulls back in from the street
+  and drops its tailgate so you can unload into storage. Placeholder trucks have a driver's door,
+  a `DriverSeat` and a hinged tailgate.
 
 ## Phases
 
@@ -661,7 +684,8 @@ in the next PR).
 | Camera | First person: arms, tools posed for the view, mouse and menus, crosshair, camera motion | done |
 | Immersion 1 | Walk-in buildings, truck parked at the door, tailgates and ramps | done |
 | Immersion 2 | Look-at loading, bed grid, tool bucket, ride-ons on the trailer | done |
-| Hub 1 | Job computer, Orders and Business apps, deliveries in boxes | **this PR** |
+| Hub 1 | Job computer, Orders and Business apps, deliveries in boxes | done |
+| Hub 2 | Bigger plots with a driveway, leaving from the truck's driver door, pulling back in | **this PR** |
 
 New tools are already in `Tools.luau` with `available = false`, so they aren't sold until the
 phase that gives them work.
@@ -778,3 +802,4 @@ by a part named `Handle` (see `assets/README.md`).
 | DeliveryBoxLong | `Assets/Props` | Long narrow box, `__Lid` hinged at the back, `Contents` |
 | DeliveryBoxLarge | `Assets/Props` | Large box, `__FlapL` / `__FlapR` / `__FlapF` / `__FlapB`, `Contents` |
 | DeliveryCrate | `Assets/Props` | Wooden crate on a pallet, `__Lid` and `__FrontPanel` (hinged at the bottom into a ramp), `Contents` |
+| All trucks | `Assets/Trucks` | Add `<Id>__DriverDoor` and `<Id>__DriverDoorGlass` (left door, origin on the hinge) and a `DriverSeat` attachment at the driver's eyes (instructions25) |
