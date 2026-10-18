@@ -26,6 +26,7 @@ local TaskTypes = require(Shared.Config.TaskTypes)
 local Tools = require(Shared.Config.Tools)
 local Signal = require(Shared.Signal)
 
+local Openings = require(script.Parent.Parent.Openings)
 local DataService = require(script.Parent.DataService)
 local LawnService = require(script.Parent.LawnService)
 local PartyService = require(script.Parent.PartyService)
@@ -326,6 +327,7 @@ local function sendHome(job, players: { Player })
 			table.insert(going, player)
 		end
 	end
+	local leader = job.party and job.party.leader
 	travel(going, {
 		direction = "ToBusiness",
 		title = "Heading back to the shop",
@@ -334,6 +336,11 @@ local function sendHome(job, players: { Player })
 		trailerId = job.trailerId,
 	}, function(index, player)
 		return WorldService:GetHomeCFrame(player, index)
+	end, function()
+		-- Back at the business: the truck's tailgate comes down for unloading.
+		if leader and table.find(going, leader) then
+			WorldService:SetTruckOpen(leader, true)
+		end
 	end)
 end
 
@@ -356,6 +363,7 @@ local function startDriving(job)
 	readyJobs[party] = nil
 	activeJobs[job] = true
 	job.state = "Traveling"
+	WorldService:SetTruckOpen(party.leader, false)
 	job.members = table.clone(party.members)
 	for _, member in job.members do
 		playerJobs[member] = job
@@ -374,6 +382,8 @@ local function startDriving(job)
 	local truck = Assets.truck(job.truckId, job.trailerId)
 	Assets.anchor(truck)
 	Assets.placeOnGround(truck, job.lawn.truckCFrame)
+	-- Parked at the house with the tailgate down: it's where you work on your tools.
+	Openings.set(truck, true)
 	truck.Parent = job.lawn.folder
 	-- Supplies you brought can be used on your tools at the tailgate (see MaintenanceService).
 	local tailgate = Instance.new("ProximityPrompt")

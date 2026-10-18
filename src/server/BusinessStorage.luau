@@ -11,7 +11,18 @@
 -- CarryController lays each player's own tools out on them. Tools without a free spot go in a
 -- row on the ground, starting at the attachment named "Overflow".
 --
--- Layout, in the plot's own space (the street is toward -Z, the building's front at z = 14):
+-- Walk-in buildings (docs/GAME_DESIGN.md, "Immersion") say where everything goes inside with
+-- Attachments in the building model:
+--   Mount          a fixture, with attributes Kind ("Pegboard", "WallRack", "WallHooks",
+--                  "Shelf"; "Workbench", "Compressor" and "Grinder" are placed by WorldService)
+--                  and Index. Its LookVector points into the room; the fixture's back goes on it.
+--   FloorSpot      a floor spot for a push or walk-behind machine (Index)
+--   EquipmentBay   a bay for a ride-on machine (Index)
+--   TruckParking   where the truck parks (its ground centre, facing the way the truck faces)
+--   Light          a ceiling light
+-- Anything a building has no attachments for (older models, placeholders) is laid out outdoors:
+--
+-- Outdoor layout, in the plot's own space (the street is toward -Z, the building's front at z = 14):
 --   right edge, x = 29    pegboards (two high), then wall racks, running toward the street
 --   left edge, x = -29    wall hooks, then shelves
 --   middle, z = 4         floor spots on the right, equipment bays on the left
@@ -45,6 +56,15 @@ local WALLS = {
 local FLOOR_ROW = { start = Vector3.new(25, 0, 4), step = Vector3.new(-3.9, 0, 0), size = Vector3.new(3.6, 0.1, 4.4) }
 local BAY_ROW = { start = Vector3.new(-24, 0, 4), step = Vector3.new(6.2, 0, 0), size = Vector3.new(5.6, 0.1, 8) }
 local OVERFLOW = CFrame.new(8, 0, -7)
+local WALL_SPOTS = { "Pegboard", "WallRack", "WallHooks", "Shelf" }
+
+export type Markers = {
+	mounts: { [string]: { CFrame } }, -- by Kind, in Index order
+	floor: { CFrame },
+	bays: { CFrame },
+	lights: { Attachment },
+	parking: CFrame?,
+}
 
 local COLORS = {
 	Wall = Color3.fromRGB(150, 120, 85),
@@ -134,8 +154,61 @@ local function slotPositions(model: Model, count: number): { Vector3 }
 	return list
 end
 
--- Builds a business's storage under `parent`, laid out from the plot's `origin`.
-function BusinessStorage.build(parent: Instance, origin: CFrame, businessId: string): Folder
+-- The interior attachments of a building model (see the top of this file), each list in Index order.
+function BusinessStorage.markers(building: Instance?): Markers
+	local markers: Markers = { mounts = {}, floor = {}, bays = {}, lights = {}, parking = nil }
+	if not building then
+		return markers
+	end
+	local found = {}
+	local function add(list: string, attachment: Attachment)
+		found[list] = found[list] or {}
+		table.insert(found[list], attachment)
+	end
+	for _, descendant in building:GetDescendants() do
+		if not descendant:IsA("Attachment") then
+			continue
+		end
+		local name = descendant.Name
+		if name == "Mount" then
+			local kind = descendant:GetAttribute("Kind")
+			if typeof(kind) == "string" then
+				add("Mount" .. kind, descendant)
+			end
+		elseif name == "FloorSpot" or name == "EquipmentBay" then
+			add(name, descendant)
+		elseif name == "Light" then
+			table.insert(markers.lights, descendant)
+		elseif name == "TruckParking" then
+			markers.parking = descendant.WorldCFrame
+		end
+	end
+	local function ordered(list: string): { CFrame }
+		local attachments = found[list] or {}
+		table.sort(attachments, function(a, b)
+			return (tonumber(a:GetAttribute("Index")) or 0) < (tonumber(b:GetAttribute("Index")) or 0)
+		end)
+		local frames = {}
+		for _, attachment in attachments do
+			table.insert(frames, attachment.WorldCFrame)
+		end
+		return frames
+	end
+	for list in found do
+		local kind = string.match(list, "^Mount(.+)$")
+		if kind then
+			markers.mounts[kind] = ordered(list)
+		end
+	end
+	markers.floor = ordered("FloorSpot")
+	markers.bays = ordered("EquipmentBay")
+	return markers
+end
+
+-- Builds a business's storage under `parent`, laid out from the plot's `origin`, inside the
+-- building where its `markers` say.
+function BusinessStorage.build(parent: Instance, origin: CFrame, businessId: string, markers: Markers?): Folder
+	local inside = markers or BusinessStorage.markers(nil)
 	local business = Items.get("Business", businessId) or Items.Catalog.Business[1]
 	local folder = Instance.new("Folder")
 	folder.Name = "Storage"
@@ -163,13 +236,49 @@ function BusinessStorage.build(parent: Instance, origin: CFrame, businessId: str
 		part:SetAttribute("StorageArea", true)
 	end
 
-	-- Fixtures on the walls.
+	-- Fixtures on the walls inside the building, one per Mount, until the building's spots run out.
+	for _, spot in WALL_SPOTS do
+		local frames = inside.mounts[spot]
+		local capacity = Storage.capacity(business.id, spot)
+		if not frames or capacity <= 0 then
+			continue
+		end
+		local info = Storage.Spots[spot]
+		local index = 0
+		for _, frame in frames do
+			if index >= capacity then
+				break
+			end
+			local model = Assets.prop(info.fixture)
+			Assets.anchor(model)
+			ensureSlots(model, info.perFixture)
+			Assets.placeAt(model, frame)
+			model.Parent = folder
+			for _, position in slotPositions(model, info.perFixture) do
+				index += 1
+				if index <= capacity then
+					local wallSpot = addSpot(spot, index, CFrame.new(position) * frame.Rotation, MOUNTS[spot])
+					wallSpot:SetAttribute("Depth", -frame:PointToObjectSpace(position).Z)
+				end
+			end
+			local box, size = model:GetBoundingBox()
+			area(newPart(folder, {
+				Name = "FixtureArea",
+				Size = size,
+				CFrame = box,
+				Transparency = 1,
+				CanQuery = false,
+			}))
+		end
+	end
+
+	-- Fixtures on outdoor walls, for kinds the building has no mounts for.
 	for _, wall in WALLS do
 		local frame = origin * wall.frame
 		local cursor = 0
 		for _, spot in wall.spots do
 			local capacity = Storage.capacity(business.id, spot)
-			if capacity <= 0 then
+			if capacity <= 0 or inside.mounts[spot] then
 				continue
 			end
 			local info = Storage.Spots[spot]
@@ -223,10 +332,18 @@ function BusinessStorage.build(parent: Instance, origin: CFrame, businessId: str
 		end
 	end
 
-	-- Floor spots and equipment bays, painted on the ground.
+	-- Floor spots and equipment bays, painted on the floor: inside where the building has them,
+	-- otherwise in rows on the plot.
 	for _, row in { { spot = "Floor", layout = FLOOR_ROW }, { spot = "Bay", layout = BAY_ROW } } do
-		for index = 1, Storage.capacity(business.id, row.spot) do
-			local ground = origin * CFrame.new(row.layout.start + row.layout.step * (index - 1))
+		local frames = if row.spot == "Floor" then inside.floor else inside.bays
+		local count = Storage.capacity(business.id, row.spot)
+		if #frames > 0 then
+			count = math.min(count, #frames)
+		end
+		for index = 1, count do
+			local ground = if #frames > 0
+				then frames[index]
+				else origin * CFrame.new(row.layout.start + row.layout.step * (index - 1))
 			local pad = newPart(folder, {
 				Name = row.spot .. "Pad",
 				Size = row.layout.size,
