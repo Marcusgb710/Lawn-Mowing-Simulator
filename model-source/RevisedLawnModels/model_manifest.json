@@ -1,0 +1,1537 @@
+{
+  "meters_per_stud": 0.28,
+  "assets": [
+    {
+      "name": "House",
+      "folder": "Props",
+      "source_kit_asset": null,
+      "triangles": 3216,
+      "mesh_parts": 1,
+      "size_studs": [
+        30.29872689928327,
+        17.779999119894843,
+        18.440001351492743
+      ],
+      "grip_studs": null,
+      "bounds_blender_m": {
+        "min": [
+          -4.241821765899658,
+          -2.503200054168701,
+          0.0
+        ],
+        "max": [
+          4.241821765899658,
+          2.6600000858306885,
+          4.978399753570557
+        ]
+      },
+      "parts": [
+        {
+          "name": "House__Body",
+          "triangles": 3216,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "triangle_budget": 12000,
+      "within_budget": true
+    },
+    {
+      "name": "Shed",
+      "folder": "Buildings",
+      "source_kit_asset": null,
+      "triangles": 1872,
+      "mesh_parts": 1,
+      "size_studs": [
+        12.30003067425319,
+        12.879999194826397,
+        10.430000509534562
+      ],
+      "grip_studs": null,
+      "bounds_blender_m": {
+        "min": [
+          -1.7220042943954468,
+          -1.4531999826431274,
+          0.0
+        ],
+        "max": [
+          1.7220042943954468,
+          1.4672000408172607,
+          3.6063997745513916
+        ]
+      },
+      "parts": [
+        {
+          "name": "Shed__Body",
+          "triangles": 1872,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "triangle_budget": 8000,
+      "within_budget": true
+    },
+    {
+      "name": "Garage",
+      "folder": "Buildings",
+      "source_kit_asset": null,
+      "triangles": 1784,
+      "mesh_parts": 1,
+      "size_studs": [
+        26.299999441419327,
+        14.199999400547572,
+        20.379999705723353
+      ],
+      "grip_studs": null,
+      "bounds_blender_m": {
+        "min": [
+          -3.681999921798706,
+          -2.8420000076293945,
+          0.0
+        ],
+        "max": [
+          3.681999921798706,
+          2.8643999099731445,
+          3.9759998321533203
+        ]
+      },
+      "parts": [
+        {
+          "name": "Garage__Body",
+          "triangles": 1784,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "triangle_budget": 12000,
+      "within_budget": true
+    },
+    {
+      "name": "SmallOffice",
+      "folder": "Buildings",
+      "source_kit_asset": null,
+      "triangles": 2748,
+      "mesh_parts": 1,
+      "size_studs": [
+        36.29999841962542,
+        16.000000068119594,
+        24.50479779924665
+      ],
+      "grip_studs": null,
+      "bounds_blender_m": {
+        "min": [
+          -5.081999778747559,
+          -3.4019999504089355,
+          -7.450580596923828e-09
+        ],
+        "max": [
+          5.081999778747559,
+          3.459343671798706,
+          4.480000019073486
+        ]
+      },
+      "parts": [
+        {
+          "name": "SmallOffice__Body",
+          "triangles": 2748,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "triangle_budget": 15000,
+      "within_budget": true
+    },
+    {
+      "name": "FlowerPatch",
+      "folder": "Props",
+      "source_kit_asset": null,
+      "triangles": 1260,
+      "mesh_parts": 7,
+      "size_studs": [
+        3.4500000732285634,
+        0.8702915694032396,
+        3.4500000732285634
+      ],
+      "grip_studs": null,
+      "bounds_blender_m": {
+        "min": [
+          -0.4830000102519989,
+          -0.4830000102519989,
+          0.0
+        ],
+        "max": [
+          0.4830000102519989,
+          0.4830000102519989,
+          0.2436816394329071
+        ]
+      },
+      "parts": [
+        {
+          "name": "FlowerPatch__Body",
+          "triangles": 540,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "name": "Flower",
+          "triangles": 120,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "name": "Flower.001",
+          "triangles": 120,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "name": "Flower.002",
+          "triangles": 120,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "name": "Flower.003",
+          "triangles": 120,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "name": "Flower.004",
+          "triangles": 120,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "name": "Flower.005",
+          "triangles": 120,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "triangle_budget": 1500,
+      "within_budget": true
+    },
+    {
+      "name": "GardenGnome",
+      "folder": "Props",
+      "source_kit_asset": null,
+      "triangles": 852,
+      "mesh_parts": 1,
+      "size_studs": [
+        0.8559520755495343,
+        2.3999999676431925,
+        0.8350000317607607
+      ],
+      "grip_studs": null,
+      "bounds_blender_m": {
+        "min": [
+          -0.11983329057693481,
+          -0.11060000211000443,
+          3.725290298461914e-09
+        ],
+        "max": [
+          0.11983329057693481,
+          0.12320000678300858,
+          0.671999990940094
+        ]
+      },
+      "parts": [
+        {
+          "name": "GardenGnome__Body",
+          "triangles": 852,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "triangle_budget": 1500,
+      "within_budget": true
+    },
+    {
+      "name": "RustyPickup",
+      "folder": "Trucks",
+      "source_kit_asset": null,
+      "triangles": 9032,
+      "mesh_parts": 5,
+      "size_studs": [
+        7.095000147819518,
+        6.635000024523054,
+        16.177827971322195
+      ],
+      "grip_studs": null,
+      "bounds_blender_m": {
+        "min": [
+          -0.9933000206947327,
+          -2.2897918224334717,
+          -0.0098000168800354
+        ],
+        "max": [
+          0.9933000206947327,
+          2.240000009536743,
+          1.8480000495910645
+        ]
+      },
+      "parts": [
+        {
+          "name": "RustyPickup__Body",
+          "triangles": 3608,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "name": "RustyPickup__Wheel_FL",
+          "triangles": 1356,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "name": "RustyPickup__Wheel_RL",
+          "triangles": 1356,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "name": "RustyPickup__Wheel_FR",
+          "triangles": 1356,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "name": "RustyPickup__Wheel_RR",
+          "triangles": 1356,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "bed_area": {
+        "position_studs": [
+          0,
+          2.73,
+          3.75
+        ],
+        "size_studs": [
+          6,
+          0.2,
+          7.6
+        ],
+        "slots": 3
+      },
+      "triangle_budget": 15000,
+      "within_budget": true
+    },
+    {
+      "name": "WorkPickup",
+      "folder": "Trucks",
+      "source_kit_asset": null,
+      "triangles": 9056,
+      "mesh_parts": 5,
+      "size_studs": [
+        7.095000147819518,
+        6.835000004087175,
+        16.650000640324183
+      ],
+      "grip_studs": null,
+      "bounds_blender_m": {
+        "min": [
+          -0.9933000206947327,
+          -2.3520002365112305,
+          -0.0098000168800354
+        ],
+        "max": [
+          0.9933000206947327,
+          2.309999942779541,
+          1.903999924659729
+        ]
+      },
+      "parts": [
+        {
+          "name": "WorkPickup__Body",
+          "triangles": 3632,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "name": "WorkPickup__Wheel_FL",
+          "triangles": 1356,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "name": "WorkPickup__Wheel_RL",
+          "triangles": 1356,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "name": "WorkPickup__Wheel_FR",
+          "triangles": 1356,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "name": "WorkPickup__Wheel_RR",
+          "triangles": 1356,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "bed_area": {
+        "position_studs": [
+          0,
+          2.73,
+          4.0
+        ],
+        "size_studs": [
+          6,
+          0.2,
+          7.6
+        ],
+        "slots": 3
+      },
+      "triangle_budget": 15000,
+      "within_budget": true
+    },
+    {
+      "name": "HeavyDutyPickup",
+      "folder": "Trucks",
+      "source_kit_asset": null,
+      "triangles": 8924,
+      "mesh_parts": 5,
+      "size_studs": [
+        8.094999619892665,
+        7.534999506814138,
+        18.150000912802557
+      ],
+      "grip_studs": null,
+      "bounds_blender_m": {
+        "min": [
+          -1.1332999467849731,
+          -2.562000274658203,
+          -0.0098000168800354
+        ],
+        "max": [
+          1.1332999467849731,
+          2.5199999809265137,
+          2.0999999046325684
+        ]
+      },
+      "parts": [
+        {
+          "name": "HeavyDutyPickup__Body",
+          "triangles": 3500,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "name": "HeavyDutyPickup__Wheel_FL",
+          "triangles": 1356,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "name": "HeavyDutyPickup__Wheel_RL",
+          "triangles": 1356,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "name": "HeavyDutyPickup__Wheel_FR",
+          "triangles": 1356,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "name": "HeavyDutyPickup__Wheel_RR",
+          "triangles": 1356,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "bed_area": {
+        "position_studs": [
+          0,
+          2.73,
+          4.75
+        ],
+        "size_studs": [
+          6,
+          0.2,
+          7.6
+        ],
+        "slots": 3
+      },
+      "triangle_budget": 15000,
+      "within_budget": true
+    },
+    {
+      "name": "LandscapingTruck",
+      "folder": "Trucks",
+      "source_kit_asset": null,
+      "triangles": 8696,
+      "mesh_parts": 5,
+      "size_studs": [
+        7.494999681200299,
+        9.034999779292514,
+        18.150000912802557
+      ],
+      "grip_studs": null,
+      "bounds_blender_m": {
+        "min": [
+          -1.049299955368042,
+          -2.562000274658203,
+          -0.0098000168800354
+        ],
+        "max": [
+          1.049299955368042,
+          2.5199999809265137,
+          2.5199999809265137
+        ]
+      },
+      "parts": [
+        {
+          "name": "LandscapingTruck__Body",
+          "triangles": 3272,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "name": "LandscapingTruck__Wheel_FL",
+          "triangles": 1356,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "name": "LandscapingTruck__Wheel_RL",
+          "triangles": 1356,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "name": "LandscapingTruck__Wheel_FR",
+          "triangles": 1356,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "name": "LandscapingTruck__Wheel_RR",
+          "triangles": 1356,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "bed_area": {
+        "position_studs": [
+          0,
+          2.73,
+          4.75
+        ],
+        "size_studs": [
+          6,
+          0.2,
+          7.6
+        ],
+        "slots": 3
+      },
+      "triangle_budget": 18000,
+      "within_budget": true
+    },
+    {
+      "name": "UtilityTrailer",
+      "folder": "Trailers",
+      "source_kit_asset": null,
+      "triangles": 2124,
+      "mesh_parts": 1,
+      "size_studs": [
+        7.099999700273786,
+        3.0150000538144788,
+        12.410000392368861
+      ],
+      "grip_studs": null,
+      "bounds_blender_m": {
+        "min": [
+          -0.9939999580383301,
+          -1.5848000049591064,
+          0.0
+        ],
+        "max": [
+          0.9939999580383301,
+          1.8900001049041748,
+          0.8442000150680542
+        ]
+      },
+      "parts": [
+        {
+          "name": "UtilityTrailer__Body",
+          "triangles": 2124,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "bed_area": {
+        "position_studs": [
+          0,
+          1.775,
+          1
+        ],
+        "size_studs": [
+          6,
+          0.2,
+          8
+        ],
+        "slots": 1
+      },
+      "triangle_budget": 8000,
+      "within_budget": true
+    },
+    {
+      "name": "LandscapeTrailer",
+      "folder": "Trailers",
+      "source_kit_asset": null,
+      "triangles": 2436,
+      "mesh_parts": 1,
+      "size_studs": [
+        7.300000531332833,
+        7.499999659402029,
+        15.140942164829797
+      ],
+      "grip_studs": null,
+      "bounds_blender_m": {
+        "min": [
+          -1.0220000743865967,
+          -2.209463596343994,
+          0.0
+        ],
+        "max": [
+          1.0220000743865967,
+          2.0299999713897705,
+          2.0999999046325684
+        ]
+      },
+      "parts": [
+        {
+          "name": "LandscapeTrailer__Body",
+          "triangles": 2436,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "bed_area": {
+        "position_studs": [
+          0,
+          1.775,
+          1
+        ],
+        "size_studs": [
+          6,
+          0.2,
+          10
+        ],
+        "slots": 2
+      },
+      "triangle_budget": 10000,
+      "within_budget": true
+    },
+    {
+      "name": "ReelMower",
+      "folder": "Tools",
+      "source_kit_asset": null,
+      "triangles": 1396,
+      "mesh_parts": 4,
+      "size_studs": [
+        2.5499999523162837,
+        4.309999942779541,
+        4.609999912125724
+      ],
+      "grip_studs": [
+        0,
+        4.2,
+        0
+      ],
+      "bounds_blender_m": {
+        "min": [
+          -0.3569999933242798,
+          -0.03080001473426819,
+          0.0
+        ],
+        "max": [
+          0.3569999933242798,
+          1.2599999904632568,
+          1.2067999839782715
+        ]
+      },
+      "parts": [
+        {
+          "name": "ReelMower__Body",
+          "triangles": 876,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "name": "ReelMower__Wheel_L",
+          "triangles": 60,
+          "origin_blender_m": [
+            -0.30799999833106995,
+            1.0640000104904175,
+            0.19599999487400055
+          ]
+        },
+        {
+          "name": "ReelMower__Wheel_R",
+          "triangles": 60,
+          "origin_blender_m": [
+            0.30799999833106995,
+            1.0640000104904175,
+            0.19599999487400055
+          ]
+        },
+        {
+          "name": "ReelMower__Wheel_Reel",
+          "triangles": 400,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "triangle_budget": 6000,
+      "within_budget": true
+    },
+    {
+      "name": "SelfPropelledMower",
+      "folder": "Tools",
+      "source_kit_asset": "Mower_Push_21in",
+      "triangles": 7312,
+      "mesh_parts": 6,
+      "size_studs": [
+        2.835285663604736,
+        4.285000051770891,
+        5.242250221116202
+      ],
+      "grip_studs": [
+        0,
+        4.2,
+        0
+      ],
+      "bounds_blender_m": {
+        "min": [
+          -0.3932499885559082,
+          -0.058713220059871674,
+          0.0
+        ],
+        "max": [
+          0.40062999725341797,
+          1.4091168642044067,
+          1.1998000144958496
+        ]
+      },
+      "parts": [
+        {
+          "name": "SelfPropelledMower__Body",
+          "triangles": 2932,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "name": "SelfPropelledMower__CutterRotor",
+          "triangles": 108,
+          "origin_blender_m": [
+            0.00675002159550786,
+            1.036014199256897,
+            0.11341998726129532
+          ]
+        },
+        {
+          "name": "SelfPropelledMower__Wheel_Front_L",
+          "triangles": 1068,
+          "origin_blender_m": [
+            0.3317500352859497,
+            1.2560142278671265,
+            0.1684199869632721
+          ]
+        },
+        {
+          "name": "SelfPropelledMower__Wheel_Front_R",
+          "triangles": 1068,
+          "origin_blender_m": [
+            -0.3182499408721924,
+            1.256014347076416,
+            0.1684199869632721
+          ]
+        },
+        {
+          "name": "SelfPropelledMower__Wheel_Rear_L",
+          "triangles": 1068,
+          "origin_blender_m": [
+            0.33174997568130493,
+            0.7660142183303833,
+            0.1684199869632721
+          ]
+        },
+        {
+          "name": "SelfPropelledMower__Wheel_Rear_R",
+          "triangles": 1068,
+          "origin_blender_m": [
+            -0.31825000047683716,
+            0.7660142779350281,
+            0.1684199869632721
+          ]
+        }
+      ],
+      "triangle_budget": 9000,
+      "within_budget": true
+    },
+    {
+      "name": "WideRake",
+      "folder": "Tools",
+      "source_kit_asset": "Prop_Rake",
+      "triangles": 272,
+      "mesh_parts": 1,
+      "size_studs": [
+        2.628571433680398,
+        4.822509629385811,
+        0.6797875676836286
+      ],
+      "grip_studs": [
+        0,
+        3.6,
+        0
+      ],
+      "bounds_blender_m": {
+        "min": [
+          -0.36800000071525574,
+          -0.09517024457454681,
+          0.0
+        ],
+        "max": [
+          0.36800000071525574,
+          0.0951702743768692,
+          1.3503026962280273
+        ]
+      },
+      "parts": [
+        {
+          "name": "WideRake__Body",
+          "triangles": 272,
+          "origin_blender_m": [
+            7.450580596923828e-09,
+            0.02078390121459961,
+            -0.0009060502052307129
+          ]
+        }
+      ],
+      "triangle_budget": 2500,
+      "within_budget": true
+    },
+    {
+      "name": "HalfMoonEdger",
+      "folder": "Tools",
+      "source_kit_asset": null,
+      "triangles": 604,
+      "mesh_parts": 1,
+      "size_studs": [
+        1.1899999209812708,
+        4.400000401905604,
+        0.29999999595539906
+      ],
+      "grip_studs": [
+        0,
+        4.3,
+        0
+      ],
+      "bounds_blender_m": {
+        "min": [
+          -0.16659998893737793,
+          -0.041999999433755875,
+          0.0
+        ],
+        "max": [
+          0.16659998893737793,
+          0.041999999433755875,
+          1.2320001125335693
+        ]
+      },
+      "parts": [
+        {
+          "name": "HalfMoonEdger__Body",
+          "triangles": 604,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "triangle_budget": 2000,
+      "within_budget": true
+    },
+    {
+      "name": "GardenShears",
+      "folder": "Tools",
+      "source_kit_asset": null,
+      "triangles": 320,
+      "mesh_parts": 1,
+      "size_studs": [
+        0.4941005259752273,
+        1.2988750423703874,
+        1.6515220914568218
+      ],
+      "grip_studs": [
+        0,
+        0,
+        0
+      ],
+      "bounds_blender_m": {
+        "min": [
+          -0.06917407363653183,
+          -0.12334734946489334,
+          -0.29642626643180847
+        ],
+        "max": [
+          0.06917407363653183,
+          0.3390788435935974,
+          0.06725874543190002
+        ]
+      },
+      "parts": [
+        {
+          "name": "GardenShears__Body",
+          "triangles": 320,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "triangle_budget": 2000,
+      "within_budget": true
+    },
+    {
+      "name": "Brushcutter",
+      "folder": "Tools",
+      "source_kit_asset": "Trimmer_Petrol",
+      "triangles": 2112,
+      "mesh_parts": 2,
+      "size_studs": [
+        2.479242214134761,
+        3.919501389775957,
+        6.428571684019905
+      ],
+      "grip_studs": [
+        1.15,
+        4,
+        -0.1
+      ],
+      "bounds_blender_m": {
+        "min": [
+          -0.3470939099788666,
+          -0.33500003814697266,
+          0.04809999838471413
+        ],
+        "max": [
+          0.3470939099788666,
+          1.465000033378601,
+          1.145560383796692
+        ]
+      },
+      "parts": [
+        {
+          "name": "Brushcutter__Body",
+          "triangles": 2020,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "name": "Brushcutter__CutterRotor",
+          "triangles": 92,
+          "origin_blender_m": [
+            6.864652135618599e-08,
+            1.2549999952316284,
+            0.05649999901652336
+          ]
+        }
+      ],
+      "triangle_budget": 5000,
+      "within_budget": true
+    },
+    {
+      "name": "ElectricEdger",
+      "folder": "Tools",
+      "source_kit_asset": null,
+      "triangles": 2084,
+      "mesh_parts": 3,
+      "size_studs": [
+        1.1700000081743511,
+        4.735000218663896,
+        5.220632893698555
+      ],
+      "grip_studs": [
+        0,
+        4.2,
+        0
+      ],
+      "bounds_blender_m": {
+        "min": [
+          -0.24359998106956482,
+          -0.3697771728038788,
+          0.07420000433921814
+        ],
+        "max": [
+          0.08400001376867294,
+          1.0920000076293945,
+          1.4000000953674316
+        ]
+      },
+      "parts": [
+        {
+          "name": "ElectricEdger__Body",
+          "triangles": 668,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "name": "ElectricEdger__Wheel_Blade",
+          "triangles": 60,
+          "origin_blender_m": [
+            0.02800000086426735,
+            0.9100000262260437,
+            0.25200000405311584
+          ]
+        },
+        {
+          "name": "ElectricEdger__Wheel_Guide",
+          "triangles": 1356,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "triangle_budget": 4000,
+      "within_budget": true
+    },
+    {
+      "name": "GasStickEdger",
+      "folder": "Tools",
+      "source_kit_asset": null,
+      "triangles": 2024,
+      "mesh_parts": 3,
+      "size_studs": [
+        1.1700000081743511,
+        4.735000218663896,
+        5.050000122615269
+      ],
+      "grip_studs": [
+        0,
+        4.2,
+        0
+      ],
+      "bounds_blender_m": {
+        "min": [
+          -0.24359998106956482,
+          -0.32199999690055847,
+          0.07420000433921814
+        ],
+        "max": [
+          0.08400001376867294,
+          1.0920000076293945,
+          1.4000000953674316
+        ]
+      },
+      "parts": [
+        {
+          "name": "GasStickEdger__Body",
+          "triangles": 608,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "name": "GasStickEdger__Wheel_Blade",
+          "triangles": 60,
+          "origin_blender_m": [
+            0.02800000086426735,
+            0.9100000262260437,
+            0.25200000405311584
+          ]
+        },
+        {
+          "name": "GasStickEdger__Wheel_Guide",
+          "triangles": 1356,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "triangle_budget": 5000,
+      "within_budget": true
+    },
+    {
+      "name": "WalkBehindEdger",
+      "folder": "Tools",
+      "source_kit_asset": null,
+      "triangles": 6096,
+      "mesh_parts": 6,
+      "size_studs": [
+        2.210000157356262,
+        4.34499979019165,
+        4.109999963215419
+      ],
+      "grip_studs": [
+        0,
+        4.2,
+        0
+      ],
+      "bounds_blender_m": {
+        "min": [
+          -0.2757999897003174,
+          -0.03080001473426819,
+          -0.009800001978874207
+        ],
+        "max": [
+          0.34300002455711365,
+          1.1200000047683716,
+          1.2067999839782715
+        ]
+      },
+      "parts": [
+        {
+          "name": "WalkBehindEdger__Body",
+          "triangles": 612,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "name": "WalkBehindEdger__Wheel_F-1",
+          "triangles": 1356,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "name": "WalkBehindEdger__Wheel_R-1",
+          "triangles": 1356,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "name": "WalkBehindEdger__Wheel_F1",
+          "triangles": 1356,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "name": "WalkBehindEdger__Wheel_R1",
+          "triangles": 1356,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "name": "WalkBehindEdger__Wheel_Blade",
+          "triangles": 60,
+          "origin_blender_m": [
+            0.30799999833106995,
+            0.9520000219345093,
+            0.1469999998807907
+          ]
+        }
+      ],
+      "triangle_budget": 8000,
+      "within_budget": true
+    },
+    {
+      "name": "LeafBlower",
+      "folder": "Tools",
+      "source_kit_asset": null,
+      "triangles": 608,
+      "mesh_parts": 1,
+      "size_studs": [
+        1.2180817978722707,
+        3.1821291361536295,
+        4.03837263584137
+      ],
+      "grip_studs": [
+        0,
+        4.3,
+        0
+      ],
+      "bounds_blender_m": {
+        "min": [
+          -0.14646290242671967,
+          -0.21000000834465027,
+          0.41520386934280396
+        ],
+        "max": [
+          0.19460000097751617,
+          0.9207443594932556,
+          1.3062000274658203
+        ]
+      },
+      "parts": [
+        {
+          "name": "LeafBlower__Body",
+          "triangles": 608,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "triangle_budget": 4000,
+      "within_budget": true
+    },
+    {
+      "name": "BackpackBlower",
+      "folder": "Tools",
+      "source_kit_asset": null,
+      "triangles": 840,
+      "mesh_parts": 1,
+      "size_studs": [
+        2.506348064967564,
+        2.9171290142195563,
+        6.188373054776872
+      ],
+      "grip_studs": [
+        0,
+        4.3,
+        0
+      ],
+      "bounds_blender_m": {
+        "min": [
+          -0.5180000066757202,
+          -0.8119999766349792,
+          0.41520386934280396
+        ],
+        "max": [
+          0.18377748131752014,
+          0.9207444787025452,
+          1.2319999933242798
+        ]
+      },
+      "parts": [
+        {
+          "name": "BackpackBlower__Body",
+          "triangles": 840,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "triangle_budget": 6000,
+      "within_budget": true
+    },
+    {
+      "name": "HandHedgeShears",
+      "folder": "Tools",
+      "source_kit_asset": null,
+      "triangles": 416,
+      "mesh_parts": 1,
+      "size_studs": [
+        0.7580701261758803,
+        0.42266026139259333,
+        2.845793110983712
+      ],
+      "grip_studs": [
+        0.26,
+        0.3,
+        0
+      ],
+      "bounds_blender_m": {
+        "min": [
+          -0.10612981766462326,
+          -0.08831163495779037,
+          0.053234249353408813
+        ],
+        "max": [
+          0.10612981766462326,
+          0.7085104584693909,
+          0.17157912254333496
+        ]
+      },
+      "parts": [
+        {
+          "name": "HandHedgeShears__Body",
+          "triangles": 416,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "triangle_budget": 1500,
+      "within_budget": true
+    },
+    {
+      "name": "ElectricHedgeTrimmer",
+      "folder": "Tools",
+      "source_kit_asset": null,
+      "triangles": 684,
+      "mesh_parts": 1,
+      "size_studs": [
+        1.0999999940395355,
+        1.0030969977378845,
+        3.7228933402470177
+      ],
+      "grip_studs": [
+        0,
+        0.4,
+        0
+      ],
+      "bounds_blender_m": {
+        "min": [
+          -0.15399999916553497,
+          -0.1604101061820984,
+          0.03413282334804535
+        ],
+        "max": [
+          0.15399999916553497,
+          0.8819999694824219,
+          0.3149999976158142
+        ]
+      },
+      "parts": [
+        {
+          "name": "ElectricHedgeTrimmer__Body",
+          "triangles": 684,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "triangle_budget": 4000,
+      "within_budget": true
+    },
+    {
+      "name": "CordlessHedgeTrimmer",
+      "folder": "Tools",
+      "source_kit_asset": null,
+      "triangles": 756,
+      "mesh_parts": 1,
+      "size_studs": [
+        1.0999999940395355,
+        1.0999999940395355,
+        4.424999867166791
+      ],
+      "grip_studs": [
+        0,
+        0.4,
+        0
+      ],
+      "bounds_blender_m": {
+        "min": [
+          -0.15399999916553497,
+          -0.16099998354911804,
+          0.006999999284744263
+        ],
+        "max": [
+          0.15399999916553497,
+          1.0779999494552612,
+          0.3149999976158142
+        ]
+      },
+      "parts": [
+        {
+          "name": "CordlessHedgeTrimmer__Body",
+          "triangles": 756,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "triangle_budget": 4000,
+      "within_budget": true
+    },
+    {
+      "name": "GasHedgeTrimmer",
+      "folder": "Tools",
+      "source_kit_asset": null,
+      "triangles": 792,
+      "mesh_parts": 1,
+      "size_studs": [
+        1.0999999940395355,
+        1.0000000042574746,
+        4.699999945504325
+      ],
+      "grip_studs": [
+        0,
+        0.4,
+        0
+      ],
+      "bounds_blender_m": {
+        "min": [
+          -0.15399999916553497,
+          -0.06999999284744263,
+          0.03500000387430191
+        ],
+        "max": [
+          0.15399999916553497,
+          1.246000051498413,
+          0.3149999976158142
+        ]
+      },
+      "parts": [
+        {
+          "name": "GasHedgeTrimmer__Body",
+          "triangles": 792,
+          "origin_blender_m": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "triangle_budget": 5000,
+      "within_budget": true
+    }
+  ],
+  "original_game_bindings": {
+    "GasPushMower": "Mower_Push_21in",
+    "RidingMower": "Mower_LawnTractor_42in",
+    "ZeroTurnMower": "Mower_ZeroTurn_52in",
+    "GasTrimmer": "Trimmer_Petrol",
+    "ElectricTrimmer": "Trimmer_Battery",
+    "OldRake": "Prop_Rake"
+  }
+}

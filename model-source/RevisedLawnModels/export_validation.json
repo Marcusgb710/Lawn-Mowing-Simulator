@@ -1,0 +1,195 @@
+{
+  "validated_assets": 27,
+  "checks": [
+    {
+      "asset": "House",
+      "triangles": 3216,
+      "budget": 12000,
+      "gltf_primitives": 6,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "Shed",
+      "triangles": 1872,
+      "budget": 8000,
+      "gltf_primitives": 4,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "Garage",
+      "triangles": 1784,
+      "budget": 12000,
+      "gltf_primitives": 3,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "SmallOffice",
+      "triangles": 2748,
+      "budget": 15000,
+      "gltf_primitives": 3,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "FlowerPatch",
+      "triangles": 1260,
+      "budget": 1500,
+      "gltf_primitives": 8,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "GardenGnome",
+      "triangles": 852,
+      "budget": 1500,
+      "gltf_primitives": 2,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "RustyPickup",
+      "triangles": 9032,
+      "budget": 15000,
+      "gltf_primitives": 7,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "WorkPickup",
+      "triangles": 9056,
+      "budget": 15000,
+      "gltf_primitives": 7,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "HeavyDutyPickup",
+      "triangles": 8924,
+      "budget": 15000,
+      "gltf_primitives": 8,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "LandscapingTruck",
+      "triangles": 8696,
+      "budget": 18000,
+      "gltf_primitives": 7,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "UtilityTrailer",
+      "triangles": 2124,
+      "budget": 8000,
+      "gltf_primitives": 2,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "LandscapeTrailer",
+      "triangles": 2436,
+      "budget": 10000,
+      "gltf_primitives": 2,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "ReelMower",
+      "triangles": 1396,
+      "budget": 6000,
+      "gltf_primitives": 5,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "SelfPropelledMower",
+      "triangles": 7312,
+      "budget": 9000,
+      "gltf_primitives": 8,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "WideRake",
+      "triangles": 272,
+      "budget": 2500,
+      "gltf_primitives": 1,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "HalfMoonEdger",
+      "triangles": 604,
+      "budget": 2000,
+      "gltf_primitives": 2,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "GardenShears",
+      "triangles": 320,
+      "budget": 2000,
+      "gltf_primitives": 2,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "Brushcutter",
+      "triangles": 2112,
+      "budget": 5000,
+      "gltf_primitives": 3,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "ElectricEdger",
+      "triangles": 2084,
+      "budget": 4000,
+      "gltf_primitives": 5,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "GasStickEdger",
+      "triangles": 2024,
+      "budget": 5000,
+      "gltf_primitives": 4,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "WalkBehindEdger",
+      "triangles": 6096,
+      "budget": 8000,
+      "gltf_primitives": 7,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "LeafBlower",
+      "triangles": 608,
+      "budget": 4000,
+      "gltf_primitives": 2,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "BackpackBlower",
+      "triangles": 840,
+      "budget": 6000,
+      "gltf_primitives": 2,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "HandHedgeShears",
+      "triangles": 416,
+      "budget": 1500,
+      "gltf_primitives": 2,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "ElectricHedgeTrimmer",
+      "triangles": 684,
+      "budget": 4000,
+      "gltf_primitives": 3,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "CordlessHedgeTrimmer",
+      "triangles": 756,
+      "budget": 4000,
+      "gltf_primitives": 2,
+      "buffers_and_textures_resolve": true
+    },
+    {
+      "asset": "GasHedgeTrimmer",
+      "triangles": 792,
+      "budget": 5000,
+      "gltf_primitives": 2,
+      "buffers_and_textures_resolve": true
+    }
+  ],
+  "studio_import_tested": false
+}

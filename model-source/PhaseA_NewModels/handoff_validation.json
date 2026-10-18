@@ -1,0 +1,18 @@
+{
+  "new_models": 58,
+  "glTF_and_FBX_present": 58,
+  "triangle_budgets_passed": 58,
+  "grounded_non_tools": 6,
+  "wall_fixture_back_planes_verified": 3,
+  "trailer_bed_slots": 4,
+  "trailer_bays": 2,
+  "storage_slot_counts": {
+    "Workbench": 0,
+    "StoragePegboard": 6,
+    "StorageWallRack": 4,
+    "StorageWallHooks": 2
+  },
+  "destination_filename_collisions": 0,
+  "studio_instance_configuration_tested": false,
+  "group_ownership_verified": false
+}
