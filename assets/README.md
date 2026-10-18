@@ -5,7 +5,11 @@ placeholder, as long as it's named after the item's `id` in `src/shared/Config/I
 
 - `Tools/`: one per tool tier, e.g. `ReelMower.rbxm`, `GasPushMower.rbxm`, `LeafBlower.rbxm`.
   A `Tool` with a part named `Handle` works best. A plain Model also works, and its PrimaryPart
-  becomes the handle.
+  becomes the handle. The hand holds the handle's center with the handle's +Y pointing up and its
+  front (LookVector) pointing forward. The kit tools are built by `scripts/build-kit-tools.luau`.
+- `Kit/`: the Lawn Mowing mobile kit (grass, weeds, mowers, trimmers, props) as static templates.
+  Each pivot sits on the ground under the asset and faces its front. Made by
+  `scripts/OrganizeLawnKit.luau` + `scripts/export-kit.luau`.
 - `Trucks/`: `RustyPickup`, `WorkPickup`, `HeavyDutyPickup`, `LandscapingTruck`. Face the
   front of the truck along the model's pivot front (LookVector). Add an invisible, non-colliding
   Part named `BedArea` lying on the truck bed, with a number attribute `Slots` (3), so loaded

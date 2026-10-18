@@ -1,7 +1,10 @@
 -- Finds the real model for something, or falls back to a placeholder.
 --
 -- Where real models go (all inside ReplicatedStorage.Assets):
---   Tools/<item id>     e.g. Tools/GasPushMower       a Tool with a Handle, or a Model/Part (we wrap it in a Tool)
+--   Tools/<item id>     e.g. Tools/GasPushMower       a Tool with a Handle, or a Model/Part (we wrap it in a Tool).
+--                                                     The hand holds the handle (or the Model's PrimaryPart)
+--                                                     with its +Y up and its LookVector pointing forward.
+--   Kit/<asset>                                       the Lawn Mowing mobile kit templates (grass, weeds, props...)
 --   Trucks/<item id>    e.g. Trucks/RustyPickup       a Model whose front faces its pivot's LookVector
 --   Trailers/<item id>  e.g. Trailers/UtilityTrailer  a Model whose hitch faces its pivot's LookVector
 --   Buildings/<item id> e.g. Buildings/Shed           a Model whose front door faces its pivot's LookVector
@@ -39,7 +42,11 @@ local function toTool(instance: Instance): Tool?
 	if instance:IsA("BasePart") then
 		handle = instance
 	elseif instance:IsA("Model") then
-		handle = instance.PrimaryPart or instance:FindFirstChildWhichIsA("BasePart", true)
+		-- A part named Handle wins: PrimaryPart doesn't always survive a Rojo sync.
+		local named = instance:FindFirstChild("Handle")
+		handle = if named and named:IsA("BasePart")
+			then named
+			else instance.PrimaryPart or instance:FindFirstChildWhichIsA("BasePart", true)
 	end
 	if not handle then
 		return nil
@@ -100,8 +107,9 @@ function Assets.toolDisplay(category: string, itemId: string): Model
 	local handle = model:FindFirstChild("Handle")
 	if handle and handle:IsA("BasePart") then
 		model.PrimaryPart = handle
-		-- A held tool's handle has its +Y pointing forward and +Z pointing up.
-		handle.PivotOffset = tool.Grip * CFrame.Angles(math.pi / 2, 0, 0)
+		-- In the hand, the grip frame is upright with its front (-Z) pointing forward, so it's
+		-- already the right pivot for standing the tool on the ground.
+		handle.PivotOffset = tool.Grip
 	end
 	tool:Destroy()
 	return model
