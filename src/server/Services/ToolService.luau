@@ -1,5 +1,6 @@
 -- Hands out the tools loaded in the truck once the crew reaches the job site, and does the yard
--- work while players use them. At the business your hands are free for carrying tools around.
+-- work while players use them: on the job, or on your own lawn at home (see HomeLawnService),
+-- where the tool you take out of storage is the real thing (see GiveHeld).
 --
 -- Mowers work the whole time they're equipped (the reel mower only while you're walking).
 -- Every other tool works while you hold down the mouse button / tap and hold.
@@ -26,6 +27,7 @@ local Storage = require(Shared.Config.Storage)
 local Tools = require(Shared.Config.Tools)
 
 local DataService = require(script.Parent.DataService)
+local HomeLawnService = require(script.Parent.HomeLawnService)
 local JobService = require(script.Parent.JobService)
 
 -- How far in front of the player a tool does its work.
@@ -344,17 +346,25 @@ local function makeTool(player: Player, data, item, height: number?, atJob: bool
 	return tool
 end
 
--- A ride-on machine to drive around the business (up the trailer's ramp, back to its bay),
--- equipped straight away. TruckService takes it away again when it's parked.
-function ToolService:GiveRide(player: Player, itemId: string): Tool?
+-- Whether this tool goes in your hands as a Tool you use (not supplies, gloves or a towed
+-- attachment, which are just carried).
+function ToolService.isHeld(item): boolean
+	return not NOT_HELD[item.use]
+end
+
+-- A tool taken out of storage at the business, equipped straight away: a ride-on to drive (up
+-- the trailer's ramp, back to its bay) or one in your hands, which works on your own lawn.
+-- TruckService takes it away again when it's put down.
+function ToolService:GiveHeld(player: Player, itemId: string): Tool?
 	local data = DataService:Get(player)
 	local item = Tools.get(itemId)
 	local humanoid = getHumanoid(player)
 	local backpack = player:FindFirstChildOfClass("Backpack")
-	if not (data and item and item.ride and humanoid and backpack and humanoid.Health > 0) then
+	if not (data and item and ToolService.isHeld(item) and humanoid and backpack and humanoid.Health > 0) then
 		return nil
 	end
-	local tool = makeTool(player, data, item, nil, false)
+	local height = player.Character and holdHeight(player.Character)
+	local tool = makeTool(player, data, item, height, false)
 	tool.Parent = backpack
 	humanoid:EquipTool(tool)
 	return tool
@@ -436,6 +446,22 @@ end
 
 -- Lifecycle ----------------------------------------------------------------------------------
 
+-- Work goes to the job they're on, or to their crew's own lawn.
+local function applyWork(
+	player: Player,
+	atJob: boolean,
+	position: Vector3,
+	radius: number,
+	toolId: string,
+	amount: number,
+	options
+): boolean
+	if atJob then
+		return JobService:ApplyWork(player, position, radius, toolId, amount, options)
+	end
+	return HomeLawnService:ApplyWork(player, position, radius, toolId, amount, options)
+end
+
 local function workTick(elapsed: number)
 	for tool in running do
 		local character = tool.Parent
@@ -446,8 +472,10 @@ local function workTick(elapsed: number)
 			running[tool] = nil
 			continue
 		end
-		-- Driving a ride-on around the business does no work and no wear.
-		if not JobService:IsAtJobSite(player) then
+		-- Off the job, tools only work on your own lawn: driving a ride-on or carrying a mower
+		-- around the business does no work and no wear.
+		local atJob = JobService:IsAtJobSite(player)
+		if not (atJob or HomeLawnService:IsOnLawn(player)) then
 			setFx(tool, false)
 			continue
 		end
@@ -489,7 +517,7 @@ local function workTick(elapsed: number)
 		local cut = false
 		if not towedId then
 			local position = root.Position + root.CFrame.LookVector * REACH_OFFSET
-			cut = JobService:ApplyWork(player, position, item.radius, itemId, item.power * elapsed * speed, {
+			cut = applyWork(player, atJob, position, item.radius, itemId, item.power * elapsed * speed, {
 				damagesHazards = Tools.damagesHazards(item),
 				quiet = item.use == "Passive" and not moving,
 				moving = moving,
@@ -523,7 +551,7 @@ local function workTick(elapsed: number)
 				local towSpeed, towQuality = Maintenance.effects(towedCondition)
 				local behind = root.Position - root.CFrame.LookVector * TOW_DISTANCE
 				local towedCut =
-					JobService:ApplyWork(player, behind, towed.radius, towedId, towed.power * elapsed * towSpeed, {
+					applyWork(player, atJob, behind, towed.radius, towedId, towed.power * elapsed * towSpeed, {
 						quiet = true,
 						moving = true,
 						seconds = elapsed,

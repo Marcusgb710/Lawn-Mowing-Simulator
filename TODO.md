@@ -173,6 +173,13 @@ One PR per phase, each stacked on the one before. Every phase still needs a Stud
       - the view from `DriverSeat` and the other seats;
       - the pull-out into the street and the pull-in;
       - nothing standing on the driveway or the front lawn.
+- [ ] **Hub 3: your own lawn and curb appeal.** To check in Studio:
+      - the lawn on each plot, its grass drawn like a job's, and the edge along the right sides;
+      - mowing, edging, trimming and raking it with tools straight off the wall, on PC and phone;
+      - tools held at the shop looking right (push mowers on the ground, arms on the handles);
+      - regrowth over a long session, and the lawn coming back the same after a rejoin;
+      - the neighbor's tip, the HUD's curb appeal and the "Curb appeal" pay line;
+      - frame rate with your lawn and a neighbor's in view.
 
 ## Before release
 

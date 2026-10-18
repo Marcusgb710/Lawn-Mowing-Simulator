@@ -283,8 +283,12 @@ local function updateCarryLabel()
 	local tool = held and Tools.get(held)
 	carryLabel.Visible = tool ~= nil
 	if tool then
-		carryLabel.Text = if tool.sizeClass == "Bay"
+		local used = not (tool.use == "Supply" or tool.use == "Worn" or tool.use == "Towed")
+		carryLabel.Text = if tool.ride
 			then `Driving your {tool.name}. Park it on a trailer bay, or back in its bay.`
+			elseif
+				used
+			then `Your {tool.name} works on your lawn. Look at the truck bed to load it, or a free spot to put it back.`
 			else `Carrying your {tool.name}. Look at the truck bed to load it, or at a free spot to put it back.`
 	end
 end

@@ -605,8 +605,8 @@ it fits.
 
 Almost everything happens in your shop. You pick jobs and order gear at the computer inside,
 unbox deliveries by the door, take tools off the walls, load the truck parked at the door and
-drive off from there. Outside, you only decorate and mow your own lawn, for bonus money (coming
-in the next PR).
+drive off from there. Outside, you look after your own front lawn (and, next, decorate it),
+which earns your business curb appeal and a bonus on every job.
 
 - **The job computer.** A desk stands on the building's `Desk` marker (on older buildings, out
   front facing the street). Which desk goes with which building is `desk` in `Items.luau`:
@@ -650,11 +650,12 @@ in the next PR).
 - **The plot** is 90 × 90 studs:
   - the building at the back;
   - a concrete driveway from the street to the door, with the truck (and trailer) on it;
-  - the front lawn on the left of the driveway (see Hub 3);
+  - your own front lawn on the left of the driveway (see "Your own lawn" below);
   - on the right, the outdoor storage for older buildings, the business sign and where you
     spawn.
 
-  The placeholder town spaces its 12 plots to fit.
+  The placeholder town spaces its 12 plots to fit. Every plot faces its street to the south
+  (-Z), so the front lawns line up with the grid lawns are drawn on.
 - **Leaving from the truck.** The truck parks on `TruckParking` (older buildings: about 10
   studs out from the door) with its tailgate to the door. With a trailer, the trailer's ramp
   faces the door and the truck sits ahead of it. To leave, the crew leader looks at the driver's
@@ -674,6 +675,35 @@ in the next PR).
   truck pulls back in from the street and drops its tailgate so you can unload into storage.
   Trucks, trailers and buildings can't be swapped while you're out on a job. Placeholder trucks have a driver's door,
   a `DriverSeat` and a hinged tailgate.
+- **Your own lawn** (`HomeLawnService`, `src/shared/HomeLawn.luau`). Every plot has a front lawn
+  left of the driveway, about 28 × 32 studs (7 × 8 tiles). It's a real lawn, built by
+  `LawnService` from the same kit grass and mowed on the same `LawnGrid` as customers' lawns:
+  - the grass (`MowSmallLawn`);
+  - the edge along the sidewalk and driveway (`EdgeSidewalk`);
+  - 5 weeds by the building and along the side (`TrimAroundObstacles`);
+  - 3 piles of leaves (`RakeLeaves`).
+
+  You look after it with your own tools, straight out of storage: a tool you take off the wall is
+  the real thing in your hands, held as on a job, and it works on the lawn. Tool fit, finish and
+  wear (fuel, blades, line, tires) are just as on a job; off the lawn, carrying a tool around
+  does no work and no wear. Supplies and gloves are still just carried, and gloves you own count
+  as worn at home. Crew members can help with the leader's lawn.
+
+  It grows back while you play: from tidy, it's fully overgrown again after
+  `GameConfig.HomeLawn.RegrowMinutes` (40) in the game. Every so often one finished bit comes back
+  (a grass tile, an edge strip, a weed, a leaf pile), never right next to someone. It doesn't grow
+  while you're offline. What's done is saved (`homeLawn`), so it looks the same when you come
+  back; a new lawn starts overgrown. Getting an untidy lawn tidy again earns a neighbor's tip
+  (`TidyTip`, $25), at most once every `TidyTipCooldownMinutes` (30).
+- **Curb appeal** is 0 to 100: how good your business looks from the street. The HUD shows your
+  crew's under your money and level.
+  - Up to `CurbAppeal.LawnPoints` (60) come from the lawn, in proportion to how much of it is
+    done.
+  - Up to `DecorPoints` (40) will come from decorations (next PR).
+
+  Every job the crew does pays up to `MaxPayBonus` (+15%) more at 100, less below it, using the
+  leader's curb appeal when the crew sets off. The pay breakdown shows it as a "Curb appeal" line.
+  Tuning is in `GameConfig.HomeLawn` and `GameConfig.CurbAppeal`.
 
 ## Phases
 
@@ -689,7 +719,8 @@ in the next PR).
 | Immersion 1 | Walk-in buildings, truck parked at the door, tailgates and ramps | done |
 | Immersion 2 | Look-at loading, bed grid, tool bucket, ride-ons on the trailer | done |
 | Hub 1 | Job computer, Orders and Business apps, deliveries in boxes | done |
-| Hub 2 | Bigger plots with a driveway, leaving from the truck's driver door, pulling back in | **this PR** |
+| Hub 2 | Bigger plots with a driveway, leaving from the truck's driver door, pulling back in | done |
+| Hub 3 | Your own lawn (regrowing, saved, worked with your own tools) and curb appeal's pay bonus | **this PR** |
 
 New tools are already in `Tools.luau` with `available = false`, so they aren't sold until the
 phase that gives them work.
@@ -719,6 +750,9 @@ phase that gives them work.
   loaded with it, so those go in the bucket and the load stays the same.
 - **Version 6 (the shop as the hub)** adds `deliveries`, the orders still in their box. Everything
   bought before is already unpacked.
+- **Version 7 (your own lawn)** adds `homeLawn`: which parts of the lawn are done, one character
+  per target and task, and when the last tidy tip was paid. Existing players' lawns start
+  overgrown.
 
 ## New item ids for modelers
 

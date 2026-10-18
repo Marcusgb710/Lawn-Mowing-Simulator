@@ -45,6 +45,24 @@ local GameConfig = {
 	-- you're away on a job when you order).
 	DeliveryTime = 15,
 
+	-- Your business's own front lawn (see HomeLawnService).
+	HomeLawn = {
+		-- Minutes of play for a tidy lawn to grow all the way back (grass, edges, weeds, leaves).
+		-- It only grows while you're in the game.
+		RegrowMinutes = 40,
+		-- What a neighbor tips you for tidying it up after it got untidy, and how often at most.
+		TidyTip = 25,
+		TidyTipCooldownMinutes = 30,
+	},
+	-- Curb appeal, 0-100: how good your business looks from the street (see HomeLawn.luau).
+	CurbAppeal = {
+		-- Points for a perfectly kept lawn, and for decorations.
+		LawnPoints = 60,
+		DecorPoints = 40,
+		-- Job pay bonus at 100 curb appeal (less below it), for every job your crew does.
+		MaxPayBonus = 0.15,
+	},
+
 	-- How often tools do work, in seconds.
 	WorkTickRate = 0.1,
 	DefaultWalkSpeed = 16,

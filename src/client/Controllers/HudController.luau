@@ -1,4 +1,4 @@
--- Always-on screen stuff: money and level, menu buttons, the job tracker (tasks, timer, damage)
+-- Always-on screen stuff: money, level and your business's curb appeal, menu buttons, the job tracker (tasks, timer, damage)
 -- and the condition of the tool in your hands ("Running low on fuel"). On a keyboard the menus
 -- also open with a key (shown on each button), and V switches camera motion on and off.
 
@@ -34,6 +34,7 @@ local HudController = {}
 local moneyLabel: TextLabel
 local levelLabel: TextLabel
 local xpFill: Frame
+local curbLabel: TextLabel
 
 local tracker: Frame
 local trackerTitle: TextLabel
@@ -97,7 +98,7 @@ local function buildStats()
 	local frame = UI.new("Frame", {
 		Name = "Stats",
 		Position = UDim2.fromOffset(12, 12),
-		Size = UDim2.fromOffset(220, 84),
+		Size = UDim2.fromOffset(220, 104),
 		BackgroundColor3 = UI.Colors.Background,
 		BackgroundTransparency = 0.2,
 		Parent = UI.getScreen(),
@@ -127,6 +128,21 @@ local function buildStats()
 		BackgroundColor3 = UI.Colors.Accent,
 		Parent = xpBar,
 	}, { UI.corner(4) })
+	curbLabel = UI.label("", {
+		Position = UDim2.fromOffset(0, 68),
+		Size = UDim2.new(1, 0, 0, 16),
+		TextSize = 14,
+		TextColor3 = UI.Colors.SubText,
+		Parent = frame,
+	})
+end
+
+-- Your crew's business's curb appeal (see HomeLawnService), which pays a bonus on jobs.
+local function updateCurbAppeal()
+	local party = ClientState.party
+	local owner = if party then party.leader else player
+	local value = owner and owner:GetAttribute("CurbAppeal")
+	curbLabel.Text = if typeof(value) == "number" then `Curb appeal {value}/100` else ""
 end
 
 local function buildMenuButtons()
@@ -279,6 +295,9 @@ local function resultText(result): string
 	if bonus > 1 then
 		table.insert(lines, `Crew/truck/business x{string.format("%.2f", bonus)}`)
 	end
+	if (result.curbBonus or 1) > 1 then
+		table.insert(lines, `Curb appeal {result.curbAppeal} +{Format.percent(result.curbBonus - 1)}`)
+	end
 	if result.penalty > 0 then
 		table.insert(lines, `Damage -{Format.money(result.penalty)}`)
 	end
@@ -406,6 +425,7 @@ function HudController:Start()
 			task.wait(0.25)
 			updateTimer()
 			updateCondition()
+			updateCurbAppeal()
 		end
 	end)
 

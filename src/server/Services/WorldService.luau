@@ -33,7 +33,8 @@ local PLOT_SIZE = Vector3.new(90, 1, 90)
 -- How far back the building stands, and how wide the driveway is.
 local BUILDING_Z = 22
 local DRIVEWAY_WIDTH = 10
--- Where the business's own lawn goes (Hub 3), on the left of the driveway, in plot space.
+-- Where the business's own lawn goes (see HomeLawnService), on the left of the driveway, in plot
+-- space.
 local LAWN_CENTER, LAWN_SIZE = Vector3.new(-23, 0, -25), Vector3.new(30, 0, 34)
 -- The crew truck pulls out of the driveway and back in over this many seconds.
 local DRIVE_TIME = 2.5
@@ -119,7 +120,7 @@ local function buildPlaceholderTown(): Model
 		Color = Color3.fromRGB(90, 150, 70),
 		Material = Enum.Material.Grass,
 	})
-	for _, z in { 20, -80 } do
+	for _, z in { 20, -120 } do
 		part(town, {
 			Name = "Road",
 			Size = Vector3.new(660, 0.2, 24),
@@ -132,19 +133,20 @@ local function buildPlaceholderTown(): Model
 	local spawnLocation = Instance.new("SpawnLocation")
 	spawnLocation.Anchored = true
 	spawnLocation.Size = Vector3.new(8, 1, 8)
-	spawnLocation.Position = Vector3.new(0, 0.5, -30)
+	spawnLocation.Position = Vector3.new(0, 0.5, -2)
 	spawnLocation.Neutral = true
 	spawnLocation.Duration = 0
 	spawnLocation.Color = Color3.fromRGB(240, 200, 60)
 	spawnLocation.Parent = town
 
-	-- Business plots line both streets. Front of each plot faces its street.
+	-- Business plots line both streets, every one facing its street to the south (-Z), so their
+	-- front lawns line up with the grid lawns are drawn on (see HomeLawnService).
 	local plotFolder = Instance.new("Folder")
 	plotFolder.Name = "Plots"
 	plotFolder.Parent = town
 	local index = 0
 	for _, x in { -250, -150, -50, 50, 150, 250 } do
-		for _, row in { { z = 80, faces = 20 }, { z = -140, faces = -80 } } do
+		for _, row in { { z = 80, faces = 20 }, { z = -60, faces = -120 } } do
 			index += 1
 			part(plotFolder, {
 				Name = "Plot" .. index,

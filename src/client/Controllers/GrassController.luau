@@ -1,4 +1,4 @@
--- Draws the grass on job sites.
+-- Draws the grass on job sites, and on every business's own lawn (see HomeLawnService).
 --
 -- The server only says which tiles are mowed (the "State" attribute on each job site's Grass
 -- folder, see LawnGrid). This turns that into one kit grass clump per tile: tall clumps until a
@@ -223,13 +223,16 @@ local function track(folder: Instance)
 end
 
 function GrassController:Start()
+	for _, name in { "JobSites", "HomeLawns" } do
+		task.spawn(function()
+			local lawnFolder = workspace:WaitForChild(name)
+			lawnFolder.DescendantAdded:Connect(track)
+			for _, descendant in lawnFolder:GetDescendants() do
+				track(descendant)
+			end
+		end)
+	end
 	task.spawn(function()
-		local sites = workspace:WaitForChild("JobSites")
-		sites.DescendantAdded:Connect(track)
-		for _, descendant in sites:GetDescendants() do
-			track(descendant)
-		end
-
 		while true do
 			task.wait(UPDATE_INTERVAL)
 			update()

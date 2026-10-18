@@ -4,10 +4,12 @@
 -- CarryController). You look at one and take it into your hands, carry it to the truck and look
 -- at the bed to set it down. The bed is a grid of cells (BedGrid): the client says which cells,
 -- and the server checks you're holding the tool, you're at your crew's truck and it fits there.
--- Push machines are rolled along the ground in front of you. Ride-on machines are driven: you
--- get on, drive up the equipment trailer's ramp and park on a bay. Hand tools can be dropped in
--- the tool bucket, which then carries them all in one cell. Putting a tool back works the same
--- way: look at a free spot of its kind in storage.
+-- A tool you use is in your hands as the real thing, held the way it is on a job, so it works on
+-- your own lawn (see HomeLawnService); putting it away in the hotbar puts it back in storage.
+-- Ride-on machines are driven: you get on, drive up the equipment trailer's ramp and park on a
+-- bay. Supplies and gloves are just carried, and the tow-behind attachment is rolled along in
+-- front of you. Hand tools can be dropped in the tool bucket, which then carries them all in one
+-- cell. Putting a tool back works the same way: look at a free spot of its kind in storage.
 --
 -- Loaded tools lie in the truck where the whole crew can see them, and only the owner can take
 -- theirs back out. A crew rides in the leader's truck, so everyone's tools share its cells and
@@ -41,7 +43,8 @@ local WorldService = require(script.Parent.WorldService)
 local CARRY_WALK_SPEED = 12
 -- Where the hand-hold point of a carried tool sits, relative to the HumanoidRootPart.
 local CARRY_OFFSET = CFrame.new(0.6, 0.3, -1.4)
--- Machines you push are rolled along the ground in front of you, this far ahead.
+-- Machines that are just carried, not used (the tow-behind attachment), are rolled along the
+-- ground in front of you, this far ahead.
 local PUSH_GAP = 1.2
 local PUSHED = { FloorManual = true, FloorEngine = true, Bay = true }
 -- Seconds between carry requests from one player, so they can't be spammed.
@@ -137,20 +140,28 @@ local function startCarrying(player: Player, item): boolean
 		return false
 	end
 
-	-- Ride-ons are driven, not carried. (A tow-behind attachment is rolled along like a mower.)
-	if item.sizeClass == "Bay" and item.ride then
-		local tool = ToolService:GiveRide(player, item.id)
+	-- Tools you use come out as the real thing, so they work on your own lawn: ride-ons to drive,
+	-- the rest in your hands. Supplies, gloves and the tow-behind attachment are just carried.
+	if ToolService.isHeld(item) then
+		local tool = ToolService:GiveHeld(player, item.id)
 		if not tool then
 			return false
 		end
 		carried[player] = tool
 		player:SetAttribute("Carrying", item.id)
-		-- Putting it away in the hotbar parks it back in storage; anything else taking it away
-		-- (a crew change, a respawn) just ends the ride.
+		local handle = tool:FindFirstChild("Handle") or tool:FindFirstChildWhichIsA("BasePart", true)
+		if handle and handle:IsA("BasePart") then
+			Sounds.play(handle, "Pickup")
+		end
+		-- Putting it away in the hotbar puts it back in storage; anything else taking it away
+		-- (a crew change, a respawn) does the same, quietly.
 		tool.Unequipped:Connect(function()
 			if carried[player] == tool then
 				stopCarrying(player)
-				notify(player, `You leave the {item.name} in its bay.`)
+				notify(
+					player,
+					if item.ride then `You leave the {item.name} in its bay.` else `You put the {item.name} back.`
+				)
 			end
 		end)
 		tool.Destroying:Connect(function()

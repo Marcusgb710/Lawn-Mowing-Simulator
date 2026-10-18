@@ -17,6 +17,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Assets = require(Shared.Assets)
 local Format = require(Shared.Format)
+local HomeLawn = require(Shared.HomeLawn)
 local GameConfig = require(Shared.Config.GameConfig)
 local Items = require(Shared.Config.Items)
 local Jobs = require(Shared.Config.Jobs)
@@ -27,6 +28,7 @@ local Signal = require(Shared.Signal)
 
 local Openings = require(script.Parent.Parent.Openings)
 local DataService = require(script.Parent.DataService)
+local HomeLawnService = require(script.Parent.HomeLawnService)
 local LawnService = require(script.Parent.LawnService)
 local PartyService = require(script.Parent.PartyService)
 local WorldService = require(script.Parent.WorldService)
@@ -405,6 +407,8 @@ local function startDriving(job)
 	job.truckId = if leaderData then leaderData.equipped.Truck else Items.starter("Truck").id
 	job.trailerId = if leaderData then leaderData.equipped.Trailer else nil
 	job.businessId = if leaderData then leaderData.equipped.Business else nil
+	-- How good the business looked as the crew left: customers pay a little more for that.
+	job.curbAppeal = HomeLawnService:CurbAppeal(party.leader)
 
 	job.slot = claimSlot()
 	local origin = GameConfig.JobSiteOrigin + Vector3.new(job.slot * GameConfig.JobSiteSpacing, 0, 0)
@@ -466,6 +470,7 @@ local function completeJob(job)
 	local truckBonus = 1 + (if truck then truck.payoutBonus else 0)
 	local business = job.businessId and Items.get("Business", job.businessId)
 	local businessBonus = 1 + (if business then business.payoutBonus else 0)
+	local curbBonus = HomeLawn.payBonus(job.curbAppeal or 0)
 	-- Averages over all the work done, so the tool used most counts most.
 	local toolFit = if job.work > 0 then job.fitWork / job.work else 1
 	local quality = if job.work > 0 then job.qualityWork / job.work else 0.75
@@ -477,7 +482,7 @@ local function completeJob(job)
 		elapsed = elapsed,
 		parTime = job.offer.parTime,
 		weights = weights,
-		bonus = crewBonus * truckBonus * businessBonus,
+		bonus = crewBonus * truckBonus * businessBonus * curbBonus,
 		penalty = job.penalty,
 	})
 	local share = math.floor(total / #members)
@@ -493,6 +498,8 @@ local function completeJob(job)
 		crewBonus = crewBonus,
 		truckBonus = truckBonus,
 		businessBonus = businessBonus,
+		curbAppeal = job.curbAppeal or 0,
+		curbBonus = curbBonus,
 		penalty = job.penalty,
 		total = total,
 		share = share,
