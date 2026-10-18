@@ -16,6 +16,7 @@ local Shop = require(Shared.Shop)
 local Storage = require(Shared.Config.Storage)
 
 local DataService = require(script.Parent.DataService)
+local DecorService = require(script.Parent.DecorService)
 local DeliveryService = require(script.Parent.DeliveryService)
 local JobService = require(script.Parent.JobService)
 local PartyService = require(script.Parent.PartyService)
@@ -62,6 +63,10 @@ local function shopState(data)
 end
 
 function ShopService:Buy(player: Player, category: string, itemId: string): (boolean, string)
+	-- Decorations are for the crew's yard, and you can have as many as you like.
+	if category == "Decorations" then
+		return DecorService:Buy(player, itemId)
+	end
 	local item = findItem(category, itemId)
 	local data = DataService:Get(player)
 	if not item or not data then

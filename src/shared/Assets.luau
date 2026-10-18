@@ -11,6 +11,8 @@
 --   Buildings/<item id> e.g. Buildings/Shed           a Model whose front door faces its pivot's LookVector
 --   Props/House                                       a Model whose front door faces its pivot's LookVector
 --   Props/FlowerPatch, Props/GardenGnome              things on the lawn players shouldn't hit
+--   Decorations/<id>    e.g. Decorations/BirdBath     yard decorations (Config/Decorations.luau), front
+--                                                     toward -Z, with their markers on "Root"
 --   Props/StoragePegboard, StorageWallRack,           storage at the business, back flat on Z = 0 with
 --         StorageWallHooks, StorageShelf              "Slot1", "Slot2"... attachments where tools go
 --
@@ -209,6 +211,44 @@ end
 function Assets.standOn(part: BasePart, ground: CFrame, size: Vector3)
 	part.Size = size
 	part.CFrame = ground * CFrame.new(0, size.Y / 2, 0)
+end
+
+-- A yard decoration (Config/Decorations.luau): Decorations/<id>, else a yard prop of that name
+-- (the gnome and the flower patch), else a placeholder.
+function Assets.decoration(id: string): Model
+	local found = findAsset("Decorations", id) or findAsset("Props", id)
+	if found and found:IsA("Model") then
+		return prepareModel(found:Clone())
+	end
+	return Placeholders.decoration(id)
+end
+
+-- Stands a decoration at `frame` (on the ground, facing its way). Decoration models have a Root
+-- 0.5 above their origin; the gnome and flower patch yard props don't, so those stand on their
+-- lowest point instead.
+function Assets.placeDecoration(model: Model, frame: CFrame)
+	local root = model:FindFirstChild("Root")
+	if root and root:IsA("BasePart") then
+		Assets.placeAt(model, frame)
+	else
+		Assets.placeOnGround(model, frame)
+	end
+end
+
+-- A decoration's footprint on the ground when it stands at the origin, unturned: the centre of
+-- its box (x, z) and its size (width along X, depth along Z). Worked out once per id.
+local footprints = {}
+function Assets.decorFootprint(id: string): (number, number, number, number)
+	local known = footprints[id]
+	if not known then
+		local model = Assets.decoration(id)
+		Assets.placeDecoration(model, CFrame.identity)
+		local box, size = model:GetBoundingBox()
+		known = { box.Position.X, box.Position.Z, size.X, size.Z }
+		footprints[id] = known
+		model:Destroy()
+	end
+	return known[1], known[2], known[3], known[4]
 end
 
 function Assets.prop(name: string): Model

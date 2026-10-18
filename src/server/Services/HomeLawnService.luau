@@ -7,8 +7,9 @@
 -- It grows back while you play: a tidy lawn is overgrown again after
 -- GameConfig.HomeLawn.RegrowMinutes in the game, a bit at a time. What's done is saved
 -- (data.homeLawn), so the lawn looks the same when you come back. Getting an untidy lawn tidy
--- again earns a small tip from a neighbor, now and then. How the lawn looks makes up most of the
--- business's curb appeal (see HomeLawn.luau), which pays a bonus on every job.
+-- again earns a small tip from a neighbor, now and then. How the lawn looks and how the yard is
+-- decorated (DecorService) make up the business's curb appeal (see HomeLawn.luau), which pays a
+-- bonus on every job. Hedge work near the yard's overgrown shrubs goes to DecorService.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -21,6 +22,7 @@ local Net = require(Shared.Net)
 local Tools = require(Shared.Config.Tools)
 
 local DataService = require(script.Parent.DataService)
+local DecorService = require(script.Parent.DecorService)
 local LawnService = require(script.Parent.LawnService)
 local PartyService = require(script.Parent.PartyService)
 local WorldService = require(script.Parent.WorldService)
@@ -125,7 +127,7 @@ local function refresh(owner: Player, entry)
 			state.tipReady = true
 		end
 	end
-	owner:SetAttribute("CurbAppeal", HomeLawn.curbAppeal(entry.lawn:DoneShare()))
+	owner:SetAttribute("CurbAppeal", HomeLawn.curbAppeal(entry.lawn:DoneShare(), DecorService:DecorShare(owner)))
 end
 
 local function destroy(owner: Player)
@@ -264,9 +266,14 @@ end
 
 -- Public API ---------------------------------------------------------------------------------
 
--- True if the player is on their crew's home lawn, where their tools work.
-function HomeLawnService:IsOnLawn(player: Player): boolean
-	return lawnUnder(player) ~= nil
+-- True if the player's tool has work here: they're on their crew's home lawn, or by one of its
+-- overgrown shrubs.
+function HomeLawnService:CanWork(player: Player): boolean
+	if lawnUnder(player) then
+		return true
+	end
+	local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+	return root ~= nil and root:IsA("BasePart") and DecorService:HasWorkNear(leaderOf(player), root.Position)
 end
 
 -- The curb appeal (0-100) of this owner's business.
@@ -285,10 +292,20 @@ function HomeLawnService:ApplyWork(
 	amount: number,
 	options: { quiet: boolean?, moving: boolean?, seconds: number? }
 ): boolean
+	local owner = leaderOf(player)
 	local entry = lawnUnder(player)
 	local data = DataService:Get(player)
-	if not (entry and data) then
+	if not data then
 		return false
+	end
+	-- The yard's shrubs first: a hedge tool near one trims it.
+	local trimmed, wrongTool = DecorService:Trim(owner, position, radius, toolId, amount)
+	if not entry then
+		if wrongTool and not trimmed and not options.quiet and os.clock() - (warnedAt[player] or 0) > 4 then
+			warnedAt[player] = os.clock()
+			notify(player, "That won't work here.")
+		end
+		return trimmed
 	end
 	local result = entry.lawn:ApplyWork(position, radius, toolId, amount, {
 		protections = protectionsOf(player, data),
@@ -303,16 +320,15 @@ function HomeLawnService:ApplyWork(
 	if result.hurt and not warnedRecently then
 		warnedAt[player] = os.clock()
 		notify(player, HURT_MESSAGES[result.hurt] or "You need some protection for that.")
-	elseif result.blocked and not result.changed and not options.quiet and not warnedRecently then
+	elseif result.blocked and not (result.changed or trimmed) and not options.quiet and not warnedRecently then
 		warnedAt[player] = os.clock()
 		notify(player, "That won't work here.")
 	end
 	if not result.changed or doneCount(entry.lawn) == entry.done then
-		return result.changed
+		return result.changed or trimmed
 	end
 
 	-- Something got finished: save it, and see whether the lawn's tidy now.
-	local owner = leaderOf(player)
 	refresh(owner, entry)
 	local tidy = entry.lawn:IsComplete()
 	if tidy and not entry.tidy then
@@ -356,6 +372,13 @@ function HomeLawnService:Start()
 		destroy(player)
 		warnedAt[player] = nil
 		protectionCache[player] = nil
+	end)
+	-- Decorations placed, moved or trimmed change the curb appeal.
+	DecorService.Changed:Connect(function(owner)
+		local entry = lawns[owner]
+		if entry then
+			refresh(owner, entry)
+		end
 	end)
 
 	-- It grows while its owner plays.

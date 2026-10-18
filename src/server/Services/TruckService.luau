@@ -105,6 +105,11 @@ local function leaderOf(player: Player): Player
 	return if party then party.leader else player
 end
 
+-- Carrying a tool, or placing a decoration (see DecorService).
+local function handsFull(player: Player): boolean
+	return carried[player] ~= nil or player:GetAttribute("PlacingDecor") ~= nil
+end
+
 local function stopCarrying(player: Player)
 	local model = carried[player]
 	carried[player] = nil
@@ -452,7 +457,7 @@ function TruckService:PickUp(player: Player, toolId: string): (boolean, string)
 	if not item then
 		return false, "You don't own one of those yet."
 	end
-	if carried[player] then
+	if handsFull(player) then
 		return false, "Your hands are full."
 	end
 	if data.loadout[item.id] then
@@ -494,7 +499,7 @@ function TruckService:Hand(player: Player, toolId: string): boolean
 end
 
 function TruckService:IsCarryingAnything(player: Player): boolean
-	return carried[player] ~= nil
+	return handsFull(player)
 end
 
 -- Puts what you're carrying back in storage: in spot `index` of its kind if you say which (and
@@ -617,7 +622,7 @@ function TruckService:Unload(player: Player, toolId: string): (boolean, string)
 	if JobService:IsBusy(player) then
 		return false, "Not in the middle of a job."
 	end
-	if carried[player] then
+	if handsFull(player) then
 		return false, "Your hands are full. Load or put back what you're carrying first."
 	end
 	if not truckInReach(player) then
@@ -675,7 +680,7 @@ function TruckService:TakeFromBucket(player: Player): (boolean, string)
 		return false, "One thing at a time."
 	end
 	local data = DataService:Get(player)
-	if not data or carried[player] then
+	if not data or handsFull(player) then
 		return false, "Your hands are full."
 	end
 	if JobService:IsBusy(player) then

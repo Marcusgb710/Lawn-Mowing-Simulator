@@ -4,7 +4,8 @@
 -- later, or at once if you were away on a job. Look at your box and open it: the flaps swing
 -- open, the tool shows inside, then it comes up into your hands and the empty box goes away.
 -- Until then it's still in its box, not in storage. Unopened boxes are saved (data.deliveries)
--- and turn up again when you rejoin.
+-- and turn up again when you rejoin. Decorations come in boxes too (see DecorService): they're the
+-- crew leader's, stand with the rest, and anyone in the crew can open one and place what's in it.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -12,6 +13,7 @@ local TweenService = game:GetService("TweenService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Assets = require(Shared.Assets)
+local Decorations = require(Shared.Config.Decorations)
 local Deliveries = require(Shared.Deliveries)
 local GameConfig = require(Shared.Config.GameConfig)
 local Items = require(Shared.Config.Items)
@@ -20,6 +22,7 @@ local Sounds = require(Shared.Sounds)
 local Tools = require(Shared.Config.Tools)
 
 local DataService = require(script.Parent.DataService)
+local DecorService = require(script.Parent.DecorService)
 local JobService = require(script.Parent.JobService)
 local PartyService = require(script.Parent.PartyService)
 local TruckService = require(script.Parent.TruckService)
@@ -44,6 +47,10 @@ local DeliveryService = {}
 
 -- [Player] = { [key] = Model }: their boxes standing at the shop
 local boxes = {}
+-- [Player] = { [key] = Model }: the decoration boxes of the business they lead (or own)
+local decorBoxes = {}
+-- [Player] = { [key] = true }: their business's decoration boxes being unpacked right now
+local unpacking = {}
 -- [Player] = true while one of their boxes is opening
 local opening = {}
 
@@ -66,13 +73,20 @@ local function folderFor(player: Player): Folder?
 end
 
 local function clear(player: Player)
-	local shown = boxes[player]
-	if shown then
-		for _, model in shown do
-			model:Destroy()
+	for _, list in { boxes, decorBoxes } do
+		local shown = list[player]
+		if shown then
+			for _, model in shown do
+				model:Destroy()
+			end
 		end
+		list[player] = {}
 	end
-	boxes[player] = {}
+end
+
+local function leaderOf(player: Player): Player
+	local party = PartyService:GetParty(player)
+	return if party then party.leader else player
 end
 
 -- Everyone whose boxes go to this player's shop: their whole crew, in a steady order.
@@ -100,7 +114,25 @@ local function render(player: Player)
 		return
 	end
 	local now = os.time()
+	local leader = leaderOf(player)
 	local x, z, rowDepth = 0, 0, 0
+	-- Stands one box in the next free place in the rows.
+	local function stand(boxName: string, name: string, itemName: string): Model
+		local model = Assets.prop(boxName)
+		Assets.anchor(model)
+		local _, size = model:GetBoundingBox()
+		if x > 0 and x + size.X > ROW_WIDTH then
+			x, z, rowDepth = 0, z + rowDepth + GAP, 0
+		end
+		Assets.placeAt(model, frame * CFrame.new(x + size.X / 2 - ROW_WIDTH / 2, 0, -z - size.Z / 2))
+		x += size.X + GAP
+		rowDepth = math.max(rowDepth, size.Z)
+		model.Name = name
+		model:SetAttribute("Interact", "OpenBox")
+		model:SetAttribute("InteractText", "Open")
+		model:SetAttribute("InteractName", `Delivery: {itemName}`)
+		return model
+	end
 	for _, member in members do
 		local data = DataService:Get(member)
 		if not data then
@@ -112,23 +144,26 @@ local function render(player: Player)
 			if not item or delivery.arrives > now then
 				continue
 			end
-			local model = Assets.prop(Deliveries.boxFor(item.sizeClass))
-			Assets.anchor(model)
-			local _, size = model:GetBoundingBox()
-			if x > 0 and x + size.X > ROW_WIDTH then
-				x, z, rowDepth = 0, z + rowDepth + GAP, 0
-			end
-			Assets.placeAt(model, frame * CFrame.new(x + size.X / 2 - ROW_WIDTH / 2, 0, -z - size.Z / 2))
-			x += size.X + GAP
-			rowDepth = math.max(rowDepth, size.Z)
-			model.Name = "Box_" .. member.UserId .. "_" .. delivery.key
-			model:SetAttribute("Interact", "OpenBox")
-			model:SetAttribute("InteractText", "Open")
-			model:SetAttribute("InteractName", `Delivery: {item.name}`)
+			local model = stand(Deliveries.boxFor(item.sizeClass), `Box_{member.UserId}_{delivery.key}`, item.name)
 			model:SetAttribute("OnlyFor", member.UserId)
 			model:SetAttribute("BoxKey", delivery.key)
 			model.Parent = folder
 			boxes[member][delivery.key] = model
+		end
+		-- The business's decorations, for anyone in the crew.
+		if member == leader then
+			for _, box in DecorService:ArrivedBoxes(member) do
+				if unpacking[member] and unpacking[member][box.key] then
+					continue
+				end
+				local decoration = Decorations.get(box.id)
+				local model = stand(decoration.box, `Decor_{member.UserId}_{box.key}`, decoration.name)
+				model:SetAttribute("BoxKind", "Decor")
+				model:SetAttribute("ForCrew", member.UserId)
+				model:SetAttribute("BoxKey", box.key)
+				model.Parent = folder
+				decorBoxes[member][box.key] = model
+			end
 		end
 	end
 end
@@ -272,6 +307,54 @@ function DeliveryService:Open(player: Player, key: number): (boolean, string)
 	return true, `Unboxed your {tool.name}!`
 end
 
+-- Opens one of the crew's decoration boxes: once the flaps are open, the player starts placing
+-- what's inside (DecorService).
+function DeliveryService:OpenDecor(player: Player, key: number): (boolean, string)
+	local owner = leaderOf(player)
+	local model = decorBoxes[owner] and decorBoxes[owner][key]
+	if not model then
+		return false, "That's not your crew's box."
+	end
+	if opening[player] then
+		return false, "One box at a time."
+	end
+	if JobService:IsBusy(player) then
+		return false, "Not in the middle of a job."
+	end
+	if TruckService:IsCarryingAnything(player) then
+		return false, "Your hands are full."
+	end
+	if not WorldService:IsNear(player, model, OPEN_REACH) then
+		return false, "Get closer to the box."
+	end
+
+	decorBoxes[owner][key] = nil
+	unpacking[owner] = unpacking[owner] or {}
+	unpacking[owner][key] = true
+	opening[player] = true
+	model:SetAttribute("Interact", nil)
+	swingOpen(model)
+	local soundAt = model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart", true)
+	if soundAt then
+		Sounds.play(soundAt, "Pickup")
+	end
+	task.delay(OPEN_TIME + SHOW_TIME, function()
+		opening[player] = nil
+		if unpacking[owner] then
+			unpacking[owner][key] = nil
+		end
+		local placing = player.Parent == Players and DecorService:PlaceFromBox(player, owner, key)
+		if not placing and owner.Parent == Players then
+			-- They left, or their crew changed: it's back in its box.
+			render(owner)
+		end
+		task.delay(GONE_TIME, function()
+			model:Destroy()
+		end)
+	end)
+	return true, "Look where you want it and press E. R turns it."
+end
+
 -- Call after a player sold something or their crew changed: shows their boxes again.
 function DeliveryService:Refresh(player: Player)
 	render(player)
@@ -280,9 +363,12 @@ end
 -- Lifecycle ----------------------------------------------------------------------------------
 
 function DeliveryService:Init()
-	Net.func("OpenBox").OnServerInvoke = function(player, key)
+	Net.func("OpenBox").OnServerInvoke = function(player, key, kind)
 		if typeof(key) ~= "number" then
 			return false, "That's not your box."
+		end
+		if kind == "Decor" then
+			return self:OpenDecor(player, key)
 		end
 		return self:Open(player, key)
 	end
@@ -300,9 +386,15 @@ function DeliveryService:Start()
 			render(player)
 		end
 	end)
+	-- A decoration ordered, placed or put back in its box.
+	DecorService.BoxesChanged:Connect(function(owner)
+		render(owner)
+	end)
 	Players.PlayerRemoving:Connect(function(player)
 		clear(player)
 		boxes[player] = nil
+		decorBoxes[player] = nil
+		unpacking[player] = nil
 		opening[player] = nil
 	end)
 
@@ -316,12 +408,27 @@ function DeliveryService:Start()
 			if not data or opening[player] then
 				continue
 			end
+			local due = false
 			for _, delivery in data.deliveries do
 				local shown = boxes[player] and boxes[player][delivery.key]
 				if delivery.arrives <= now and not (shown and shown.Parent) then
-					render(player)
+					due = true
 					break
 				end
+			end
+			-- Their business's decoration boxes (shown at their shop only while they lead it).
+			if leaderOf(player) == player then
+				for _, box in DecorService:ArrivedBoxes(player) do
+					local shown = decorBoxes[player] and decorBoxes[player][box.key]
+					local busy = unpacking[player] and unpacking[player][box.key]
+					if not (shown and shown.Parent) and not busy then
+						due = true
+						break
+					end
+				end
+			end
+			if due then
+				render(player)
 			end
 		end
 	end
