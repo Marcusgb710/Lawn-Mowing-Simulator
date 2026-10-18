@@ -1,0 +1,26 @@
+{
+  "checked": [
+    {
+      "name": "SelfPropelledMower",
+      "triangles": 7312,
+      "mesh_objects": 6,
+      "dimensions_preserved": true,
+      "texture_paths_portable": true
+    },
+    {
+      "name": "WorkPickup",
+      "triangles": 9056,
+      "mesh_objects": 5,
+      "dimensions_preserved": true,
+      "texture_paths_portable": true
+    },
+    {
+      "name": "FlowerPatch",
+      "triangles": 1260,
+      "mesh_objects": 7,
+      "dimensions_preserved": true,
+      "texture_paths_portable": true
+    }
+  ],
+  "studio_tested": false
+}
