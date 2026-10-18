@@ -10,8 +10,8 @@ local GameConfig = {
 	ReturnDelay = 5,
 
 	JobBoardSize = 6,
-	-- The job board always keeps at least this many level 1 jobs on it.
-	StarterJobsOnBoard = 2,
+	-- The job board always keeps this many homeowner jobs (small yard and garden work) on it.
+	HomeownerJobsOnBoard = 4,
 	-- Untaken jobs get swapped out this often (seconds).
 	JobBoardRefreshTime = 180,
 

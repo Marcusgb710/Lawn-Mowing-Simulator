@@ -70,12 +70,12 @@ local function buildMenuButtons()
 		Name = "Menu",
 		AnchorPoint = Vector2.new(0, 0.5),
 		Position = UDim2.new(0, 12, 0.5, 0),
-		Size = UDim2.fromOffset(110, 176),
+		Size = UDim2.fromOffset(110, 220),
 		BackgroundTransparency = 1,
 		Parent = UI.getScreen(),
 	}, { UI.list(8) })
 
-	for index, name in { "Jobs", "Truck", "Shop", "Crew" } do
+	for index, name in { "Jobs", "Truck", "Shop", "Guide", "Crew" } do
 		UI.button(name, function()
 			UI.toggle(name)
 		end, { LayoutOrder = index, Parent = frame })

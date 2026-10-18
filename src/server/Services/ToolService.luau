@@ -37,6 +37,12 @@ local FX_COLORS = {
 	Rake = Color3.fromRGB(210, 120, 40),
 	Blow = Color3.fromRGB(210, 120, 40),
 	Shear = Color3.fromRGB(60, 130, 50),
+	Prune = Color3.fromRGB(60, 130, 50),
+	Weed = Color3.fromRGB(110, 150, 50),
+	Water = Color3.fromRGB(110, 170, 230),
+	Spread = Color3.fromRGB(235, 235, 220),
+	Spray = Color3.fromRGB(170, 210, 150),
+	Seed = Color3.fromRGB(200, 180, 120),
 }
 local DEFAULT_FX_COLOR = Color3.fromRGB(120, 90, 60)
 

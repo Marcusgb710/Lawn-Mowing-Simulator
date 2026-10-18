@@ -2,16 +2,16 @@
 --
 -- Layout of a job site, looking down (street at the bottom):
 --
---   fence [            house            ]
---     |   [  hedges in the flower bed   ]
---     |   +-----------------------------+ +------+
---     |   |                             | |      |
---  weeds  |   grass tiles to mow,       | | drive|
---  along  |   leaf piles to rake,       |e| way  |
---  side   |   flowers/gnomes to AVOID   |d|      |
---         +-----------edge--------------+ +------+
---         ========= sidewalk ==========================
---         ============ road (truck parks here) ========
+--  side      fence [            house            ]
+--  garden      |   [  hedges in the flower bed   ]
+--  plots       |   +-----------------------------+ +------+
+--  (pots,      |   |                             | |      |
+--  bulbs,   weeds  |   grass tiles to mow,       | | drive|
+--  roses,   along  |   leaf piles to rake,       |e| way  |
+--  beds...) side   |   flowers/gnomes to AVOID   |d|      |
+--                  +-----------edge--------------+ +------+
+--                  ========= sidewalk ==========================
+--                  ============ road (truck parks here) ========
 --
 -- Everything uses the Lawn Mowing kit (Assets.Kit) when it's there and falls back to blocks.
 -- Grass is special: the server only tracks which tiles are mowed (see LawnGrid) and each client
@@ -32,6 +32,14 @@ local COLORS = {
 	Road = Color3.fromRGB(55, 55, 60),
 	Mulch = Color3.fromRGB(90, 60, 40),
 	Weed = Color3.fromRGB(150, 170, 50),
+	Soil = Color3.fromRGB(70, 50, 35),
+	DrySoil = Color3.fromRGB(165, 135, 100),
+	Patio = Color3.fromRGB(175, 165, 150),
+	Leaf = Color3.fromRGB(70, 130, 50),
+	Wilted = Color3.fromRGB(150, 150, 70),
+	Dead = Color3.fromRGB(110, 80, 50),
+	Terracotta = Color3.fromRGB(190, 95, 60),
+	NurseryPot = Color3.fromRGB(30, 30, 30),
 	OvergrownEdge = Color3.fromRGB(80, 140, 50),
 	HedgeOvergrown = Color3.fromRGB(90, 150, 60),
 	HedgeTrimmed = Color3.fromRGB(40, 100, 40),
@@ -153,6 +161,27 @@ local VISUALS = {
 			target.part.Color = COLORS.HedgeOvergrown:Lerp(COLORS.HedgeTrimmed, fraction)
 		end
 	end,
+
+	-- Pulled whole, leaving a little patch of bare soil.
+	Dandelion = function(target, fraction: number)
+		if fraction < 1 then
+			shrink(target, Vector3.one * (1 - fraction * 0.5))
+			return
+		end
+		local parent = target.part.Parent
+		target.part:Destroy()
+		if parent then
+			local hole = makePart(parent, {
+				Name = "Hole",
+				Shape = Enum.PartType.Cylinder,
+				Size = Vector3.new(0.05, 0.8, 0.8),
+				CFrame = target.ground * CFrame.new(0, 0.05, 0) * CFrame.Angles(0, 0, math.pi / 2),
+				Color = COLORS.Soil,
+				Material = Enum.Material.Ground,
+			})
+			ghost(hole)
+		end
+	end,
 }
 
 function Lawn:_addTarget(task, part: BasePart?, position: Vector3, reach: number, extra)
@@ -266,9 +295,10 @@ function Lawn:_buildDecor(rng: Random)
 	local origin = self.origin
 	local width, depth = self.width, self.depth
 
-	-- A cedar fence down the left side of the yard, from the sidewalk to the house.
+	-- A cedar fence down the left side of the yard, from the sidewalk to the house (unless the
+	-- side garden is there).
 	local fenceLength = depth + BED_DEPTH
-	local panels = math.max(1, math.ceil(fenceLength / 7.5))
+	local panels = if self.garden then 0 else math.max(1, math.ceil(fenceLength / 7.5))
 	for index = 0, panels - 1 do
 		local panel = Assets.kitPart("Fence_Cedar_2m")
 		if not panel then
@@ -572,6 +602,499 @@ function Lawn:_buildLeaves(task, rng: Random, count: number)
 	end
 end
 
+-- The side garden ----------------------------------------------------------------------------
+-- Garden jobs (pots, bulbs, beds, roses...) each get a plot left of the yard. Each kind of
+-- target has a look before and after: `build` makes one standing at `ground` and returns its main
+-- part plus whatever its `visual` needs; `visual` shows it `fraction` (0-1) done.
+
+local GARDEN_START_X = -7
+local GARDEN_GAP = 1.5
+
+local function block(parent: Instance, props): BasePart
+	local part = makePart(parent, props)
+	ghost(part)
+	return part
+end
+
+-- A flat round patch lying on `ground`.
+local function disc(parent: Instance, ground: CFrame, diameter: number, color: Color3, height: number?): BasePart
+	local thick = height or 0.06
+	return block(parent, {
+		Name = "Patch",
+		Shape = Enum.PartType.Cylinder,
+		Size = Vector3.new(thick, diameter, diameter),
+		CFrame = ground * CFrame.new(0, thick / 2, 0) * CFrame.Angles(0, 0, math.pi / 2),
+		Color = color,
+		Material = Enum.Material.Ground,
+	})
+end
+
+local function ball(parent: Instance, position: Vector3, size: number, color: Color3): BasePart
+	return block(parent, {
+		Name = "Ball",
+		Shape = Enum.PartType.Ball,
+		Size = Vector3.one * size,
+		Position = position,
+		Color = color,
+		Material = Enum.Material.LeafyGrass,
+	})
+end
+
+local function stick(parent: Instance, from: Vector3, to: Vector3, thickness: number, color: Color3): BasePart
+	return block(parent, {
+		Name = "Stem",
+		Size = Vector3.new(thickness, (to - from).Magnitude, thickness),
+		CFrame = CFrame.lookAt((from + to) / 2, to) * CFrame.Angles(math.pi / 2, 0, 0),
+		Color = color,
+		Material = Enum.Material.Wood,
+	})
+end
+
+-- A small shrub: the kit's rounded shrub, or a green ball.
+local function bush(parent: Instance, ground: CFrame, size: Vector3, color: Color3): BasePart
+	local part, isKit = kitOrBlock("Shrub_Rounded", parent, {
+		Name = "Bush",
+		Shape = Enum.PartType.Ball,
+		Color = color,
+		Material = Enum.Material.LeafyGrass,
+	})
+	Assets.standOn(part, ground, if isKit then size else Vector3.one * size.X)
+	return part
+end
+
+-- Sticks poking out of the top of a shrub (leggy growth, long canes or dead wood).
+local function sprigs(
+	parent: Instance,
+	ground: CFrame,
+	height: number,
+	count: number,
+	length: number,
+	color: Color3,
+	rng: Random
+)
+	local list = {}
+	for index = 1, count do
+		local angle = (index / count) * math.pi * 2 + rng:NextNumber(-0.3, 0.3)
+		local base = (ground * CFrame.new(math.cos(angle) * 0.5, height * 0.8, math.sin(angle) * 0.5)).Position
+		local tip = base + Vector3.new(math.cos(angle) * 0.6, length, math.sin(angle) * 0.6)
+		table.insert(list, stick(parent, base, tip, 0.12, color))
+	end
+	return list
+end
+
+local function destroyAll(parts)
+	for _, part in parts do
+		part:Destroy()
+	end
+end
+
+local GARDEN = {
+	-- A nursery plant in a little black pot, next to the empty container it's going into.
+	Pot = {
+		spacing = 3.4,
+		base = COLORS.Patio,
+		build = function(parent, ground: CFrame)
+			block(parent, {
+				Name = "Container",
+				Shape = Enum.PartType.Cylinder,
+				Size = Vector3.new(1.3, 1.5, 1.5),
+				CFrame = ground * CFrame.new(0.8, 0.65, 0) * CFrame.Angles(0, 0, math.pi / 2),
+				Color = COLORS.Terracotta,
+				Material = Enum.Material.Slate,
+			})
+			local pot = block(parent, {
+				Name = "NurseryPot",
+				Shape = Enum.PartType.Cylinder,
+				Size = Vector3.new(0.8, 0.9, 0.9),
+				CFrame = ground * CFrame.new(-0.8, 0.4, 0) * CFrame.Angles(0, 0, math.pi / 2),
+				Color = COLORS.NurseryPot,
+			})
+			local plant = ball(parent, (ground * CFrame.new(-0.8, 1.2, 0)).Position, 1, COLORS.Leaf)
+			return pot, { plant = plant, into = (ground * CFrame.new(0.8, 1.6, 0)).Position }
+		end,
+		visual = function(target, fraction: number)
+			if fraction >= 1 then
+				target.plant.Position = target.into
+				target.part:Destroy()
+			end
+		end,
+	},
+
+	-- A neat hole in the bed for each seedling plug.
+	Plug = {
+		spacing = 1.8,
+		columns = 4,
+		base = COLORS.Soil,
+		build = function(parent, ground: CFrame)
+			return disc(parent, ground, 0.6, Color3.fromRGB(45, 32, 22), 0.04), {}
+		end,
+		visual = function(target, fraction: number)
+			if fraction >= 1 and target.parent then
+				ball(target.parent, (target.ground * CFrame.new(0, 0.3, 0)).Position, 0.5, COLORS.Leaf)
+			end
+		end,
+	},
+
+	-- A perennial dug up with its root ball, next to the hole it's moving to.
+	Perennial = {
+		spacing = 4,
+		columns = 3,
+		base = COLORS.Soil,
+		build = function(parent, ground: CFrame)
+			local hole = disc(parent, ground * CFrame.new(1, 0, 0), 1.6, Color3.fromRGB(40, 28, 20), 0.04)
+			local roots = ball(parent, (ground * CFrame.new(-1, 0.6, 0)).Position, 1.2, COLORS.Dead)
+			local plant = ball(parent, (ground * CFrame.new(-1, 1.5, 0)).Position, 1.8, COLORS.Leaf)
+			return hole, { roots = roots, plant = plant }
+		end,
+		visual = function(target, fraction: number)
+			if fraction >= 1 then
+				local spot = target.ground * CFrame.new(1, 0, 0)
+				target.roots.Position = (spot * CFrame.new(0, 0.2, 0)).Position
+				target.plant.Position = (spot * CFrame.new(0, 1, 0)).Position
+				target.part:Destroy()
+			end
+		end,
+	},
+
+	-- A marker flag where each bulb goes.
+	Bulb = {
+		spacing = 1.8,
+		columns = 4,
+		base = COLORS.Soil,
+		build = function(parent, ground: CFrame)
+			local pole =
+				stick(parent, ground.Position, ground.Position + Vector3.new(0, 1.2, 0), 0.08, Color3.new(1, 1, 1))
+			local flag = block(parent, {
+				Name = "Flag",
+				Size = Vector3.new(0.45, 0.3, 0.04),
+				CFrame = ground * CFrame.new(0.24, 1.05, 0),
+				Color = Color3.fromRGB(230, 60, 60),
+			})
+			return pole, { flag = flag }
+		end,
+		visual = function(target, fraction: number)
+			if fraction >= 1 then
+				target.flag:Destroy()
+				target.part:Destroy()
+				if target.parent then
+					disc(target.parent, target.ground, 0.8, COLORS.Soil, 0.15)
+				end
+			end
+		end,
+	},
+
+	-- A furrow in the vegetable bed for each row of seed.
+	SeedRow = {
+		cell = Vector2.new(1.6, 6),
+		oneRow = true,
+		base = COLORS.Soil,
+		build = function(parent, ground: CFrame)
+			return block(parent, {
+				Name = "Furrow",
+				Size = Vector3.new(0.45, 0.06, 5.4),
+				CFrame = ground * CFrame.new(0, 0.03, 0),
+				Color = Color3.fromRGB(40, 28, 20),
+				Material = Enum.Material.Ground,
+			}),
+				{}
+		end,
+		visual = function(target, fraction: number)
+			if fraction >= 1 and target.parent then
+				target.part.Color = COLORS.Soil:Lerp(Color3.new(1, 1, 1), 0.1)
+				target.part.Size = Vector3.new(0.6, 0.15, 5.4)
+				target.part.CFrame = target.ground * CFrame.new(0, 0.075, 0)
+				stick(
+					target.parent,
+					(target.ground * CFrame.new(0, 0, -2.9)).Position,
+					(target.ground * CFrame.new(0, 0.9, -2.9)).Position,
+					0.1,
+					Color3.new(1, 1, 1)
+				)
+			end
+		end,
+		reach = 2.6,
+	},
+
+	-- A patch of pale, crusted-over soil that turns dark and crumbly once it's loosened.
+	CrustedSoil = {
+		spacing = 3,
+		columns = 3,
+		base = COLORS.Mulch,
+		build = function(parent, ground: CFrame)
+			return block(parent, {
+				Name = "Crust",
+				Size = Vector3.new(2.6, 0.12, 2.6),
+				CFrame = ground * CFrame.new(0, 0.06, 0),
+				Color = COLORS.DrySoil,
+				Material = Enum.Material.Slate,
+			}),
+				{}
+		end,
+		visual = function(target, fraction: number)
+			target.part.Color = COLORS.DrySoil:Lerp(COLORS.Soil, fraction)
+			if fraction >= 1 then
+				target.part.Material = Enum.Material.Ground
+			end
+		end,
+		reach = 1.4,
+	},
+
+	-- Young weeds coming up in a bed.
+	Sprout = {
+		spacing = 1.8,
+		columns = 4,
+		base = COLORS.Mulch,
+		build = function(parent, ground: CFrame, rng: Random)
+			local part, isKit = kitOrBlock(if rng:NextNumber() < 0.5 then "Weed_Clover" else "Weed_Broadleaf", parent, {
+				Name = "Sprout",
+				Color = COLORS.Weed,
+				Material = Enum.Material.Grass,
+			})
+			local size = if isKit then part.Size * 1.3 else Vector3.new(0.5, 0.6, 0.5)
+			Assets.standOn(part, ground, size)
+			return part, { startSize = size }
+		end,
+		visual = function(target, fraction: number)
+			if fraction >= 1 then
+				target.part:Destroy()
+			else
+				shrink(target, Vector3.one * (1 - fraction * 0.7))
+			end
+		end,
+	},
+
+	-- A shrub with long, leggy shoots to prune back.
+	Shrub = {
+		spacing = 4,
+		columns = 3,
+		base = COLORS.Mulch,
+		build = function(parent, ground: CFrame, rng: Random)
+			local part = bush(parent, ground, Vector3.new(2.4, 2.2, 2.4), COLORS.HedgeOvergrown)
+			return part, { stems = sprigs(parent, ground, 2.2, 4, 1.6, Color3.fromRGB(110, 140, 60), rng) }
+		end,
+		visual = function(target, fraction: number)
+			if fraction >= 1 then
+				destroyAll(target.stems)
+			end
+		end,
+		reach = 1.6,
+	},
+
+	-- A rose bush with long thorny canes and a few roses.
+	Rose = {
+		spacing = 4,
+		columns = 3,
+		base = COLORS.Mulch,
+		build = function(parent, ground: CFrame, rng: Random)
+			local part = bush(parent, ground, Vector3.new(2, 1.8, 2), Color3.fromRGB(45, 95, 40))
+			for index = 1, 4 do
+				local angle = index * math.pi / 2 + rng:NextNumber(-0.4, 0.4)
+				ball(
+					parent,
+					(ground * CFrame.new(math.cos(angle) * 0.8, 1.6, math.sin(angle) * 0.8)).Position,
+					0.38,
+					Color3.fromRGB(200, 30, 50)
+				)
+			end
+			return part, { stems = sprigs(parent, ground, 1.8, 3, 1.9, Color3.fromRGB(80, 100, 45), rng) }
+		end,
+		visual = function(target, fraction: number)
+			if fraction >= 1 then
+				destroyAll(target.stems)
+			end
+		end,
+		reach = 1.5,
+	},
+
+	-- A shrub with dead, dry branches sticking out of it.
+	DeadWood = {
+		spacing = 4,
+		columns = 3,
+		base = COLORS.Mulch,
+		build = function(parent, ground: CFrame, rng: Random)
+			local part = bush(parent, ground, Vector3.new(2.4, 2.2, 2.4), COLORS.HedgeOvergrown)
+			return part, { stems = sprigs(parent, ground, 2.2, 3, 1.4, COLORS.Dead, rng) }
+		end,
+		visual = function(target, fraction: number)
+			if fraction >= 1 then
+				destroyAll(target.stems)
+			end
+		end,
+		reach = 1.6,
+	},
+
+	-- A clump of flowers gone over, with brown spent heads.
+	FlowerClump = {
+		spacing = 2.6,
+		columns = 4,
+		base = COLORS.Mulch,
+		build = function(parent, ground: CFrame, rng: Random)
+			local part = ball(parent, (ground * CFrame.new(0, 0.6, 0)).Position, 1.4, COLORS.Leaf)
+			local heads = {}
+			for index = 1, 4 do
+				local angle = index * math.pi / 2 + rng:NextNumber(-0.4, 0.4)
+				table.insert(
+					heads,
+					ball(
+						parent,
+						(ground * CFrame.new(math.cos(angle) * 0.5, 1.4, math.sin(angle) * 0.5)).Position,
+						0.35,
+						COLORS.Dead
+					)
+				)
+			end
+			return part,
+				{
+					heads = heads,
+					bloom = if rng:NextNumber() < 0.5
+						then Color3.fromRGB(240, 120, 170)
+						else Color3.fromRGB(250, 210, 60),
+				}
+		end,
+		visual = function(target, fraction: number)
+			if fraction >= 1 then
+				for _, head in target.heads do
+					head.Color = target.bloom
+				end
+			end
+		end,
+	},
+
+	-- A dry bed with a wilting plant that perks up as it gets a soak.
+	DryBed = {
+		spacing = 3.4,
+		columns = 3,
+		base = COLORS.Mulch,
+		build = function(parent, ground: CFrame)
+			local soil = block(parent, {
+				Name = "DrySoil",
+				Size = Vector3.new(3, 0.12, 3),
+				CFrame = ground * CFrame.new(0, 0.06, 0),
+				Color = COLORS.DrySoil,
+				Material = Enum.Material.Ground,
+			})
+			return soil, { plant = ball(parent, (ground * CFrame.new(0, 0.7, 0)).Position, 1.2, COLORS.Wilted) }
+		end,
+		visual = function(target, fraction: number)
+			target.part.Color = COLORS.DrySoil:Lerp(COLORS.Soil, fraction)
+			target.plant.Color = COLORS.Wilted:Lerp(COLORS.Leaf, fraction)
+		end,
+		reach = 1.6,
+	},
+
+	-- A tray of tiny seedlings in dry potting mix.
+	SeedTray = {
+		spacing = 2.8,
+		columns = 3,
+		base = COLORS.Patio,
+		build = function(parent, ground: CFrame)
+			block(parent, {
+				Name = "Tray",
+				Size = Vector3.new(2.2, 0.35, 1.3),
+				CFrame = ground * CFrame.new(0, 0.175, 0),
+				Color = COLORS.NurseryPot,
+			})
+			local mix = block(parent, {
+				Name = "Mix",
+				Size = Vector3.new(2, 0.05, 1.1),
+				CFrame = ground * CFrame.new(0, 0.37, 0),
+				Color = COLORS.DrySoil,
+				Material = Enum.Material.Ground,
+			})
+			for index = 1, 6 do
+				ball(
+					parent,
+					(ground * CFrame.new(((index - 1) % 3 - 1) * 0.6, 0.45, if index <= 3 then -0.25 else 0.25)).Position,
+					0.18,
+					COLORS.Leaf
+				)
+			end
+			return mix, {}
+		end,
+		visual = function(target, fraction: number)
+			target.part.Color = COLORS.DrySoil:Lerp(COLORS.Soil, fraction)
+		end,
+	},
+}
+for kind, style in GARDEN do
+	VISUALS[kind] = style.visual
+end
+
+-- One plot in the side garden for a garden task, with a target per thing to do. Plots stack
+-- from the sidewalk toward the house, then start a new column further left.
+function Lawn:_buildGardenPlot(task, rng: Random)
+	local style = GARDEN[task.type.target]
+	local count = math.max(1, task.amount)
+	local columns = if style.oneRow then count else math.min(count, style.columns or 4)
+	local rows = math.ceil(count / columns)
+	local cell = style.cell or Vector2.new(style.spacing, style.spacing)
+	local size = Vector2.new(columns * cell.X + 1, rows * cell.Y + 1)
+
+	local cursor = self.gardenCursor
+	if cursor.z > 0 and cursor.z + size.Y > self.depth + BED_DEPTH then
+		cursor.x -= cursor.columnWidth + GARDEN_GAP
+		cursor.z = 0
+		cursor.columnWidth = 0
+	end
+	local corner = self.origin + Vector3.new(cursor.x - size.X, 0, cursor.z)
+	cursor.z += size.Y + GARDEN_GAP
+	cursor.columnWidth = math.max(cursor.columnWidth, size.X)
+
+	local folder = Instance.new("Folder")
+	folder.Name = task.id
+	folder.Parent = self.garden
+	block(folder, {
+		Name = "Plot",
+		Size = Vector3.new(size.X, 0.3, size.Y),
+		Position = corner + Vector3.new(size.X / 2, 0.15, size.Y / 2),
+		Color = style.base,
+		Material = if style.base == COLORS.Patio then Enum.Material.Concrete else Enum.Material.Ground,
+	})
+	for index = 1, count do
+		local column = (index - 1) % columns
+		local row = (index - 1) // columns
+		local position = corner + Vector3.new(0.5 + (column + 0.5) * cell.X, 0.3, 0.5 + (row + 0.5) * cell.Y)
+		local ground = CFrame.new(position)
+		local part, extra = style.build(folder, ground, rng)
+		extra.ground = ground
+		extra.parent = folder
+		extra.startSize = extra.startSize or part.Size
+		self:_addTarget(task, part, position, style.reach or 1, extra)
+	end
+end
+
+-- Dandelions dotted around the lawn, away from the flowers.
+function Lawn:_buildDandelions(task, rng: Random, hazardTiles)
+	local tile = GameConfig.TileSize
+	local folder = Instance.new("Folder")
+	folder.Name = "Dandelions"
+	folder.Parent = self.folder
+	local used = {}
+	for _ = 1, task.amount * 20 do
+		if #task.targets >= task.amount then
+			break
+		end
+		local column = rng:NextInteger(0, self.columns - 1)
+		local row = rng:NextInteger(0, self.rows - 1)
+		local key = column * 1000 + row
+		if used[key] or nearHazard(hazardTiles, column, row, 1) then
+			continue
+		end
+		used[key] = true
+		local center = LawnGrid.center(self.origin, tile, column, row)
+		local base = center + Vector3.new(rng:NextNumber(-1, 1), 0, rng:NextNumber(-1, 1))
+		local ground = CFrame.new(base) * CFrame.Angles(0, rng:NextNumber(0, math.pi * 2), 0)
+		local part, isKit = kitOrBlock("Weed_Dandelion", folder, {
+			Name = "Dandelion",
+			Color = Color3.fromRGB(230, 200, 40),
+			Material = Enum.Material.Grass,
+		})
+		local size = if isKit then part.Size * 1.8 else Vector3.new(0.8, 0.9, 0.8)
+		Assets.standOn(part, ground, size)
+		self:_addTarget(task, part, base, 0.6, { ground = ground, startSize = size })
+	end
+end
+
 -- Public API ---------------------------------------------------------------------------------
 
 -- `origin` is the front-left corner of the lawn, where it meets the sidewalk.
@@ -594,6 +1117,8 @@ function LawnService:Build(template, origin: Vector3, address: string)
 		-- One entry per task in the job, in the customer's order.
 		tasks = {},
 		hazards = {},
+		-- Where the next side garden plot goes (left of the yard, from the sidewalk back).
+		gardenCursor = { x = GARDEN_START_X, z = 0, columnWidth = 0 },
 	}, Lawn)
 
 	-- Which task each kind of yard target belongs to (one task per kind).
@@ -631,6 +1156,19 @@ function LawnService:Build(template, origin: Vector3, address: string)
 	if byTarget.LeafPile then
 		lawn:_buildLeaves(byTarget.LeafPile, rng, byTarget.LeafPile.amount)
 	end
+	if byTarget.Dandelion then
+		lawn:_buildDandelions(byTarget.Dandelion, rng, hazardTiles)
+	end
+	for _, task in lawn.tasks do
+		if task.type.target and GARDEN[task.type.target] then
+			if not lawn.garden then
+				lawn.garden = Instance.new("Folder")
+				lawn.garden.Name = "Garden"
+				lawn.garden.Parent = folder
+			end
+			lawn:_buildGardenPlot(task, rng)
+		end
+	end
 	lawn:_buildDecor(rng)
 
 	-- The truck parks on the road facing along the curb; the crew hops out onto the sidewalk.
@@ -653,12 +1191,21 @@ export type WorkResult = {
 	work: number,
 	fitWork: number,
 	qualityWork: number,
+	-- The protection ("Thorns", "Chemicals") the player needed but didn't have.
+	hurt: string?,
 }
 
 -- Uses tool `toolId` on everything within `radius` of `position` that it can work on. `amount`
--- is the work a perfectly fitting tool would do this tick; worse fits do less.
-function Lawn:ApplyWork(position: Vector3, radius: number, toolId: string, amount: number): WorkResult
-	local result = { changed = false, blocked = false, work = 0, fitWork = 0, qualityWork = 0 }
+-- is the work a perfectly fitting tool would do this tick; worse fits do less. `protections` are
+-- the hazards the player's gloves protect from; thorny or chemical work needs them.
+function Lawn:ApplyWork(
+	position: Vector3,
+	radius: number,
+	toolId: string,
+	amount: number,
+	protections: { [string]: boolean }?
+): WorkResult
+	local result = { changed = false, blocked = false, work = 0, fitWork = 0, qualityWork = 0, hurt = nil }
 
 	-- Lawn grass is everywhere, so walking a tool across it on the way to its real work isn't a
 	-- mistake. Grass only counts as "wrong tool" when the tool has nothing left to do here.
@@ -673,6 +1220,8 @@ function Lawn:ApplyWork(position: Vector3, radius: number, toolId: string, amoun
 
 	for _, task in self.tasks do
 		local fit = fits[task]
+		local needs = task.type.protection
+		local unprotected = needs ~= nil and not (protections and protections[needs])
 		for _, target in task.targets do
 			if target.work <= 0 then
 				continue
@@ -685,6 +1234,10 @@ function Lawn:ApplyWork(position: Vector3, radius: number, toolId: string, amoun
 				if target.kind ~= "Grass" or not usefulHere then
 					result.blocked = true
 				end
+				break
+			end
+			if unprotected then
+				result.hurt = needs
 				break
 			end
 			local applied = math.min(target.work, amount * fit.speed)
