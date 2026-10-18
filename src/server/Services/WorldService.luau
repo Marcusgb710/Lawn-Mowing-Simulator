@@ -26,6 +26,8 @@ local PLOT_RADIUS = 40
 local PLOT_SIZE = Vector3.new(60, 1, 60)
 -- How close you need to be to your business's storage to grab or put back a tool.
 local STORAGE_REACH = 10
+-- How close you need to be to the workbench to work on tools (a bit more than its prompt's reach).
+local WORKBENCH_REACH = 14
 
 local WorldService = {}
 -- Fired with (owner) after a business plot is (re)built, so the truck bed can be refilled.
@@ -198,6 +200,17 @@ local function buildPlot(plot)
 	-- Each player sees their own tools in storage on their screen (see CarryController).
 	BusinessStorage.build(model, origin, data.equipped.Business or "Shed")
 
+	-- Where the crew fixes up their tools (see MaintenanceService).
+	local bench = Assets.prop("Workbench")
+	Assets.anchor(bench)
+	Assets.placeAt(bench, at(10, 0, 11))
+	bench.Name = "Workbench"
+	bench.Parent = model
+	local benchPart = bench.PrimaryPart or bench:FindFirstChildWhichIsA("BasePart", true)
+	if benchPart then
+		prompt(benchPart, "Work on Tools", "Workbench", { OpensPanel = "Workbench" })
+	end
+
 	local truck = Assets.truck(data.equipped.Truck or Items.Catalog.Truck[1].id, data.equipped.Trailer)
 	Assets.anchor(truck)
 	Assets.placeOnGround(truck, at(-4, 0, -18) * CFrame.Angles(0, math.rad(90), 0))
@@ -277,6 +290,24 @@ function WorldService:IsNearStorage(player: Player): boolean
 		end
 	end
 	return false
+end
+
+-- If the player is standing at their crew's workbench, the id of that business (its building
+-- decides which shop machines are there).
+function WorldService:GetWorkbenchBusiness(player: Player): string?
+	local leader = getLeader(player)
+	local plot = playerPlots[leader] or playerPlots[player]
+	local bench = plot and plot.model and plot.model:FindFirstChild("Workbench")
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	if not (bench and bench:IsA("Model") and root and root:IsA("BasePart")) then
+		return nil
+	end
+	if (root.Position - bench:GetPivot().Position).Magnitude > WORKBENCH_REACH then
+		return nil
+	end
+	local ownerData = plot.owner and DataService:Get(plot.owner)
+	return ownerData and ownerData.equipped.Business or "Shed"
 end
 
 function WorldService:IsAtBusiness(player: Player): boolean

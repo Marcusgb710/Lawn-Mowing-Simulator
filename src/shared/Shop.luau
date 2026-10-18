@@ -3,13 +3,22 @@
 
 local GameConfig = require(script.Parent.Config.GameConfig)
 local Items = require(script.Parent.Config.Items)
+local Maintenance = require(script.Parent.Config.Maintenance)
 local Storage = require(script.Parent.Config.Storage)
 local Tools = require(script.Parent.Config.Tools)
 
 local Shop = {}
 
--- `state` is a player's profile: { owned, equipped, level, trailerUnlocked }.
--- Returns whether they may buy the item (money aside) and, if not, why.
+-- Whether an owned consumable supply (gas, line, patches...) has room for a restock.
+function Shop.canRestock(state, itemId: string): boolean
+	local supply = Maintenance.Supplies[itemId]
+	local condition = state.condition and state.condition[itemId]
+	return supply ~= nil and supply.uses ~= nil and condition ~= nil and (condition.uses or 0) < supply.uses
+end
+
+-- `state` is a player's profile: { owned, equipped, level, trailerUnlocked, condition }.
+-- Returns whether they may buy the item (money aside) and, if not, why. Buying a consumable
+-- you already own restocks it.
 function Shop.canBuy(state, category: string, itemId: string): (boolean, string?)
 	local item = Items.get(category, itemId)
 	if not item then
@@ -17,6 +26,9 @@ function Shop.canBuy(state, category: string, itemId: string): (boolean, string?
 	end
 	local owned = state.owned[category]
 	if owned and owned[itemId] then
+		if Shop.canRestock(state, itemId) then
+			return true, nil
+		end
 		return false, "You already own that."
 	end
 
@@ -47,8 +59,14 @@ function Shop.canSell(item): boolean
 	return item.price > 0
 end
 
-function Shop.sellPrice(item): number
-	return math.floor(item.price * GameConfig.SellRefund)
+-- What selling a tool gives back. A half-used consumable is worth what's left in it.
+function Shop.sellPrice(item, condition): number
+	local supply = Maintenance.Supplies[item.id]
+	local left = 1
+	if supply and supply.uses and condition and condition.uses then
+		left = math.clamp(condition.uses / supply.uses, 0, 1)
+	end
+	return math.floor(item.price * GameConfig.SellRefund * left)
 end
 
 return Shop

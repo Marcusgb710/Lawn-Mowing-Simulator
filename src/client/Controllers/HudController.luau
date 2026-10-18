@@ -1,4 +1,5 @@
--- Always-on screen stuff: money and level, menu buttons, and the job tracker (tasks, timer, damage).
+-- Always-on screen stuff: money and level, menu buttons, the job tracker (tasks, timer, damage)
+-- and the condition of the tool in your hands ("Running low on fuel").
 
 local Players = game:GetService("Players")
 local ProximityPromptService = game:GetService("ProximityPromptService")
@@ -7,7 +8,9 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Format = require(Shared.Format)
 local GameConfig = require(Shared.Config.GameConfig)
+local Maintenance = require(Shared.Config.Maintenance)
 local Net = require(Shared.Net)
+local Tools = require(Shared.Config.Tools)
 
 local ClientState = require(script.Parent.Parent.ClientState)
 local UI = require(script.Parent.Parent.UI)
@@ -28,6 +31,55 @@ local taskList: Frame
 local trackerButton: TextButton
 local taskRows = {}
 local shownJobId = nil
+local conditionLabel: TextLabel
+
+-- Tool attributes the server keeps up to date (see ToolService), as a condition table.
+local CONDITION_ATTRIBUTES =
+	{ fuel = "Fuel", pressure = "Pressure", flat = "Flat", sharpness = "Sharpness", line = "Line", broken = "Broken" }
+
+-- Shows what's wrong with the tool you're holding, or how long until you finish working on one.
+local function updateCondition()
+	local untilTime = player:GetAttribute("MaintainingUntil")
+	if typeof(untilTime) == "number" then
+		local left = math.max(0, math.ceil(untilTime - workspace:GetServerTimeNow()))
+		conditionLabel.Text = `Working on it... {left}s`
+		conditionLabel.Visible = true
+		return
+	end
+	local character = player.Character
+	local tool = character and character:FindFirstChildOfClass("Tool")
+	local item = tool and Tools.get(tool:GetAttribute("ItemId"))
+	if not (tool and item) then
+		conditionLabel.Visible = false
+		return
+	end
+	local condition = {}
+	for key, attribute in CONDITION_ATTRIBUTES do
+		condition[key] = tool:GetAttribute(attribute)
+	end
+	local warnings = Maintenance.warnings(item, condition)
+	conditionLabel.Visible = #warnings > 0
+	conditionLabel.Text = table.concat(warnings, "  ·  ")
+end
+
+local function buildCondition()
+	conditionLabel = UI.label("", {
+		Name = "ToolCondition",
+		AnchorPoint = Vector2.new(0.5, 1),
+		Position = UDim2.new(0.5, 0, 1, -130),
+		Size = UDim2.new(0.9, 0, 0, 30),
+		BackgroundTransparency = 0.25,
+		BackgroundColor3 = UI.Colors.Background,
+		TextColor3 = UI.Colors.Money,
+		TextXAlignment = Enum.TextXAlignment.Center,
+		TextWrapped = true,
+		TextSize = 16,
+		Visible = false,
+		Parent = UI.getScreen(),
+	})
+	UI.corner(8).Parent = conditionLabel
+	UI.new("UISizeConstraint", { MaxSize = Vector2.new(420, math.huge), Parent = conditionLabel })
+end
 
 local function buildStats()
 	local frame = UI.new("Frame", {
@@ -278,6 +330,7 @@ function HudController:Start()
 	buildStats()
 	buildMenuButtons()
 	buildTracker()
+	buildCondition()
 
 	ClientState.Changed:Connect(function(key)
 		if key == "profile" then
@@ -292,6 +345,7 @@ function HudController:Start()
 		while true do
 			task.wait(0.25)
 			updateTimer()
+			updateCondition()
 		end
 	end)
 

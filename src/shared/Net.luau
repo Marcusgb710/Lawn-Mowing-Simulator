@@ -27,6 +27,8 @@ local FUNCTIONS = {
 	"EquipItem",
 	"PickUpTool",
 	"PutBackTool",
+	"GetWorkbench",
+	"Maintain",
 	"InviteToParty",
 	"RespondToInvite",
 	"KickFromParty",

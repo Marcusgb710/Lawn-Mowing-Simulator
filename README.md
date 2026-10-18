@@ -97,7 +97,12 @@ Services*. Without it the game still runs, it just doesn't save progress.
      costs 10% of the job's pay.
    - **Bonuses:** bigger crews, better trucks and a bigger business all pay more.
    The money is split evenly across the crew, then the truck drives everyone back to the business.
-7. **Upgrade.** Spend money at the hardware store on better tools (reel push mower → gas → self
+7. **Look after your gear.** Engines burn fuel (regular gas for four-strokes, mix for
+   two-strokes: the wrong one wrecks the engine), air tires go soft and puncture, blades go dull
+   and trimmers run out of line. The HUD tells you when something's wrong, never how to fix it.
+   Fix things at the workbench at your business, or at the truck's tailgate on a job with the
+   supplies you brought.
+8. **Upgrade.** Spend money at the hardware store on better tools (reel push mower → gas → self
    propelled → riding → zero-turn, and so on for each tool), trucks, trailers and business
    upgrades. Serious gear needs level 3 and a garage; pro gear needs level 8 and a small office.
 

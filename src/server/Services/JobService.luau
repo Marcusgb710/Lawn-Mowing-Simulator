@@ -364,6 +364,15 @@ local function startDriving(job)
 	Assets.anchor(truck)
 	Assets.placeOnGround(truck, job.lawn.truckCFrame)
 	truck.Parent = job.lawn.folder
+	-- Supplies you brought can be used on your tools at the tailgate (see MaintenanceService).
+	local tailgate = Instance.new("ProximityPrompt")
+	tailgate.ActionText = "Work on Tools"
+	tailgate.ObjectText = "Tailgate"
+	tailgate.HoldDuration = 0
+	tailgate.MaxActivationDistance = 12
+	tailgate.RequiresLineOfSight = false
+	tailgate:SetAttribute("OpensPanel", "Workbench")
+	tailgate.Parent = truck.PrimaryPart or truck:FindFirstChildWhichIsA("BasePart", true)
 	job.lawn.folder.Name = "JobSite_" .. job.id
 	job.lawn.folder.Parent = sitesFolder
 
@@ -470,7 +479,14 @@ end
 --   quiet           don't tell them their tool won't work (a mower idling while they stand still)
 --   moving          they're walking
 --   seconds         how long this bit of work took
-export type WorkOptions = { damagesHazards: boolean?, quiet: boolean?, moving: boolean?, seconds: number? }
+--   qualityScale    how the tool's condition changes its finish (a dull blade tears instead of cutting)
+export type WorkOptions = {
+	damagesHazards: boolean?,
+	quiet: boolean?,
+	moving: boolean?,
+	seconds: number?,
+	qualityScale: number?,
+}
 
 -- Called by ToolService every tick a player is using a tool.
 function JobService:ApplyWork(
@@ -509,7 +525,7 @@ function JobService:ApplyWork(
 	end
 	job.work += result.work
 	job.fitWork += result.fitWork
-	job.qualityWork += result.qualityWork
+	job.qualityWork += result.qualityWork * (options.qualityScale or 1)
 	local warnedRecently = os.clock() - (wrongToolWarnings[player] or 0) <= 4
 	if result.hurt and not warnedRecently then
 		wrongToolWarnings[player] = os.clock()

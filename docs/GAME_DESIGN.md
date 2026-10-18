@@ -388,29 +388,53 @@ their front. Mount heights are `MOUNT_HEIGHT` in `BusinessStorage.luau`, to tune
 
 ## 6. Maintenance (phase E)
 
-Simple but real, for mowers and equipment (not the truck):
+Simple but real, for tools and machines (not the truck). The rules are in
+`src/shared/Config/Maintenance.luau`, the workbench in `src/server/Services/MaintenanceService.luau`.
 
-- **Fuel.**
-  - Four-stroke engines (mowers, aerators, dethatcher, overseeder, ride-ons) burn regular gas
-    (`GasCan`).
-  - Two-stroke handhelds (string trimmers, gas edgers, gas hedge trimmers, blowers) need 50:1 mix
-    (`MixGasCan`).
-  - Tanks drain with use; an empty tool stops. Wrong fuel damages the engine.
-  - Tools carry an `engine` field already: None, Electric, Battery, FourStroke or TwoStroke.
-- **Tires.**
-  - Air tires slowly lose pressure and can puncture. Low pressure is slower and harder to push; a
-    flat stops the machine.
-  - Inflate with `FootPump` (slow), `ElectricInflator` (fast) or an `AirCompressor` at bigger
-    buildings.
-  - Fix with `TirePatchKit`, or swap a `SpareTire` using the `WrenchSet`.
-  - Flat-free tires never need any of this. Tools carry a `tires` field already.
-- **Blades.**
-  - Mower blades, pruners and loppers dull with use, lowering cut quality (ragged tears).
-  - Sharpen with `BladeFile` or `SharpeningStone` (slow) or a `BenchGrinder` (fast), or swap a
-    `SpareMowerBlade` using the `WrenchSet`.
-- **Trimmer line** runs out; reload with `TrimmerLine`.
-- Do maintenance at the business workbench, or in the field if you brought the supplies (they
-  take truck space).
+Every owned tool has a **condition**, saved with the player:
+
+| Part | Which tools | Wears out | When it's gone |
+| --- | --- | --- | --- |
+| Fuel | `engine` FourStroke (regular gas) or TwoStroke (50:1 mix) | 300 s (four-stroke) or 240 s (two-stroke) of running | won't run |
+| Engine | the same | wrong fuel wrecks it at once | won't start until repaired |
+| Air tires | `tires = "Air"` (ride-ons, barrows, spreader) | 1800 s of rolling, plus a puncture now and then | slower and harder to push; flat won't roll |
+| Blade | mowers, edgers, spades ("heavy"); pruners, shears, hedge trimmers ("fine") | 1200 s of cutting | slower and rougher cut (quality down to 60%) |
+| Trimmer line | string trimmers | 240 s of trimming | won't cut |
+
+Electric and battery tools need no fuel; flat-free tires never need air.
+
+**Supplies** (Supplies tab) fix things. Consumables have uses and are restocked by buying them
+again.
+
+| Supply | Does | Time | Uses |
+| --- | --- | --- | --- |
+| GasCan / MixGasCan | fills a four-stroke / two-stroke tank (the other kind wrecks the engine) | 2 s | 6 |
+| FootPump / ElectricInflator | inflates air tires | 8 s / 2 s | - |
+| AirCompressor | inflates air tires; never leaves the building | 1 s | - |
+| TirePatchKit | fixes a puncture (then it needs air) | 6 s | 4 |
+| SpareTire | swaps a new tire on, with a WrenchSet | 10 s | 1 |
+| WrenchSet | repairs a wrecked engine: drains the bad fuel (parts cost 10% of the tool's price, at least $10) | 15 s | - |
+| BladeFile / BenchGrinder | sharpens heavy blades (the grinder fast, and only in the building) | 10 s / 3 s | - |
+| SharpeningStone | sharpens fine edges | 8 s | - |
+| SpareMowerBlade | bolts a new blade on a rotary mower, with a WrenchSet | 6 s | 1 |
+| TrimmerLine | reloads a string trimmer | 4 s | 5 |
+
+- **Where:** at the business **workbench** (every building has one; you can use everything you
+  own, plus the building's machines: the Small Office has an air compressor, the Equipment Yard
+  an air compressor and a bench grinder), or at the **tailgate** of the truck on a job (only what
+  you loaded). Supplies take truck space like any tool.
+- **How:** the Workbench menu: pick a tool, then a supply. Each job takes a few seconds and you
+  have to stay put. Parts for a repair are paid when it's done. Tools and supplies can't be bought
+  mid-job (what you brought is what you've got), and a half-used consumable sells for what's
+  left in it. Nothing says which supply fits which tool, and using the wrong one does what
+  it really would.
+- **What players see:** the HUD shows the held tool's condition ("Running low on fuel", "Tire
+  looks soft", "Cut is getting ragged", "Engine is smoking and won't start") and the Truck menu
+  shows every tool's. They never name the fix. A tool that stops says so once ("It sputtered
+  out.").
+- Choices made: the shed gets a workbench too (the spec only listed one from the garage up), so
+  new players can look after their tools at home. Reel mowers are sharpened with a file (real
+  ones are backlapped) and can't take a spare blade.
 
 ## Phases
 
@@ -419,8 +443,8 @@ Simple but real, for mowers and equipment (not the truck):
 | A | This doc; `Tools.luau`, `TaskTypes.luau` and the new `Jobs.luau` format; tool fit, quality and customer preference in pay; no tool names on the board or HUD; save versioning | done |
 | B | Storage per building, size-based truck and trailer space, shop gating by tier and storage, selling tools, EquipmentYard, EquipmentTrailer, ToolBucket | done |
 | C | Tier-1 jobs and yard targets: pots, planting spots with depths, bulbs, beds, lawn dandelions, rose bushes, dead stems, flowers, watering zones; gloves; tool guide and first-job coach | done |
-| D | Tier-2: holes, trenches and sod, deep beds, hauling from a pile to a bed, spreader and sprayer, branch thickness | **this PR** |
-| E | Maintenance systems and supplies | |
+| D | Tier-2: holes, trenches and sod, deep beds, hauling from a pile to a bed, spreader and sprayer, branch thickness | done |
+| E | Maintenance systems and supplies | **this PR** |
 | F | Tier-3 pro equipment and the turf renovation sequence | |
 
 New tools are already in `Tools.luau` with `available = false`, so they aren't sold until the
@@ -444,6 +468,8 @@ phase that gives them work.
   `equipped` only holds the truck, trailer and business. Players who own a riding or zero-turn
   mower get the `EquipmentTrailer` free (hitched up if they had no trailer), since ride-ons only
   travel on one now. Money, level and owned items carry over.
+- **Version 4 (phase E)** adds `condition` (fuel, tires, blade, line, supply uses) for every owned
+  tool. Existing tools start as good as new.
 
 ## New item ids for modelers
 
