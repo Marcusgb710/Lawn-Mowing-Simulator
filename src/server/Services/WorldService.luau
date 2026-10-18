@@ -26,8 +26,8 @@ local PLOT_RADIUS = 40
 local PLOT_SIZE = Vector3.new(60, 1, 60)
 -- How close you need to be to your business's storage to grab or put back a tool.
 local STORAGE_REACH = 10
--- How close you need to be to the workbench to work on tools.
-local WORKBENCH_REACH = 10
+-- How close you need to be to the workbench to work on tools (a bit more than its prompt's reach).
+local WORKBENCH_REACH = 14
 
 local WorldService = {}
 -- Fired with (owner) after a business plot is (re)built, so the truck bed can be refilled.

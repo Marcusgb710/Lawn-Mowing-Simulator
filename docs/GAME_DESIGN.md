@@ -424,7 +424,9 @@ again.
   an air compressor and a bench grinder), or at the **tailgate** of the truck on a job (only what
   you loaded). Supplies take truck space like any tool.
 - **How:** the Workbench menu: pick a tool, then a supply. Each job takes a few seconds and you
-  have to stay put. Nothing says which supply fits which tool, and using the wrong one does what
+  have to stay put. Parts for a repair are paid when it's done. Tools and supplies can't be bought
+  mid-job (what you brought is what you've got), and a half-used consumable sells for what's
+  left in it. Nothing says which supply fits which tool, and using the wrong one does what
   it really would.
 - **What players see:** the HUD shows the held tool's condition ("Running low on fuel", "Tire
   looks soft", "Cut is getting ragged", "Engine is smoking and won't start") and the Truck menu

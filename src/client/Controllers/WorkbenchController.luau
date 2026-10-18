@@ -7,7 +7,6 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
-local Maintenance = require(Shared.Config.Maintenance)
 local Net = require(Shared.Net)
 local Tools = require(Shared.Config.Tools)
 
@@ -92,7 +91,7 @@ local function render()
 			Parent = selected,
 		}, { UI.list(2), UI.padding(8) })
 		UI.label(tool.name, { TextSize = 19, LayoutOrder = 1, Parent = details })
-		local warnings = Maintenance.warnings(tool, profile.condition[selectedTool] or {})
+		local warnings = info.warnings[selectedTool] or {}
 		text(details, if #warnings > 0 then table.concat(warnings, "  ·  ") else "In good shape", 2, {
 			TextColor3 = if #warnings > 0 then UI.Colors.Money else UI.Colors.Accent,
 		})
@@ -153,7 +152,7 @@ local function render()
 			Parent = row,
 		}, { UI.list(2), UI.padding(8) })
 		UI.label(tool.name, { TextSize = 17, LayoutOrder = 1, Parent = details })
-		local warnings = Maintenance.warnings(tool, profile.condition[id] or {})
+		local warnings = info.warnings[id] or {}
 		text(details, if #warnings > 0 then table.concat(warnings, "  ·  ") else "In good shape", 2, {
 			TextColor3 = if #warnings > 0 then UI.Colors.Money else UI.Colors.Accent,
 		})

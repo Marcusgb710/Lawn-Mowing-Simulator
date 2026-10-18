@@ -59,8 +59,14 @@ function Shop.canSell(item): boolean
 	return item.price > 0
 end
 
-function Shop.sellPrice(item): number
-	return math.floor(item.price * GameConfig.SellRefund)
+-- What selling a tool gives back. A half-used consumable is worth what's left in it.
+function Shop.sellPrice(item, condition): number
+	local supply = Maintenance.Supplies[item.id]
+	local left = 1
+	if supply and supply.uses and condition and condition.uses then
+		left = math.clamp(condition.uses / supply.uses, 0, 1)
+	end
+	return math.floor(item.price * GameConfig.SellRefund * left)
 end
 
 return Shop

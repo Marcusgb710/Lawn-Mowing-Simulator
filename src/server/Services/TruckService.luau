@@ -351,6 +351,10 @@ function TruckService:Load(player: Player, truckOwnerId: number)
 		notify(player, "Grab a tool from your storage first.")
 		return
 	end
+	if Maintenance.isStationary(item.id) then
+		notify(player, `The {item.name} stays in the building.`)
+		return
+	end
 	if truckOwnerId ~= leader.UserId then
 		notify(player, "That's not your crew's truck.")
 		return

@@ -71,6 +71,10 @@ function ShopService:Buy(player: Player, category: string, itemId: string): (boo
 	if VEHICLE_CATEGORIES[category] and JobService:IsBusy(player) then
 		return false, "You can't swap vehicles in the middle of a job."
 	end
+	if Items.isToolCategory(category) and JobService:IsBusy(player) then
+		-- What you brought is what you've got until you're back.
+		return false, "Finish the job first. The hardware store will still be here."
+	end
 	if not DataService:TrySpend(player, item.price) then
 		return false, `You need {Format.money(item.price - data.money)} more.`
 	end
@@ -117,7 +121,7 @@ function ShopService:Sell(player: Player, category: string, itemId: string): (bo
 		return false, "Not in the middle of a job."
 	end
 
-	local refund = Shop.sellPrice(item)
+	local refund = Shop.sellPrice(item, data.condition[itemId])
 	data.owned[category][itemId] = nil
 	data.condition[itemId] = nil
 	DataService:AddMoney(player, refund)

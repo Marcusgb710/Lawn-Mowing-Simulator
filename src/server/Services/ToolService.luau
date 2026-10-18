@@ -59,6 +59,8 @@ local ToolService = {}
 -- [Tool] = true while the tool is running
 local running = {}
 local rng = Random.new()
+-- [Tool] = its last list of warnings, so the player's profile is refreshed when one appears
+local lastWarnings = setmetatable({}, { __mode = "k" })
 
 -- Condition fields copied onto Tool attributes, and their attribute names.
 local CONDITION_ATTRIBUTES =
@@ -325,7 +327,10 @@ function ToolService:RefreshCondition(player: Player)
 			local itemId = child:IsA("Tool") and child:GetAttribute("ItemId")
 			if itemId and data.condition[itemId] then
 				syncCondition(child, data.condition[itemId])
-				child:SetAttribute("Blocked", nil)
+				-- Fixed tools can warn again later; ones that are still stuck don't repeat themselves.
+				if not Maintenance.blocker(Tools.get(itemId), data.condition[itemId]) then
+					child:SetAttribute("Blocked", nil)
+				end
 			end
 		end
 	end
@@ -386,6 +391,14 @@ local function workTick(elapsed: number)
 		})
 		Maintenance.wear(item, condition, elapsed, true, moving, cut == true, rng:NextNumber())
 		syncCondition(tool, condition)
+		-- The Truck menu reads the profile, so send it when something new goes wrong.
+		local warnings = table.concat(Maintenance.warnings(item, condition), ",")
+		if lastWarnings[tool] ~= warnings then
+			if lastWarnings[tool] ~= nil and data then
+				DataService:Changed(player)
+			end
+			lastWarnings[tool] = warnings
+		end
 		setFx(tool, true)
 	end
 end
@@ -393,6 +406,8 @@ end
 function ToolService:Start()
 	JobService.PlayerStateChanged:Connect(function(player)
 		self:GiveTools(player)
+		-- Tools wore out on the job; let the menus catch up.
+		DataService:Changed(player)
 	end)
 
 	local function onPlayerAdded(player: Player)

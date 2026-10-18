@@ -65,7 +65,9 @@ local function placeFor(player: Player)
 			return nil
 		end
 		for id in data.loadout do
-			if Maintenance.Supplies[id] then
+			if Maintenance.isStationary(id) then
+				continue
+			elseif Maintenance.Supplies[id] then
 				supplies[id] = true
 			else
 				tools[id] = true
@@ -99,7 +101,15 @@ local function usesLeft(data, supplyId: string): number?
 		return nil
 	end
 	local condition = data.condition[supplyId]
-	return if condition then condition.uses or 0 else nil
+	return if condition then condition.uses or 0 else 0
+end
+
+-- Whether a supply is here and has something left, for supplies another one `needs`.
+local function availableIn(place, data)
+	return function(id: string): boolean
+		local left = usesLeft(data, id)
+		return place.supplies[id] == true and (left == nil or left > 0)
+	end
 end
 
 local function stop(player: Player)
@@ -119,9 +129,12 @@ function MaintenanceService:Describe(player: Player)
 		return { kind = nil }
 	end
 	local tools, supplies = {}, {}
+	-- [tool id] = what's wrong with it right now (the profile can lag behind mid-job)
+	local warnings = {}
 	for _, item in Items.ownedTools(data.owned) do
 		if place.tools[item.id] then
 			table.insert(tools, item.id)
+			warnings[item.id] = Maintenance.warnings(item, data.condition[item.id] or {})
 		end
 	end
 	for _, id in Maintenance.SupplyOrder do
@@ -129,7 +142,7 @@ function MaintenanceService:Describe(player: Player)
 			table.insert(supplies, { id = id, uses = usesLeft(data, id), owned = ownedTool(data, id) ~= nil })
 		end
 	end
-	return { kind = place.kind, tools = tools, supplies = supplies }
+	return { kind = place.kind, tools = tools, supplies = supplies, warnings = warnings }
 end
 
 -- Starts using a supply on one of the player's tools. It takes effect when the time is up.
@@ -162,11 +175,8 @@ function MaintenanceService:Work(player: Player, toolId: string, supplyId: strin
 	end
 
 	-- Try it on a copy first, so nobody waits around just to hear it won't work.
-	local function has(id: string): boolean
-		return place.supplies[id] == true and (usesLeft(data, id) or 1) > 0
-	end
 	local preview = table.clone(data.condition[toolId] or {})
-	local ok, message, cost = Maintenance.apply(item, preview, supplyId, has)
+	local ok, message, cost = Maintenance.apply(item, preview, supplyId, availableIn(place, data))
 	if not ok then
 		return false, message
 	end
@@ -187,7 +197,9 @@ function MaintenanceService:Work(player: Player, toolId: string, supplyId: strin
 		end
 		stop(player)
 		local now = rootOf(player)
-		if not (now and job.position and (now.Position - job.position).Magnitude <= STAY_RADIUS) then
+		local moved = if now and job.position then now.Position - job.position else nil
+		-- Sideways only: hopping on the spot is fine.
+		if not (moved and Vector2.new(moved.X, moved.Z).Magnitude <= STAY_RADIUS) then
 			notify(player, "You walked off before you finished.")
 			return
 		end
@@ -207,14 +219,21 @@ function MaintenanceService:Work(player: Player, toolId: string, supplyId: strin
 			return
 		end
 		local condition = fresh.condition[toolId]
-		if not condition then
+		local stillLeft = usesLeft(fresh, supplyId)
+		if not condition or (stillLeft and stillLeft <= 0) then
+			notify(player, "You couldn't finish the job.")
 			return
 		end
-		local done, result, price = Maintenance.apply(item, condition, supplyId, has)
+		-- Work on a copy, and only keep it once any parts are paid for.
+		local worked = table.clone(condition)
+		local done, result, price = Maintenance.apply(item, worked, supplyId, availableIn(stillPlace, fresh))
 		if done then
 			if price > 0 and not DataService:TrySpend(player, price) then
 				notify(player, `The parts cost {Format.money(price)}.`)
 				return
+			end
+			for key, value in worked do
+				condition[key] = value
 			end
 			local supplyCondition = fresh.condition[supplyId]
 			if Maintenance.Supplies[supplyId].uses and supplyCondition and supplyCondition.uses then

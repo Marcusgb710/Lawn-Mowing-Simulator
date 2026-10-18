@@ -127,7 +127,8 @@ local function buttonFor(profile, item): (string, Color3, string?, string?)
 			elseif confirmingSell == item.id then
 				return "Tap to sell", UI.Colors.Danger, "SellItem", nil
 			end
-			return `Sell {Format.money(Shop.sellPrice(item))}`, UI.Colors.Card, "SellItem", nil
+			local sellPrice = Shop.sellPrice(item, profile.condition and profile.condition[item.id])
+			return `Sell {Format.money(sellPrice)}`, UI.Colors.Card, "SellItem", nil
 		end
 	elseif profile.equipped[category] == item.id then
 		return if category == "Business" then "Current" else "Equipped", UI.Colors.Disabled, nil, nil
