@@ -43,16 +43,9 @@ end
 
 -- The Storage folder at your crew leader's business.
 function CarryController.findStorage(): Folder?
-	local party = ClientState.party
-	local leaderId = if party then party.leader.UserId else player.UserId
-	local businesses = workspace:FindFirstChild("Businesses")
-	for _, business in if businesses then businesses:GetChildren() else {} do
-		if business:GetAttribute("OwnerUserId") == leaderId then
-			local storage = business:FindFirstChild("Storage")
-			return if storage and storage:IsA("Folder") then storage else nil
-		end
-	end
-	return nil
+	local business = ClientState.crewBusiness()
+	local storage = business and business:FindFirstChild("Storage")
+	return if storage and storage:IsA("Folder") then storage else nil
 end
 
 -- What putting a tool back in each kind of spot is called.

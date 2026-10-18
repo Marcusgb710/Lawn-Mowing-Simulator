@@ -75,40 +75,61 @@ local function clear(player: Player)
 	boxes[player] = {}
 end
 
--- Shows every box of theirs that has arrived, in rows at their crew's delivery spot.
+-- Everyone whose boxes go to this player's shop: their whole crew, in a steady order.
+local function crewOf(player: Player): { Player }
+	local party = PartyService:GetParty(player)
+	local members = if party then table.clone(party.members) else { player }
+	table.sort(members, function(a, b)
+		return a.UserId < b.UserId
+	end)
+	return members
+end
+
+-- Shows every box the player's crew has waiting, in rows at the crew's delivery spot (all of the
+-- crew's together, so nobody's box stands in someone else's).
 local function render(player: Player)
+	-- Theirs first, in case they just left another crew's shop.
 	clear(player)
-	local data = DataService:Get(player)
+	local members = crewOf(player)
+	for _, member in members do
+		clear(member)
+	end
 	local frame = WorldService:GetDeliveryFrame(player)
 	local folder = folderFor(player)
-	if not (data and frame and folder) then
+	if not (frame and folder) then
 		return
 	end
 	local now = os.time()
 	local x, z, rowDepth = 0, 0, 0
-	for _, delivery in data.deliveries do
-		local tool = Tools.get(delivery.id)
-		local item = tool and Items.get(tool.category, delivery.id)
-		if not item or delivery.arrives > now then
+	for _, member in members do
+		local data = DataService:Get(member)
+		if not data then
 			continue
 		end
-		local model = Assets.prop(Deliveries.boxFor(item.sizeClass))
-		Assets.anchor(model)
-		local _, size = model:GetBoundingBox()
-		if x > 0 and x + size.X > ROW_WIDTH then
-			x, z, rowDepth = 0, z + rowDepth + GAP, 0
+		for _, delivery in data.deliveries do
+			local tool = Tools.get(delivery.id)
+			local item = tool and Items.get(tool.category, delivery.id)
+			if not item or delivery.arrives > now then
+				continue
+			end
+			local model = Assets.prop(Deliveries.boxFor(item.sizeClass))
+			Assets.anchor(model)
+			local _, size = model:GetBoundingBox()
+			if x > 0 and x + size.X > ROW_WIDTH then
+				x, z, rowDepth = 0, z + rowDepth + GAP, 0
+			end
+			Assets.placeAt(model, frame * CFrame.new(x + size.X / 2 - ROW_WIDTH / 2, 0, -z - size.Z / 2))
+			x += size.X + GAP
+			rowDepth = math.max(rowDepth, size.Z)
+			model.Name = "Box_" .. member.UserId .. "_" .. delivery.key
+			model:SetAttribute("Interact", "OpenBox")
+			model:SetAttribute("InteractText", "Open")
+			model:SetAttribute("InteractName", `Delivery: {item.name}`)
+			model:SetAttribute("OnlyFor", member.UserId)
+			model:SetAttribute("BoxKey", delivery.key)
+			model.Parent = folder
+			boxes[member][delivery.key] = model
 		end
-		Assets.placeAt(model, frame * CFrame.new(x + size.X / 2 - ROW_WIDTH / 2, 0, -z - size.Z / 2))
-		x += size.X + GAP
-		rowDepth = math.max(rowDepth, size.Z)
-		model.Name = "Box_" .. player.UserId .. "_" .. delivery.key
-		model:SetAttribute("Interact", "OpenBox")
-		model:SetAttribute("InteractText", "Open")
-		model:SetAttribute("InteractName", `Delivery: {item.name}`)
-		model:SetAttribute("OnlyFor", player.UserId)
-		model:SetAttribute("BoxKey", delivery.key)
-		model.Parent = folder
-		boxes[player][delivery.key] = model
 	end
 end
 
@@ -235,7 +256,9 @@ function DeliveryService:Open(player: Player, key: number): (boolean, string)
 	task.delay(OPEN_TIME + SHOW_TIME, function()
 		shown:Destroy()
 		opening[player] = nil
-		if player.Parent == Players then
+		-- Into their hands (or their storage), unless they sold it while the box was opening.
+		local owner = DataService:Get(player)
+		if player.Parent == Players and owner and owner.owned[tool.category][tool.id] then
 			if not (JobService:IsBusy(player) or TruckService:Hand(player, tool.id)) then
 				notify(player, `The {tool.name} is in your storage.`)
 			end

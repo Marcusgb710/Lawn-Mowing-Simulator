@@ -142,6 +142,7 @@ function UI.panel(name: string, title: string)
 	UI.button("X", function()
 		UI.close(name)
 	end, {
+		Name = "Close",
 		AnchorPoint = Vector2.new(1, 0),
 		Position = UDim2.new(1, -10, 0, 10),
 		Size = UDim2.fromOffset(36, 36),
@@ -188,13 +189,32 @@ function UI.clearList(list: Instance)
 	end
 end
 
--- Puts a menu inside the host frame (filling it), or back on the screen on its own.
+-- Puts a menu inside the host frame (filling it, with a slimmer title so a phone's small screen
+-- has room for the list), or back on the screen on its own.
 local function dock(panel: Frame)
+	local docked = host ~= nil
 	local constraint = panel:FindFirstChildOfClass("UISizeConstraint")
 	panel.Parent = host or UI.getScreen()
-	panel.Size = if host then UDim2.fromScale(1, 1) else PANEL_SIZE
+	panel.Size = if docked then UDim2.fromScale(1, 1) else PANEL_SIZE
 	if constraint then
-		constraint.MaxSize = if host then Vector2.new(math.huge, math.huge) else PANEL_MAX
+		constraint.MaxSize = if docked then Vector2.new(math.huge, math.huge) else PANEL_MAX
+	end
+	local edge, top = if docked then 10 else 16, if docked then 40 else 52
+	local title = panel:FindFirstChild("Title")
+	if title and title:IsA("TextLabel") then
+		title.Position = UDim2.fromOffset(edge, if docked then 6 else 10)
+		title.Size = UDim2.new(1, -80, 0, if docked then 28 else 32)
+		title.TextSize = if docked then 22 else 28
+	end
+	local close = panel:FindFirstChild("Close")
+	if close and close:IsA("GuiObject") then
+		close.Position = if docked then UDim2.new(1, -6, 0, 4) else UDim2.new(1, -10, 0, 10)
+		close.Size = if docked then UDim2.fromOffset(32, 32) else UDim2.fromOffset(36, 36)
+	end
+	local content = panel:FindFirstChild("Content")
+	if content and content:IsA("GuiObject") then
+		content.Position = UDim2.fromOffset(edge, top)
+		content.Size = UDim2.new(1, -edge * 2, 1, -(top + edge))
 	end
 end
 
@@ -257,18 +277,25 @@ function UI.needsCursor(): boolean
 	return host ~= nil or UI.anyOpen()
 end
 
--- Little message that pops up at the top of the screen.
+-- Little message that pops up at the top of the screen. Toasts have a screen of their own, above
+-- the shop computer's monitor (so its replies show) but under the drive cutscene.
 local toastHolder: Frame = nil
 function UI.notify(message: string)
 	if not toastHolder then
+		local toasts = UI.new("ScreenGui", {
+			Name = "Toasts",
+			ResetOnSpawn = false,
+			DisplayOrder = 5,
+			Parent = Players.LocalPlayer:WaitForChild("PlayerGui"),
+		})
 		toastHolder = UI.new("Frame", {
 			Name = "Toasts",
 			AnchorPoint = Vector2.new(0.5, 0),
 			Position = UDim2.new(0.5, 0, 0, 60),
-			Size = UDim2.fromOffset(420, 200),
+			Size = UDim2.new(1, -32, 0, 200),
 			BackgroundTransparency = 1,
-			Parent = UI.getScreen(),
-		}, { UI.list(6) })
+			Parent = toasts,
+		}, { UI.list(6), UI.new("UISizeConstraint", { MaxSize = Vector2.new(420, 200) }) })
 	end
 
 	local toast = UI.label(message, {

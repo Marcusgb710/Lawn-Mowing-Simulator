@@ -41,6 +41,8 @@ local player = Players.LocalPlayer
 local REACH = 10
 -- How close (across the ground) a ride-on has to be to a bay to park on it.
 local PARK_REACH = 6
+-- How many of your crewmates' delivery boxes you can look past to one of yours behind them.
+local OTHERS_BOXES = 4
 -- The truck's beds and bays are read again this often (seconds), not every frame.
 local TRUCK_REFRESH = 0.4
 local GHOST_FITS = Color3.fromRGB(120, 220, 90)
@@ -96,19 +98,9 @@ end
 
 -- Your crew's truck, at the crew leader's business.
 local function crewTruck(): Model?
-	local party = ClientState.party
-	local leaderId = if party then party.leader.UserId else player.UserId
-	local businesses = workspace:FindFirstChild("Businesses")
-	if not businesses then
-		return nil
-	end
-	for _, business in businesses:GetChildren() do
-		if business:GetAttribute("OwnerUserId") == leaderId then
-			local truck = business:FindFirstChild("CrewTruck")
-			return if truck and truck:IsA("Model") then truck else nil
-		end
-	end
-	return nil
+	local business = ClientState.crewBusiness()
+	local truck = business and business:FindFirstChild("CrewTruck")
+	return if truck and truck:IsA("Model") then truck else nil
 end
 
 local function truckInfo()
@@ -187,7 +179,15 @@ local function targetFor(thing: Instance, item): Target?
 		if item then
 			return nil
 		end
-		return { action = action, text = text, name = name, fits = true, instance = thing }
+		local business = ClientState.crewBusiness()
+		return {
+			action = action,
+			text = text,
+			name = name,
+			fits = business ~= nil and thing:IsDescendantOf(business),
+			reason = "not your crew's",
+			instance = thing,
+		}
 	elseif action == "OpenBox" then
 		local key = thing:GetAttribute("BoxKey")
 		if thing:GetAttribute("OnlyFor") ~= player.UserId or typeof(key) ~= "number" then
@@ -304,9 +304,23 @@ local function resolve(): Target?
 	end
 
 	local origin, direction = camera.CFrame.Position, camera.CFrame.LookVector
-	rayParams.FilterDescendantsInstances = { character }
+	local ignore: { Instance } = { character }
+	rayParams.FilterDescendantsInstances = ignore
 	local result = workspace:Raycast(origin, direction * REACH, rayParams)
 	local thing = result and interactableOf(result.Instance)
+	-- Look past your crewmates' delivery boxes, to yours.
+	for _ = 1, OTHERS_BOXES do
+		if not (thing and thing:GetAttribute("Interact") == "OpenBox") then
+			break
+		end
+		if thing:GetAttribute("OnlyFor") == player.UserId then
+			break
+		end
+		table.insert(ignore, thing)
+		rayParams.FilterDescendantsInstances = ignore
+		result = workspace:Raycast(origin, direction * REACH, rayParams)
+		thing = result and interactableOf(result.Instance)
+	end
 	local target = thing and targetFor(thing, item)
 	if target and (target.action == "PutBack" or target.action == "PutInBucket") then
 		return target
