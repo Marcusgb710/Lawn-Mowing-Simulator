@@ -196,6 +196,9 @@ local function hookTool(player: Player, tool: Tool, item)
 	tool.Unequipped:Connect(function()
 		running[tool] = nil
 		setFx(tool, false)
+		if Tools.hasVerb(item, "Haul") then
+			JobService:PutAway(player)
+		end
 		local humanoid = getHumanoid(player)
 		if humanoid then
 			humanoid.WalkSpeed = GameConfig.DefaultWalkSpeed

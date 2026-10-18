@@ -1386,7 +1386,7 @@ function Lawn:_buildHaul(task)
 		pileSize = pileSize,
 		bedAt = bedAt,
 		fill = fill,
-		-- [holder] = how full their barrow is (0 to the task's workPerTarget)
+		-- [holder] = { amount = how full their barrow is (up to workPerTarget), toolId = which barrow }
 		loads = {},
 	}
 	for _ = 1, loads do
@@ -1625,6 +1625,10 @@ export type WorkContext = {
 	seconds: number?,
 }
 
+-- Targets that cover the whole lawn. Walking a tool across them on the way to its real work isn't
+-- a mistake, so they only count as "wrong tool" when the tool has nothing left to do here.
+local LAWN_WIDE = { Grass = true, Fertilize = true }
+
 -- A one-wheeled barrow carrying something heavy tips over about this often per second of walking.
 local TIP_CHANCE = 0.05
 local tipRng = Random.new()
@@ -1642,8 +1646,6 @@ function Lawn:ApplyWork(
 		{ changed = false, blocked = false, work = 0, fitWork = 0, qualityWork = 0, hurt = nil, message = nil }
 	local protections = context and context.protections
 
-	-- Lawn grass is everywhere, so walking a tool across it on the way to its real work isn't a
-	-- mistake. Grass only counts as "wrong tool" when the tool has nothing left to do here.
 	local fits = {}
 	local usefulHere = false
 	for _, task in self.tasks do
@@ -1670,7 +1672,7 @@ function Lawn:ApplyWork(
 				continue
 			end
 			if not fit then
-				if target.kind ~= "Grass" or not usefulHere then
+				if not LAWN_WIDE[target.kind] or not usefulHere then
 					result.blocked = true
 				end
 				break
@@ -1733,13 +1735,19 @@ function Lawn:_applyHaul(
 
 	local holder = context and context.holder or "crew"
 	local loadSize = task.type.workPerTarget
-	local load = haul.loads[holder] or 0
+	-- A load stays in the barrow that was filled; another tool can't carry it on.
+	local carried = haul.loads[holder]
+	if carried and carried.toolId ~= toolId then
+		haul.loads[holder] = nil
+		carried = nil
+	end
+	local load = if carried then carried.amount else 0
 	if load < loadSize then
 		if not atPile then
 			return
 		end
 		local applied = math.min(loadSize - load, amount * fit.speed)
-		haul.loads[holder] = load + applied
+		haul.loads[holder] = { amount = load + applied, toolId = toolId }
 		result.changed = true
 		result.work += applied
 		result.fitWork += applied * fit.pay
@@ -1777,6 +1785,18 @@ function Lawn:_applyHaul(
 			result.message = "Whoa! The barrow tipped over and dumped the load."
 		end
 	end
+end
+
+-- Someone put their barrow away: whatever was in it spills. True if there was a load.
+function Lawn:DropLoad(holder): boolean
+	local dropped = false
+	for _, task in self.tasks do
+		if task.haul and task.haul.loads[holder] then
+			task.haul.loads[holder] = nil
+			dropped = true
+		end
+	end
+	return dropped
 end
 
 -- Wrecks any flower patch or gnome within `radius` of `position`. Returns the ones that just got hit.

@@ -528,6 +528,14 @@ function JobService:ApplyWork(
 	return result.changed
 end
 
+-- The player put a tool away: a barrow load they were pushing spills.
+function JobService:PutAway(player: Player)
+	local job = playerJobs[player]
+	if job and job.lawn and job.lawn:DropLoad(player) then
+		notify(player, "You let go of the barrow and the load spilled.")
+	end
+end
+
 function JobService:AcceptJob(player: Player, offerId: string): (boolean, string)
 	local party = PartyService:GetParty(player)
 	if not party or party.leader ~= player then

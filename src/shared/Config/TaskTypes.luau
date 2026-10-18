@@ -449,6 +449,8 @@ TaskTypes.List = {
 		label = "Move the soil and stone",
 		todo = "Move {n} loads of soil and stone from the pile to the beds",
 		target = "HaulHeavy",
+		-- A shovel moves material, but you can't carry a load across the yard in it.
+		exclude = { "RoundPointShovel" },
 		workPerTarget = 3,
 		ideal = { "DualWheelbarrow", "SingleWheelbarrow" },
 		good = { "SingleWheelbarrowFlatFree" },
@@ -462,6 +464,8 @@ TaskTypes.List = {
 		label = "Move the leaves and mulch",
 		todo = "Move {n} big loads of leaves and mulch",
 		target = "HaulLight",
+		-- A shovel moves material, but you can't carry a load across the yard in it.
+		exclude = { "RoundPointShovel" },
 		workPerTarget = 2,
 		ideal = { "PolyCart" },
 		good = { "DualWheelbarrow", "SingleWheelbarrow", "SingleWheelbarrowFlatFree" },
