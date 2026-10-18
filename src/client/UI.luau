@@ -1,0 +1,234 @@
+-- Small helpers for building placeholder UI in code.
+-- When you design real UI in Studio, the controllers are the only things that need to change.
+
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+
+local UI = {}
+
+UI.Colors = {
+	Background = Color3.fromRGB(30, 40, 30),
+	Panel = Color3.fromRGB(45, 60, 45),
+	Card = Color3.fromRGB(60, 80, 60),
+	Accent = Color3.fromRGB(120, 200, 75),
+	Money = Color3.fromRGB(255, 220, 90),
+	Danger = Color3.fromRGB(200, 70, 60),
+	Disabled = Color3.fromRGB(90, 90, 90),
+	Text = Color3.fromRGB(255, 255, 255),
+	SubText = Color3.fromRGB(200, 215, 200),
+}
+
+local FONT = Enum.Font.FredokaOne
+
+local screen: ScreenGui = nil
+local panels = {}
+
+-- UI.new("Frame", { Size = ... }, { children })
+function UI.new(className: string, props, children: { Instance }?): any
+	local instance = Instance.new(className)
+	for key, value in props or {} do
+		if key ~= "Parent" then
+			(instance :: any)[key] = value
+		end
+	end
+	if children then
+		for _, child in children do
+			child.Parent = instance
+		end
+	end
+	if props and props.Parent then
+		instance.Parent = props.Parent
+	end
+	return instance
+end
+
+function UI.corner(radius: number?): UICorner
+	return UI.new("UICorner", { CornerRadius = UDim.new(0, radius or 8) })
+end
+
+function UI.padding(pixels: number): UIPadding
+	local amount = UDim.new(0, pixels)
+	return UI.new(
+		"UIPadding",
+		{ PaddingTop = amount, PaddingBottom = amount, PaddingLeft = amount, PaddingRight = amount }
+	)
+end
+
+function UI.list(padding: number?, direction: Enum.FillDirection?): UIListLayout
+	return UI.new("UIListLayout", {
+		Padding = UDim.new(0, padding or 6),
+		FillDirection = direction or Enum.FillDirection.Vertical,
+		SortOrder = Enum.SortOrder.LayoutOrder,
+	})
+end
+
+function UI.label(text: string, props): TextLabel
+	local label = UI.new("TextLabel", {
+		BackgroundTransparency = 1,
+		Font = FONT,
+		Text = text,
+		TextColor3 = UI.Colors.Text,
+		TextSize = 18,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		Size = UDim2.new(1, 0, 0, 22),
+	})
+	for key, value in props or {} do
+		label[key] = value
+	end
+	return label
+end
+
+function UI.button(text: string, onClick: () -> (), props): TextButton
+	local button = UI.new("TextButton", {
+		BackgroundColor3 = UI.Colors.Accent,
+		Font = FONT,
+		Text = text,
+		TextColor3 = UI.Colors.Text,
+		TextSize = 18,
+		AutoButtonColor = true,
+		Size = UDim2.fromOffset(110, 36),
+	}, { UI.corner(8) })
+	for key, value in props or {} do
+		button[key] = value
+	end
+	button.Activated:Connect(onClick)
+	return button
+end
+
+function UI.getScreen(): ScreenGui
+	if not screen then
+		screen = UI.new("ScreenGui", {
+			Name = "LawnUI",
+			ResetOnSpawn = false,
+			ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+			Parent = Players.LocalPlayer:WaitForChild("PlayerGui"),
+		})
+	end
+	return screen
+end
+
+-- A centered window with a title and close button. Returns the window and its content frame.
+function UI.panel(name: string, title: string)
+	local window = UI.new("Frame", {
+		Name = name,
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.5),
+		Size = UDim2.new(0.9, 0, 0.75, 0),
+		BackgroundColor3 = UI.Colors.Background,
+		Visible = false,
+		Parent = UI.getScreen(),
+	}, {
+		UI.corner(12),
+		UI.new("UISizeConstraint", { MaxSize = Vector2.new(720, 520) }),
+		UI.label(title, {
+			Name = "Title",
+			Position = UDim2.fromOffset(16, 10),
+			Size = UDim2.new(1, -80, 0, 32),
+			TextSize = 28,
+		}),
+	})
+
+	UI.button("X", function()
+		UI.close(name)
+	end, {
+		AnchorPoint = Vector2.new(1, 0),
+		Position = UDim2.new(1, -10, 0, 10),
+		Size = UDim2.fromOffset(36, 36),
+		BackgroundColor3 = UI.Colors.Danger,
+		Parent = window,
+	})
+
+	local content = UI.new("Frame", {
+		Name = "Content",
+		BackgroundTransparency = 1,
+		Position = UDim2.fromOffset(16, 52),
+		Size = UDim2.new(1, -32, 1, -68),
+		Parent = window,
+	})
+
+	panels[name] = window
+	return window, content
+end
+
+function UI.scrollingList(parent: Instance, props): ScrollingFrame
+	local frame = UI.new("ScrollingFrame", {
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		Size = UDim2.fromScale(1, 1),
+		CanvasSize = UDim2.new(),
+		AutomaticCanvasSize = Enum.AutomaticSize.Y,
+		ScrollBarThickness = 6,
+		Parent = parent,
+	}, { UI.list(8) })
+	for key, value in props or {} do
+		frame[key] = value
+	end
+	return frame
+end
+
+function UI.clearList(list: Instance)
+	for _, child in list:GetChildren() do
+		if child:IsA("GuiObject") then
+			child:Destroy()
+		end
+	end
+end
+
+-- Only one panel is open at a time.
+function UI.open(name: string)
+	for otherName, panel in panels do
+		panel.Visible = otherName == name
+	end
+end
+
+function UI.close(name: string)
+	if panels[name] then
+		panels[name].Visible = false
+	end
+end
+
+function UI.toggle(name: string)
+	if panels[name] and panels[name].Visible then
+		UI.close(name)
+	else
+		UI.open(name)
+	end
+end
+
+function UI.isOpen(name: string): boolean
+	return panels[name] ~= nil and panels[name].Visible
+end
+
+-- Little message that pops up at the top of the screen.
+local toastHolder: Frame = nil
+function UI.notify(message: string)
+	if not toastHolder then
+		toastHolder = UI.new("Frame", {
+			Name = "Toasts",
+			AnchorPoint = Vector2.new(0.5, 0),
+			Position = UDim2.new(0.5, 0, 0, 60),
+			Size = UDim2.fromOffset(420, 200),
+			BackgroundTransparency = 1,
+			Parent = UI.getScreen(),
+		}, { UI.list(6) })
+	end
+
+	local toast = UI.label(message, {
+		Size = UDim2.new(1, 0, 0, 36),
+		BackgroundTransparency = 0.15,
+		BackgroundColor3 = UI.Colors.Background,
+		TextXAlignment = Enum.TextXAlignment.Center,
+		TextWrapped = true,
+		Parent = toastHolder,
+	})
+	UI.corner(8).Parent = toast
+
+	task.delay(3.5, function()
+		local fade = TweenInfo.new(0.4)
+		TweenService:Create(toast, fade, { TextTransparency = 1, BackgroundTransparency = 1 }):Play()
+		task.wait(0.4)
+		toast:Destroy()
+	end)
+end
+
+return UI
