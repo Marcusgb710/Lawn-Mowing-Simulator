@@ -7,9 +7,11 @@ placeholder, as long as it's named after the item's `id` in `src/shared/Config/I
   A `Tool` with a part named `Handle` works best. A plain Model also works, and its PrimaryPart
   becomes the handle.
 - `Trucks/`: `RustyPickup`, `WorkPickup`, `HeavyDutyPickup`, `LandscapingTruck`. Face the
-  front of the truck along the model's pivot front (LookVector).
-- `Trailers/`: `UtilityTrailer`, `LandscapeTrailer`, hitch facing forward. It gets attached
-  behind the truck automatically.
+  front of the truck along the model's pivot front (LookVector). Add an invisible, non-colliding
+  Part named `BedArea` lying on the truck bed, with a number attribute `Slots` (3), so loaded
+  tools have somewhere to lie.
+- `Trailers/`: `UtilityTrailer`, `LandscapeTrailer`, hitch facing forward, with its own
+  `BedArea` part (`Slots` = 1 or 2). It gets attached behind the truck automatically.
 - `Buildings/`: `Shed`, `Garage`, `SmallOffice`, the business upgrades, front door facing
   forward.
 - `Props/`: `House` (the customer's house), `FlowerPatch` and `GardenGnome` (things players

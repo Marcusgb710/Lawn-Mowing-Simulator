@@ -1,4 +1,5 @@
--- Gives each player the tools loaded in their truck bed and does the yard work while they use them.
+-- Hands out the tools loaded in the truck once the crew reaches the job site, and does the yard
+-- work while players use them. At the business your hands are free for carrying tools around.
 --
 -- Mowers work the whole time they're equipped (the reel mower only while you're walking).
 -- Every other tool works while you hold down the mouse button / tap and hold.
@@ -116,7 +117,8 @@ end
 
 -- Public API ---------------------------------------------------------------------------------
 
--- Replaces the player's tools with what's loaded in their truck bed. Call after buying/equipping/loading.
+-- Gives the player the tools they loaded in the truck if they're at a job site, otherwise takes
+-- them away. Call after anything that could change that.
 function ToolService:GiveTools(player: Player)
 	local data = DataService:Get(player)
 	local backpack = player:FindFirstChildOfClass("Backpack")
@@ -124,11 +126,15 @@ function ToolService:GiveTools(player: Player)
 		return
 	end
 
+	local wasHolding = clearTools(player)
 	local humanoid = getHumanoid(player)
-	if humanoid then
+	if humanoid and wasHolding then
+		-- Mowers change your speed, so undo that when the mower goes away.
 		humanoid.WalkSpeed = GameConfig.DefaultWalkSpeed
 	end
-	local wasHolding = clearTools(player)
+	if not JobService:IsAtJobSite(player) then
+		return
+	end
 
 	for _, category in Items.ToolCategories do
 		local itemId = data.equipped[category]
@@ -189,6 +195,10 @@ local function workTick(elapsed: number)
 end
 
 function ToolService:Start()
+	JobService.PlayerStateChanged:Connect(function(player)
+		self:GiveTools(player)
+	end)
+
 	local function onPlayerAdded(player: Player)
 		player.CharacterAdded:Connect(function()
 			if DataService:WaitForData(player) then

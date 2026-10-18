@@ -1,12 +1,11 @@
--- The "Load Truck" menu, opened from the tool rack at your business.
--- Only tools loaded in the truck come along on a job, and the truck bed only has so much room.
+-- The "Truck" menu: a checklist of what's in the truck, what's on the rack and what the job needs.
+-- Loading happens by hand (see CarryController); only tools in the truck come along on a job.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Items = require(Shared.Config.Items)
-local Net = require(Shared.Net)
 
 local ClientState = require(script.Parent.Parent.ClientState)
 local UI = require(script.Parent.Parent.UI)
@@ -47,13 +46,13 @@ local function render()
 		for _, category in job.tools do
 			table.insert(names, Items.CategoryInfo[category].toolName)
 		end
-		hint.Text = `This job needs: {table.concat(names, ", ")}`
+		hint.Text = `This job needs: {table.concat(names, ", ")}. Carry them from the rack to the truck.`
 	elseif not profile.trailerUnlocked then
 		hint.Text = "Fill the truck bed to unlock trailers at the hardware store."
 	elseif not profile.equipped.Trailer then
 		hint.Text = "Trailers are unlocked! Buy one at the hardware store for more room."
 	else
-		hint.Text = "Only tools in the truck come with you on a job."
+		hint.Text = "Carry tools from the rack to the truck. Only tools in the truck come with you."
 	end
 
 	for index, category in Items.ToolCategories do
@@ -61,6 +60,7 @@ local function render()
 		local itemId = profile.equipped[category]
 		local item = itemId and Items.get(category, itemId)
 		local loaded = profile.loadout[category] == true
+		local held = player:GetAttribute("Carrying") == category
 
 		local card = UI.new("Frame", {
 			Size = UDim2.new(1, -8, 0, 56),
@@ -83,21 +83,13 @@ local function render()
 		})
 
 		if item then
-			local full = not loaded and used >= capacity
-			UI.button(if loaded then "Unload" elseif full then "Truck full" else "Load", function()
-				if full then
-					return
-				end
-				local _, message = Net.func("SetToolLoaded"):InvokeServer(category, not loaded)
-				UI.notify(message)
-			end, {
+			UI.label(if loaded then "In the truck" elseif held then "In your hands" else "On the rack", {
 				AnchorPoint = Vector2.new(1, 0.5),
 				Position = UDim2.new(1, -12, 0.5, 0),
-				Size = UDim2.fromOffset(120, 36),
-				BackgroundColor3 = if loaded
-					then UI.Colors.Danger
-					elseif full then UI.Colors.Disabled
-					else UI.Colors.Accent,
+				Size = UDim2.fromOffset(130, 24),
+				TextSize = 17,
+				TextXAlignment = Enum.TextXAlignment.Right,
+				TextColor3 = if loaded then UI.Colors.Accent elseif held then UI.Colors.Money else UI.Colors.SubText,
 				Parent = card,
 			})
 		end
@@ -106,7 +98,7 @@ end
 
 function TruckController:Start()
 	local content
-	window, content = UI.panel("Truck", "Load the Truck")
+	window, content = UI.panel("Truck", "Your Truck")
 	summary = UI.label("", { TextSize = 20, Parent = content })
 	hint = UI.label("", {
 		Position = UDim2.fromOffset(0, 26),
@@ -121,6 +113,11 @@ function TruckController:Start()
 
 	ClientState.Changed:Connect(function(key)
 		if (key == "profile" or key == "party" or key == "job") and window.Visible then
+			render()
+		end
+	end)
+	player:GetAttributeChangedSignal("Carrying"):Connect(function()
+		if window.Visible then
 			render()
 		end
 	end)

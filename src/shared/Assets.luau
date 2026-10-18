@@ -78,6 +78,35 @@ function Assets.tool(category: string, itemId: string): Tool
 	return tool or Placeholders.tool(category, itemId)
 end
 
+-- The same tool as a plain Model (not a Tool), for carrying around and showing on racks and in
+-- truck beds. It's posed the way it looks when held, and its pivot is where the hand grabs it.
+function Assets.toolDisplay(category: string, itemId: string): Model
+	local tool = Assets.tool(category, itemId)
+	local model = Instance.new("Model")
+	model.Name = tool.Name
+	for _, child in tool:GetChildren() do
+		child.Parent = model
+	end
+	for _, descendant in model:GetDescendants() do
+		if descendant:IsA("BaseScript") then
+			descendant:Destroy()
+		elseif descendant:IsA("BasePart") then
+			descendant.CanCollide = false
+			descendant.CanTouch = false
+			descendant.Massless = true
+		end
+	end
+
+	local handle = model:FindFirstChild("Handle")
+	if handle and handle:IsA("BasePart") then
+		model.PrimaryPart = handle
+		-- A held tool's handle has its +Y pointing forward and +Z pointing up.
+		handle.PivotOffset = tool.Grip * CFrame.Angles(math.pi / 2, 0, 0)
+	end
+	tool:Destroy()
+	return model
+end
+
 function Assets.trailer(itemId: string): Model
 	local found = findAsset("Trailers", itemId)
 	if found and found:IsA("Model") then

@@ -63,9 +63,12 @@ Services*. Without it the game still runs, it just doesn't save progress.
    **Garage** and then a **Small Office** (each upgrade pays more per job).
 2. **Take a job.** At the job board the crew leader picks a job. Each job lists the tools it needs
    (mower, edger, weed whacker, rake, hedge trimmer).
-3. **Load the truck.** At the tool rack, load the tools the job needs. Only tools in the truck come
-   with you. The truck bed holds **3 tools**. Once your bed is full, **trailers unlock** at the
-   hardware store and give you more room.
+3. **Load the truck by hand.** Your tools are laid out in front of the tool rack. Walk up to one
+   and press **E** to pick it up, carry it to the truck and press **E** again to load it. To take
+   a tool back out, press **R** on it in the truck bed and carry it back to the rack. Only tools in
+   the truck come with you, and you only get them in your hotbar once you reach the house. The
+   truck bed holds **3 tools**. Once it's full, **trailers unlock** at the hardware store and give
+   you more room. The **Truck** button shows a checklist of what's loaded.
 4. **Drive.** The leader hops in the truck. Everyone watches the drive cutscene and arrives at the
    house.
 5. **Do the yard.** Mow the grass, edge the sidewalk and driveway, whack the weeds, rake the leaf
@@ -84,8 +87,9 @@ Services*. Without it the game still runs, it just doesn't save progress.
 ### Crews
 
 Open **Crew** to invite players (up to 4). The crew hangs out at the leader's business and rides in
-the leader's truck, so everyone's loaded tools share the leader's truck bed. Only the leader accepts
-jobs and drives. Leaving the crew in the middle of a job sends you back to your own business.
+the leader's truck, so everyone carries their own tools to the leader's truck and shares its bed.
+Each player only sees their own tools at the rack, and only you can take your tools back out of the
+truck. Only the leader accepts jobs and drives. Leaving the crew in the middle of a job sends you back to your own business.
 
 ## Project layout
 
@@ -108,10 +112,12 @@ src/server/                  -> ServerScriptService.Server
   Services/LawnService          builds each yard and tracks the work done
   Services/JobService           job board, driving, timing, payouts, damage
   Services/ToolService          gives tools and applies their work every tick
-  Services/ShopService          buying, equipping, loading the truck
+  Services/TruckService         carrying tools from the rack to the truck and back
+  Services/ShopService          buying and equipping
 src/client/                  -> StarterPlayer.StarterPlayerScripts.Client
   init.client.luau              starts every controller
-  Controllers/                  HUD, job board, shop, truck loading, crew menu, drive cutscene
+  Controllers/                  HUD, job board, shop, truck checklist, carrying tools, crew menu,
+                                drive cutscene
 ```
 
 Most balancing happens in the three files in `src/shared/Config/`, no other code changes needed.
@@ -124,8 +130,8 @@ Models live in `ReplicatedStorage.Assets`, sorted into folders. Name each model 
 | Folder | Name it | What it should be |
 | --- | --- | --- |
 | `Assets/Tools` | e.g. `GasPushMower`, `LeafBlower` | A `Tool` with a `Handle`, or just a Model (it gets wrapped in a Tool for you) |
-| `Assets/Trucks` | e.g. `RustyPickup` | A Model facing forward along its pivot's front (LookVector) |
-| `Assets/Trailers` | `UtilityTrailer`, `LandscapeTrailer` | A Model with the hitch facing forward |
+| `Assets/Trucks` | e.g. `RustyPickup` | A Model facing forward along its pivot's front (LookVector). Add an invisible Part named `BedArea` (with a number attribute `Slots`) where loaded tools should lie |
+| `Assets/Trailers` | `UtilityTrailer`, `LandscapeTrailer` | A Model with the hitch facing forward, plus its own `BedArea` part |
 | `Assets/Buildings` | `Shed`, `Garage`, `SmallOffice` | A Model with the front door facing forward |
 | `Assets/Props` | `House`, `FlowerPatch`, `GardenGnome` | Models for the customer's yard |
 

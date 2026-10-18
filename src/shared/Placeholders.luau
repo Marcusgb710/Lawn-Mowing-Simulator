@@ -121,6 +121,22 @@ end
 
 -- Trucks ------------------------------------------------------------------------------------
 
+-- Invisible part marking where loaded tools sit. Real models can include their own "BedArea"
+-- parts (with a Slots attribute) to control where tools show up.
+local function bedArea(model: Model, size: Vector3, position: Vector3, slots: number)
+	local area = part({
+		Name = "BedArea",
+		Size = size,
+		Position = position,
+		Transparency = 1,
+		CanCollide = false,
+		CanQuery = false,
+		Anchored = true,
+	})
+	area:SetAttribute("Slots", slots)
+	area.Parent = model
+end
+
 -- Trucks face their PrimaryPart's LookVector (-Z).
 function Placeholders.truck(itemId: string): Model
 	local item = Items.get("Truck", itemId)
@@ -160,6 +176,8 @@ function Placeholders.truck(itemId: string): Model
 		add({ Name = "BedRight", Size = Vector3.new(0.4, 2, 8), Position = Vector3.new(3.3, 3.1, 4), Color = bedColor })
 		add({ Name = "Tailgate", Size = Vector3.new(7, 2, 0.4), Position = Vector3.new(0, 3.1, 7.8), Color = bedColor })
 	end
+
+	bedArea(model, Vector3.new(6, 0.2, 7.6), Vector3.new(0, 2.2, 4), item.bedSlots)
 
 	for _, x in { -3.6, 3.6 } do
 		for _, z in { -5.5, 5.5 } do
@@ -226,6 +244,7 @@ function Placeholders.trailer(itemId: string): Model
 			Color = Color3.fromRGB(25, 25, 25),
 		})
 	end
+	bedArea(model, Vector3.new(6, 0.2, length - 1), Vector3.new(0, 2, 0), item.extraSlots)
 
 	return model
 end

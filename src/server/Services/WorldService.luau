@@ -1,6 +1,6 @@
 -- The town: a hardware store in the middle and a business plot for every player.
 -- Your business (shed -> garage -> small office) is where your crew hangs out between jobs:
--- check the job board, load tools from the tool rack into the truck, then drive off.
+-- check the job board, carry tools from the tool rack to the truck, then drive off.
 --
 -- To build the town yourself in Studio, make a Model named "Town" in Workspace with:
 --   * a SpawnLocation
@@ -15,14 +15,21 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Assets = require(Shared.Assets)
 local Items = require(Shared.Config.Items)
+local Signal = require(Shared.Signal)
 
 local DataService = require(script.Parent.DataService)
 
 -- How close (studs from the plot's center) counts as "at your business".
 local PLOT_RADIUS = 40
 local PLOT_SIZE = Vector3.new(60, 1, 60)
+-- How close you need to be to the tool rack to grab or put back a tool.
+local RACK_REACH = 14
 
 local WorldService = {}
+-- Fired with (owner) after a business plot is (re)built, so the truck bed can be refilled.
+WorldService.PlotBuilt = Signal.new()
+
+local businessFolder: Folder
 
 local spawnCFrame = CFrame.new(0, 5, 0)
 -- Each plot: { cframe = CFrame, owner = Player?, model = Model? }
@@ -157,6 +164,7 @@ local function buildPlot(plot)
 
 	local model = Instance.new("Model")
 	model.Name = owner.Name .. "_Business"
+	model:SetAttribute("OwnerUserId", owner.UserId)
 	local origin = plot.cframe
 	local function at(x: number, y: number, z: number): CFrame
 		return origin * CFrame.new(x, y, z)
@@ -185,14 +193,14 @@ local function buildPlot(plot)
 	sign(board, "JOBS", Enum.NormalId.Front)
 	prompt(board, "View Jobs", "Job Board", { OpensPanel = "Jobs" })
 
+	-- Each player's own tools are shown in front of the rack on their screen (see CarryController).
 	local rack = part(model, {
 		Name = "ToolRack",
-		Size = Vector3.new(8, 5, 1),
-		CFrame = at(16, 3, -4),
+		Size = Vector3.new(15, 6, 1),
+		CFrame = at(16, 3, -2),
 		Color = Color3.fromRGB(90, 90, 95),
 	})
 	sign(rack, "TOOLS", Enum.NormalId.Front)
-	prompt(rack, "Load Truck", "Tool Rack", { OpensPanel = "Truck" })
 
 	local truck = Assets.truck(data.equipped.Truck or Items.Catalog.Truck[1].id, data.equipped.Trailer)
 	Assets.anchor(truck)
@@ -203,9 +211,15 @@ local function buildPlot(plot)
 		Action = "DriveToJob",
 		OwnerUserId = owner.UserId,
 	})
+	local bed = truck:FindFirstChild("BedArea", true)
+	prompt(if bed and bed:IsA("BasePart") then bed else truck.PrimaryPart :: BasePart, "Load Tool", "Truck Bed", {
+		Action = "LoadTool",
+		OwnerUserId = owner.UserId,
+	})
 
-	model.Parent = workspace
+	model.Parent = businessFolder
 	plot.model = model
+	WorldService.PlotBuilt:Fire(owner)
 end
 
 -- Public API ---------------------------------------------------------------------------------
@@ -229,6 +243,25 @@ function WorldService:GetHomeCFrame(player: Player, index: number?): CFrame
 	return base * CFrame.new(((index or 1) - 1) * 3 - 4.5, 0, 0)
 end
 
+-- The truck parked at this player's own business.
+function WorldService:GetPlotTruck(player: Player): Model?
+	local plot = playerPlots[player]
+	local truck = plot and plot.model and plot.model:FindFirstChild("CrewTruck")
+	return if truck and truck:IsA("Model") then truck else nil
+end
+
+-- True if the player is standing at the tool rack of their crew's business.
+function WorldService:IsNearRack(player: Player): boolean
+	local plot = playerPlots[getLeader(player)] or playerPlots[player]
+	local rack = plot and plot.model and plot.model:FindFirstChild("ToolRack")
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	if not (rack and rack:IsA("BasePart") and root and root:IsA("BasePart")) then
+		return false
+	end
+	return (root.Position - rack.Position).Magnitude <= RACK_REACH
+end
+
 function WorldService:IsAtBusiness(player: Player): boolean
 	local plot = playerPlots[getLeader(player)] or playerPlots[player]
 	local character = player.Character
@@ -243,6 +276,10 @@ end
 -- Lifecycle ----------------------------------------------------------------------------------
 
 function WorldService:Init()
+	businessFolder = Instance.new("Folder")
+	businessFolder.Name = "Businesses"
+	businessFolder.Parent = workspace
+
 	local town = workspace:FindFirstChild("Town") or buildPlaceholderTown()
 	local spawnLocation = town:FindFirstChildWhichIsA("SpawnLocation", true)
 	if spawnLocation then

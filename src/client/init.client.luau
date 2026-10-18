@@ -12,6 +12,7 @@ local CONTROLLERS = {
 	"JobBoardController",
 	"ShopController",
 	"TruckController",
+	"CarryController",
 	"PartyController",
 	"CutsceneController",
 }

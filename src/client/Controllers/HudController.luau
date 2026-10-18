@@ -230,7 +230,7 @@ local function updateJob()
 
 	if job.state == "Ready" then
 		trackerHint.Text = if isLeader
-			then `{job.address} · {Format.money(job.payout)}\nLoad the tools it needs at the tool rack, then hop in the truck!`
+			then `{job.address} · {Format.money(job.payout)}\nCarry the tools it needs from the rack to the truck, then hop in!`
 			else `{job.address} · {Format.money(job.payout)}\nWaiting for {job.leader.DisplayName} to start the truck.`
 		trackerButton.Text = "Cancel job"
 		trackerButton.Visible = isLeader

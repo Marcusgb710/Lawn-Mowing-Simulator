@@ -1,5 +1,4 @@
--- Buying gear and business upgrades, and loading tools into the crew truck.
--- The client only asks; every check happens here.
+-- Buying gear and business upgrades. The client only asks; every check happens here.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -12,6 +11,7 @@ local DataService = require(script.Parent.DataService)
 local JobService = require(script.Parent.JobService)
 local PartyService = require(script.Parent.PartyService)
 local ToolService = require(script.Parent.ToolService)
+local TruckService = require(script.Parent.TruckService)
 local WorldService = require(script.Parent.WorldService)
 
 -- Things you can't swap in the middle of a job.
@@ -30,23 +30,6 @@ end
 
 local function isTool(category: string): boolean
 	return table.find(Items.ToolCategories, category) ~= nil
-end
-
-local function notify(player: Player, message: string)
-	Net.event("Notify"):FireClient(player, message)
-end
-
--- Trailers unlock for the truck's owner (the crew leader) the first time its bed fills up.
-local function checkTrailerUnlock(player: Player)
-	local used, capacity = PartyService:GetTruckLoad(player)
-	local party = PartyService:GetParty(player)
-	local owner = if party then party.leader else player
-	local ownerData = DataService:Get(owner)
-	if ownerData and not ownerData.trailerUnlocked and used >= capacity then
-		ownerData.trailerUnlocked = true
-		DataService:Changed(owner)
-		notify(owner, "Your truck bed is full! Trailers are now unlocked at the hardware store.")
-	end
 end
 
 function ShopService:Buy(player: Player, category: string, itemId: string): (boolean, string)
@@ -78,7 +61,7 @@ function ShopService:Buy(player: Player, category: string, itemId: string): (boo
 	data.owned[category][itemId] = true
 	local ok, message = self:Equip(player, category, itemId)
 	if isNewTool then
-		message = `Bought {item.name}! Load it into your truck at your business's tool rack.`
+		message = `Bought {item.name}! Grab it from your tool rack and carry it to the truck.`
 	end
 	return ok, message
 end
@@ -107,43 +90,9 @@ function ShopService:Equip(player: Player, category: string, itemId: string): (b
 	if PLOT_CATEGORIES[category] then
 		WorldService:RefreshPlot(player)
 	end
+	TruckService:GearChanged(player, category)
 	PartyService:Refresh(player)
 	return true, `Equipped {item.name}.`
-end
-
--- Loads a tool from the tool rack into the crew truck, or takes it back out.
--- Only loaded tools come along on jobs.
-function ShopService:SetLoaded(player: Player, category: string, loaded: boolean): (boolean, string)
-	local data = DataService:Get(player)
-	if not data or typeof(category) ~= "string" or not isTool(category) then
-		return false, "That isn't a tool."
-	end
-	if not data.equipped[category] then
-		return false, "You don't own one of those yet."
-	end
-	if JobService:IsBusy(player) then
-		return false, "You can't repack the truck in the middle of a job."
-	end
-	if not WorldService:IsAtBusiness(player) then
-		return false, "Head back to your business to load the truck."
-	end
-
-	local name = Items.CategoryInfo[category].toolName
-	if loaded and not data.loadout[category] then
-		local used, capacity = PartyService:GetTruckLoad(player)
-		if used >= capacity then
-			return false, "The truck bed is full. Unload something or hitch up a trailer."
-		end
-		data.loadout[category] = true
-	elseif not loaded then
-		data.loadout[category] = nil
-	end
-
-	checkTrailerUnlock(player)
-	DataService:Changed(player)
-	ToolService:GiveTools(player)
-	PartyService:Refresh(player)
-	return true, if loaded then `{name} loaded into the truck.` else `{name} put back on the rack.`
 end
 
 function ShopService:Init()
@@ -152,9 +101,6 @@ function ShopService:Init()
 	end
 	Net.func("EquipItem").OnServerInvoke = function(player, category, itemId)
 		return self:Equip(player, category, itemId)
-	end
-	Net.func("SetToolLoaded").OnServerInvoke = function(player, category, loaded)
-		return self:SetLoaded(player, category, loaded == true)
 	end
 end
 

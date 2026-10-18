@@ -18,6 +18,7 @@ local GameConfig = require(Shared.Config.GameConfig)
 local Items = require(Shared.Config.Items)
 local Jobs = require(Shared.Config.Jobs)
 local Net = require(Shared.Net)
+local Signal = require(Shared.Signal)
 
 local DataService = require(script.Parent.DataService)
 local LawnService = require(script.Parent.LawnService)
@@ -25,6 +26,8 @@ local PartyService = require(script.Parent.PartyService)
 local WorldService = require(script.Parent.WorldService)
 
 local JobService = {}
+-- Fired with (player) when they head out on a job, arrive at the house, or leave the job.
+JobService.PlayerStateChanged = Signal.new()
 
 local rng = Random.new()
 local board = {}
@@ -219,6 +222,7 @@ end
 -- Takes a player off a job without moving them (used when they leave the game).
 local function detach(job, player: Player)
 	playerJobs[player] = nil
+	JobService.PlayerStateChanged:Fire(player)
 	local index = table.find(job.members, player)
 	if index then
 		table.remove(job.members, index)
@@ -258,9 +262,9 @@ local function startDriving(job)
 	local used, capacity = PartyService:GetTruckLoad(party.leader)
 	local problem = nil
 	if #missing > 0 then
-		problem = `The truck still needs: {table.concat(missing, ", ")}. Load them at the tool rack.`
+		problem = `The truck still needs: {table.concat(missing, ", ")}. Carry them from the tool rack to the truck.`
 	elseif used > capacity then
-		problem = `The truck is overloaded ({used}/{capacity} tools). Put some back on the rack or get a trailer.`
+		problem = `The truck is overloaded ({used}/{capacity} tools). Take some out or get a trailer.`
 	end
 	if problem then
 		for _, member in party.members do
@@ -275,6 +279,7 @@ local function startDriving(job)
 	job.members = table.clone(party.members)
 	for _, member in job.members do
 		playerJobs[member] = job
+		JobService.PlayerStateChanged:Fire(member)
 	end
 
 	local leaderData = DataService:Get(party.leader)
@@ -311,6 +316,9 @@ local function startDriving(job)
 			job.startedAt = os.clock()
 			job.startedServerTime = workspace:GetServerTimeNow()
 			sendUpdate(job)
+			for _, member in job.members do
+				JobService.PlayerStateChanged:Fire(member)
+			end
 		end
 	end)
 end
@@ -360,6 +368,12 @@ end
 
 function JobService:GetJob(player: Player)
 	return playerJobs[player]
+end
+
+-- True once the crew has arrived at the house, until they leave. Tools only come out of the truck then.
+function JobService:IsAtJobSite(player: Player): boolean
+	local job = playerJobs[player]
+	return job ~= nil and (job.state == "Working" or job.state == "Complete")
 end
 
 -- True while a player is on a job or riding in the truck.
@@ -450,7 +464,7 @@ function JobService:AcceptJob(player: Player, offerId: string): (boolean, string
 	}
 	readyJobs[party] = job
 	sendUpdate(job)
-	return true, "Job accepted! Load the tools it needs at the tool rack, then hop in the truck."
+	return true, "Job accepted! Carry the tools it needs from the rack to the truck, then hop in."
 end
 
 function JobService:Abandon(player: Player)
