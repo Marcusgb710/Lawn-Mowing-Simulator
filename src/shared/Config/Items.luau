@@ -199,7 +199,7 @@ end
 -- The free item a player starts with in this category, if there is one.
 function Items.starter(category: string)
 	local first = Items.Catalog[category][1]
-	return if first.price == 0 then first else nil
+	return if first and first.price == 0 then first else nil
 end
 
 -- Every free tool a new player starts with, in shop order.

@@ -224,8 +224,8 @@ them with the old mowing jobs.
 - **Gloves:** a task with `protection` can't be worked bare-handed. Gloves in the truck count as
   worn on site (`NitrileGloves` protect from thorns, `ChemicalGloves` from chemicals). Without
   them: "Ouch! Those thorns shred your bare hands." It never names the gloves.
-- **The board:** slot 1 is always a job the free gear can finish, slots 2-4 are homeowner jobs
-  (`HomeownerJobsOnBoard`), and the rest are open to every level.
+- **The board:** slot 1 is always a job the free gear can finish, slots 2-4 are homeowner jobs up
+  to the best player's level (`HomeownerJobsOnBoard`), and the rest go a little above it.
 - **Learning tools:** the **Guide** menu lists every tool in the store with its "what it's for"
   text, by shop tab. Until a player finishes their first job, a coach banner walks them through
   it one step at a time (take the job, load the truck, drive, do the work), and the job board

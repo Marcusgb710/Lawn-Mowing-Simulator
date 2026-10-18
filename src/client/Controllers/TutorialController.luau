@@ -29,7 +29,8 @@ local function update()
 	local profile = ClientState.profile
 	local job = ClientState.job
 	-- Stay up through the payout of the first job, then never again.
-	local firstJob = profile and (profile.jobsCompleted == 0 or (profile.jobsCompleted == 1 and job ~= nil))
+	local firstJob = profile
+		and (profile.jobsCompleted == 0 or (profile.jobsCompleted == 1 and job ~= nil and job.state == "Complete"))
 	banner.Visible = firstJob == true
 	if firstJob then
 		banner.Text = step(job)
