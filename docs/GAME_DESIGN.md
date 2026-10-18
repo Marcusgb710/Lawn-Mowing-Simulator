@@ -554,7 +554,8 @@ Making the business, loading and maintenance hands-on, built on first person. On
   A walk-in building's wall mesh left on Box or Hull would block its doorways. It stops colliding
   instead, and invisible walls go up around the building with gaps at its doors: a garage door's
   opening is under it, and a hinged door's opening is taken to be in line with `TruckParking`.
-- **Truck at the door.** The plot's truck parks on `TruckParking`, with its `<Id>__Tailgate`,
+- **Truck at the door.** The plot's truck parks on `TruckParking` (with a trailer, the trailer's
+  rear goes there and the truck sits ahead of it), with its `<Id>__Tailgate`,
   `EquipmentTrailer__Ramp` or `LandscapeTrailer__RampDoor` down, or its `<Id>__RearDoor`
   (LandscapingTruck) up. Tailgates and
   ramps are hinged on their pivot and rotate about X; the ramp goes down until it reaches the

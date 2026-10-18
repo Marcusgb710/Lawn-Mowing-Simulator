@@ -366,6 +366,12 @@ local function buildPlot(plot)
 	local truck = Assets.truck(data.equipped.Truck or Items.Catalog.Truck[1].id, data.equipped.Trailer)
 	Assets.anchor(truck)
 	Assets.placeOnGround(truck, markers.parking or at(-4, 0, -18) * CFrame.Angles(0, math.rad(90), 0))
+	-- At the door, a trailer's ramp goes where the tailgate would be, with the truck ahead of it.
+	local trailer = truck:FindFirstChild("Trailer")
+	if markers.parking and trailer and trailer:IsA("Model") then
+		local _, trailerSize = trailer:GetBoundingBox()
+		truck:PivotTo(truck:GetPivot() + markers.parking.LookVector * (trailerSize.Z + 1))
+	end
 	truck.Name = "CrewTruck"
 	truck.Parent = model
 	-- Parked with the tailgate down (and the trailer's ramp), ready to load.
