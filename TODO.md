@@ -117,9 +117,24 @@ Yards (`src/server/Services/LawnService.luau`) now use the kit, falling back to 
       own sit animation plays while riding. Still to check in Studio: tune `ride.seat` in
       `Items.luau` until the player sits on the seat, and see how R6 avatars look (they aren't
       lifted).
-- [ ] **Grip polish**: the push mower floats about 0.6 studs and the trimmer head about 1.3 studs
-      above the ground, because the tool-hold pose keeps the hand at shoulder height. Lower the
-      grips in `scripts/build-kit-tools.luau`, or add a push/hold animation.
+- [ ] **Grip polish**: push and walk-behind machines are now held so their wheels touch the
+      ground, worked out from the player's shoulder height (phase B); check it in Studio. The
+      trimmer head still floats about 1.3 studs, because the tool-hold pose keeps the hand at
+      shoulder height. Lower the trimmer grips in `scripts/build-kit-tools.luau`, or add a hold
+      animation.
+
+## Design phases (docs/GAME_DESIGN.md)
+
+One PR per phase, each stacked on the one before. Every phase still needs a Studio playtest.
+
+- [x] **A: tool fit, hinted jobs, pay by customer preference.** Merged.
+- [x] **B: storage per building, truck space, shop gating, selling.** To check in Studio: how tools
+      hang and stand on the placeholder fixtures (`MOUNT_HEIGHT` in
+      `src/server/BusinessStorage.luau`), push mowers' height in the hand, the truck bed with many
+      tools, the plot with an Equipment Yard. New model id: `StorageShelf` (needs a spec).
+- [x] **C: homeowner garden jobs, gloves, the Guide and the first-job coach.** To check: the side
+      garden plots (`GARDEN` in `LawnService.luau`), dandelions in the lawn, the coach banner on a
+      phone.
 
 ## Before release
 
