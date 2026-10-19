@@ -19,7 +19,11 @@
     "closed_authoring_components_after_coincident_vertex_matching",
     "FBX_import_triangle_mesh_count_and_world_bounds",
     "sRGB_atlas_pixels_match_declared_palette",
-    "sRGB_atlas_pixels_match_declared_palette"
+    "complete_noncorrupt_preview_PNGs",
+    "updated_review_images_match_latest_changed_sources",
+    "sRGB_atlas_pixels_match_declared_palette",
+    "complete_noncorrupt_preview_PNGs",
+    "updated_review_images_match_latest_changed_sources"
   ],
   "issues": [],
   "studio_import_tested": false,
@@ -170,5 +174,79 @@
     "maximum_srgb_channel_error": 0.0,
     "passed": true
   },
-  "preview_status": "rendering"
+  "preview_status": "complete",
+  "previews": [
+    {
+      "file": "Previews/RoundPointShovel_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "68f1d01f71168c1535c51a9cd6de846a622eb759411c7012d7975e250ef14eb2"
+    },
+    {
+      "file": "Previews/GardenSpade_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "9617921b1651808ae5cd29e5afb4085d74cbca0e2bce2ca12132166cbc4931e2"
+    },
+    {
+      "file": "Previews/Broadfork_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "68ae5189e86c2495e709c4bac4531025a97e4ecbc3239044015a05e51909b213"
+    },
+    {
+      "file": "Previews/DiggingFork_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "c85567e2373da02174d2240a2d6842eac3bbdb5b30e93538f94eea5b610920c1"
+    },
+    {
+      "file": "Previews/Mattock_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "3b7ca64824e2bd80a361d1e1edc0a6d9a7610b1cd1d8ba5713be2c95909cccb3"
+    },
+    {
+      "file": "Previews/BowRake_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "b001c304bb33c90d912a3240efa287a7ff3f6e15d977ad4882fe5b23a73b6999"
+    },
+    {
+      "file": "Previews/StirrupHoe_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "953ae786c1c3eca70be367ea6d655247fc2dc0802dd9d881369ebb5ac3e5348c"
+    },
+    {
+      "file": "Previews/WideRake_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "a5c9d5d30903ee08302ab4c49e0745ef7944f449bd714880c52e8f60c7122eab"
+    },
+    {
+      "file": "Previews/HalfMoonEdger_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "da73f79805534fdcbd370a57574e3858f3510fe07301b352808988c601eb1c6f"
+    }
+  ]
 }

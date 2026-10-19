@@ -19,7 +19,11 @@
     "closed_authoring_components_after_coincident_vertex_matching",
     "FBX_import_triangle_mesh_count_and_world_bounds",
     "sRGB_atlas_pixels_match_declared_palette",
-    "sRGB_atlas_pixels_match_declared_palette"
+    "complete_noncorrupt_preview_PNGs",
+    "updated_review_images_match_latest_changed_sources",
+    "sRGB_atlas_pixels_match_declared_palette",
+    "complete_noncorrupt_preview_PNGs",
+    "updated_review_images_match_latest_changed_sources"
   ],
   "issues": [],
   "studio_import_tested": false,
@@ -260,5 +264,127 @@
     "maximum_srgb_channel_error": 0.0,
     "passed": true
   },
-  "preview_status": "rendering"
+  "preview_status": "complete",
+  "previews": [
+    {
+      "file": "Previews/HandTrowel_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "5b24b0fc0a37cc1f5dc693ef70af68c6b12eb0e56281985eae00ff280d7106ff"
+    },
+    {
+      "file": "Previews/HandTransplanter_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "34bb93f8b82b8990c523f8117e2afa3c18785583f6017cc98f18f73064c7b9e3"
+    },
+    {
+      "file": "Previews/HandCultivator_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "82867f97a2f179b665388405db99a6a174731401220f361b1491d3fb073f5b43"
+    },
+    {
+      "file": "Previews/DandelionWeeder_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "9e92c4e8f553a72159900c7bc6216be5ca8510bfe6df30f5bdb66b8b729daf00"
+    },
+    {
+      "file": "Previews/Dibber_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "7803069f9bf9883288a91b10c6e06e593ad3308ef895939fd4f1be8f6c89dff9"
+    },
+    {
+      "file": "Previews/BypassPruners_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "965cb470fb477003535a804069e4128b706905748045678516abf27d071f98b9"
+    },
+    {
+      "file": "Previews/AnvilPruners_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "56be9e80a88857c832aedd196c378ebb483704557e09818b33b885cb8ed8a899"
+    },
+    {
+      "file": "Previews/FloralSnips_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "0e46ec67d2ca1acb3f4f841c7dc2bf1f4b0732f9fc08caf662df721c4f60f91f"
+    },
+    {
+      "file": "Previews/PruningSaw_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "1b62c1259a26c99c63b35274fcda0f8c63479089d61a425f0c100fa51092d9ec"
+    },
+    {
+      "file": "Previews/Loppers_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "ab3a87170b6f8ecaca8c594d0a964fff504083f4ae3b753458b4ff0ec97f74db"
+    },
+    {
+      "file": "Previews/GardenShears_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "f166ba5df99f190e7d6027c0c58a29b03062e1c3d5f2a737b05686e370c047bc"
+    },
+    {
+      "file": "Previews/WateringCan_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "dbdaa6245b04d841beb7cc17980fba799e31be393b998005f811d33b035bab34"
+    },
+    {
+      "file": "Previews/NitrileGloves_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "676b119c8b54af28186d08aabf4ea73b4db5a8145f434d38f8f578fe10fda980"
+    },
+    {
+      "file": "Previews/ChemicalGloves_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "79bfa9b69b8a5b88447abf2f9504c210622a40e750381b315485762e2c1c3d80"
+    },
+    {
+      "file": "Previews/SoilProbe_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "dc13a6cf799f5f7d25c553d879d3e21b1e319daa3a1c157056e6fdc19cf15911"
+    }
+  ]
 }

@@ -19,7 +19,11 @@
     "closed_authoring_components_after_coincident_vertex_matching",
     "FBX_import_triangle_mesh_count_and_world_bounds",
     "sRGB_atlas_pixels_match_declared_palette",
-    "sRGB_atlas_pixels_match_declared_palette"
+    "complete_noncorrupt_preview_PNGs",
+    "updated_review_images_match_latest_changed_sources",
+    "sRGB_atlas_pixels_match_declared_palette",
+    "complete_noncorrupt_preview_PNGs",
+    "updated_review_images_match_latest_changed_sources"
   ],
   "issues": [],
   "studio_import_tested": false,
@@ -140,5 +144,95 @@
     "maximum_srgb_channel_error": 0.0,
     "passed": true
   },
-  "preview_status": "rendering"
+  "preview_status": "complete",
+  "previews": [
+    {
+      "file": "Previews/RustyPickup_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "f66d56d2c09f6aa2f26278f3705595b2626da8d277ada61616eb953b4f7df0a3"
+    },
+    {
+      "file": "Previews/WorkPickup_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "4697eb6b461172ef76021d3a9ab8007c8e22040240a60a10fb73335c117e6396"
+    },
+    {
+      "file": "Previews/HeavyDutyPickup_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "7c8bc8b8844e0fb21eae6405722493f5b2a7dc13912f45f7b8ffc935ddf5161b"
+    },
+    {
+      "file": "Previews/LandscapingTruck_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "1f0ff280b008e5df1a922eea52470c3c2f170e06bc0d490a944d79a60da6e5cb"
+    },
+    {
+      "file": "Previews/UtilityTrailer_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "bf114d2f0227fa110a0954b2001b1e4dce299486ff8ae6f30f9b16ee1bf9b610"
+    },
+    {
+      "file": "Previews/LandscapeTrailer_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "d9d54bfa97e051a1553deb283d349f05348f47ca0c58d127e7bc4e268a40c07d"
+    },
+    {
+      "file": "Previews/EquipmentTrailer_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "56715ad72f5eacc756a14842a0fdac8d3b4b59c0280746ec8b0a970be7110d41"
+    },
+    {
+      "file": "Previews/RustyPickup_DriverView.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "396228647363fd5000fe86da99719c49fa6f61d974a601c8016f315e9477b232"
+    },
+    {
+      "file": "Previews/WorkPickup_DriverView.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "460f78a54a92da7a3fdc0b6f365f4a4c0874ba66319b1f87976b33e1ae25a338"
+    },
+    {
+      "file": "Previews/HeavyDutyPickup_DriverView.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "e21fdbf2c8169d3c0c580d11fbfea746587f6d0bc471b527e1725c9e39c6b504"
+    },
+    {
+      "file": "Previews/LandscapingTruck_DriverView.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "1466dff702ff7cc790f28bbe6b795b50a5f278ee8c391f97f516b28e73cbd0c6"
+    }
+  ]
 }

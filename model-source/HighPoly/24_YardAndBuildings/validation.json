@@ -19,7 +19,11 @@
     "closed_authoring_components_after_coincident_vertex_matching",
     "FBX_import_triangle_mesh_count_and_world_bounds",
     "sRGB_atlas_pixels_match_declared_palette",
-    "sRGB_atlas_pixels_match_declared_palette"
+    "complete_noncorrupt_preview_PNGs",
+    "updated_review_images_match_latest_changed_sources",
+    "sRGB_atlas_pixels_match_declared_palette",
+    "complete_noncorrupt_preview_PNGs",
+    "updated_review_images_match_latest_changed_sources"
   ],
   "issues": [],
   "studio_import_tested": false,
@@ -140,5 +144,95 @@
     "maximum_srgb_channel_error": 0.0,
     "passed": true
   },
-  "preview_status": "rendering"
+  "preview_status": "complete",
+  "previews": [
+    {
+      "file": "Previews/House_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "7f3d694ffaf85eebb4f6cca91721d8ce73c8dbfa5c93f58d30af410e4d28a67d"
+    },
+    {
+      "file": "Previews/FlowerPatch_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "4e7d0a60255866b7b98fe51a9c4aa17f5ee111132cb4b39eabab516b6f192663"
+    },
+    {
+      "file": "Previews/GardenGnome_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "17b40ecb56a6bc9e94ca7fb1a2ea5a364782e094571593a5f68a470f3847bf2e"
+    },
+    {
+      "file": "Previews/Shed_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "585620eb8c277e6c9269e9fe051bc526d720590bc43954c7c92e41662e7c331c"
+    },
+    {
+      "file": "Previews/Garage_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "c42aaa0d4a15e0e7738917473909450151e2fcc6320b5384eb4cb8f5ea01a626"
+    },
+    {
+      "file": "Previews/SmallOffice_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "b9e55b977a359111e72479a6dbb905708b88339f9384706bdf4b03c70eff2bd9"
+    },
+    {
+      "file": "Previews/EquipmentYard_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "83fc417b4b77b2f295d497beb1b9a8c0351472132754457f8c95042ad8850f7d"
+    },
+    {
+      "file": "Previews/Shed_Interior.png",
+      "resolution": [
+        1024,
+        720
+      ],
+      "sha256": "d5adc2eccd19b079de4ae3c0927ac045d01c8390ed9c9baeddaae9cc1e38f77b"
+    },
+    {
+      "file": "Previews/Garage_Interior.png",
+      "resolution": [
+        1024,
+        720
+      ],
+      "sha256": "9e6d3291c96343f2726bbb58d7f327c5e502a63193297e93e2b1aee4c0ed2546"
+    },
+    {
+      "file": "Previews/SmallOffice_Interior.png",
+      "resolution": [
+        1024,
+        720
+      ],
+      "sha256": "ce36f2d961449c0fcdb9a0ed032e61ee752bcb4c3cb361ab08c3dda329509fc9"
+    },
+    {
+      "file": "Previews/EquipmentYard_Interior.png",
+      "resolution": [
+        1024,
+        720
+      ],
+      "sha256": "87a4ce8e0a952a41713227be7a797ec708e0973d8c116775f471ecbd1304523b"
+    }
+  ]
 }

@@ -19,7 +19,11 @@
     "closed_authoring_components_after_coincident_vertex_matching",
     "FBX_import_triangle_mesh_count_and_world_bounds",
     "sRGB_atlas_pixels_match_declared_palette",
-    "sRGB_atlas_pixels_match_declared_palette"
+    "complete_noncorrupt_preview_PNGs",
+    "updated_review_images_match_latest_changed_sources",
+    "sRGB_atlas_pixels_match_declared_palette",
+    "complete_noncorrupt_preview_PNGs",
+    "updated_review_images_match_latest_changed_sources"
   ],
   "issues": [],
   "studio_import_tested": false,
@@ -155,5 +159,71 @@
     "maximum_srgb_channel_error": 0.0,
     "passed": true
   },
-  "preview_status": "rendering"
+  "preview_status": "complete",
+  "previews": [
+    {
+      "file": "Previews/ReelMower_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "432e2021d675977ccd767c6f70e0bf6f3f5eb0b2587aa81695da959deb62a2ba"
+    },
+    {
+      "file": "Previews/SelfPropelledMower_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "809a2a9daee20a11bd260016487628ebd68f0f528adefea624886cc246e575de"
+    },
+    {
+      "file": "Previews/CommercialReelMower_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "4b6312a1106a8ca15edd3be67095ed8fbc725d0d71bb6fe3c148b7e09f78b622"
+    },
+    {
+      "file": "Previews/CommercialZeroTurn_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "271bc2ac13e27f38554b2b991a2babc8f4f8eda7f752070896eb7c253de8cb80"
+    },
+    {
+      "file": "Previews/StandOnMower_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "e700765985f48c214dd2bbbaca4b753959cbe396c2f7b7f865be4d76c0d27e2f"
+    },
+    {
+      "file": "Previews/StandOnAerator_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "76e82085a9f54b90c80effd671ba5d657dd33040c1f9c5c39ae9f5861683c09d"
+    },
+    {
+      "file": "Previews/TowBehindAerator_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "77d4d472701d7099b09b5787d6dad45d1ce0487394b6342529529dad31e40c73"
+    },
+    {
+      "file": "Previews/RideOnSpreaderSprayer_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "8c6bf8a430f11d87480799df57fc238a7e5588263c81d0bfcd36f5054d7946ad"
+    }
+  ]
 }

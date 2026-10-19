@@ -19,7 +19,11 @@
     "closed_authoring_components_after_coincident_vertex_matching",
     "FBX_import_triangle_mesh_count_and_world_bounds",
     "sRGB_atlas_pixels_match_declared_palette",
-    "sRGB_atlas_pixels_match_declared_palette"
+    "complete_noncorrupt_preview_PNGs",
+    "updated_review_images_match_latest_changed_sources",
+    "sRGB_atlas_pixels_match_declared_palette",
+    "complete_noncorrupt_preview_PNGs",
+    "updated_review_images_match_latest_changed_sources"
   ],
   "issues": [],
   "studio_import_tested": false,
@@ -155,5 +159,71 @@
     "maximum_srgb_channel_error": 0.0,
     "passed": true
   },
-  "preview_status": "rendering"
+  "preview_status": "complete",
+  "previews": [
+    {
+      "file": "Previews/SingleWheelbarrow_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "09387686d2761cd4987401754874929e49b193940fde79084a87c4f60a46686b"
+    },
+    {
+      "file": "Previews/SingleWheelbarrowFlatFree_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "bd3a8ecc8133dc4c2cca4d9effa63b08e2e14f8fd31eab8d8b9e83d637f7b083"
+    },
+    {
+      "file": "Previews/DualWheelbarrow_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "a6afc9b5104849aecf2b62963dd737c571d0d21d549c125ed73d560a27d2b9ea"
+    },
+    {
+      "file": "Previews/PolyCart_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "3010824e69f642d7ec439b68e7d6df4d0c2323820d79fc8c23fe2540ea11603b"
+    },
+    {
+      "file": "Previews/BroadcastSpreader_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "6405eed8e883e425baa1d8e912ad1bfc9dcac98b64e80d8ecf1cd1e63459cf8d"
+    },
+    {
+      "file": "Previews/WalkBehindEdger_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "3040d06a7d682b98934fdd03edeef5f0eaed5b8e0ceb6daa1d79fbd73b58c9df"
+    },
+    {
+      "file": "Previews/SlitOverseeder_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "8e730571d457d327558a21ebcf71ef892a4320935fd0932448b5a7f5e900625f"
+    },
+    {
+      "file": "Previews/PowerRakeDethatcher_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "8caac9787ffbf7ef5f90cd9fc253ca25bdbf708cf0f0b7f3e2257a54f5a830f4"
+    }
+  ]
 }

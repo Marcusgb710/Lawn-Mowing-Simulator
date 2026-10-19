@@ -19,7 +19,11 @@
     "closed_authoring_components_after_coincident_vertex_matching",
     "FBX_import_triangle_mesh_count_and_world_bounds",
     "sRGB_atlas_pixels_match_declared_palette",
-    "sRGB_atlas_pixels_match_declared_palette"
+    "complete_noncorrupt_preview_PNGs",
+    "updated_review_images_match_latest_changed_sources",
+    "sRGB_atlas_pixels_match_declared_palette",
+    "complete_noncorrupt_preview_PNGs",
+    "updated_review_images_match_latest_changed_sources"
   ],
   "issues": [],
   "studio_import_tested": false,
@@ -140,5 +144,87 @@
     "maximum_srgb_channel_error": 0.0,
     "passed": true
   },
-  "preview_status": "rendering"
+  "preview_status": "complete",
+  "previews": [
+    {
+      "file": "Previews/JobLaptopTable_Preview.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "876b453f2b09f6250e6a26e2beff165cbaf06b4d701c80a223c1cd6a5ba9f693"
+    },
+    {
+      "file": "Previews/JobComputerDesk_Preview.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "3a44c62bca84a937a8a5a808639ac24972d561477e6b96629f25692666a3e7a8"
+    },
+    {
+      "file": "Previews/JobOfficeDesk_Preview.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "e4ea4c35dffd1eaa58aa6ac3ce677671a019a9eb747b7407bf5936a02bb7f454"
+    },
+    {
+      "file": "Previews/DeliveryBoxSmall_Preview.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "ff104228dd22b277ba42343c25ba5e7acae05fb70d6056b09a26674d56b01998"
+    },
+    {
+      "file": "Previews/DeliveryBoxLong_Preview.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "32372dcb0eaa2c44b98c2bd1c70c7d6db5d3ff423e41ac2d2db389dc90ae33e6"
+    },
+    {
+      "file": "Previews/DeliveryBoxLarge_Preview.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "d7135621cca010072852d9f0b70568c00c3fa095faccea9ab92999a44b4ceb52"
+    },
+    {
+      "file": "Previews/DeliveryCrate_Preview.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "c7a26dfe45b87222230611424cebce95df7ca39af3bd5a793c33bac994fc5d1c"
+    },
+    {
+      "file": "Previews/JobLaptopTable_ScreenView.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "1adc7af72b2297ecf678a5716c67e4e99b337b63959a4c14184b2653c9131f97"
+    },
+    {
+      "file": "Previews/JobComputerDesk_ScreenView.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "033e7f0e8a3e5e778fbb9a44bf0027c4086a87dbd4a127e63029c127efbb3e9c"
+    },
+    {
+      "file": "Previews/JobOfficeDesk_ScreenView.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "50a9d550503f71aa36c0c65a639146bab9dc672297faa75cf8a8c486a35d633e"
+    }
+  ]
 }
