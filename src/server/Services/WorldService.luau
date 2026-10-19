@@ -38,8 +38,13 @@ local PLOT_SIZE = Vector3.new(90, 1, 90)
 local BUILDING_Z = 22
 local DRIVEWAY_WIDTH = 10
 -- Where the business's own lawn goes (see HomeLawnService), on the left of the driveway, in plot
--- space: its edge runs a couple of studs from the driveway.
+-- space: its edge runs a couple of studs from the driveway. Where a building's truck parks further
+-- left, the lawn moves left with the driveway, staying LAWN_GAP from it.
 local LAWN_CENTER, LAWN_SIZE = Vector3.new(-21.5, 0, -25), Vector3.new(30, 0, 34)
+local LAWN_GAP = 1.5
+-- Room to walk (and push a mower) between the truck's open tailgate, or its trailer's ramp, and
+-- the building's front.
+local WALKWAY = 6
 -- Decorations keep this far from the driveway, the building and what stands around it.
 local DECOR_CLEARANCE = 1
 -- The patch in front of the delivery spot where boxes stand (see DeliveryService), in its space:
@@ -296,6 +301,55 @@ local function makeWalkable(building: Model, markers)
 	walls.Parent = building
 end
 
+-- How far a part reaches along `frame`'s Z axis: (nearest, furthest).
+local function zRange(piece: BasePart, frame: CFrame): (number, number)
+	local low, high = math.huge, -math.huge
+	local half = piece.Size / 2
+	for _, x in { -1, 1 } do
+		for _, y in { -1, 1 } do
+			for _, z in { -1, 1 } do
+				local corner = frame:PointToObjectSpace(piece.CFrame:PointToWorldSpace(half * Vector3.new(x, y, z)))
+				low = math.min(low, corner.Z)
+				high = math.max(high, corner.Z)
+			end
+		end
+	end
+	return low, high
+end
+
+-- Pulls the truck (and its trailer) forward off `parking`, if it has to, so there's WALKWAY
+-- between the back of it (its open tailgate or ramp) and the front of the building. Parking
+-- markers put the truck's middle on the spot, which leaves its open tailgate against the wall.
+-- In `parking`'s space the truck faces -Z and the building is behind it, at +Z.
+local function leaveWalkway(truck: Model, parking: CFrame, building: Model)
+	-- The building's front: its frontmost wall, or the front of the whole model for one without
+	-- walls of its own (the older, solid buildings).
+	local front = math.huge
+	for _, descendant in building:GetDescendants() do
+		if descendant:IsA("BasePart") and string.find(descendant.Name, "__Walls", 1, true) then
+			front = math.min(front, (zRange(descendant, parking)))
+		end
+	end
+	if front == math.huge then
+		for _, descendant in building:GetDescendants() do
+			if descendant:IsA("BasePart") and descendant.Transparency < 1 then
+				front = math.min(front, (zRange(descendant, parking)))
+			end
+		end
+	end
+	local back = -math.huge
+	for _, descendant in truck:GetDescendants() do
+		if descendant:IsA("BasePart") and descendant.Transparency < 1 then
+			local _, far = zRange(descendant, parking)
+			back = math.max(back, far)
+		end
+	end
+	local short = WALKWAY - (front - back)
+	if front < math.huge and back > -math.huge and short > 0 then
+		truck:PivotTo(truck:GetPivot() + parking.LookVector * short)
+	end
+end
+
 -- Where a plot's truck ends up when it pulls out: straight ahead into the street.
 local function streetFrame(plot): CFrame
 	local home: CFrame = plot.truckHome
@@ -411,18 +465,6 @@ local function buildPlot(plot)
 	-- Older buildings get their deliveries out front on the right of the driveway, clear of the lawn.
 	plot.deliveryFrame = markers.delivery or at(16, 0, math.min(2, frontZ - 2))
 
-	-- The driveway, from the street to the door.
-	local drivewayLength = frontZ + plot.depth / 2
-	part(model, {
-		Name = "Driveway",
-		Size = Vector3.new(DRIVEWAY_WIDTH, 0.1, drivewayLength),
-		CFrame = at(0, 0.05, frontZ - drivewayLength / 2),
-		Color = Color3.fromRGB(170, 170, 165),
-		Material = Enum.Material.Concrete,
-		CanCollide = false,
-	})
-	plot.lawnFrame, plot.lawnSize = at(LAWN_CENTER.X, 0, LAWN_CENTER.Z), LAWN_SIZE
-
 	-- Each player sees their own tools in storage on their screen (see CarryController).
 	BusinessStorage.build(model, origin, data.equipped.Business or "Shed", markers)
 
@@ -463,9 +505,27 @@ local function buildPlot(plot)
 	end
 	truck.Name = "CrewTruck"
 	truck.Parent = model
-	plot.truckHome = truck:GetPivot()
-	-- Parked with the tailgate down (and the trailer's ramp), ready to load.
+	-- Parked with the tailgate down (and the trailer's ramp), ready to load, with room to walk
+	-- between it and the building.
 	Openings.set(truck, true)
+	leaveWalkway(truck, parking, building)
+	plot.truckHome = truck:GetPivot()
+
+	-- The driveway, from the street to the door, under the truck. The lawn keeps clear of it.
+	local truckBox, truckSize = truck:GetBoundingBox()
+	local truckAt = origin:PointToObjectSpace(truckBox.Position)
+	local drivewayWidth = math.max(DRIVEWAY_WIDTH, math.min(truckSize.X, truckSize.Z) + 2)
+	local drivewayLength = frontZ + plot.depth / 2
+	part(model, {
+		Name = "Driveway",
+		Size = Vector3.new(drivewayWidth, 0.1, drivewayLength),
+		CFrame = at(truckAt.X, 0.05, frontZ - drivewayLength / 2),
+		Color = Color3.fromRGB(170, 170, 165),
+		Material = Enum.Material.Concrete,
+		CanCollide = false,
+	})
+	local lawnRight = math.min(LAWN_CENTER.X + LAWN_SIZE.X / 2, truckAt.X - drivewayWidth / 2 - LAWN_GAP)
+	plot.lawnFrame, plot.lawnSize = at(lawnRight - LAWN_SIZE.X / 2, 0, LAWN_CENTER.Z), LAWN_SIZE
 	-- Getting in at the driver's door heads off on the job (see JobService). Carried tools go in
 	-- its bed by looking at the bed (see InteractController).
 	local driverDoor
