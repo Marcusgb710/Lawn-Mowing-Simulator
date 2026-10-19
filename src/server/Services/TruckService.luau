@@ -294,6 +294,13 @@ local function renderBed(owner: Player)
 			taken[bed][cell] = true
 		end
 	end
+	-- Lays a tool on its cells, and notes which they are, so looking down at one of them over the
+	-- truck's side finds it (see InteractController).
+	local function lay(display: Model, bed: BedLayout.Bed, cells: { number }, sizeClass: string)
+		BedLayout.place(display, bed, cells, sizeClass)
+		display:SetAttribute("BedIndex", bed.index)
+		display:SetAttribute("BedCells", table.concat(cells, ","))
+	end
 
 	-- Tools keep the cells they were put in while those are still free; the rest go in the first
 	-- free cells.
@@ -343,7 +350,7 @@ local function renderBed(owner: Player)
 			local cells = bed and BedGrid.cells(bed.grid, item.sizeClass, place.anchor)
 			if bed and cells and BedGrid.free(taken[bed.index], cells) then
 				claim(bed.index, cells)
-				BedLayout.place(display, bed, cells, item.sizeClass)
+				lay(display, bed, cells, item.sizeClass)
 			else
 				table.insert(pending, entry)
 			end
@@ -357,7 +364,7 @@ local function renderBed(owner: Player)
 			if anchor and cells then
 				claim(bed.index, cells)
 				placements[entry.member][entry.item.id] = { bed = bed.index, anchor = anchor }
-				BedLayout.place(entry.display, bed, cells, entry.item.sizeClass)
+				lay(entry.display, bed, cells, entry.item.sizeClass)
 				placed = true
 				break
 			end

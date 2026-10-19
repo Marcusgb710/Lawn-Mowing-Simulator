@@ -401,6 +401,34 @@ local function bedTarget(item, origin: Vector3, direction: Vector3, reach: numbe
 	return nil
 end
 
+-- Your tool lying on the bed cell you're looking down at, for when the truck's side hides it
+-- (small tools at the front of a tall bed). The server notes each tool's cells (BedIndex and
+-- BedCells, see TruckService).
+local function bedItemTarget(origin: Vector3, direction: Vector3): Target?
+	local info = truckInfo()
+	local items = info.truck and info.truck:FindFirstChild("BedItems")
+	if not items then
+		return nil
+	end
+	for index, bed in info.beds do
+		local column, row = BedLayout.aim(bed, origin, direction, REACH)
+		if column and row then
+			local cell = tostring(BedGrid.indexOf(bed.grid, column, row))
+			for _, display in items:GetChildren() do
+				local cells = display:GetAttribute("BedCells")
+				if
+					display:GetAttribute("BedIndex") == index
+					and typeof(cells) == "string"
+					and table.find(string.split(cells, ","), cell)
+				then
+					return targetFor(display, nil, nil)
+				end
+			end
+		end
+	end
+	return nil
+end
+
 -- Parking the ride-on you're driving: on a free trailer bay, or a free bay in storage.
 local function parkTarget(root: BasePart): Target?
 	local function across(position: Vector3): number
@@ -470,6 +498,15 @@ local function resolve(): Target?
 	local here = target and target.action
 	if here == "PutBack" or here == "PutInBucket" or here == "SetDown" or here == "Service" then
 		return target
+	end
+	if not item and (target == nil or here == "DriveToJob") then
+		local truck = truckInfo().truck
+		if result and truck and result.Instance:IsDescendantOf(truck) then
+			local inBed = bedItemTarget(origin, direction)
+			if inBed then
+				return inBed
+			end
+		end
 	end
 	if item then
 		-- Aiming at the truck (or something in its bed) counts all the way down to the bed.
