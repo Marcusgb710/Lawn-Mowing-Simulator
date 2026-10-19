@@ -106,10 +106,11 @@ Yards (`src/server/Services/LawnService.luau`) now use the kit, falling back to 
       `Items.luau` until the player sits on the seat, and see how R6 avatars look (they aren't
       lifted).
 - [ ] **Grip polish**: push and walk-behind machines are now held so their wheels touch the
-      ground, worked out from the player's shoulder height (phase B); check it in Studio. The
-      trimmer head still floats about 1.3 studs, because the tool-hold pose keeps the hand at
-      shoulder height. Lower the trimmer grips in `scripts/build-kit-tools.luau`, or add a hold
-      animation.
+      ground, worked out from the player's shoulder height (phase B); check it in Studio. In
+      first person every tool is posed for the view (trimmer heads on the ground), but other
+      players still see the trimmer head float about 1.3 studs, because the tool-hold pose keeps
+      the hand at shoulder height. Lower the trimmer grips in `scripts/build-kit-tools.luau`, or
+      add a hold animation.
 
 ## Design phases (docs/GAME_DESIGN.md)
 
@@ -127,10 +128,77 @@ One PR per phase, each stacked on the one before. Every phase still needs a Stud
       driveway pile to the bed, how often one-wheeled barrows tip (`TIP_CHANCE` in
       `LawnService.luau`), the fertilizer dusting on big lawns.
 - [x] **E: maintenance (fuel, tires, blades, line).** To check: wear rates (`Maintenance.Wear`),
-      the Workbench menu on a phone, the workbench prop on each building.
+      the workbench prop on each building (the menu is now hands-on, see Immersion 3).
 - [x] **F: pro equipment and turf renovation.** To check: standing on stand-on machines
       (`ride.seat` in `Tools.luau`), the tow-behind aerator hitched behind a ride-on, tight lawns
       with trees, the renovation overlays and the soil reading in the HUD.
+- [ ] **Camera: first person.** To check in Studio, R15 and R6:
+      - the arms (`ArmsController.luau`): sizes and colors, elbows bending the right way, hands
+        on the handlebar and up the rake's shaft, the blend up and down;
+      - each kind of tool in view (`MACHINE_AHEAD`, `LONG_*`, `REACH_*`, `HAND_POSE`): nothing
+        clipping the camera, rake and trimmer heads on the ground, backpack tools;
+      - the view from each ride-on seat and stand-on platform, and where the hands sit on the
+        controls (`RIDE_RIGHT`, or add `GripLeft` / `GripRight` attachments to the models);
+      - carried tools in view at the business;
+      - the mouse freeing while menus are open, Left Alt, the keys, and the dot;
+      - head bob and engine shake strength, and motion sickness on a phone.
+- [ ] **Immersion 1: walk-in buildings, truck at the door.** Waiting on the new building, truck
+      and trailer models (instructions24). When they're in, check in Studio:
+      - fixtures on every `Mount`, tools on their slots, floor spots and bays inside;
+      - walking (and pushing a mower) in through every door, and no walking through walls (keep
+        wall meshes on Default or PreciseConvexDecomposition collision, set before saving);
+      - the truck on `TruckParking` with its rear at the door, the tailgate, ramp and rear door
+        opening and closing (hinge pivots), the ramp reaching the ground;
+      - interior lights on phones.
+- [ ] **Immersion 2: look-at loading.** To check in Studio:
+      - aiming at tools on every fixture, at the bed (the ghost on the right cells, green or red),
+        and at free spots;
+      - the E key and the phone button, and R on the bucket;
+      - tools lying well on their cells, and the settle;
+      - driving a ride-on up a ramp and parking it on a bay;
+      - two players loading one truck;
+      - fill in the sound ids in `src/shared/Sounds.luau`.
+- [ ] **Hub 1: job computer and deliveries.** Waiting on the desk and box models (instructions33).
+      To check in Studio:
+      - stepping up to each desk and the camera easing in to `ScreenView`, then back;
+      - the apps inside the monitor on PC and on a phone;
+      - leaving by walking away;
+      - boxes standing at `DeliverySpot`, their flaps and crate front swinging the right way, and
+        the tool coming up into your hands;
+      - boxes coming back after a rejoin.
+- [ ] **Hub 2: driveway and leaving from the truck.** To check in Studio:
+      - the 90 × 90 plots and the town's spacing;
+      - the driveway and where the truck parks;
+      - the driver's door swinging out and back;
+      - the view from `DriverSeat` and the other seats;
+      - the pull-out into the street and the pull-in;
+      - nothing standing on the driveway or the front lawn.
+- [ ] **Immersion 3: hands-on maintenance.** To check in Studio:
+      - setting a mower down at the workbench's `ServiceSpot` and a pair of pruners in the vise;
+      - holding E to pour, pump, plug, wind and file, on PC and phone (hold the button);
+      - the blade off (the mower on its side), the grinder's sparks, the blade back on;
+      - a wheel off for the spare;
+      - the tailgate on a job: supplies by the truck, taking one and putting it back;
+      - sputtering smoke, sagging and flat tires and a bare spool on the kit tools;
+      - ragged grass after mowing with a dull blade.
+- [ ] **Hub 3: your own lawn and curb appeal.** To check in Studio:
+      - the lawn on each plot, its grass drawn like a job's, and the edge along the right sides;
+      - mowing, edging, trimming and raking it with tools straight off the wall, on PC and phone;
+      - tools held at the shop looking right (push mowers on the ground, arms on the handles);
+      - regrowth over a long session, and the lawn coming back the same after a rejoin;
+      - the neighbor's tip, the HUD's curb appeal and the "Curb appeal" pay line;
+      - frame rate with your lawn and a neighbor's in view.
+- [ ] **Hub 3b: decorations.** Waiting on the decoration models (instructions34). To check in
+      Studio:
+      - ordering from the Decorations tab, solo and in a crew (it's the leader's);
+      - opening a decoration box and placing it: the ghost, turning, red where it can't go;
+      - fence sections, edging, paths and beds snapping end to end;
+      - picking one up and moving it, and a building upgrade boxing what's in the way;
+      - lamps, the fire pit, the fountain's water, sitting on the bench and patio chairs, the
+        mailbox door and flag, the windmill's sails;
+      - trimming a shaggy shrub with a hedge tool, and it growing back;
+      - curb appeal going up as the yard fills (and leveling off);
+      - everything with block placeholders, and on a phone.
 
 ## Before release
 

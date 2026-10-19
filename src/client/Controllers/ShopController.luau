@@ -1,10 +1,14 @@
--- The hardware store: one tab per category. Buy tools, trucks, trailers and business upgrades,
--- and sell tools you don't need to free up storage.
+-- Two apps on the shop computer (see ComputerController), one tab per category:
+--   Orders    tools and supplies (delivered in a box to the shop), yard decorations for your
+--             crew's business, and a Sell tab for tools you don't need, to free up storage
+--   Business  building upgrades, trucks and trailers
 -- Every tool says what it's for: that's how players learn which tool fits which job.
 
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Decorations = require(Shared.Config.Decorations)
 local Format = require(Shared.Format)
 local Items = require(Shared.Config.Items)
 local Maintenance = require(Shared.Config.Maintenance)
@@ -21,6 +25,17 @@ local SELL_CONFIRM_TIME = 3
 
 local ShopController = {}
 
+local SELL_TAB = "Sell"
+local DECOR_TAB = "Decorations"
+-- Which tabs each app shows.
+local APPS = {
+	Orders = { title = "Orders", tabs = table.clone(Items.ToolCategories) },
+	Business = { title = "Business", tabs = { "Business", "Truck", "Trailer" } },
+}
+table.insert(APPS.Orders.tabs, DECOR_TAB)
+table.insert(APPS.Orders.tabs, SELL_TAB)
+
+local window: Frame
 local selectedCategory = Items.Categories[1]
 local tabButtons = {}
 local list: ScrollingFrame
@@ -41,7 +56,19 @@ local function storageText(business): string
 end
 
 local function statsText(item): string
-	if item.category == "Truck" then
+	if Decorations.get(item.id) == item then
+		local parts = { `Curb appeal +{item.appeal}` }
+		if item.onLawn then
+			table.insert(parts, "Can stand on the lawn")
+		end
+		if item.snaps then
+			table.insert(parts, "Joins end to end")
+		end
+		if item.shrub then
+			table.insert(parts, "Keep it trimmed with a hedge tool")
+		end
+		return table.concat(parts, "  ·  ")
+	elseif item.category == "Truck" then
 		return `Job pay +{math.floor(item.payoutBonus * 100)}%  ·  Holds {item.space} space`
 	elseif item.category == "Trailer" then
 		local text = `+{item.space} space`
@@ -92,7 +119,7 @@ end
 
 local render
 
-local function act(action: string, item)
+local function act(action: string, item, category: string)
 	if action == "SellItem" and confirmingSell ~= item.id then
 		confirmingSell = item.id
 		confirmingSince = os.clock()
@@ -106,13 +133,16 @@ local function act(action: string, item)
 		return
 	end
 	confirmingSell = nil
-	local _, message = Net.func(action):InvokeServer(selectedCategory, item.id)
+	local _, message = Net.func(action):InvokeServer(category, item.id)
 	UI.notify(message)
 end
 
 -- What the button on an item's card says and does, plus why it's locked (if it is).
-local function buttonFor(profile, item): (string, Color3, string?, string?)
-	local category = selectedCategory
+local function buttonFor(profile, item, category: string): (string, Color3, string?, string?)
+	if category == DECOR_TAB then
+		local affordable = profile.money >= item.price
+		return Format.money(item.price), if affordable then UI.Colors.Money else UI.Colors.Disabled, "BuyItem", nil
+	end
 	local owned = profile.owned[category] and profile.owned[category][item.id]
 	if Items.isToolCategory(category) then
 		if owned then
@@ -160,6 +190,13 @@ function render()
 	local header = nil
 	if selectedCategory == "Trailer" and not profile.trailerUnlocked then
 		header = "Fill up your truck to unlock trailers."
+	elseif selectedCategory == SELL_TAB then
+		header = "Sell tools you don't use to free up storage. You get half their price back, less wear."
+	elseif selectedCategory == DECOR_TAB then
+		local party = ClientState.party
+		local whose = if party and party.leader ~= Players.LocalPlayer then `{party.leader.DisplayName}'s` else "your"
+		header = `For {whose} yard. Each comes in a box at the shop: open it, then put it where you like `
+			.. "(not on the driveway). A good-looking yard is curb appeal, worth up to +15% on every job."
 	elseif Items.isToolCategory(selectedCategory) then
 		header = storageSummary(profile)
 	end
@@ -175,7 +212,33 @@ function render()
 		})
 	end
 
-	for index, item in Items.Catalog[selectedCategory] do
+	-- The Sell tab lists every tool you could sell, from every tab.
+	local items = {}
+	if selectedCategory == SELL_TAB then
+		for _, tool in Items.ownedTools(profile.owned) do
+			if Shop.canSell(tool) and not (profile.loadout[tool.id] or Shop.canRestock(profile, tool.id)) then
+				table.insert(items, tool)
+			end
+		end
+		if #items == 0 then
+			UI.label("Nothing to sell. Your starter gear stays, and tools in the truck have to come out first.", {
+				Size = UDim2.new(1, -8, 0, 0),
+				AutomaticSize = Enum.AutomaticSize.Y,
+				TextWrapped = true,
+				TextSize = 15,
+				TextColor3 = UI.Colors.SubText,
+				LayoutOrder = 1,
+				Parent = list,
+			})
+		end
+	elseif selectedCategory == DECOR_TAB then
+		items = Decorations.List
+	else
+		items = Items.Catalog[selectedCategory]
+	end
+
+	for index, item in items do
+		local category = item.category or selectedCategory
 		local card = UI.new("Frame", {
 			Size = UDim2.new(1, -8, 0, 0),
 			AutomaticSize = Enum.AutomaticSize.Y,
@@ -212,7 +275,7 @@ function render()
 			Parent = details,
 		})
 
-		local text, color, action, lockedBecause = buttonFor(profile, item)
+		local text, color, action, lockedBecause = buttonFor(profile, item, category)
 		if lockedBecause then
 			UI.label(lockedBecause, {
 				Size = UDim2.fromScale(1, 0),
@@ -226,7 +289,7 @@ function render()
 		end
 		UI.button(text, function()
 			if action then
-				act(action, item)
+				act(action, item, category)
 			end
 		end, {
 			AnchorPoint = Vector2.new(1, 0.5),
@@ -240,8 +303,30 @@ function render()
 	end
 end
 
+-- Opens one of the shop computer's apps ("Orders" or "Business") on its first tab.
+function ShopController.openApp(name: string)
+	local app = APPS[name]
+	if not app then
+		return
+	end
+	for category, button in tabButtons do
+		button.Visible = table.find(app.tabs, category) ~= nil
+	end
+	local title = window:FindFirstChild("Title")
+	if title and title:IsA("TextLabel") then
+		title.Text = app.title
+	end
+	if not table.find(app.tabs, selectedCategory) then
+		selectedCategory = app.tabs[1]
+	end
+	confirmingSell = nil
+	UI.open("Shop")
+	render()
+end
+
 function ShopController:Start()
-	local window, content = UI.panel("Shop", "Hardware Store")
+	local content
+	window, content = UI.panel("Shop", "Orders")
 
 	local tabs = UI.new("ScrollingFrame", {
 		Size = UDim2.new(1, 0, 0, 40),
@@ -254,8 +339,13 @@ function ShopController:Start()
 		Parent = content,
 	}, { UI.list(6, Enum.FillDirection.Horizontal) })
 
-	for index, category in Items.Categories do
-		tabButtons[category] = UI.button(Items.CategoryInfo[category].displayName, function()
+	local allTabs = table.clone(Items.Categories)
+	table.insert(allTabs, DECOR_TAB)
+	table.insert(allTabs, SELL_TAB)
+	for index, category in allTabs do
+		local info = Items.CategoryInfo[category]
+		local name = if info then info.displayName else category
+		tabButtons[category] = UI.button(name, function()
 			selectedCategory = category
 			confirmingSell = nil
 			render()

@@ -12,12 +12,12 @@
 -- damage for every flower patch or gnome the crew ran over. Then it's split evenly.
 
 local Players = game:GetService("Players")
-local ProximityPromptService = game:GetService("ProximityPromptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Assets = require(Shared.Assets)
 local Format = require(Shared.Format)
+local HomeLawn = require(Shared.HomeLawn)
 local GameConfig = require(Shared.Config.GameConfig)
 local Items = require(Shared.Config.Items)
 local Jobs = require(Shared.Config.Jobs)
@@ -26,10 +26,16 @@ local TaskTypes = require(Shared.Config.TaskTypes)
 local Tools = require(Shared.Config.Tools)
 local Signal = require(Shared.Signal)
 
+local Openings = require(script.Parent.Parent.Openings)
+local ServiceSpots = require(script.Parent.Parent.ServiceSpots)
 local DataService = require(script.Parent.DataService)
+local HomeLawnService = require(script.Parent.HomeLawnService)
 local LawnService = require(script.Parent.LawnService)
 local PartyService = require(script.Parent.PartyService)
 local WorldService = require(script.Parent.WorldService)
+
+-- How close to the truck (its bounding box) you have to be to drive off.
+local TRUCK_REACH = 10
 
 local JobService = {}
 -- Fired with (player) when they head out on a job, arrive at the house, or leave the job.
@@ -326,6 +332,21 @@ local function sendHome(job, players: { Player })
 			table.insert(going, player)
 		end
 	end
+	-- The truck that pulled out comes back with its owner (or, if they're gone, with nobody).
+	local owner = job.truckOwner
+	local ownerGoing = owner ~= nil and table.find(going, owner) ~= nil
+	if not job.tripStarted then
+		-- Called off while the truck was still pulling out: everyone just gets back out, and the
+		-- truck's back at the door.
+		for _, player in going do
+			setFrozen(player, false)
+			Net.event("PullOutCancelled"):FireClient(player)
+		end
+		if owner and (ownerGoing or #job.members == 0) then
+			WorldService:ReturnTruck(owner, true)
+		end
+		return
+	end
 	travel(going, {
 		direction = "ToBusiness",
 		title = "Heading back to the shop",
@@ -334,6 +355,11 @@ local function sendHome(job, players: { Player })
 		trailerId = job.trailerId,
 	}, function(index, player)
 		return WorldService:GetHomeCFrame(player, index)
+	end, function()
+		-- Back at the business: the truck pulls back in and drops its tailgate for unloading.
+		if owner and ownerGoing then
+			WorldService:ReturnTruck(owner)
+		end
 	end)
 end
 
@@ -356,16 +382,34 @@ local function startDriving(job)
 	readyJobs[party] = nil
 	activeJobs[job] = true
 	job.state = "Traveling"
+	-- The leader is always first, so they're in the driver's seat.
 	job.members = table.clone(party.members)
 	for _, member in job.members do
 		playerJobs[member] = job
 		JobService.PlayerStateChanged:Fire(member)
+	end
+	-- Everyone gets in: the tailgate shuts, the driver's door opens and closes, and the truck
+	-- pulls out of the driveway (each crew member watches from their seat) before the trip. It's
+	-- the leader's truck, and it comes back with them (see sendHome).
+	local plotTruck = WorldService:GetPlotTruck(party.leader)
+	job.truckOwner = party.leader
+	WorldService:SetTruckOpen(party.leader, false)
+	WorldService:PullOut(party.leader)
+	for seat, member in job.members do
+		setFrozen(member, true)
+		Net.event("PullingOut"):FireClient(member, {
+			truck = plotTruck,
+			seat = seat,
+			duration = GameConfig.PullOutTime,
+		})
 	end
 
 	local leaderData = DataService:Get(party.leader)
 	job.truckId = if leaderData then leaderData.equipped.Truck else Items.starter("Truck").id
 	job.trailerId = if leaderData then leaderData.equipped.Trailer else nil
 	job.businessId = if leaderData then leaderData.equipped.Business else nil
+	-- How good the business looked as the crew left: customers pay a little more for that.
+	job.curbAppeal = HomeLawnService:CurbAppeal(party.leader)
 
 	job.slot = claimSlot()
 	local origin = GameConfig.JobSiteOrigin + Vector3.new(job.slot * GameConfig.JobSiteSpacing, 0, 0)
@@ -374,20 +418,26 @@ local function startDriving(job)
 	local truck = Assets.truck(job.truckId, job.trailerId)
 	Assets.anchor(truck)
 	Assets.placeOnGround(truck, job.lawn.truckCFrame)
+	-- Parked at the house with the tailgate down: it's where you work on your tools.
+	Openings.set(truck, true)
 	truck.Parent = job.lawn.folder
-	-- Supplies you brought can be used on your tools at the tailgate (see MaintenanceService).
-	local tailgate = Instance.new("ProximityPrompt")
-	tailgate.ActionText = "Work on Tools"
-	tailgate.ObjectText = "Tailgate"
-	tailgate.HoldDuration = 0
-	tailgate.MaxActivationDistance = 12
-	tailgate.RequiresLineOfSight = false
-	tailgate:SetAttribute("OpensPanel", "Workbench")
-	tailgate.Parent = truck.PrimaryPart or truck:FindFirstChildWhichIsA("BasePart", true)
+	-- Tools are worked on at the tailgate, with the supplies you brought (see MaintenanceService):
+	-- a spot on the ground behind it and a vise on the tailgate. A supply you took goes back by
+	-- looking at the truck.
+	ServiceSpots.add(job.lawn.folder, ServiceSpots.forTruck(truck))
+	truck:SetAttribute("Interact", "Tailgate")
+	truck:SetAttribute("InteractText", "Put it back")
+	truck:SetAttribute("InteractName", "Tailgate")
 	job.lawn.folder.Name = "JobSite_" .. job.id
 	job.lawn.folder.Parent = sitesFolder
 
 	sendUpdate(job)
+	task.wait(GameConfig.PullOutTime)
+	if not (activeJobs[job] and job.state == "Traveling") then
+		-- Everyone already got back out (see sendHome).
+		return
+	end
+	job.tripStarted = true
 	travel(job.members, {
 		direction = "ToJob",
 		title = job.offer.name,
@@ -422,6 +472,7 @@ local function completeJob(job)
 	local truckBonus = 1 + (if truck then truck.payoutBonus else 0)
 	local business = job.businessId and Items.get("Business", job.businessId)
 	local businessBonus = 1 + (if business then business.payoutBonus else 0)
+	local curbBonus = HomeLawn.payBonus(job.curbAppeal or 0)
 	-- Averages over all the work done, so the tool used most counts most.
 	local toolFit = if job.work > 0 then job.fitWork / job.work else 1
 	local quality = if job.work > 0 then job.qualityWork / job.work else 0.75
@@ -433,7 +484,7 @@ local function completeJob(job)
 		elapsed = elapsed,
 		parTime = job.offer.parTime,
 		weights = weights,
-		bonus = crewBonus * truckBonus * businessBonus,
+		bonus = crewBonus * truckBonus * businessBonus * curbBonus,
 		penalty = job.penalty,
 	})
 	local share = math.floor(total / #members)
@@ -449,6 +500,8 @@ local function completeJob(job)
 		crewBonus = crewBonus,
 		truckBonus = truckBonus,
 		businessBonus = businessBonus,
+		curbAppeal = job.curbAppeal or 0,
+		curbBonus = curbBonus,
 		penalty = job.penalty,
 		total = total,
 		share = share,
@@ -491,12 +544,14 @@ end
 --   moving          they're walking
 --   seconds         how long this bit of work took
 --   qualityScale    how the tool's condition changes its finish (a dull blade tears instead of cutting)
+--   ragged          the cut is torn enough to see in the grass
 export type WorkOptions = {
 	damagesHazards: boolean?,
 	quiet: boolean?,
 	moving: boolean?,
 	seconds: number?,
 	qualityScale: number?,
+	ragged: boolean?,
 }
 
 -- Called by ToolService every tick a player is using a tool.
@@ -530,6 +585,7 @@ function JobService:ApplyWork(
 		holder = player,
 		moving = options.moving,
 		seconds = options.seconds,
+		ragged = options.ragged,
 	})
 	if result.message then
 		notify(player, result.message)
@@ -568,8 +624,11 @@ function JobService:AcceptJob(player: Player, offerId: string): (boolean, string
 	if not party or party.leader ~= player then
 		return false, "Only your crew leader can accept jobs."
 	end
+	if not WorldService:IsAtComputer(player) then
+		return false, "Take jobs at the computer in your shop."
+	end
 	if readyJobs[party] then
-		return false, "You already have a job. Hop in the truck!"
+		return false, "You already have a job. Get in at the truck's driver door!"
 	end
 	for _, member in party.members do
 		if playerJobs[member] or traveling[member] then
@@ -616,7 +675,7 @@ function JobService:AcceptJob(player: Player, offerId: string): (boolean, string
 	}
 	readyJobs[party] = job
 	sendUpdate(job)
-	return true, "Job accepted! Load the tools you think you'll need, then hop in the truck."
+	return true, "Job accepted! Load the tools you think you'll need, then get in at the truck's driver door."
 end
 
 function JobService:Abandon(player: Player)
@@ -678,24 +737,31 @@ end
 function JobService:Start()
 	refreshBoard()
 
-	ProximityPromptService.PromptTriggered:Connect(function(prompt, player)
-		if prompt:GetAttribute("Action") ~= "DriveToJob" then
-			return
-		end
-		local party = PartyService:GetParty(player)
-		local job = party and readyJobs[party]
-		if party and prompt:GetAttribute("OwnerUserId") ~= party.leader.UserId then
-			notify(player, "That's not your crew's truck.")
-		elseif not job then
-			if not playerJobs[player] then
-				notify(player, "Pick a job from the Job Board first.")
-			end
-		elseif party.leader ~= player then
-			notify(player, `Waiting for {party.leader.DisplayName} to start the truck.`)
-		else
-			startDriving(job)
-		end
+	-- Looking at the crew truck and pressing E (see InteractController) heads out.
+	local lastDrive = {}
+	Players.PlayerRemoving:Connect(function(player)
+		lastDrive[player] = nil
 	end)
+	Net.func("DriveToJob").OnServerInvoke = function(player)
+		if os.clock() - (lastDrive[player] or 0) < 1 then
+			return false, nil
+		end
+		lastDrive[player] = os.clock()
+		local party = PartyService:GetParty(player)
+		local leader = if party then party.leader else player
+		local job = party and readyJobs[party]
+		local truck = WorldService:GetPlotTruck(leader)
+		if not (truck and WorldService:IsNear(player, truck, TRUCK_REACH)) then
+			return false, "Get closer to your crew's truck."
+		elseif not job then
+			return false, if playerJobs[player] then nil else "Pick a job at the computer first."
+		elseif leader ~= player then
+			return false, `Waiting for {leader.DisplayName} to start the truck.`
+		end
+		-- The pull-out takes a few seconds; don't keep the client waiting.
+		task.spawn(startDriving, job)
+		return true, nil
+	end
 
 	PartyService.Changed:Connect(function(party)
 		local ready = readyJobs[party]
@@ -745,6 +811,10 @@ function JobService:Start()
 			local job = playerJobs[player]
 			if traveling[player] then
 				return
+			elseif job and not job.tripStarted then
+				-- Respawned in the truck as it pulls out: still in their seat.
+				task.wait()
+				setFrozen(player, true)
 			elseif job and job.lawn then
 				-- Respawned mid-job: put them back at the house.
 				task.wait()

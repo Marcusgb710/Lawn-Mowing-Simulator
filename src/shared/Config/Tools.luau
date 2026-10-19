@@ -326,6 +326,7 @@ Tools.List = {
 		tier = "Pro",
 		verbs = { "Blow" },
 		sizeClass = "HangingPower",
+		onBack = true, -- worn on your back; the hand holds the wand
 		use = "Hold",
 		price = 7000,
 		power = 5,
@@ -909,6 +910,7 @@ Tools.List = {
 		tier = "Serious",
 		verbs = { "Spray" },
 		sizeClass = "HangingPower",
+		onBack = true, -- worn on your back; the hand holds the wand
 		use = "Hold",
 		price = 140,
 		power = 2,
@@ -1343,6 +1345,12 @@ end
 
 function Tools.get(id: string)
 	return byId[id]
+end
+
+-- Whether a tool is used in your hands (a Tool in the hotbar). Supplies, gloves and the towed
+-- attachment are only ever carried.
+function Tools.isHeld(tool): boolean
+	return not (tool.use == "Supply" or tool.use == "Worn" or tool.use == "Towed")
 end
 
 function Tools.hasVerb(tool, verb: string): boolean

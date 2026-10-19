@@ -6,6 +6,8 @@ local GameConfig = {
 
 	-- How long the truck "drive" cutscene lasts, in seconds.
 	TravelTime = 6,
+	-- Before it, the crew gets in and the truck pulls out of the driveway, for this many seconds.
+	PullOutTime = 3.5,
 	-- How long the crew stays at the house after finishing before driving back.
 	ReturnDelay = 5,
 
@@ -39,10 +41,52 @@ local GameConfig = {
 
 	-- Selling a tool back to the hardware store returns this fraction of its price.
 	SellRefund = 0.5,
+	-- Seconds until something you order on the shop computer is delivered to the shop (at once if
+	-- you're away on a job when you order).
+	DeliveryTime = 15,
+
+	-- Your business's own front lawn (see HomeLawnService).
+	HomeLawn = {
+		-- Minutes of play for a tidy lawn to grow all the way back (grass, edges, weeds, leaves).
+		-- It only grows while you're in the game.
+		RegrowMinutes = 40,
+		-- What a neighbor tips you for tidying it up after it got untidy, and how often at most.
+		-- It only counts once the lawn has grown back to below this share done since the last tip,
+		-- so cutting back one stray weed isn't worth a tip.
+		TidyTip = 25,
+		TidyTipCooldownMinutes = 30,
+		TipAfterBelowShare = 0.75,
+	},
+	-- Curb appeal, 0-100: how good your business looks from the street (see HomeLawn.luau).
+	CurbAppeal = {
+		-- Points for a perfectly kept lawn, and for decorations.
+		LawnPoints = 60,
+		DecorPoints = 40,
+		-- Job pay bonus at 100 curb appeal (less below it), for every job your crew does.
+		MaxPayBonus = 0.15,
+		-- Decorations: each extra one of the same kind is worth this much of the one before, an
+		-- overgrown shrub this share of a trimmed one, and a yard with this many appeal points gets
+		-- half the decoration points (more points level off toward all of them).
+		DecorRepeat = 0.6,
+		OvergrownShare = 0.5,
+		DecorHalfPoints = 30,
+	},
+	-- Shrubs you've placed (see DecorService) are overgrown again this many minutes of play after
+	-- you trim them.
+	ShrubRegrowMinutes = 30,
 
 	-- How often tools do work, in seconds.
 	WorkTickRate = 0.1,
 	DefaultWalkSpeed = 16,
+
+	-- First person (see CameraController and ArmsController).
+	Camera = {
+		FieldOfView = 75,
+		-- Camera motion, both on by default. Players can switch it off with the "Motion" button
+		-- (or V); set these to false to switch it off for everyone.
+		HeadBob = true, -- a gentle bob while walking
+		EngineShake = true, -- a slight shake while a gas engine you're using runs
+	},
 
 	DataStoreName = "PlayerData_v1",
 	AutosaveInterval = 120,

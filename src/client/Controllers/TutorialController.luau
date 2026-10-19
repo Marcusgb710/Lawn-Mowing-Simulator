@@ -11,11 +11,12 @@ local banner: TextLabel
 -- What to tell a player who hasn't finished a job yet, given where they are.
 local function step(job): string
 	if not job then
-		return "Welcome to your lawn care business! Tap Jobs and take the first job on the board. "
-			.. "Your reel mower is already in the truck."
+		return "Welcome to your lawn care business! Look at the computer in your shop and press E (or "
+			.. "tap the button), then take the first job in Jobs. Your reel mower is already in the truck."
 	elseif job.state == "Ready" then
-		return "Read what the customer wants. Not sure what a tool is for? Tap Guide. Carry what you "
-			.. "need from storage to the truck, then walk up to the truck and drive."
+		return "Read what the customer wants. Not sure what a tool is for? Tap Guide. Look at a tool in "
+			.. "storage and press E (or tap the button) to take it, put it in the truck bed, then look "
+			.. "at the truck's driver door and get in."
 	elseif job.state == "Traveling" then
 		return "On the way to the customer's house..."
 	elseif job.state == "Working" then

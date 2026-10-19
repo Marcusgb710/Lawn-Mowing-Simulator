@@ -2,9 +2,16 @@
 -- When you design real UI in Studio, the controllers are the only things that need to change.
 
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 
+local Signal = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Signal"))
+
 local UI = {}
+
+-- Fired when a menu opens or closes. In first person the mouse is locked to the middle of the
+-- screen, so CameraController frees it while a menu is open (see UI.needsCursor).
+UI.CursorChanged = Signal.new()
 
 UI.Colors = {
 	Background = Color3.fromRGB(30, 40, 30),
@@ -22,6 +29,10 @@ local FONT = Enum.Font.FredokaOne
 
 local screen: ScreenGui = nil
 local panels = {}
+-- While set, menus open inside this frame (the shop computer's screen) instead of on their own.
+local host: Frame? = nil
+local PANEL_SIZE = UDim2.fromScale(0.9, 0.75)
+local PANEL_MAX = Vector2.new(720, 520)
 
 -- UI.new("Frame", { Size = ... }, { children })
 function UI.new(className: string, props, children: { Instance }?): any
@@ -113,13 +124,13 @@ function UI.panel(name: string, title: string)
 		Name = name,
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.fromScale(0.5, 0.5),
-		Size = UDim2.new(0.9, 0, 0.75, 0),
+		Size = PANEL_SIZE,
 		BackgroundColor3 = UI.Colors.Background,
 		Visible = false,
-		Parent = UI.getScreen(),
+		Parent = host or UI.getScreen(),
 	}, {
 		UI.corner(12),
-		UI.new("UISizeConstraint", { MaxSize = Vector2.new(720, 520) }),
+		UI.new("UISizeConstraint", { MaxSize = PANEL_MAX }),
 		UI.label(title, {
 			Name = "Title",
 			Position = UDim2.fromOffset(16, 10),
@@ -131,6 +142,7 @@ function UI.panel(name: string, title: string)
 	UI.button("X", function()
 		UI.close(name)
 	end, {
+		Name = "Close",
 		AnchorPoint = Vector2.new(1, 0),
 		Position = UDim2.new(1, -10, 0, 10),
 		Size = UDim2.fromOffset(36, 36),
@@ -147,6 +159,9 @@ function UI.panel(name: string, title: string)
 	})
 
 	panels[name] = window
+	window:GetPropertyChangedSignal("Visible"):Connect(function()
+		UI.CursorChanged:Fire()
+	end)
 	return window, content
 end
 
@@ -174,6 +189,44 @@ function UI.clearList(list: Instance)
 	end
 end
 
+-- Puts a menu inside the host frame (filling it, with a slimmer title so a phone's small screen
+-- has room for the list), or back on the screen on its own.
+local function dock(panel: Frame)
+	local docked = host ~= nil
+	local constraint = panel:FindFirstChildOfClass("UISizeConstraint")
+	panel.Parent = host or UI.getScreen()
+	panel.Size = if docked then UDim2.fromScale(1, 1) else PANEL_SIZE
+	if constraint then
+		constraint.MaxSize = if docked then Vector2.new(math.huge, math.huge) else PANEL_MAX
+	end
+	local edge, top = if docked then 10 else 16, if docked then 40 else 52
+	local title = panel:FindFirstChild("Title")
+	if title and title:IsA("TextLabel") then
+		title.Position = UDim2.fromOffset(edge, if docked then 6 else 10)
+		title.Size = UDim2.new(1, -80, 0, if docked then 28 else 32)
+		title.TextSize = if docked then 22 else 28
+	end
+	local close = panel:FindFirstChild("Close")
+	if close and close:IsA("GuiObject") then
+		close.Position = if docked then UDim2.new(1, -6, 0, 4) else UDim2.new(1, -10, 0, 10)
+		close.Size = if docked then UDim2.fromOffset(32, 32) else UDim2.fromOffset(36, 36)
+	end
+	local content = panel:FindFirstChild("Content")
+	if content and content:IsA("GuiObject") then
+		content.Position = UDim2.fromOffset(edge, top)
+		content.Size = UDim2.new(1, -edge * 2, 1, -(top + edge))
+	end
+end
+
+-- Shows menus inside `frame` (the shop computer's screen) until it's set back to nil.
+function UI.setHost(frame: Frame?)
+	host = frame
+	for _, panel in panels do
+		dock(panel)
+	end
+	UI.CursorChanged:Fire()
+end
+
 -- Only one panel is open at a time.
 function UI.open(name: string)
 	for otherName, panel in panels do
@@ -199,18 +252,50 @@ function UI.isOpen(name: string): boolean
 	return panels[name] ~= nil and panels[name].Visible
 end
 
--- Little message that pops up at the top of the screen.
+function UI.anyOpen(): boolean
+	for _, panel in panels do
+		if panel.Visible then
+			return true
+		end
+	end
+	return false
+end
+
+function UI.closeAll()
+	for _, panel in panels do
+		panel.Visible = false
+	end
+end
+
+-- A menu's window, to change its title.
+function UI.panelWindow(name: string): Frame?
+	return panels[name]
+end
+
+-- Whether a menu (or the shop computer) is open, which needs the mouse to click on.
+function UI.needsCursor(): boolean
+	return host ~= nil or UI.anyOpen()
+end
+
+-- Little message that pops up at the top of the screen. Toasts have a screen of their own, above
+-- the shop computer's monitor (so its replies show) but under the drive cutscene.
 local toastHolder: Frame = nil
 function UI.notify(message: string)
 	if not toastHolder then
+		local toasts = UI.new("ScreenGui", {
+			Name = "Toasts",
+			ResetOnSpawn = false,
+			DisplayOrder = 5,
+			Parent = Players.LocalPlayer:WaitForChild("PlayerGui"),
+		})
 		toastHolder = UI.new("Frame", {
 			Name = "Toasts",
 			AnchorPoint = Vector2.new(0.5, 0),
 			Position = UDim2.new(0.5, 0, 0, 60),
-			Size = UDim2.fromOffset(420, 200),
+			Size = UDim2.new(1, -32, 0, 200),
 			BackgroundTransparency = 1,
-			Parent = UI.getScreen(),
-		}, { UI.list(6) })
+			Parent = toasts,
+		}, { UI.list(6), UI.new("UISizeConstraint", { MaxSize = Vector2.new(420, 200) }) })
 	end
 
 	local toast = UI.label(message, {

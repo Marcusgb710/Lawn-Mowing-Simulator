@@ -45,7 +45,7 @@ local function truckLoad(party): (number, number, number, number)
 	for _, member in party.members do
 		local data = DataService:Get(member)
 		if data then
-			local space, bays = Storage.load(Storage.loadedIds(data.loadout))
+			local space, bays = Storage.load(Storage.loadedIds(data.loadout), data.bucket)
 			used += space
 			baysUsed += bays
 		end
@@ -155,6 +155,10 @@ function PartyService:Invite(from: Player, target: Player): (boolean, string)
 	end
 
 	invites[target] = invites[target] or {}
+	local pending = invites[target][from]
+	if pending and os.clock() < pending then
+		return false, `You already invited {target.DisplayName}.`
+	end
 	invites[target][from] = os.clock() + INVITE_TIMEOUT
 	Net.event("PartyInvite"):FireClient(target, from, INVITE_TIMEOUT)
 	return true, `Invite sent to {target.DisplayName}.`

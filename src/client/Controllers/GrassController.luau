@@ -1,9 +1,10 @@
--- Draws the grass on job sites.
+-- Draws the grass on job sites, and on every business's own lawn (see HomeLawnService).
 --
 -- The server only says which tiles are mowed (the "State" attribute on each job site's Grass
 -- folder, see LawnGrid). This turns that into one kit grass clump per tile: tall clumps until a
 -- tile is mowed, then short clumps on a striped turf plate. Tiles far from the camera use the
 -- kit's cheaper _LOD clumps, and lawns out of sight aren't drawn at all, to keep phones happy.
+-- Grass cut with a dull blade is ragged: short, but duller, with torn tufts sticking up.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -25,6 +26,10 @@ local CLUMPS = {
 	Short = { near = { "Grass_Short_A", "Grass_Short_B" }, far = "Grass_Short_LOD" },
 }
 local STRIPES = { Color3.fromRGB(120, 200, 75), Color3.fromRGB(100, 178, 62) }
+local RAGGED_STRIPE = Color3.fromRGB(150, 170, 80)
+-- Torn tufts on a ragged tile: how many, and how tall next to a tall clump.
+local RAGGED_TUFTS = 1
+local TUFT_SCALE = 0.45
 local BLOCK_TALL_COLOR = Color3.fromRGB(70, 125, 45)
 
 local GrassController = {}
@@ -64,6 +69,11 @@ local function buildTile(lawn, index: number, kind: string, far: boolean): { Bas
 	local stripe = STRIPES[column % 2 + 1]
 	local parts = {}
 
+	local ragged = kind == "Ragged"
+	if ragged then
+		kind = "Short"
+		stripe = RAGGED_STRIPE
+	end
 	local clumps = CLUMPS[kind]
 	local name = if far then clumps.far else clumps.near[if noise(index, 2) < 0.5 then 1 else 2]
 	local source = template(name)
@@ -93,6 +103,26 @@ local function buildTile(lawn, index: number, kind: string, far: boolean): { Bas
 		table.insert(parts, block)
 	end
 
+	-- Torn tufts the dull blade missed (not drawn far away).
+	if ragged and not far then
+		local tuft = template(CLUMPS.Tall.near[1])
+		for tuftIndex = 1, RAGGED_TUFTS do
+			local offset = Vector3.new(noise(index, 10 + tuftIndex) - 0.5, 0, noise(index, 20 + tuftIndex) - 0.5)
+				* tileSize
+				* 0.8
+			local at = CFrame.new(ground.Position + offset) * CFrame.Angles(0, noise(index, 30 + tuftIndex) * 6, 0)
+			local part = if tuft then tuft:Clone() else Instance.new("Part")
+			if tuft then
+				Assets.standOn(part, at, Vector3.new(tileSize * 0.3, tuft.Size.Y * TUFT_SCALE, tileSize * 0.3))
+			else
+				part.Material = Enum.Material.Grass
+				part.Color = BLOCK_TALL_COLOR
+				Assets.standOn(part, at, Vector3.new(0.5, GameConfig.TallGrassHeight * TUFT_SCALE, 0.5))
+			end
+			table.insert(parts, part)
+		end
+	end
+
 	for _, part in parts do
 		ghost(part)
 		part.Parent = lawn.container
@@ -113,7 +143,11 @@ end
 -- Makes one tile match the lawn's state and the camera's distance.
 local function updateTile(lawn, index: number, cameraPosition: Vector3)
 	local state = string.sub(lawn.state, index, index)
-	local kind = if state == LawnGrid.TALL then "Tall" elseif state == LawnGrid.MOWED then "Short" else nil
+	local kind = if state == LawnGrid.TALL
+		then "Tall"
+		elseif state == LawnGrid.MOWED then "Short"
+		elseif state == LawnGrid.RAGGED then "Ragged"
+		else nil
 	local tile = lawn.tiles[index]
 	if not kind then
 		clearTile(lawn, index)
@@ -223,13 +257,16 @@ local function track(folder: Instance)
 end
 
 function GrassController:Start()
+	for _, name in { "JobSites", "HomeLawns" } do
+		task.spawn(function()
+			local lawnFolder = workspace:WaitForChild(name)
+			lawnFolder.DescendantAdded:Connect(track)
+			for _, descendant in lawnFolder:GetDescendants() do
+				track(descendant)
+			end
+		end)
+	end
 	task.spawn(function()
-		local sites = workspace:WaitForChild("JobSites")
-		sites.DescendantAdded:Connect(track)
-		for _, descendant in sites:GetDescendants() do
-			track(descendant)
-		end
-
 		while true do
 			task.wait(UPDATE_INTERVAL)
 			update()

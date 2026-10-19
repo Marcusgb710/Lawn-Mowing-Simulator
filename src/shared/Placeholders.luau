@@ -1,6 +1,7 @@
 -- Block-model stand-ins used until the real models exist in ReplicatedStorage.Assets.
 -- Nothing else in the game depends on what these look like, so feel free to delete them later.
 
+local Decorations = require(script.Parent.Config.Decorations)
 local Items = require(script.Parent.Config.Items)
 local Tools = require(script.Parent.Config.Tools)
 
@@ -192,6 +193,27 @@ function Placeholders.truck(itemId: string): Model
 		Color = Color3.fromRGB(150, 200, 230),
 		Transparency = 0.3,
 	})
+	-- The driver's door on the left, hinged at its front edge like the real models
+	-- (alphainstructions/instructions25.md), and where the driver's eyes are.
+	local door = add({
+		Name = itemId .. "__DriverDoor",
+		Size = Vector3.new(0.15, 2.6, 3),
+		Position = Vector3.new(-3.6, 3.6, -2.5),
+		Color = item.color:Lerp(Color3.new(1, 1, 1), 0.1),
+	})
+	door.PivotOffset = CFrame.new(0, 0, -1.5)
+	local glass = add({
+		Name = itemId .. "__DriverDoorGlass",
+		Size = Vector3.new(0.1, 1.4, 2.6),
+		Position = Vector3.new(-3.6, 5.6, -2.5),
+		Color = Color3.fromRGB(150, 200, 230),
+		Transparency = 0.4,
+	})
+	glass.PivotOffset = CFrame.new(0, 0, -1.3)
+	local seat = Instance.new("Attachment")
+	seat.Name = "DriverSeat"
+	seat.Parent = base
+	seat.WorldCFrame = CFrame.new(-1.6, 5.2, -2.2)
 
 	if itemId == "LandscapingTruck" then
 		add({ Name = "Box", Size = Vector3.new(7.4, 6, 8), Position = Vector3.new(0, 5.1, 4), Color = item.color })
@@ -199,7 +221,14 @@ function Placeholders.truck(itemId: string): Model
 		local bedColor = item.color:Lerp(Color3.new(0, 0, 0), 0.2)
 		add({ Name = "BedLeft", Size = Vector3.new(0.4, 2, 8), Position = Vector3.new(-3.3, 3.1, 4), Color = bedColor })
 		add({ Name = "BedRight", Size = Vector3.new(0.4, 2, 8), Position = Vector3.new(3.3, 3.1, 4), Color = bedColor })
-		add({ Name = "Tailgate", Size = Vector3.new(7, 2, 0.4), Position = Vector3.new(0, 3.1, 7.8), Color = bedColor })
+		local tailgate = add({
+			Name = itemId .. "__Tailgate",
+			Size = Vector3.new(7, 2, 0.4),
+			Position = Vector3.new(0, 3.1, 7.8),
+			Color = bedColor,
+		})
+		-- Hinged at its bottom edge.
+		tailgate.PivotOffset = CFrame.new(0, -1, 0)
 	end
 
 	bedArea(model, Vector3.new(6, 0.2, 7.6), Vector3.new(0, 2.2, 4), item.space)
@@ -446,6 +475,142 @@ local function fixture(model: Model, color: Color3, size: Vector3, slots: { Vect
 	end
 end
 
+-- An attachment on the model's Root, at a spot in model space (the model is built at the origin).
+local function marker(model: Model, name: string, frame: CFrame)
+	local root = model.PrimaryPart :: BasePart
+	local attachment = Instance.new("Attachment")
+	attachment.Name = name
+	attachment.Parent = root
+	attachment.WorldCFrame = frame
+	return attachment
+end
+
+local function rootPart(model: Model, add)
+	model.PrimaryPart = add({
+		Name = "Root",
+		Size = Vector3.new(1, 1, 1),
+		Position = Vector3.new(0, 0.5, 0),
+		Transparency = 1,
+		CanCollide = false,
+		CanTouch = false,
+		CanQuery = false,
+	})
+end
+
+-- A job computer desk like the real ones (alphainstructions/instructions33.md): front toward -Z
+-- where the player sits, a flat 16:9 `<Id>__Screen` facing -Z, a `<Id>__Chair`, a UseSpot on
+-- the floor in front (facing the desk) and a ScreenView where the camera goes.
+local function desk(model: Model, id: string, size: Vector3, color: Color3, screens: number)
+	local add = propAdder(model)
+	rootPart(model, add)
+	local top = 2.5
+	add({
+		Name = id .. "__Body",
+		Size = Vector3.new(size.X, 0.25, size.Z),
+		Position = Vector3.new(0, top, 0),
+		Color = color,
+	})
+	for _, x in { -1, 1 } do
+		for _, z in { -1, 1 } do
+			add({
+				Name = id .. "__Body",
+				Size = Vector3.new(0.2, top, 0.2),
+				Position = Vector3.new(x * (size.X / 2 - 0.2), top / 2, z * (size.Z / 2 - 0.2)),
+				Color = Color3.fromRGB(80, 80, 85),
+			})
+		end
+	end
+	local screenWidth, screenHeight = 1.9, 1.9 * 9 / 16
+	local screenZ = size.Z / 2 - 0.6
+	local screenY = top + 0.35 + screenHeight / 2
+	for index = 1, screens do
+		local x = if screens == 1 then 0 else (index - 1.5) * (screenWidth + 0.3)
+		add({
+			Name = id .. "__Body",
+			Size = Vector3.new(screenWidth + 0.15, screenHeight + 0.15, 0.12),
+			Position = Vector3.new(x, screenY, screenZ + 0.07),
+			Color = Color3.fromRGB(35, 35, 40),
+		})
+		add({
+			Name = id .. "__Screen" .. (if index == 1 then "" else tostring(index)),
+			Size = Vector3.new(screenWidth, screenHeight, 0.02),
+			Position = Vector3.new(x, screenY, screenZ - 0.01),
+			Color = Color3.fromRGB(60, 62, 70),
+			Material = Enum.Material.SmoothPlastic,
+		})
+	end
+	add({
+		Name = id .. "__Chair",
+		Size = Vector3.new(1.4, 1.6, 1.4),
+		Position = Vector3.new(0, 0.8, -size.Z / 2 - 1),
+		Color = Color3.fromRGB(50, 55, 65),
+		CanCollide = false,
+	})
+	local mainX = if screens == 1 then 0 else -(screenWidth + 0.3) / 2
+	local screenCenter = Vector3.new(mainX, screenY, screenZ)
+	marker(model, "UseSpot", CFrame.lookAt(Vector3.new(mainX, 0, -size.Z / 2 - 2.2), Vector3.new(mainX, 0, screenZ)))
+	marker(model, "ScreenView", CFrame.lookAt(screenCenter + Vector3.new(0, 0.1, -2.5), screenCenter))
+end
+
+-- A delivery box: a body open at the top, its lid or flaps as their own parts with their pivot on
+-- their hinge, and a Contents attachment on the inside floor.
+local function box(model: Model, id: string, size: Vector3, lids: { any }, openFront: boolean?)
+	local add = propAdder(model)
+	rootPart(model, add)
+	local color = Color3.fromRGB(175, 135, 90)
+	local wall = 0.05
+	local sides = {
+		{ Vector3.new(size.X, size.Y, wall), Vector3.new(0, size.Y / 2, -size.Z / 2 + wall / 2) },
+		{ Vector3.new(size.X, size.Y, wall), Vector3.new(0, size.Y / 2, size.Z / 2 - wall / 2) },
+		{ Vector3.new(wall, size.Y, size.Z), Vector3.new(-size.X / 2 + wall / 2, size.Y / 2, 0) },
+		{ Vector3.new(wall, size.Y, size.Z), Vector3.new(size.X / 2 - wall / 2, size.Y / 2, 0) },
+		{ Vector3.new(size.X, wall, size.Z), Vector3.new(0, wall / 2, 0) },
+	}
+	-- A crate's front is its own panel instead.
+	for index, side in sides do
+		if not (openFront and index == 1) then
+			add({ Name = id .. "__Body", Size = side[1], Position = side[2], Color = color })
+		end
+	end
+	for _, lid in lids do
+		local piece = add({
+			Name = id .. "__" .. lid.name,
+			Size = lid.size,
+			Position = lid.position,
+			Color = Color3.fromRGB(190, 150, 100),
+		})
+		-- The pivot sits on the hinge line, as on the real models.
+		piece.PivotOffset = CFrame.new(lid.hinge - lid.position)
+	end
+	marker(model, "Contents", CFrame.new(0, wall, 0))
+end
+
+local function boxFlaps(size: Vector3, names: { string }): { any }
+	local flaps = {}
+	local top = size.Y
+	for _, name in names do
+		if name == "FlapL" or name == "FlapR" then
+			-- Hinged on the long top edges (front and back).
+			local sign = if name == "FlapL" then -1 else 1
+			table.insert(flaps, {
+				name = name,
+				size = Vector3.new(size.X, 0.04, size.Z / 2),
+				position = Vector3.new(0, top, sign * size.Z / 4),
+				hinge = Vector3.new(0, top, sign * size.Z / 2),
+			})
+		elseif name == "FlapF" or name == "FlapB" then
+			local sign = if name == "FlapF" then -1 else 1
+			table.insert(flaps, {
+				name = name,
+				size = Vector3.new(size.X / 2, 0.03, size.Z),
+				position = Vector3.new(sign * size.X / 4, top + 0.04, 0),
+				hinge = Vector3.new(sign * size.X / 2, top + 0.04, 0),
+			})
+		end
+	end
+	return flaps
+end
+
 local PROP_BUILDERS = {
 	-- 3 x 2 hooks for hand tools.
 	StoragePegboard = function(model: Model)
@@ -524,6 +689,10 @@ local PROP_BUILDERS = {
 			Position = Vector3.new(-2.8, 3.6, -0.9),
 			Color = Color3.fromRGB(60, 70, 90),
 		})
+		-- Where a machine is set down to be worked on (on the floor in front), and where a hand
+		-- tool's grip goes in the vise (see MaintenanceService).
+		marker(model, "ServiceSpot", CFrame.new(0, 0, -3.4))
+		marker(model, "VisePoint", CFrame.new(-2.8, 4.1, -0.9))
 	end,
 
 	-- A floor-standing metal shelf: 3 boards with room for 2 supplies each.
@@ -649,6 +818,516 @@ local PROP_BUILDERS = {
 		end
 	end,
 }
+
+-- Job computer desks, one per business tier.
+PROP_BUILDERS.JobLaptopTable = function(model: Model)
+	desk(model, "JobLaptopTable", Vector3.new(4.5, 0, 2.6), Color3.fromRGB(230, 230, 225), 1)
+end
+PROP_BUILDERS.JobComputerDesk = function(model: Model)
+	desk(model, "JobComputerDesk", Vector3.new(5.5, 0, 3), Color3.fromRGB(150, 155, 160), 1)
+end
+PROP_BUILDERS.JobOfficeDesk = function(model: Model)
+	desk(model, "JobOfficeDesk", Vector3.new(6, 0, 3.4), Color3.fromRGB(160, 120, 80), 2)
+end
+
+-- Delivery boxes, by size.
+PROP_BUILDERS.DeliveryBoxSmall = function(model: Model)
+	local size = Vector3.new(1.8, 1.1, 1.3)
+	box(model, "DeliveryBoxSmall", size, boxFlaps(size, { "FlapL", "FlapR" }))
+end
+PROP_BUILDERS.DeliveryBoxLong = function(model: Model)
+	local size = Vector3.new(6.2, 0.8, 0.8)
+	box(model, "DeliveryBoxLong", size, {
+		{
+			name = "Lid",
+			size = Vector3.new(size.X, 0.05, size.Z),
+			position = Vector3.new(0, size.Y, 0),
+			hinge = Vector3.new(0, size.Y, size.Z / 2),
+		},
+	})
+end
+PROP_BUILDERS.DeliveryBoxLarge = function(model: Model)
+	local size = Vector3.new(3.4, 2.4, 2.4)
+	box(model, "DeliveryBoxLarge", size, boxFlaps(size, { "FlapL", "FlapR", "FlapF", "FlapB" }))
+end
+PROP_BUILDERS.DeliveryCrate = function(model: Model)
+	local size = Vector3.new(5.4, 4.4, 7.2)
+	box(model, "DeliveryCrate", size, {
+		{
+			name = "Lid",
+			size = Vector3.new(size.X, 0.15, size.Z),
+			position = Vector3.new(0, size.Y, 0),
+			hinge = Vector3.new(0, size.Y, size.Z / 2),
+		},
+		{
+			name = "FrontPanel",
+			size = Vector3.new(size.X - 0.1, size.Y - 0.1, 0.15),
+			position = Vector3.new(0, size.Y / 2, -size.Z / 2 - 0.08),
+			hinge = Vector3.new(0, 0.05, -size.Z / 2 - 0.08),
+		},
+	}, true)
+end
+
+-- Decorations -------------------------------------------------------------------------------
+-- Built like the real ones (alphainstructions/instructions34.md): origin on the ground at the
+-- centre, front toward -Z, a "Root" part, the main body `<Id>__Body`, and named markers.
+
+local function decorationAdder(model: Model, id: string, color: Color3)
+	local add = propAdder(model)
+	rootPart(model, add)
+	return function(props)
+		props.Name = id .. "__" .. (props.Name or "Body")
+		props.Color = props.Color or color
+		return add(props)
+	end
+end
+
+local WHITE = Color3.fromRGB(245, 245, 240)
+local LEAVES = Color3.fromRGB(70, 125, 60)
+local MULCH = Color3.fromRGB(105, 70, 45)
+local STONE = Color3.fromRGB(185, 180, 170)
+local METAL = Color3.fromRGB(35, 35, 40)
+local WATER = Color3.fromRGB(110, 170, 220)
+
+-- A ring of mulch at a plant's base.
+local function mulchRing(add, diameter: number)
+	add({
+		Name = "Body",
+		Shape = Enum.PartType.Cylinder,
+		Size = Vector3.new(0.12, diameter, diameter),
+		CFrame = CFrame.new(0, 0.06, 0) * CFrame.Angles(0, 0, math.pi / 2),
+		Color = MULCH,
+		Material = Enum.Material.Ground,
+	})
+end
+
+-- SnapL and SnapR on the ground at each end of a piece that runs along `axis`, pointing outward.
+local function snaps(model: Model, axis: Vector3, halfLength: number)
+	marker(model, "SnapL", CFrame.lookAt(-axis * halfLength, -axis * (halfLength + 1)))
+	marker(model, "SnapR", CFrame.lookAt(axis * halfLength, axis * (halfLength + 1)))
+end
+
+local DECORATION_BUILDERS = {
+	PicketFenceSection = function(model: Model, add)
+		for _, x in { -4.1, 4.1 } do
+			add({ Size = Vector3.new(0.4, 3.4, 0.4), Position = Vector3.new(x, 1.6, 0) })
+		end
+		for _, y in { 0.9, 2.3 } do
+			add({ Size = Vector3.new(7.8, 0.25, 0.1), Position = Vector3.new(0, y, 0.12) })
+		end
+		for index = 0, 12 do
+			add({ Size = Vector3.new(0.32, 2.9, 0.08), Position = Vector3.new(-3.6 + index * 0.6, 1.5, 0.02) })
+		end
+		snaps(model, Vector3.xAxis, 4.3)
+	end,
+	StoneEdgingSection = function(model: Model, add)
+		for index = 0, 3 do
+			local height = 0.45 + (index % 2) * 0.1
+			add({
+				Size = Vector3.new(1.02, height, 0.85),
+				Position = Vector3.new(-1.6 + index * 1.07, height / 2 - 0.05, 0),
+				Material = Enum.Material.Slate,
+			})
+		end
+		snaps(model, Vector3.xAxis, 2.15)
+	end,
+	PaverPathSection = function(model: Model, add)
+		add({ Size = Vector3.new(4.3, 0.15, 4.3), Position = Vector3.new(0, 0.075, 0), Material = Enum.Material.Brick })
+		for _, x in { -2.05, 2.05 } do
+			add({
+				Size = Vector3.new(0.2, 0.17, 4.3),
+				Position = Vector3.new(x, 0.085, 0),
+				Color = Color3.fromRGB(140, 125, 115),
+			})
+		end
+		snaps(model, Vector3.zAxis, 2.15)
+	end,
+	MulchBedSection = function(model: Model, add)
+		add({ Size = Vector3.new(8.4, 0.3, 4.1), Position = Vector3.new(0, 0.15, 0), Material = Enum.Material.Ground })
+		for _, side in
+			{ { 8.6, 0.06, 0, 2.12 }, { 8.6, 0.06, 0, -2.12 }, { 0.06, 4.3, 4.27, 0 }, { 0.06, 4.3, -4.27, 0 } }
+		do
+			add({
+				Size = Vector3.new(side[1], 0.4, side[2]),
+				Position = Vector3.new(side[3], 0.2, side[4]),
+				Color = METAL,
+			})
+		end
+		snaps(model, Vector3.xAxis, 4.3)
+	end,
+	BoxwoodShrub = function(_model: Model, add)
+		mulchRing(add, 2.9)
+		add({
+			Shape = Enum.PartType.Ball,
+			Size = Vector3.one * 2.5,
+			Position = Vector3.new(0, 1.35, 0),
+			Material = Enum.Material.LeafyGrass,
+			CanCollide = false,
+		})
+		add({
+			Name = "Overgrowth",
+			Shape = Enum.PartType.Ball,
+			Size = Vector3.one * 3.1,
+			Position = Vector3.new(0, 1.5, 0),
+			Color = Color3.fromRGB(85, 130, 55),
+			Material = Enum.Material.Grass,
+			CanCollide = false,
+		})
+	end,
+	HydrangeaBush = function(_model: Model, add)
+		mulchRing(add, 3.6)
+		add({
+			Shape = Enum.PartType.Ball,
+			Size = Vector3.new(3.4, 3, 3.4),
+			Position = Vector3.new(0, 1.6, 0),
+			Color = LEAVES,
+			Material = Enum.Material.LeafyGrass,
+			CanCollide = false,
+		})
+		for _, offset in { Vector3.new(-0.9, 2.7, -0.6), Vector3.new(0.8, 2.9, -0.4), Vector3.new(0.1, 2.6, 0.9) } do
+			add({
+				Shape = Enum.PartType.Ball,
+				Size = Vector3.one * 1.1,
+				Position = offset,
+				Material = Enum.Material.SmoothPlastic,
+				CanCollide = false,
+			})
+		end
+		add({
+			Name = "Overgrowth",
+			Shape = Enum.PartType.Ball,
+			Size = Vector3.new(4, 3.6, 4),
+			Position = Vector3.new(0, 1.8, 0),
+			Color = Color3.fromRGB(80, 125, 60),
+			Material = Enum.Material.Grass,
+			CanCollide = false,
+		})
+	end,
+	JapaneseMaple = function(_model: Model, add)
+		mulchRing(add, 3)
+		add({
+			Size = Vector3.new(0.6, 4.6, 0.6),
+			Position = Vector3.new(0, 2.3, 0),
+			Color = Color3.fromRGB(90, 65, 50),
+			Material = Enum.Material.Wood,
+		})
+		add({
+			Name = "Canopy",
+			Shape = Enum.PartType.Ball,
+			Size = Vector3.new(9, 4.4, 9),
+			Position = Vector3.new(0, 6.6, 0),
+			Material = Enum.Material.LeafyGrass,
+			CanCollide = false,
+		})
+	end,
+	TerracottaPlanter = function(_model: Model, add)
+		add({
+			Shape = Enum.PartType.Cylinder,
+			Size = Vector3.new(2.1, 2, 2),
+			CFrame = CFrame.new(0, 1.05, 0) * CFrame.Angles(0, 0, math.pi / 2),
+		})
+		add({
+			Name = "Plants",
+			Shape = Enum.PartType.Ball,
+			Size = Vector3.new(2, 1.2, 2),
+			Position = Vector3.new(0, 2.3, 0),
+			Color = Color3.fromRGB(200, 90, 150),
+			Material = Enum.Material.LeafyGrass,
+			CanCollide = false,
+		})
+	end,
+	RaisedGardenBed = function(_model: Model, add)
+		for _, side in { { 8.6, 0.3, 0, 2 }, { 8.6, 0.3, 0, -2 }, { 0.3, 3.7, 4.15, 0 }, { 0.3, 3.7, -4.15, 0 } } do
+			add({
+				Size = Vector3.new(side[1], 1.8, side[2]),
+				Position = Vector3.new(side[3], 0.9, side[4]),
+				Material = Enum.Material.Wood,
+			})
+		end
+		add({
+			Size = Vector3.new(8, 1.5, 3.7),
+			Position = Vector3.new(0, 0.75, 0),
+			Color = Color3.fromRGB(80, 60, 45),
+			Material = Enum.Material.Ground,
+		})
+		for _, x in { -2.8, 0, 2.8 } do
+			add({
+				Name = "Plants",
+				Shape = Enum.PartType.Ball,
+				Size = Vector3.new(1.6, 1.4, 1.6),
+				Position = Vector3.new(x, 2, 0),
+				Color = LEAVES,
+				Material = Enum.Material.LeafyGrass,
+				CanCollide = false,
+			})
+		end
+	end,
+	BirdBath = function(model: Model, add)
+		add({ Size = Vector3.new(1.4, 0.3, 1.4), Position = Vector3.new(0, 0.15, 0), Material = Enum.Material.Concrete })
+		add({
+			Shape = Enum.PartType.Cylinder,
+			Size = Vector3.new(1.9, 0.6, 0.6),
+			CFrame = CFrame.new(0, 1.25, 0) * CFrame.Angles(0, 0, math.pi / 2),
+			Material = Enum.Material.Concrete,
+		})
+		add({
+			Shape = Enum.PartType.Cylinder,
+			Size = Vector3.new(0.4, 2.2, 2.2),
+			CFrame = CFrame.new(0, 2.4, 0) * CFrame.Angles(0, 0, math.pi / 2),
+			Material = Enum.Material.Concrete,
+		})
+		add({
+			Name = "Water",
+			Shape = Enum.PartType.Cylinder,
+			Size = Vector3.new(0.05, 1.8, 1.8),
+			CFrame = CFrame.new(0, 2.6, 0) * CFrame.Angles(0, 0, math.pi / 2),
+			Color = WATER,
+			Transparency = 0.3,
+			CanCollide = false,
+		})
+		marker(model, "Water", CFrame.new(0, 2.62, 0))
+	end,
+	TieredFountain = function(model: Model, add)
+		add({
+			Shape = Enum.PartType.Cylinder,
+			Size = Vector3.new(1.1, 6, 6),
+			CFrame = CFrame.new(0, 0.55, 0) * CFrame.Angles(0, 0, math.pi / 2),
+			Material = Enum.Material.Concrete,
+		})
+		add({
+			Shape = Enum.PartType.Cylinder,
+			Size = Vector3.new(4.6, 0.7, 0.7),
+			CFrame = CFrame.new(0, 2.9, 0) * CFrame.Angles(0, 0, math.pi / 2),
+			Material = Enum.Material.Concrete,
+		})
+		-- Three bowls, top to bottom, each with its water.
+		local tiers = { { 1.4, 5 }, { 2.4, 3.8 }, { 5.6, 1.05 } }
+		for index, tier in tiers do
+			local diameter, height = tier[1], tier[2]
+			if index < 3 then
+				add({
+					Shape = Enum.PartType.Cylinder,
+					Size = Vector3.new(0.35, diameter, diameter),
+					CFrame = CFrame.new(0, height - 0.15, 0) * CFrame.Angles(0, 0, math.pi / 2),
+					Material = Enum.Material.Concrete,
+				})
+			end
+			add({
+				Name = "Water" .. index,
+				Shape = Enum.PartType.Cylinder,
+				Size = Vector3.new(0.05, diameter - 0.3, diameter - 0.3),
+				CFrame = CFrame.new(0, height + 0.03, 0) * CFrame.Angles(0, 0, math.pi / 2),
+				Color = WATER,
+				Transparency = 0.3,
+				CanCollide = false,
+			})
+			marker(model, "Water" .. index, CFrame.new(0, height + 0.05, 0))
+		end
+		marker(model, "Spout", CFrame.new(0, 5.35, 0))
+	end,
+	GardenArbor = function(_model: Model, add)
+		for _, x in { -2.1, 2.1 } do
+			add({ Size = Vector3.new(0.35, 7.6, 2.2), Position = Vector3.new(x, 3.8, 0), Material = Enum.Material.Wood })
+		end
+		add({ Size = Vector3.new(4.6, 0.5, 2.2), Position = Vector3.new(0, 7.95, 0), Material = Enum.Material.Wood })
+		add({
+			Name = "Plants",
+			Size = Vector3.new(4.8, 0.8, 1.6),
+			Position = Vector3.new(0, 7.4, 0),
+			Color = Color3.fromRGB(190, 60, 80),
+			Material = Enum.Material.LeafyGrass,
+			CanCollide = false,
+		})
+	end,
+	GardenBench = function(model: Model, add)
+		add({ Size = Vector3.new(5.4, 0.25, 1.7), Position = Vector3.new(0, 1.45, 0.05), Material = Enum.Material.Wood })
+		add({ Size = Vector3.new(5.4, 1.3, 0.2), Position = Vector3.new(0, 2.5, 0.85), Material = Enum.Material.Wood })
+		for _, x in { -2.5, 2.5 } do
+			for _, z in { -0.7, 0.8 } do
+				add({
+					Size = Vector3.new(0.25, 1.4, 0.25),
+					Position = Vector3.new(x, 0.7, z),
+					Material = Enum.Material.Wood,
+				})
+			end
+			add({ Size = Vector3.new(0.25, 0.2, 1.9), Position = Vector3.new(x, 2.1, 0), Material = Enum.Material.Wood })
+		end
+		marker(model, "Seat", CFrame.new(0, 1.6, 0))
+	end,
+	PatioSet = function(model: Model, add)
+		add({
+			Shape = Enum.PartType.Cylinder,
+			Size = Vector3.new(0.15, 3.2, 3.2),
+			CFrame = CFrame.new(0, 2.4, 0) * CFrame.Angles(0, 0, math.pi / 2),
+		})
+		add({ Size = Vector3.new(0.2, 7.4, 0.2), Position = Vector3.new(0, 3.7, 0) })
+		add({
+			Name = "Umbrella",
+			Shape = Enum.PartType.Cylinder,
+			Size = Vector3.new(0.4, 8.6, 8.6),
+			CFrame = CFrame.new(0, 7.6, 0) * CFrame.Angles(0, 0, math.pi / 2),
+			Color = Color3.fromRGB(200, 190, 160),
+			CanCollide = false,
+		})
+		for index, direction in { -Vector3.zAxis, Vector3.xAxis, Vector3.zAxis, -Vector3.xAxis } do
+			local center = direction * 3.3
+			local facing = CFrame.lookAt(center, Vector3.zero)
+			add({ Size = Vector3.new(1.6, 0.2, 1.6), CFrame = facing * CFrame.new(0, 1.5, 0) })
+			add({ Size = Vector3.new(1.6, 1.6, 0.15), CFrame = facing * CFrame.new(0, 2.3, 0.75) })
+			add({ Size = Vector3.new(1.2, 1.4, 1.2), CFrame = facing * CFrame.new(0, 0.7, 0), Transparency = 0.6 })
+			marker(model, "Seat" .. index, facing * CFrame.new(0, 1.65, 0))
+		end
+	end,
+	FirePit = function(model: Model, add)
+		add({
+			Shape = Enum.PartType.Cylinder,
+			Size = Vector3.new(1.2, 4, 4),
+			CFrame = CFrame.new(0, 0.6, 0) * CFrame.Angles(0, 0, math.pi / 2),
+			Material = Enum.Material.Slate,
+		})
+		add({
+			Shape = Enum.PartType.Cylinder,
+			Size = Vector3.new(0.1, 3, 3),
+			CFrame = CFrame.new(0, 1.22, 0) * CFrame.Angles(0, 0, math.pi / 2),
+			Color = Color3.fromRGB(25, 22, 20),
+		})
+		for _, turn in { 0, 2.1, 4.2 } do
+			add({
+				Size = Vector3.new(0.35, 0.35, 2),
+				CFrame = CFrame.new(0, 1.4, 0) * CFrame.Angles(0, turn, 0),
+				Color = Color3.fromRGB(60, 40, 30),
+			})
+		end
+		marker(model, "Fire", CFrame.new(0, 1.6, 0))
+	end,
+	Mailbox = function(_model: Model, add)
+		add({
+			Size = Vector3.new(0.4, 3.3, 0.4),
+			Position = Vector3.new(0, 1.65, 0.3),
+			Color = Color3.fromRGB(120, 90, 60),
+		})
+		add({ Size = Vector3.new(1, 1, 2), Position = Vector3.new(0, 3.5, 0) })
+		local door = add({
+			Name = "Door",
+			Size = Vector3.new(1, 1, 0.08),
+			Position = Vector3.new(0, 3.5, -1.04),
+			Color = Color3.fromRGB(80, 80, 85),
+		})
+		-- Hinged along its bottom edge.
+		door.PivotOffset = CFrame.new(0, -0.5, 0)
+		local flag = add({
+			Name = "Flag",
+			Size = Vector3.new(0.06, 0.25, 0.9),
+			Position = Vector3.new(0.55, 3.3, 0.2),
+			Color = Color3.fromRGB(200, 40, 40),
+		})
+		-- Bolted to the box at its back end.
+		flag.PivotOffset = CFrame.new(0, 0, 0.4)
+	end,
+	LampPost = function(model: Model, add)
+		add({ Size = Vector3.new(1.3, 0.6, 1.3), Position = Vector3.new(0, 0.3, 0) })
+		add({ Size = Vector3.new(0.35, 5.9, 0.35), Position = Vector3.new(0, 3.55, 0) })
+		add({
+			Name = "Glass",
+			Size = Vector3.new(1, 1.2, 1),
+			Position = Vector3.new(0, 7, 0),
+			Color = Color3.fromRGB(255, 230, 160),
+			Material = Enum.Material.Neon,
+			Transparency = 0.3,
+		})
+		add({ Size = Vector3.new(1.2, 0.2, 1.2), Position = Vector3.new(0, 7.7, 0) })
+		marker(model, "Light", CFrame.new(0, 7, 0))
+	end,
+	SolarPathLight = function(model: Model, add)
+		add({ Size = Vector3.new(0.12, 1, 0.12), Position = Vector3.new(0, 0.5, 0) })
+		add({
+			Name = "Glass",
+			Size = Vector3.new(0.35, 0.35, 0.35),
+			Position = Vector3.new(0, 1.12, 0),
+			Color = Color3.fromRGB(255, 240, 200),
+			Material = Enum.Material.Neon,
+			Transparency = 0.3,
+		})
+		add({ Size = Vector3.new(0.5, 0.12, 0.5), Position = Vector3.new(0, 1.35, 0) })
+		marker(model, "Light", CFrame.new(0, 1.12, 0))
+	end,
+	BirdFeeder = function(_model: Model, add)
+		add({ Size = Vector3.new(0.15, 7, 0.15), Position = Vector3.new(-0.6, 3.5, 0), Color = METAL })
+		add({ Size = Vector3.new(0.9, 0.12, 0.12), Position = Vector3.new(-0.15, 6.9, 0), Color = METAL })
+		add({ Size = Vector3.new(0.7, 0.8, 0.55), Position = Vector3.new(0.3, 5.9, 0), Material = Enum.Material.Wood })
+		add({
+			Size = Vector3.new(0.9, 0.12, 0.6),
+			Position = Vector3.new(0.3, 6.35, 0),
+			Color = Color3.fromRGB(110, 75, 50),
+		})
+	end,
+	Birdhouse = function(_model: Model, add)
+		add({
+			Size = Vector3.new(0.4, 4.7, 0.4),
+			Position = Vector3.new(0, 2.35, 0),
+			Color = Color3.fromRGB(120, 90, 60),
+		})
+		add({ Size = Vector3.new(1, 1.2, 1), Position = Vector3.new(0, 5.3, 0), Material = Enum.Material.Wood })
+		add({
+			ClassName = "WedgePart",
+			Size = Vector3.new(1.1, 0.5, 0.6),
+			CFrame = CFrame.new(0, 6.15, -0.28),
+			Color = Color3.fromRGB(110, 60, 45),
+		})
+		add({
+			ClassName = "WedgePart",
+			Size = Vector3.new(1.1, 0.5, 0.6),
+			CFrame = CFrame.new(0, 6.15, 0.28) * CFrame.Angles(0, math.pi, 0),
+			Color = Color3.fromRGB(110, 60, 45),
+		})
+	end,
+	PinkFlamingo = function(_model: Model, add)
+		for _, x in { -0.12, 0.12 } do
+			add({ Size = Vector3.new(0.05, 1.5, 0.05), Position = Vector3.new(x, 0.75, 0), Color = METAL })
+		end
+		add({
+			Shape = Enum.PartType.Ball,
+			Size = Vector3.new(0.8, 0.7, 1.4),
+			Position = Vector3.new(0, 1.8, 0.1),
+			Material = Enum.Material.SmoothPlastic,
+		})
+		add({ Size = Vector3.new(0.12, 0.9, 0.12), Position = Vector3.new(0, 2.4, -0.5) })
+		add({ Size = Vector3.new(0.25, 0.25, 0.45), Position = Vector3.new(0, 2.9, -0.65) })
+	end,
+	GardenWindmill = function(_model: Model, add)
+		add({ Size = Vector3.new(1.6, 4, 1.6), Position = Vector3.new(0, 2, 0.1), Material = Enum.Material.Wood })
+		add({
+			ClassName = "WedgePart",
+			Size = Vector3.new(1.8, 0.8, 1.8),
+			CFrame = CFrame.new(0, 4.4, 0.1),
+			Color = Color3.fromRGB(120, 60, 45),
+		})
+		-- Two sail bars sharing a hub: the game turns them about their own Z axis.
+		for _, turn in { 0, math.pi / 2 } do
+			add({
+				Name = "Spinner",
+				Size = Vector3.new(2.4, 0.35, 0.08),
+				CFrame = CFrame.new(0, 3.9, -0.85) * CFrame.Angles(0, 0, turn),
+				Color = WHITE,
+				CanCollide = false,
+			})
+		end
+	end,
+}
+
+-- A decoration's stand-in: its real model's conventions with blocks, balls and cylinders.
+-- GardenGnome and FlowerPatch use the yard props of the same name.
+function Placeholders.decoration(id: string): Model
+	local builder = DECORATION_BUILDERS[id]
+	if not builder then
+		return Placeholders.prop(id)
+	end
+	local model = Instance.new("Model")
+	model.Name = id
+	local decoration = Decorations.get(id)
+	builder(model, decorationAdder(model, id, if decoration then decoration.color else STONE))
+	return model
+end
 
 function Placeholders.prop(name: string): Model
 	local model = Instance.new("Model")

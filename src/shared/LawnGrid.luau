@@ -13,6 +13,8 @@ local LawnGrid = {}
 
 LawnGrid.TALL = "0"
 LawnGrid.MOWED = "1"
+-- Mowed with a dull blade: short, but torn and ragged.
+LawnGrid.RAGGED = "2"
 -- No grass here (a flower patch or gnome sits on this tile).
 LawnGrid.EMPTY = "-"
 

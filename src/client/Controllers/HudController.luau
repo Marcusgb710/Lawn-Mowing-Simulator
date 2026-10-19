@@ -1,9 +1,11 @@
--- Always-on screen stuff: money and level, menu buttons, the job tracker (tasks, timer, damage)
--- and the condition of the tool in your hands ("Running low on fuel").
+-- Always-on screen stuff: money, level and your business's curb appeal, menu buttons, the job tracker (tasks, timer, damage)
+-- and the condition of the tool in your hands ("Running low on fuel"). On a keyboard the menus
+-- also open with a key (shown on each button), and V switches camera motion on and off.
 
 local Players = game:GetService("Players")
 local ProximityPromptService = game:GetService("ProximityPromptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Format = require(Shared.Format)
@@ -14,14 +16,25 @@ local Tools = require(Shared.Config.Tools)
 
 local ClientState = require(script.Parent.Parent.ClientState)
 local UI = require(script.Parent.Parent.UI)
+local CameraController = require(script.Parent.CameraController)
 
 local player = Players.LocalPlayer
+
+-- The menu buttons down the left, and the key that opens each one. Jobs and orders are on the
+-- computer in your shop (see ComputerController).
+local MENUS = {
+	{ name = "Truck", key = Enum.KeyCode.T },
+	{ name = "Guide", key = Enum.KeyCode.G },
+	{ name = "Crew", key = Enum.KeyCode.C },
+}
+local MOTION_KEY = Enum.KeyCode.V
 
 local HudController = {}
 
 local moneyLabel: TextLabel
 local levelLabel: TextLabel
 local xpFill: Frame
+local curbLabel: TextLabel
 
 local tracker: Frame
 local trackerTitle: TextLabel
@@ -85,7 +98,7 @@ local function buildStats()
 	local frame = UI.new("Frame", {
 		Name = "Stats",
 		Position = UDim2.fromOffset(12, 12),
-		Size = UDim2.fromOffset(220, 84),
+		Size = UDim2.fromOffset(220, 104),
 		BackgroundColor3 = UI.Colors.Background,
 		BackgroundTransparency = 0.2,
 		Parent = UI.getScreen(),
@@ -115,6 +128,21 @@ local function buildStats()
 		BackgroundColor3 = UI.Colors.Accent,
 		Parent = xpBar,
 	}, { UI.corner(4) })
+	curbLabel = UI.label("", {
+		Position = UDim2.fromOffset(0, 68),
+		Size = UDim2.new(1, 0, 0, 16),
+		TextSize = 14,
+		TextColor3 = UI.Colors.SubText,
+		Parent = frame,
+	})
+end
+
+-- Your crew's business's curb appeal (see HomeLawnService), which pays a bonus on jobs.
+local function updateCurbAppeal()
+	local party = ClientState.party
+	local owner = if party then party.leader else player
+	local value = owner and owner:GetAttribute("CurbAppeal")
+	curbLabel.Text = if typeof(value) == "number" then `Curb appeal {value}/100` else ""
 end
 
 local function buildMenuButtons()
@@ -127,10 +155,55 @@ local function buildMenuButtons()
 		Parent = UI.getScreen(),
 	}, { UI.list(8) })
 
-	for index, name in { "Jobs", "Truck", "Shop", "Guide", "Crew" } do
-		UI.button(name, function()
-			UI.toggle(name)
+	local keyboard = UserInputService.KeyboardEnabled
+	for index, menu in MENUS do
+		local button = UI.button(menu.name, function()
+			UI.toggle(menu.name)
 		end, { LayoutOrder = index, Parent = frame })
+		if keyboard then
+			button.TextXAlignment = Enum.TextXAlignment.Left
+			UI.padding(10).Parent = button
+			local badge = UI.label(UserInputService:GetStringForKeyCode(menu.key), {
+				AnchorPoint = Vector2.new(1, 0.5),
+				Position = UDim2.fromScale(1, 0.5),
+				Size = UDim2.fromOffset(20, 20),
+				BackgroundTransparency = 0.6,
+				BackgroundColor3 = UI.Colors.Background,
+				TextXAlignment = Enum.TextXAlignment.Center,
+				TextSize = 14,
+				Parent = button,
+			})
+			UI.corner(5).Parent = badge
+		end
+	end
+	if keyboard then
+		-- The mouse is locked to the middle of the screen in first person.
+		UI.label("Hold Alt for the mouse", {
+			Size = UDim2.fromOffset(150, 16),
+			TextSize = 13,
+			TextColor3 = UI.Colors.SubText,
+			TextStrokeTransparency = 0.6,
+			LayoutOrder = #MENUS + 1,
+			Parent = frame,
+		})
+	end
+end
+
+local function onKey(input: InputObject, processed: boolean)
+	-- `processed` is set while typing in chat or a text box.
+	if processed then
+		return
+	end
+	for _, menu in MENUS do
+		if input.KeyCode == menu.key then
+			UI.toggle(menu.name)
+			return
+		end
+	end
+	if input.KeyCode == MOTION_KEY and CameraController.hasMotion() then
+		local on = not CameraController.isMotionOn()
+		CameraController.setMotion(on)
+		UI.notify(if on then "Camera motion on" else "Camera motion off")
 	end
 end
 
@@ -221,6 +294,9 @@ local function resultText(result): string
 	local bonus = result.crewBonus * result.truckBonus * result.businessBonus
 	if bonus > 1 then
 		table.insert(lines, `Crew/truck/business x{string.format("%.2f", bonus)}`)
+	end
+	if (result.curbBonus or 1) > 1 then
+		table.insert(lines, `Curb appeal {result.curbAppeal} +{Format.percent(result.curbBonus - 1)}`)
 	end
 	if result.penalty > 0 then
 		table.insert(lines, `Damage -{Format.money(result.penalty)}`)
@@ -349,8 +425,11 @@ function HudController:Start()
 			task.wait(0.25)
 			updateTimer()
 			updateCondition()
+			updateCurbAppeal()
 		end
 	end)
+
+	UserInputService.InputBegan:Connect(onKey)
 
 	ProximityPromptService.PromptTriggered:Connect(function(prompt)
 		local panel = prompt:GetAttribute("OpensPanel")

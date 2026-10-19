@@ -18,7 +18,7 @@ local DataService = {}
 
 -- Bump this whenever the save format changes, and add a step to MIGRATIONS that turns the
 -- previous version into the new one. Never delete a step: old saves still need it.
-local DATA_VERSION = 4
+local DATA_VERSION = 8
 
 -- MIGRATIONS[n] turns a version n - 1 save into version n. Steps must keep money, xp and every
 -- owned item. Don't use the live config to read an old save: write down what it looked like.
@@ -63,6 +63,70 @@ local MIGRATIONS = {
 	[4] = function(data)
 		data.condition = if typeof(data.condition) == "table" then data.condition else {}
 	end,
+
+	-- 4 -> 5, loading by hand (Immersion). Tools now go in a storage spot you pick (`spots`), and
+	-- hand tools go in the tool bucket one by one (`bucket`). A v4 bucket in the truck carried up
+	-- to 8 of the hand tools in the truck, so those go in the bucket now and the load stays the same.
+	[5] = function(data)
+		data.spots = if typeof(data.spots) == "table" then data.spots else {}
+		data.bucket = if typeof(data.bucket) == "table" then data.bucket else {}
+		local loadout = if typeof(data.loadout) == "table" then data.loadout else {}
+		if not loadout.ToolBucket then
+			return
+		end
+		local count = 0
+		-- The hand tools of the v4 catalog.
+		for _, toolId in
+			{
+				"GardenShears",
+				"HandHedgeShears",
+				"HandTrowel",
+				"HandTransplanter",
+				"HandCultivator",
+				"DandelionWeeder",
+				"Dibber",
+				"BypassPruners",
+				"AnvilPruners",
+				"FloralSnips",
+				"WateringCan",
+				"NitrileGloves",
+				"PruningSaw",
+				"ChemicalGloves",
+				"SoilProbe",
+			}
+		do
+			if loadout[toolId] and count < 8 then
+				data.bucket[toolId] = true
+				count += 1
+			end
+		end
+	end,
+
+	-- 5 -> 6, the shop as the hub. Orders arrive in a box (`deliveries`); everything bought before
+	-- is already unpacked.
+	[6] = function(data)
+		data.deliveries = if typeof(data.deliveries) == "table" then data.deliveries else {}
+	end,
+
+	-- 6 -> 7, your business's own lawn (`homeLawn`, see HomeLawnService). It starts out
+	-- overgrown, ready for its first mow.
+	[7] = function(data)
+		local saved = if typeof(data.homeLawn) == "table" then data.homeLawn else {}
+		data.homeLawn = {
+			done = if typeof(saved.done) == "table" then saved.done else {},
+			tippedAt = if typeof(saved.tippedAt) == "number" then saved.tippedAt else 0,
+			tipReady = if typeof(saved.tipReady) == "boolean" then saved.tipReady else true,
+		}
+	end,
+
+	-- 7 -> 8, yard decorations (`decor`, see DecorService): none yet.
+	[8] = function(data)
+		local saved = if typeof(data.decor) == "table" then data.decor else {}
+		data.decor = {
+			placed = if typeof(saved.placed) == "table" then saved.placed else {},
+			boxes = if typeof(saved.boxes) == "table" then saved.boxes else {},
+		}
+	end,
 }
 
 local store: DataStore? = nil
@@ -83,6 +147,19 @@ local function defaultData()
 		loadout = {},
 		-- [toolId] = fuel, tires, blade and line of every owned tool (see Maintenance.luau)
 		condition = {},
+		-- [toolId] = which storage spot of its kind it goes back to (otherwise the first free one)
+		spots = {},
+		-- [toolId] = true for hand tools in their tool bucket (they go wherever the bucket goes)
+		bucket = {},
+		-- { key, id, arrives (os.time) } for every order still in its box (see DeliveryService)
+		deliveries = {},
+		-- Your own lawn: { done = { [task type] = "0110..." per target }, tippedAt = os.time() of
+		-- the last tip for tidying it, tipReady = it's grown back enough since then for another }
+		-- (see HomeLawnService)
+		homeLawn = { done = {}, tippedAt = 0, tipReady = true },
+		-- Decorations for your business's yard: `placed` ones ({ key, id, x, z, turn, overgrown,
+		-- grown }) and ones still in their `boxes` ({ key, id, arrives }) (see DecorService)
+		decor = { placed = {}, boxes = {} },
 		trailerUnlocked = false,
 	}
 	for _, category in Items.Categories do
@@ -188,7 +265,7 @@ function DataService.trimLoadout(data)
 	for _, id in ids do
 		if owned[id] then
 			table.insert(kept, id)
-			local usedSpace, usedBays = Storage.load(kept)
+			local usedSpace, usedBays = Storage.load(kept, data.bucket)
 			if usedSpace > space or usedBays > bays then
 				table.remove(kept)
 			end
@@ -197,6 +274,52 @@ function DataService.trimLoadout(data)
 	data.loadout = {}
 	for _, id in kept do
 		data.loadout[id] = true
+	end
+	DataService.reconcileStorage(data)
+end
+
+-- Forgets storage spots and bucket places of tools they don't own anymore, and keeps the tools
+-- in the bucket wherever the bucket is: in the truck exactly when it is.
+function DataService.reconcileStorage(data)
+	local owned = {}
+	for _, tool in Items.ownedTools(data.owned) do
+		owned[tool.id] = tool
+	end
+	data.spots = if typeof(data.spots) == "table" then data.spots else {}
+	data.bucket = if typeof(data.bucket) == "table" then data.bucket else {}
+	-- Boxes for things they don't own anymore (or broken entries) go away.
+	local deliveries = {}
+	local saved = if typeof(data.deliveries) == "table" then data.deliveries else {}
+	for _, delivery in saved do
+		if
+			typeof(delivery) == "table"
+			and typeof(delivery.id) == "string"
+			and owned[delivery.id]
+			and typeof(delivery.key) == "number"
+			and typeof(delivery.arrives) == "number"
+		then
+			table.insert(deliveries, delivery)
+		end
+	end
+	data.deliveries = deliveries
+	for id in data.spots do
+		if not owned[id] then
+			data.spots[id] = nil
+		end
+	end
+	local hasBucket = owned[Storage.BucketId] ~= nil
+	local count = 0
+	for id in data.bucket do
+		local tool = owned[id]
+		if not (hasBucket and tool and tool.sizeClass == "Hand") or count >= Storage.BucketHolds then
+			data.bucket[id] = nil
+		else
+			count += 1
+		end
+	end
+	local bucketLoaded = data.loadout[Storage.BucketId] ~= nil
+	for id in data.bucket do
+		data.loadout[id] = if bucketLoaded then true else nil
 	end
 end
 
@@ -261,7 +384,7 @@ end
 
 local function snapshot(data)
 	local space, bays = Items.vehicleSpace(data.equipped)
-	local usedSpace, usedBays = Storage.load(Storage.loadedIds(data.loadout))
+	local usedSpace, usedBays = Storage.load(Storage.loadedIds(data.loadout), data.bucket)
 	return {
 		money = data.money,
 		xp = data.xp,
@@ -271,6 +394,9 @@ local function snapshot(data)
 		equipped = data.equipped,
 		loadout = data.loadout,
 		condition = data.condition,
+		spots = data.spots,
+		bucket = data.bucket,
+		deliveries = data.deliveries,
 		-- Their own truck and trailer (in a crew, PartyUpdated has the leader's truck instead).
 		truck = { used = usedSpace, space = space, baysUsed = usedBays, bays = bays },
 		trailerUnlocked = data.trailerUnlocked,
@@ -314,6 +440,13 @@ end
 function DataService:Get(player: Player)
 	local profile = profiles[player]
 	return profile and profile.data
+end
+
+-- Whether this player's progress will be saved: false when their save couldn't be loaded, or is
+-- from a newer version of the game.
+function DataService:CanSave(player: Player): boolean
+	local profile = profiles[player]
+	return profile ~= nil and profile.canSave == true
 end
 
 function DataService:WaitForData(player: Player)

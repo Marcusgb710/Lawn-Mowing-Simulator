@@ -1,5 +1,6 @@
 -- The "Guide" menu: what every tool in the store is for, by shop tab. Jobs never say which tool
--- to bring, so this is where players look things up (the same text as in the shop).
+-- to bring, so this is where players look things up (the same text as in the shop). It also has
+-- the switch for camera motion (head bob and engine shake).
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -10,6 +11,7 @@ local Tools = require(Shared.Config.Tools)
 
 local ClientState = require(script.Parent.Parent.ClientState)
 local UI = require(script.Parent.Parent.UI)
+local CameraController = require(script.Parent.CameraController)
 
 local GuideController = {}
 
@@ -23,6 +25,33 @@ local function render()
 	end
 	UI.clearList(list)
 	local profile = ClientState.profile
+
+	if CameraController.hasMotion() then
+		local motion = UI.new("Frame", {
+			Size = UDim2.new(1, -8, 0, 44),
+			BackgroundColor3 = UI.Colors.Card,
+			LayoutOrder = -1,
+			Parent = list,
+		}, { UI.corner(8) })
+		UI.label("Camera motion (head bob, engine shake)", {
+			Position = UDim2.fromOffset(10, 0),
+			Size = UDim2.new(1, -120, 1, 0),
+			TextSize = 15,
+			TextWrapped = true,
+			Parent = motion,
+		})
+		local on = CameraController.isMotionOn()
+		-- MotionChanged redraws the Guide.
+		UI.button(if on then "On" else "Off", function()
+			CameraController.setMotion(not CameraController.isMotionOn())
+		end, {
+			AnchorPoint = Vector2.new(1, 0.5),
+			Position = UDim2.new(1, -8, 0.5, 0),
+			Size = UDim2.fromOffset(90, 30),
+			BackgroundColor3 = if on then UI.Colors.Accent else UI.Colors.Disabled,
+			Parent = motion,
+		})
+	end
 
 	UI.label("Jobs never say which tool to use. Here's what each one is for.", {
 		Size = UDim2.new(1, -8, 0, 0),
@@ -96,6 +125,11 @@ function GuideController:Start()
 		Size = UDim2.new(1, 0, 1, -48),
 	})
 	window:GetPropertyChangedSignal("Visible"):Connect(function()
+		if window.Visible then
+			render()
+		end
+	end)
+	CameraController.MotionChanged:Connect(function()
 		if window.Visible then
 			render()
 		end

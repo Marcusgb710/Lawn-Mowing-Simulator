@@ -126,9 +126,10 @@ end
 -- How each kind of yard target looks as it gets worked on. `fraction` goes from 0 (untouched)
 -- to 1 (done). The kinds match TaskTypes' `target` field.
 local VISUALS = {
+	-- A dull blade leaves it torn and ragged (see GrassController).
 	Grass = function(target, fraction: number)
 		if fraction >= 1 then
-			target.lawn:_setGrass(target.index, LawnGrid.MOWED)
+			target.lawn:_setGrass(target.index, if target.raggedCut then LawnGrid.RAGGED else LawnGrid.MOWED)
 		end
 	end,
 
@@ -158,7 +159,7 @@ local VISUALS = {
 		local parent = target.part.Parent
 		target.part:Destroy()
 		if parent then
-			decorate("Prop_YardWasteBag", parent, target.ground)
+			target.bag = decorate("Prop_YardWasteBag", parent, target.ground)
 		end
 	end,
 
@@ -201,6 +202,7 @@ function Lawn:_addTarget(task, part: BasePart?, position: Vector3, reach: number
 	target.reach = reach
 	target.work = work
 	target.maxWork = work
+	target.task = task
 	table.insert(task.targets, target)
 	task.total += 1
 	return target
@@ -211,14 +213,6 @@ function Lawn:_buildGround()
 	local origin = self.origin
 	local width, depth = self.width, self.depth
 
-	-- Big grass base everything sits on. Its top is at y = 0 relative to the site.
-	makePart(folder, {
-		Name = "Ground",
-		Size = Vector3.new(width + 160, 4, depth + 160),
-		Position = origin + Vector3.new(width / 2, -2, depth / 2),
-		Color = COLORS.Neighborhood,
-		Material = Enum.Material.Grass,
-	})
 	-- Darker turf under the customer's lawn, showing between grass clumps.
 	local turf = makePart(folder, {
 		Name = "Turf",
@@ -228,6 +222,18 @@ function Lawn:_buildGround()
 		Material = Enum.Material.Grass,
 	})
 	ghost(turf)
+	-- A home lawn sits on its business plot, which has the rest.
+	if self.home then
+		return
+	end
+	-- Big grass base everything sits on. Its top is at y = 0 relative to the site.
+	makePart(folder, {
+		Name = "Ground",
+		Size = Vector3.new(width + 160, 4, depth + 160),
+		Position = origin + Vector3.new(width / 2, -2, depth / 2),
+		Color = COLORS.Neighborhood,
+		Material = Enum.Material.Grass,
+	})
 	makePart(folder, {
 		Name = "Road",
 		Size = Vector3.new(width + 160, 0.2, 20),
@@ -524,6 +530,21 @@ function Lawn:_buildEdges(task)
 	edges.Name = "Edges"
 	edges.Parent = self.folder
 
+	-- The overgrown strip of grass along one stretch of the edge.
+	local function growStrip(target)
+		local strip, isKit = kitOrBlock("Grass_EdgeStrip_1m", edges, {
+			Name = "Overgrowth",
+			Color = COLORS.OvergrownEdge,
+			Material = Enum.Material.Grass,
+		})
+		local size = if isKit
+			then Vector3.new(tile, strip.Size.Y * 0.8, strip.Size.Z * 1.2)
+			else Vector3.new(tile, 0.8, 1)
+		Assets.standOn(strip, target.ground, size)
+		target.part = strip
+		target.startSize = size
+	end
+
 	-- `start` is one end of the run on the ground, `along` the unit direction it runs in.
 	local function edgeRun(start: Vector3, along: Vector3, length: number, segments: number)
 		local facing = CFrame.lookAt(Vector3.zero, along) * CFrame.Angles(0, math.pi / 2, 0)
@@ -542,17 +563,9 @@ function Lawn:_buildEdges(task)
 
 		for index = 0, segments - 1 do
 			local center = start + along * (tile * (index + 0.5))
-			local ground = CFrame.new(center) * facing
-			local strip, isKit = kitOrBlock("Grass_EdgeStrip_1m", edges, {
-				Name = "Overgrowth",
-				Color = COLORS.OvergrownEdge,
-				Material = Enum.Material.Grass,
-			})
-			local size = if isKit
-				then Vector3.new(tile, strip.Size.Y * 0.8, strip.Size.Z * 1.2)
-				else Vector3.new(tile, 0.8, 1)
-			Assets.standOn(strip, ground, size)
-			self:_addTarget(task, strip, center, 1, { ground = ground, startSize = size })
+			local target = self:_addTarget(task, nil, center, 1, { ground = CFrame.new(center) * facing })
+			target.regrow = growStrip
+			growStrip(target)
 		end
 	end
 
@@ -607,9 +620,24 @@ function Lawn:_buildWeeds(task, rng: Random, count: number)
 	weeds.Name = "Weeds"
 	weeds.Parent = self.folder
 
+	local function grow(target)
+		local part, isKit = kitOrBlock(target.kitName, weeds, {
+			Name = "Weed",
+			Color = COLORS.Weed,
+			Material = Enum.Material.Grass,
+		})
+		-- Kit weeds are life-size, which is tiny next to a player, so blow them up a bit.
+		local size = if isKit then part.Size * target.scale else Vector3.new(1, target.height, 1)
+		Assets.standOn(part, target.ground, size)
+		part:SetAttribute("OriginalSize", size)
+		target.part = part
+		target.startSize = size
+	end
+
 	for _ = 1, count do
-		-- Weeds grow where mowers can't reach: by the house, along the side, and in driveway cracks.
-		local spot = rng:NextInteger(1, 3)
+		-- Weeds grow where mowers can't reach: by the house, along the side, and in driveway cracks
+		-- (not at home, where the truck parks on the driveway).
+		local spot = rng:NextInteger(1, if self.home then 2 else 3)
 		local offset
 		if spot == 1 then
 			offset = Vector3.new(rng:NextNumber(1, self.width - 1), 0, rng:NextNumber(self.depth - 1, self.depth + 3))
@@ -620,17 +648,14 @@ function Lawn:_buildWeeds(task, rng: Random, count: number)
 		end
 
 		local base = origin + offset
-		local ground = CFrame.new(base) * CFrame.Angles(0, rng:NextNumber(0, math.pi * 2), 0)
-		local part, isKit = kitOrBlock(WEED_KINDS[rng:NextInteger(1, #WEED_KINDS)], weeds, {
-			Name = "Weed",
-			Color = COLORS.Weed,
-			Material = Enum.Material.Grass,
+		local target = self:_addTarget(task, nil, base, 0.5, {
+			ground = CFrame.new(base) * CFrame.Angles(0, rng:NextNumber(0, math.pi * 2), 0),
+			kitName = WEED_KINDS[rng:NextInteger(1, #WEED_KINDS)],
+			scale = rng:NextNumber(1.6, 2.2),
+			height = rng:NextNumber(1.6, 2.6),
 		})
-		-- Kit weeds are life-size, which is tiny next to a player, so blow them up a bit.
-		local size = if isKit then part.Size * rng:NextNumber(1.6, 2.2) else Vector3.new(1, rng:NextNumber(1.6, 2.6), 1)
-		Assets.standOn(part, ground, size)
-		part:SetAttribute("OriginalSize", size)
-		self:_addTarget(task, part, base, 0.5, { ground = ground, startSize = size })
+		target.regrow = grow
+		grow(target)
 	end
 end
 
@@ -640,13 +665,16 @@ function Lawn:_buildLeaves(task, rng: Random, count: number)
 	leaves.Name = "Leaves"
 	leaves.Parent = self.folder
 
-	for _ = 1, count do
-		local base = origin + Vector3.new(rng:NextNumber(2, self.width - 2), 0, rng:NextNumber(2, self.depth - 2))
-		local ground = CFrame.new(base) * CFrame.Angles(0, rng:NextNumber(0, math.pi * 2), 0)
+	local function grow(target)
+		-- The bag the last pile went into, if it was raked.
+		if target.bag then
+			target.bag:Destroy()
+			target.bag = nil
+		end
 		-- The kit has no leaf pile, so a big clippings pile stands in for one.
 		local part, isKit = kitOrBlock("Grass_Clippings_Pile", leaves, {
 			Name = "LeafPile",
-			Color = COLORS.Leaves[rng:NextInteger(1, #COLORS.Leaves)],
+			Color = target.color,
 			Material = Enum.Material.LeafyGrass,
 		})
 		if not isKit then
@@ -654,9 +682,19 @@ function Lawn:_buildLeaves(task, rng: Random, count: number)
 			mesh.MeshType = Enum.MeshType.Sphere
 			mesh.Parent = part
 		end
-		local startSize = Vector3.new(rng:NextNumber(3, 4.5), rng:NextNumber(0.8, 1.4), rng:NextNumber(3, 4.5))
-		Assets.standOn(part, ground, startSize)
-		self:_addTarget(task, part, base, 1.5, { ground = ground, startSize = startSize })
+		Assets.standOn(part, target.ground, target.startSize)
+		target.part = part
+	end
+
+	for _ = 1, count do
+		local base = origin + Vector3.new(rng:NextNumber(2, self.width - 2), 0, rng:NextNumber(2, self.depth - 2))
+		local target = self:_addTarget(task, nil, base, 1.5, {
+			ground = CFrame.new(base) * CFrame.Angles(0, rng:NextNumber(0, math.pi * 2), 0),
+			color = COLORS.Leaves[rng:NextInteger(1, #COLORS.Leaves)],
+			startSize = Vector3.new(rng:NextNumber(3, 4.5), rng:NextNumber(0.8, 1.4), rng:NextNumber(3, 4.5)),
+		})
+		target.regrow = grow
+		grow(target)
 	end
 end
 
@@ -1793,8 +1831,12 @@ end
 
 -- `origin` is the front-left corner of the lawn, where it meets the sidewalk.
 -- `conditions` are what the job rolled: { soil = { temperature, moisture } } for renovations.
+-- `conditions` (all optional):
+--   soil   what the probe reads (turf renovation)
+--   home   a business's own lawn (see HomeLawnService): just the lawn, on the plot's own ground
+--   seed   lays the yard out the same way every time
 function LawnService:Build(template, origin: Vector3, address: string, conditions)
-	local rng = Random.new()
+	local rng = if conditions and conditions.seed then Random.new(conditions.seed) else Random.new()
 	local tile = GameConfig.TileSize
 	local layout = template.lawn
 
@@ -1819,6 +1861,7 @@ function LawnService:Build(template, origin: Vector3, address: string, condition
 		soil = conditions and conditions.soil or { temperature = 58, moisture = "Moist" },
 		thatch = layout.thatch,
 		probed = false,
+		home = conditions and conditions.home == true,
 	}, Lawn)
 
 	-- Which task each kind of yard target belongs to (one task per kind).
@@ -1889,7 +1932,9 @@ function LawnService:Build(template, origin: Vector3, address: string, condition
 			lawn:_buildHaul(task)
 		end
 	end
-	lawn:_buildDecor(rng)
+	if not lawn.home then
+		lawn:_buildDecor(rng)
+	end
 
 	-- The truck parks on the road facing along the curb; the crew hops out onto the sidewalk.
 	lawn.truckCFrame = CFrame.new(origin + Vector3.new(lawn.width / 2, 0.2, -SIDEWALK_DEPTH - 5))
@@ -1922,11 +1967,13 @@ export type WorkResult = {
 --   holder       whose barrow a load is in (one load per player)
 --   moving       whether they're walking
 --   seconds      how long this bit of work took
+--   ragged       a dull blade: mowed grass is left torn
 export type WorkContext = {
 	protections: { [string]: boolean }?,
 	holder: any?,
 	moving: boolean?,
 	seconds: number?,
+	ragged: boolean?,
 }
 
 -- Targets that cover the whole lawn. Walking a tool across them on the way to its real work isn't
@@ -2022,6 +2069,7 @@ function Lawn:ApplyWork(
 			local hit = target.speedHits and target.speedHits[toolId] or 1
 			local applied = math.min(target.work, amount * fit.speed * hit)
 			target.work -= applied
+			target.raggedCut = context ~= nil and context.ragged == true
 			VISUALS[target.kind](target, 1 - target.work / target.maxWork)
 			if target.work <= 0 then
 				target.work = 0
@@ -2183,6 +2231,62 @@ function Lawn:GetProgress()
 		end
 	end
 	return progress
+end
+
+-- Home lawns (see HomeLawnService) ------------------------------------------------------------
+
+-- Every target on the lawn, task by task, in the order they were built.
+function Lawn:AllTargets(): { any }
+	local targets = {}
+	for _, task in self.tasks do
+		table.move(task.targets, 1, #task.targets, #targets + 1, targets)
+	end
+	return targets
+end
+
+local function flushGrass(lawn)
+	if lawn.grassDirty then
+		lawn.grassDirty = false
+		lawn.grassFolder:SetAttribute("State", table.concat(lawn.grassState))
+	end
+end
+
+-- Marks a target done without anyone working on it (a home lawn as it was left last time).
+function Lawn:Finish(target)
+	if target.work <= 0 then
+		return
+	end
+	target.work = 0
+	target.task.done += 1
+	VISUALS[target.kind](target, 1)
+	flushGrass(self)
+end
+
+-- Grows a finished target back: tall grass, an overgrown edge, a weed or a leaf pile again.
+-- Only grass, edges, weeds and leaves can.
+function Lawn:Regrow(target): boolean
+	if target.work > 0 or not (target.kind == "Grass" or target.regrow) then
+		return false
+	end
+	target.work = target.maxWork
+	target.task.done -= 1
+	if target.kind == "Grass" then
+		self:_setGrass(target.index, LawnGrid.TALL)
+		flushGrass(self)
+	else
+		target.regrow(target)
+	end
+	return true
+end
+
+-- How much of the whole lawn is done, 0-1.
+function Lawn:DoneShare(): number
+	local done, total = 0, 0
+	for _, task in self.tasks do
+		done += math.min(task.done, task.total)
+		total += task.total
+	end
+	return if total > 0 then done / total else 1
 end
 
 function Lawn:Destroy()

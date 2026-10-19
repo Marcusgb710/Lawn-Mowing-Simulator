@@ -1,5 +1,6 @@
 -- Hands out the tools loaded in the truck once the crew reaches the job site, and does the yard
--- work while players use them. At the business your hands are free for carrying tools around.
+-- work while players use them: on the job, or on your own lawn at home (see HomeLawnService),
+-- where the tool you take out of storage is the real thing (see GiveHeld).
 --
 -- Mowers work the whole time they're equipped (the reel mower only while you're walking).
 -- Every other tool works while you hold down the mouse button / tap and hold.
@@ -26,14 +27,13 @@ local Storage = require(Shared.Config.Storage)
 local Tools = require(Shared.Config.Tools)
 
 local DataService = require(script.Parent.DataService)
+local HomeLawnService = require(script.Parent.HomeLawnService)
 local JobService = require(script.Parent.JobService)
 
 -- How far in front of the player a tool does its work.
 local REACH_OFFSET = 2
 -- Machines that roll on the ground: held so their lowest point sits on it.
 local GROUNDED = { FloorManual = true, FloorEngine = true, Bay = true }
--- Tools that never go in the hotbar: supplies, and gloves (worn, not used).
-local NOT_HELD = { Supply = true, Worn = true, Towed = true }
 -- How far behind the rider a towed attachment works.
 local TOW_DISTANCE = 6
 
@@ -63,6 +63,11 @@ local running = {}
 local rng = Random.new()
 -- [Tool] = its last list of warnings, so the player's profile is refreshed when one appears
 local lastWarnings = setmetatable({}, { __mode = "k" })
+-- [Player] = { [toolId] = true } for tools set down to be worked on (see MaintenanceService),
+-- which stay out of their hotbar on a job until they pick them back up
+local withheld = {}
+-- A blade cutting below this finish leaves the grass torn and ragged (see GrassController).
+local RAGGED_BELOW = 0.8
 
 -- Condition fields copied onto Tool attributes, and their attribute names.
 local CONDITION_ATTRIBUTES =
@@ -70,7 +75,7 @@ local CONDITION_ATTRIBUTES =
 
 -- Copies a tool's condition onto it for the HUD. Numbers only update once they've moved a bit,
 -- so a running mower doesn't send an update every tick.
-local function syncCondition(tool: Tool, condition)
+local function syncCondition(tool: Instance, condition)
 	for key, attribute in CONDITION_ATTRIBUTES do
 		local value = condition[key]
 		local current = tool:GetAttribute(attribute)
@@ -257,7 +262,9 @@ local function hookTool(player: Player, tool: Tool, item)
 	tool.Equipped:Connect(function()
 		local humanoid = getHumanoid(player)
 		if humanoid and item.walkSpeed then
-			humanoid.WalkSpeed = item.walkSpeed
+			-- Soft tires slow you down wherever you push it.
+			local data = DataService:Get(player)
+			humanoid.WalkSpeed = item.walkSpeed * Maintenance.tireFactor(data and data.condition[item.id] or {})
 		end
 		-- Lift R15 characters so the riding mower's wheels touch the ground under them.
 		local seatHeight = tool:GetAttribute("SeatHeight")
@@ -320,6 +327,63 @@ end
 
 -- Gives the player the tools they loaded in the truck if they're at a job site, otherwise takes
 -- them away. Call after anything that could change that.
+-- Builds the Tool for one of the player's tools, ready to put in their backpack. Only on a job
+-- does a ride-on that can tow pull the tow-behind aerator.
+local function makeTool(player: Player, data, item, height: number?, atJob: boolean): Tool
+	local tool = Assets.tool(item.category, item.id)
+	tool.Name = item.name
+	tool.ToolTip = Items.CategoryInfo[item.category].displayName
+	tool.CanBeDropped = false
+	tool:SetAttribute("Category", item.category)
+	tool:SetAttribute("ItemId", item.id)
+	syncCondition(tool, data.condition[item.id] or {})
+	if item.ride then
+		setUpRide(player, tool, item)
+		-- A ride-on that can tow pulls the tow-behind aerator, if it came along.
+		if atJob and item.tows and data.loadout.TowBehindAerator then
+			hitch(tool, "TowBehindAerator")
+		end
+	elseif height and GROUNDED[item.sizeClass] then
+		groundGrip(tool, height)
+	end
+	addFx(tool, item.verbs[1])
+	hookTool(player, tool, item)
+	return tool
+end
+
+-- Whether this tool goes in your hands as a Tool you use (not supplies, gloves or a towed
+-- attachment, which are just carried).
+function ToolService.isHeld(item): boolean
+	return Tools.isHeld(item)
+end
+
+-- A tool taken out of storage at the business, equipped straight away: a ride-on to drive (up
+-- the trailer's ramp, back to its bay) or one in your hands, which works on your own lawn.
+-- TruckService takes it away again when it's put down.
+function ToolService:GiveHeld(player: Player, itemId: string): Tool?
+	local data = DataService:Get(player)
+	local item = Tools.get(itemId)
+	local humanoid = getHumanoid(player)
+	local backpack = player:FindFirstChildOfClass("Backpack")
+	if not (data and item and ToolService.isHeld(item) and humanoid and backpack and humanoid.Health > 0) then
+		return nil
+	end
+	local height = player.Character and holdHeight(player.Character)
+	local tool = makeTool(player, data, item, height, false)
+	tool.Parent = backpack
+	humanoid:EquipTool(tool)
+	return tool
+end
+
+-- Puts a player back on their feet at normal speed after a ride-on goes away.
+function ToolService:ResetRider(player: Player)
+	local humanoid = getHumanoid(player)
+	if humanoid then
+		humanoid.WalkSpeed = GameConfig.DefaultWalkSpeed
+		restoreHipHeight(humanoid)
+	end
+end
+
 function ToolService:GiveTools(player: Player)
 	local data = DataService:Get(player)
 	local backpack = player:FindFirstChildOfClass("Backpack")
@@ -352,32 +416,44 @@ function ToolService:GiveTools(player: Player)
 	end
 	for _, itemId in Storage.loadedIds(data.loadout) do
 		local item = Tools.get(itemId)
-		if NOT_HELD[item.use] then
+		if not Tools.isHeld(item) or (withheld[player] and withheld[player][itemId]) then
 			continue
 		end
-		local tool = Assets.tool(item.category, itemId)
-		tool.Name = item.name
-		tool.ToolTip = Items.CategoryInfo[item.category].displayName
-		tool.CanBeDropped = false
-		tool:SetAttribute("Category", item.category)
-		tool:SetAttribute("ItemId", itemId)
-		syncCondition(tool, data.condition[itemId] or {})
-		if item.ride then
-			setUpRide(player, tool, item)
-			-- A ride-on that can tow pulls the tow-behind aerator, if it came along.
-			if item.tows and data.loadout.TowBehindAerator then
-				hitch(tool, "TowBehindAerator")
-			end
-		elseif height and GROUNDED[item.sizeClass] then
-			groundGrip(tool, height)
-		end
-		addFx(tool, item.verbs[1])
-		hookTool(player, tool, item)
+		local tool = makeTool(player, data, item, height, true)
 		tool.Parent = backpack
 
 		-- Swapping gear shouldn't make you put your tool away.
 		if itemId == wasHolding and humanoid then
 			humanoid:EquipTool(tool)
+		end
+	end
+end
+
+-- Copies a tool's condition onto any Instance as attributes (Fuel, Pressure, Flat, Sharpness,
+-- Line, Broken), for the HUD and for how it looks (see ToolFxController).
+ToolService.showCondition = syncCondition
+
+-- Keeps a loaded tool out of the player's hotbar while it's set down to be worked on, or gives
+-- it back (in their hands) once they pick it up.
+function ToolService:Withhold(player: Player, toolId: string, keep: boolean)
+	withheld[player] = withheld[player] or {}
+	withheld[player][toolId] = if keep then true else nil
+	if keep then
+		for _, container in { player:FindFirstChildOfClass("Backpack"), player.Character } do
+			for _, child in container and container:GetChildren() or {} do
+				if child:IsA("Tool") and child:GetAttribute("ItemId") == toolId then
+					child:Destroy()
+				end
+			end
+		end
+		return
+	end
+	self:GiveTools(player)
+	local backpack = player:FindFirstChildOfClass("Backpack")
+	local humanoid = getHumanoid(player)
+	for _, child in backpack and backpack:GetChildren() or {} do
+		if child:IsA("Tool") and child:GetAttribute("ItemId") == toolId and humanoid then
+			humanoid:EquipTool(child)
 		end
 	end
 end
@@ -404,6 +480,22 @@ end
 
 -- Lifecycle ----------------------------------------------------------------------------------
 
+-- Work goes to the job they're on, or to their crew's own lawn.
+local function applyWork(
+	player: Player,
+	atJob: boolean,
+	position: Vector3,
+	radius: number,
+	toolId: string,
+	amount: number,
+	options
+): boolean
+	if atJob then
+		return JobService:ApplyWork(player, position, radius, toolId, amount, options)
+	end
+	return HomeLawnService:ApplyWork(player, position, radius, toolId, amount, options)
+end
+
 local function workTick(elapsed: number)
 	for tool in running do
 		local character = tool.Parent
@@ -412,6 +504,13 @@ local function workTick(elapsed: number)
 		local root = character and character:FindFirstChild("HumanoidRootPart")
 		if not (player and humanoid and root and root:IsA("BasePart")) or humanoid.Health <= 0 then
 			running[tool] = nil
+			continue
+		end
+		-- Off the job, tools only work on your own lawn: driving a ride-on or carrying a mower
+		-- around the business does no work and no wear.
+		local atJob = JobService:IsAtJobSite(player)
+		if not (atJob or HomeLawnService:CanWork(player, tool:GetAttribute("ItemId"))) then
+			setFx(tool, false)
 			continue
 		end
 
@@ -452,12 +551,13 @@ local function workTick(elapsed: number)
 		local cut = false
 		if not towedId then
 			local position = root.Position + root.CFrame.LookVector * REACH_OFFSET
-			cut = JobService:ApplyWork(player, position, item.radius, itemId, item.power * elapsed * speed, {
+			cut = applyWork(player, atJob, position, item.radius, itemId, item.power * elapsed * speed, {
 				damagesHazards = Tools.damagesHazards(item),
 				quiet = item.use == "Passive" and not moving,
 				moving = moving,
 				seconds = elapsed,
 				qualityScale = quality,
+				ragged = quality < RAGGED_BELOW,
 			})
 		end
 		Maintenance.wear(item, condition, elapsed, true, moving, cut == true, rng:NextNumber())
@@ -486,11 +586,12 @@ local function workTick(elapsed: number)
 				local towSpeed, towQuality = Maintenance.effects(towedCondition)
 				local behind = root.Position - root.CFrame.LookVector * TOW_DISTANCE
 				local towedCut =
-					JobService:ApplyWork(player, behind, towed.radius, towedId, towed.power * elapsed * towSpeed, {
+					applyWork(player, atJob, behind, towed.radius, towedId, towed.power * elapsed * towSpeed, {
 						quiet = true,
 						moving = true,
 						seconds = elapsed,
 						qualityScale = towQuality,
+						ragged = towQuality < RAGGED_BELOW,
 					})
 				Maintenance.wear(towed, towedCondition, elapsed, false, true, towedCut == true, rng:NextNumber())
 			end
@@ -522,6 +623,9 @@ function ToolService:Start()
 	for _, player in Players:GetPlayers() do
 		task.spawn(onPlayerAdded, player)
 	end
+	Players.PlayerRemoving:Connect(function(player)
+		withheld[player] = nil
+	end)
 
 	local accumulated = 0
 	RunService.Heartbeat:Connect(function(deltaTime)

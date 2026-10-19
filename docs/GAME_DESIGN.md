@@ -228,7 +228,7 @@ them with the old mowing jobs.
   to the best player's level (`HomeownerJobsOnBoard`), and the rest go a little above it.
 - **Learning tools:** the **Guide** menu lists every tool in the store with its "what it's for"
   text, by shop tab. Until a player finishes their first job, a coach banner walks them through
-  it one step at a time (take the job, load the truck, drive, do the work), and the job board
+  it one step at a time (take the job, load the truck, drive, do the work), and the Jobs app
   marks the free-gear job as a good first job.
 - New shop tabs: Planting & Weeding, Pruning, Watering and Gloves.
 
@@ -465,8 +465,8 @@ again.
   own, plus the building's machines: the Small Office has an air compressor, the Equipment Yard
   an air compressor and a bench grinder), or at the **tailgate** of the truck on a job (only what
   you loaded). Supplies take truck space like any tool.
-- **How:** the Workbench menu: pick a tool, then a supply. Each job takes a few seconds and you
-  have to stay put. Parts for a repair are paid when it's done. Tools and supplies can't be bought
+- **How:** by hand (see "Hands-on maintenance" in section 8). The Workbench menu is gone. Each
+  job takes a few seconds and you have to stay put. Parts for a repair are paid when it's done. Tools and supplies can't be bought
   mid-job (what you brought is what you've got), and a half-used consumable sells for what's
   left in it. Nothing says which supply fits which tool, and using the wrong one does what
   it really would.
@@ -478,6 +478,314 @@ again.
   new players can look after their tools at home. Reel mowers are sharpened with a file (real
   ones are backlapped) and can't take a spare blade.
 
+## 7. Camera (first person)
+
+The game is played in first person (`StarterPlayer.CameraMode = LockFirstPerson`, field of view
+75 in `GameConfig.Camera`). Code: `src/client/Controllers/CameraController.luau` and
+`ArmsController.luau`.
+
+- **The drive cutscene** keeps its own scripted camera and hands back to first person when you
+  arrive. Riding and standing on ride-on machines stays first person, from the seat or the
+  platform: you see the hood or deck ahead and your hands on the controls.
+- **Your arms.** Roblox hides your whole character in first person, so a pair of simple arms is
+  drawn on your screen only (other players see your avatar as normal). Whenever you hold or use
+  anything (a tool, something you're carrying around the business, a pushed machine, a barrow, a
+  ride-on's controls) both hands grip it: on either side of a handlebar, up a rake's shaft, on a
+  trimmer's front handle. Empty-handed they drop out of view, and they blend up and down over a
+  quarter of a second when you take something or put it away. Models can place the hands exactly
+  with `GripLeft` / `GripRight` attachments (see `assets/README.md`).
+- **Tools in view.** On your screen only, the tool in your hands is posed for first person: push
+  machines and barrows stand on their wheels with the handlebar centred ahead of you, string
+  trimmers and edgers stand on the ground the way they were modelled, rakes, forks and shovels
+  lean out with their head on the ground (just far enough that the shaft stays below your eyes),
+  and small hand tools sit low on the right and follow your view part of the way. Nothing near
+  eye level gets closer than 0.7 studs to the camera. Backpack blowers and sprayers (`onBack`)
+  keep their normal hold, since they're modelled as worn. Where the work happens doesn't change:
+  just in front of you, whichever way you face.
+- **Menus and the mouse.** In first person the mouse is locked to the middle of the screen. While
+  any menu is open (the shop computer, truck, crew, guide) it's freed, and locked again when
+  you close it. Hold **Left Alt** to free it any time, to click the HUD or answer a crew invite
+  (an invite doesn't free it by itself: you might be mowing). Each player can only have one
+  invite out to the same person at a time.
+  Keys: **J** jobs, **T** truck, **B** shop, **G** guide, **C** crew, shown on the buttons when
+  there's a keyboard. Phones keep the touch controls: drag to look, tap buttons and prompts.
+- **Aiming.** A small dot marks the middle of the screen. It's hidden while the mouse is free and
+  during the cutscene. ProximityPrompts are unchanged: they don't need line of sight and reach 8
+  to 12 studs, which is comfortable in first person.
+- **Camera motion.** A gentle head bob while walking and a slight shake while a gas engine you're
+  using is running. Players switch both off with **V** or the switch at the top of the Guide; set
+  `GameConfig.Camera.HeadBob` / `EngineShake` to false to turn them off for everyone. Both only
+  move `Humanoid.CameraOffset`, so they cost nothing on phones.
+
+## 8. Immersion
+
+Making the business, loading and maintenance hands-on, built on first person. One PR per part.
+
+### Walk-in buildings
+
+- **Storage inside.** A building model can mark where everything goes inside it with
+  Attachments (`src/server/BusinessStorage.luau`):
+  - `Mount` with attributes `Kind` (`Pegboard`, `WallRack`, `WallHooks`, `Shelf`, `Workbench`,
+    `Compressor`, `Grinder`) and `Index`. Its LookVector points into the room, and the fixture's
+    back goes on it.
+  - `FloorSpot` and `EquipmentBay` (with `Index`).
+  - `TruckParking`: the truck's ground centre, LookVector the way the truck faces (rear toward
+    the door).
+  - `Light`: a ceiling light (a PointLight without shadows, cheap on phones).
+
+  Fixtures fill the building's spots (`storage` in `Items.luau`) mount by mount, in Index order.
+  Planned counts:
+
+  | Building | Pegboard | WallRack | WallHooks | Shelf | FloorSpot | EquipmentBay | Also |
+  | --- | --- | --- | --- | --- | --- | --- | --- |
+  | Shed | 2 | 1 | 1 | 1 | 1 | - | - |
+  | Garage | 3 | 2 | 2 | 2 | 2 | - | Workbench |
+  | SmallOffice | 4 | 3 | 3 | 2 | 4 | 2 | Workbench, Compressor |
+  | EquipmentYard | 6 | 4 | 5 | 3 | 6 | 5 | Workbench, Compressor, Grinder |
+
+  Anything a building has no attachments for (the current models, placeholders) keeps the
+  outdoor layout along the plot's edges. Tools without a spot still go in the overflow rows.
+- **Doors.** `<Id>__Door` and `<Id>__GarageDoor` are modelled open (swung open, rolled up) and
+  stay that way. Choice made: the garage door doesn't roll down and up as the owner walks up,
+  because the models only have the open pose.
+- **Walls you can't walk through, doors you can.** Building walls are separate meshes with real
+  holes for the doors. They collide properly with the Default or `PreciseConvexDecomposition`
+  CollisionFidelity, which is set in Studio before saving the model (scripts can't change it).
+  A walk-in building's wall mesh left on Box or Hull would block its doorways. It stops colliding
+  instead, and invisible walls go up around the building with gaps at its doors: a garage door's
+  opening is under it, and a hinged door's opening is taken to be in line with `TruckParking`.
+- **Truck at the door.** The plot's truck parks on `TruckParking` (with a trailer, the trailer's
+  rear goes there and the truck sits ahead of it), with its `<Id>__Tailgate`,
+  `EquipmentTrailer__Ramp` or `LandscapeTrailer__RampDoor` down, or its `<Id>__RearDoor`
+  (LandscapingTruck) up. Tailgates and
+  ramps are hinged on their pivot and rotate about X; the ramp goes down until it reaches the
+  ground. Everything closes as the crew drives off and opens again when they're back. At the job
+  site the truck parks with its tailgate down, since that's where you work on your tools.
+
+### Look-at loading
+
+Everything at the business is used by looking at it (the dot in the middle of the screen) and
+pressing **E**, or the big button on a phone (`src/client/Controllers/InteractController.luau`).
+Things you can use carry an `Interact` attribute. The client only says what you want to do
+("put this tool on bed 1 at cell 3"); the server checks you're holding it, you're in reach and
+it fits.
+
+- **Taking tools.** Look at one of your tools on a wall, shelf, floor spot or bay and take it.
+  One thing at a time. Push machines are rolled in front of you, and ride-ons are driven: you
+  get on, drive up the equipment trailer's ramp and park on a free `BaySpot` (E), or park it back
+  in an equipment bay.
+- **The truck bed is a grid** (`src/shared/BedGrid.luau`): two cells across and one cell per
+  unit of the vehicle's `space`, so the rusty pickup is 2 × 3 and the landscaping truck 2 × 7. A
+  trailer has its own grid. Tools cover cells by size class:
+
+  | Size class | Cells | Lies |
+  | --- | --- | --- |
+  | Hand, Supply (and the tool bucket) | 1 | across (supplies stand) |
+  | Long | 1 | lengthwise |
+  | HangingPower | 2, one behind the other | lengthwise |
+  | FloorManual, FloorEngine | 4, a 2 × 2 block | standing |
+
+  Look at the bed and a ghost of what you're holding sits on the cells under the dot: green if
+  it fits, red if not. E sets it down, and it settles into place. Look at a loaded tool to take it
+  back out. Where each tool lies lasts for the session. Anything loaded before, or that doesn't
+  fit where it was, goes in the first free cells.
+- **The tool bucket** holds up to 8 hand tools in its one cell. Look at it, in storage or in the
+  truck, while holding a hand tool to drop the tool in. With empty hands, E takes the bucket (and
+  everything in it) and R takes one tool out.
+- **Putting tools back.** Every free spot of the right kind can be looked at to hang, rack,
+  shelve, set down or park the tool there, with a ghost showing where. Each tool remembers its
+  spot (`spots` in the save). Loaded tools keep theirs, so storage doesn't shuffle.
+- **Prompts.** The shop computer, delivery boxes, workbench, tailgate and "Drive to Job" on the
+  crew truck work the same way, so no ProximityPrompts are left. A custom town's
+  ProximityPrompts with `OpensPanel` still work.
+- **Feedback.** Things set down in the bed drop the last stud into place. Sounds are named
+  placeholders in `src/shared/Sounds.luau` (Thunk, Pickup, Hang, Bucket) until ids are filled in.
+
+### Hands-on maintenance
+
+Tools are worked on by hand instead of from a menu (`MaintenanceService`; the steps are in
+`src/shared/Service.luau`, what each supply does is in `Maintenance.luau`).
+
+- **Set it down.** Hold the machine and look at a service spot, then press E. Hand and long tools
+  (pruners, loppers, spades, half-moon edgers) go in the vise instead. Every workbench has both:
+  its `ServiceSpot` attachment (on the floor in front of the bench) and `VisePoint` (in the
+  vise). On a job, the truck has them too: on the ground beside its back end (the sidewalk side)
+  and on its side rail there. One tool per spot. Look at it with empty hands to pick it back up.
+  While it's set down it isn't in storage: it can't be grabbed, loaded or sold until it's picked
+  up again.
+- **Work on it.** Hold a supply and look at the tool. The hint says what it would do ("Pour in
+  the fuel", "Pump up the tire", "Plug the puncture", "Wind on new line", "Hone the edge"), or
+  what's in the way. **Hold E** (or the button on a phone) while it works: it takes the supply's
+  time, and letting go or walking off stops it. Supplies come off your storage at the business.
+  On a job, the ones you brought stand in a row by the truck, one row per crew member: take one
+  there, and look at the truck to put it back.
+- **Steps.**
+  - A mower's (or other floor machine's) heavy blade comes off first: the wrench on the machine
+    ("Take the blade off"), and it lies on its side.
+  - Then sharpen it with the file, or with the building's bench grinder (empty hands, hold R),
+    or fit a spare blade.
+  - Then the wrench again to bolt it back on. It can't be picked up with the blade off.
+  - For a new tire, the wrench on a wheel takes it off, then the spare goes on.
+  - A wrecked engine is fixed with the wrench first.
+  - The air compressor fills tires with empty hands (hold R), and the bench grinder sharpens a
+    loose blade the same way: the building's own, or ones you bought and keep in storage.
+- **Condition you can see.** The HUD hints stay, and never name the fix, but tools also show it
+  themselves (`ToolFxController`):
+  - an engine low on fuel sputters with puffs of smoke while it runs, and a wrecked one smokes;
+  - soft tires sag and flat ones squash (parts named `<Id>__Wheel...` or `<Id>__Tire...`, or a
+    placeholder's `Wheel`);
+  - a spool (`<Id>__Spool...`) shows bare as the line runs out;
+  - grass cut with a dull blade is left ragged, duller and with torn tufts sticking up
+    (`LawnGrid.RAGGED`; GrassController draws it).
+
+## 9. The shop as the hub
+
+Almost everything happens in your shop. You pick jobs and order gear at the computer inside,
+unbox deliveries by the door, take tools off the walls, load the truck parked at the door and
+drive off from there. Outside, you look after your own front lawn and decorate the yard,
+which earns your business curb appeal and a bonus on every job.
+
+- **The job computer.** A desk stands on the building's `Desk` marker (on older buildings, out
+  front facing the street). Which desk goes with which building is `desk` in `Items.luau`:
+  `JobLaptopTable` for the Shed, `JobComputerDesk` for the Garage, and `JobOfficeDesk` for the
+  SmallOffice and EquipmentYard. Look at the desk and press E (`ComputerController`):
+  1. you step up to its `UseSpot`;
+  2. the camera eases in to `ScreenView` and the field of view narrows;
+  3. the desktop opens, with four apps:
+     - **Jobs:** today's board, with hints only. Anyone can look; only the crew leader can take
+       a job.
+     - **Orders:** tools and supplies, plus a Sell tab for tools in storage.
+     - **Business:** building, truck and trailer upgrades.
+     - **Crew.**
+
+  The apps are drawn in a ScreenGui framed as the monitor, so they stay readable on phones. Back,
+  walking away, or the crew heading out eases the camera back to first person. The server only
+  takes jobs, purchases, sales and upgrades from someone standing at their crew's computer.
+  There's no town hardware store any more, and no outdoor job board. HUD keys: T truck, G guide,
+  C crew.
+- **Deliveries** (`DeliveryService`, `src/shared/Deliveries.luau`). A tool or supply is yours as
+  soon as it's bought (Shop.luau's tier, storage and money rules are unchanged). It arrives in a
+  box at the building's `DeliverySpot` after `GameConfig.DeliveryTime` (15 s), or straight away
+  if you were out on a job when you ordered.
+
+  | Size class | Box |
+  | --- | --- |
+  | Hand, Supply | `DeliveryBoxSmall` |
+  | Long | `DeliveryBoxLong` |
+  | HangingPower, FloorManual, FloorEngine | `DeliveryBoxLarge` |
+  | Bay (ride-ons) | `DeliveryCrate` |
+
+  Look at your box and press E: its flaps (lid, crate front) swing open on their hinges, the
+  tool shows at `Contents`, then it comes up into your hands (on a ride-on, you're in the seat)
+  and the empty box goes away. Hang it up or load it like any tool. Until it's opened the tool
+  is in its box: not in storage, and it can't be loaded. Unopened boxes are saved
+  (`deliveries`) and turn up again when you rejoin. Selling a boxed tool sends the box back.
+  Restocking a consumable refills it at once, and trucks, trailers and buildings don't come in a
+  box. Choice made: opening a box puts the tool straight into your hands, instead of leaving it
+  in the open box to pick up, so there's no half-open state to save.
+- Boxes stand in rows at the crew's delivery spot, and move with the crew.
+- **The plot** is 90 × 90 studs:
+  - the building at the back;
+  - a concrete driveway from the street to the door, with the truck (and trailer) on it;
+  - your own front lawn on the left of the driveway (see "Your own lawn" below);
+  - on the right, the outdoor storage for older buildings, the business sign and where you
+    spawn.
+
+  The placeholder town spaces its 12 plots to fit. Every plot faces its street to the south
+  (-Z), so the front lawns line up with the grid lawns are drawn on. A town built in Studio
+  needs the same; the server warns if a plot doesn't. Older buildings without a `DeliverySpot`
+  get their boxes on the right of the driveway, clear of the lawn.
+- **Leaving from the truck.** The truck parks on `TruckParking` (older buildings: about 10
+  studs out from the door) with its tailgate to the door. With a trailer, the trailer's ramp
+  faces the door and the truck sits ahead of it. To leave, the crew leader looks at the driver's
+  door (`<Id>__DriverDoor`, or the truck if it has none) and gets in. Without an accepted job you
+  get "Pick a job at the computer first".
+  1. The tailgate shuts.
+  2. The driver's door (with `<Id>__DriverDoorGlass`) swings open about its hinge and shuts again.
+  3. Every crew member's camera sits in a seat in the cab: the driver at the truck's
+     `DriverSeat`, the others beside and behind.
+  4. The truck pulls out of the driveway into the street (`GameConfig.PullOutTime`).
+  5. The usual trip cutscene plays.
+
+  The crew rides along wherever they were. Each player's screen animates the truck's drive
+  itself, so the view from the cab is smooth. Calling the job off before the trip starts puts
+  everyone back on their feet with the truck at the door. The truck belongs to the leader who
+  drove off: it comes back with them, even if they leave the crew on the way. Coming back, the
+  truck pulls back in from the street and drops its tailgate so you can unload into storage.
+  Trucks, trailers and buildings can't be swapped while you're out on a job. Placeholder trucks have a driver's door,
+  a `DriverSeat` and a hinged tailgate.
+- **Your own lawn** (`HomeLawnService`, `src/shared/HomeLawn.luau`). Every plot has a front lawn
+  left of the driveway, about 28 × 32 studs (7 × 8 tiles). It's a real lawn, built by
+  `LawnService` from the same kit grass and mowed on the same `LawnGrid` as customers' lawns:
+  - the grass (`MowSmallLawn`);
+  - the edge along the sidewalk and driveway (`EdgeSidewalk`);
+  - 5 weeds by the building and along the side (`TrimAroundObstacles`);
+  - 3 piles of leaves (`RakeLeaves`).
+
+  You look after it with your own tools, straight out of storage: a tool you take off the wall is
+  the real thing in your hands, held as on a job, and it works on the lawn. Tool fit, finish and
+  wear (fuel, blades, line, tires) are just as on a job; off the lawn, carrying a tool around
+  does no work and no wear. Supplies and gloves are still just carried, and gloves you own count
+  as worn at home. Crew members can help with the leader's lawn.
+
+  It grows back while you play: from tidy, it's fully overgrown again after
+  `GameConfig.HomeLawn.RegrowMinutes` (40) in the game. Every so often one finished bit comes back
+  (a grass tile, an edge strip, a weed, a leaf pile), never right next to someone. It doesn't grow
+  while you're offline. What's done is saved (`homeLawn`), so it looks the same when you come
+  back; a new lawn starts overgrown. Getting an untidy lawn tidy again earns a neighbor's tip
+  (`TidyTip`, $25), at most once every `TidyTipCooldownMinutes` (30), and only after it has grown
+  back below `TipAfterBelowShare` (75%) done since the last tip, so a stray weed isn't a tip.
+  Work counts on the lawn and just past its edges, not on the driveway.
+- **Curb appeal** is 0 to 100: how good your business looks from the street. The HUD shows your
+  crew's under your money and level.
+  - Up to `CurbAppeal.LawnPoints` (60) come from the lawn, in proportion to how much of it is
+    done.
+  - Up to `DecorPoints` (40) come from decorations (below). Each extra one of a kind counts
+    `DecorRepeat` (0.6) of the one before, an overgrown shrub counts `OvergrownShare` (half), and
+    the total levels off: `DecorHalfPoints` (30) appeal points earn half the decoration points.
+    A few good pieces beat a yard full of flamingos.
+
+  Every job the crew does pays up to `MaxPayBonus` (+15%) more at 100, less below it, using the
+  leader's curb appeal when the crew sets off. The pay breakdown shows it as a "Curb appeal" line.
+  Tuning is in `GameConfig.HomeLawn` and `GameConfig.CurbAppeal`.
+- **Decorations** (`DecorService`, `DecorController`, `src/shared/Config/Decorations.luau`,
+  `src/shared/DecorPlacement.luau`; models in alphainstructions/instructions34.md). 24 of them,
+  at real-world prices, from a $12 pink flamingo to a $900 tiered fountain, in the **Decorations**
+  tab of the Orders app.
+  - **They're for your crew's yard** (the leader's): whoever orders one pays, and it's the
+    leader's business that gets it. It comes in a box at the delivery spot like a tool, and
+    anyone in the crew can open it. A crewmate can have at most 4 unopened boxes waiting at
+    someone else's shop, and can't order for a leader whose progress isn't being saved. At most
+    2 decoration boxes stand at the shop at once; the rest wait their turn.
+  - **Placing** is in first person. A see-through copy stands where you look: green if it can go
+    there, red (with why) if not. R turns it 15° (Shift+R back), E puts it down, Q puts it back;
+    phones get Place, Turn and Put back buttons. The business's owner can also send it back for
+    half its price (F, or Send back). It can't go on the driveway, in or right next to the
+    building, desk, workbench, sign, outdoor storage or delivery spot, or off the plot. It can't
+    overlap another decoration either, except in or on ground cover (`holds`: a mulch bed's
+    shrubs, a bench on pavers). Only
+    small things on a stake or post (`onLawn`: mailbox, lamp post, path light, bird feeder,
+    birdhouse, flamingo, gnome) can stand on the grass. The server checks the same rules.
+  - **Joining:** fence sections, stone edging, paver paths and mulch beds snap end to end when
+    one's `SnapL` comes near another's free `SnapR` (or the other way round).
+  - **Moving:** look at a placed decoration and press E to pick it up and place it again (it
+    keeps its turn). Where everything stands is saved (`decor`). If a bigger building needs the
+    room, what's in the way goes back in its box, shrubs keeping their trim. A truck or trailer
+    swap doesn't disturb the yard.
+  - **What the markers do:**
+    - `Light`: a lamp.
+    - `Fire`: flames and a glow.
+    - `Spout`: water running.
+    - `Seat`, `Seat1`-`Seat4`: seats you can sit on.
+    - `Mailbox__Door` and `Mailbox__Flag`: R opens and closes them (for the crew), about each part's pivot X axis
+      (door −95°, flag +90°; an `OpenAngle` attribute in degrees changes it).
+    - `GardenWindmill__Spinner`: turns about its own Z axis on every screen.
+  - **Shrubs** (`BoxwoodShrub`, `HydrangeaBush`) start shaggy, showing `<Id>__Overgrowth`, until
+    trimmed with a hedge tool (fit and wear as for hedges on a job). They're shaggy again
+    `GameConfig.ShrubRegrowMinutes` (30) of play later.
+  - **Limits:** up to 60 per business. With no model they're block placeholders built to the
+    same conventions.
+
 ## Phases
 
 | Phase | What | Status |
@@ -487,7 +795,15 @@ again.
 | C | Tier-1 jobs and yard targets: pots, planting spots with depths, bulbs, beds, lawn dandelions, rose bushes, dead stems, flowers, watering zones; gloves; tool guide and first-job coach | done |
 | D | Tier-2: holes, trenches and sod, deep beds, hauling from a pile to a bed, spreader and sprayer, branch thickness | done |
 | E | Maintenance systems and supplies | done |
-| F | Tier-3 pro equipment and the turf renovation sequence | **this PR** |
+| F | Tier-3 pro equipment and the turf renovation sequence | done |
+| Camera | First person: arms, tools posed for the view, mouse and menus, crosshair, camera motion | done |
+| Immersion 1 | Walk-in buildings, truck parked at the door, tailgates and ramps | done |
+| Immersion 2 | Look-at loading, bed grid, tool bucket, ride-ons on the trailer | done |
+| Hub 1 | Job computer, Orders and Business apps, deliveries in boxes | done |
+| Hub 2 | Bigger plots with a driveway, leaving from the truck's driver door, pulling back in | done |
+| Hub 3 | Your own lawn (regrowing, saved, worked with your own tools) and curb appeal's pay bonus | done |
+| Hub 3b | Decorations: ordering, boxes, first-person placing with snapping, markers, shrubs to trim, curb appeal | done |
+| Immersion 3 | Hands-on maintenance at service spots and the vise, steps for blades and wheels, tailgate supplies on a job, visible wear and ragged grass | **this PR** |
 
 New tools are already in `Tools.luau` with `available = false`, so they aren't sold until the
 phase that gives them work.
@@ -512,6 +828,16 @@ phase that gives them work.
   travel on one now. Money, level and owned items carry over.
 - **Version 4 (phase E)** adds `condition` (fuel, tires, blade, line, supply uses) for every owned
   tool. Existing tools start as good as new.
+- **Version 5 (Immersion)** adds `spots` (the storage spot each tool goes back to) and `bucket`
+  (the hand tools in the tool bucket). A v4 bucket in the truck carried up to 8 of the hand tools
+  loaded with it, so those go in the bucket and the load stays the same.
+- **Version 6 (the shop as the hub)** adds `deliveries`, the orders still in their box. Everything
+  bought before is already unpacked.
+- **Version 7 (your own lawn)** adds `homeLawn`: which parts of the lawn are done, one character
+  per target and task, when the last tidy tip was paid, and whether another is due. Existing players' lawns start
+  overgrown.
+- **Version 8 (decorations)** adds `decor`: the decorations `placed` in the yard (id, where in
+  plot space, and a shrub's trim state) and those still in their `boxes`. Nobody has any yet.
 
 ## New item ids for modelers
 
@@ -588,7 +914,21 @@ by a part named `Handle` (see `assets/README.md`).
 | EquipmentTrailer | `Assets/Trailers` | Low tandem-axle flatbed with a fold-down rear ramp and a `BedArea` part |
 | StorageShelf | `Assets/Props` | Floor-standing gray metal shelf, about 4 wide x 5 tall x 1.4 deep, 3 boards; `Slot1`-`Slot6` attachments (2 per board) |
 | EquipmentYard | `Assets/Buildings` | Business tier 4: fenced yard with a big roll-up-door shop and covered equipment bays |
-| Workbench | `Assets/Props` | Sturdy wooden bench with a vise and a pegboard back |
+| Workbench | `Assets/Props` | Sturdy wooden bench with a vise and a pegboard back; a `ServiceSpot` attachment on the floor in front (where a machine is set down) and a `VisePoint` in the vise jaws |
 | StoragePegboard | `Assets/Props` | Wall pegboard panel with hooks for hand tools |
 | StorageWallRack | `Assets/Props` | Wall rack with slots for long-handled tools |
 | StorageWallHooks | `Assets/Props` | Row of heavy wall hooks for trimmers and blowers |
+| JobLaptopTable | `Assets/Props` | Shed job computer: folding table, rugged laptop (`__Screen`), stool (`__Chair`), `UseSpot`, `ScreenView` (instructions33) |
+| JobComputerDesk | `Assets/Props` | Garage job computer: steel tanker desk, monitor (`__Screen`), shop stool (`__Chair`), `UseSpot`, `ScreenView` |
+| JobOfficeDesk | `Assets/Props` | SmallOffice and EquipmentYard job computer: L-desk, two monitors (`__Screen`, `__Screen2`), office chair (`__Chair`), `UseSpot`, `ScreenView` |
+| DeliveryBoxSmall | `Assets/Props` | Small taped box, `__FlapL` / `__FlapR` on their hinges, `Contents` |
+| DeliveryBoxLong | `Assets/Props` | Long narrow box, `__Lid` hinged at the back, `Contents` |
+| DeliveryBoxLarge | `Assets/Props` | Large box, `__FlapL` / `__FlapR` / `__FlapF` / `__FlapB`, `Contents` |
+| DeliveryCrate | `Assets/Props` | Wooden crate on a pallet, `__Lid` and `__FrontPanel` (hinged at the bottom into a ramp), `Contents` |
+| PicketFenceSection, StoneEdgingSection, PaverPathSection, MulchBedSection | `Assets/Decorations` | Borders and paths that join end to end with `SnapL` / `SnapR` (instructions34) |
+| BoxwoodShrub, HydrangeaBush | `Assets/Decorations` | Shrubs, with `<Id>__Overgrowth` shown until trimmed |
+| JapaneseMaple, TerracottaPlanter, RaisedGardenBed | `Assets/Decorations` | Plants (`__Canopy`, `__Plants`) |
+| BirdBath, TieredFountain, GardenArbor, GardenBench, PatioSet, FirePit | `Assets/Decorations` | Features: `Water` / `Water1`-`3`, `Spout`, `Seat` / `Seat1`-`4`, `Fire` markers |
+| Mailbox, LampPost, SolarPathLight, BirdFeeder, Birdhouse, PinkFlamingo, GardenWindmill | `Assets/Decorations` | `Mailbox__Door` / `__Flag` on hinges, `Light` markers, `GardenWindmill__Spinner` |
+| GardenGnome, FlowerPatch | `Assets/Decorations` (or `Assets/Props`) | Sold as decorations too; the yard props are used if there's no decoration model |
+| All trucks | `Assets/Trucks` | Add `<Id>__DriverDoor` and `<Id>__DriverDoorGlass` (left door, origin on the hinge) and a `DriverSeat` attachment at the driver's eyes (instructions25) |

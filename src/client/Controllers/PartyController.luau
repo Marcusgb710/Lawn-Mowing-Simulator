@@ -1,6 +1,7 @@
 -- The crew menu (invite, kick, leave) and the popup when someone invites you.
 
 local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -96,7 +97,14 @@ local function render()
 	end
 end
 
+-- [inviter] = their invite popup on screen
+local invitePopups = {}
+
 local function showInvite(from: Player, timeout: number)
+	local earlier = invitePopups[from]
+	if earlier then
+		earlier:Destroy()
+	end
 	local popup = UI.new("Frame", {
 		Name = "Invite",
 		AnchorPoint = Vector2.new(0.5, 1),
@@ -105,9 +113,23 @@ local function showInvite(from: Player, timeout: number)
 		BackgroundColor3 = UI.Colors.Background,
 		Parent = UI.getScreen(),
 	}, { UI.corner(10), UI.padding(10) })
+	invitePopups[from] = popup
+	popup.Destroying:Connect(function()
+		if invitePopups[from] == popup then
+			invitePopups[from] = nil
+		end
+	end)
 
-	UI.label(`{from.DisplayName} invited you to their crew!`, {
+	-- The popup doesn't free the mouse by itself (you might be in the middle of mowing), so on a
+	-- keyboard it says how.
+	local text = `{from.DisplayName} invited you to their crew!`
+	if UserInputService.KeyboardEnabled then
+		text ..= "  (hold Alt to click)"
+	end
+	UI.label(text, {
 		TextXAlignment = Enum.TextXAlignment.Center,
+		TextWrapped = true,
+		TextSize = 16,
 		Parent = popup,
 	})
 

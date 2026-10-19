@@ -7,6 +7,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Deliveries = require(Shared.Deliveries)
 local Items = require(Shared.Config.Items)
 local Maintenance = require(Shared.Config.Maintenance)
 local Storage = require(Shared.Config.Storage)
@@ -88,6 +89,8 @@ local function render()
 	for index, item in Items.ownedTools(profile.owned) do
 		local loaded = profile.loadout[item.id] == true
 		local inHands = held == item.id
+		local inBucket = profile.bucket ~= nil and profile.bucket[item.id] == true
+		local boxed = Deliveries.pending(profile.deliveries, item.id)
 
 		local card = UI.new("Frame", {
 			Size = UDim2.new(1, -8, 0, 0),
@@ -130,7 +133,16 @@ local function render()
 			Parent = details,
 		})
 
-		UI.label(if loaded then "In the truck" elseif inHands then "In your hands" else "In storage", {
+		local servicing = Players.LocalPlayer:GetAttribute("Servicing") == item.id
+		local where = if boxed
+			then "In its delivery box"
+			elseif servicing then "At the workbench"
+			elseif inBucket and loaded then "In the bucket, in the truck"
+			elseif inBucket then "In the tool bucket"
+			elseif loaded then "In the truck"
+			elseif inHands then "In your hands"
+			else "In storage"
+		UI.label(where, {
 			AnchorPoint = Vector2.new(1, 0),
 			Position = UDim2.new(1, -12, 0, 10),
 			Size = UDim2.fromOffset(130, 24),
@@ -141,7 +153,7 @@ local function render()
 		})
 		-- Pegboards get crowded, so you can also grab a tool from here while standing at storage.
 		local atBusiness = job == nil or job.state == "Ready"
-		if atBusiness and not loaded and (held == nil or inHands) then
+		if atBusiness and not loaded and not inBucket and not boxed and not servicing and (held == nil or inHands) then
 			UI.button(if inHands then "Put back" else "Grab", function()
 				if inHands then
 					CarryController.putBack()
@@ -179,6 +191,11 @@ function TruckController:Start()
 
 	ClientState.Changed:Connect(function(key)
 		if (key == "profile" or key == "party" or key == "job") and window.Visible then
+			render()
+		end
+	end)
+	player:GetAttributeChangedSignal("Servicing"):Connect(function()
+		if window.Visible then
 			render()
 		end
 	end)
