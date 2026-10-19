@@ -1,8 +1,16 @@
 {
   "name": "LawnMowingSimulator",
-  "globIgnorePaths": ["**/*.md", "**/.gitkeep"],
+  "globIgnorePaths": [
+    "**/*.md",
+    "**/.gitkeep"
+  ],
   "tree": {
     "$className": "DataModel",
+    "ReplicatedFirst": {
+      "First": {
+        "$path": "src/first"
+      }
+    },
     "ReplicatedStorage": {
       "Shared": {
         "$path": "src/shared"
