@@ -61,7 +61,10 @@ paste `scripts/PrepareChatGPTModels.luau` into the command bar, save
 `ServerStorage.ModelImport` with right-click → Save / Export → Save to File, and run
 `lune run scripts/export-models <file>.rbxm` (add `--overwrite` to replace existing models).
 
-- [ ] **High-poly pass (instructions 24–34): import it.** ChatGPT's 115 models are on the
+- [x] **High-poly pass (instructions 24–34): imported.** All 115 models are in `assets/` (85 replaced,
+      30 new, including the new `Decorations` folder). Still to check in Play: the walk-in buildings,
+      truck doors and tailgates, desks, boxes and decorations.
+      How it was done: ChatGPT's 115 models are on the
       `codex/high-detail-models` branch. The 11 combined files are copied to
       `~/Desktop/LawnModelsImport/HighPoly/ALL` (textures in `../Textures`), and
       `scripts/PrepareChatGPTModels.luau` is generated for them by `scripts/generate-prepare.py`.

@@ -188,8 +188,9 @@ assert(count > 0, "No imported ChatGPT models found in Workspace. Import the pac
 
 ChangeHistoryService:SetWaypoint("Before preparing ChatGPT models")
 
--- The importer wraps each component in a Model ("<Asset>__Body" > MeshPart named after the mesh).
--- Flatten it so each asset holds MeshParts named "<Asset>__<Component>".
+-- The importer wraps each component in a Model ("<Asset>__Body" > MeshPart named after the mesh),
+-- named after the glTF node, sometimes with "_Node" on the end. Flatten it so each asset holds
+-- MeshParts named "<Asset>__<Component>", exactly as the manifest names them.
 local importRoots = {}
 for name, model in found do
 	local root = model
@@ -200,8 +201,9 @@ for name, model in found do
 	for _, child in model:GetChildren() do
 		if child:IsA("Model") then
 			local list = parts(child)
+			local partName = string.gsub(child.Name, "_Node$", "")
 			for _, part in list do
-				part.Name = child.Name
+				part.Name = partName
 				part.Parent = model
 			end
 			if #list > 0 then
