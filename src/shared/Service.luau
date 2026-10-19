@@ -66,6 +66,32 @@ local function wrench(kind: string, text: string): Step
 	return { kind = kind, text = text, seconds = Service.StepSeconds }
 end
 
+-- What a supply tops up, and what to say when it's already full (a sharp blade, a full tank).
+local TOPS_UP = {
+	Fuel = { field = "fuel", reason = "The tank's already full." },
+	Inflate = { field = "pressure", reason = "Its tires are already firm." },
+	Sharpen = { field = "sharpness", reason = "It's already sharp." },
+	Reload = { field = "line", reason = "The spool's already full." },
+}
+
+local function alreadyFull(action: string, condition): string?
+	local tops = TOPS_UP[action]
+	local value = tops and condition[tops.field]
+	if typeof(value) == "number" and value >= 1 then
+		return tops.reason
+	end
+	return nil
+end
+
+-- Uses a supply that tops something up, unless there's nothing to top up.
+local function topUp(supplyId: string, condition): (Step?, string?)
+	local full = alreadyFull(Maintenance.Supplies[supplyId].action, condition)
+	if full then
+		return nil, full
+	end
+	return apply(supplyId), nil
+end
+
 -- What using `supplyId` on `tool` does right now. `spot` is where it's set down, `state` what's
 -- off it, and `part` what you're looking at ("Wheel", "Spool" or nil). Returns the step, or nil
 -- and what's in the way.
@@ -82,7 +108,7 @@ function Service.step(tool, condition, supplyId: string, state: State, spot: Spo
 		if supplyId == "WrenchSet" then
 			return wrench("BladeOn", "Bolt the blade back on"), nil
 		elseif action == "Sharpen" and Maintenance.bladeOf(tool) == supply.blade then
-			return apply(supplyId), nil
+			return topUp(supplyId, condition)
 		elseif action == "SwapBlade" and Maintenance.takesSpareBlade(tool) then
 			return apply(supplyId), nil
 		elseif action == "Sharpen" or action == "SwapBlade" then
@@ -102,12 +128,12 @@ function Service.step(tool, condition, supplyId: string, state: State, spot: Spo
 		if not Maintenance.burnsFuel(tool) then
 			return nil, "There's no tank on it."
 		end
-		return apply(supplyId), nil
+		return topUp(supplyId, condition)
 	elseif action == "Inflate" or action == "Patch" then
 		if not airTires then
 			return nil, "Its tires don't take air."
 		end
-		return apply(supplyId), nil
+		return topUp(supplyId, condition)
 	elseif action == "SwapTire" then
 		if not airTires then
 			return nil, "Its tires don't take air."
@@ -130,6 +156,8 @@ function Service.step(tool, condition, supplyId: string, state: State, spot: Spo
 		elseif Maintenance.bladeOf(tool) ~= supply.blade then
 			-- Like the HUD, this doesn't say what would work.
 			return nil, "That won't help here."
+		elseif alreadyFull(action, condition) then
+			return nil, alreadyFull(action, condition)
 		elseif Service.bladeComesOff(tool, spot) then
 			return nil, "Get the blade off first."
 		end
@@ -143,7 +171,7 @@ function Service.step(tool, condition, supplyId: string, state: State, spot: Spo
 		if not Maintenance.usesLine(tool) then
 			return nil, "There's no spool on it."
 		end
-		return apply(supplyId), nil
+		return topUp(supplyId, condition)
 	end
 	return nil, "That won't help here."
 end
