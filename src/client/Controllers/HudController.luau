@@ -348,7 +348,8 @@ local function updateProfile()
 		return
 	end
 	moneyLabel.Text = Format.money(profile.money)
-	levelLabel.Text = `Level {profile.level}  ·  {profile.jobsCompleted} jobs done`
+	levelLabel.Text =
+		`Level {profile.level}  ·  {profile.jobsCompleted} {if profile.jobsCompleted == 1 then "job" else "jobs"} done`
 	local from = GameConfig.xpForLevel(profile.level)
 	local to = GameConfig.xpForLevel(profile.level + 1)
 	xpFill.Size = UDim2.fromScale(math.clamp((profile.xp - from) / (to - from), 0, 1), 1)

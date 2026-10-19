@@ -22,6 +22,9 @@ local UI = require(script.Parent.Parent.UI)
 
 -- Selling takes a second tap within this many seconds, so it can't happen by accident.
 local SELL_CONFIRM_TIME = 3
+-- After something's bought, its button rests this many seconds, so tapping Buy a few times
+-- doesn't start selling it straight back (or restock it twice).
+local BUY_REST = 1.5
 
 local ShopController = {}
 
@@ -42,6 +45,13 @@ local list: ScrollingFrame
 -- The tool id waiting for a second tap to sell, and when the first tap was.
 local confirmingSell: string? = nil
 local confirmingSince = 0
+-- [item id] = os.clock() it was last bought
+local boughtAt: { [string]: number } = {}
+
+local function resting(item): boolean
+	local at = boughtAt[item.id]
+	return at ~= nil and os.clock() - at < BUY_REST
+end
 
 local function storageText(business): string
 	local parts = {}
@@ -120,6 +130,9 @@ end
 local render
 
 local function act(action: string, item, category: string)
+	if resting(item) then
+		return
+	end
 	if action == "SellItem" and confirmingSell ~= item.id then
 		confirmingSell = item.id
 		confirmingSince = os.clock()
@@ -133,19 +146,35 @@ local function act(action: string, item, category: string)
 		return
 	end
 	confirmingSell = nil
-	local _, message = Net.func(action):InvokeServer(category, item.id)
+	if action == "BuyItem" then
+		-- Before asking, since the new profile (and its Sell button) can arrive first.
+		boughtAt[item.id] = os.clock()
+	end
+	local ok, message = Net.func(action):InvokeServer(category, item.id)
+	if action == "BuyItem" then
+		if ok then
+			task.delay(BUY_REST, render)
+		else
+			boughtAt[item.id] = nil
+		end
+	end
 	UI.notify(message)
 end
 
 -- What the button on an item's card says and does, plus why it's locked (if it is).
 local function buttonFor(profile, item, category: string): (string, Color3, string?, string?)
 	if category == DECOR_TAB then
+		if resting(item) then
+			return "Bought", UI.Colors.Disabled, nil, nil
+		end
 		local affordable = profile.money >= item.price
 		return Format.money(item.price), if affordable then UI.Colors.Money else UI.Colors.Disabled, "BuyItem", nil
 	end
 	local owned = profile.owned[category] and profile.owned[category][item.id]
 	if Items.isToolCategory(category) then
-		if owned then
+		if owned and resting(item) then
+			return "Bought", UI.Colors.Disabled, nil, nil
+		elseif owned then
 			if Shop.canRestock(profile, item.id) then
 				local affordable = profile.money >= item.price
 				return `Restock {Format.money(item.price)}`,

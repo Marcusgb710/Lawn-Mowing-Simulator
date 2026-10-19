@@ -110,7 +110,7 @@ function ShopService:Buy(player: Player, category: string, itemId: string): (boo
 		`Ordered the {item.name}! It'll be delivered to your shop. Unbox it and put it on the {string.lower(spot.name)}.`
 end
 
--- Sells a tool back to the hardware store, to free up its storage spot.
+-- Sells a tool back (Orders, on the shop computer), to free up its storage spot.
 function ShopService:Sell(player: Player, category: string, itemId: string): (boolean, string)
 	local item = findItem(category, itemId)
 	local data = DataService:Get(player)

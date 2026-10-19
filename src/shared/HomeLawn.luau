@@ -86,10 +86,13 @@ function HomeLawn.payBonus(curbAppeal: number): number
 	return 1 + GameConfig.CurbAppeal.MaxPayBonus * math.clamp(curbAppeal, 0, 100) / 100
 end
 
--- Seconds of play between one bit of the lawn growing back, for a lawn with this many targets,
--- so all of it is back in RegrowMinutes.
-function HomeLawn.growEvery(targets: number): number
-	return GameConfig.HomeLawn.RegrowMinutes * 60 / math.max(targets, 1)
+-- Seconds of play a bit of the lawn stays tidy once it's done, for a random 0-1: between
+-- RegrowStart and all of RegrowMinutes, so a tidy lawn grows back a bit at a time. Each bit keeps
+-- its own time, so mowing just a strip doesn't make that strip grow back any sooner.
+function HomeLawn.staysTidyFor(random: number): number
+	local config = GameConfig.HomeLawn
+	local start = config.RegrowStart
+	return config.RegrowMinutes * 60 * (start + (1 - start) * math.clamp(random, 0, 1))
 end
 
 -- Whether tidying the lawn at `now` (os.time) earns the neighbor's tip, given the last one.

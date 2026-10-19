@@ -428,7 +428,7 @@ local function unlockTrailers(player: Player)
 	if ownerData and not ownerData.trailerUnlocked then
 		ownerData.trailerUnlocked = true
 		DataService:Changed(owner)
-		notify(owner, "Your truck is full! Trailers are now unlocked at the hardware store.")
+		notify(owner, "Your truck is full! Trailers are now unlocked in Business, on the shop computer.")
 	end
 end
 

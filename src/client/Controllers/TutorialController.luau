@@ -23,7 +23,7 @@ local function step(job): string
 		return "Work through the to-do list. Mowers cut while you hold them and walk; other tools "
 			.. "work while you hold the button. Stay off the flowers and gnomes!"
 	end
-	return "Nice work, you got paid! Spend it at the hardware store: cheap hand tools open up " .. "garden jobs."
+	return "Nice work, you got paid! Spend it in Orders, on the shop computer: cheap hand tools open up garden jobs."
 end
 
 local function update()

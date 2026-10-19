@@ -48,8 +48,10 @@ local GameConfig = {
 	-- Your business's own front lawn (see HomeLawnService).
 	HomeLawn = {
 		-- Minutes of play for a tidy lawn to grow all the way back (grass, edges, weeds, leaves).
-		-- It only grows while you're in the game.
+		-- It only grows while you're in the game. Each bit you tidy stays tidy for between
+		-- RegrowStart of that (0.5 = half) and all of it.
 		RegrowMinutes = 40,
+		RegrowStart = 0.5,
 		-- What a neighbor tips you for tidying it up after it got untidy, and how often at most.
 		-- It only counts once the lawn has grown back to below this share done since the last tip,
 		-- so cutting back one stray weed isn't worth a tip.
