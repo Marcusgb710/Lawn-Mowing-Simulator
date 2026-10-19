@@ -59,7 +59,16 @@ To re-import or add models: in Studio use File → Import 3D with Creator Big Di
 Meter and **World Forward: Back**, because these packs are authored with their front at −Z. Then
 paste `scripts/PrepareChatGPTModels.luau` into the command bar, save
 `ServerStorage.ModelImport` with right-click → Save / Export → Save to File, and run
-`lune run scripts/export-models <file>.rbxm`.
+`lune run scripts/export-models <file>.rbxm` (add `--overwrite` to replace existing models).
+
+- [ ] **High-poly pass (instructions 24–34): import it.** ChatGPT's 115 models are on the
+      `codex/high-detail-models` branch. The 11 combined files are copied to
+      `~/Desktop/LawnModelsImport/HighPoly/ALL` (textures in `../Textures`), and
+      `scripts/PrepareChatGPTModels.luau` is generated for them by `scripts/generate-prepare.py`.
+      Besides the Handle/Root and bed markers, it now adds the manifests' marker Attachments with
+      their attributes, each part's collision, and hinge pivots for doors, tailgates, ramps and
+      flaps. Import all 11 at once, run the script, save ModelImport, then
+      `lune run scripts/export-models <file>.rbxm --overwrite`.
 
 - [ ] Visual review. These are simpler low-poly models than the original kit; the trucks
       especially are boxy. Check grips, scale and colors in Play and send weak ones back to
