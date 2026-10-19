@@ -772,8 +772,15 @@ function JobService:Start()
 
 	local function goHome(player: Player)
 		if player.Parent == Players and player.Character and not self:IsBusy(player) then
-			player.Character:PivotTo(WorldService:GetHomeCFrame(player))
+			local home = WorldService:GetHomeCFrame(player)
+			-- Load the business on their device first, so they don't land in an empty world.
+			pcall(player.RequestStreamAroundAsync, player, home.Position, 5)
+			if player.Parent == Players and player.Character and not self:IsBusy(player) then
+				player.Character:PivotTo(home)
+			end
 		end
+		-- The title card waits for this (see ReplicatedFirst's LoadingScreen).
+		player:SetAttribute("ArrivedAtBusiness", true)
 	end
 
 	-- Joining a crew takes you to the leader's business.

@@ -598,9 +598,10 @@ function WorldService:RefreshPlot(player: Player)
 end
 
 -- Where a player should stand when they're not on a job: their crew leader's business.
+-- Where the crew stands at their business: on the right of the driveway, facing the shop.
 function WorldService:GetHomeCFrame(player: Player, index: number?): CFrame
 	local plot = playerPlots[getLeader(player)] or playerPlots[player]
-	local base = if plot then plot.cframe * CFrame.new(12, 3.5, -40) else spawnCFrame
+	local base = if plot then plot.cframe * CFrame.new(12, 3.5, -24) * CFrame.Angles(0, math.pi, 0) else spawnCFrame
 	return base * CFrame.new(((index or 1) - 1) * 3 - 4.5, 0, 0)
 end
 
