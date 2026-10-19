@@ -355,7 +355,12 @@ local function load(player: Player)
 			break
 		end
 		warn(`Couldn't load data for {player.Name} (attempt {attempt}): {result}`)
-		if string.find(tostring(result), "StudioAccessToApisNotAllowed") then
+		-- Studio without API access fails every time, so don't keep the player waiting for it.
+		local message = tostring(result)
+		if
+			string.find(message, "StudioAccessToApisNotAllowed", 1, true)
+			or string.find(message, "Studio access to APIs is not allowed", 1, true)
+		then
 			break
 		end
 		task.wait(attempt * 2)
