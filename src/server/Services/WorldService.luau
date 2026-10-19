@@ -64,6 +64,10 @@ local COMPUTER_REACH = 8
 local SHOP_MACHINES = { Compressor = "AirCompressor", Grinder = "BenchGrinder" }
 -- Walls put up for a walk-in building whose walls don't collide properly (see makeWalkable).
 local FALLBACK_WALL = 0.8
+-- A wall mesh no thicker than this (studs) is a flat piece that collides fine as it is, and one
+-- whose bottom is this high above the floor is out of the way overhead (see makeWalkable).
+local FLAT_WALL = 1
+local HEADROOM = 7
 
 local WorldService = {}
 -- Fired with (owner) after a business plot is (re)built, so the truck bed can be refilled.
@@ -192,7 +196,24 @@ local function isDoor(name: string): boolean
 	return string.sub(name, -6) == "__Door" or string.sub(name, -12) == "__GarageDoor"
 end
 
+-- A part's extent in `frame`'s space: (low corner, high corner).
+local function extentIn(piece: BasePart, frame: CFrame): (Vector3, Vector3)
+	local low, high = Vector3.one * math.huge, -Vector3.one * math.huge
+	local half = piece.Size / 2
+	for _, x in { -1, 1 } do
+		for _, y in { -1, 1 } do
+			for _, z in { -1, 1 } do
+				local corner = frame:PointToObjectSpace(piece.CFrame:PointToWorldSpace(half * Vector3.new(x, y, z)))
+				low = low:Min(corner)
+				high = high:Max(corner)
+			end
+		end
+	end
+	return low, high
+end
+
 local function makeWalkable(building: Model, markers)
+	local box, size = building:GetBoundingBox()
 	local shells = {}
 	for _, descendant in building:GetDescendants() do
 		if
@@ -203,7 +224,15 @@ local function makeWalkable(building: Model, markers)
 			and math.max(descendant.Size.X, descendant.Size.Z) >= 8
 			and descendant.Size.Y >= 4
 		then
-			table.insert(shells, descendant)
+			-- A flat wall piece (the model's walls come split around their doorways) or a roof up
+			-- out of reach collides fine as it is. Only a box-shaped mesh around people's heads,
+			-- whose hull would fill its doorways, needs the plain walls below instead.
+			local low, high = extentIn(descendant, box)
+			local flat = math.min(high.X - low.X, high.Z - low.Z) <= FLAT_WALL
+			local overhead = low.Y + size.Y / 2 > HEADROOM
+			if not (flat or overhead) then
+				table.insert(shells, descendant)
+			end
 		end
 	end
 	if #shells == 0 then
@@ -213,7 +242,6 @@ local function makeWalkable(building: Model, markers)
 		shell.CanCollide = false
 	end
 
-	local box, size = building:GetBoundingBox()
 	local height = math.min(size.Y, 16)
 	local half = size / 2
 	local function nearestWall(point: Vector3): (string, number)
@@ -233,9 +261,9 @@ local function makeWalkable(building: Model, markers)
 	end
 
 	-- Each door's opening along the wall it's in, from the floor up. A garage door is modelled
-	-- rolled up over its opening. A hinged door is modelled swung open, beside its opening, so
-	-- the opening is taken to be where the truck parks in front of (or, without a parking
-	-- marker, where the door is).
+	-- rolled up over its opening. A hinged door is modelled swung open, beside its opening; the
+	-- wall is the one the door is at, and on the front the opening is taken to be where the truck
+	-- parks in front of (elsewhere, or without a parking marker, where the door is).
 	local gaps = { Front = {}, Back = {}, Left = {}, Right = {} }
 	for _, descendant in building:GetDescendants() do
 		if descendant:IsA("BasePart") and isDoor(descendant.Name) then
@@ -243,14 +271,14 @@ local function makeWalkable(building: Model, markers)
 			local garage = string.sub(descendant.Name, -12) == "__GarageDoor"
 			local width = math.max(descendant.Size.X, descendant.Size.Z)
 			local top = center.Y + descendant.Size.Y / 2 + half.Y
+			local wall, along = nearestWall(center)
 			if not garage then
 				top = descendant.Size.Y + 0.3
 				width = math.max(width, 4) + 0.6
-				if markers.parking then
-					center = box:PointToObjectSpace(markers.parking.Position)
+				if markers.parking and wall == "Front" then
+					along = box:PointToObjectSpace(markers.parking.Position).X
 				end
 			end
-			local wall, along = nearestWall(center)
 			table.insert(gaps[wall], { from = along - width / 2, to = along + width / 2, height = top })
 		end
 	end

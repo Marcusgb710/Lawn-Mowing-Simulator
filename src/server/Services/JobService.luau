@@ -779,7 +779,8 @@ function JobService:Start()
 				player.Character:PivotTo(home)
 			end
 		end
-		-- The title card waits for this (see ReplicatedFirst's LoadingScreen).
+		-- The title card waits for this, and turns their camera this way (see ReplicatedFirst).
+		player:SetAttribute("ArrivedFacing", WorldService:GetHomeCFrame(player).LookVector)
 		player:SetAttribute("ArrivedAtBusiness", true)
 	end
 

@@ -7,6 +7,7 @@
 local ContentProvider = game:GetService("ContentProvider")
 local Players = game:GetService("Players")
 local ReplicatedFirst = game:GetService("ReplicatedFirst")
+local TextChatService = game:GetService("TextChatService")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
@@ -29,6 +30,20 @@ local player = Players.LocalPlayer
 local started = os.clock()
 
 pcall(ReplicatedFirst.RemoveDefaultLoadingScreen, ReplicatedFirst)
+
+-- Roblox's chat window and chat bar would open on top of the card; they come back when the card
+-- goes. Their settings may not have loaded yet this early.
+local hiddenChat: { [Instance]: boolean } = {}
+local cardUp = true
+for _, name in { "ChatWindowConfiguration", "ChatInputBarConfiguration" } do
+	task.spawn(function()
+		local found = TextChatService:WaitForChild(name, 10)
+		if found and cardUp then
+			hiddenChat[found] = (found :: any).Enabled;
+			(found :: any).Enabled = false
+		end
+	end)
+end
 
 local function new(className: string, props, children: { Instance }?): Instance
 	local instance = Instance.new(className)
@@ -355,6 +370,19 @@ end)
 go.Event:Wait()
 connection:Disconnect()
 breathing:Cancel()
+
+-- The server turned them to face their shop, but a first-person camera keeps looking the way it
+-- was (and turns the character with it), so point the camera the way the server said.
+local facing = player:GetAttribute("ArrivedFacing")
+local camera = workspace.CurrentCamera
+if typeof(facing) == "Vector3" and camera then
+	local from = camera.CFrame.Position
+	camera.CFrame = CFrame.lookAt(from, from + Vector3.new(facing.X, 0, facing.Z))
+end
+cardUp = false
+for config, wasOn in hiddenChat do
+	(config :: any).Enabled = wasOn
+end
 
 local fade = TweenService:Create(card, TweenInfo.new(FADE_TIME), { GroupTransparency = 1 })
 fade:Play()
