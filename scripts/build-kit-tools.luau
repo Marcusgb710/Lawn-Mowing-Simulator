@@ -102,6 +102,10 @@ for itemId, spec in TOOLS do
 	handle.Parent = model
 	model.PrimaryPart = handle
 	model:SetAttribute("LawnKitAsset", spec.asset)
+	-- The kit turns CanQuery off for yard pieces, but players aim at tools to pick them up.
+	for _, part in meshParts(model) do
+		part.CanQuery = part.Transparency < 1
+	end
 
 	fs.writeFile(`assets/Tools/{itemId}.rbxm`, roblox.serializeModel({ model }))
 	print(`wrote assets/Tools/{itemId}.rbxm (grip at {grip})`)
