@@ -2,8 +2,10 @@
 --
 -- The server only says which tiles are mowed (the "State" attribute on each job site's Grass
 -- folder, see LawnGrid). This turns that into one kit grass clump per tile: tall clumps until a
--- tile is mowed, then short clumps on a striped turf plate. Tiles far from the camera use the
--- kit's cheaper _LOD clumps, and lawns out of sight aren't drawn at all, to keep phones happy.
+-- tile is mowed, then short clumps on a striped turf plate. Lawns far away aren't drawn at all,
+-- to keep phones happy. Nothing here swaps clumps by distance: the kit's clumps have Automatic
+-- RenderFidelity, so Roblox lowers their detail with distance itself, smoothly, and swapping in
+-- the kit's thin _LOD clumps made the grass pop as you walked.
 -- Grass cut with a dull blade is ragged: short, but duller, with torn tufts sticking up.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -15,15 +17,14 @@ local LawnGrid = require(Shared.LawnGrid)
 
 -- Lawns further than this from the camera (studs, from the lawn's edge) aren't drawn.
 local DRAW_DISTANCE = 200
--- Tiles further than this from the camera use the low-detail clumps.
-local LOD_DISTANCE = 70
--- How far past LOD_DISTANCE a tile has to move before switching back, so it doesn't flicker.
-local LOD_SLACK = 8
+-- A drawn lawn goes when it's this much further than that, so a lawn right at the edge doesn't
+-- flicker in and out as you move.
+local DRAW_SLACK = 30
 local UPDATE_INTERVAL = 0.5
 
 local CLUMPS = {
-	Tall = { near = { "Grass_Tall_A", "Grass_Tall_B" }, far = "Grass_Tall_LOD" },
-	Short = { near = { "Grass_Short_A", "Grass_Short_B" }, far = "Grass_Short_LOD" },
+	Tall = { "Grass_Tall_A", "Grass_Tall_B" },
+	Short = { "Grass_Short_A", "Grass_Short_B" },
 }
 local STRIPES = { Color3.fromRGB(120, 200, 75), Color3.fromRGB(100, 178, 62) }
 local RAGGED_STRIPE = Color3.fromRGB(150, 170, 80)
@@ -60,8 +61,8 @@ local function ghost(part: BasePart)
 	part.CastShadow = false
 end
 
--- Builds the part(s) for one tile in a given state and level of detail.
-local function buildTile(lawn, index: number, kind: string, far: boolean): { BasePart }
+-- Builds the part(s) for one tile in a given state.
+local function buildTile(lawn, index: number, kind: string): { BasePart }
 	local column, row = LawnGrid.cell(index, lawn.rows)
 	local tileSize = lawn.tileSize
 	local turn = math.floor(noise(index, 1) * 4) * (math.pi / 2)
@@ -75,8 +76,7 @@ local function buildTile(lawn, index: number, kind: string, far: boolean): { Bas
 		stripe = RAGGED_STRIPE
 	end
 	local clumps = CLUMPS[kind]
-	local name = if far then clumps.far else clumps.near[if noise(index, 2) < 0.5 then 1 else 2]
-	local source = template(name)
+	local source = template(clumps[if noise(index, 2) < 0.5 then 1 else 2])
 	if source then
 		local clump = source:Clone()
 		local height = source.Size.Y * (0.85 + noise(index, 3) * 0.3) * (if kind == "Tall" then lawn.tallScale else 1)
@@ -103,9 +103,9 @@ local function buildTile(lawn, index: number, kind: string, far: boolean): { Bas
 		table.insert(parts, block)
 	end
 
-	-- Torn tufts the dull blade missed (not drawn far away).
-	if ragged and not far then
-		local tuft = template(CLUMPS.Tall.near[1])
+	-- Torn tufts the dull blade missed.
+	if ragged then
+		local tuft = template(CLUMPS.Tall[1])
 		for tuftIndex = 1, RAGGED_TUFTS do
 			local offset = Vector3.new(noise(index, 10 + tuftIndex) - 0.5, 0, noise(index, 20 + tuftIndex) - 0.5)
 				* tileSize
@@ -140,8 +140,8 @@ local function clearTile(lawn, index: number)
 	end
 end
 
--- Makes one tile match the lawn's state and the camera's distance.
-local function updateTile(lawn, index: number, cameraPosition: Vector3)
+-- Makes one tile match the lawn's state.
+local function updateTile(lawn, index: number)
 	local state = string.sub(lawn.state, index, index)
 	local kind = if state == LawnGrid.TALL
 		then "Tall"
@@ -154,25 +154,21 @@ local function updateTile(lawn, index: number, cameraPosition: Vector3)
 		return
 	end
 
-	local column, row = LawnGrid.cell(index, lawn.rows)
-	local distance = (LawnGrid.center(lawn.origin, lawn.tileSize, column, row) - cameraPosition).Magnitude
-	local far = if tile and tile.far then distance > LOD_DISTANCE - LOD_SLACK else distance > LOD_DISTANCE
-
-	if tile and tile.kind == kind and tile.far == far then
+	if tile and tile.kind == kind then
 		return
 	end
 	clearTile(lawn, index)
-	lawn.tiles[index] = { kind = kind, far = far, parts = buildTile(lawn, index, kind, far) }
+	lawn.tiles[index] = { kind = kind, parts = buildTile(lawn, index, kind) }
 end
 
-local function show(lawn, cameraPosition: Vector3)
+local function show(lawn)
 	if not lawn.container then
 		lawn.container = Instance.new("Folder")
 		lawn.container.Name = "LocalGrass"
 		lawn.container.Parent = workspace
 	end
 	for index = 1, #lawn.state do
-		updateTile(lawn, index, cameraPosition)
+		updateTile(lawn, index)
 	end
 end
 
@@ -199,8 +195,10 @@ local function update()
 	end
 	local cameraPosition = camera.CFrame.Position
 	for _, lawn in lawns do
-		if distanceToLawn(lawn, cameraPosition) <= DRAW_DISTANCE then
-			show(lawn, cameraPosition)
+		local reach = if lawn.container then DRAW_DISTANCE + DRAW_SLACK else DRAW_DISTANCE
+		if distanceToLawn(lawn, cameraPosition) <= reach then
+			-- Already drawn: only new or changed tiles are built (see updateTile).
+			show(lawn)
 		else
 			hide(lawn)
 		end
@@ -238,11 +236,10 @@ local function track(folder: Instance)
 		end
 		local oldState = lawn.state
 		lawn.state = newState
-		local camera = workspace.CurrentCamera
-		if lawn.container and camera then
+		if lawn.container then
 			for index = 1, #newState do
 				if string.sub(newState, index, index) ~= string.sub(oldState, index, index) then
-					updateTile(lawn, index, camera.CFrame.Position)
+					updateTile(lawn, index)
 				end
 			end
 		end
