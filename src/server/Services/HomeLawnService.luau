@@ -189,7 +189,8 @@ local function build(owner: Player)
 		frame = frame,
 		min = origin - Vector3.new(MARGIN_LEFT, 0, MARGIN_FRONT),
 		max = origin + Vector3.new(columns * tile + MARGIN_RIGHT, 0, rows * tile + MARGIN_BACK),
-		growth = 0,
+		-- [target] = { seconds tidy so far, seconds it stays tidy }, for the tidy ones
+		ages = {},
 		tidy = lawn:IsComplete(),
 		done = 0,
 	}
@@ -213,8 +214,9 @@ local function lawnUnder(player: Player)
 	return if inside then entry else nil
 end
 
--- A bit of the lawn grows back, somewhere nobody's standing.
-local function growSome(entry): boolean
+-- Every tidy bit of the lawn ages, and grows back once it's been tidy long enough
+-- (HomeLawn.staysTidyFor), unless someone's standing by it.
+local function grow(owner: Player, entry, seconds: number)
 	local roots = {}
 	for _, player in Players:GetPlayers() do
 		local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
@@ -222,9 +224,20 @@ local function growSome(entry): boolean
 			table.insert(roots, root.Position)
 		end
 	end
-	local candidates = {}
+	local grew = false
 	for _, target in entry.targets do
 		if target.work > 0 then
+			-- Not done: when it is, its time starts from then.
+			entry.ages[target] = nil
+			continue
+		end
+		local age = entry.ages[target]
+		if not age then
+			age = { seconds = 0, lasts = HomeLawn.staysTidyFor(rng:NextNumber()) }
+			entry.ages[target] = age
+		end
+		age.seconds += seconds
+		if age.seconds < age.lasts then
 			continue
 		end
 		local clear = true
@@ -235,28 +248,10 @@ local function growSome(entry): boolean
 				break
 			end
 		end
-		if clear then
-			table.insert(candidates, target)
+		if clear and entry.lawn:Regrow(target) then
+			entry.ages[target] = nil
+			grew = true
 		end
-	end
-	if #candidates == 0 then
-		return false
-	end
-	return entry.lawn:Regrow(candidates[rng:NextInteger(1, #candidates)])
-end
-
-local function grow(owner: Player, entry, seconds: number)
-	entry.growth += seconds
-	local every = HomeLawn.growEvery(#entry.targets)
-	local grew = false
-	while entry.growth >= every do
-		entry.growth -= every
-		if not growSome(entry) then
-			-- All grown (or all of it underfoot): wait for the next bit.
-			entry.growth = 0
-			break
-		end
-		grew = true
 	end
 	if grew then
 		entry.tidy = entry.lawn:IsComplete()

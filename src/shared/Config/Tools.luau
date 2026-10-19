@@ -63,7 +63,7 @@ Tools.SizeClasses = {
 	Supply = { label = "Supplies", spot = "Shelf", space = 1 },
 }
 
--- What it takes to buy each tier at the hardware store: a player level and a business at least
+-- What it takes to order each tier on the shop computer: a player level and a business at least
 -- this big. Tools you already own stay yours either way.
 Tools.TierUnlocks = {
 	Homeowner = { level = 1, business = "Shed" },

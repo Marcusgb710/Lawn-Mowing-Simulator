@@ -78,9 +78,10 @@ local function render()
 	if job and job.todo then
 		hint.Text = `The customer wants: {table.concat(job.todo, "; ")}.`
 	elseif not profile.trailerUnlocked then
-		hint.Text = "Fill the truck to unlock trailers at the hardware store. A tool bucket packs hand tools tight."
+		hint.Text =
+			"Fill the truck to unlock trailers (in Business, on the shop computer). A tool bucket packs hand tools tight."
 	elseif not profile.equipped.Trailer then
-		hint.Text = "Trailers are unlocked! Buy one at the hardware store for more room."
+		hint.Text = "Trailers are unlocked! Order one in Business, on the shop computer, for more room."
 	else
 		hint.Text = "Carry tools from storage to the truck. Only tools in the truck come with you."
 	end
