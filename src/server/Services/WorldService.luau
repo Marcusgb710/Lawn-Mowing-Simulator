@@ -129,6 +129,13 @@ local function buildPlaceholderTown(): Model
 		Color = Color3.fromRGB(90, 150, 70),
 		Material = Enum.Material.Grass,
 	})
+	-- Studio's default Baseplate has its top at Y = 0 as well, and where two surfaces share a
+	-- height they flicker through each other as the camera moves (the grass "vanishing" into the
+	-- grey grid). Drop it under the town; past the town's edge it's still there to stand on.
+	local baseplate = workspace:FindFirstChild("Baseplate")
+	if baseplate and baseplate:IsA("BasePart") then
+		baseplate.Position -= Vector3.new(0, 1, 0)
+	end
 	for _, z in { 20, -120 } do
 		part(town, {
 			Name = "Road",
