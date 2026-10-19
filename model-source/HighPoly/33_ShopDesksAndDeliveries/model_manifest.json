@@ -538,7 +538,7 @@
       ],
       "slots": [],
       "triangles": 10644,
-      "mesh_objects": 13,
+      "mesh_objects": 14,
       "parts": [
         {
           "name": "JobOfficeDesk__Body",
@@ -557,7 +557,22 @@
         },
         {
           "name": "JobOfficeDesk__Top",
-          "triangles": 216,
+          "triangles": 108,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "collision_worktop",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "JobOfficeDesk__ReturnTop",
+          "triangles": 108,
           "origin_studs": [
             0.0,
             0.0,
@@ -799,7 +814,7 @@
           "parent_mesh": "DeliveryBoxSmall__Body",
           "position_studs": [
             0.0,
-            0.0341312050819397,
+            0.03413120657205582,
             0.0002467036247253418
           ],
           "orientation_degrees": [
@@ -925,7 +940,7 @@
           "parent_mesh": "DeliveryBoxLong__Body",
           "position_studs": [
             0.0,
-            0.03381642818450928,
+            0.03381642699241638,
             0.0002446472644805908
           ],
           "orientation_degrees": [
@@ -1036,7 +1051,7 @@
           "parent_mesh": "DeliveryBoxLarge__Body",
           "position_studs": [
             0.0,
-            0.03410474836826325,
+            0.03410474956035614,
             0.00024819374084472656
           ],
           "orientation_degrees": [
@@ -1192,7 +1207,7 @@
           "parent_mesh": "DeliveryCrate__Body",
           "position_studs": [
             0.0,
-            0.4429864344000817,
+            0.4429864287376404,
             0.03902435302734375
           ],
           "orientation_degrees": [

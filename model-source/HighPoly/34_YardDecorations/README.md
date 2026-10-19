@@ -1,6 +1,6 @@
 # 34_YardDecorations
 
-22 model sources following instructions34 at main commit `2377b19`. The original kit, previous source packs, game assets and runtime code are preserved.
+22 model sources following instructions34 at main commit `2377b19`. The original kit, previous source packs, game assets and runtime code are preserved. The integration contracts were also reviewed against main commit `3c40d45`.
 
 ## Import handoff
 
@@ -8,7 +8,7 @@ Import [`ALL/34_YardDecorations.gltf`](ALL/34_YardDecorations.gltf) with its adj
 
 Keep mesh names, local hinge/axle origins, and model origins. Restore the existing Handle/Root and slot metadata from `model_manifest.json`. If Studio discards authoring empties, recreate Attachment instances from the manifest positions, LookVectors, parents and attributes. The glTF node extras and FBX custom properties provide the same authoring metadata.
 
-Use the per-part collision roles and fidelity hints in the manifest. Do not flatten moving pieces or merge transparent pieces into opaque materials. The shared maps include Color, Roughness, Metalness and Normal; the extra packed Metalness-Roughness PNG is the standard glTF rendering derivative of that same atlas.
+Use the per-part collision roles and fidelity hints in the manifest. Do not flatten moving pieces or merge transparent pieces into opaque materials. The Color map uses sRGB; `atlas_palette.json` records its checked color swatches. Roughness, Metalness and Normal are data maps; the extra packed Metalness-Roughness PNG is the standard glTF rendering derivative of that same atlas.
 
 **Studio import, asset upload and in-game replacement have not been run in this cloud environment.** These portable sources are the handoff for the local Studio session. No runtime scripts, light instances, brand marks or game publication are included.
 
@@ -26,11 +26,11 @@ Both shrubs have separate Overgrowth meshes. JapaneseMaple has a Canopy mesh; pl
 | [StoneEdgingSection](Models/StoneEdgingSection/StoneEdgingSection.gltf) | 972 | 4.30 × 0.55 × 0.90 | [PNG](Previews/StoneEdgingSection_Preview.png) |
 | [PaverPathSection](Models/PaverPathSection/PaverPathSection.gltf) | 2,912 | 4.30 × 0.20 × 4.30 | [PNG](Previews/PaverPathSection_Preview.png) |
 | [MulchBedSection](Models/MulchBedSection/MulchBedSection.gltf) | 2,340 | 8.60 × 0.40 × 4.30 | [PNG](Previews/MulchBedSection_Preview.png) |
-| [BoxwoodShrub](Models/BoxwoodShrub/BoxwoodShrub.gltf) | 5,624 | 2.90 × 2.90 × 2.90 | [PNG](Previews/BoxwoodShrub_Preview.png) |
-| [HydrangeaBush](Models/HydrangeaBush/HydrangeaBush.gltf) | 6,888 | 4.00 × 3.60 × 4.00 | [PNG](Previews/HydrangeaBush_Preview.png) |
-| [JapaneseMaple](Models/JapaneseMaple/JapaneseMaple.gltf) | 10,240 | 9.00 × 9.00 × 9.00 | [PNG](Previews/JapaneseMaple_Preview.png) |
+| [BoxwoodShrub](Models/BoxwoodShrub/BoxwoodShrub.gltf) | 6,952 | 2.90 × 2.90 × 2.90 | [PNG](Previews/BoxwoodShrub_Preview.png) |
+| [HydrangeaBush](Models/HydrangeaBush/HydrangeaBush.gltf) | 6,936 | 4.00 × 3.60 × 4.00 | [PNG](Previews/HydrangeaBush_Preview.png) |
+| [JapaneseMaple](Models/JapaneseMaple/JapaneseMaple.gltf) | 12,832 | 9.00 × 9.00 × 9.00 | [PNG](Previews/JapaneseMaple_Preview.png) |
 | [TerracottaPlanter](Models/TerracottaPlanter/TerracottaPlanter.gltf) | 5,220 | 2.00 × 2.80 × 2.00 | [PNG](Previews/TerracottaPlanter_Preview.png) |
-| [RaisedGardenBed](Models/RaisedGardenBed/RaisedGardenBed.gltf) | 6,604 | 8.60 × 2.50 × 4.30 | [PNG](Previews/RaisedGardenBed_Preview.png) |
+| [RaisedGardenBed](Models/RaisedGardenBed/RaisedGardenBed.gltf) | 6,968 | 8.60 × 2.50 × 4.30 | [PNG](Previews/RaisedGardenBed_Preview.png) |
 | [BirdBath](Models/BirdBath/BirdBath.gltf) | 2,928 | 2.20 × 2.60 × 2.20 | [PNG](Previews/BirdBath_Preview.png) |
 | [TieredFountain](Models/TieredFountain/TieredFountain.gltf) | 7,172 | 6.00 × 5.40 × 6.00 | [PNG](Previews/TieredFountain_Preview.png) |
 | [GardenArbor](Models/GardenArbor/GardenArbor.gltf) | 9,324 | 4.60 × 8.20 × 2.20 | [PNG](Previews/GardenArbor_Preview.png) |
@@ -44,6 +44,8 @@ Both shrubs have separate Overgrowth meshes. JapaneseMaple has a Canopy mesh; pl
 | [Birdhouse](Models/Birdhouse/Birdhouse.gltf) | 1,104 | 1.00 × 6.40 × 1.00 | [PNG](Previews/Birdhouse_Preview.png) |
 | [PinkFlamingo](Models/PinkFlamingo/PinkFlamingo.gltf) | 2,940 | 1.10 × 3.00 × 1.80 | [PNG](Previews/PinkFlamingo_Preview.png) |
 | [GardenWindmill](Models/GardenWindmill/GardenWindmill.gltf) | 3,132 | 2.40 × 5.40 × 2.00 | [PNG](Previews/GardenWindmill_Preview.png) |
+
+Additional views: [DecoratedFrontLawn](Previews/DecoratedFrontLawn.png).
 
 ## Verification
 

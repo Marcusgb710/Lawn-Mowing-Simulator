@@ -86,7 +86,7 @@
           0.5,
           0.0
         ],
-        "markers_json": "[{\"name\": \"SnapL\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"PicketFenceSection__Body\", \"position_studs\": [-4.300000226497616, 1.600000023841858, 0.0], \"orientation_degrees\": [0.0, 90.00000250447816, 0.0], \"attributes\": {}, \"look_vector\": [-1.0, 0.0, 0.0]}, {\"name\": \"SnapR\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"PicketFenceSection__Body\", \"position_studs\": [4.300000226497616, 1.600000023841858, 0.0], \"orientation_degrees\": [0.0, -90.00000250447816, 0.0], \"attributes\": {}, \"look_vector\": [1.0, 0.0, 0.0]}]",
+        "markers_json": "[{\"name\": \"SnapL\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"PicketFenceSection__Body\", \"position_studs\": [-4.300000190734863, 1.600000023841858, 0.0], \"orientation_degrees\": [-0.0, 90.00000250447816, 0.0], \"attributes\": {}, \"look_vector\": [-1.0, 0.0, 0.0]}, {\"name\": \"SnapR\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"PicketFenceSection__Body\", \"position_studs\": [4.300000190734863, 1.600000023841858, 0.0], \"orientation_degrees\": [-0.0, -90.00000250447816, 0.0], \"attributes\": {}, \"look_vector\": [1.0, 0.0, 0.0]}]",
         "slots_json": "[]"
       },
       "name": "PicketFenceSection"

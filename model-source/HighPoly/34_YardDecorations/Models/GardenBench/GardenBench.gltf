@@ -64,7 +64,7 @@
           0.5,
           0.0
         ],
-        "markers_json": "[{\"name\": \"Seat\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"GardenBench__Body\", \"position_studs\": [0.0, 1.6229305398464204, 0.0], \"orientation_degrees\": [0.0, -0.0, -0.0], \"attributes\": {}, \"look_vector\": [0.0, 0.0, -1.0]}]",
+        "markers_json": "[{\"name\": \"Seat\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"GardenBench__Body\", \"position_studs\": [0.0, 1.6229305267333984, 0.0], \"orientation_degrees\": [0.0, -0.0, -0.0], \"attributes\": {}, \"look_vector\": [0.0, 0.0, -1.0]}]",
         "slots_json": "[]"
       },
       "name": "GardenBench"

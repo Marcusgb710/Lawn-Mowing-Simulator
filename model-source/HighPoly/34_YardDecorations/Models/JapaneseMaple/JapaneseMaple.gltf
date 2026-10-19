@@ -18,9 +18,9 @@
         "role": "static",
         "animation_axis": "",
         "stud_origin": [
-          -0.0377197265625,
+          0.0945138931274414,
           0.0,
-          0.08745813369750977
+          0.06443548202514648
         ],
         "can_collide": false,
         "collision_fidelity": "Default",
@@ -29,9 +29,9 @@
       "mesh": 0,
       "name": "JapaneseMaple__Body",
       "translation": [
-        -0.010561523027718067,
+        0.026463890448212624,
         0,
-        0.024488277733325958
+        0.018041934818029404
       ]
     },
     {
@@ -39,9 +39,9 @@
         "role": "foliage",
         "animation_axis": "",
         "stud_origin": [
-          -0.0377197265625,
+          0.0945138931274414,
           0.0,
-          0.08745813369750977
+          0.06443548202514648
         ],
         "can_collide": false,
         "collision_fidelity": "Default",
@@ -50,9 +50,9 @@
       "mesh": 1,
       "name": "JapaneseMaple__Canopy",
       "translation": [
-        -0.010561523027718067,
+        0.026463890448212624,
         0,
-        0.024488277733325958
+        0.018041934818029404
       ]
     },
     {
@@ -160,14 +160,14 @@
       "componentType": 5126,
       "count": 2208,
       "max": [
-        1.0702050924301147,
-        2.2306711673736572,
-        1.0948318243026733
+        1.0672847032546997,
+        2.2441368103027344,
+        1.043994665145874
       ],
       "min": [
-        -1.0535463094711304,
+        -1.0506713390350342,
         0,
-        -1.132337212562561
+        -1.0797585248947144
       ],
       "type": "VEC3"
     },
@@ -192,35 +192,35 @@
     {
       "bufferView": 4,
       "componentType": 5126,
-      "count": 4500,
+      "count": 32076,
       "max": [
-        1.270561695098877,
+        1.2335362434387207,
         2.5199999809265137,
-        1.2355118989944458
+        1.2419582605361938
       ],
       "min": [
-        -1.2494385242462158,
-        1.3992329835891724,
-        -1.284488320350647
+        -1.2864638566970825,
+        1.417242407798767,
+        -1.278041958808899
       ],
       "type": "VEC3"
     },
     {
       "bufferView": 5,
       "componentType": 5126,
-      "count": 4500,
+      "count": 32076,
       "type": "VEC3"
     },
     {
       "bufferView": 6,
       "componentType": 5126,
-      "count": 4500,
+      "count": 32076,
       "type": "VEC2"
     },
     {
       "bufferView": 7,
       "componentType": 5123,
-      "count": 24300,
+      "count": 32076,
       "type": "SCALAR"
     }
   ],
@@ -251,26 +251,26 @@
     },
     {
       "buffer": 0,
-      "byteLength": 54000,
+      "byteLength": 384912,
       "byteOffset": 83496,
       "target": 34962
     },
     {
       "buffer": 0,
-      "byteLength": 54000,
-      "byteOffset": 137496,
+      "byteLength": 384912,
+      "byteOffset": 468408,
       "target": 34962
     },
     {
       "buffer": 0,
-      "byteLength": 36000,
-      "byteOffset": 191496,
+      "byteLength": 256608,
+      "byteOffset": 853320,
       "target": 34962
     },
     {
       "buffer": 0,
-      "byteLength": 48600,
-      "byteOffset": 227496,
+      "byteLength": 64152,
+      "byteOffset": 1109928,
       "target": 34963
     }
   ],
@@ -282,7 +282,7 @@
   ],
   "buffers": [
     {
-      "byteLength": 276096,
+      "byteLength": 1174080,
       "uri": "JapaneseMaple.bin"
     }
   ]

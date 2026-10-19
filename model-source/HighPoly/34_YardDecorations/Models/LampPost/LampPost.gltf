@@ -23,7 +23,7 @@
       "name": "Light",
       "translation": [
         0,
-        1.7825454473495483,
+        1.7825453281402588,
         0
       ]
     },
@@ -76,7 +76,7 @@
           0.5,
           0.0
         ],
-        "markers_json": "[{\"name\": \"Light\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"LampPost__Body\", \"position_studs\": [0.0, 6.366233736276627, 0.0], \"orientation_degrees\": [0.0, -0.0, -0.0], \"attributes\": {}, \"look_vector\": [0.0, 0.0, -1.0]}]",
+        "markers_json": "[{\"name\": \"Light\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"LampPost__Body\", \"position_studs\": [0.0, 6.3662333488464355, 0.0], \"orientation_degrees\": [0.0, -0.0, -0.0], \"attributes\": {}, \"look_vector\": [0.0, 0.0, -1.0]}]",
         "slots_json": "[]"
       },
       "name": "LampPost"

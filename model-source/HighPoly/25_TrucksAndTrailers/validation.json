@@ -17,7 +17,9 @@
     "portable_PBR_textures_at_most_2048",
     "binary_FBX_header",
     "closed_authoring_components_after_coincident_vertex_matching",
-    "FBX_import_triangle_mesh_count_and_world_bounds"
+    "FBX_import_triangle_mesh_count_and_world_bounds",
+    "sRGB_atlas_pixels_match_declared_palette",
+    "sRGB_atlas_pixels_match_declared_palette"
   ],
   "issues": [],
   "studio_import_tested": false,
@@ -83,28 +85,28 @@
     {
       "name": "RustyPickup",
       "triangles": 25412,
-      "mesh_objects": 14,
+      "mesh_objects": 13,
       "bounds_error_studs": 9.797513484954834e-07,
       "passed": true
     },
     {
       "name": "WorkPickup",
       "triangles": 24756,
-      "mesh_objects": 14,
+      "mesh_objects": 13,
       "bounds_error_studs": 1.430511474609375e-06,
       "passed": true
     },
     {
       "name": "HeavyDutyPickup",
       "triangles": 29964,
-      "mesh_objects": 16,
+      "mesh_objects": 15,
       "bounds_error_studs": 1.087784767150879e-06,
       "passed": true
     },
     {
       "name": "LandscapingTruck",
       "triangles": 26576,
-      "mesh_objects": 14,
+      "mesh_objects": 13,
       "bounds_error_studs": 1.1920928955078125e-06,
       "passed": true
     },
@@ -130,6 +132,13 @@
       "passed": true
     }
   ],
-  "protected_files_unchanged_count": 541,
+  "protected_files_unchanged_count": 557,
+  "reviewed_main_commit": "3c40d45",
+  "atlas_encoding": {
+    "pack": "25_TrucksAndTrailers",
+    "swatches": 19,
+    "maximum_srgb_channel_error": 0.0,
+    "passed": true
+  },
   "preview_status": "rendering"
 }

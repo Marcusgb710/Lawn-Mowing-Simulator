@@ -17,7 +17,9 @@
     "portable_PBR_textures_at_most_2048",
     "binary_FBX_header",
     "closed_authoring_components_after_coincident_vertex_matching",
-    "FBX_import_triangle_mesh_count_and_world_bounds"
+    "FBX_import_triangle_mesh_count_and_world_bounds",
+    "sRGB_atlas_pixels_match_declared_palette",
+    "sRGB_atlas_pixels_match_declared_palette"
   ],
   "issues": [],
   "studio_import_tested": false,
@@ -56,25 +58,25 @@
     },
     {
       "name": "BoxwoodShrub",
-      "triangles": 5624,
+      "triangles": 6952,
       "counts": {
-        "components": 300
+        "components": 583
       },
       "topology_issues": []
     },
     {
       "name": "HydrangeaBush",
-      "triangles": 6888,
+      "triangles": 6936,
       "counts": {
-        "components": 363
+        "components": 358
       },
       "topology_issues": []
     },
     {
       "name": "JapaneseMaple",
-      "triangles": 10240,
+      "triangles": 12832,
       "counts": {
-        "components": 266
+        "components": 338
       },
       "topology_issues": []
     },
@@ -88,9 +90,9 @@
     },
     {
       "name": "RaisedGardenBed",
-      "triangles": 6604,
+      "triangles": 6968,
       "counts": {
-        "components": 112
+        "components": 119
       },
       "topology_issues": []
     },
@@ -230,21 +232,21 @@
     },
     {
       "name": "BoxwoodShrub",
-      "triangles": 5624,
+      "triangles": 6952,
+      "mesh_objects": 2,
+      "bounds_error_studs": 3.5762786865234375e-07,
+      "passed": true
+    },
+    {
+      "name": "HydrangeaBush",
+      "triangles": 6936,
       "mesh_objects": 2,
       "bounds_error_studs": 4.76837158203125e-07,
       "passed": true
     },
     {
-      "name": "HydrangeaBush",
-      "triangles": 6888,
-      "mesh_objects": 2,
-      "bounds_error_studs": 7.152557373046875e-07,
-      "passed": true
-    },
-    {
       "name": "JapaneseMaple",
-      "triangles": 10240,
+      "triangles": 12832,
       "mesh_objects": 2,
       "bounds_error_studs": 1.430511474609375e-06,
       "passed": true
@@ -258,7 +260,7 @@
     },
     {
       "name": "RaisedGardenBed",
-      "triangles": 6604,
+      "triangles": 6968,
       "mesh_objects": 2,
       "bounds_error_studs": 4.76837158203125e-07,
       "passed": true
@@ -355,6 +357,13 @@
       "passed": true
     }
   ],
-  "protected_files_unchanged_count": 541,
+  "protected_files_unchanged_count": 557,
+  "reviewed_main_commit": "3c40d45",
+  "atlas_encoding": {
+    "pack": "34_YardDecorations",
+    "swatches": 30,
+    "maximum_srgb_channel_error": 0.0,
+    "passed": true
+  },
   "preview_status": "rendering"
 }

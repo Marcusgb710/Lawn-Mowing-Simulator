@@ -1,6 +1,6 @@
 # 33_ShopDesksAndDeliveries
 
-7 model sources following instructions33 at main commit `2377b19`. The original kit, previous source packs, game assets and runtime code are preserved.
+7 model sources following instructions33 at main commit `2377b19`. The original kit, previous source packs, game assets and runtime code are preserved. The integration contracts were also reviewed against main commit `3c40d45`.
 
 ## Import handoff
 
@@ -8,7 +8,7 @@ Import [`ALL/33_ShopDesksAndDeliveries.gltf`](ALL/33_ShopDesksAndDeliveries.gltf
 
 Keep mesh names, local hinge/axle origins, and model origins. Restore the existing Handle/Root and slot metadata from `model_manifest.json`. If Studio discards authoring empties, recreate Attachment instances from the manifest positions, LookVectors, parents and attributes. The glTF node extras and FBX custom properties provide the same authoring metadata.
 
-Use the per-part collision roles and fidelity hints in the manifest. Do not flatten moving pieces or merge transparent pieces into opaque materials. The shared maps include Color, Roughness, Metalness and Normal; the extra packed Metalness-Roughness PNG is the standard glTF rendering derivative of that same atlas.
+Use the per-part collision roles and fidelity hints in the manifest. Do not flatten moving pieces or merge transparent pieces into opaque materials. The Color map uses sRGB; `atlas_palette.json` records its checked color swatches. Roughness, Metalness and Normal are data maps; the extra packed Metalness-Roughness PNG is the standard glTF rendering derivative of that same atlas.
 
 **Studio import, asset upload and in-game replacement have not been run in this cloud environment.** These portable sources are the handoff for the local Studio session. No runtime scripts, light instances, brand marks or game publication are included.
 
@@ -29,6 +29,8 @@ Boxes are closed. Each flap, lid and front panel has its own fold-line origin an
 | [DeliveryBoxLong](Models/DeliveryBoxLong/DeliveryBoxLong.gltf) | 900 | 6.20 × 0.80 × 0.80 | [PNG](Previews/DeliveryBoxLong_Preview.png) |
 | [DeliveryBoxLarge](Models/DeliveryBoxLarge/DeliveryBoxLarge.gltf) | 2,232 | 3.40 × 2.40 × 2.40 | [PNG](Previews/DeliveryBoxLarge_Preview.png) |
 | [DeliveryCrate](Models/DeliveryCrate/DeliveryCrate.gltf) | 5,876 | 5.40 × 4.40 × 7.20 | [PNG](Previews/DeliveryCrate_Preview.png) |
+
+Additional views: [JobLaptopTable ScreenView](Previews/JobLaptopTable_ScreenView.png), [JobComputerDesk ScreenView](Previews/JobComputerDesk_ScreenView.png), [JobOfficeDesk ScreenView](Previews/JobOfficeDesk_ScreenView.png).
 
 ## Verification
 

@@ -64,7 +64,7 @@
           0.5,
           0.0
         ],
-        "markers_json": "[{\"name\": \"Fire\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"FirePit__Body\", \"position_studs\": [0.0, 0.9948935970664023, -1.1920928955078125e-07], \"orientation_degrees\": [0.0, -0.0, -0.0], \"attributes\": {}, \"look_vector\": [0.0, 0.0, -1.0]}]",
+        "markers_json": "[{\"name\": \"Fire\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"FirePit__Body\", \"position_studs\": [0.0, 0.9948936104774475, -1.1920928955078125e-07], \"orientation_degrees\": [0.0, -0.0, -0.0], \"attributes\": {}, \"look_vector\": [0.0, 0.0, -1.0]}]",
         "slots_json": "[]"
       },
       "name": "FirePit"

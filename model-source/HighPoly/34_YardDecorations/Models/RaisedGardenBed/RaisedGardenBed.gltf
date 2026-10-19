@@ -192,7 +192,7 @@
     {
       "bufferView": 4,
       "componentType": 5126,
-      "count": 2666,
+      "count": 5352,
       "max": [
         0.9879688024520874,
         0.699999988079071,
@@ -208,19 +208,19 @@
     {
       "bufferView": 5,
       "componentType": 5126,
-      "count": 2666,
+      "count": 5352,
       "type": "VEC3"
     },
     {
       "bufferView": 6,
       "componentType": 5126,
-      "count": 2666,
+      "count": 5352,
       "type": "VEC2"
     },
     {
       "bufferView": 7,
       "componentType": 5123,
-      "count": 12912,
+      "count": 14004,
       "type": "SCALAR"
     }
   ],
@@ -251,26 +251,26 @@
     },
     {
       "buffer": 0,
-      "byteLength": 31992,
+      "byteLength": 64224,
       "byteOffset": 77800,
       "target": 34962
     },
     {
       "buffer": 0,
-      "byteLength": 31992,
-      "byteOffset": 109792,
+      "byteLength": 64224,
+      "byteOffset": 142024,
       "target": 34962
     },
     {
       "buffer": 0,
-      "byteLength": 21328,
-      "byteOffset": 141784,
+      "byteLength": 42816,
+      "byteOffset": 206248,
       "target": 34962
     },
     {
       "buffer": 0,
-      "byteLength": 25824,
-      "byteOffset": 163112,
+      "byteLength": 28008,
+      "byteOffset": 249064,
       "target": 34963
     }
   ],
@@ -282,7 +282,7 @@
   ],
   "buffers": [
     {
-      "byteLength": 188936,
+      "byteLength": 277072,
       "uri": "RaisedGardenBed.bin"
     }
   ]

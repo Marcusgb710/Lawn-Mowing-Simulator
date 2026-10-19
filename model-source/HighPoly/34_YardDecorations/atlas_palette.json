@@ -1,0 +1,278 @@
+{
+  "encoding": "sRGB",
+  "tile_size": 256,
+  "tiles_per_side": 8,
+  "texture": "Textures/HP34_Color.png",
+  "swatches": [
+    {
+      "key": "bark",
+      "tile_index": 0,
+      "srgb": [
+        102,
+        74,
+        50
+      ]
+    },
+    {
+      "key": "black",
+      "tile_index": 1,
+      "srgb": [
+        24,
+        28,
+        30
+      ]
+    },
+    {
+      "key": "canvas",
+      "tile_index": 2,
+      "srgb": [
+        145,
+        124,
+        85
+      ]
+    },
+    {
+      "key": "cedar",
+      "tile_index": 3,
+      "srgb": [
+        156,
+        112,
+        77
+      ]
+    },
+    {
+      "key": "clear",
+      "tile_index": 4,
+      "srgb": [
+        208,
+        225,
+        229
+      ]
+    },
+    {
+      "key": "concrete",
+      "tile_index": 5,
+      "srgb": [
+        164,
+        163,
+        147
+      ]
+    },
+    {
+      "key": "galvanized",
+      "tile_index": 6,
+      "srgb": [
+        145,
+        156,
+        157
+      ]
+    },
+    {
+      "key": "glass",
+      "tile_index": 7,
+      "srgb": [
+        125,
+        169,
+        183
+      ]
+    },
+    {
+      "key": "gray",
+      "tile_index": 8,
+      "srgb": [
+        131,
+        143,
+        144
+      ]
+    },
+    {
+      "key": "hydrangea_blue",
+      "tile_index": 9,
+      "srgb": [
+        107,
+        140,
+        204
+      ]
+    },
+    {
+      "key": "leaf",
+      "tile_index": 10,
+      "srgb": [
+        45,
+        105,
+        38
+      ]
+    },
+    {
+      "key": "leaf_dark",
+      "tile_index": 11,
+      "srgb": [
+        33,
+        73,
+        34
+      ]
+    },
+    {
+      "key": "leaf_light",
+      "tile_index": 12,
+      "srgb": [
+        84,
+        134,
+        45
+      ]
+    },
+    {
+      "key": "maple_light",
+      "tile_index": 13,
+      "srgb": [
+        183,
+        59,
+        44
+      ]
+    },
+    {
+      "key": "maple_red",
+      "tile_index": 14,
+      "srgb": [
+        143,
+        36,
+        39
+      ]
+    },
+    {
+      "key": "mulch",
+      "tile_index": 15,
+      "srgb": [
+        91,
+        59,
+        34
+      ]
+    },
+    {
+      "key": "pink",
+      "tile_index": 16,
+      "srgb": [
+        216,
+        98,
+        137
+      ]
+    },
+    {
+      "key": "purple",
+      "tile_index": 17,
+      "srgb": [
+        138,
+        72,
+        164
+      ]
+    },
+    {
+      "key": "red",
+      "tile_index": 18,
+      "srgb": [
+        182,
+        34,
+        34
+      ]
+    },
+    {
+      "key": "soil",
+      "tile_index": 19,
+      "srgb": [
+        69,
+        49,
+        30
+      ]
+    },
+    {
+      "key": "steel",
+      "tile_index": 20,
+      "srgb": [
+        173,
+        183,
+        188
+      ]
+    },
+    {
+      "key": "steel_dark",
+      "tile_index": 21,
+      "srgb": [
+        79,
+        88,
+        93
+      ]
+    },
+    {
+      "key": "stone",
+      "tile_index": 22,
+      "srgb": [
+        125,
+        129,
+        119
+      ]
+    },
+    {
+      "key": "terracotta",
+      "tile_index": 23,
+      "srgb": [
+        163,
+        79,
+        48
+      ]
+    },
+    {
+      "key": "water",
+      "tile_index": 24,
+      "srgb": [
+        77,
+        135,
+        148
+      ]
+    },
+    {
+      "key": "white",
+      "tile_index": 25,
+      "srgb": [
+        221,
+        226,
+        220
+      ]
+    },
+    {
+      "key": "wood",
+      "tile_index": 26,
+      "srgb": [
+        154,
+        111,
+        62
+      ]
+    },
+    {
+      "key": "wood_dark",
+      "tile_index": 27,
+      "srgb": [
+        104,
+        72,
+        44
+      ]
+    },
+    {
+      "key": "wood_light",
+      "tile_index": 28,
+      "srgb": [
+        183,
+        145,
+        93
+      ]
+    },
+    {
+      "key": "yellow",
+      "tile_index": 29,
+      "srgb": [
+        226,
+        180,
+        34
+      ]
+    }
+  ]
+}

@@ -33,12 +33,12 @@
           "instance_type": "Attachment",
           "parent_mesh": "PicketFenceSection__Body",
           "position_studs": [
-            -4.300000226497616,
+            -4.300000190734863,
             1.600000023841858,
             0.0
           ],
           "orientation_degrees": [
-            0.0,
+            -0.0,
             90.00000250447816,
             0.0
           ],
@@ -54,12 +54,12 @@
           "instance_type": "Attachment",
           "parent_mesh": "PicketFenceSection__Body",
           "position_studs": [
-            4.300000226497616,
+            4.300000190734863,
             1.600000023841858,
             0.0
           ],
           "orientation_degrees": [
-            0.0,
+            -0.0,
             -90.00000250447816,
             0.0
           ],
@@ -150,12 +150,12 @@
           "instance_type": "Attachment",
           "parent_mesh": "StoneEdgingSection__Body",
           "position_studs": [
-            -2.1500001445996304,
-            0.2750000115507607,
+            -2.1500000953674316,
+            0.2750000059604645,
             0.0
           ],
           "orientation_degrees": [
-            0.0,
+            -0.0,
             90.00000250447816,
             0.0
           ],
@@ -171,12 +171,12 @@
           "instance_type": "Attachment",
           "parent_mesh": "StoneEdgingSection__Body",
           "position_studs": [
-            2.149999987433034,
-            0.2750000115507607,
+            2.1500000953674316,
+            0.2750000059604645,
             0.0
           ],
           "orientation_degrees": [
-            0.0,
+            -0.0,
             -90.00000250447816,
             0.0
           ],
@@ -267,8 +267,8 @@
           "parent_mesh": "PaverPathSection__Body",
           "position_studs": [
             0.0,
-            0.10000000522417185,
-            -2.1500000791683362
+            0.10000000894069672,
+            -2.1500000953674316
           ],
           "orientation_degrees": [
             0.0,
@@ -288,13 +288,13 @@
           "parent_mesh": "PaverPathSection__Body",
           "position_studs": [
             0.0,
-            0.10000000522417185,
-            2.1500000791683362
+            0.10000000894069672,
+            2.1500000953674316
           ],
           "orientation_degrees": [
-            0.0,
+            -0.0,
             -180.00000500895632,
-            -0.0
+            0.0
           ],
           "attributes": {},
           "look_vector": [
@@ -383,11 +383,11 @@
           "parent_mesh": "MulchBedSection__Body",
           "position_studs": [
             -4.300000190734863,
-            0.2000000023872417,
+            0.20000000298023224,
             0.0
           ],
           "orientation_degrees": [
-            0.0,
+            -0.0,
             90.00000250447816,
             0.0
           ],
@@ -404,11 +404,11 @@
           "parent_mesh": "MulchBedSection__Body",
           "position_studs": [
             4.300000190734863,
-            0.2000000023872417,
+            0.20000000298023224,
             0.0
           ],
           "orientation_degrees": [
-            0.0,
+            -0.0,
             -90.00000250447816,
             0.0
           ],
@@ -482,9 +482,9 @@
         -1.4500000476837158
       ],
       "bounds_max_studs": [
-        1.450000286102295,
+        1.4500000476837158,
         2.9000000953674316,
-        1.4499999284744263
+        1.4500000476837158
       ],
       "primary_part": "Root",
       "primary_position_studs": [
@@ -494,16 +494,16 @@
       ],
       "markers": [],
       "slots": [],
-      "triangles": 5624,
+      "triangles": 6952,
       "mesh_objects": 2,
       "parts": [
         {
           "name": "BoxwoodShrub__Body",
-          "triangles": 4480,
+          "triangles": 4976,
           "origin_studs": [
-            1.1920928955078125e-07,
+            0.029816031455993652,
             0.0,
-            -0.0032203197479248047
+            -0.00800943374633789
           ],
           "role": "static",
           "can_collide": false,
@@ -514,11 +514,11 @@
         },
         {
           "name": "BoxwoodShrub__Overgrowth",
-          "triangles": 1144,
+          "triangles": 1976,
           "origin_studs": [
-            1.1920928955078125e-07,
+            0.029816031455993652,
             0.0,
-            -0.0032203197479248047
+            -0.00800943374633789
           ],
           "role": "foliage",
           "can_collide": false,
@@ -536,14 +536,14 @@
       "baseline_triangles": 0,
       "authoring_fit": {
         "scale": [
-          1.0247350931167603,
-          1.0409135818481445,
-          1.0353000164031982
+          0.9030237197875977,
+          0.9645382165908813,
+          0.9134305715560913
         ],
         "offset": [
-          1.1920928955078125e-07,
+          0.029816031455993652,
           0.0,
-          -0.0032203197479248047
+          -0.00800943374633789
         ]
       },
       "size_exception_limits_studs": null,
@@ -571,8 +571,8 @@
         -2.0
       ],
       "bounds_max_studs": [
-        2.0,
-        3.5999996662139893,
+        1.9999998807907104,
+        3.5999999046325684,
         2.0
       ],
       "primary_part": "Root",
@@ -583,16 +583,16 @@
       ],
       "markers": [],
       "slots": [],
-      "triangles": 6888,
+      "triangles": 6936,
       "mesh_objects": 2,
       "parts": [
         {
           "name": "HydrangeaBush__Body",
-          "triangles": 5744,
+          "triangles": 4960,
           "origin_studs": [
+            0.041002750396728516,
             0.0,
-            0.0,
-            -0.0031310319900512695
+            -0.008315205574035645
           ],
           "role": "static",
           "can_collide": false,
@@ -603,11 +603,11 @@
         },
         {
           "name": "HydrangeaBush__Overgrowth",
-          "triangles": 1144,
+          "triangles": 1976,
           "origin_studs": [
+            0.041002750396728516,
             0.0,
-            0.0,
-            -0.0031310319900512695
+            -0.008315205574035645
           ],
           "role": "foliage",
           "can_collide": false,
@@ -625,14 +625,14 @@
       "baseline_triangles": 0,
       "authoring_fit": {
         "scale": [
-          0.996512234210968,
-          1.0714776515960693,
-          1.0066033601760864
+          0.8745284676551819,
+          0.9932386875152588,
+          0.8875025510787964
         ],
         "offset": [
+          0.041002750396728516,
           0.0,
-          0.0,
-          -0.0031310319900512695
+          -0.008315205574035645
         ]
       },
       "size_exception_limits_studs": null,
@@ -672,16 +672,16 @@
       ],
       "markers": [],
       "slots": [],
-      "triangles": 10240,
+      "triangles": 12832,
       "mesh_objects": 2,
       "parts": [
         {
           "name": "JapaneseMaple__Body",
           "triangles": 2140,
           "origin_studs": [
-            -0.0377197265625,
+            0.0945138931274414,
             0.0,
-            0.08745813369750977
+            0.06443548202514648
           ],
           "role": "static",
           "can_collide": false,
@@ -692,11 +692,11 @@
         },
         {
           "name": "JapaneseMaple__Canopy",
-          "triangles": 8100,
+          "triangles": 10692,
           "origin_studs": [
-            -0.0377197265625,
+            0.0945138931274414,
             0.0,
-            0.08745813369750977
+            0.06443548202514648
           ],
           "role": "foliage",
           "can_collide": false,
@@ -713,14 +713,14 @@
       "baseline_triangles": 0,
       "authoring_fit": {
         "scale": [
-          1.1204240322113037,
-          1.067570686340332,
-          1.1894549131393433
+          1.1173665523529053,
+          1.0740152597427368,
+          1.1342240571975708
         ],
         "offset": [
-          -0.0377197265625,
+          0.0945138931274414,
           0.0,
-          0.08745813369750977
+          0.06443548202514648
         ]
       },
       "size_exception_limits_studs": null,
@@ -848,7 +848,7 @@
       ],
       "markers": [],
       "slots": [],
-      "triangles": 6604,
+      "triangles": 6968,
       "mesh_objects": 2,
       "parts": [
         {
@@ -868,7 +868,7 @@
         },
         {
           "name": "RaisedGardenBed__Plants",
-          "triangles": 4304,
+          "triangles": 4668,
           "origin_studs": [
             0.0012426376342773438,
             0.0,
@@ -883,7 +883,8 @@
         }
       ],
       "features": {
-        "cedar_joinery_real_tomato_cages_and_vegetable_plants": 1
+        "cedar_joinery_real_tomato_cages_and_vegetable_plants": 1,
+        "tomatoes_lettuce_and_peppers": 1
       },
       "baseline_source_pack": null,
       "baseline_triangles": 0,
@@ -999,9 +1000,9 @@
       "baseline_triangles": 0,
       "authoring_fit": {
         "scale": [
-          1.037735939025879,
+          1.019386887550354,
           1.0097086429595947,
-          1.037735939025879
+          1.019386887550354
         ],
         "offset": [
           0.0,
@@ -1051,7 +1052,7 @@
           "parent_mesh": "TieredFountain__Body",
           "position_studs": [
             -2.384185791015625e-07,
-            4.471402288675308,
+            4.471402168273926,
             -2.384185791015625e-07
           ],
           "orientation_degrees": [
@@ -1072,7 +1073,7 @@
           "parent_mesh": "TieredFountain__Body",
           "position_studs": [
             -2.384185791015625e-07,
-            2.8463554072380064,
+            2.846355438232422,
             -2.384185791015625e-07
           ],
           "orientation_degrees": [
@@ -1093,7 +1094,7 @@
           "parent_mesh": "TieredFountain__Body",
           "position_studs": [
             -2.384185791015625e-07,
-            0.6863552045822144,
+            0.6863552331924438,
             -2.384185791015625e-07
           ],
           "orientation_degrees": [
@@ -1114,7 +1115,7 @@
           "parent_mesh": "TieredFountain__Body",
           "position_studs": [
             -2.384185791015625e-07,
-            5.410093965530396,
+            5.410094261169434,
             -2.384185791015625e-07
           ],
           "orientation_degrees": [
@@ -1436,7 +1437,7 @@
           "parent_mesh": "GardenBench__Body",
           "position_studs": [
             0.0,
-            1.6229305398464204,
+            1.6229305267333984,
             0.0
           ],
           "orientation_degrees": [
@@ -1531,13 +1532,13 @@
           "parent_mesh": "PatioSet__Body",
           "position_studs": [
             0.0,
-            1.506953292042017,
-            3.6456528566194493
+            1.506953239440918,
+            3.6456527709960938
           ],
           "orientation_degrees": [
             0.0,
             0.0,
-            0.0
+            -0.0
           ],
           "attributes": {},
           "look_vector": [
@@ -1551,12 +1552,12 @@
           "instance_type": "Attachment",
           "parent_mesh": "PatioSet__Body",
           "position_studs": [
-            3.6456520078493213,
-            1.506953292042017,
-            4.768371584263568e-07
+            3.6456520557403564,
+            1.506953239440918,
+            4.76837158203125e-07
           ],
           "orientation_degrees": [
-            0.0,
+            -0.0,
             90.00000250447816,
             0.0
           ],
@@ -1572,14 +1573,14 @@
           "instance_type": "Attachment",
           "parent_mesh": "PatioSet__Body",
           "position_studs": [
-            4.464636358936633e-16,
-            1.506953292042017,
-            -3.645651902945133
+            4.464636549594532e-16,
+            1.506953239440918,
+            -3.6456518173217773
           ],
           "orientation_degrees": [
             -0.0,
             180.00000500895632,
-            -0.0
+            0.0
           ],
           "attributes": {},
           "look_vector": [
@@ -1593,12 +1594,12 @@
           "instance_type": "Attachment",
           "parent_mesh": "PatioSet__Body",
           "position_studs": [
-            -3.6456520078493213,
-            1.506953292042017,
-            4.768371575334295e-07
+            -3.6456520557403564,
+            1.506953239440918,
+            4.76837158203125e-07
           ],
           "orientation_degrees": [
-            0.0,
+            -0.0,
             -90.00000250447816,
             0.0
           ],
@@ -1704,7 +1705,7 @@
           "parent_mesh": "FirePit__Body",
           "position_studs": [
             0.0,
-            0.9948935970664023,
+            0.9948936104774475,
             -1.1920928955078125e-07
           ],
           "orientation_degrees": [
@@ -1902,7 +1903,7 @@
           "parent_mesh": "LampPost__Body",
           "position_studs": [
             0.0,
-            6.366233736276627,
+            6.3662333488464355,
             0.0
           ],
           "orientation_degrees": [
@@ -2012,7 +2013,7 @@
           "parent_mesh": "SolarPathLight__Body",
           "position_studs": [
             0.0,
-            1.1456628143787384,
+            1.145662784576416,
             0.0
           ],
           "orientation_degrees": [

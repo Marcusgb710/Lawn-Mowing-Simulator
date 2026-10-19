@@ -17,7 +17,9 @@
     "portable_PBR_textures_at_most_2048",
     "binary_FBX_header",
     "closed_authoring_components_after_coincident_vertex_matching",
-    "FBX_import_triangle_mesh_count_and_world_bounds"
+    "FBX_import_triangle_mesh_count_and_world_bounds",
+    "sRGB_atlas_pixels_match_declared_palette",
+    "sRGB_atlas_pixels_match_declared_palette"
   ],
   "issues": [],
   "studio_import_tested": false,
@@ -310,6 +312,13 @@
       "passed": true
     }
   ],
-  "protected_files_unchanged_count": 541,
+  "protected_files_unchanged_count": 557,
+  "reviewed_main_commit": "3c40d45",
+  "atlas_encoding": {
+    "pack": "32_SuppliesAndStorage",
+    "swatches": 24,
+    "maximum_srgb_channel_error": 0.0,
+    "passed": true
+  },
   "preview_status": "rendering"
 }

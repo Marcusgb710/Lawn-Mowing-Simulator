@@ -1,0 +1,179 @@
+{
+  "encoding": "sRGB",
+  "tile_size": 256,
+  "tiles_per_side": 8,
+  "texture": "Textures/HP25_Color.png",
+  "swatches": [
+    {
+      "key": "amber",
+      "tile_index": 0,
+      "srgb": [
+        220,
+        140,
+        35
+      ]
+    },
+    {
+      "key": "black",
+      "tile_index": 1,
+      "srgb": [
+        24,
+        28,
+        30
+      ]
+    },
+    {
+      "key": "chrome",
+      "tile_index": 2,
+      "srgb": [
+        196,
+        205,
+        210
+      ]
+    },
+    {
+      "key": "clear",
+      "tile_index": 3,
+      "srgb": [
+        208,
+        225,
+        229
+      ]
+    },
+    {
+      "key": "galvanized",
+      "tile_index": 4,
+      "srgb": [
+        145,
+        156,
+        157
+      ]
+    },
+    {
+      "key": "glass",
+      "tile_index": 5,
+      "srgb": [
+        125,
+        169,
+        183
+      ]
+    },
+    {
+      "key": "gray",
+      "tile_index": 6,
+      "srgb": [
+        131,
+        143,
+        144
+      ]
+    },
+    {
+      "key": "green",
+      "tile_index": 7,
+      "srgb": [
+        39,
+        109,
+        55
+      ]
+    },
+    {
+      "key": "lens_red",
+      "tile_index": 8,
+      "srgb": [
+        150,
+        18,
+        21
+      ]
+    },
+    {
+      "key": "navy",
+      "tile_index": 9,
+      "srgb": [
+        34,
+        71,
+        121
+      ]
+    },
+    {
+      "key": "rubber",
+      "tile_index": 10,
+      "srgb": [
+        31,
+        34,
+        35
+      ]
+    },
+    {
+      "key": "rubber_light",
+      "tile_index": 11,
+      "srgb": [
+        46,
+        48,
+        47
+      ]
+    },
+    {
+      "key": "rust_panel",
+      "tile_index": 12,
+      "srgb": [
+        135,
+        80,
+        42
+      ]
+    },
+    {
+      "key": "steel",
+      "tile_index": 13,
+      "srgb": [
+        173,
+        183,
+        188
+      ]
+    },
+    {
+      "key": "steel_dark",
+      "tile_index": 14,
+      "srgb": [
+        79,
+        88,
+        93
+      ]
+    },
+    {
+      "key": "weathered_gray",
+      "tile_index": 15,
+      "srgb": [
+        117,
+        126,
+        128
+      ]
+    },
+    {
+      "key": "white",
+      "tile_index": 16,
+      "srgb": [
+        221,
+        226,
+        220
+      ]
+    },
+    {
+      "key": "wood",
+      "tile_index": 17,
+      "srgb": [
+        154,
+        111,
+        62
+      ]
+    },
+    {
+      "key": "wood_dark",
+      "tile_index": 18,
+      "srgb": [
+        104,
+        72,
+        44
+      ]
+    }
+  ]
+}

@@ -470,7 +470,7 @@
     {
       "bufferView": 11,
       "componentType": 5126,
-      "count": 2468,
+      "count": 7180,
       "max": [
         0.6418793201446533,
         2.2110869884490967,
@@ -486,13 +486,13 @@
     {
       "bufferView": 12,
       "componentType": 5126,
-      "count": 2468,
+      "count": 7180,
       "type": "VEC3"
     },
     {
       "bufferView": 13,
       "componentType": 5126,
-      "count": 2468,
+      "count": 7180,
       "type": "VEC2"
     },
     {
@@ -689,104 +689,104 @@
     },
     {
       "buffer": 0,
-      "byteLength": 29616,
+      "byteLength": 86160,
       "byteOffset": 140560,
       "target": 34962
     },
     {
       "buffer": 0,
-      "byteLength": 29616,
-      "byteOffset": 170176,
+      "byteLength": 86160,
+      "byteOffset": 226720,
       "target": 34962
     },
     {
       "buffer": 0,
-      "byteLength": 19744,
-      "byteOffset": 199792,
+      "byteLength": 57440,
+      "byteOffset": 312880,
       "target": 34962
     },
     {
       "buffer": 0,
       "byteLength": 25680,
-      "byteOffset": 219536,
+      "byteOffset": 370320,
       "target": 34963
     },
     {
       "buffer": 0,
       "byteLength": 960,
-      "byteOffset": 245216,
+      "byteOffset": 396000,
       "target": 34962
     },
     {
       "buffer": 0,
       "byteLength": 960,
-      "byteOffset": 246176,
+      "byteOffset": 396960,
       "target": 34962
     },
     {
       "buffer": 0,
       "byteLength": 640,
-      "byteOffset": 247136,
+      "byteOffset": 397920,
       "target": 34962
     },
     {
       "buffer": 0,
       "byteLength": 648,
-      "byteOffset": 247776,
+      "byteOffset": 398560,
       "target": 34963
     },
     {
       "buffer": 0,
       "byteLength": 960,
-      "byteOffset": 248424,
+      "byteOffset": 399208,
       "target": 34962
     },
     {
       "buffer": 0,
       "byteLength": 960,
-      "byteOffset": 249384,
+      "byteOffset": 400168,
       "target": 34962
     },
     {
       "buffer": 0,
       "byteLength": 640,
-      "byteOffset": 250344,
+      "byteOffset": 401128,
       "target": 34962
     },
     {
       "buffer": 0,
       "byteLength": 960,
-      "byteOffset": 250984,
+      "byteOffset": 401768,
       "target": 34962
     },
     {
       "buffer": 0,
       "byteLength": 960,
-      "byteOffset": 251944,
+      "byteOffset": 402728,
       "target": 34962
     },
     {
       "buffer": 0,
       "byteLength": 640,
-      "byteOffset": 252904,
+      "byteOffset": 403688,
       "target": 34962
     },
     {
       "buffer": 0,
       "byteLength": 960,
-      "byteOffset": 253544,
+      "byteOffset": 404328,
       "target": 34962
     },
     {
       "buffer": 0,
       "byteLength": 960,
-      "byteOffset": 254504,
+      "byteOffset": 405288,
       "target": 34962
     },
     {
       "buffer": 0,
       "byteLength": 640,
-      "byteOffset": 255464,
+      "byteOffset": 406248,
       "target": 34962
     }
   ],
@@ -798,7 +798,7 @@
   ],
   "buffers": [
     {
-      "byteLength": 256104,
+      "byteLength": 406888,
       "uri": "GardenArbor.bin"
     }
   ]

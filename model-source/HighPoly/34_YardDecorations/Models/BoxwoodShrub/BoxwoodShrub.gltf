@@ -18,9 +18,9 @@
         "role": "static",
         "animation_axis": "",
         "stud_origin": [
-          1.1920928955078125e-07,
+          0.029816031455993652,
           0.0,
-          -0.0032203197479248047
+          -0.00800943374633789
         ],
         "can_collide": false,
         "collision_fidelity": "Default",
@@ -29,9 +29,9 @@
       "mesh": 0,
       "name": "BoxwoodShrub__Body",
       "translation": [
+        0.008348489180207253,
         0,
-        0,
-        -0.0009016895201057196
+        -0.0022426415234804153
       ]
     },
     {
@@ -39,9 +39,9 @@
         "role": "foliage",
         "animation_axis": "",
         "stud_origin": [
-          1.1920928955078125e-07,
+          0.029816031455993652,
           0.0,
-          -0.0032203197479248047
+          -0.00800943374633789
         ],
         "can_collide": false,
         "collision_fidelity": "Default",
@@ -50,9 +50,9 @@
       "mesh": 1,
       "name": "BoxwoodShrub__Overgrowth",
       "translation": [
+        0.008348489180207253,
         0,
-        0,
-        -0.0009016895201057196
+        -0.0022426415234804153
       ]
     },
     {
@@ -158,119 +158,119 @@
     {
       "bufferView": 0,
       "componentType": 5126,
-      "count": 3480,
+      "count": 12102,
       "max": [
-        0.3742625415325165,
-        0.812000036239624,
-        0.3448607623577118
+        0.3206770718097687,
+        0.7510474324226379,
+        0.3123941719532013
       ],
       "min": [
-        -0.37526482343673706,
+        -0.30851972103118896,
         0,
-        -0.36770543456077576
+        -0.3196873664855957
       ],
       "type": "VEC3"
     },
     {
       "bufferView": 1,
       "componentType": 5126,
-      "count": 3480,
+      "count": 12102,
       "type": "VEC3"
     },
     {
       "bufferView": 2,
       "componentType": 5126,
-      "count": 3480,
+      "count": 12102,
       "type": "VEC2"
     },
     {
       "bufferView": 3,
       "componentType": 5123,
-      "count": 13440,
+      "count": 14928,
       "type": "SCALAR"
     },
     {
       "bufferView": 4,
       "componentType": 5126,
-      "count": 1092,
+      "count": 4576,
       "max": [
-        0.4060000479221344,
-        0.730373203754425,
-        0.40690165758132935
+        0.3976515233516693,
+        0.812000036239624,
+        0.4082426428794861
       ],
       "min": [
-        -0.4060000479221344,
-        0.529172420501709,
-        -0.4050983190536499
+        -0.4143485128879547,
+        0.3279116153717041,
+        -0.40375736355781555
       ],
       "type": "VEC3"
     },
     {
       "bufferView": 5,
       "componentType": 5126,
-      "count": 1092,
+      "count": 4576,
       "type": "VEC3"
     },
     {
       "bufferView": 6,
       "componentType": 5126,
-      "count": 1092,
+      "count": 4576,
       "type": "VEC2"
     },
     {
       "bufferView": 7,
       "componentType": 5123,
-      "count": 3432,
+      "count": 5928,
       "type": "SCALAR"
     }
   ],
   "bufferViews": [
     {
       "buffer": 0,
-      "byteLength": 41760,
+      "byteLength": 145224,
       "byteOffset": 0,
       "target": 34962
     },
     {
       "buffer": 0,
-      "byteLength": 41760,
-      "byteOffset": 41760,
+      "byteLength": 145224,
+      "byteOffset": 145224,
       "target": 34962
     },
     {
       "buffer": 0,
-      "byteLength": 27840,
-      "byteOffset": 83520,
+      "byteLength": 96816,
+      "byteOffset": 290448,
       "target": 34962
     },
     {
       "buffer": 0,
-      "byteLength": 26880,
-      "byteOffset": 111360,
+      "byteLength": 29856,
+      "byteOffset": 387264,
       "target": 34963
     },
     {
       "buffer": 0,
-      "byteLength": 13104,
-      "byteOffset": 138240,
+      "byteLength": 54912,
+      "byteOffset": 417120,
       "target": 34962
     },
     {
       "buffer": 0,
-      "byteLength": 13104,
-      "byteOffset": 151344,
+      "byteLength": 54912,
+      "byteOffset": 472032,
       "target": 34962
     },
     {
       "buffer": 0,
-      "byteLength": 8736,
-      "byteOffset": 164448,
+      "byteLength": 36608,
+      "byteOffset": 526944,
       "target": 34962
     },
     {
       "buffer": 0,
-      "byteLength": 6864,
-      "byteOffset": 173184,
+      "byteLength": 11856,
+      "byteOffset": 563552,
       "target": 34963
     }
   ],
@@ -282,7 +282,7 @@
   ],
   "buffers": [
     {
-      "byteLength": 180048,
+      "byteLength": 575408,
       "uri": "BoxwoodShrub.bin"
     }
   ]

@@ -47,9 +47,9 @@
           "instance_type": "Attachment",
           "parent_mesh": "RustyPickup__Body",
           "position_studs": [
-            -1.451682027994161,
-            4.634524637907743,
-            -1.8117615692679536
+            -1.4516819715499878,
+            4.634524822235107,
+            -1.8117616176605225
           ],
           "orientation_degrees": [
             0,
@@ -66,7 +66,7 @@
       ],
       "slots": [],
       "triangles": 25412,
-      "mesh_objects": 14,
+      "mesh_objects": 13,
       "parts": [
         {
           "name": "RustyPickup__Body",
@@ -175,22 +175,7 @@
         },
         {
           "name": "RustyPickup__DriverDoorGlass",
-          "triangles": 12,
-          "origin_studs": [
-            -2.871805429458618,
-            2.8260841369628906,
-            -3.427565813064575
-          ],
-          "role": "hinged_door_glass",
-          "can_collide": true,
-          "collision_fidelity": "PreciseConvexDecomposition",
-          "animation_axis": "Y",
-          "motion_mode": "Rotate",
-          "moves_with": "RustyPickup__DriverDoor"
-        },
-        {
-          "name": "RustyPickup__Glass_Mirror-1",
-          "triangles": 108,
+          "triangles": 120,
           "origin_studs": [
             -2.871805429458618,
             2.8260841369628906,
@@ -355,9 +340,9 @@
           "instance_type": "Attachment",
           "parent_mesh": "WorkPickup__Body",
           "position_studs": [
-            -1.451682027994161,
-            4.567938812375068,
-            -1.8135580921229468
+            -1.4516819715499878,
+            4.567938804626465,
+            -1.8135581016540527
           ],
           "orientation_degrees": [
             0,
@@ -374,7 +359,7 @@
       ],
       "slots": [],
       "triangles": 24756,
-      "mesh_objects": 14,
+      "mesh_objects": 13,
       "parts": [
         {
           "name": "WorkPickup__Body",
@@ -483,22 +468,7 @@
         },
         {
           "name": "WorkPickup__DriverDoorGlass",
-          "triangles": 12,
-          "origin_studs": [
-            -2.871805429458618,
-            2.7852861881256104,
-            -3.6741111278533936
-          ],
-          "role": "hinged_door_glass",
-          "can_collide": true,
-          "collision_fidelity": "PreciseConvexDecomposition",
-          "animation_axis": "Y",
-          "motion_mode": "Rotate",
-          "moves_with": "WorkPickup__DriverDoor"
-        },
-        {
-          "name": "WorkPickup__Glass_Mirror-1",
-          "triangles": 108,
+          "triangles": 120,
           "origin_studs": [
             -2.871805429458618,
             2.7852861881256104,
@@ -663,9 +633,9 @@
           "instance_type": "Attachment",
           "parent_mesh": "HeavyDutyPickup__Body",
           "position_studs": [
-            -1.6882428925555875,
-            4.627918930798769,
-            -1.5735576297146892
+            -1.6882429122924805,
+            4.6279191970825195,
+            -1.5735576152801514
           ],
           "orientation_degrees": [
             0,
@@ -682,7 +652,7 @@
       ],
       "slots": [],
       "triangles": 29964,
-      "mesh_objects": 16,
+      "mesh_objects": 15,
       "parts": [
         {
           "name": "HeavyDutyPickup__Body",
@@ -791,7 +761,7 @@
         },
         {
           "name": "HeavyDutyPickup__DriverDoorGlass",
-          "triangles": 12,
+          "triangles": 120,
           "origin_studs": [
             -3.339784860610962,
             2.8227555751800537,
@@ -818,21 +788,6 @@
           "animation_axis": "",
           "motion_mode": "",
           "moves_with": null
-        },
-        {
-          "name": "HeavyDutyPickup__Glass_Mirror-1",
-          "triangles": 108,
-          "origin_studs": [
-            -3.339784860610962,
-            2.8227555751800537,
-            -3.9261999130249023
-          ],
-          "role": "hinged_door_glass",
-          "can_collide": true,
-          "collision_fidelity": "PreciseConvexDecomposition",
-          "animation_axis": "Y",
-          "motion_mode": "Rotate",
-          "moves_with": "HeavyDutyPickup__DriverDoor"
         },
         {
           "name": "HeavyDutyPickup__Glass_Side1_0",
@@ -1001,9 +956,9 @@
           "instance_type": "Attachment",
           "parent_mesh": "LandscapingTruck__Body",
           "position_studs": [
-            -1.5517265390853714,
-            4.618292661607265,
-            -3.745602860580168
+            -1.5517264604568481,
+            4.618292808532715,
+            -3.74560284614563
           ],
           "orientation_degrees": [
             0,
@@ -1020,7 +975,7 @@
       ],
       "slots": [],
       "triangles": 26576,
-      "mesh_objects": 14,
+      "mesh_objects": 13,
       "parts": [
         {
           "name": "LandscapingTruck__Body",
@@ -1129,22 +1084,7 @@
         },
         {
           "name": "LandscapingTruck__DriverDoorGlass",
-          "triangles": 12,
-          "origin_studs": [
-            -3.0697197914123535,
-            2.816138744354248,
-            -8.27029037475586
-          ],
-          "role": "hinged_door_glass",
-          "can_collide": true,
-          "collision_fidelity": "PreciseConvexDecomposition",
-          "animation_axis": "Y",
-          "motion_mode": "Rotate",
-          "moves_with": "LandscapingTruck__DriverDoor"
-        },
-        {
-          "name": "LandscapingTruck__Glass_Mirror-1",
-          "triangles": 108,
+          "triangles": 120,
           "origin_studs": [
             -3.0697197914123535,
             2.816138744354248,

@@ -182,7 +182,7 @@
     {
       "bufferView": 4,
       "componentType": 5126,
-      "count": 2544,
+      "count": 6648,
       "max": [
         0.2800000011920929,
         0.7839999794960022,
@@ -198,13 +198,13 @@
     {
       "bufferView": 5,
       "componentType": 5126,
-      "count": 2544,
+      "count": 6648,
       "type": "VEC3"
     },
     {
       "bufferView": 6,
       "componentType": 5126,
-      "count": 2544,
+      "count": 6648,
       "type": "VEC2"
     },
     {
@@ -241,26 +241,26 @@
     },
     {
       "buffer": 0,
-      "byteLength": 30528,
+      "byteLength": 79776,
       "byteOffset": 36600,
       "target": 34962
     },
     {
       "buffer": 0,
-      "byteLength": 30528,
-      "byteOffset": 67128,
+      "byteLength": 79776,
+      "byteOffset": 116376,
       "target": 34962
     },
     {
       "buffer": 0,
-      "byteLength": 20352,
-      "byteOffset": 97656,
+      "byteLength": 53184,
+      "byteOffset": 196152,
       "target": 34962
     },
     {
       "buffer": 0,
       "byteLength": 23904,
-      "byteOffset": 118008,
+      "byteOffset": 249336,
       "target": 34963
     }
   ],
@@ -272,7 +272,7 @@
   ],
   "buffers": [
     {
-      "byteLength": 141912,
+      "byteLength": 273240,
       "uri": "TerracottaPlanter.bin"
     }
   ]

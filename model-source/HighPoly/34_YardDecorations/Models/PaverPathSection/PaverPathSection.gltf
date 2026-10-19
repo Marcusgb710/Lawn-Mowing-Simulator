@@ -80,7 +80,7 @@
           0.5,
           0.0
         ],
-        "markers_json": "[{\"name\": \"SnapL\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"PaverPathSection__Body\", \"position_studs\": [0.0, 0.10000000522417185, -2.1500000791683362], \"orientation_degrees\": [0.0, -0.0, -0.0], \"attributes\": {}, \"look_vector\": [0.0, 0.0, -1.0]}, {\"name\": \"SnapR\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"PaverPathSection__Body\", \"position_studs\": [0.0, 0.10000000522417185, 2.1500000791683362], \"orientation_degrees\": [0.0, -180.00000500895632, -0.0], \"attributes\": {}, \"look_vector\": [0.0, 0.0, 1.0]}]",
+        "markers_json": "[{\"name\": \"SnapL\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"PaverPathSection__Body\", \"position_studs\": [0.0, 0.10000000894069672, -2.1500000953674316], \"orientation_degrees\": [0.0, -0.0, -0.0], \"attributes\": {}, \"look_vector\": [0.0, 0.0, -1.0]}, {\"name\": \"SnapR\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"PaverPathSection__Body\", \"position_studs\": [0.0, 0.10000000894069672, 2.1500000953674316], \"orientation_degrees\": [-0.0, -180.00000500895632, 0.0], \"attributes\": {}, \"look_vector\": [0.0, 0.0, 1.0]}]",
         "slots_json": "[]"
       },
       "name": "PaverPathSection"

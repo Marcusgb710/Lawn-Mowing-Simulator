@@ -152,7 +152,7 @@
           0.5,
           0.0
         ],
-        "markers_json": "[{\"name\": \"Contents\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"DeliveryBoxLarge__Body\", \"position_studs\": [0.0, 0.03410474836826325, 0.00024819374084472656], \"orientation_degrees\": [0.0, -0.0, -0.0], \"attributes\": {}, \"look_vector\": [0.0, 0.0, -1.0]}]",
+        "markers_json": "[{\"name\": \"Contents\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"DeliveryBoxLarge__Body\", \"position_studs\": [0.0, 0.03410474956035614, 0.00024819374084472656], \"orientation_degrees\": [0.0, -0.0, -0.0], \"attributes\": {}, \"look_vector\": [0.0, 0.0, -1.0]}]",
         "slots_json": "[]"
       },
       "name": "DeliveryBoxLarge"

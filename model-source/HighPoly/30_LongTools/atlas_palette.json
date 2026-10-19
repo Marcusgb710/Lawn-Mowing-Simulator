@@ -1,0 +1,71 @@
+{
+  "encoding": "sRGB",
+  "tile_size": 256,
+  "tiles_per_side": 8,
+  "texture": "Textures/HP30_Color.png",
+  "swatches": [
+    {
+      "key": "orange",
+      "tile_index": 0,
+      "srgb": [
+        225,
+        92,
+        20
+      ]
+    },
+    {
+      "key": "rubber",
+      "tile_index": 1,
+      "srgb": [
+        31,
+        34,
+        35
+      ]
+    },
+    {
+      "key": "rubber_light",
+      "tile_index": 2,
+      "srgb": [
+        46,
+        48,
+        47
+      ]
+    },
+    {
+      "key": "steel",
+      "tile_index": 3,
+      "srgb": [
+        173,
+        183,
+        188
+      ]
+    },
+    {
+      "key": "steel_dark",
+      "tile_index": 4,
+      "srgb": [
+        79,
+        88,
+        93
+      ]
+    },
+    {
+      "key": "wood",
+      "tile_index": 5,
+      "srgb": [
+        154,
+        111,
+        62
+      ]
+    },
+    {
+      "key": "wood_dark",
+      "tile_index": 6,
+      "srgb": [
+        104,
+        72,
+        44
+      ]
+    }
+  ]
+}
