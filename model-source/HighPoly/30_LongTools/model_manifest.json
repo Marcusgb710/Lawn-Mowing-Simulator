@@ -1,0 +1,665 @@
+{
+  "assets": [
+    {
+      "name": "RoundPointShovel",
+      "folder": "Tools",
+      "instruction": 30,
+      "triangle_budget": 6000,
+      "detail_guidance_min": 3000,
+      "dimensions_studs": [
+        0.68,
+        5.15,
+        0.179819
+      ],
+      "bounds_min_studs": [
+        -0.3400000035762787,
+        -1.358171353160742e-10,
+        -0.11800000816583633
+      ],
+      "bounds_max_studs": [
+        0.3400000035762787,
+        5.150000095367432,
+        0.061818677932024
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.0,
+        3.799999952316284,
+        0.0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 4292,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "RoundPointShovel__Body",
+          "triangles": 4292,
+          "origin_studs": [
+            0.0,
+            0.0051391939632594585,
+            -0.017005927860736847
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "dished_forged_blade_rolled_treads_and_socket": 1
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 200,
+      "authoring_fit": {
+        "scale": [
+          1.0042603015899658,
+          1.0107781887054443,
+          0.9853075742721558
+        ],
+        "offset": [
+          0.0,
+          0.0051391939632594585,
+          -0.017005927860736847
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "name": "GardenSpade",
+      "folder": "Tools",
+      "instruction": 30,
+      "triangle_budget": 6000,
+      "detail_guidance_min": 3000,
+      "dimensions_studs": [
+        0.66,
+        3.622479,
+        0.123637
+      ],
+      "bounds_min_studs": [
+        -0.33000001311302185,
+        8.342201929245618e-12,
+        -0.061818670481443405
+      ],
+      "bounds_max_studs": [
+        0.3300000727176666,
+        3.6224794387817383,
+        0.061818670481443405
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.0,
+        3.390000104904175,
+        0.0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 5628,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "GardenSpade__Body",
+          "triangles": 5628,
+          "origin_studs": [
+            2.9802322387695312e-08,
+            0.003312128596007824,
+            0.007322873920202255
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "dished_forged_blade_rolled_treads_and_socket": 1
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 168,
+      "authoring_fit": {
+        "scale": [
+          1.0312501192092896,
+          0.9909078478813171,
+          0.681197464466095
+        ],
+        "offset": [
+          2.9802322387695312e-08,
+          0.003312128596007824,
+          0.007322873920202255
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        2.2360000610351562,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "name": "Broadfork",
+      "folder": "Tools",
+      "instruction": 30,
+      "triangle_budget": 6000,
+      "detail_guidance_min": 3000,
+      "dimensions_studs": [
+        1.8,
+        5.395108,
+        0.304682
+      ],
+      "bounds_min_studs": [
+        -0.8999999761581421,
+        2.2810020539054676e-10,
+        -0.2246815413236618
+      ],
+      "bounds_max_studs": [
+        0.8999999761581421,
+        5.395107746124268,
+        0.07999999076128006
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.7799999713897705,
+        5.1951069831848145,
+        0.0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 5700,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "Broadfork__Body",
+          "triangles": 5700,
+          "origin_studs": [
+            0.0,
+            -0.015079513192176819,
+            -0.0023495107889175415
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "square_section_curved_tines": 5
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 340,
+      "authoring_fit": {
+        "scale": [
+          0.9943042397499084,
+          1.0159785747528076,
+          1.0293687582015991
+        ],
+        "offset": [
+          0.0,
+          -0.015079513192176819,
+          -0.0023495107889175415
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        4.4720001220703125,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "name": "DiggingFork",
+      "folder": "Tools",
+      "instruction": 30,
+      "triangle_budget": 6000,
+      "detail_guidance_min": 3000,
+      "dimensions_studs": [
+        0.66,
+        3.60748,
+        0.13
+      ],
+      "bounds_min_studs": [
+        -0.33000001311302185,
+        -4.833466960008082e-10,
+        -0.06499999761581421
+      ],
+      "bounds_max_studs": [
+        0.33000001311302185,
+        3.6074795722961426,
+        0.06499999761581421
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.0,
+        3.3249998092651367,
+        0.0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 4492,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "DiggingFork__Body",
+          "triangles": 4492,
+          "origin_studs": [
+            0.0,
+            -0.019455989822745323,
+            0.007699728012084961
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "square_section_curved_tines": 4
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 248,
+      "authoring_fit": {
+        "scale": [
+          1.0131579637527466,
+          0.9998788833618164,
+          0.716253399848938
+        ],
+        "offset": [
+          0.0,
+          -0.019455989822745323,
+          0.007699728012084961
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        0.0,
+        0.0,
+        -1.9039453268051147
+      ]
+    },
+    {
+      "name": "Mattock",
+      "folder": "Tools",
+      "instruction": 30,
+      "triangle_budget": 6000,
+      "detail_guidance_min": 3000,
+      "dimensions_studs": [
+        0.6,
+        3.21,
+        1.442662
+      ],
+      "bounds_min_studs": [
+        -0.30000001192092896,
+        1.7505583649324308e-09,
+        -0.6000000238418579
+      ],
+      "bounds_max_studs": [
+        0.30000001192092896,
+        3.2100000381469727,
+        0.842662513256073
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.0,
+        2.9800000190734863,
+        0.0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 2620,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "Mattock__Body",
+          "triangles": 2620,
+          "origin_studs": [
+            0.0,
+            -0.061681341379880905,
+            0.05370229482650757
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "real_adze_pick_and_shaft_eye": 1
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 136,
+      "authoring_fit": {
+        "scale": [
+          1.0,
+          1.0280224084854126,
+          0.982100784778595
+        ],
+        "offset": [
+          0.0,
+          -0.061681341379880905,
+          0.05370229482650757
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        2.2360000610351562,
+        0.0,
+        -1.9039453268051147
+      ]
+    },
+    {
+      "name": "BowRake",
+      "folder": "Tools",
+      "instruction": 30,
+      "triangle_budget": 6000,
+      "detail_guidance_min": 3000,
+      "dimensions_studs": [
+        1.45,
+        5.941241,
+        0.198287
+      ],
+      "bounds_min_studs": [
+        -0.7250000238418579,
+        -1.7892887171910843e-10,
+        -0.12333395332098007
+      ],
+      "bounds_max_studs": [
+        0.7250000238418579,
+        5.941241264343262,
+        0.07495317608118057
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.0,
+        3.991241455078125,
+        0.0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 4564,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "BowRake__Body",
+          "triangles": 4564,
+          "origin_studs": [
+            0.0,
+            0.005046749487519264,
+            -0.012446105480194092
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "fourteen_straight_tines_and_two_bow_arms": 14
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 344,
+      "authoring_fit": {
+        "scale": [
+          1.0139861106872559,
+          1.0093508958816528,
+          1.0924910306930542
+        ],
+        "offset": [
+          0.0,
+          0.005046749487519264,
+          -0.012446105480194092
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        4.4720001220703125,
+        0.0,
+        -1.9039453268051147
+      ]
+    },
+    {
+      "name": "StirrupHoe",
+      "folder": "Tools",
+      "instruction": 30,
+      "triangle_budget": 6000,
+      "detail_guidance_min": 3000,
+      "dimensions_studs": [
+        0.563138,
+        5.318926,
+        0.21224
+      ],
+      "bounds_min_studs": [
+        -0.2819351851940155,
+        1.178625197439942e-09,
+        -0.15042127668857574
+      ],
+      "bounds_max_studs": [
+        0.2812030613422394,
+        5.318925857543945,
+        0.0618186816573143
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.0,
+        3.968926191329956,
+        0.0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 2748,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "StirrupHoe__Body",
+          "triangles": 2748,
+          "origin_studs": [
+            -0.0003660619258880615,
+            -0.04857326298952103,
+            -0.03173060715198517
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "open_hinged_oscillating_stirrup": 1
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 100,
+      "authoring_fit": {
+        "scale": [
+          1.0240404605865479,
+          1.0225950479507446,
+          1.1693661212921143
+        ],
+        "offset": [
+          -0.0003660619258880615,
+          -0.04857326298952103,
+          -0.03173060715198517
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        0.0,
+        0.0,
+        -3.8078906536102295
+      ]
+    },
+    {
+      "name": "WideRake",
+      "folder": "Tools",
+      "instruction": 30,
+      "triangle_budget": 6000,
+      "detail_guidance_min": 3000,
+      "dimensions_studs": [
+        2.628572,
+        4.82251,
+        0.679788
+      ],
+      "bounds_min_studs": [
+        -1.3142857551574707,
+        2.697049250599548e-10,
+        -0.33989381790161133
+      ],
+      "bounds_max_studs": [
+        1.3142857551574707,
+        4.822509765625,
+        0.33989375829696655
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0,
+        3.6,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 5264,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "WideRake__Body",
+          "triangles": 5264,
+          "origin_studs": [
+            0.0,
+            -0.019646164029836655,
+            0.18537119030952454
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "fan_spring_tines": 25
+      },
+      "baseline_source_pack": "model-source/RevisedLawnModels",
+      "baseline_triangles": 272,
+      "authoring_fit": {
+        "scale": [
+          1.0200122594833374,
+          1.0167235136032104,
+          1.9315322637557983
+        ],
+        "offset": [
+          0.0,
+          -0.019646164029836655,
+          0.18537119030952454
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        2.2360000610351562,
+        0.0,
+        -3.8078906536102295
+      ]
+    },
+    {
+      "name": "HalfMoonEdger",
+      "folder": "Tools",
+      "instruction": 30,
+      "triangle_budget": 6000,
+      "detail_guidance_min": 3000,
+      "dimensions_studs": [
+        1.19,
+        4.400001,
+        0.3
+      ],
+      "bounds_min_studs": [
+        -0.5949999690055847,
+        -4.889176080203288e-17,
+        -0.14999999105930328
+      ],
+      "bounds_max_studs": [
+        0.5950000882148743,
+        4.40000057220459,
+        0.14999999105930328
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0,
+        4.3,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 2324,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "HalfMoonEdger__Body",
+          "triangles": 2324,
+          "origin_studs": [
+            5.960464477539063e-08,
+            9.848044602023265e-10,
+            0.0
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "sharpened_half_moon_with_step": 1
+      },
+      "baseline_source_pack": "model-source/RevisedLawnModels",
+      "baseline_triangles": 604,
+      "authoring_fit": {
+        "scale": [
+          1.0258620977401733,
+          1.0013200044631958,
+          1.1999999284744263
+        ],
+        "offset": [
+          5.960464477539063e-08,
+          9.848044602023265e-10,
+          0.0
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        4.4720001220703125,
+        0.0,
+        -3.8078906536102295
+      ]
+    }
+  ],
+  "meters_per_stud": 0.28,
+  "source_main_commit": "2377b19",
+  "original_packs_preserved": true,
+  "studio_import_tested": false
+}

@@ -1,0 +1,33 @@
+{
+  "note": "Preview placement only; actual exported assets remain unchanged.",
+  "fence_centres_x_studs": [
+    -15.05,
+    -6.45,
+    6.45,
+    15.05
+  ],
+  "path_centres_z_studs": [
+    -9.85,
+    -5.55,
+    -1.25,
+    3.05,
+    7.35
+  ],
+  "models": {
+    "PicketFenceSection": 4,
+    "PaverPathSection": 5,
+    "MulchBedSection": 2,
+    "StoneEdgingSection": 4,
+    "BoxwoodShrub": 2,
+    "HydrangeaBush": 2,
+    "SolarPathLight": 6,
+    "GardenBench": 1,
+    "LampPost": 1,
+    "Mailbox": 1,
+    "PinkFlamingo": 1,
+    "JapaneseMaple": 1,
+    "BirdBath": 1,
+    "TerracottaPlanter": 1,
+    "GardenArbor": 1
+  }
+}

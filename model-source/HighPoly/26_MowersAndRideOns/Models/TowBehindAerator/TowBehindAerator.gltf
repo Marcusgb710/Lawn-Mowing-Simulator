@@ -1,0 +1,477 @@
+{
+  "asset": {
+    "generator": "Khronos glTF Blender I/O v4.3.47",
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        4
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          0.020999908447265625,
+          0.01178864948451519,
+          0.002416849136352539
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 0,
+      "name": "TowBehindAerator__Body",
+      "translation": [
+        0.0058799744583666325,
+        0.0033008218742907047,
+        0.0006767177837900817
+      ]
+    },
+    {
+      "extras": {
+        "role": "wheel",
+        "animation_axis": "X",
+        "stud_origin": [
+          0.020999908447265625,
+          0.6673073172569275,
+          0.4551331102848053
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Hull",
+        "motion_mode": "Rotate"
+      },
+      "mesh": 1,
+      "name": "TowBehindAerator__Wheel_Tines",
+      "translation": [
+        0.0058799744583666325,
+        0.1868460476398468,
+        0.1274372786283493
+      ]
+    },
+    {
+      "extras": {
+        "role": "wheel",
+        "animation_axis": "X",
+        "stud_origin": [
+          -2.027892589569092,
+          0.5932971835136414,
+          1.0889359712600708
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Hull",
+        "motion_mode": "Rotate"
+      },
+      "mesh": 2,
+      "name": "TowBehindAerator__Wheel_Transport-1",
+      "translation": [
+        -0.5678099393844604,
+        0.16612321138381958,
+        0.3049020767211914
+      ]
+    },
+    {
+      "extras": {
+        "role": "wheel",
+        "animation_axis": "X",
+        "stud_origin": [
+          2.069892406463623,
+          0.5932971835136414,
+          1.0889359712600708
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Hull",
+        "motion_mode": "Rotate"
+      },
+      "mesh": 3,
+      "name": "TowBehindAerator__Wheel_Transport1",
+      "translation": [
+        0.5795698761940002,
+        0.16612321138381958,
+        0.3049020767211914
+      ]
+    },
+    {
+      "children": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "extras": {
+        "folder": "Tools",
+        "stud_to_meter": 0.28,
+        "primary_part": "Handle",
+        "primary_position_studs": [
+          0.0,
+          1.25,
+          -2.701411247253418
+        ],
+        "markers_json": "[]",
+        "slots_json": "[]"
+      },
+      "name": "TowBehindAerator"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "HP shared PBR 26",
+      "normalTexture": {
+        "index": 0,
+        "scale": 0.44999998807907104
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 1
+        },
+        "metallicRoughnessTexture": {
+          "index": 2
+        }
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "TowBehindAerator__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "TowBehindAerator__Wheel_Tines",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 4,
+            "NORMAL": 5,
+            "TEXCOORD_0": 6
+          },
+          "indices": 7,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "TowBehindAerator__Wheel_Transport-1",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 8,
+            "NORMAL": 9,
+            "TEXCOORD_0": 10
+          },
+          "indices": 11,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "TowBehindAerator__Wheel_Transport1",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 12,
+            "NORMAL": 13,
+            "TEXCOORD_0": 14
+          },
+          "indices": 15,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    }
+  ],
+  "images": [
+    {
+      "mimeType": "image/png",
+      "name": "HP26_Normal",
+      "uri": "../../Textures/HP26_Normal.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP26_Color",
+      "uri": "../../Textures/HP26_Color.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP26_Metalness-HP26_Roughness",
+      "uri": "../../Textures/HP26_Metalness-HP26_Roughness.png"
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 1440,
+      "max": [
+        0.49905169010162354,
+        0.6056992411613464,
+        0.5859153866767883
+      ],
+      "min": [
+        -0.49905169010162354,
+        0.27531781792640686,
+        -0.814084529876709
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 1440,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 1440,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "count": 5796,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 4,
+      "componentType": 5126,
+      "count": 3744,
+      "max": [
+        0.48880717158317566,
+        0.17170360684394836,
+        0.14642104506492615
+      ],
+      "min": [
+        -0.48880717158317566,
+        -0.17170359194278717,
+        -0.14642104506492615
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 5,
+      "componentType": 5126,
+      "count": 3744,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 6,
+      "componentType": 5126,
+      "count": 3744,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 7,
+      "componentType": 5123,
+      "count": 21576,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 8,
+      "componentType": 5126,
+      "count": 1968,
+      "max": [
+        0.05005151405930519,
+        0.1661231815814972,
+        0.1589198261499405
+      ],
+      "min": [
+        -0.053563911467790604,
+        -0.16612321138381958,
+        -0.15891985595226288
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 9,
+      "componentType": 5126,
+      "count": 1968,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 10,
+      "componentType": 5126,
+      "count": 1968,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 11,
+      "componentType": 5123,
+      "count": 6252,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 12,
+      "componentType": 5126,
+      "count": 1968,
+      "max": [
+        0.053563911467790604,
+        0.1661231815814972,
+        0.1589198261499405
+      ],
+      "min": [
+        -0.05005151405930519,
+        -0.16612321138381958,
+        -0.15891985595226288
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 13,
+      "componentType": 5126,
+      "count": 1968,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 14,
+      "componentType": 5126,
+      "count": 1968,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 15,
+      "componentType": 5123,
+      "count": 6252,
+      "type": "SCALAR"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 17280,
+      "byteOffset": 0,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 17280,
+      "byteOffset": 17280,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 11520,
+      "byteOffset": 34560,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 11592,
+      "byteOffset": 46080,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 44928,
+      "byteOffset": 57672,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 44928,
+      "byteOffset": 102600,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 29952,
+      "byteOffset": 147528,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 43152,
+      "byteOffset": 177480,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 23616,
+      "byteOffset": 220632,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 23616,
+      "byteOffset": 244248,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 15744,
+      "byteOffset": 267864,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 12504,
+      "byteOffset": 283608,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 23616,
+      "byteOffset": 296112,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 23616,
+      "byteOffset": 319728,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 15744,
+      "byteOffset": 343344,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 12504,
+      "byteOffset": 359088,
+      "target": 34963
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 371592,
+      "uri": "TowBehindAerator.bin"
+    }
+  ]
+}

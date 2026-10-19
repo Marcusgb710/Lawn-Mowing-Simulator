@@ -1,0 +1,1321 @@
+{
+  "assets": [
+    {
+      "name": "JobLaptopTable",
+      "folder": "Props",
+      "instruction": 33,
+      "triangle_budget": 8000,
+      "detail_guidance_min": 4000,
+      "dimensions_studs": [
+        4.5,
+        3.707327,
+        2.997362
+      ],
+      "bounds_min_studs": [
+        -2.25,
+        -0.07232675701379776,
+        -1.4821321964263916
+      ],
+      "bounds_max_studs": [
+        2.25,
+        3.634999990463257,
+        1.51522958278656
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [
+        {
+          "name": "UseSpot",
+          "instance_type": "Attachment",
+          "parent_mesh": "JobLaptopTable__Body",
+          "position_studs": [
+            -0.7,
+            0,
+            -2.95
+          ],
+          "orientation_degrees": [
+            -0.0,
+            -180.00000500895632,
+            0.0
+          ],
+          "attributes": {},
+          "look_vector": [
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        {
+          "name": "ScreenView",
+          "instance_type": "Attachment",
+          "parent_mesh": "JobLaptopTable__Body",
+          "position_studs": [
+            -0.699999988079071,
+            3.5999999046325684,
+            -1.7599999904632568
+          ],
+          "orientation_degrees": [
+            9.090274006934228,
+            -180.00000500895632,
+            0.0
+          ],
+          "attributes": {},
+          "look_vector": [
+            0.0,
+            -0.1579904556274414,
+            0.9874407052993774
+          ]
+        }
+      ],
+      "slots": [],
+      "triangles": 5804,
+      "mesh_objects": 7,
+      "parts": [
+        {
+          "name": "JobLaptopTable__Body",
+          "triangles": 516,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "JobLaptopTable__Top",
+          "triangles": 108,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "collision_worktop",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "JobLaptopTable__Leg_-1",
+          "triangles": 276,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "collision_leg",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "JobLaptopTable__Leg_1",
+          "triangles": 276,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "collision_leg",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "JobLaptopTable__Chair",
+          "triangles": 700,
+          "origin_studs": [
+            -0.699999988079071,
+            0.0,
+            -1.1399999856948853
+          ],
+          "role": "collision_chair",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "JobLaptopTable__Clutter",
+          "triangles": 3916,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "clutter",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "JobLaptopTable__Screen",
+          "triangles": 12,
+          "origin_studs": [
+            -0.699999988079071,
+            3.200000047683716,
+            0.7400000095367432
+          ],
+          "role": "screen",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "screen_aspect_ratio": 1.7777777777777777,
+        "plain_flat_screen_local_front_minus_Z": 1,
+        "separate_collision_furniture_and_noncolliding_clutter": 1,
+        "first_person_interaction_markers": 1
+      },
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "offset": [
+          0,
+          0,
+          0
+        ],
+        "authored_at_nominal_size": true
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "name": "JobComputerDesk",
+      "folder": "Props",
+      "instruction": 33,
+      "triangle_budget": 12000,
+      "detail_guidance_min": 6000,
+      "dimensions_studs": [
+        5.58,
+        4.25,
+        3.507591
+      ],
+      "bounds_min_studs": [
+        -2.830000162124634,
+        -7.450580596923828e-09,
+        -1.9075915813446045
+      ],
+      "bounds_max_studs": [
+        2.75,
+        4.25,
+        1.5999999046325684
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [
+        {
+          "name": "UseSpot",
+          "instance_type": "Attachment",
+          "parent_mesh": "JobComputerDesk__Body",
+          "position_studs": [
+            -0.55,
+            0,
+            -2.9000000000000004
+          ],
+          "orientation_degrees": [
+            -0.0,
+            -180.00000500895632,
+            0.0
+          ],
+          "attributes": {},
+          "look_vector": [
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        {
+          "name": "ScreenView",
+          "instance_type": "Attachment",
+          "parent_mesh": "JobComputerDesk__Body",
+          "position_studs": [
+            -0.550000011920929,
+            3.5999999046325684,
+            -1.5800000429153442
+          ],
+          "orientation_degrees": [
+            1.145761778670406,
+            -180.00000500895632,
+            0.0
+          ],
+          "attributes": {},
+          "look_vector": [
+            0.0,
+            -0.019995981827378273,
+            0.9998000264167786
+          ]
+        }
+      ],
+      "slots": [],
+      "triangles": 9808,
+      "mesh_objects": 10,
+      "parts": [
+        {
+          "name": "JobComputerDesk__Body",
+          "triangles": 324,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "JobComputerDesk__Top",
+          "triangles": 108,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "collision_worktop",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "JobComputerDesk__Leg_0",
+          "triangles": 108,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "collision_leg",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "JobComputerDesk__Leg_1",
+          "triangles": 108,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "collision_leg",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "JobComputerDesk__Leg_2",
+          "triangles": 108,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "collision_leg",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "JobComputerDesk__Leg_3",
+          "triangles": 108,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "collision_leg",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "JobComputerDesk__Cabinet",
+          "triangles": 708,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "collision_cabinet",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "JobComputerDesk__Chair",
+          "triangles": 1340,
+          "origin_studs": [
+            -0.550000011920929,
+            0.0,
+            -1.2899999618530273
+          ],
+          "role": "collision_chair",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "JobComputerDesk__Clutter",
+          "triangles": 6884,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "clutter",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "JobComputerDesk__Screen",
+          "triangles": 12,
+          "origin_studs": [
+            -0.550000011920929,
+            3.549999952316284,
+            0.9200000166893005
+          ],
+          "role": "screen",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "screen_aspect_ratio": 1.7777777777777777,
+        "plain_flat_screen_local_front_minus_Z": 1,
+        "separate_collision_furniture_and_noncolliding_clutter": 1,
+        "first_person_interaction_markers": 1
+      },
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "offset": [
+          0,
+          0,
+          0
+        ],
+        "authored_at_nominal_size": true
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        3.2360000610351562,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "name": "JobOfficeDesk",
+      "folder": "Props",
+      "instruction": 33,
+      "triangle_budget": 18000,
+      "detail_guidance_min": 10000,
+      "dimensions_studs": [
+        6.0,
+        4.4,
+        5.4
+      ],
+      "bounds_min_studs": [
+        -3.0,
+        -7.450580596923828e-09,
+        -2.75
+      ],
+      "bounds_max_studs": [
+        3.0,
+        4.400000095367432,
+        2.6500000953674316
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [
+        {
+          "name": "UseSpot",
+          "instance_type": "Attachment",
+          "parent_mesh": "JobOfficeDesk__Body",
+          "position_studs": [
+            -0.85,
+            0,
+            -1.7500000000000002
+          ],
+          "orientation_degrees": [
+            -0.0,
+            -180.00000500895632,
+            0.0
+          ],
+          "attributes": {},
+          "look_vector": [
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        {
+          "name": "ScreenView",
+          "instance_type": "Attachment",
+          "parent_mesh": "JobOfficeDesk__Body",
+          "position_studs": [
+            -0.8500000238418579,
+            3.5999999046325684,
+            -0.800000011920929
+          ],
+          "orientation_degrees": [
+            -1.8328432708456635,
+            -180.00000500895632,
+            0.0
+          ],
+          "attributes": {},
+          "look_vector": [
+            0.0,
+            0.031983695924282074,
+            0.9994884729385376
+          ]
+        }
+      ],
+      "slots": [],
+      "triangles": 10644,
+      "mesh_objects": 14,
+      "parts": [
+        {
+          "name": "JobOfficeDesk__Body",
+          "triangles": 324,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "JobOfficeDesk__Top",
+          "triangles": 108,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "collision_worktop",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "JobOfficeDesk__ReturnTop",
+          "triangles": 108,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "collision_worktop",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "JobOfficeDesk__Leg_0",
+          "triangles": 108,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "collision_leg",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "JobOfficeDesk__Leg_1",
+          "triangles": 108,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "collision_leg",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "JobOfficeDesk__Leg_2",
+          "triangles": 108,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "collision_leg",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "JobOfficeDesk__Leg_3",
+          "triangles": 108,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "collision_leg",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "JobOfficeDesk__Leg_4",
+          "triangles": 108,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "collision_leg",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "JobOfficeDesk__Leg_5",
+          "triangles": 108,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "collision_leg",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "JobOfficeDesk__Cabinet",
+          "triangles": 508,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "collision_cabinet",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "JobOfficeDesk__Chair",
+          "triangles": 2724,
+          "origin_studs": [
+            -0.8500000238418579,
+            0.0,
+            -1.0199999809265137
+          ],
+          "role": "collision_chair",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "JobOfficeDesk__Clutter",
+          "triangles": 6200,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "clutter",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "JobOfficeDesk__Screen",
+          "triangles": 12,
+          "origin_studs": [
+            -0.8500000238418579,
+            3.680000066757202,
+            1.7000000476837158
+          ],
+          "role": "screen",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "JobOfficeDesk__Screen2",
+          "triangles": 12,
+          "origin_studs": [
+            1.3200000524520874,
+            3.680000066757202,
+            1.7000000476837158
+          ],
+          "role": "screen",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "screen_aspect_ratio": 1.7777777777777777,
+        "plain_flat_screen_local_front_minus_Z": 1,
+        "separate_collision_furniture_and_noncolliding_clutter": 1,
+        "first_person_interaction_markers": 1
+      },
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "offset": [
+          0,
+          0,
+          0
+        ],
+        "authored_at_nominal_size": true
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        6.4720001220703125,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "name": "DeliveryBoxSmall",
+      "folder": "Props",
+      "instruction": 33,
+      "triangle_budget": 2500,
+      "detail_guidance_min": 800,
+      "dimensions_studs": [
+        1.8,
+        1.1,
+        1.3
+      ],
+      "bounds_min_studs": [
+        -0.8999999761581421,
+        0.0,
+        -0.6499999761581421
+      ],
+      "bounds_max_studs": [
+        0.8999999761581421,
+        1.100000023841858,
+        0.6499999761581421
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [
+        {
+          "name": "Contents",
+          "instance_type": "Attachment",
+          "parent_mesh": "DeliveryBoxSmall__Body",
+          "position_studs": [
+            0.0,
+            0.03413120657205582,
+            0.0002467036247253418
+          ],
+          "orientation_degrees": [
+            0.0,
+            -0.0,
+            -0.0
+          ],
+          "attributes": {},
+          "look_vector": [
+            0.0,
+            0.0,
+            -1.0
+          ]
+        }
+      ],
+      "slots": [],
+      "triangles": 1128,
+      "mesh_objects": 3,
+      "parts": [
+        {
+          "name": "DeliveryBoxSmall__Body",
+          "triangles": 624,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0002467036247253418
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "DeliveryBoxSmall__FlapL",
+          "triangles": 228,
+          "origin_studs": [
+            -0.8999999761581421,
+            1.072695016860962,
+            0.0002467036247253418
+          ],
+          "role": "opening_panel",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "Z",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "DeliveryBoxSmall__FlapR",
+          "triangles": 276,
+          "origin_studs": [
+            0.8999999761581421,
+            1.072695016860962,
+            0.0002467036247253418
+          ],
+          "role": "opening_panel",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "Z",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "real_cardboard_thickness_studs": 0.03,
+        "closed_hinged_flaps_with_tape": 1
+      },
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          1.0,
+          0.9751772880554199,
+          0.9867172241210938
+        ],
+        "offset": [
+          0.0,
+          0.0,
+          0.0002467036247253418
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        0.0,
+        0.0,
+        -3.5160000324249268
+      ]
+    },
+    {
+      "name": "DeliveryBoxLong",
+      "folder": "Props",
+      "instruction": 33,
+      "triangle_budget": 2500,
+      "detail_guidance_min": 800,
+      "dimensions_studs": [
+        6.2,
+        0.8,
+        0.8
+      ],
+      "bounds_min_studs": [
+        -3.0999999046325684,
+        0.0,
+        -0.4000000059604645
+      ],
+      "bounds_max_studs": [
+        3.0999999046325684,
+        0.800000011920929,
+        0.4000000059604645
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [
+        {
+          "name": "Contents",
+          "instance_type": "Attachment",
+          "parent_mesh": "DeliveryBoxLong__Body",
+          "position_studs": [
+            0.0,
+            0.03381642699241638,
+            0.0002446472644805908
+          ],
+          "orientation_degrees": [
+            0.0,
+            -0.0,
+            -0.0
+          ],
+          "attributes": {},
+          "look_vector": [
+            0.0,
+            0.0,
+            -1.0
+          ]
+        }
+      ],
+      "slots": [],
+      "triangles": 900,
+      "mesh_objects": 2,
+      "parts": [
+        {
+          "name": "DeliveryBoxLong__Body",
+          "triangles": 624,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0002446472644805908
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "DeliveryBoxLong__Lid",
+          "triangles": 276,
+          "origin_studs": [
+            0.0,
+            0.7729469537734985,
+            0.3916819393634796
+          ],
+          "role": "opening_panel",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "real_cardboard_thickness_studs": 0.03,
+        "closed_hinged_flaps_with_tape": 1
+      },
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          0.9999999403953552,
+          0.9661836624145508,
+          0.9785932302474976
+        ],
+        "offset": [
+          0.0,
+          0.0,
+          0.0002446472644805908
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        3.2360000610351562,
+        0.0,
+        -3.5160000324249268
+      ]
+    },
+    {
+      "name": "DeliveryBoxLarge",
+      "folder": "Props",
+      "instruction": 33,
+      "triangle_budget": 2500,
+      "detail_guidance_min": 800,
+      "dimensions_studs": [
+        3.4,
+        2.4,
+        2.4
+      ],
+      "bounds_min_studs": [
+        -1.7000000476837158,
+        0.0,
+        -1.2000000476837158
+      ],
+      "bounds_max_studs": [
+        1.7000000476837158,
+        2.4000000953674316,
+        1.2000000476837158
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [
+        {
+          "name": "Contents",
+          "instance_type": "Attachment",
+          "parent_mesh": "DeliveryBoxLarge__Body",
+          "position_studs": [
+            0.0,
+            0.03410474956035614,
+            0.00024819374084472656
+          ],
+          "orientation_degrees": [
+            0.0,
+            -0.0,
+            -0.0
+          ],
+          "attributes": {},
+          "look_vector": [
+            0.0,
+            0.0,
+            -1.0
+          ]
+        }
+      ],
+      "slots": [],
+      "triangles": 2232,
+      "mesh_objects": 5,
+      "parts": [
+        {
+          "name": "DeliveryBoxLarge__Body",
+          "triangles": 1272,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.00024819374084472656
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "DeliveryBoxLarge__FlapF",
+          "triangles": 228,
+          "origin_studs": [
+            0.0,
+            2.338611364364624,
+            -1.1910651922225952
+          ],
+          "role": "opening_panel",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "DeliveryBoxLarge__FlapB",
+          "triangles": 228,
+          "origin_studs": [
+            0.0,
+            2.338611364364624,
+            1.1915615797042847
+          ],
+          "role": "opening_panel",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "DeliveryBoxLarge__FlapL",
+          "triangles": 228,
+          "origin_studs": [
+            -1.7000000476837158,
+            2.338611364364624,
+            0.00024819374084472656
+          ],
+          "role": "opening_panel",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "Z",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "DeliveryBoxLarge__FlapR",
+          "triangles": 276,
+          "origin_studs": [
+            1.7000000476837158,
+            2.338611364364624,
+            0.00024819374084472656
+          ],
+          "role": "opening_panel",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "Z",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "real_cardboard_thickness_studs": 0.03,
+        "closed_hinged_flaps_with_tape": 1
+      },
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          1.0,
+          0.9744213819503784,
+          0.9927611351013184
+        ],
+        "offset": [
+          0.0,
+          0.0,
+          0.00024819374084472656
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        6.4720001220703125,
+        0.0,
+        -3.5160000324249268
+      ]
+    },
+    {
+      "name": "DeliveryCrate",
+      "folder": "Props",
+      "instruction": 33,
+      "triangle_budget": 6000,
+      "detail_guidance_min": 3000,
+      "dimensions_studs": [
+        5.4,
+        4.4,
+        7.2
+      ],
+      "bounds_min_studs": [
+        -2.700000047683716,
+        4.0455638838921004e-11,
+        -3.5999999046325684
+      ],
+      "bounds_max_studs": [
+        2.700000047683716,
+        4.400000095367432,
+        3.5999996662139893
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [
+        {
+          "name": "Contents",
+          "instance_type": "Attachment",
+          "parent_mesh": "DeliveryCrate__Body",
+          "position_studs": [
+            0.0,
+            0.4429864287376404,
+            0.03902435302734375
+          ],
+          "orientation_degrees": [
+            0.0,
+            -0.0,
+            -0.0
+          ],
+          "attributes": {},
+          "look_vector": [
+            0.0,
+            0.0,
+            -1.0
+          ]
+        }
+      ],
+      "slots": [],
+      "triangles": 5876,
+      "mesh_objects": 4,
+      "parts": [
+        {
+          "name": "DeliveryCrate__Body",
+          "triangles": 2632,
+          "origin_studs": [
+            0.0,
+            -0.02488686889410019,
+            0.03902435302734375
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "DeliveryCrate__FrontPanel",
+          "triangles": 1028,
+          "origin_studs": [
+            0.0,
+            0.43303167819976807,
+            -3.473170518875122
+          ],
+          "role": "opening_panel",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "DeliveryCrate__BackPanel",
+          "triangles": 1028,
+          "origin_studs": [
+            0.0,
+            -0.02488686889410019,
+            0.03902435302734375
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "DeliveryCrate__Lid",
+          "triangles": 1188,
+          "origin_studs": [
+            0.0,
+            4.355203628540039,
+            3.5512192249298096
+          ],
+          "role": "opening_panel",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "pallet_fork_openings_and_drop_front_ramp": 1
+      },
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          0.9608541131019592,
+          0.9954751133918762,
+          0.9756097197532654
+        ],
+        "offset": [
+          0.0,
+          -0.02488686889410019,
+          0.03902435302734375
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        0.0,
+        0.0,
+        -7.0320000648498535
+      ]
+    }
+  ],
+  "meters_per_stud": 0.28,
+  "source_main_commit": "2377b19",
+  "original_packs_preserved": true,
+  "studio_import_tested": false
+}

@@ -1,0 +1,188 @@
+{
+  "encoding": "sRGB",
+  "tile_size": 256,
+  "tiles_per_side": 8,
+  "texture": "Textures/HP33_Color.png",
+  "swatches": [
+    {
+      "key": "black",
+      "tile_index": 0,
+      "srgb": [
+        24,
+        28,
+        30
+      ]
+    },
+    {
+      "key": "blue",
+      "tile_index": 1,
+      "srgb": [
+        35,
+        91,
+        157
+      ]
+    },
+    {
+      "key": "canvas",
+      "tile_index": 2,
+      "srgb": [
+        145,
+        124,
+        85
+      ]
+    },
+    {
+      "key": "chrome",
+      "tile_index": 3,
+      "srgb": [
+        196,
+        205,
+        210
+      ]
+    },
+    {
+      "key": "darkgray",
+      "tile_index": 4,
+      "srgb": [
+        65,
+        76,
+        80
+      ]
+    },
+    {
+      "key": "gray",
+      "tile_index": 5,
+      "srgb": [
+        131,
+        143,
+        144
+      ]
+    },
+    {
+      "key": "kraft",
+      "tile_index": 6,
+      "srgb": [
+        160,
+        119,
+        72
+      ]
+    },
+    {
+      "key": "laminate",
+      "tile_index": 7,
+      "srgb": [
+        162,
+        150,
+        127
+      ]
+    },
+    {
+      "key": "leaf",
+      "tile_index": 8,
+      "srgb": [
+        45,
+        105,
+        38
+      ]
+    },
+    {
+      "key": "orange",
+      "tile_index": 9,
+      "srgb": [
+        225,
+        92,
+        20
+      ]
+    },
+    {
+      "key": "paper",
+      "tile_index": 10,
+      "srgb": [
+        222,
+        218,
+        199
+      ]
+    },
+    {
+      "key": "rubber",
+      "tile_index": 11,
+      "srgb": [
+        31,
+        34,
+        35
+      ]
+    },
+    {
+      "key": "screen_gray",
+      "tile_index": 12,
+      "srgb": [
+        36,
+        39,
+        41
+      ]
+    },
+    {
+      "key": "steel",
+      "tile_index": 13,
+      "srgb": [
+        173,
+        183,
+        188
+      ]
+    },
+    {
+      "key": "steel_dark",
+      "tile_index": 14,
+      "srgb": [
+        79,
+        88,
+        93
+      ]
+    },
+    {
+      "key": "tape",
+      "tile_index": 15,
+      "srgb": [
+        128,
+        88,
+        45
+      ]
+    },
+    {
+      "key": "white",
+      "tile_index": 16,
+      "srgb": [
+        221,
+        226,
+        220
+      ]
+    },
+    {
+      "key": "wood",
+      "tile_index": 17,
+      "srgb": [
+        154,
+        111,
+        62
+      ]
+    },
+    {
+      "key": "wood_dark",
+      "tile_index": 18,
+      "srgb": [
+        104,
+        72,
+        44
+      ]
+    },
+    {
+      "key": "wood_light",
+      "tile_index": 19,
+      "srgb": [
+        183,
+        145,
+        93
+      ]
+    }
+  ]
+}

@@ -1,0 +1,206 @@
+{
+  "source_main_commit": "2377b19",
+  "assets": 7,
+  "checks": [
+    "source_files_and_buffers",
+    "exact_ids_and_folders",
+    "actual_exported_triangle_counts_and_20k_mesh_limit",
+    "finite_positions_normals_and_UVs",
+    "nondegenerate_triangles",
+    "actual_bounds_and_size_tolerances",
+    "preserved_grips_slots_and_old_markers",
+    "hinge_and_axle_local_frames",
+    "attachment_positions_parents_and_LookVectors",
+    "untextured_16_9_screens",
+    "interaction_marker_counts",
+    "combined_library_translation_only_roots",
+    "portable_PBR_textures_at_most_2048",
+    "binary_FBX_header",
+    "closed_authoring_components_after_coincident_vertex_matching",
+    "FBX_import_triangle_mesh_count_and_world_bounds",
+    "sRGB_atlas_pixels_match_declared_palette",
+    "complete_noncorrupt_preview_PNGs",
+    "updated_review_images_match_latest_changed_sources",
+    "sRGB_atlas_pixels_match_declared_palette",
+    "complete_noncorrupt_preview_PNGs",
+    "updated_review_images_match_latest_changed_sources"
+  ],
+  "issues": [],
+  "studio_import_tested": false,
+  "geometry": [
+    {
+      "name": "Brushcutter",
+      "triangles": 8124,
+      "counts": {
+        "components": 49
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "StraightShaftTrimmer",
+      "triangles": 6824,
+      "counts": {
+        "components": 48
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "LeafBlower",
+      "triangles": 8076,
+      "counts": {
+        "components": 49
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "BackpackBlower",
+      "triangles": 11700,
+      "counts": {
+        "components": 57
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "ElectricEdger",
+      "triangles": 7808,
+      "counts": {
+        "components": 50
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "GasStickEdger",
+      "triangles": 9032,
+      "counts": {
+        "components": 64
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "BackpackSprayer",
+      "triangles": 7076,
+      "counts": {
+        "components": 31
+      },
+      "topology_issues": []
+    }
+  ],
+  "fbx_roundtrip": [
+    {
+      "name": "Brushcutter",
+      "triangles": 8124,
+      "mesh_objects": 2,
+      "bounds_error_studs": 8.046627044677734e-07,
+      "passed": true
+    },
+    {
+      "name": "StraightShaftTrimmer",
+      "triangles": 6824,
+      "mesh_objects": 2,
+      "bounds_error_studs": 4.76837158203125e-07,
+      "passed": true
+    },
+    {
+      "name": "LeafBlower",
+      "triangles": 8076,
+      "mesh_objects": 1,
+      "bounds_error_studs": 5.364418029785156e-07,
+      "passed": true
+    },
+    {
+      "name": "BackpackBlower",
+      "triangles": 11700,
+      "mesh_objects": 1,
+      "bounds_error_studs": 4.76837158203125e-07,
+      "passed": true
+    },
+    {
+      "name": "ElectricEdger",
+      "triangles": 7808,
+      "mesh_objects": 3,
+      "bounds_error_studs": 5.960464477539062e-07,
+      "passed": true
+    },
+    {
+      "name": "GasStickEdger",
+      "triangles": 9032,
+      "mesh_objects": 3,
+      "bounds_error_studs": 5.960464477539062e-07,
+      "passed": true
+    },
+    {
+      "name": "BackpackSprayer",
+      "triangles": 7076,
+      "mesh_objects": 1,
+      "bounds_error_studs": 2.8312206268310547e-07,
+      "passed": true
+    }
+  ],
+  "protected_files_unchanged_count": 557,
+  "reviewed_main_commit": "3c40d45",
+  "atlas_encoding": {
+    "pack": "27_TrimmersBlowersSprayer",
+    "swatches": 13,
+    "maximum_srgb_channel_error": 0.0,
+    "passed": true
+  },
+  "preview_status": "complete",
+  "previews": [
+    {
+      "file": "Previews/Brushcutter_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "6ccee88b3b3243fa3cd3e1b19c4b399d8f8c5274ae1fe6306fc265b4e2985cbf"
+    },
+    {
+      "file": "Previews/StraightShaftTrimmer_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "aec8b8de7b66c2033afea8e616c2a75407a53a5ec81504b8aeb2592acf1d53ee"
+    },
+    {
+      "file": "Previews/LeafBlower_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "67509ca548a0f5ca0cceea603c8add2bb6c6cae546819e46c3e6eb37a5dfa521"
+    },
+    {
+      "file": "Previews/BackpackBlower_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "9e094c873615011adc994eea4ca7c4c77effadb06c450f0b76591b603a643d92"
+    },
+    {
+      "file": "Previews/ElectricEdger_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "4c8ad5e928958e49ddf0137c3bb5f1dc65ede4f9d22b66af4122f6df8983edd7"
+    },
+    {
+      "file": "Previews/GasStickEdger_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "f07d40db88c4dd4a63fa29087994b0737abd756e6083e0b49edd74641140810c"
+    },
+    {
+      "file": "Previews/BackpackSprayer_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "3e0cab6d497ea3b6a20205b0bcc652825a50786809078cc45b67935aa800bad1"
+    }
+  ]
+}

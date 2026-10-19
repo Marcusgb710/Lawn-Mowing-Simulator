@@ -1,0 +1,234 @@
+{
+  "asset": {
+    "generator": "Khronos glTF Blender I/O v4.3.47",
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        3
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "extras": {
+        "roblox_class": "Attachment",
+        "roblox_name": "SnapL",
+        "attributes_json": "{}",
+        "parent_mesh": "PicketFenceSection__Body"
+      },
+      "name": "SnapL",
+      "rotation": [
+        0,
+        0.7071067094802856,
+        0,
+        0.7071068286895752
+      ],
+      "translation": [
+        -1.2040001153945923,
+        0.4480000138282776,
+        0
+      ]
+    },
+    {
+      "extras": {
+        "roblox_class": "Attachment",
+        "roblox_name": "SnapR",
+        "attributes_json": "{}",
+        "parent_mesh": "PicketFenceSection__Body"
+      },
+      "name": "SnapR",
+      "rotation": [
+        0,
+        -0.7071068286895752,
+        0,
+        0.7071068286895752
+      ],
+      "translation": [
+        1.2040001153945923,
+        0.4480000138282776,
+        0
+      ]
+    },
+    {
+      "children": [
+        0,
+        1
+      ],
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 0,
+      "name": "PicketFenceSection__Body"
+    },
+    {
+      "children": [
+        2
+      ],
+      "extras": {
+        "folder": "Decorations",
+        "stud_to_meter": 0.28,
+        "primary_part": "Root",
+        "primary_position_studs": [
+          0.0,
+          0.5,
+          0.0
+        ],
+        "markers_json": "[{\"name\": \"SnapL\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"PicketFenceSection__Body\", \"position_studs\": [-4.300000190734863, 1.600000023841858, 0.0], \"orientation_degrees\": [-0.0, 90.00000250447816, 0.0], \"attributes\": {}, \"look_vector\": [-1.0, 0.0, 0.0]}, {\"name\": \"SnapR\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"PicketFenceSection__Body\", \"position_studs\": [4.300000190734863, 1.600000023841858, 0.0], \"orientation_degrees\": [-0.0, -90.00000250447816, 0.0], \"attributes\": {}, \"look_vector\": [1.0, 0.0, 0.0]}]",
+        "slots_json": "[]"
+      },
+      "name": "PicketFenceSection"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "HP shared PBR 34",
+      "normalTexture": {
+        "index": 0,
+        "scale": 0.44999998807907104
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 1
+        },
+        "metallicRoughnessTexture": {
+          "index": 2
+        }
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "PicketFenceSection__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    }
+  ],
+  "images": [
+    {
+      "mimeType": "image/png",
+      "name": "HP34_Normal",
+      "uri": "../../Textures/HP34_Normal.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP34_Color",
+      "uri": "../../Textures/HP34_Color.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP34_Metalness-HP34_Roughness",
+      "uri": "../../Textures/HP34_Metalness-HP34_Roughness.png"
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 2172,
+      "max": [
+        1.2040001153945923,
+        0.8960000276565552,
+        0.0560000017285347
+      ],
+      "min": [
+        -1.2040001153945923,
+        0,
+        -0.0560000017285347
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 2172,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 2172,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "count": 5832,
+      "type": "SCALAR"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 26064,
+      "byteOffset": 0,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 26064,
+      "byteOffset": 26064,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 17376,
+      "byteOffset": 52128,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 11664,
+      "byteOffset": 69504,
+      "target": 34963
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 81168,
+      "uri": "PicketFenceSection.bin"
+    }
+  ]
+}

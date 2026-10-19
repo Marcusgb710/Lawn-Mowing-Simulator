@@ -1,0 +1,383 @@
+{
+  "asset": {
+    "generator": "Khronos glTF Blender I/O v4.3.47",
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        3
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          -0.028085052967071533,
+          0.0,
+          0.04914093017578125
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 0,
+      "name": "Mailbox__Body",
+      "translation": [
+        -0.007863814942538738,
+        0,
+        0.013759460300207138
+      ]
+    },
+    {
+      "extras": {
+        "role": "opening_panel",
+        "animation_axis": "X",
+        "stud_origin": [
+          -0.028085052967071533,
+          2.984771490097046,
+          -0.9991981387138367
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": "Rotate"
+      },
+      "mesh": 1,
+      "name": "Mailbox__Door",
+      "translation": [
+        -0.007863814942538738,
+        0.8357360363006592,
+        -0.279775470495224
+      ]
+    },
+    {
+      "extras": {
+        "role": "opening_panel",
+        "animation_axis": "X",
+        "stud_origin": [
+          0.5438299179077148,
+          3.228426456451416,
+          0.28098514676094055
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": "Rotate"
+      },
+      "mesh": 2,
+      "name": "Mailbox__Flag",
+      "translation": [
+        0.15227237343788147,
+        0.9039593935012817,
+        0.07867584377527237
+      ]
+    },
+    {
+      "children": [
+        0,
+        1,
+        2
+      ],
+      "extras": {
+        "folder": "Decorations",
+        "stud_to_meter": 0.28,
+        "primary_part": "Root",
+        "primary_position_studs": [
+          0.0,
+          0.5,
+          0.0
+        ],
+        "markers_json": "[]",
+        "slots_json": "[]"
+      },
+      "name": "Mailbox"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "HP shared PBR 34",
+      "normalTexture": {
+        "index": 0,
+        "scale": 0.44999998807907104
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 1
+        },
+        "metallicRoughnessTexture": {
+          "index": 2
+        }
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "Mailbox__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "Mailbox__Door",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 4,
+            "NORMAL": 5,
+            "TEXCOORD_0": 6
+          },
+          "indices": 7,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "Mailbox__Flag",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 8,
+            "NORMAL": 9,
+            "TEXCOORD_0": 10
+          },
+          "indices": 11,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    }
+  ],
+  "images": [
+    {
+      "mimeType": "image/png",
+      "name": "HP34_Normal",
+      "uri": "../../Textures/HP34_Normal.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP34_Color",
+      "uri": "../../Textures/HP34_Color.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP34_Metalness-HP34_Roughness",
+      "uri": "../../Textures/HP34_Metalness-HP34_Roughness.png"
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 550,
+      "max": [
+        0.1758638322353363,
+        1.1200000047683716,
+        0.2942405939102173
+      ],
+      "min": [
+        -0.16013619303703308,
+        0,
+        -0.2878900468349457
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 550,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 550,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "count": 1932,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 4,
+      "componentType": 5126,
+      "count": 242,
+      "max": [
+        0.1486978828907013,
+        0.2842639982700348,
+        0.006350529380142689
+      ],
+      "min": [
+        -0.1486978828907013,
+        0,
+        -0.028224527835845947
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 5,
+      "componentType": 5126,
+      "count": 242,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 6,
+      "componentType": 5126,
+      "count": 242,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 7,
+      "componentType": 5123,
+      "count": 636,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 8,
+      "componentType": 5126,
+      "count": 160,
+      "max": [
+        0.006434042472392321,
+        0.18192893266677856,
+        0.10301949083805084
+      ],
+      "min": [
+        -0.006434042472392321,
+        -0.008527965284883976,
+        -0.009172961115837097
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 9,
+      "componentType": 5126,
+      "count": 160,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 10,
+      "componentType": 5126,
+      "count": 160,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 11,
+      "componentType": 5123,
+      "count": 648,
+      "type": "SCALAR"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 6600,
+      "byteOffset": 0,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 6600,
+      "byteOffset": 6600,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 4400,
+      "byteOffset": 13200,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 3864,
+      "byteOffset": 17600,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 2904,
+      "byteOffset": 21464,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 2904,
+      "byteOffset": 24368,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 1936,
+      "byteOffset": 27272,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 1272,
+      "byteOffset": 29208,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 1920,
+      "byteOffset": 30480,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 1920,
+      "byteOffset": 32400,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 1280,
+      "byteOffset": 34320,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 1296,
+      "byteOffset": 35600,
+      "target": 34963
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 36896,
+      "uri": "Mailbox.bin"
+    }
+  ]
+}

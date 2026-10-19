@@ -1,0 +1,477 @@
+{
+  "asset": {
+    "generator": "Khronos glTF Blender I/O v4.3.47",
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        4
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          0.009944814257323742,
+          -0.3471972942352295
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 0,
+      "name": "PowerRakeDethatcher__Body",
+      "translation": [
+        0,
+        0.002784548094496131,
+        -0.09721524268388748
+      ]
+    },
+    {
+      "extras": {
+        "role": "wheel",
+        "animation_axis": "X",
+        "stud_origin": [
+          0.0,
+          0.4685777425765991,
+          -1.1879959106445312
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Hull",
+        "motion_mode": "Rotate"
+      },
+      "mesh": 1,
+      "name": "PowerRakeDethatcher__Wheel_Flails",
+      "translation": [
+        0,
+        0.13120177388191223,
+        -0.33263885974884033
+      ]
+    },
+    {
+      "extras": {
+        "role": "wheel",
+        "animation_axis": "X",
+        "stud_origin": [
+          -0.8310248851776123,
+          0.48851829767227173,
+          -0.047734811902046204
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Hull",
+        "motion_mode": "Rotate"
+      },
+      "mesh": 2,
+      "name": "PowerRakeDethatcher__Wheel_Rear-1",
+      "translation": [
+        -0.23268696665763855,
+        0.1367851197719574,
+        -0.013365747407078743
+      ]
+    },
+    {
+      "extras": {
+        "role": "wheel",
+        "animation_axis": "X",
+        "stud_origin": [
+          0.8310248851776123,
+          0.48851829767227173,
+          -0.047734811902046204
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Hull",
+        "motion_mode": "Rotate"
+      },
+      "mesh": 3,
+      "name": "PowerRakeDethatcher__Wheel_Rear1",
+      "translation": [
+        0.23268696665763855,
+        0.1367851197719574,
+        -0.013365747407078743
+      ]
+    },
+    {
+      "children": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "extras": {
+        "folder": "Tools",
+        "stud_to_meter": 0.28,
+        "primary_part": "Handle",
+        "primary_position_studs": [
+          0.0,
+          3.5,
+          2.4000000953674316
+        ],
+        "markers_json": "[]",
+        "slots_json": "[]"
+      },
+      "name": "PowerRakeDethatcher"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "HP shared PBR 31",
+      "normalTexture": {
+        "index": 0,
+        "scale": 0.44999998807907104
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 1
+        },
+        "metallicRoughnessTexture": {
+          "index": 2
+        }
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "PowerRakeDethatcher__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "PowerRakeDethatcher__Wheel_Flails",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 4,
+            "NORMAL": 5,
+            "TEXCOORD_0": 6
+          },
+          "indices": 7,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "PowerRakeDethatcher__Wheel_Rear-1",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 8,
+            "NORMAL": 9,
+            "TEXCOORD_0": 10
+          },
+          "indices": 11,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "PowerRakeDethatcher__Wheel_Rear1",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 12,
+            "NORMAL": 13,
+            "TEXCOORD_0": 14
+          },
+          "indices": 15,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    }
+  ],
+  "images": [
+    {
+      "mimeType": "image/png",
+      "name": "HP31_Normal",
+      "uri": "../../Textures/HP31_Normal.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP31_Color",
+      "uri": "../../Textures/HP31_Color.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP31_Metalness-HP31_Roughness",
+      "uri": "../../Textures/HP31_Metalness-HP31_Roughness.png"
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 6322,
+      "max": [
+        0.2506925165653229,
+        0.9971876740455627,
+        0.7972152233123779
+      ],
+      "min": [
+        -0.2742382287979126,
+        0.027916785329580307,
+        -0.4627847671508789
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 6322,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 6322,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "count": 24168,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 4,
+      "componentType": 5126,
+      "count": 5024,
+      "max": [
+        0.22160665690898895,
+        0.09212540835142136,
+        0.10642439872026443
+      ],
+      "min": [
+        -0.22160665690898895,
+        -0.09212540090084076,
+        -0.10642433166503906
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 5,
+      "componentType": 5126,
+      "count": 5024,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 6,
+      "componentType": 5126,
+      "count": 5024,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 7,
+      "componentType": 5123,
+      "count": 17076,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 8,
+      "componentType": 5126,
+      "count": 1968,
+      "max": [
+        0.0442105233669281,
+        0.1367851048707962,
+        0.15882550179958344
+      ],
+      "min": [
+        -0.04731303080916405,
+        -0.1367851197719574,
+        -0.15882551670074463
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 9,
+      "componentType": 5126,
+      "count": 1968,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 10,
+      "componentType": 5126,
+      "count": 1968,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 11,
+      "componentType": 5123,
+      "count": 6252,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 12,
+      "componentType": 5126,
+      "count": 1968,
+      "max": [
+        0.04731303080916405,
+        0.1367851048707962,
+        0.15882550179958344
+      ],
+      "min": [
+        -0.0442105233669281,
+        -0.1367851197719574,
+        -0.15882551670074463
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 13,
+      "componentType": 5126,
+      "count": 1968,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 14,
+      "componentType": 5126,
+      "count": 1968,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 15,
+      "componentType": 5123,
+      "count": 6252,
+      "type": "SCALAR"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 75864,
+      "byteOffset": 0,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 75864,
+      "byteOffset": 75864,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 50576,
+      "byteOffset": 151728,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 48336,
+      "byteOffset": 202304,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 60288,
+      "byteOffset": 250640,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 60288,
+      "byteOffset": 310928,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 40192,
+      "byteOffset": 371216,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 34152,
+      "byteOffset": 411408,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 23616,
+      "byteOffset": 445560,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 23616,
+      "byteOffset": 469176,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 15744,
+      "byteOffset": 492792,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 12504,
+      "byteOffset": 508536,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 23616,
+      "byteOffset": 521040,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 23616,
+      "byteOffset": 544656,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 15744,
+      "byteOffset": 568272,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 12504,
+      "byteOffset": 584016,
+      "target": 34963
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 596520,
+      "uri": "PowerRakeDethatcher.bin"
+    }
+  ]
+}

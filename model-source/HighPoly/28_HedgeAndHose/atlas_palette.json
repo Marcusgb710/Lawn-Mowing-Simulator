@@ -1,0 +1,116 @@
+{
+  "encoding": "sRGB",
+  "tile_size": 256,
+  "tiles_per_side": 8,
+  "texture": "Textures/HP28_Color.png",
+  "swatches": [
+    {
+      "key": "black",
+      "tile_index": 0,
+      "srgb": [
+        24,
+        28,
+        30
+      ]
+    },
+    {
+      "key": "brass",
+      "tile_index": 1,
+      "srgb": [
+        173,
+        136,
+        57
+      ]
+    },
+    {
+      "key": "clear",
+      "tile_index": 2,
+      "srgb": [
+        208,
+        225,
+        229
+      ]
+    },
+    {
+      "key": "galvanized",
+      "tile_index": 3,
+      "srgb": [
+        145,
+        156,
+        157
+      ]
+    },
+    {
+      "key": "green",
+      "tile_index": 4,
+      "srgb": [
+        39,
+        109,
+        55
+      ]
+    },
+    {
+      "key": "orange",
+      "tile_index": 5,
+      "srgb": [
+        225,
+        92,
+        20
+      ]
+    },
+    {
+      "key": "rubber",
+      "tile_index": 6,
+      "srgb": [
+        31,
+        34,
+        35
+      ]
+    },
+    {
+      "key": "rubber_light",
+      "tile_index": 7,
+      "srgb": [
+        46,
+        48,
+        47
+      ]
+    },
+    {
+      "key": "steel",
+      "tile_index": 8,
+      "srgb": [
+        173,
+        183,
+        188
+      ]
+    },
+    {
+      "key": "steel_dark",
+      "tile_index": 9,
+      "srgb": [
+        79,
+        88,
+        93
+      ]
+    },
+    {
+      "key": "white",
+      "tile_index": 10,
+      "srgb": [
+        221,
+        226,
+        220
+      ]
+    },
+    {
+      "key": "wood",
+      "tile_index": 11,
+      "srgb": [
+        154,
+        111,
+        62
+      ]
+    }
+  ]
+}

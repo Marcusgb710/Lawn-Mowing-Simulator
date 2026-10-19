@@ -1,0 +1,465 @@
+{
+  "asset": {
+    "generator": "Khronos glTF Blender I/O v4.3.47",
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        4
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          0.013476895168423653,
+          0.0371861457824707
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 0,
+      "name": "ReelMower__Body",
+      "translation": [
+        0,
+        0.003773530712351203,
+        0.010412121191620827
+      ]
+    },
+    {
+      "extras": {
+        "role": "wheel",
+        "animation_axis": "X",
+        "stud_origin": [
+          -1.1239084005355835,
+          0.6873229742050171,
+          -3.805762767791748
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Hull",
+        "motion_mode": "Rotate"
+      },
+      "mesh": 1,
+      "name": "ReelMower__Wheel_L",
+      "translation": [
+        -0.314694344997406,
+        0.19245043396949768,
+        -1.0656136274337769
+      ]
+    },
+    {
+      "extras": {
+        "role": "wheel",
+        "animation_axis": "X",
+        "stud_origin": [
+          1.1239084005355835,
+          0.6873229742050171,
+          -3.805762767791748
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Hull",
+        "motion_mode": "Rotate"
+      },
+      "mesh": 2,
+      "name": "ReelMower__Wheel_R",
+      "translation": [
+        0.314694344997406,
+        0.19245043396949768,
+        -1.0656136274337769
+      ]
+    },
+    {
+      "extras": {
+        "role": "wheel",
+        "animation_axis": "X",
+        "stud_origin": [
+          0.0,
+          0.5565767288208008,
+          -3.6338415145874023
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Hull",
+        "motion_mode": "Rotate"
+      },
+      "mesh": 3,
+      "name": "ReelMower__Wheel_Reel",
+      "translation": [
+        0,
+        0.15584148466587067,
+        -1.0174756050109863
+      ]
+    },
+    {
+      "children": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "extras": {
+        "folder": "Tools",
+        "stud_to_meter": 0.28,
+        "primary_part": "Handle",
+        "primary_position_studs": [
+          0.0,
+          4.2,
+          0.0
+        ],
+        "markers_json": "[]",
+        "slots_json": "[]"
+      },
+      "name": "ReelMower"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "HP shared PBR 26",
+      "normalTexture": {
+        "index": 0,
+        "scale": 0.44999998807907104
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 1
+        },
+        "metallicRoughnessTexture": {
+          "index": 2
+        }
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "ReelMower__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "ReelMower__Wheel_L",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 4,
+            "NORMAL": 5,
+            "TEXCOORD_0": 6
+          },
+          "indices": 7,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "ReelMower__Wheel_R",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 8,
+            "NORMAL": 9,
+            "TEXCOORD_0": 10
+          },
+          "indices": 7,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "ReelMower__Wheel_Reel",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 11,
+            "NORMAL": 12,
+            "TEXCOORD_0": 13
+          },
+          "indices": 14,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    }
+  ],
+  "images": [
+    {
+      "mimeType": "image/png",
+      "name": "HP26_Normal",
+      "uri": "../../Textures/HP26_Normal.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP26_Color",
+      "uri": "../../Textures/HP26_Color.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP26_Metalness-HP26_Roughness",
+      "uri": "../../Textures/HP26_Metalness-HP26_Roughness.png"
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 2424,
+      "max": [
+        0.31172555685043335,
+        1.2030264139175415,
+        0.020387854427099228
+      ],
+      "min": [
+        -0.31172555685043335,
+        0.0028160708025097847,
+        -1.1666383743286133
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 2424,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 2424,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "count": 8664,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 4,
+      "componentType": 5126,
+      "count": 1872,
+      "max": [
+        0.0423055924475193,
+        0.19245043396949768,
+        0.19438636302947998
+      ],
+      "min": [
+        -0.04230564087629318,
+        -0.19245043396949768,
+        -0.19438642263412476
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 5,
+      "componentType": 5126,
+      "count": 1872,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 6,
+      "componentType": 5126,
+      "count": 1872,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 7,
+      "componentType": 5123,
+      "count": 5976,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 8,
+      "componentType": 5126,
+      "count": 1872,
+      "max": [
+        0.04230564087629318,
+        0.19245043396949768,
+        0.19438636302947998
+      ],
+      "min": [
+        -0.0423055924475193,
+        -0.19245043396949768,
+        -0.19438642263412476
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 9,
+      "componentType": 5126,
+      "count": 1872,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 10,
+      "componentType": 5126,
+      "count": 1872,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 11,
+      "componentType": 5126,
+      "count": 1176,
+      "max": [
+        0.3473513424396515,
+        0.12818925082683563,
+        0.12890048325061798
+      ],
+      "min": [
+        -0.3473513424396515,
+        -0.12818923592567444,
+        -0.128900408744812
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 12,
+      "componentType": 5126,
+      "count": 1176,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 13,
+      "componentType": 5126,
+      "count": 1176,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 14,
+      "componentType": 5123,
+      "count": 5508,
+      "type": "SCALAR"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 29088,
+      "byteOffset": 0,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 29088,
+      "byteOffset": 29088,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 19392,
+      "byteOffset": 58176,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 17328,
+      "byteOffset": 77568,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 22464,
+      "byteOffset": 94896,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 22464,
+      "byteOffset": 117360,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 14976,
+      "byteOffset": 139824,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 11952,
+      "byteOffset": 154800,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 22464,
+      "byteOffset": 166752,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 22464,
+      "byteOffset": 189216,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 14976,
+      "byteOffset": 211680,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 14112,
+      "byteOffset": 226656,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 14112,
+      "byteOffset": 240768,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 9408,
+      "byteOffset": 254880,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 11016,
+      "byteOffset": 264288,
+      "target": 34963
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 275304,
+      "uri": "ReelMower.bin"
+    }
+  ]
+}

@@ -1,0 +1,289 @@
+{
+  "asset": {
+    "generator": "Khronos glTF Blender I/O v4.3.47",
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        2
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          0.041002750396728516,
+          0.0,
+          -0.008315205574035645
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 0,
+      "name": "HydrangeaBush__Body",
+      "translation": [
+        0.011480770073831081,
+        0,
+        -0.002328257542103529
+      ]
+    },
+    {
+      "extras": {
+        "role": "foliage",
+        "animation_axis": "",
+        "stud_origin": [
+          0.041002750396728516,
+          0.0,
+          -0.008315205574035645
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 1,
+      "name": "HydrangeaBush__Overgrowth",
+      "translation": [
+        0.011480770073831081,
+        0,
+        -0.002328257542103529
+      ]
+    },
+    {
+      "children": [
+        0,
+        1
+      ],
+      "extras": {
+        "folder": "Decorations",
+        "stud_to_meter": 0.28,
+        "primary_part": "Root",
+        "primary_position_studs": [
+          0.0,
+          0.5,
+          0.0
+        ],
+        "markers_json": "[]",
+        "slots_json": "[]"
+      },
+      "name": "HydrangeaBush"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "HP shared PBR 34",
+      "normalTexture": {
+        "index": 0,
+        "scale": 0.44999998807907104
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 1
+        },
+        "metallicRoughnessTexture": {
+          "index": 2
+        }
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "HydrangeaBush__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "HydrangeaBush__Overgrowth",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 4,
+            "NORMAL": 5,
+            "TEXCOORD_0": 6
+          },
+          "indices": 7,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    }
+  ],
+  "images": [
+    {
+      "mimeType": "image/png",
+      "name": "HP34_Normal",
+      "uri": "../../Textures/HP34_Normal.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP34_Color",
+      "uri": "../../Textures/HP34_Color.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP34_Metalness-HP34_Roughness",
+      "uri": "../../Textures/HP34_Metalness-HP34_Roughness.png"
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 9678,
+      "max": [
+        0.48920920491218567,
+        0.9528647661209106,
+        0.5089069604873657
+      ],
+      "min": [
+        -0.49146533012390137,
+        0,
+        -0.5081565380096436
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 9678,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 9678,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "count": 14880,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 4,
+      "componentType": 5126,
+      "count": 4576,
+      "max": [
+        0.5485191941261292,
+        1.0080000162124634,
+        0.5623282194137573
+      ],
+      "min": [
+        -0.5714807510375977,
+        0.38814643025398254,
+        -0.5576717257499695
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 5,
+      "componentType": 5126,
+      "count": 4576,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 6,
+      "componentType": 5126,
+      "count": 4576,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 7,
+      "componentType": 5123,
+      "count": 5928,
+      "type": "SCALAR"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 116136,
+      "byteOffset": 0,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 116136,
+      "byteOffset": 116136,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 77424,
+      "byteOffset": 232272,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 29760,
+      "byteOffset": 309696,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 54912,
+      "byteOffset": 339456,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 54912,
+      "byteOffset": 394368,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 36608,
+      "byteOffset": 449280,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 11856,
+      "byteOffset": 485888,
+      "target": 34963
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 497744,
+      "uri": "HydrangeaBush.bin"
+    }
+  ]
+}

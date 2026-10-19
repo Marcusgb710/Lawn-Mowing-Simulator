@@ -1,0 +1,641 @@
+{
+  "asset": {
+    "generator": "Khronos glTF Blender I/O v4.3.47",
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        6
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          -0.02897864580154419,
+          -0.026340510696172714,
+          0.030810832977294922
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 0,
+      "name": "WalkBehindEdger__Body",
+      "translation": [
+        -0.008114021271467209,
+        -0.007375343237072229,
+        0.008627032861113548
+      ]
+    },
+    {
+      "extras": {
+        "role": "wheel",
+        "animation_axis": "X",
+        "stud_origin": [
+          1.1700447797775269,
+          0.5319430828094482,
+          -3.433708429336548
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Hull",
+        "motion_mode": "Rotate"
+      },
+      "mesh": 1,
+      "name": "WalkBehindEdger__Wheel_Blade",
+      "translation": [
+        0.3276125490665436,
+        0.14894406497478485,
+        -0.9614383578300476
+      ]
+    },
+    {
+      "extras": {
+        "role": "wheel",
+        "animation_axis": "X",
+        "stud_origin": [
+          -0.8483113050460815,
+          0.3035542964935303,
+          -3.378715753555298
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Hull",
+        "motion_mode": "Rotate"
+      },
+      "mesh": 2,
+      "name": "WalkBehindEdger__Wheel_F-1",
+      "translation": [
+        -0.23752716183662415,
+        0.08499520272016525,
+        -0.9460403919219971
+      ]
+    },
+    {
+      "extras": {
+        "role": "wheel",
+        "animation_axis": "X",
+        "stud_origin": [
+          0.7903540134429932,
+          0.3035542964935303,
+          -3.378715753555298
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Hull",
+        "motion_mode": "Rotate"
+      },
+      "mesh": 3,
+      "name": "WalkBehindEdger__Wheel_F1",
+      "translation": [
+        0.22129912674427032,
+        0.08499520272016525,
+        -0.9460403919219971
+      ]
+    },
+    {
+      "extras": {
+        "role": "wheel",
+        "animation_axis": "X",
+        "stud_origin": [
+          -0.8483113050460815,
+          0.3898344933986664,
+          -2.003906726837158
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Hull",
+        "motion_mode": "Rotate"
+      },
+      "mesh": 4,
+      "name": "WalkBehindEdger__Wheel_R-1",
+      "translation": [
+        -0.23752716183662415,
+        0.10915365815162659,
+        -0.5610938668251038
+      ]
+    },
+    {
+      "extras": {
+        "role": "wheel",
+        "animation_axis": "X",
+        "stud_origin": [
+          0.7903540134429932,
+          0.3898344933986664,
+          -2.003906726837158
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Hull",
+        "motion_mode": "Rotate"
+      },
+      "mesh": 5,
+      "name": "WalkBehindEdger__Wheel_R1",
+      "translation": [
+        0.22129912674427032,
+        0.10915365815162659,
+        -0.5610938668251038
+      ]
+    },
+    {
+      "children": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "extras": {
+        "folder": "Tools",
+        "stud_to_meter": 0.28,
+        "primary_part": "Handle",
+        "primary_position_studs": [
+          0.0,
+          4.2,
+          0.0
+        ],
+        "markers_json": "[]",
+        "slots_json": "[]"
+      },
+      "name": "WalkBehindEdger"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "HP shared PBR 31",
+      "normalTexture": {
+        "index": 0,
+        "scale": 0.44999998807907104
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 1
+        },
+        "metallicRoughnessTexture": {
+          "index": 2
+        }
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "WalkBehindEdger__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "WalkBehindEdger__Wheel_Blade",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 4,
+            "NORMAL": 5,
+            "TEXCOORD_0": 6
+          },
+          "indices": 7,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "WalkBehindEdger__Wheel_F-1",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 8,
+            "NORMAL": 9,
+            "TEXCOORD_0": 10
+          },
+          "indices": 11,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "WalkBehindEdger__Wheel_F1",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 12,
+            "NORMAL": 13,
+            "TEXCOORD_0": 14
+          },
+          "indices": 15,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "WalkBehindEdger__Wheel_R-1",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 16,
+            "NORMAL": 17,
+            "TEXCOORD_0": 18
+          },
+          "indices": 11,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "WalkBehindEdger__Wheel_R1",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 19,
+            "NORMAL": 20,
+            "TEXCOORD_0": 21
+          },
+          "indices": 11,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    }
+  ],
+  "images": [
+    {
+      "mimeType": "image/png",
+      "name": "HP31_Normal",
+      "uri": "../../Textures/HP31_Normal.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP31_Color",
+      "uri": "../../Textures/HP31_Color.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP31_Metalness-HP31_Roughness",
+      "uri": "../../Textures/HP31_Metalness-HP31_Roughness.png"
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 6366,
+      "max": [
+        0.35111403465270996,
+        1.2141753435134888,
+        0.022172920405864716
+      ],
+      "min": [
+        -0.23081199824810028,
+        0.12058593332767487,
+        -1.128627061843872
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 6366,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 6366,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "count": 24684,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 4,
+      "componentType": 5126,
+      "count": 200,
+      "max": [
+        0.01398860476911068,
+        0.10932786762714386,
+        0.05222342535853386
+      ],
+      "min": [
+        -0.003497176105156541,
+        -0.10932788997888565,
+        -0.05222335830330849
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 5,
+      "componentType": 5126,
+      "count": 200,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 6,
+      "componentType": 5126,
+      "count": 200,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 7,
+      "componentType": 5123,
+      "count": 660,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 8,
+      "componentType": 5126,
+      "count": 1872,
+      "max": [
+        0.03827282041311264,
+        0.09448203444480896,
+        0.10279400646686554
+      ],
+      "min": [
+        -0.03827282041311264,
+        -0.09448203444480896,
+        -0.10279400646686554
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 9,
+      "componentType": 5126,
+      "count": 1872,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 10,
+      "componentType": 5126,
+      "count": 1872,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 11,
+      "componentType": 5123,
+      "count": 5976,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 12,
+      "componentType": 5126,
+      "count": 2760,
+      "max": [
+        0.03827282041311264,
+        0.0980549156665802,
+        0.12010328471660614
+      ],
+      "min": [
+        -0.03827282041311264,
+        -0.09448203444480896,
+        -0.10279400646686554
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 13,
+      "componentType": 5126,
+      "count": 2760,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 14,
+      "componentType": 5126,
+      "count": 2760,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 15,
+      "componentType": 5123,
+      "count": 10872,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 16,
+      "componentType": 5126,
+      "count": 1872,
+      "max": [
+        0.03827282041311264,
+        0.11895366758108139,
+        0.1295483559370041
+      ],
+      "min": [
+        -0.03827282041311264,
+        -0.1189536601305008,
+        -0.1295483559370041
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 17,
+      "componentType": 5126,
+      "count": 1872,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 18,
+      "componentType": 5126,
+      "count": 1872,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 19,
+      "componentType": 5126,
+      "count": 1872,
+      "max": [
+        0.03827282041311264,
+        0.11895366758108139,
+        0.1295483559370041
+      ],
+      "min": [
+        -0.03827282041311264,
+        -0.1189536601305008,
+        -0.1295483559370041
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 20,
+      "componentType": 5126,
+      "count": 1872,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 21,
+      "componentType": 5126,
+      "count": 1872,
+      "type": "VEC2"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 76392,
+      "byteOffset": 0,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 76392,
+      "byteOffset": 76392,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 50928,
+      "byteOffset": 152784,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 49368,
+      "byteOffset": 203712,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 2400,
+      "byteOffset": 253080,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 2400,
+      "byteOffset": 255480,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 1600,
+      "byteOffset": 257880,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 1320,
+      "byteOffset": 259480,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 22464,
+      "byteOffset": 260800,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 22464,
+      "byteOffset": 283264,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 14976,
+      "byteOffset": 305728,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 11952,
+      "byteOffset": 320704,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 33120,
+      "byteOffset": 332656,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 33120,
+      "byteOffset": 365776,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 22080,
+      "byteOffset": 398896,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 21744,
+      "byteOffset": 420976,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 22464,
+      "byteOffset": 442720,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 22464,
+      "byteOffset": 465184,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 14976,
+      "byteOffset": 487648,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 22464,
+      "byteOffset": 502624,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 22464,
+      "byteOffset": 525088,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 14976,
+      "byteOffset": 547552,
+      "target": 34962
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 562528,
+      "uri": "WalkBehindEdger.bin"
+    }
+  ]
+}

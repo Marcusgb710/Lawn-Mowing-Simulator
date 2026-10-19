@@ -1,0 +1,477 @@
+{
+  "asset": {
+    "generator": "Khronos glTF Blender I/O v4.3.47",
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        4
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          0.034999966621398926,
+          0.01839844509959221,
+          0.0195920467376709
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 0,
+      "name": "StandOnAerator__Body",
+      "translation": [
+        0.009799990803003311,
+        0.005151564721018076,
+        0.0054857730865478516
+      ]
+    },
+    {
+      "extras": {
+        "role": "wheel",
+        "animation_axis": "X",
+        "stud_origin": [
+          -1.5476614236831665,
+          0.9199333786964417,
+          1.2294912338256836
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Hull",
+        "motion_mode": "Rotate"
+      },
+      "mesh": 1,
+      "name": "StandOnAerator__Wheel_Rear-1",
+      "translation": [
+        -0.4333451986312866,
+        0.25758135318756104,
+        0.34425753355026245
+      ]
+    },
+    {
+      "extras": {
+        "role": "wheel",
+        "animation_axis": "X",
+        "stud_origin": [
+          1.6176613569259644,
+          0.9199333786964417,
+          1.2294912338256836
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Hull",
+        "motion_mode": "Rotate"
+      },
+      "mesh": 2,
+      "name": "StandOnAerator__Wheel_Rear1",
+      "translation": [
+        0.45294517278671265,
+        0.25758135318756104,
+        0.34425753355026245
+      ]
+    },
+    {
+      "extras": {
+        "role": "wheel",
+        "animation_axis": "X",
+        "stud_origin": [
+          0.034999966621398926,
+          0.6294388175010681,
+          -1.4726169109344482
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Hull",
+        "motion_mode": "Rotate"
+      },
+      "mesh": 3,
+      "name": "StandOnAerator__Wheel_Tines",
+      "translation": [
+        0.009799990803003311,
+        0.1762428730726242,
+        -0.4123327434062958
+      ]
+    },
+    {
+      "children": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "extras": {
+        "folder": "Tools",
+        "stud_to_meter": 0.28,
+        "primary_part": "Handle",
+        "primary_position_studs": [
+          0.0,
+          4.306021690368652,
+          1.75
+        ],
+        "markers_json": "[]",
+        "slots_json": "[]"
+      },
+      "name": "StandOnAerator"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "HP shared PBR 26",
+      "normalTexture": {
+        "index": 0,
+        "scale": 0.44999998807907104
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 1
+        },
+        "metallicRoughnessTexture": {
+          "index": 2
+        }
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "StandOnAerator__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "StandOnAerator__Wheel_Rear-1",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 4,
+            "NORMAL": 5,
+            "TEXCOORD_0": 6
+          },
+          "indices": 7,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "StandOnAerator__Wheel_Rear1",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 8,
+            "NORMAL": 9,
+            "TEXCOORD_0": 10
+          },
+          "indices": 11,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "StandOnAerator__Wheel_Tines",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 12,
+            "NORMAL": 13,
+            "TEXCOORD_0": 14
+          },
+          "indices": 15,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    }
+  ],
+  "images": [
+    {
+      "mimeType": "image/png",
+      "name": "HP26_Normal",
+      "uri": "../../Textures/HP26_Normal.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP26_Color",
+      "uri": "../../Textures/HP26_Color.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP26_Metalness-HP26_Roughness",
+      "uri": "../../Textures/HP26_Metalness-HP26_Roughness.png"
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 5880,
+      "max": [
+        0.4645877182483673,
+        1.223165512084961,
+        0.8695141673088074
+      ],
+      "min": [
+        -0.4645877182483673,
+        0.2117605358362198,
+        -0.67048579454422
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 5880,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 5880,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "count": 22356,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 4,
+      "componentType": 5126,
+      "count": 1968,
+      "max": [
+        0.08148153871297836,
+        0.25758135318756104,
+        0.260640025138855
+      ],
+      "min": [
+        -0.08719956129789352,
+        -0.25758135318756104,
+        -0.260640025138855
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 5,
+      "componentType": 5126,
+      "count": 1968,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 6,
+      "componentType": 5126,
+      "count": 1968,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 7,
+      "componentType": 5123,
+      "count": 6252,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 8,
+      "componentType": 5126,
+      "count": 1968,
+      "max": [
+        0.08719956129789352,
+        0.25758135318756104,
+        0.260640025138855
+      ],
+      "min": [
+        -0.08148153871297836,
+        -0.25758135318756104,
+        -0.260640025138855
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 9,
+      "componentType": 5126,
+      "count": 1968,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 10,
+      "componentType": 5126,
+      "count": 1968,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 11,
+      "componentType": 5123,
+      "count": 6252,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 12,
+      "componentType": 5126,
+      "count": 4896,
+      "max": [
+        0.42027321457862854,
+        0.16267700493335724,
+        0.16373968124389648
+      ],
+      "min": [
+        -0.42027321457862854,
+        -0.16267697513103485,
+        -0.1637396663427353
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 13,
+      "componentType": 5126,
+      "count": 4896,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 14,
+      "componentType": 5126,
+      "count": 4896,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 15,
+      "componentType": 5123,
+      "count": 28488,
+      "type": "SCALAR"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 70560,
+      "byteOffset": 0,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 70560,
+      "byteOffset": 70560,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 47040,
+      "byteOffset": 141120,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 44712,
+      "byteOffset": 188160,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 23616,
+      "byteOffset": 232872,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 23616,
+      "byteOffset": 256488,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 15744,
+      "byteOffset": 280104,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 12504,
+      "byteOffset": 295848,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 23616,
+      "byteOffset": 308352,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 23616,
+      "byteOffset": 331968,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 15744,
+      "byteOffset": 355584,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 12504,
+      "byteOffset": 371328,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 58752,
+      "byteOffset": 383832,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 58752,
+      "byteOffset": 442584,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 39168,
+      "byteOffset": 501336,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 56976,
+      "byteOffset": 540504,
+      "target": 34963
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 597480,
+      "uri": "StandOnAerator.bin"
+    }
+  ]
+}

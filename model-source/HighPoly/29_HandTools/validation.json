@@ -1,0 +1,390 @@
+{
+  "source_main_commit": "2377b19",
+  "assets": 15,
+  "checks": [
+    "source_files_and_buffers",
+    "exact_ids_and_folders",
+    "actual_exported_triangle_counts_and_20k_mesh_limit",
+    "finite_positions_normals_and_UVs",
+    "nondegenerate_triangles",
+    "actual_bounds_and_size_tolerances",
+    "preserved_grips_slots_and_old_markers",
+    "hinge_and_axle_local_frames",
+    "attachment_positions_parents_and_LookVectors",
+    "untextured_16_9_screens",
+    "interaction_marker_counts",
+    "combined_library_translation_only_roots",
+    "portable_PBR_textures_at_most_2048",
+    "binary_FBX_header",
+    "closed_authoring_components_after_coincident_vertex_matching",
+    "FBX_import_triangle_mesh_count_and_world_bounds",
+    "sRGB_atlas_pixels_match_declared_palette",
+    "complete_noncorrupt_preview_PNGs",
+    "updated_review_images_match_latest_changed_sources",
+    "sRGB_atlas_pixels_match_declared_palette",
+    "complete_noncorrupt_preview_PNGs",
+    "updated_review_images_match_latest_changed_sources"
+  ],
+  "issues": [],
+  "studio_import_tested": false,
+  "geometry": [
+    {
+      "name": "HandTrowel",
+      "triangles": 4808,
+      "counts": {
+        "components": 13
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "HandTransplanter",
+      "triangles": 4868,
+      "counts": {
+        "components": 18
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "HandCultivator",
+      "triangles": 4468,
+      "counts": {
+        "components": 14
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "DandelionWeeder",
+      "triangles": 3284,
+      "counts": {
+        "components": 13
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "Dibber",
+      "triangles": 3084,
+      "counts": {
+        "components": 5
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "BypassPruners",
+      "triangles": 4200,
+      "counts": {
+        "components": 17
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "AnvilPruners",
+      "triangles": 4364,
+      "counts": {
+        "components": 18
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "FloralSnips",
+      "triangles": 2204,
+      "counts": {
+        "components": 7
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "PruningSaw",
+      "triangles": 2416,
+      "counts": {
+        "components": 11
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "Loppers",
+      "triangles": 4308,
+      "counts": {
+        "components": 18
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "GardenShears",
+      "triangles": 4792,
+      "counts": {
+        "components": 18
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "WateringCan",
+      "triangles": 4144,
+      "counts": {
+        "components": 21
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "NitrileGloves",
+      "triangles": 3568,
+      "counts": {
+        "components": 16
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "ChemicalGloves",
+      "triangles": 4624,
+      "counts": {
+        "components": 30
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "SoilProbe",
+      "triangles": 2964,
+      "counts": {
+        "components": 15
+      },
+      "topology_issues": []
+    }
+  ],
+  "fbx_roundtrip": [
+    {
+      "name": "HandTrowel",
+      "triangles": 4808,
+      "mesh_objects": 1,
+      "bounds_error_studs": 1.1920928955078125e-07,
+      "passed": true
+    },
+    {
+      "name": "HandTransplanter",
+      "triangles": 4868,
+      "mesh_objects": 1,
+      "bounds_error_studs": 1.1920928955078125e-07,
+      "passed": true
+    },
+    {
+      "name": "HandCultivator",
+      "triangles": 4468,
+      "mesh_objects": 1,
+      "bounds_error_studs": 8.940696716308594e-08,
+      "passed": true
+    },
+    {
+      "name": "DandelionWeeder",
+      "triangles": 3284,
+      "mesh_objects": 1,
+      "bounds_error_studs": 1.1920928955078125e-07,
+      "passed": true
+    },
+    {
+      "name": "Dibber",
+      "triangles": 3084,
+      "mesh_objects": 1,
+      "bounds_error_studs": 5.960464477539063e-08,
+      "passed": true
+    },
+    {
+      "name": "BypassPruners",
+      "triangles": 4200,
+      "mesh_objects": 1,
+      "bounds_error_studs": 2.9802322387695312e-08,
+      "passed": true
+    },
+    {
+      "name": "AnvilPruners",
+      "triangles": 4364,
+      "mesh_objects": 1,
+      "bounds_error_studs": 2.9802322387695312e-08,
+      "passed": true
+    },
+    {
+      "name": "FloralSnips",
+      "triangles": 2204,
+      "mesh_objects": 1,
+      "bounds_error_studs": 2.9802322387695312e-08,
+      "passed": true
+    },
+    {
+      "name": "PruningSaw",
+      "triangles": 2416,
+      "mesh_objects": 1,
+      "bounds_error_studs": 2.2351741790771484e-07,
+      "passed": true
+    },
+    {
+      "name": "Loppers",
+      "triangles": 4308,
+      "mesh_objects": 1,
+      "bounds_error_studs": 3.688037395477295e-07,
+      "passed": true
+    },
+    {
+      "name": "GardenShears",
+      "triangles": 4792,
+      "mesh_objects": 1,
+      "bounds_error_studs": 1.1920928955078125e-07,
+      "passed": true
+    },
+    {
+      "name": "WateringCan",
+      "triangles": 4144,
+      "mesh_objects": 1,
+      "bounds_error_studs": 1.1920928955078125e-07,
+      "passed": true
+    },
+    {
+      "name": "NitrileGloves",
+      "triangles": 3568,
+      "mesh_objects": 1,
+      "bounds_error_studs": 5.960464477539063e-08,
+      "passed": true
+    },
+    {
+      "name": "ChemicalGloves",
+      "triangles": 4624,
+      "mesh_objects": 1,
+      "bounds_error_studs": 1.1920928955078125e-07,
+      "passed": true
+    },
+    {
+      "name": "SoilProbe",
+      "triangles": 2964,
+      "mesh_objects": 2,
+      "bounds_error_studs": 4.544854164123535e-07,
+      "passed": true
+    }
+  ],
+  "protected_files_unchanged_count": 557,
+  "reviewed_main_commit": "3c40d45",
+  "atlas_encoding": {
+    "pack": "29_HandTools",
+    "swatches": 17,
+    "maximum_srgb_channel_error": 0.0,
+    "passed": true
+  },
+  "preview_status": "complete",
+  "previews": [
+    {
+      "file": "Previews/HandTrowel_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "5b24b0fc0a37cc1f5dc693ef70af68c6b12eb0e56281985eae00ff280d7106ff"
+    },
+    {
+      "file": "Previews/HandTransplanter_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "34bb93f8b82b8990c523f8117e2afa3c18785583f6017cc98f18f73064c7b9e3"
+    },
+    {
+      "file": "Previews/HandCultivator_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "82867f97a2f179b665388405db99a6a174731401220f361b1491d3fb073f5b43"
+    },
+    {
+      "file": "Previews/DandelionWeeder_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "9e92c4e8f553a72159900c7bc6216be5ca8510bfe6df30f5bdb66b8b729daf00"
+    },
+    {
+      "file": "Previews/Dibber_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "7803069f9bf9883288a91b10c6e06e593ad3308ef895939fd4f1be8f6c89dff9"
+    },
+    {
+      "file": "Previews/BypassPruners_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "965cb470fb477003535a804069e4128b706905748045678516abf27d071f98b9"
+    },
+    {
+      "file": "Previews/AnvilPruners_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "56be9e80a88857c832aedd196c378ebb483704557e09818b33b885cb8ed8a899"
+    },
+    {
+      "file": "Previews/FloralSnips_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "0e46ec67d2ca1acb3f4f841c7dc2bf1f4b0732f9fc08caf662df721c4f60f91f"
+    },
+    {
+      "file": "Previews/PruningSaw_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "1b62c1259a26c99c63b35274fcda0f8c63479089d61a425f0c100fa51092d9ec"
+    },
+    {
+      "file": "Previews/Loppers_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "ab3a87170b6f8ecaca8c594d0a964fff504083f4ae3b753458b4ff0ec97f74db"
+    },
+    {
+      "file": "Previews/GardenShears_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "f166ba5df99f190e7d6027c0c58a29b03062e1c3d5f2a737b05686e370c047bc"
+    },
+    {
+      "file": "Previews/WateringCan_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "dbdaa6245b04d841beb7cc17980fba799e31be393b998005f811d33b035bab34"
+    },
+    {
+      "file": "Previews/NitrileGloves_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "676b119c8b54af28186d08aabf4ea73b4db5a8145f434d38f8f578fe10fda980"
+    },
+    {
+      "file": "Previews/ChemicalGloves_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "79bfa9b69b8a5b88447abf2f9504c210622a40e750381b315485762e2c1c3d80"
+    },
+    {
+      "file": "Previews/SoilProbe_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "dc13a6cf799f5f7d25c553d879d3e21b1e319daa3a1c157056e6fdc19cf15911"
+    }
+  ]
+}

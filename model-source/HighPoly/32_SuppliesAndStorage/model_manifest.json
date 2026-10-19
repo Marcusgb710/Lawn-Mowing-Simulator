@@ -1,0 +1,1808 @@
+{
+  "assets": [
+    {
+      "name": "GasCan",
+      "folder": "Tools",
+      "instruction": 32,
+      "triangle_budget": 6000,
+      "detail_guidance_min": 1500,
+      "dimensions_studs": [
+        0.631517,
+        1.088192,
+        1.206331
+      ],
+      "bounds_min_studs": [
+        -0.31451719999313354,
+        -3.9642311655541107e-10,
+        -0.7313305735588074
+      ],
+      "bounds_max_studs": [
+        0.31700003147125244,
+        1.0881918668746948,
+        0.47499993443489075
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.0,
+        0.9100000262260437,
+        0.10000000149011612
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 2320,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "GasCan__Body",
+          "triangles": 2320,
+          "origin_studs": [
+            0.0012414157390594482,
+            -0.03106900304555893,
+            0.02015399932861328
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "vent_and_capped_flexible_spout": 1,
+        "integral_moulded_handle_and_embossed_panels": 1
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 324,
+      "authoring_fit": {
+        "scale": [
+          1.0024082660675049,
+          1.0356334447860718,
+          0.9887955188751221
+        ],
+        "offset": [
+          0.0012414157390594482,
+          -0.03106900304555893,
+          0.02015399932861328
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "name": "MixGasCan",
+      "folder": "Tools",
+      "instruction": 32,
+      "triangle_budget": 6000,
+      "detail_guidance_min": 1500,
+      "dimensions_studs": [
+        0.631517,
+        1.088192,
+        1.206331
+      ],
+      "bounds_min_studs": [
+        -0.31451719999313354,
+        -3.9642311655541107e-10,
+        -0.7313305735588074
+      ],
+      "bounds_max_studs": [
+        0.31700003147125244,
+        1.0881918668746948,
+        0.47499993443489075
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.0,
+        0.9100000262260437,
+        0.10000000149011612
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 2320,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "MixGasCan__Body",
+          "triangles": 2320,
+          "origin_studs": [
+            0.0012414157390594482,
+            -0.03106900304555893,
+            0.02015399932861328
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "vent_and_capped_flexible_spout": 1,
+        "integral_moulded_handle_and_embossed_panels": 1
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 324,
+      "authoring_fit": {
+        "scale": [
+          1.0024082660675049,
+          1.0356334447860718,
+          0.9887955188751221
+        ],
+        "offset": [
+          0.0012414157390594482,
+          -0.03106900304555893,
+          0.02015399932861328
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        3.319999933242798,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "name": "TrimmerLine",
+      "folder": "Tools",
+      "instruction": 32,
+      "triangle_budget": 6000,
+      "detail_guidance_min": 1500,
+      "dimensions_studs": [
+        0.6,
+        0.425,
+        0.6
+      ],
+      "bounds_min_studs": [
+        -0.30000001192092896,
+        0.0,
+        -0.30000001192092896
+      ],
+      "bounds_max_studs": [
+        0.30000001192092896,
+        0.42500001192092896,
+        0.30000001192092896
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.0,
+        0.20000000298023224,
+        0.0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 2260,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "TrimmerLine__Body",
+          "triangles": 2260,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {},
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 590,
+      "authoring_fit": {
+        "scale": [
+          1.0,
+          1.0625,
+          1.0
+        ],
+        "offset": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        6.639999866485596,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "name": "FootPump",
+      "folder": "Tools",
+      "instruction": 32,
+      "triangle_budget": 6000,
+      "detail_guidance_min": 1500,
+      "dimensions_studs": [
+        0.675599,
+        0.35031,
+        1.03
+      ],
+      "bounds_min_studs": [
+        -0.23999999463558197,
+        -3.432010231563254e-11,
+        -0.5299999713897705
+      ],
+      "bounds_max_studs": [
+        0.43559882044792175,
+        0.35030999779701233,
+        0.5
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.0,
+        0.2800000011920929,
+        0.10000000149011612
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 3152,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "FootPump__Body",
+          "triangles": 3152,
+          "origin_studs": [
+            0.025340929627418518,
+            -0.007573806680738926,
+            -0.014999985694885254
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "hinged_pedal_and_cylinder_linkage": 1,
+        "gauge_hose_and_air_chuck": 1
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 754,
+      "authoring_fit": {
+        "scale": [
+          1.020542025566101,
+          1.0098408460617065,
+          1.0299999713897705
+        ],
+        "offset": [
+          0.025340929627418518,
+          -0.007573806680738926,
+          -0.014999985694885254
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        9.960000038146973,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "name": "ElectricInflator",
+      "folder": "Tools",
+      "instruction": 32,
+      "triangle_budget": 6000,
+      "detail_guidance_min": 1500,
+      "dimensions_studs": [
+        0.36,
+        0.8,
+        0.774463
+      ],
+      "bounds_min_studs": [
+        -0.18000000715255737,
+        0.0,
+        -0.5444635152816772
+      ],
+      "bounds_max_studs": [
+        0.18000000715255737,
+        0.800000011920929,
+        0.22999997437000275
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.0,
+        0.3100000023841858,
+        0.07999999821186066
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 1872,
+      "mesh_objects": 2,
+      "parts": [
+        {
+          "name": "ElectricInflator__Body",
+          "triangles": 1764,
+          "origin_studs": [
+            0.0,
+            0.0,
+            -0.008005678653717041
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "ElectricInflator__Glass_Display",
+          "triangles": 108,
+          "origin_studs": [
+            0.0,
+            0.0,
+            -0.008005678653717041
+          ],
+          "role": "glass",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "pistol_trigger_blank_display_and_chuck": 1
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 176,
+      "authoring_fit": {
+        "scale": [
+          1.058823585510254,
+          1.0256410837173462,
+          1.0084985494613647
+        ],
+        "offset": [
+          0.0,
+          0.0,
+          -0.008005678653717041
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        13.279999732971191,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "name": "AirCompressor",
+      "folder": "Tools",
+      "instruction": 32,
+      "triangle_budget": 6000,
+      "detail_guidance_min": 1500,
+      "dimensions_studs": [
+        1.500878,
+        1.365511,
+        1.5
+      ],
+      "bounds_min_studs": [
+        -0.7132934331893921,
+        0.0,
+        -0.75
+      ],
+      "bounds_max_studs": [
+        0.7875847816467285,
+        1.3655110597610474,
+        0.75
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.0,
+        1.340000033378601,
+        0.0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 5352,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "AirCompressor__Body",
+          "triangles": 5352,
+          "origin_studs": [
+            0.03714567422866821,
+            0.0,
+            0.0
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "pancake_vessel_electric_motor_and_regulator": 1,
+        "pressure_gauges": 2
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 1518,
+      "authoring_fit": {
+        "scale": [
+          1.0005854368209839,
+          0.9213973879814148,
+          1.0
+        ],
+        "offset": [
+          0.03714567422866821,
+          0.0,
+          0.0
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        0.0,
+        0.0,
+        -2.18179988861084
+      ]
+    },
+    {
+      "name": "TirePatchKit",
+      "folder": "Tools",
+      "instruction": 32,
+      "triangle_budget": 6000,
+      "detail_guidance_min": 1500,
+      "dimensions_studs": [
+        0.6,
+        0.392644,
+        0.546463
+      ],
+      "bounds_min_studs": [
+        -0.30000001192092896,
+        0.0,
+        -0.20000000298023224
+      ],
+      "bounds_max_studs": [
+        0.30000001192092896,
+        0.39264431595802307,
+        0.3464632034301758
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.0,
+        0.07000000029802322,
+        0.0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 2444,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "TirePatchKit__Body",
+          "triangles": 2444,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.03590419888496399
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "blow_moulded_open_case": 1,
+        "t_handle_reamer_and_insert_tool": 1
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 200,
+      "authoring_fit": {
+        "scale": [
+          1.0,
+          1.0129339694976807,
+          0.9531483054161072
+        ],
+        "offset": [
+          0.0,
+          0.0,
+          0.03590419888496399
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        3.319999933242798,
+        0.0,
+        -2.18179988861084
+      ]
+    },
+    {
+      "name": "SpareTire",
+      "folder": "Tools",
+      "instruction": 32,
+      "triangle_budget": 6000,
+      "detail_guidance_min": 1500,
+      "dimensions_studs": [
+        0.693,
+        1.2,
+        1.2
+      ],
+      "bounds_min_studs": [
+        -0.30799999833106995,
+        -1.8207335639175426e-10,
+        -0.6000000238418579
+      ],
+      "bounds_max_studs": [
+        0.3850000202655792,
+        1.2000000476837158,
+        0.6000000238418579
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.0,
+        1.2000000476837158,
+        0.0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 2224,
+      "mesh_objects": 2,
+      "parts": [
+        {
+          "name": "SpareTire__Body",
+          "triangles": 140,
+          "origin_studs": [
+            0.019438594579696655,
+            0.014775095507502556,
+            0.0
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "SpareTire__Wheel",
+          "triangles": 2084,
+          "origin_studs": [
+            0.019438594579696655,
+            0.6000000238418579,
+            0.0
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        }
+      ],
+      "features": {},
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 692,
+      "authoring_fit": {
+        "scale": [
+          1.0444612503051758,
+          0.9753748774528503,
+          0.972520112991333
+        ],
+        "offset": [
+          0.019438594579696655,
+          0.014775095507502556,
+          0.0
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        6.639999866485596,
+        0.0,
+        -2.18179988861084
+      ]
+    },
+    {
+      "name": "WrenchSet",
+      "folder": "Tools",
+      "instruction": 32,
+      "triangle_budget": 6000,
+      "detail_guidance_min": 1500,
+      "dimensions_studs": [
+        1.5,
+        0.727822,
+        1.426476
+      ],
+      "bounds_min_studs": [
+        -0.75,
+        0.0,
+        -0.5
+      ],
+      "bounds_max_studs": [
+        0.75,
+        0.7278215289115906,
+        0.9264764785766602
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.0,
+        0.11999999731779099,
+        0.0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 5584,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "WrenchSet__Body",
+          "triangles": 5584,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.05672675371170044
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "six_hollow_sockets": 1,
+        "six_open_and_ring_combination_wrenches": 1,
+        "ratchet_slots_latch_and_handle": 1
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 1104,
+      "authoring_fit": {
+        "scale": [
+          1.0,
+          1.001027226448059,
+          0.9305921792984009
+        ],
+        "offset": [
+          0.0,
+          0.0,
+          0.05672675371170044
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        9.960000038146973,
+        0.0,
+        -2.18179988861084
+      ]
+    },
+    {
+      "name": "BladeFile",
+      "folder": "Tools",
+      "instruction": 32,
+      "triangle_budget": 6000,
+      "detail_guidance_min": 1500,
+      "dimensions_studs": [
+        0.11,
+        0.11,
+        1.09
+      ],
+      "bounds_min_studs": [
+        -0.054999999701976776,
+        -0.054999999701976776,
+        -0.5400000214576721
+      ],
+      "bounds_max_studs": [
+        0.054999999701976776,
+        0.054999999701976776,
+        0.550000011920929
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.0,
+        0.0,
+        0.2800000011920929
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 1476,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "BladeFile__Body",
+          "triangles": 1476,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "cross_cut_teeth_and_tang": 1
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 376,
+      "authoring_fit": {
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "offset": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        13.279999732971191,
+        0.0,
+        -2.18179988861084
+      ]
+    },
+    {
+      "name": "SharpeningStone",
+      "folder": "Tools",
+      "instruction": 32,
+      "triangle_budget": 6000,
+      "detail_guidance_min": 1500,
+      "dimensions_studs": [
+        0.55,
+        0.1,
+        0.2
+      ],
+      "bounds_min_studs": [
+        -0.2750000059604645,
+        0.0,
+        -0.10000000149011612
+      ],
+      "bounds_max_studs": [
+        0.2750000059604645,
+        0.10000000149011612,
+        0.10000000149011612
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.0,
+        0.05000000074505806,
+        0.0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 376,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "SharpeningStone__Body",
+          "triangles": 376,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "two_different_abrasive_grits": 1
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 44,
+      "authoring_fit": {
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "offset": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        0.0,
+        0.0,
+        -4.36359977722168
+      ]
+    },
+    {
+      "name": "SpareMowerBlade",
+      "folder": "Tools",
+      "instruction": 32,
+      "triangle_budget": 6000,
+      "detail_guidance_min": 1500,
+      "dimensions_studs": [
+        1.9,
+        0.178857,
+        0.225
+      ],
+      "bounds_min_studs": [
+        -0.949999988079071,
+        -0.00942861009389162,
+        -0.11249999701976776
+      ],
+      "bounds_max_studs": [
+        0.949999988079071,
+        0.16942860186100006,
+        0.11249998211860657
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.0,
+        0.029999999329447746,
+        0.0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 496,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "SpareMowerBlade__Body",
+          "triangles": 496,
+          "origin_studs": [
+            0.0,
+            0.001886589452624321,
+            -7.450580596923828e-09
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "actual_center_mounting_hole": 1,
+        "two_lift_wings": 1
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 152,
+      "authoring_fit": {
+        "scale": [
+          1.0,
+          0.976417601108551,
+          1.0714285373687744
+        ],
+        "offset": [
+          0.0,
+          0.001886589452624321,
+          -7.450580596923828e-09
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        3.319999933242798,
+        0.0,
+        -4.36359977722168
+      ]
+    },
+    {
+      "name": "BenchGrinder",
+      "folder": "Tools",
+      "instruction": 32,
+      "triangle_budget": 6000,
+      "detail_guidance_min": 1500,
+      "dimensions_studs": [
+        1.5,
+        1.026252,
+        0.947942
+      ],
+      "bounds_min_studs": [
+        -0.75,
+        0.0,
+        -0.5
+      ],
+      "bounds_max_studs": [
+        0.75,
+        1.0262516736984253,
+        0.4479422867298126
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 3996,
+      "mesh_objects": 3,
+      "parts": [
+        {
+          "name": "BenchGrinder__Body",
+          "triangles": 3780,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0214688777923584
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "BenchGrinder__Glass_Shield-1",
+          "triangles": 108,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0214688777923584
+          ],
+          "role": "glass",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "BenchGrinder__Glass_Shield1",
+          "triangles": 108,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0214688777923584
+          ],
+          "role": "glass",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "separate_transparent_eye_shields": 2,
+        "motor_fins_switch_tool_rests": 1
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 936,
+      "authoring_fit": {
+        "scale": [
+          0.9677419066429138,
+          1.015261173248291,
+          1.0429377555847168
+        ],
+        "offset": [
+          0.0,
+          0.0,
+          0.0214688777923584
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        6.639999866485596,
+        0.0,
+        -4.36359977722168
+      ]
+    },
+    {
+      "name": "ToolBucket",
+      "folder": "Tools",
+      "instruction": 32,
+      "triangle_budget": 6000,
+      "detail_guidance_min": 1500,
+      "dimensions_studs": [
+        1.19,
+        1.73,
+        1.19
+      ],
+      "bounds_min_studs": [
+        -0.5950000286102295,
+        0.014999999664723873,
+        -0.5950000286102295
+      ],
+      "bounds_max_studs": [
+        0.5950000286102295,
+        1.7450000047683716,
+        0.595000147819519
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.0,
+        1.7000000476837158,
+        0.0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 4508,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "ToolBucket__Body",
+          "triangles": 4508,
+          "origin_studs": [
+            0.0,
+            0.014999999664723873,
+            5.960464477539063e-08
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "canvas_pockets_with_stitched_seams": 8,
+        "wire_bail_and_moulded_ribs": 1
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 1532,
+      "authoring_fit": {
+        "scale": [
+          1.0147602558135986,
+          0.9901273250579834,
+          1.0258620977401733
+        ],
+        "offset": [
+          0.0,
+          0.014999999664723873,
+          5.960464477539063e-08
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        9.960000038146973,
+        0.0,
+        -4.36359977722168
+      ]
+    },
+    {
+      "name": "Workbench",
+      "folder": "Props",
+      "instruction": 32,
+      "triangle_budget": 6000,
+      "detail_guidance_min": 1500,
+      "dimensions_studs": [
+        6.5,
+        6.0,
+        2.435
+      ],
+      "bounds_min_studs": [
+        -3.25,
+        0.0,
+        -1.334999918937683
+      ],
+      "bounds_max_studs": [
+        3.25,
+        6.0,
+        1.100000023841858
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [
+        {
+          "name": "ServiceSpot",
+          "instance_type": "Attachment",
+          "parent_mesh": "Workbench__worktop",
+          "position_studs": [
+            0.0,
+            0.0,
+            -3.543717050552368
+          ],
+          "orientation_degrees": [
+            0,
+            180,
+            0
+          ],
+          "attributes": {},
+          "clearance_studs": [
+            3,
+            6
+          ],
+          "look_vector": [
+            -8.742277657347586e-08,
+            0.0,
+            1.0
+          ]
+        },
+        {
+          "name": "VisePoint",
+          "instance_type": "Attachment",
+          "parent_mesh": "Workbench__worktop",
+          "position_studs": [
+            -2.25,
+            3.82,
+            -0.7840503963828086
+          ],
+          "orientation_degrees": [
+            0,
+            0,
+            0
+          ],
+          "attributes": {},
+          "look_vector": [
+            0.0,
+            0.0,
+            -1.0
+          ]
+        }
+      ],
+      "slots": [],
+      "triangles": 3828,
+      "mesh_objects": 6,
+      "parts": [
+        {
+          "name": "Workbench__Body",
+          "triangles": 3288,
+          "origin_studs": [
+            0.0,
+            0.0,
+            -0.0018988847732543945
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "Workbench__worktop",
+          "triangles": 108,
+          "origin_studs": [
+            0.0,
+            0.0,
+            -0.0018988847732543945
+          ],
+          "role": "collision_worktop",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "Workbench__leg_-1_-0.83",
+          "triangles": 108,
+          "origin_studs": [
+            0.0,
+            0.0,
+            -0.0018988847732543945
+          ],
+          "role": "collision_leg",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "Workbench__leg_-1_0.83",
+          "triangles": 108,
+          "origin_studs": [
+            0.0,
+            0.0,
+            -0.0018988847732543945
+          ],
+          "role": "collision_leg",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "Workbench__leg_1_-0.83",
+          "triangles": 108,
+          "origin_studs": [
+            0.0,
+            0.0,
+            -0.0018988847732543945
+          ],
+          "role": "collision_leg",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "Workbench__leg_1_0.83",
+          "triangles": 108,
+          "origin_studs": [
+            0.0,
+            0.0,
+            -0.0018988847732543945
+          ],
+          "role": "collision_leg",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "first_person_service_spot_and_vise_point": 1,
+        "separate_collision_top_and_legs": 1,
+        "perforated_pegboard_back": 1
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 3896,
+      "authoring_fit": {
+        "scale": [
+          1.0,
+          1.0,
+          0.9838383793830872
+        ],
+        "offset": [
+          0.0,
+          0.0,
+          -0.0018988847732543945
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        13.279999732971191,
+        0.0,
+        -4.36359977722168
+      ]
+    },
+    {
+      "name": "StoragePegboard",
+      "folder": "Props",
+      "instruction": 32,
+      "triangle_budget": 6000,
+      "detail_guidance_min": 1500,
+      "dimensions_studs": [
+        4.5,
+        3.0,
+        0.387041
+      ],
+      "bounds_min_studs": [
+        -2.25,
+        0.0,
+        -0.3870411217212677
+      ],
+      "bounds_max_studs": [
+        2.25,
+        3.0,
+        0.0
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [],
+      "slots": [
+        [
+          -1.5,
+          0.949999988079071,
+          -0.3700000047683716
+        ],
+        [
+          0.0,
+          0.949999988079071,
+          -0.3700000047683716
+        ],
+        [
+          1.5,
+          0.949999988079071,
+          -0.3700000047683716
+        ],
+        [
+          -1.5,
+          2.200000047683716,
+          -0.3700000047683716
+        ],
+        [
+          0.0,
+          2.200000047683716,
+          -0.3700000047683716
+        ],
+        [
+          1.5,
+          2.200000047683716,
+          -0.3700000047683716
+        ]
+      ],
+      "triangles": 3500,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "StoragePegboard__Body",
+          "triangles": 3500,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "visible_steel_hooks": 6,
+        "fine_perforation_grid": 1
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 1088,
+      "authoring_fit": {
+        "scale": [
+          1.0,
+          1.0,
+          0.9955735206604004
+        ],
+        "offset": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        0.0,
+        0.0,
+        -6.545400142669678
+      ]
+    },
+    {
+      "name": "StorageWallRack",
+      "folder": "Props",
+      "instruction": 32,
+      "triangle_budget": 6000,
+      "detail_guidance_min": 1500,
+      "dimensions_studs": [
+        5.0,
+        1.5,
+        0.785
+      ],
+      "bounds_min_studs": [
+        -2.5,
+        0.0,
+        -0.7850000262260437
+      ],
+      "bounds_max_studs": [
+        2.5,
+        1.5,
+        0.0
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [],
+      "slots": [
+        [
+          -1.8,
+          0.95,
+          -0.67
+        ],
+        [
+          -0.6,
+          0.95,
+          -0.67
+        ],
+        [
+          0.6,
+          0.95,
+          -0.67
+        ],
+        [
+          1.8,
+          0.95,
+          -0.67
+        ]
+      ],
+      "triangles": 4388,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "StorageWallRack__Body",
+          "triangles": 4388,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "padded_u_holders": 4
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 268,
+      "authoring_fit": {
+        "scale": [
+          1.0,
+          1.0,
+          1.022562861442566
+        ],
+        "offset": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        3.319999933242798,
+        0.0,
+        -6.545400142669678
+      ]
+    },
+    {
+      "name": "StorageWallHooks",
+      "folder": "Props",
+      "instruction": 32,
+      "triangle_budget": 6000,
+      "detail_guidance_min": 1500,
+      "dimensions_studs": [
+        3.5,
+        1.0,
+        0.792117
+      ],
+      "bounds_min_studs": [
+        -1.75,
+        0.0,
+        -0.7921168208122253
+      ],
+      "bounds_max_studs": [
+        1.75,
+        1.0,
+        0.0
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [],
+      "slots": [
+        [
+          -0.949999988079071,
+          0.6200000047683716,
+          -0.7332819700241089
+        ],
+        [
+          0.949999988079071,
+          0.6200000047683716,
+          -0.7332819700241089
+        ]
+      ],
+      "triangles": 2012,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "StorageWallHooks__Body",
+          "triangles": 2012,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "vinyl_coated_utility_hooks": 2
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 164,
+      "authoring_fit": {
+        "scale": [
+          1.0,
+          1.0,
+          0.9811373353004456
+        ],
+        "offset": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        6.639999866485596,
+        0.0,
+        -6.545400142669678
+      ]
+    },
+    {
+      "name": "StorageShelf",
+      "folder": "Props",
+      "instruction": 32,
+      "triangle_budget": 3000,
+      "detail_guidance_min": 1500,
+      "dimensions_studs": [
+        4.0,
+        6.0,
+        1.5
+      ],
+      "bounds_min_studs": [
+        -2.0,
+        -3.6939851177919536e-10,
+        -1.5
+      ],
+      "bounds_max_studs": [
+        2.0,
+        6.000000476837158,
+        -4.540292586341366e-09
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [
+        {
+          "name": "Slot1",
+          "instance_type": "Attachment",
+          "parent_mesh": "StorageShelf__Body",
+          "position_studs": [
+            -1.0447761029005052,
+            0.32773111090064044,
+            -0.7551020383834839
+          ],
+          "orientation_degrees": [
+            0,
+            0,
+            0
+          ],
+          "attributes": {},
+          "look_vector": [
+            0.0,
+            0.0,
+            -1.0
+          ]
+        },
+        {
+          "name": "Slot2",
+          "instance_type": "Attachment",
+          "parent_mesh": "StorageShelf__Body",
+          "position_studs": [
+            1.0447761029005052,
+            0.32773111090064044,
+            -0.7551020383834839
+          ],
+          "orientation_degrees": [
+            0,
+            0,
+            0
+          ],
+          "attributes": {},
+          "look_vector": [
+            0.0,
+            0.0,
+            -1.0
+          ]
+        },
+        {
+          "name": "Slot3",
+          "instance_type": "Attachment",
+          "parent_mesh": "StorageShelf__Body",
+          "position_studs": [
+            -1.0447761029005052,
+            2.8487396620213987,
+            -0.7551020383834839
+          ],
+          "orientation_degrees": [
+            0,
+            0,
+            0
+          ],
+          "attributes": {},
+          "look_vector": [
+            0.0,
+            0.0,
+            -1.0
+          ]
+        },
+        {
+          "name": "Slot4",
+          "instance_type": "Attachment",
+          "parent_mesh": "StorageShelf__Body",
+          "position_studs": [
+            1.0447761029005052,
+            2.8487396620213987,
+            -0.7551020383834839
+          ],
+          "orientation_degrees": [
+            0,
+            0,
+            0
+          ],
+          "attributes": {},
+          "look_vector": [
+            0.0,
+            0.0,
+            -1.0
+          ]
+        },
+        {
+          "name": "Slot5",
+          "instance_type": "Attachment",
+          "parent_mesh": "StorageShelf__Body",
+          "position_studs": [
+            -1.0447761029005052,
+            5.369748213142156,
+            -0.7551020383834839
+          ],
+          "orientation_degrees": [
+            0,
+            0,
+            0
+          ],
+          "attributes": {},
+          "look_vector": [
+            0.0,
+            0.0,
+            -1.0
+          ]
+        },
+        {
+          "name": "Slot6",
+          "instance_type": "Attachment",
+          "parent_mesh": "StorageShelf__Body",
+          "position_studs": [
+            1.0447761029005052,
+            5.369748213142156,
+            -0.7551020383834839
+          ],
+          "orientation_degrees": [
+            0,
+            0,
+            0
+          ],
+          "attributes": {},
+          "look_vector": [
+            0.0,
+            0.0,
+            -1.0
+          ]
+        }
+      ],
+      "slots": [
+        [
+          -1.0447761029005052,
+          0.32773111090064044,
+          -0.7551020383834839
+        ],
+        [
+          1.0447761029005052,
+          0.32773111090064044,
+          -0.7551020383834839
+        ],
+        [
+          -1.0447761029005052,
+          2.8487396620213987,
+          -0.7551020383834839
+        ],
+        [
+          1.0447761029005052,
+          2.8487396620213987,
+          -0.7551020383834839
+        ],
+        [
+          -1.0447761029005052,
+          5.369748213142156,
+          -0.7551020383834839
+        ],
+        [
+          1.0447761029005052,
+          5.369748213142156,
+          -0.7551020383834839
+        ]
+      ],
+      "triangles": 2164,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "StorageShelf__Body",
+          "triangles": 2164,
+          "origin_studs": [
+            0.0,
+            -0.02521008625626564,
+            0.010204076766967773
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "three_shelves_with_six_supply_slots": 6,
+        "actual_punched_front_upright_holes": 12
+      },
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          0.9950248599052429,
+          1.0084034204483032,
+          1.0204081535339355
+        ],
+        "offset": [
+          0.0,
+          -0.02521008625626564,
+          0.010204076766967773
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        9.960000038146973,
+        0.0,
+        -6.545400142669678
+      ]
+    }
+  ],
+  "meters_per_stud": 0.28,
+  "source_main_commit": "2377b19",
+  "original_packs_preserved": true,
+  "studio_import_tested": false
+}

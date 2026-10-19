@@ -1,0 +1,161 @@
+{
+  "encoding": "sRGB",
+  "tile_size": 256,
+  "tiles_per_side": 8,
+  "texture": "Textures/HP26_Color.png",
+  "swatches": [
+    {
+      "key": "bag_fabric",
+      "tile_index": 0,
+      "srgb": [
+        37,
+        42,
+        39
+      ]
+    },
+    {
+      "key": "black",
+      "tile_index": 1,
+      "srgb": [
+        24,
+        28,
+        30
+      ]
+    },
+    {
+      "key": "blue",
+      "tile_index": 2,
+      "srgb": [
+        35,
+        91,
+        157
+      ]
+    },
+    {
+      "key": "gray",
+      "tile_index": 3,
+      "srgb": [
+        131,
+        143,
+        144
+      ]
+    },
+    {
+      "key": "green",
+      "tile_index": 4,
+      "srgb": [
+        39,
+        109,
+        55
+      ]
+    },
+    {
+      "key": "orange",
+      "tile_index": 5,
+      "srgb": [
+        225,
+        92,
+        20
+      ]
+    },
+    {
+      "key": "p_red",
+      "tile_index": 6,
+      "srgb": [
+        182,
+        34,
+        34
+      ]
+    },
+    {
+      "key": "p_white",
+      "tile_index": 7,
+      "srgb": [
+        221,
+        226,
+        220
+      ]
+    },
+    {
+      "key": "p_yellow",
+      "tile_index": 8,
+      "srgb": [
+        226,
+        180,
+        34
+      ]
+    },
+    {
+      "key": "red",
+      "tile_index": 9,
+      "srgb": [
+        182,
+        34,
+        34
+      ]
+    },
+    {
+      "key": "rubber",
+      "tile_index": 10,
+      "srgb": [
+        31,
+        34,
+        35
+      ]
+    },
+    {
+      "key": "rubber_light",
+      "tile_index": 11,
+      "srgb": [
+        46,
+        48,
+        47
+      ]
+    },
+    {
+      "key": "steel",
+      "tile_index": 12,
+      "srgb": [
+        173,
+        183,
+        188
+      ]
+    },
+    {
+      "key": "steel_dark",
+      "tile_index": 13,
+      "srgb": [
+        79,
+        88,
+        93
+      ]
+    },
+    {
+      "key": "stone",
+      "tile_index": 14,
+      "srgb": [
+        125,
+        129,
+        119
+      ]
+    },
+    {
+      "key": "white",
+      "tile_index": 15,
+      "srgb": [
+        221,
+        226,
+        220
+      ]
+    },
+    {
+      "key": "yellow",
+      "tile_index": 16,
+      "srgb": [
+        226,
+        180,
+        34
+      ]
+    }
+  ]
+}

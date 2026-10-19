@@ -1,0 +1,1102 @@
+{
+  "assets": [
+    {
+      "name": "ReelMower",
+      "folder": "Tools",
+      "instruction": 26,
+      "triangle_budget": 20000,
+      "detail_guidance_min": 10000,
+      "dimensions_studs": [
+        2.55,
+        4.31,
+        4.61
+      ],
+      "bounds_min_studs": [
+        -1.274999976158142,
+        3.934523817861191e-10,
+        -4.5
+      ],
+      "bounds_max_studs": [
+        1.274999976158142,
+        4.309999942779541,
+        0.10999990999698639
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0,
+        4.2,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 8708,
+      "mesh_objects": 4,
+      "parts": [
+        {
+          "name": "ReelMower__Body",
+          "triangles": 2888,
+          "origin_studs": [
+            0.0,
+            0.013476895168423653,
+            0.0371861457824707
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "ReelMower__Wheel_Reel",
+          "triangles": 1836,
+          "origin_studs": [
+            0.0,
+            0.5565767288208008,
+            -3.6338415145874023
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "ReelMower__Wheel_L",
+          "triangles": 1992,
+          "origin_studs": [
+            -1.1239084005355835,
+            0.6873229742050171,
+            -3.805762767791748
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "ReelMower__Wheel_R",
+          "triangles": 1992,
+          "origin_studs": [
+            1.1239084005355835,
+            0.6873229742050171,
+            -3.805762767791748
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "curved_helical_blades": 6,
+        "rear_roller_and_adjustment_knobs": 1
+      },
+      "baseline_source_pack": "model-source/RevisedLawnModels",
+      "baseline_triangles": 1396,
+      "authoring_fit": {
+        "scale": [
+          1.060291051864624,
+          1.0057404041290283,
+          1.0113023519515991
+        ],
+        "offset": [
+          0.0,
+          0.013476895168423653,
+          0.0371861457824707
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "name": "SelfPropelledMower",
+      "folder": "Tools",
+      "instruction": 26,
+      "triangle_budget": 20000,
+      "detail_guidance_min": 10000,
+      "dimensions_studs": [
+        2.835286,
+        4.285,
+        5.24225
+      ],
+      "bounds_min_studs": [
+        -1.4044642448425293,
+        -4.0143111057489023e-10,
+        -5.032560348510742
+      ],
+      "bounds_max_studs": [
+        1.4308215379714966,
+        4.284999847412109,
+        0.2096901834011078
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0,
+        4.2,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 15696,
+      "mesh_objects": 6,
+      "parts": [
+        {
+          "name": "SelfPropelledMower__Body",
+          "triangles": 7620,
+          "origin_studs": [
+            -0.08416438102722168,
+            0.010240323841571808,
+            0.1337723731994629
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "SelfPropelledMower__Wheel_Front_L",
+          "triangles": 1992,
+          "origin_studs": [
+            -1.2435603141784668,
+            0.3804793357849121,
+            -4.632179260253906
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "SelfPropelledMower__Wheel_Rear_L",
+          "triangles": 1992,
+          "origin_studs": [
+            -1.2435603141784668,
+            0.510563313961029,
+            -2.4600861072540283
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "SelfPropelledMower__Wheel_Front_R",
+          "triangles": 1992,
+          "origin_studs": [
+            1.0752315521240234,
+            0.3804793357849121,
+            -4.632179260253906
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "SelfPropelledMower__Wheel_Rear_R",
+          "triangles": 1992,
+          "origin_studs": [
+            1.0752315521240234,
+            0.510563313961029,
+            -2.4600861072540283
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "SelfPropelledMower__CutterRotor",
+          "triangles": 108,
+          "origin_studs": [
+            -0.08416438102722168,
+            0.46053099632263184,
+            -3.598853349685669
+          ],
+          "role": "rotor",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "Y",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "spindles_and_separate_cutters": 1,
+        "rear_grass_catcher_and_drive_housing": 1,
+        "bail_control_and_height_lever": 1
+      },
+      "baseline_source_pack": "model-source/RevisedLawnModels",
+      "baseline_triangles": 7312,
+      "authoring_fit": {
+        "scale": [
+          1.0081703662872314,
+          1.0006459951400757,
+          1.0544140338897705
+        ],
+        "offset": [
+          -0.08416438102722168,
+          0.010240323841571808,
+          0.1337723731994629
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        3.2639997005462646,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "name": "CommercialReelMower",
+      "folder": "Tools",
+      "instruction": 26,
+      "triangle_budget": 20000,
+      "detail_guidance_min": 10000,
+      "dimensions_studs": [
+        2.5,
+        3.571329,
+        4.5
+      ],
+      "bounds_min_studs": [
+        -1.25,
+        0.0,
+        -2.8322865962982178
+      ],
+      "bounds_max_studs": [
+        1.25,
+        3.571329116821289,
+        1.6677136421203613
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.0,
+        3.5,
+        1.5829145908355713
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 9796,
+      "mesh_objects": 3,
+      "parts": [
+        {
+          "name": "CommercialReelMower__Body",
+          "triangles": 7772,
+          "origin_studs": [
+            6.4373016357421875e-06,
+            0.0,
+            0.0016603469848632812
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "CommercialReelMower__Wheel_Reel",
+          "triangles": 1836,
+          "origin_studs": [
+            6.4373016357421875e-06,
+            0.46991172432899475,
+            -1.2567529678344727
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "CommercialReelMower__Wheel_Drum",
+          "triangles": 188,
+          "origin_studs": [
+            6.4373016357421875e-06,
+            0.35993239283561707,
+            0.4546891450881958
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "curved_helical_blades": 6,
+        "basket_connected_by_brackets": 1,
+        "engine_and_traction_drum": 1
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 1192,
+      "authoring_fit": {
+        "scale": [
+          1.111116886138916,
+          0.9998121857643127,
+          1.0067306756973267
+        ],
+        "offset": [
+          6.4373016357421875e-06,
+          0.0,
+          0.0016603469848632812
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        6.527999401092529,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "name": "CommercialZeroTurn",
+      "folder": "Tools",
+      "instruction": 26,
+      "triangle_budget": 30000,
+      "detail_guidance_min": 20000,
+      "dimensions_studs": [
+        6.299999,
+        6.8,
+        7.421457
+      ],
+      "bounds_min_studs": [
+        -3.0555055141448975,
+        -1.1341727557123704e-10,
+        -3.504110097885132
+      ],
+      "bounds_max_studs": [
+        3.2444939613342285,
+        6.799999713897705,
+        3.9173471927642822
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.0,
+        3.3049328327178955,
+        0.9428032040596008
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 19244,
+      "mesh_objects": 8,
+      "parts": [
+        {
+          "name": "CommercialZeroTurn__Body",
+          "triangles": 11488,
+          "origin_studs": [
+            -0.028119325637817383,
+            0.02500821091234684,
+            0.03384661674499512
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "CommercialZeroTurn__Wheel_Rear-1",
+          "triangles": 2084,
+          "origin_studs": [
+            -2.4948782920837402,
+            1.2001646757125854,
+            1.9111298322677612
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "CommercialZeroTurn__Wheel_Front-1",
+          "triangles": 1632,
+          "origin_studs": [
+            -2.7415542602539062,
+            0.4606265723705292,
+            -3.0605759620666504
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "CommercialZeroTurn__Wheel_Rear1",
+          "triangles": 2084,
+          "origin_studs": [
+            2.4386396408081055,
+            1.2001646757125854,
+            1.9111298322677612
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "CommercialZeroTurn__Wheel_Front1",
+          "triangles": 1632,
+          "origin_studs": [
+            2.6853156089782715,
+            0.4606265723705292,
+            -3.0605759620666504
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "CommercialZeroTurn__CutterRotor_0",
+          "triangles": 108,
+          "origin_studs": [
+            -1.9202356338500977,
+            0.6125864386558533,
+            -1.96721351146698
+          ],
+          "role": "rotor",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "Y",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "CommercialZeroTurn__CutterRotor_1",
+          "triangles": 108,
+          "origin_studs": [
+            -0.028119325637817383,
+            0.6125864386558533,
+            -1.96721351146698
+          ],
+          "role": "rotor",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "Y",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "CommercialZeroTurn__CutterRotor_2",
+          "triangles": 108,
+          "origin_studs": [
+            1.863996982574463,
+            0.6125864386558533,
+            -1.96721351146698
+          ],
+          "role": "rotor",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "Y",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "spindles_and_separate_cutters": 3,
+        "fabricated_deck_suspension_and_spindles": 1,
+        "suspension_seat_rollbar_lap_controls": 1,
+        "real_engine_mounting_bay": 1
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 5104,
+      "authoring_fit": {
+        "scale": [
+          1.1212540864944458,
+          1.0130659341812134,
+          1.031474232673645
+        ],
+        "offset": [
+          -0.028119325637817383,
+          0.02500821091234684,
+          0.03384661674499512
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        0.0,
+        0.0,
+        -3.578007936477661
+      ]
+    },
+    {
+      "name": "StandOnMower",
+      "folder": "Tools",
+      "instruction": 26,
+      "triangle_budget": 30000,
+      "detail_guidance_min": 20000,
+      "dimensions_studs": [
+        5.0,
+        4.5,
+        6.0
+      ],
+      "bounds_min_studs": [
+        -2.4072933197021484,
+        6.009415187691047e-10,
+        -2.857142925262451
+      ],
+      "bounds_max_studs": [
+        2.5927064418792725,
+        4.5,
+        3.142857074737549
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.0,
+        4.385458946228027,
+        1.7714285850524902
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 17496,
+      "mesh_objects": 7,
+      "parts": [
+        {
+          "name": "StandOnMower__Body",
+          "triangles": 9848,
+          "origin_studs": [
+            -0.02523493766784668,
+            0.021185360848903656,
+            0.03697466850280762
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "StandOnMower__Wheel_Rear-1",
+          "triangles": 2084,
+          "origin_studs": [
+            -1.6977441310882568,
+            1.0298466682434082,
+            1.2470588684082031
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "StandOnMower__Wheel_Rear1",
+          "triangles": 2084,
+          "origin_studs": [
+            1.6472742557525635,
+            1.0298466682434082,
+            1.2470588684082031
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "StandOnMower__Wheel_Front-1",
+          "triangles": 1632,
+          "origin_studs": [
+            -2.052518844604492,
+            0.41456323862075806,
+            -2.4638657569885254
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "StandOnMower__Wheel_Front1",
+          "triangles": 1632,
+          "origin_studs": [
+            2.002048969268799,
+            0.41456323862075806,
+            -2.4638657569885254
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "StandOnMower__CutterRotor_0",
+          "triangles": 108,
+          "origin_studs": [
+            -1.107988953590393,
+            0.5557758212089539,
+            -1.4554624557495117
+          ],
+          "role": "rotor",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "Y",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "StandOnMower__CutterRotor_1",
+          "triangles": 108,
+          "origin_studs": [
+            1.0575190782546997,
+            0.5557758212089539,
+            -1.4554624557495117
+          ],
+          "role": "rotor",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "Y",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "spindles_and_separate_cutters": 2,
+        "engine_mounted_between_frame_guards": 1,
+        "real_control_tower_thigh_pad_and_standing_station": 1
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 4056,
+      "authoring_fit": {
+        "scale": [
+          1.0136419534683228,
+          1.0086612701416016,
+          1.0084034204483032
+        ],
+        "offset": [
+          -0.02523493766784668,
+          0.021185360848903656,
+          0.03697466850280762
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        3.2639997005462646,
+        0.0,
+        -3.578007936477661
+      ]
+    },
+    {
+      "name": "StandOnAerator",
+      "folder": "Tools",
+      "instruction": 26,
+      "triangle_budget": 30000,
+      "detail_guidance_min": 20000,
+      "dimensions_studs": [
+        3.788177,
+        4.386847,
+        5.5
+      ],
+      "bounds_min_studs": [
+        -1.85908842086792,
+        3.4291236516992285e-10,
+        -2.375
+      ],
+      "bounds_max_studs": [
+        1.9290883541107178,
+        4.386846542358398,
+        3.124999761581421
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.0,
+        4.306021690368652,
+        1.75
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 21116,
+      "mesh_objects": 4,
+      "parts": [
+        {
+          "name": "StandOnAerator__Body",
+          "triangles": 7452,
+          "origin_studs": [
+            0.034999966621398926,
+            0.01839844509959221,
+            0.0195920467376709
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "StandOnAerator__Wheel_Rear-1",
+          "triangles": 2084,
+          "origin_studs": [
+            -1.5476614236831665,
+            0.9199333786964417,
+            1.2294912338256836
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "StandOnAerator__Wheel_Rear1",
+          "triangles": 2084,
+          "origin_studs": [
+            1.6176613569259644,
+            0.9199333786964417,
+            1.2294912338256836
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "StandOnAerator__Wheel_Tines",
+          "triangles": 9496,
+          "origin_studs": [
+            0.034999966621398926,
+            0.6294388175010681,
+            -1.4726169109344482
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "hollow_coring_tines": 48,
+        "engine_mounted_between_frame_guards": 1,
+        "real_control_tower_thigh_pad_and_standing_station": 1
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 3432,
+      "authoring_fit": {
+        "scale": [
+          1.0210719108581543,
+          1.001705527305603,
+          1.008249282836914
+        ],
+        "offset": [
+          0.034999966621398926,
+          0.01839844509959221,
+          0.0195920467376709
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        6.527999401092529,
+        0.0,
+        -3.578007936477661
+      ]
+    },
+    {
+      "name": "TowBehindAerator",
+      "folder": "Tools",
+      "instruction": 26,
+      "triangle_budget": 20000,
+      "detail_guidance_min": 10000,
+      "dimensions_studs": [
+        4.480384,
+        2.175,
+        5.0
+      ],
+      "bounds_min_studs": [
+        -2.2191922664642334,
+        -3.922728808447573e-11,
+        -2.9050278663635254
+      ],
+      "bounds_max_studs": [
+        2.2611920833587646,
+        2.1750001907348633,
+        2.0949718952178955
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.0,
+        1.25,
+        -2.701411247253418
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 13292,
+      "mesh_objects": 4,
+      "parts": [
+        {
+          "name": "TowBehindAerator__Body",
+          "triangles": 1932,
+          "origin_studs": [
+            0.020999908447265625,
+            0.01178864948451519,
+            0.002416849136352539
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "TowBehindAerator__Wheel_Tines",
+          "triangles": 7192,
+          "origin_studs": [
+            0.020999908447265625,
+            0.6673073172569275,
+            0.4551331102848053
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "TowBehindAerator__Wheel_Transport-1",
+          "triangles": 2084,
+          "origin_studs": [
+            -2.027892589569092,
+            0.5932971835136414,
+            1.0889359712600708
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "TowBehindAerator__Wheel_Transport1",
+          "triangles": 2084,
+          "origin_studs": [
+            2.069892406463623,
+            0.5932971835136414,
+            1.0889359712600708
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "hollow_coring_tines": 36,
+        "hollow_coring_reel_and_transport_lift": 1,
+        "concrete_ballast_blocks": 2
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 3516,
+      "authoring_fit": {
+        "scale": [
+          1.0453532934188843,
+          1.0572881698608398,
+          1.0060361623764038
+        ],
+        "offset": [
+          0.020999908447265625,
+          0.01178864948451519,
+          0.002416849136352539
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        0.0,
+        0.0,
+        -7.156015872955322
+      ]
+    },
+    {
+      "name": "RideOnSpreaderSprayer",
+      "folder": "Tools",
+      "instruction": 26,
+      "triangle_budget": 30000,
+      "detail_guidance_min": 20000,
+      "dimensions_studs": [
+        3.916119,
+        4.927778,
+        5.828948
+      ],
+      "bounds_min_studs": [
+        -1.923059344291687,
+        -5.039737516199239e-10,
+        -2.986841917037964
+      ],
+      "bounds_max_studs": [
+        1.9930592775344849,
+        4.9277777671813965,
+        2.8421056270599365
+      ],
+      "primary_part": "Handle",
+      "primary_position_studs": [
+        0.0,
+        3.816666841506958,
+        -0.1894736886024475
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 14840,
+      "mesh_objects": 5,
+      "parts": [
+        {
+          "name": "RideOnSpreaderSprayer__Body",
+          "triangles": 7968,
+          "origin_studs": [
+            0.034999966621398926,
+            0.01735359989106655,
+            0.1759016513824463
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "RideOnSpreaderSprayer__Wheel_Rear-1",
+          "triangles": 2084,
+          "origin_studs": [
+            -1.605305552482605,
+            0.8579690456390381,
+            1.6655216217041016
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "RideOnSpreaderSprayer__Wheel_Rear1",
+          "triangles": 2084,
+          "origin_studs": [
+            1.6753054857254028,
+            0.8579690456390381,
+            1.6655216217041016
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "RideOnSpreaderSprayer__Wheel_Front",
+          "triangles": 2084,
+          "origin_studs": [
+            0.034999966621398926,
+            0.6631922721862793,
+            -2.1232945919036865
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "RideOnSpreaderSprayer__CutterRotor",
+          "triangles": 620,
+          "origin_studs": [
+            0.034999966621398926,
+            1.5345619916915894,
+            -1.605165719985962
+          ],
+          "role": "rotor",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "Y",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "three_wheels_and_standing_steering_station": 1,
+        "hopper_spinner_tank_fill_lid_and_boom_nozzles": 1
+      },
+      "baseline_source_pack": "model-source/PhaseA_NewModels",
+      "baseline_triangles": 2640,
+      "authoring_fit": {
+        "scale": [
+          1.1083145141601562,
+          1.0251407623291016,
+          1.0794347524642944
+        ],
+        "offset": [
+          0.034999966621398926,
+          0.01735359989106655,
+          0.1759016513824463
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        3.2639997005462646,
+        0.0,
+        -7.156015872955322
+      ]
+    }
+  ],
+  "meters_per_stud": 0.28,
+  "source_main_commit": "2377b19",
+  "original_packs_preserved": true,
+  "studio_import_tested": false
+}

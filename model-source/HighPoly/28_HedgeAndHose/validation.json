@@ -1,0 +1,183 @@
+{
+  "source_main_commit": "2377b19",
+  "assets": 6,
+  "checks": [
+    "source_files_and_buffers",
+    "exact_ids_and_folders",
+    "actual_exported_triangle_counts_and_20k_mesh_limit",
+    "finite_positions_normals_and_UVs",
+    "nondegenerate_triangles",
+    "actual_bounds_and_size_tolerances",
+    "preserved_grips_slots_and_old_markers",
+    "hinge_and_axle_local_frames",
+    "attachment_positions_parents_and_LookVectors",
+    "untextured_16_9_screens",
+    "interaction_marker_counts",
+    "combined_library_translation_only_roots",
+    "portable_PBR_textures_at_most_2048",
+    "binary_FBX_header",
+    "closed_authoring_components_after_coincident_vertex_matching",
+    "FBX_import_triangle_mesh_count_and_world_bounds",
+    "sRGB_atlas_pixels_match_declared_palette",
+    "complete_noncorrupt_preview_PNGs",
+    "updated_review_images_match_latest_changed_sources",
+    "sRGB_atlas_pixels_match_declared_palette",
+    "complete_noncorrupt_preview_PNGs",
+    "updated_review_images_match_latest_changed_sources"
+  ],
+  "issues": [],
+  "studio_import_tested": false,
+  "geometry": [
+    {
+      "name": "HandHedgeShears",
+      "triangles": 4868,
+      "counts": {
+        "components": 21
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "ElectricHedgeTrimmer",
+      "triangles": 8440,
+      "counts": {
+        "components": 52
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "CordlessHedgeTrimmer",
+      "triangles": 8336,
+      "counts": {
+        "components": 54
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "GasHedgeTrimmer",
+      "triangles": 10108,
+      "counts": {
+        "components": 67
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "ArticulatingHedgeTrimmer",
+      "triangles": 7448,
+      "counts": {
+        "components": 52
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "GardenHoseWand",
+      "triangles": 4872,
+      "counts": {
+        "components": 22
+      },
+      "topology_issues": []
+    }
+  ],
+  "fbx_roundtrip": [
+    {
+      "name": "HandHedgeShears",
+      "triangles": 4868,
+      "mesh_objects": 1,
+      "bounds_error_studs": 2.384185791015625e-07,
+      "passed": true
+    },
+    {
+      "name": "ElectricHedgeTrimmer",
+      "triangles": 8440,
+      "mesh_objects": 2,
+      "bounds_error_studs": 8.940696716308594e-08,
+      "passed": true
+    },
+    {
+      "name": "CordlessHedgeTrimmer",
+      "triangles": 8336,
+      "mesh_objects": 2,
+      "bounds_error_studs": 2.384185791015625e-07,
+      "passed": true
+    },
+    {
+      "name": "GasHedgeTrimmer",
+      "triangles": 10108,
+      "mesh_objects": 2,
+      "bounds_error_studs": 4.76837158203125e-07,
+      "passed": true
+    },
+    {
+      "name": "ArticulatingHedgeTrimmer",
+      "triangles": 7448,
+      "mesh_objects": 1,
+      "bounds_error_studs": 9.5367431640625e-07,
+      "passed": true
+    },
+    {
+      "name": "GardenHoseWand",
+      "triangles": 4872,
+      "mesh_objects": 1,
+      "bounds_error_studs": 1.1920928955078125e-07,
+      "passed": true
+    }
+  ],
+  "protected_files_unchanged_count": 557,
+  "reviewed_main_commit": "3c40d45",
+  "atlas_encoding": {
+    "pack": "28_HedgeAndHose",
+    "swatches": 12,
+    "maximum_srgb_channel_error": 0.0,
+    "passed": true
+  },
+  "preview_status": "complete",
+  "previews": [
+    {
+      "file": "Previews/HandHedgeShears_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "ab6ad3a1743abb5162fd5f57e13592a0af1b44a1a25213e5c796ffcc270f02bd"
+    },
+    {
+      "file": "Previews/ElectricHedgeTrimmer_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "5d52cd21c00983c4147afc384ef59deee625bb074ba1524f5e40c68b547b98bc"
+    },
+    {
+      "file": "Previews/CordlessHedgeTrimmer_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "cfbeef3f66744ceba42ba9e2cac9f3e91a78e75fdcefc879dae1f1760b377205"
+    },
+    {
+      "file": "Previews/GasHedgeTrimmer_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "66d6e7d7e243dfe03febff103857b56ed3d9c647d1679369c0a6c6da0fab9225"
+    },
+    {
+      "file": "Previews/ArticulatingHedgeTrimmer_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "9588b5d3a3c180de5f9622e83fcee7482e94643266fd44fbd7fbe65e85e537ff"
+    },
+    {
+      "file": "Previews/GardenHoseWand_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "38696246e5a6e9e9a7641b31708c372b7114ca11fbb133a55dddc41ff8fd3fde"
+    }
+  ]
+}

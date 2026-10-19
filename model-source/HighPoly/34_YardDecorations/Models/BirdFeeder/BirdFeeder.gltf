@@ -1,0 +1,195 @@
+{
+  "asset": {
+    "generator": "Khronos glTF Blender I/O v4.3.47",
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        1
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          0.2902373671531677,
+          0.0001149071758845821,
+          0.0
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 0,
+      "name": "BirdFeeder__Body",
+      "translation": [
+        0.08126646280288696,
+        3.217400808352977e-05,
+        0
+      ]
+    },
+    {
+      "children": [
+        0
+      ],
+      "extras": {
+        "folder": "Decorations",
+        "stud_to_meter": 0.28,
+        "primary_part": "Root",
+        "primary_position_studs": [
+          0.0,
+          0.5,
+          0.0
+        ],
+        "markers_json": "[]",
+        "slots_json": "[]"
+      },
+      "name": "BirdFeeder"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "HP shared PBR 34",
+      "normalTexture": {
+        "index": 0,
+        "scale": 0.44999998807907104
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 1
+        },
+        "metallicRoughnessTexture": {
+          "index": 2
+        }
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "BirdFeeder__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    }
+  ],
+  "images": [
+    {
+      "mimeType": "image/png",
+      "name": "HP34_Normal",
+      "uri": "../../Textures/HP34_Normal.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP34_Color",
+      "uri": "../../Textures/HP34_Color.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP34_Metalness-HP34_Roughness",
+      "uri": "../../Textures/HP34_Metalness-HP34_Roughness.png"
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 1576,
+      "max": [
+        0.14273354411125183,
+        2.015967845916748,
+        0.08400000631809235
+      ],
+      "min": [
+        -0.30526646971702576,
+        -3.217400808352977e-05,
+        -0.08400000631809235
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 1576,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 1576,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "count": 7020,
+      "type": "SCALAR"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 18912,
+      "byteOffset": 0,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 18912,
+      "byteOffset": 18912,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 12608,
+      "byteOffset": 37824,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 14040,
+      "byteOffset": 50432,
+      "target": 34963
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 64472,
+      "uri": "BirdFeeder.bin"
+    }
+  ]
+}

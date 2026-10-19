@@ -1,0 +1,383 @@
+{
+  "asset": {
+    "generator": "Khronos glTF Blender I/O v4.3.47",
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        3
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          -0.0326312817633152,
+          0.0
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 0,
+      "name": "ElectricEdger__Body",
+      "translation": [
+        0,
+        -0.009136758744716644,
+        0
+      ]
+    },
+    {
+      "extras": {
+        "role": "wheel",
+        "animation_axis": "X",
+        "stud_origin": [
+          -0.3454665243625641,
+          0.6526519060134888,
+          -3.399850845336914
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Hull",
+        "motion_mode": "Rotate"
+      },
+      "mesh": 1,
+      "name": "ElectricEdger__Wheel_Blade",
+      "translation": [
+        -0.09673062711954117,
+        0.18274253606796265,
+        -0.9519582390785217
+      ]
+    },
+    {
+      "extras": {
+        "role": "wheel",
+        "animation_axis": "X",
+        "stud_origin": [
+          -0.771541953086853,
+          0.5317195653915405,
+          -3.205573558807373
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Hull",
+        "motion_mode": "Rotate"
+      },
+      "mesh": 2,
+      "name": "ElectricEdger__Wheel_Guide",
+      "translation": [
+        -0.2160317450761795,
+        0.1488814800977707,
+        -0.8975605964660645
+      ]
+    },
+    {
+      "children": [
+        0,
+        1,
+        2
+      ],
+      "extras": {
+        "folder": "Tools",
+        "stud_to_meter": 0.28,
+        "primary_part": "Handle",
+        "primary_position_studs": [
+          0.0,
+          4.2,
+          0.0
+        ],
+        "markers_json": "[]",
+        "slots_json": "[]"
+      },
+      "name": "ElectricEdger"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "HP shared PBR 27",
+      "normalTexture": {
+        "index": 0,
+        "scale": 0.44999998807907104
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 1
+        },
+        "metallicRoughnessTexture": {
+          "index": 2
+        }
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "ElectricEdger__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "ElectricEdger__Wheel_Blade",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 4,
+            "NORMAL": 5,
+            "TEXCOORD_0": 6
+          },
+          "indices": 7,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "ElectricEdger__Wheel_Guide",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 8,
+            "NORMAL": 9,
+            "TEXCOORD_0": 10
+          },
+          "indices": 11,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    }
+  ],
+  "images": [
+    {
+      "mimeType": "image/png",
+      "name": "HP27_Normal",
+      "uri": "../../Textures/HP27_Normal.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP27_Color",
+      "uri": "../../Textures/HP27_Color.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP27_Metalness-HP27_Roughness",
+      "uri": "../../Textures/HP27_Metalness-HP27_Roughness.png"
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 4284,
+      "max": [
+        0.08400001376867294,
+        1.4091368913650513,
+        0.36977720260620117
+      ],
+      "min": [
+        -0.23134741187095642,
+        0.15640249848365784,
+        -1.0920000076293945
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 4284,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 4284,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "count": 17868,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 4,
+      "componentType": 5126,
+      "count": 200,
+      "max": [
+        0.016121773049235344,
+        0.10854250192642212,
+        0.04612375423312187
+      ],
+      "min": [
+        -0.0040304409340023994,
+        -0.1085425317287445,
+        -0.04612375423312187
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 5,
+      "componentType": 5126,
+      "count": 200,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 6,
+      "componentType": 5126,
+      "count": 200,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 7,
+      "componentType": 5123,
+      "count": 660,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 8,
+      "componentType": 5126,
+      "count": 1152,
+      "max": [
+        0.02756822109222412,
+        0.06772209703922272,
+        0.06527712941169739
+      ],
+      "min": [
+        -0.027568237856030464,
+        -0.06772210448980331,
+        -0.06527712941169739
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 9,
+      "componentType": 5126,
+      "count": 1152,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 10,
+      "componentType": 5126,
+      "count": 1152,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 11,
+      "componentType": 5123,
+      "count": 4896,
+      "type": "SCALAR"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 51408,
+      "byteOffset": 0,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 51408,
+      "byteOffset": 51408,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 34272,
+      "byteOffset": 102816,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 35736,
+      "byteOffset": 137088,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 2400,
+      "byteOffset": 172824,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 2400,
+      "byteOffset": 175224,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 1600,
+      "byteOffset": 177624,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 1320,
+      "byteOffset": 179224,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 13824,
+      "byteOffset": 180544,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 13824,
+      "byteOffset": 194368,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 9216,
+      "byteOffset": 208192,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 9792,
+      "byteOffset": 217408,
+      "target": 34963
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 227200,
+      "uri": "ElectricEdger.bin"
+    }
+  ]
+}

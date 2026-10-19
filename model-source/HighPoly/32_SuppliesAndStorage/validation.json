@@ -1,0 +1,482 @@
+{
+  "source_main_commit": "2377b19",
+  "assets": 19,
+  "checks": [
+    "source_files_and_buffers",
+    "exact_ids_and_folders",
+    "actual_exported_triangle_counts_and_20k_mesh_limit",
+    "finite_positions_normals_and_UVs",
+    "nondegenerate_triangles",
+    "actual_bounds_and_size_tolerances",
+    "preserved_grips_slots_and_old_markers",
+    "hinge_and_axle_local_frames",
+    "attachment_positions_parents_and_LookVectors",
+    "untextured_16_9_screens",
+    "interaction_marker_counts",
+    "combined_library_translation_only_roots",
+    "portable_PBR_textures_at_most_2048",
+    "binary_FBX_header",
+    "closed_authoring_components_after_coincident_vertex_matching",
+    "FBX_import_triangle_mesh_count_and_world_bounds",
+    "sRGB_atlas_pixels_match_declared_palette",
+    "complete_noncorrupt_preview_PNGs",
+    "updated_review_images_match_latest_changed_sources",
+    "sRGB_atlas_pixels_match_declared_palette",
+    "complete_noncorrupt_preview_PNGs",
+    "updated_review_images_match_latest_changed_sources"
+  ],
+  "issues": [],
+  "studio_import_tested": false,
+  "geometry": [
+    {
+      "name": "GasCan",
+      "triangles": 2320,
+      "counts": {
+        "components": 20
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "MixGasCan",
+      "triangles": 2320,
+      "counts": {
+        "components": 20
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "TrimmerLine",
+      "triangles": 2260,
+      "counts": {
+        "components": 3
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "FootPump",
+      "triangles": 3152,
+      "counts": {
+        "components": 28
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "ElectricInflator",
+      "triangles": 1872,
+      "counts": {
+        "components": 16
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "AirCompressor",
+      "triangles": 5352,
+      "counts": {
+        "components": 38
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "TirePatchKit",
+      "triangles": 2444,
+      "counts": {
+        "components": 21
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "SpareTire",
+      "triangles": 2224,
+      "counts": {
+        "components": 45
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "WrenchSet",
+      "triangles": 5584,
+      "counts": {
+        "components": 40
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "BladeFile",
+      "triangles": 1476,
+      "counts": {
+        "components": 55
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "SharpeningStone",
+      "triangles": 376,
+      "counts": {
+        "components": 2
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "SpareMowerBlade",
+      "triangles": 496,
+      "counts": {
+        "components": 5
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "BenchGrinder",
+      "triangles": 3996,
+      "counts": {
+        "components": 33
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "ToolBucket",
+      "triangles": 4508,
+      "counts": {
+        "components": 29
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "Workbench",
+      "triangles": 3828,
+      "counts": {
+        "components": 40
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "StoragePegboard",
+      "triangles": 3500,
+      "counts": {
+        "components": 17
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "StorageWallRack",
+      "triangles": 4388,
+      "counts": {
+        "components": 19
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "StorageWallHooks",
+      "triangles": 2012,
+      "counts": {
+        "components": 13
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "StorageShelf",
+      "triangles": 2164,
+      "counts": {
+        "components": 23
+      },
+      "topology_issues": []
+    }
+  ],
+  "fbx_roundtrip": [
+    {
+      "name": "GasCan",
+      "triangles": 2320,
+      "mesh_objects": 1,
+      "bounds_error_studs": 1.7881393432617188e-07,
+      "passed": true
+    },
+    {
+      "name": "MixGasCan",
+      "triangles": 2320,
+      "mesh_objects": 1,
+      "bounds_error_studs": 1.7881393432617188e-07,
+      "passed": true
+    },
+    {
+      "name": "TrimmerLine",
+      "triangles": 2260,
+      "mesh_objects": 1,
+      "bounds_error_studs": 5.960464477539063e-08,
+      "passed": true
+    },
+    {
+      "name": "FootPump",
+      "triangles": 3152,
+      "mesh_objects": 1,
+      "bounds_error_studs": 8.455209776769834e-08,
+      "passed": true
+    },
+    {
+      "name": "ElectricInflator",
+      "triangles": 1872,
+      "mesh_objects": 2,
+      "bounds_error_studs": 1.043081283569336e-07,
+      "passed": true
+    },
+    {
+      "name": "AirCompressor",
+      "triangles": 5352,
+      "mesh_objects": 1,
+      "bounds_error_studs": 1.1920928955078125e-07,
+      "passed": true
+    },
+    {
+      "name": "TirePatchKit",
+      "triangles": 2444,
+      "mesh_objects": 1,
+      "bounds_error_studs": 5.960464477539063e-08,
+      "passed": true
+    },
+    {
+      "name": "SpareTire",
+      "triangles": 2224,
+      "mesh_objects": 2,
+      "bounds_error_studs": 1.1920928955078125e-07,
+      "passed": true
+    },
+    {
+      "name": "WrenchSet",
+      "triangles": 5584,
+      "mesh_objects": 1,
+      "bounds_error_studs": 1.1920928955078125e-07,
+      "passed": true
+    },
+    {
+      "name": "BladeFile",
+      "triangles": 1476,
+      "mesh_objects": 1,
+      "bounds_error_studs": 7.078051567077637e-08,
+      "passed": true
+    },
+    {
+      "name": "SharpeningStone",
+      "triangles": 376,
+      "mesh_objects": 1,
+      "bounds_error_studs": 1.4901161193847656e-08,
+      "passed": true
+    },
+    {
+      "name": "SpareMowerBlade",
+      "triangles": 496,
+      "mesh_objects": 1,
+      "bounds_error_studs": 2.9802322387695312e-08,
+      "passed": true
+    },
+    {
+      "name": "BenchGrinder",
+      "triangles": 3996,
+      "mesh_objects": 3,
+      "bounds_error_studs": 8.940696716308594e-08,
+      "passed": true
+    },
+    {
+      "name": "ToolBucket",
+      "triangles": 4508,
+      "mesh_objects": 1,
+      "bounds_error_studs": 1.7881393432617188e-07,
+      "passed": true
+    },
+    {
+      "name": "Workbench",
+      "triangles": 3828,
+      "mesh_objects": 6,
+      "bounds_error_studs": 4.76837158203125e-07,
+      "passed": true
+    },
+    {
+      "name": "StoragePegboard",
+      "triangles": 3500,
+      "mesh_objects": 1,
+      "bounds_error_studs": 3.2782554626464844e-07,
+      "passed": true
+    },
+    {
+      "name": "StorageWallRack",
+      "triangles": 4388,
+      "mesh_objects": 1,
+      "bounds_error_studs": 1.7881393432617188e-07,
+      "passed": true
+    },
+    {
+      "name": "StorageWallHooks",
+      "triangles": 2012,
+      "mesh_objects": 1,
+      "bounds_error_studs": 5.960464477539063e-08,
+      "passed": true
+    },
+    {
+      "name": "StorageShelf",
+      "triangles": 2164,
+      "mesh_objects": 1,
+      "bounds_error_studs": 8.344650268554688e-07,
+      "passed": true
+    }
+  ],
+  "protected_files_unchanged_count": 557,
+  "reviewed_main_commit": "3c40d45",
+  "atlas_encoding": {
+    "pack": "32_SuppliesAndStorage",
+    "swatches": 24,
+    "maximum_srgb_channel_error": 0.0,
+    "passed": true
+  },
+  "preview_status": "complete",
+  "previews": [
+    {
+      "file": "Previews/GasCan_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "feb403d50db39117314f80e8f4c80bb1bdd760ce6fdfbfc9493412fbde89f64e"
+    },
+    {
+      "file": "Previews/MixGasCan_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "e8794a5b968f6e29c56a9ed8a8a986334b6a6750200c21aebaa75d877c3a6c72"
+    },
+    {
+      "file": "Previews/TrimmerLine_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "8b288889b8cd714f90183944770de17935aaf31c63fa708bf700b37c54428f9b"
+    },
+    {
+      "file": "Previews/FootPump_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "23648a454f5adc5153055e54758ad2f3a1e0dca56329400bf86321f72ad93a94"
+    },
+    {
+      "file": "Previews/ElectricInflator_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "1d73b2c2655966a40cf7d6ea0ebb4a8a7b4fba35284dd1ff9a10ed8993bccb53"
+    },
+    {
+      "file": "Previews/AirCompressor_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "7cb655068d72ea839ec8993a1bca0e358c52d3703da65a21a270dae25b63161e"
+    },
+    {
+      "file": "Previews/TirePatchKit_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "7da3d17af530fbe118521d4387f19f4f65e28b246c372178051225167e5a4a8a"
+    },
+    {
+      "file": "Previews/SpareTire_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "9d699826f06a0c660f5aea4299acbf953494e11387ca69a3ce78ad6c3485afcf"
+    },
+    {
+      "file": "Previews/WrenchSet_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "b70ec54bdd26cf8afdb7293fb138c3864c69b63d211117076a8b8a644ed52327"
+    },
+    {
+      "file": "Previews/BladeFile_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "efb788e99a50abd4a9bf12e9248c008f67e4933a195b6e360face0f6d1023d06"
+    },
+    {
+      "file": "Previews/SharpeningStone_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "953b6975048e64e6372e5076b5eb854851b52645c7bca671f46ba57ebbf7b825"
+    },
+    {
+      "file": "Previews/SpareMowerBlade_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "660206213daff28275580e027901a759c88af013e6fe832b8d7aa80343386186"
+    },
+    {
+      "file": "Previews/BenchGrinder_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "e0bfda68dc613fe57122d30f9afeb80e3b55936a759ed7b58a596440c6d97847"
+    },
+    {
+      "file": "Previews/ToolBucket_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "92cfed68f645492e60c68e31c8463c0bc9bc356eb089b536df6ab041a764d043"
+    },
+    {
+      "file": "Previews/Workbench_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "f2b7847743f6bea0ba2cf2a19ac072891c6162cffbcdfe3e99dffcaafe882f99"
+    },
+    {
+      "file": "Previews/StoragePegboard_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "fd5cc002e9a097051f28dfb5923f2419cf86081950ff52738de73f0034e0f2dd"
+    },
+    {
+      "file": "Previews/StorageWallRack_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "24bc7bcda099a83b941c91899d25ee001beec5952912c71abe10413fd2b4130e"
+    },
+    {
+      "file": "Previews/StorageWallHooks_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "b41bb4493cff0ffce58f268eff346dfd68894e194b033f6f00ceec54f9e6c253"
+    },
+    {
+      "file": "Previews/StorageShelf_Preview.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "e7405f16cb66023ba15b942835f9adb9c647fe0ad91009beaafa04b81b4dcf9b"
+    }
+  ]
+}

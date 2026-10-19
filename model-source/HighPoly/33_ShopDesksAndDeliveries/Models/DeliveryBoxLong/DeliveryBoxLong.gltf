@@ -1,0 +1,306 @@
+{
+  "asset": {
+    "generator": "Khronos glTF Blender I/O v4.3.47",
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        3
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "extras": {
+        "roblox_class": "Attachment",
+        "roblox_name": "Contents",
+        "attributes_json": "{}",
+        "parent_mesh": "DeliveryBoxLong__Body"
+      },
+      "name": "Contents",
+      "translation": [
+        0,
+        0.00946859922260046,
+        0
+      ]
+    },
+    {
+      "children": [
+        0
+      ],
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          0.0,
+          0.0002446472644805908
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 0,
+      "name": "DeliveryBoxLong__Body",
+      "translation": [
+        0,
+        0,
+        6.850123463664204e-05
+      ]
+    },
+    {
+      "extras": {
+        "role": "opening_panel",
+        "animation_axis": "X",
+        "stud_origin": [
+          0.0,
+          0.7729469537734985,
+          0.3916819393634796
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": "Rotate"
+      },
+      "mesh": 1,
+      "name": "DeliveryBoxLong__Lid",
+      "translation": [
+        0,
+        0.21642515063285828,
+        0.10967094451189041
+      ]
+    },
+    {
+      "children": [
+        1,
+        2
+      ],
+      "extras": {
+        "folder": "Props",
+        "stud_to_meter": 0.28,
+        "primary_part": "Root",
+        "primary_position_studs": [
+          0.0,
+          0.5,
+          0.0
+        ],
+        "markers_json": "[{\"name\": \"Contents\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"DeliveryBoxLong__Body\", \"position_studs\": [0.0, 0.03381642699241638, 0.0002446472644805908], \"orientation_degrees\": [0.0, -0.0, -0.0], \"attributes\": {}, \"look_vector\": [0.0, 0.0, -1.0]}]",
+        "slots_json": "[]"
+      },
+      "name": "DeliveryBoxLong"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "HP shared PBR 33",
+      "normalTexture": {
+        "index": 0,
+        "scale": 0.44999998807907104
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 1
+        },
+        "metallicRoughnessTexture": {
+          "index": 2
+        }
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "DeliveryBoxLong__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "DeliveryBoxLong__Lid",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 4,
+            "NORMAL": 5,
+            "TEXCOORD_0": 6
+          },
+          "indices": 7,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    }
+  ],
+  "images": [
+    {
+      "mimeType": "image/png",
+      "name": "HP33_Normal",
+      "uri": "../../Textures/HP33_Normal.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP33_Color",
+      "uri": "../../Textures/HP33_Color.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP33_Metalness-HP33_Roughness",
+      "uri": "../../Textures/HP33_Metalness-HP33_Roughness.png"
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 568,
+      "max": [
+        0.8679999709129333,
+        0.21642515063285828,
+        0.11193150281906128
+      ],
+      "min": [
+        -0.8679999709129333,
+        0,
+        -0.11206849664449692
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 568,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 568,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "count": 1872,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 4,
+      "componentType": 5126,
+      "count": 416,
+      "max": [
+        0.8679999113082886,
+        0.007574856281280518,
+        0
+      ],
+      "min": [
+        -0.8679999113082886,
+        -0.004869570955634117,
+        -0.2216709405183792
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 5,
+      "componentType": 5126,
+      "count": 416,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 6,
+      "componentType": 5126,
+      "count": 416,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 7,
+      "componentType": 5123,
+      "count": 828,
+      "type": "SCALAR"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 6816,
+      "byteOffset": 0,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 6816,
+      "byteOffset": 6816,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 4544,
+      "byteOffset": 13632,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 3744,
+      "byteOffset": 18176,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 4992,
+      "byteOffset": 21920,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 4992,
+      "byteOffset": 26912,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 3328,
+      "byteOffset": 31904,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 1656,
+      "byteOffset": 35232,
+      "target": 34963
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 36888,
+      "uri": "DeliveryBoxLong.bin"
+    }
+  ]
+}

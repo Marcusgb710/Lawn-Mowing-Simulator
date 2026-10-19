@@ -1,0 +1,559 @@
+{
+  "asset": {
+    "generator": "Khronos glTF Blender I/O v4.3.47",
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        5
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          0.034999966621398926,
+          0.01735359989106655,
+          0.1759016513824463
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 0,
+      "name": "RideOnSpreaderSprayer__Body",
+      "translation": [
+        0.009799990803003311,
+        0.004859007894992828,
+        0.0492524616420269
+      ]
+    },
+    {
+      "extras": {
+        "role": "rotor",
+        "animation_axis": "Y",
+        "stud_origin": [
+          0.034999966621398926,
+          1.5345619916915894,
+          -1.605165719985962
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": "Rotate"
+      },
+      "mesh": 1,
+      "name": "RideOnSpreaderSprayer__CutterRotor",
+      "translation": [
+        0.009799990803003311,
+        0.4296773672103882,
+        -0.4494464099407196
+      ]
+    },
+    {
+      "extras": {
+        "role": "wheel",
+        "animation_axis": "X",
+        "stud_origin": [
+          0.034999966621398926,
+          0.6631922721862793,
+          -2.1232945919036865
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Hull",
+        "motion_mode": "Rotate"
+      },
+      "mesh": 2,
+      "name": "RideOnSpreaderSprayer__Wheel_Front",
+      "translation": [
+        0.009799990803003311,
+        0.18569383025169373,
+        -0.5945224761962891
+      ]
+    },
+    {
+      "extras": {
+        "role": "wheel",
+        "animation_axis": "X",
+        "stud_origin": [
+          -1.605305552482605,
+          0.8579690456390381,
+          1.6655216217041016
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Hull",
+        "motion_mode": "Rotate"
+      },
+      "mesh": 3,
+      "name": "RideOnSpreaderSprayer__Wheel_Rear-1",
+      "translation": [
+        -0.44948557019233704,
+        0.24023133516311646,
+        0.46634605526924133
+      ]
+    },
+    {
+      "extras": {
+        "role": "wheel",
+        "animation_axis": "X",
+        "stud_origin": [
+          1.6753054857254028,
+          0.8579690456390381,
+          1.6655216217041016
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Hull",
+        "motion_mode": "Rotate"
+      },
+      "mesh": 4,
+      "name": "RideOnSpreaderSprayer__Wheel_Rear1",
+      "translation": [
+        0.46908554434776306,
+        0.24023133516311646,
+        0.46634605526924133
+      ]
+    },
+    {
+      "children": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "extras": {
+        "folder": "Tools",
+        "stud_to_meter": 0.28,
+        "primary_part": "Handle",
+        "primary_position_studs": [
+          0.0,
+          3.816666841506958,
+          -0.1894736886024475
+        ],
+        "markers_json": "[]",
+        "slots_json": "[]"
+      },
+      "name": "RideOnSpreaderSprayer"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "HP shared PBR 26",
+      "normalTexture": {
+        "index": 0,
+        "scale": 0.44999998807907104
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 1
+        },
+        "metallicRoughnessTexture": {
+          "index": 2
+        }
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "RideOnSpreaderSprayer__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "RideOnSpreaderSprayer__CutterRotor",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 4,
+            "NORMAL": 5,
+            "TEXCOORD_0": 6
+          },
+          "indices": 7,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "RideOnSpreaderSprayer__Wheel_Front",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 8,
+            "NORMAL": 9,
+            "TEXCOORD_0": 10
+          },
+          "indices": 11,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "RideOnSpreaderSprayer__Wheel_Rear-1",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 12,
+            "NORMAL": 13,
+            "TEXCOORD_0": 14
+          },
+          "indices": 15,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "RideOnSpreaderSprayer__Wheel_Rear1",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 16,
+            "NORMAL": 17,
+            "TEXCOORD_0": 18
+          },
+          "indices": 11,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    }
+  ],
+  "images": [
+    {
+      "mimeType": "image/png",
+      "name": "HP26_Normal",
+      "uri": "../../Textures/HP26_Normal.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP26_Color",
+      "uri": "../../Textures/HP26_Color.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP26_Metalness-HP26_Roughness",
+      "uri": "../../Textures/HP26_Metalness-HP26_Roughness.png"
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 6296,
+      "max": [
+        0.49031832814216614,
+        1.374918818473816,
+        0.7465370893478394
+      ],
+      "min": [
+        -0.49031832814216614,
+        0.269817054271698,
+        -0.8855682015419006
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 6296,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 6296,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "count": 23904,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 4,
+      "componentType": 5126,
+      "count": 512,
+      "max": [
+        0.14275091886520386,
+        0.033009499311447144,
+        0.13903121650218964
+      ],
+      "min": [
+        -0.14275091886520386,
+        0,
+        -0.13903115689754486
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 5,
+      "componentType": 5126,
+      "count": 512,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 6,
+      "componentType": 5126,
+      "count": 512,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 7,
+      "componentType": 5123,
+      "count": 1860,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 8,
+      "componentType": 5126,
+      "count": 1968,
+      "max": [
+        0.06814804673194885,
+        0.1845637708902359,
+        0.1953497976064682
+      ],
+      "min": [
+        -0.06367932260036469,
+        -0.1845637559890747,
+        -0.19534973800182343
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 9,
+      "componentType": 5126,
+      "count": 1968,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 10,
+      "componentType": 5126,
+      "count": 1968,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 11,
+      "componentType": 5123,
+      "count": 6252,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 12,
+      "componentType": 5126,
+      "count": 1968,
+      "max": [
+        0.08313688635826111,
+        0.24023130536079407,
+        0.25426769256591797
+      ],
+      "min": [
+        -0.08897106349468231,
+        -0.24023133516311646,
+        -0.25426769256591797
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 13,
+      "componentType": 5126,
+      "count": 1968,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 14,
+      "componentType": 5126,
+      "count": 1968,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 15,
+      "componentType": 5123,
+      "count": 6252,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 16,
+      "componentType": 5126,
+      "count": 1968,
+      "max": [
+        0.08897106349468231,
+        0.24023130536079407,
+        0.25426769256591797
+      ],
+      "min": [
+        -0.08313688635826111,
+        -0.24023133516311646,
+        -0.25426769256591797
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 17,
+      "componentType": 5126,
+      "count": 1968,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 18,
+      "componentType": 5126,
+      "count": 1968,
+      "type": "VEC2"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 75552,
+      "byteOffset": 0,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 75552,
+      "byteOffset": 75552,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 50368,
+      "byteOffset": 151104,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 47808,
+      "byteOffset": 201472,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 6144,
+      "byteOffset": 249280,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 6144,
+      "byteOffset": 255424,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 4096,
+      "byteOffset": 261568,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 3720,
+      "byteOffset": 265664,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 23616,
+      "byteOffset": 269384,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 23616,
+      "byteOffset": 293000,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 15744,
+      "byteOffset": 316616,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 12504,
+      "byteOffset": 332360,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 23616,
+      "byteOffset": 344864,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 23616,
+      "byteOffset": 368480,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 15744,
+      "byteOffset": 392096,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 12504,
+      "byteOffset": 407840,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 23616,
+      "byteOffset": 420344,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 23616,
+      "byteOffset": 443960,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 15744,
+      "byteOffset": 467576,
+      "target": 34962
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 483320,
+      "uri": "RideOnSpreaderSprayer.bin"
+    }
+  ]
+}

@@ -1,0 +1,482 @@
+{
+  "asset": {
+    "generator": "Khronos glTF Blender I/O v4.3.47",
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        5
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          -0.02488686889410019,
+          0.03902435302734375
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 0,
+      "name": "DeliveryCrate__BackPanel",
+      "translation": [
+        0,
+        -0.006968323141336441,
+        0.01092681847512722
+      ]
+    },
+    {
+      "extras": {
+        "roblox_class": "Attachment",
+        "roblox_name": "Contents",
+        "attributes_json": "{}",
+        "parent_mesh": "DeliveryCrate__Body"
+      },
+      "name": "Contents",
+      "translation": [
+        0,
+        0.13100452721118927,
+        0
+      ]
+    },
+    {
+      "children": [
+        1
+      ],
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          -0.02488686889410019,
+          0.03902435302734375
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 1,
+      "name": "DeliveryCrate__Body",
+      "translation": [
+        0,
+        -0.006968323141336441,
+        0.01092681847512722
+      ]
+    },
+    {
+      "extras": {
+        "role": "opening_panel",
+        "animation_axis": "X",
+        "stud_origin": [
+          0.0,
+          0.43303167819976807,
+          -3.473170518875122
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": "Rotate"
+      },
+      "mesh": 2,
+      "name": "DeliveryCrate__FrontPanel",
+      "translation": [
+        0,
+        0.12124887108802795,
+        -0.97248774766922
+      ]
+    },
+    {
+      "extras": {
+        "role": "opening_panel",
+        "animation_axis": "X",
+        "stud_origin": [
+          0.0,
+          4.355203628540039,
+          3.5512192249298096
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": "Rotate"
+      },
+      "mesh": 3,
+      "name": "DeliveryCrate__Lid",
+      "translation": [
+        0,
+        1.2194570302963257,
+        0.9943413734436035
+      ]
+    },
+    {
+      "children": [
+        0,
+        2,
+        3,
+        4
+      ],
+      "extras": {
+        "folder": "Props",
+        "stud_to_meter": 0.28,
+        "primary_part": "Root",
+        "primary_position_studs": [
+          0.0,
+          0.5,
+          0.0
+        ],
+        "markers_json": "[{\"name\": \"Contents\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"DeliveryCrate__Body\", \"position_studs\": [0.0, 0.4429864287376404, 0.03902435302734375], \"orientation_degrees\": [0.0, -0.0, -0.0], \"attributes\": {}, \"look_vector\": [0.0, 0.0, -1.0]}]",
+        "slots_json": "[]"
+      },
+      "name": "DeliveryCrate"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "HP shared PBR 33",
+      "normalTexture": {
+        "index": 0,
+        "scale": 0.44999998807907104
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 1
+        },
+        "metallicRoughnessTexture": {
+          "index": 2
+        }
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "DeliveryCrate__BackPanel",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "DeliveryCrate__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 4,
+            "NORMAL": 5,
+            "TEXCOORD_0": 6
+          },
+          "indices": 7,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "DeliveryCrate__FrontPanel",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 8,
+            "NORMAL": 9,
+            "TEXCOORD_0": 10
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "DeliveryCrate__Lid",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 11,
+            "NORMAL": 12,
+            "TEXCOORD_0": 13
+          },
+          "indices": 14,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    }
+  ],
+  "images": [
+    {
+      "mimeType": "image/png",
+      "name": "HP33_Normal",
+      "uri": "../../Textures/HP33_Normal.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP33_Color",
+      "uri": "../../Textures/HP33_Color.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP33_Metalness-HP33_Roughness",
+      "uri": "../../Textures/HP33_Metalness-HP33_Roughness.png"
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 912,
+      "max": [
+        0.6927757859230042,
+        1.2201539278030396,
+        0.9970731139183044
+      ],
+      "min": [
+        -0.6927757859230042,
+        0.13448868691921234,
+        0.9479023814201355
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 912,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 912,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "count": 3084,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 4,
+      "componentType": 5126,
+      "count": 2432,
+      "max": [
+        0.7560000419616699,
+        1.2264254093170166,
+        0.9888779520988464
+      ],
+      "min": [
+        -0.7560000419616699,
+        0.006968323141336441,
+        -0.9888779520988464
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 5,
+      "componentType": 5126,
+      "count": 2432,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 6,
+      "componentType": 5126,
+      "count": 2432,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 7,
+      "componentType": 5123,
+      "count": 7896,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 8,
+      "componentType": 5126,
+      "count": 912,
+      "max": [
+        0.6927757859230042,
+        1.091936707496643,
+        0.013658523559570312
+      ],
+      "min": [
+        -0.6927757859230042,
+        0.006271496880799532,
+        -0.035512227565050125
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 9,
+      "componentType": 5126,
+      "count": 912,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 10,
+      "componentType": 5126,
+      "count": 912,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 11,
+      "componentType": 5126,
+      "count": 880,
+      "max": [
+        0.7264057397842407,
+        0.012543010525405407,
+        0
+      ],
+      "min": [
+        -0.7264057397842407,
+        -0.03275108337402344,
+        -1.9668291807174683
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 12,
+      "componentType": 5126,
+      "count": 880,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 13,
+      "componentType": 5126,
+      "count": 880,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 14,
+      "componentType": 5123,
+      "count": 3564,
+      "type": "SCALAR"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 10944,
+      "byteOffset": 0,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 10944,
+      "byteOffset": 10944,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 7296,
+      "byteOffset": 21888,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 6168,
+      "byteOffset": 29184,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 29184,
+      "byteOffset": 35352,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 29184,
+      "byteOffset": 64536,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 19456,
+      "byteOffset": 93720,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 15792,
+      "byteOffset": 113176,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 10944,
+      "byteOffset": 128968,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 10944,
+      "byteOffset": 139912,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 7296,
+      "byteOffset": 150856,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 10560,
+      "byteOffset": 158152,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 10560,
+      "byteOffset": 168712,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 7040,
+      "byteOffset": 179272,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 7128,
+      "byteOffset": 186312,
+      "target": 34963
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 193440,
+      "uri": "DeliveryCrate.bin"
+    }
+  ]
+}

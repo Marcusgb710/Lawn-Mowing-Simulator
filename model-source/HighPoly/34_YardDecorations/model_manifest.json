@@ -1,0 +1,2404 @@
+{
+  "assets": [
+    {
+      "name": "PicketFenceSection",
+      "folder": "Decorations",
+      "instruction": 34,
+      "triangle_budget": 3000,
+      "detail_guidance_min": 800,
+      "dimensions_studs": [
+        8.6,
+        3.2,
+        0.4
+      ],
+      "bounds_min_studs": [
+        -4.300000190734863,
+        0.0,
+        -0.20000000298023224
+      ],
+      "bounds_max_studs": [
+        4.300000190734863,
+        3.200000047683716,
+        0.20000000298023224
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [
+        {
+          "name": "SnapL",
+          "instance_type": "Attachment",
+          "parent_mesh": "PicketFenceSection__Body",
+          "position_studs": [
+            -4.300000190734863,
+            1.600000023841858,
+            0.0
+          ],
+          "orientation_degrees": [
+            -0.0,
+            90.00000250447816,
+            0.0
+          ],
+          "attributes": {},
+          "look_vector": [
+            -1.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "name": "SnapR",
+          "instance_type": "Attachment",
+          "parent_mesh": "PicketFenceSection__Body",
+          "position_studs": [
+            4.300000190734863,
+            1.600000023841858,
+            0.0
+          ],
+          "orientation_degrees": [
+            -0.0,
+            -90.00000250447816,
+            0.0
+          ],
+          "attributes": {},
+          "look_vector": [
+            1.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "slots": [],
+      "triangles": 1944,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "PicketFenceSection__Body",
+          "triangles": 1944,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "snap_axis": "x",
+        "half_end_posts_join_to_one_full_post": 1
+      },
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          1.0000001192092896,
+          1.0,
+          1.0
+        ],
+        "offset": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "name": "StoneEdgingSection",
+      "folder": "Decorations",
+      "instruction": 34,
+      "triangle_budget": 3000,
+      "detail_guidance_min": 800,
+      "dimensions_studs": [
+        4.3,
+        0.55,
+        0.9
+      ],
+      "bounds_min_studs": [
+        -2.1500000953674316,
+        5.689777538009366e-10,
+        -0.44999998807907104
+      ],
+      "bounds_max_studs": [
+        2.1500000953674316,
+        0.550000011920929,
+        0.44999998807907104
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [
+        {
+          "name": "SnapL",
+          "instance_type": "Attachment",
+          "parent_mesh": "StoneEdgingSection__Body",
+          "position_studs": [
+            -2.1500000953674316,
+            0.2750000059604645,
+            0.0
+          ],
+          "orientation_degrees": [
+            -0.0,
+            90.00000250447816,
+            0.0
+          ],
+          "attributes": {},
+          "look_vector": [
+            -1.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "name": "SnapR",
+          "instance_type": "Attachment",
+          "parent_mesh": "StoneEdgingSection__Body",
+          "position_studs": [
+            2.1500000953674316,
+            0.2750000059604645,
+            0.0
+          ],
+          "orientation_degrees": [
+            -0.0,
+            -90.00000250447816,
+            0.0
+          ],
+          "attributes": {},
+          "look_vector": [
+            1.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "slots": [],
+      "triangles": 972,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "StoneEdgingSection__Body",
+          "triangles": 972,
+          "origin_studs": [
+            0.0022017955780029297,
+            0.024960389360785484,
+            0.0
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "snap_axis": "x"
+      },
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          0.9954009056091309,
+          1.000158429145813,
+          1.017562747001648
+        ],
+        "offset": [
+          0.0022017955780029297,
+          0.024960389360785484,
+          0.0
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        4.019999980926514,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "name": "PaverPathSection",
+      "folder": "Decorations",
+      "instruction": 34,
+      "triangle_budget": 3000,
+      "detail_guidance_min": 800,
+      "dimensions_studs": [
+        4.3,
+        0.2,
+        4.3
+      ],
+      "bounds_min_studs": [
+        -2.1500000953674316,
+        0.0,
+        -2.1500000953674316
+      ],
+      "bounds_max_studs": [
+        2.1500000953674316,
+        0.20000001788139343,
+        2.1500000953674316
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [
+        {
+          "name": "SnapL",
+          "instance_type": "Attachment",
+          "parent_mesh": "PaverPathSection__Body",
+          "position_studs": [
+            0.0,
+            0.10000000894069672,
+            -2.1500000953674316
+          ],
+          "orientation_degrees": [
+            0.0,
+            -0.0,
+            -0.0
+          ],
+          "attributes": {},
+          "look_vector": [
+            0.0,
+            0.0,
+            -1.0
+          ]
+        },
+        {
+          "name": "SnapR",
+          "instance_type": "Attachment",
+          "parent_mesh": "PaverPathSection__Body",
+          "position_studs": [
+            0.0,
+            0.10000000894069672,
+            2.1500000953674316
+          ],
+          "orientation_degrees": [
+            -0.0,
+            -180.00000500895632,
+            0.0
+          ],
+          "attributes": {},
+          "look_vector": [
+            0.0,
+            0.0,
+            1.0
+          ]
+        }
+      ],
+      "slots": [],
+      "triangles": 2912,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "PaverPathSection__Body",
+          "triangles": 2912,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "snap_axis": "z"
+      },
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          1.004672884941101,
+          1.1764706373214722,
+          1.004672884941101
+        ],
+        "offset": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        8.039999961853027,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "name": "MulchBedSection",
+      "folder": "Decorations",
+      "instruction": 34,
+      "triangle_budget": 3000,
+      "detail_guidance_min": 800,
+      "dimensions_studs": [
+        8.6,
+        0.4,
+        4.3
+      ],
+      "bounds_min_studs": [
+        -4.300000190734863,
+        0.0,
+        -2.1500000953674316
+      ],
+      "bounds_max_studs": [
+        4.300000190734863,
+        0.4000000059604645,
+        2.1500000953674316
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [
+        {
+          "name": "SnapL",
+          "instance_type": "Attachment",
+          "parent_mesh": "MulchBedSection__Body",
+          "position_studs": [
+            -4.300000190734863,
+            0.20000000298023224,
+            0.0
+          ],
+          "orientation_degrees": [
+            -0.0,
+            90.00000250447816,
+            0.0
+          ],
+          "attributes": {},
+          "look_vector": [
+            -1.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "name": "SnapR",
+          "instance_type": "Attachment",
+          "parent_mesh": "MulchBedSection__Body",
+          "position_studs": [
+            4.300000190734863,
+            0.20000000298023224,
+            0.0
+          ],
+          "orientation_degrees": [
+            -0.0,
+            -90.00000250447816,
+            0.0
+          ],
+          "attributes": {},
+          "look_vector": [
+            1.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "slots": [],
+      "triangles": 2340,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "MulchBedSection__Body",
+          "triangles": 2340,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "snap_axis": "x"
+      },
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          1.0,
+          1.04705810546875,
+          1.0
+        ],
+        "offset": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        12.0600004196167,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "name": "BoxwoodShrub",
+      "folder": "Decorations",
+      "instruction": 34,
+      "triangle_budget": 7000,
+      "detail_guidance_min": 2500,
+      "dimensions_studs": [
+        2.9,
+        2.9,
+        2.9
+      ],
+      "bounds_min_studs": [
+        -1.4500000476837158,
+        0.0,
+        -1.4500000476837158
+      ],
+      "bounds_max_studs": [
+        1.4500000476837158,
+        2.9000000953674316,
+        1.4500000476837158
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 6952,
+      "mesh_objects": 2,
+      "parts": [
+        {
+          "name": "BoxwoodShrub__Body",
+          "triangles": 4976,
+          "origin_studs": [
+            0.029816031455993652,
+            0.0,
+            -0.00800943374633789
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "BoxwoodShrub__Overgrowth",
+          "triangles": 1976,
+          "origin_studs": [
+            0.029816031455993652,
+            0.0,
+            -0.00800943374633789
+          ],
+          "role": "foliage",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "alpha_free_layered_foliage": 1,
+        "separate_trim_removable_overgrowth": 1
+      },
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          0.9030237197875977,
+          0.9645382165908813,
+          0.9134305715560913
+        ],
+        "offset": [
+          0.029816031455993652,
+          0.0,
+          -0.00800943374633789
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        16.079999923706055,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "name": "HydrangeaBush",
+      "folder": "Decorations",
+      "instruction": 34,
+      "triangle_budget": 7000,
+      "detail_guidance_min": 2500,
+      "dimensions_studs": [
+        4.0,
+        3.6,
+        4.0
+      ],
+      "bounds_min_studs": [
+        -2.0,
+        0.0,
+        -2.0
+      ],
+      "bounds_max_studs": [
+        1.9999998807907104,
+        3.5999999046325684,
+        2.0
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 6936,
+      "mesh_objects": 2,
+      "parts": [
+        {
+          "name": "HydrangeaBush__Body",
+          "triangles": 4960,
+          "origin_studs": [
+            0.041002750396728516,
+            0.0,
+            -0.008315205574035645
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "HydrangeaBush__Overgrowth",
+          "triangles": 1976,
+          "origin_studs": [
+            0.041002750396728516,
+            0.0,
+            -0.008315205574035645
+          ],
+          "role": "foliage",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "alpha_free_layered_foliage": 1,
+        "separate_trim_removable_overgrowth": 1
+      },
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          0.8745284676551819,
+          0.9932386875152588,
+          0.8875025510787964
+        ],
+        "offset": [
+          0.041002750396728516,
+          0.0,
+          -0.008315205574035645
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        0.0,
+        0.0,
+        -4.019999980926514
+      ]
+    },
+    {
+      "name": "JapaneseMaple",
+      "folder": "Decorations",
+      "instruction": 34,
+      "triangle_budget": 14000,
+      "detail_guidance_min": 6000,
+      "dimensions_studs": [
+        9.0,
+        9.0,
+        9.0
+      ],
+      "bounds_min_studs": [
+        -4.5,
+        0.0,
+        -4.5
+      ],
+      "bounds_max_studs": [
+        4.500000476837158,
+        9.0,
+        4.500000476837158
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 12832,
+      "mesh_objects": 2,
+      "parts": [
+        {
+          "name": "JapaneseMaple__Body",
+          "triangles": 2140,
+          "origin_studs": [
+            0.0945138931274414,
+            0.0,
+            0.06443548202514648
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "JapaneseMaple__Canopy",
+          "triangles": 10692,
+          "origin_studs": [
+            0.0945138931274414,
+            0.0,
+            0.06443548202514648
+          ],
+          "role": "foliage",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "layered_lobed_red_maple_canopy": 1
+      },
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          1.1173665523529053,
+          1.0740152597427368,
+          1.1342240571975708
+        ],
+        "offset": [
+          0.0945138931274414,
+          0.0,
+          0.06443548202514648
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        4.019999980926514,
+        0.0,
+        -4.019999980926514
+      ]
+    },
+    {
+      "name": "TerracottaPlanter",
+      "folder": "Decorations",
+      "instruction": 34,
+      "triangle_budget": 7000,
+      "detail_guidance_min": 2500,
+      "dimensions_studs": [
+        2.0,
+        2.8,
+        2.0
+      ],
+      "bounds_min_studs": [
+        -1.0,
+        0.0,
+        -1.0
+      ],
+      "bounds_max_studs": [
+        1.0,
+        2.799999952316284,
+        1.0
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 5220,
+      "mesh_objects": 2,
+      "parts": [
+        {
+          "name": "TerracottaPlanter__Body",
+          "triangles": 1236,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "TerracottaPlanter__Plants",
+          "triangles": 3984,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "foliage",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "hollow_pot_soil_and_trailing_petunias_ivy": 1
+      },
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          0.981086790561676,
+          1.196884036064148,
+          0.9733840227127075
+        ],
+        "offset": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        8.039999961853027,
+        0.0,
+        -4.019999980926514
+      ]
+    },
+    {
+      "name": "RaisedGardenBed",
+      "folder": "Decorations",
+      "instruction": 34,
+      "triangle_budget": 7000,
+      "detail_guidance_min": 2500,
+      "dimensions_studs": [
+        8.6,
+        2.5,
+        4.3
+      ],
+      "bounds_min_studs": [
+        -4.300000190734863,
+        0.0,
+        -2.1500000953674316
+      ],
+      "bounds_max_studs": [
+        4.300000190734863,
+        2.5,
+        2.1500000953674316
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 6968,
+      "mesh_objects": 2,
+      "parts": [
+        {
+          "name": "RaisedGardenBed__Body",
+          "triangles": 2300,
+          "origin_studs": [
+            0.0012426376342773438,
+            0.0,
+            0.0
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "RaisedGardenBed__Plants",
+          "triangles": 4668,
+          "origin_studs": [
+            0.0012426376342773438,
+            0.0,
+            0.0
+          ],
+          "role": "foliage",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "cedar_joinery_real_tomato_cages_and_vegetable_plants": 1,
+        "tomatoes_lettuce_and_peppers": 1
+      },
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          0.9939323663711548,
+          1.0629217624664307,
+          0.9817352890968323
+        ],
+        "offset": [
+          0.0012426376342773438,
+          0.0,
+          0.0
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        12.0600004196167,
+        0.0,
+        -4.019999980926514
+      ]
+    },
+    {
+      "name": "BirdBath",
+      "folder": "Decorations",
+      "instruction": 34,
+      "triangle_budget": 7000,
+      "detail_guidance_min": 2500,
+      "dimensions_studs": [
+        2.2,
+        2.6,
+        2.2
+      ],
+      "bounds_min_studs": [
+        -1.100000023841858,
+        0.0,
+        -1.100000023841858
+      ],
+      "bounds_max_studs": [
+        1.100000023841858,
+        2.5999999046325684,
+        1.100000023841858
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [
+        {
+          "name": "Water",
+          "instance_type": "Attachment",
+          "parent_mesh": "BirdBath__Body",
+          "position_studs": [
+            0.0,
+            2.3829123973846436,
+            0.0
+          ],
+          "orientation_degrees": [
+            0.0,
+            -0.0,
+            -0.0
+          ],
+          "attributes": {},
+          "look_vector": [
+            0.0,
+            0.0,
+            -1.0
+          ]
+        }
+      ],
+      "slots": [],
+      "triangles": 2928,
+      "mesh_objects": 2,
+      "parts": [
+        {
+          "name": "BirdBath__Body",
+          "triangles": 2740,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "BirdBath__Water",
+          "triangles": 188,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "glass",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "separate_water_surface_and_marker": 1
+      },
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          1.019386887550354,
+          1.0097086429595947,
+          1.019386887550354
+        ],
+        "offset": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        16.079999923706055,
+        0.0,
+        -4.019999980926514
+      ]
+    },
+    {
+      "name": "TieredFountain",
+      "folder": "Decorations",
+      "instruction": 34,
+      "triangle_budget": 14000,
+      "detail_guidance_min": 6000,
+      "dimensions_studs": [
+        6.0,
+        5.400001,
+        6.0
+      ],
+      "bounds_min_studs": [
+        -3.0,
+        0.0,
+        -3.0
+      ],
+      "bounds_max_studs": [
+        2.999999523162842,
+        5.40000057220459,
+        2.999999523162842
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [
+        {
+          "name": "Water1",
+          "instance_type": "Attachment",
+          "parent_mesh": "TieredFountain__Body",
+          "position_studs": [
+            -2.384185791015625e-07,
+            4.471402168273926,
+            -2.384185791015625e-07
+          ],
+          "orientation_degrees": [
+            0.0,
+            -0.0,
+            -0.0
+          ],
+          "attributes": {},
+          "look_vector": [
+            0.0,
+            0.0,
+            -1.0
+          ]
+        },
+        {
+          "name": "Water2",
+          "instance_type": "Attachment",
+          "parent_mesh": "TieredFountain__Body",
+          "position_studs": [
+            -2.384185791015625e-07,
+            2.846355438232422,
+            -2.384185791015625e-07
+          ],
+          "orientation_degrees": [
+            0.0,
+            -0.0,
+            -0.0
+          ],
+          "attributes": {},
+          "look_vector": [
+            0.0,
+            0.0,
+            -1.0
+          ]
+        },
+        {
+          "name": "Water3",
+          "instance_type": "Attachment",
+          "parent_mesh": "TieredFountain__Body",
+          "position_studs": [
+            -2.384185791015625e-07,
+            0.6863552331924438,
+            -2.384185791015625e-07
+          ],
+          "orientation_degrees": [
+            0.0,
+            -0.0,
+            -0.0
+          ],
+          "attributes": {},
+          "look_vector": [
+            0.0,
+            0.0,
+            -1.0
+          ]
+        },
+        {
+          "name": "Spout",
+          "instance_type": "Attachment",
+          "parent_mesh": "TieredFountain__Body",
+          "position_studs": [
+            -2.384185791015625e-07,
+            5.410094261169434,
+            -2.384185791015625e-07
+          ],
+          "orientation_degrees": [
+            0.0,
+            -0.0,
+            -0.0
+          ],
+          "attributes": {},
+          "look_vector": [
+            0.0,
+            0.0,
+            -1.0
+          ]
+        }
+      ],
+      "slots": [],
+      "triangles": 7172,
+      "mesh_objects": 4,
+      "parts": [
+        {
+          "name": "TieredFountain__Body",
+          "triangles": 6608,
+          "origin_studs": [
+            -2.384185791015625e-07,
+            0.0,
+            -2.384185791015625e-07
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "TieredFountain__Water1",
+          "triangles": 188,
+          "origin_studs": [
+            -2.384185791015625e-07,
+            0.0,
+            -2.384185791015625e-07
+          ],
+          "role": "glass",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "TieredFountain__Water2",
+          "triangles": 188,
+          "origin_studs": [
+            -2.384185791015625e-07,
+            0.0,
+            -2.384185791015625e-07
+          ],
+          "role": "glass",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "TieredFountain__Water3",
+          "triangles": 188,
+          "origin_studs": [
+            -2.384185791015625e-07,
+            0.0,
+            -2.384185791015625e-07
+          ],
+          "role": "glass",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "three_separate_water_levels_and_top_spout": 1
+      },
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          1.013513445854187,
+          1.0093458890914917,
+          1.013513445854187
+        ],
+        "offset": [
+          -2.384185791015625e-07,
+          0.0,
+          -2.384185791015625e-07
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        0.0,
+        0.0,
+        -8.039999961853027
+      ]
+    },
+    {
+      "name": "GardenArbor",
+      "folder": "Decorations",
+      "instruction": 34,
+      "triangle_budget": 14000,
+      "detail_guidance_min": 6000,
+      "dimensions_studs": [
+        4.6,
+        8.2,
+        2.2
+      ],
+      "bounds_min_studs": [
+        -2.299999952316284,
+        0.0,
+        -1.100000023841858
+      ],
+      "bounds_max_studs": [
+        2.299999952316284,
+        8.199999809265137,
+        1.100000023841858
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 9324,
+      "mesh_objects": 8,
+      "parts": [
+        {
+          "name": "GardenArbor__Body",
+          "triangles": 2988,
+          "origin_studs": [
+            0.007573843002319336,
+            0.0,
+            0.0
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "GardenArbor__Post_-1_-0.91",
+          "triangles": 108,
+          "origin_studs": [
+            0.007573843002319336,
+            0.0,
+            0.0
+          ],
+          "role": "collision_wall",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "GardenArbor__Post_-1_0.91",
+          "triangles": 108,
+          "origin_studs": [
+            0.007573843002319336,
+            0.0,
+            0.0
+          ],
+          "role": "collision_wall",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "GardenArbor__Post_1_-0.91",
+          "triangles": 108,
+          "origin_studs": [
+            0.007573843002319336,
+            0.0,
+            0.0
+          ],
+          "role": "collision_wall",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "GardenArbor__Post_1_0.91",
+          "triangles": 108,
+          "origin_studs": [
+            0.007573843002319336,
+            0.0,
+            0.0
+          ],
+          "role": "collision_wall",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "GardenArbor__Arch_-0.98",
+          "triangles": 812,
+          "origin_studs": [
+            0.007573843002319336,
+            0.0,
+            0.0
+          ],
+          "role": "collision_roof",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "GardenArbor__Arch_0.98",
+          "triangles": 812,
+          "origin_studs": [
+            0.007573843002319336,
+            0.0,
+            0.0
+          ],
+          "role": "collision_roof",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "GardenArbor__Plants",
+          "triangles": 4280,
+          "origin_studs": [
+            0.007573843002319336,
+            0.0,
+            0.0
+          ],
+          "role": "foliage",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "clear_inner_opening_studs": [
+          3.82,
+          7.0
+        ],
+        "separate_collision_posts_and_arched_roof": 1
+      },
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          0.9899380207061768,
+          1.0030580759048462,
+          1.0
+        ],
+        "offset": [
+          0.007573843002319336,
+          0.0,
+          0.0
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        4.019999980926514,
+        0.0,
+        -8.039999961853027
+      ]
+    },
+    {
+      "name": "GardenBench",
+      "folder": "Decorations",
+      "instruction": 34,
+      "triangle_budget": 7000,
+      "detail_guidance_min": 2500,
+      "dimensions_studs": [
+        5.4,
+        3.2,
+        2.2
+      ],
+      "bounds_min_studs": [
+        -2.700000047683716,
+        -7.543121682829224e-11,
+        -1.100000023841858
+      ],
+      "bounds_max_studs": [
+        2.700000047683716,
+        3.200000286102295,
+        1.100000023841858
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [
+        {
+          "name": "Seat",
+          "instance_type": "Attachment",
+          "parent_mesh": "GardenBench__Body",
+          "position_studs": [
+            0.0,
+            1.6229305267333984,
+            0.0
+          ],
+          "orientation_degrees": [
+            0.0,
+            -0.0,
+            -0.0
+          ],
+          "attributes": {},
+          "look_vector": [
+            0.0,
+            0.0,
+            -1.0
+          ]
+        }
+      ],
+      "slots": [],
+      "triangles": 3816,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "GardenBench__Body",
+          "triangles": 3816,
+          "origin_studs": [
+            0.0,
+            0.002007395029067993,
+            0.0
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "slatted_teak_joinery_and_curved_arms": 1
+      },
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          1.0285714864730835,
+          1.0194485187530518,
+          1.1578947305679321
+        ],
+        "offset": [
+          0.0,
+          0.002007395029067993,
+          0.0
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        8.039999961853027,
+        0.0,
+        -8.039999961853027
+      ]
+    },
+    {
+      "name": "PatioSet",
+      "folder": "Decorations",
+      "instruction": 34,
+      "triangle_budget": 14000,
+      "detail_guidance_min": 6000,
+      "dimensions_studs": [
+        8.6,
+        8.0,
+        8.6
+      ],
+      "bounds_min_studs": [
+        -4.300000190734863,
+        -1.4816388116400958e-09,
+        -4.300000190734863
+      ],
+      "bounds_max_studs": [
+        4.299999713897705,
+        8.0,
+        4.3000006675720215
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [
+        {
+          "name": "Seat1",
+          "instance_type": "Attachment",
+          "parent_mesh": "PatioSet__Body",
+          "position_studs": [
+            0.0,
+            1.506953239440918,
+            3.6456527709960938
+          ],
+          "orientation_degrees": [
+            0.0,
+            0.0,
+            -0.0
+          ],
+          "attributes": {},
+          "look_vector": [
+            -0.0,
+            0.0,
+            -1.0
+          ]
+        },
+        {
+          "name": "Seat2",
+          "instance_type": "Attachment",
+          "parent_mesh": "PatioSet__Body",
+          "position_studs": [
+            3.6456520557403564,
+            1.506953239440918,
+            4.76837158203125e-07
+          ],
+          "orientation_degrees": [
+            -0.0,
+            90.00000250447816,
+            0.0
+          ],
+          "attributes": {},
+          "look_vector": [
+            -1.0,
+            0.0,
+            -6.123234262925839e-17
+          ]
+        },
+        {
+          "name": "Seat3",
+          "instance_type": "Attachment",
+          "parent_mesh": "PatioSet__Body",
+          "position_studs": [
+            4.464636549594532e-16,
+            1.506953239440918,
+            -3.6456518173217773
+          ],
+          "orientation_degrees": [
+            -0.0,
+            180.00000500895632,
+            0.0
+          ],
+          "attributes": {},
+          "look_vector": [
+            -1.2246468525851679e-16,
+            0.0,
+            1.0
+          ]
+        },
+        {
+          "name": "Seat4",
+          "instance_type": "Attachment",
+          "parent_mesh": "PatioSet__Body",
+          "position_studs": [
+            -3.6456520557403564,
+            1.506953239440918,
+            4.76837158203125e-07
+          ],
+          "orientation_degrees": [
+            -0.0,
+            -90.00000250447816,
+            0.0
+          ],
+          "attributes": {},
+          "look_vector": [
+            1.0,
+            0.0,
+            1.8369701465288538e-16
+          ]
+        }
+      ],
+      "slots": [],
+      "triangles": 9076,
+      "mesh_objects": 2,
+      "parts": [
+        {
+          "name": "PatioSet__Body",
+          "triangles": 7764,
+          "origin_studs": [
+            0.0,
+            -0.05056890472769737,
+            4.76837158203125e-07
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "PatioSet__Umbrella",
+          "triangles": 1312,
+          "origin_studs": [
+            0.0,
+            -0.05056890472769737,
+            4.76837158203125e-07
+          ],
+          "role": "canopy",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "four_inward_facing_seat_markers_and_separate_canopy": 1
+      },
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          1.16847825050354,
+          1.0113780498504639,
+          1.1684783697128296
+        ],
+        "offset": [
+          0.0,
+          -0.05056890472769737,
+          4.76837158203125e-07
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        12.0600004196167,
+        0.0,
+        -8.039999961853027
+      ]
+    },
+    {
+      "name": "FirePit",
+      "folder": "Decorations",
+      "instruction": 34,
+      "triangle_budget": 7000,
+      "detail_guidance_min": 2500,
+      "dimensions_studs": [
+        4.0,
+        1.4,
+        4.0
+      ],
+      "bounds_min_studs": [
+        -2.0,
+        -1.8388668365787453e-10,
+        -2.0
+      ],
+      "bounds_max_studs": [
+        1.9999998807907104,
+        1.4000000953674316,
+        1.999999761581421
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [
+        {
+          "name": "Fire",
+          "instance_type": "Attachment",
+          "parent_mesh": "FirePit__Body",
+          "position_studs": [
+            0.0,
+            0.9948936104774475,
+            -1.1920928955078125e-07
+          ],
+          "orientation_degrees": [
+            0.0,
+            -0.0,
+            -0.0
+          ],
+          "attributes": {},
+          "look_vector": [
+            0.0,
+            0.0,
+            -1.0
+          ]
+        }
+      ],
+      "slots": [],
+      "triangles": 5936,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "FirePit__Body",
+          "triangles": 5936,
+          "origin_studs": [
+            0.0,
+            -0.017872340977191925,
+            -1.1920928955078125e-07
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "stacked_stone_ring_steel_liner_and_logs": 1
+      },
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          1.0357837677001953,
+          1.191489338874817,
+          1.0357837677001953
+        ],
+        "offset": [
+          0.0,
+          -0.017872340977191925,
+          -1.1920928955078125e-07
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        16.079999923706055,
+        0.0,
+        -8.039999961853027
+      ]
+    },
+    {
+      "name": "Mailbox",
+      "folder": "Decorations",
+      "instruction": 34,
+      "triangle_budget": 7000,
+      "detail_guidance_min": 2500,
+      "dimensions_studs": [
+        1.2,
+        4.0,
+        2.2
+      ],
+      "bounds_min_studs": [
+        -0.6000000238418579,
+        0.0,
+        -1.100000023841858
+      ],
+      "bounds_max_studs": [
+        0.6000000834465027,
+        4.0,
+        1.1000001430511475
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 1072,
+      "mesh_objects": 3,
+      "parts": [
+        {
+          "name": "Mailbox__Body",
+          "triangles": 644,
+          "origin_studs": [
+            -0.028085052967071533,
+            0.0,
+            0.04914093017578125
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "Mailbox__Door",
+          "triangles": 212,
+          "origin_studs": [
+            -0.028085052967071533,
+            2.984771490097046,
+            -0.9991981387138367
+          ],
+          "role": "opening_panel",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "Mailbox__Flag",
+          "triangles": 216,
+          "origin_studs": [
+            0.5438299179077148,
+            3.228426456451416,
+            0.28098514676094055
+          ],
+          "role": "opening_panel",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "hollow_arch_shell_bottom_hinged_door_and_flag_pivot": 1
+      },
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          1.0212767124176025,
+          1.0152283906936646,
+          1.0080183744430542
+        ],
+        "offset": [
+          -0.028085052967071533,
+          0.0,
+          0.04914093017578125
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        0.0,
+        0.0,
+        -12.0600004196167
+      ]
+    },
+    {
+      "name": "LampPost",
+      "folder": "Decorations",
+      "instruction": 34,
+      "triangle_budget": 3000,
+      "detail_guidance_min": 800,
+      "dimensions_studs": [
+        1.3,
+        7.6,
+        1.3
+      ],
+      "bounds_min_studs": [
+        -0.6499999761581421,
+        0.0,
+        -0.6499999761581421
+      ],
+      "bounds_max_studs": [
+        0.6499999761581421,
+        7.599999904632568,
+        0.6499999761581421
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [
+        {
+          "name": "Light",
+          "instance_type": "Attachment",
+          "parent_mesh": "LampPost__Body",
+          "position_studs": [
+            0.0,
+            6.3662333488464355,
+            0.0
+          ],
+          "orientation_degrees": [
+            0.0,
+            -0.0,
+            -0.0
+          ],
+          "attributes": {},
+          "look_vector": [
+            0.0,
+            0.0,
+            -1.0
+          ]
+        }
+      ],
+      "slots": [],
+      "triangles": 2704,
+      "mesh_objects": 2,
+      "parts": [
+        {
+          "name": "LampPost__Body",
+          "triangles": 2656,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "LampPost__Glass",
+          "triangles": 48,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "glass",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "separate_lens_and_light_attachment": 1
+      },
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          1.0,
+          0.9870129823684692,
+          1.0
+        ],
+        "offset": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        4.019999980926514,
+        0.0,
+        -12.0600004196167
+      ]
+    },
+    {
+      "name": "SolarPathLight",
+      "folder": "Decorations",
+      "instruction": 34,
+      "triangle_budget": 3000,
+      "detail_guidance_min": 800,
+      "dimensions_studs": [
+        0.5,
+        1.4,
+        0.5
+      ],
+      "bounds_min_studs": [
+        -0.25,
+        0.0,
+        -0.25
+      ],
+      "bounds_max_studs": [
+        0.25,
+        1.399999976158142,
+        0.25
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [
+        {
+          "name": "Light",
+          "instance_type": "Attachment",
+          "parent_mesh": "SolarPathLight__Body",
+          "position_studs": [
+            0.0,
+            1.145662784576416,
+            0.0
+          ],
+          "orientation_degrees": [
+            0.0,
+            -0.0,
+            -0.0
+          ],
+          "attributes": {},
+          "look_vector": [
+            0.0,
+            0.0,
+            -1.0
+          ]
+        }
+      ],
+      "slots": [],
+      "triangles": 992,
+      "mesh_objects": 2,
+      "parts": [
+        {
+          "name": "SolarPathLight__Body",
+          "triangles": 868,
+          "origin_studs": [
+            0.0,
+            0.22913256287574768,
+            0.0
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "SolarPathLight__Glass",
+          "triangles": 124,
+          "origin_studs": [
+            0.0,
+            0.22913256287574768,
+            0.0
+          ],
+          "role": "glass",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "separate_lens_and_light_attachment": 1
+      },
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          1.0,
+          0.9165302515029907,
+          1.0
+        ],
+        "offset": [
+          0.0,
+          0.22913256287574768,
+          0.0
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        8.039999961853027,
+        0.0,
+        -12.0600004196167
+      ]
+    },
+    {
+      "name": "BirdFeeder",
+      "folder": "Decorations",
+      "instruction": 34,
+      "triangle_budget": 7000,
+      "detail_guidance_min": 2500,
+      "dimensions_studs": [
+        1.6,
+        7.2,
+        0.6
+      ],
+      "bounds_min_studs": [
+        -0.800000011920929,
+        -1.3372514900966692e-12,
+        -0.30000001192092896
+      ],
+      "bounds_max_studs": [
+        0.800000011920929,
+        7.200000286102295,
+        0.30000001192092896
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 2340,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "BirdFeeder__Body",
+          "triangles": 2340,
+          "origin_studs": [
+            0.2902373671531677,
+            0.0001149071758845821,
+            0.0
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "mounted_hook_hanging_feeder_and_perches": 1
+      },
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          0.8923637866973877,
+          1.0026381015777588,
+          0.8720930814743042
+        ],
+        "offset": [
+          0.2902373671531677,
+          0.0001149071758845821,
+          0.0
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        12.0600004196167,
+        0.0,
+        -12.0600004196167
+      ]
+    },
+    {
+      "name": "Birdhouse",
+      "folder": "Decorations",
+      "instruction": 34,
+      "triangle_budget": 7000,
+      "detail_guidance_min": 2500,
+      "dimensions_studs": [
+        1.0,
+        6.4,
+        1.0
+      ],
+      "bounds_min_studs": [
+        -0.5,
+        0.0,
+        -0.4999999701976776
+      ],
+      "bounds_max_studs": [
+        0.5,
+        6.400000095367432,
+        0.5
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 1104,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "Birdhouse__Body",
+          "triangles": 1104,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.09504133462905884
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "real_entry_hole_and_perch": 1
+      },
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          0.97111976146698,
+          1.0209674835205078,
+          0.8264462351799011
+        ],
+        "offset": [
+          0.0,
+          0.0,
+          0.09504133462905884
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        16.079999923706055,
+        0.0,
+        -12.0600004196167
+      ]
+    },
+    {
+      "name": "PinkFlamingo",
+      "folder": "Decorations",
+      "instruction": 34,
+      "triangle_budget": 3000,
+      "detail_guidance_min": 800,
+      "dimensions_studs": [
+        1.1,
+        3.0,
+        1.8
+      ],
+      "bounds_min_studs": [
+        -0.550000011920929,
+        0.0,
+        -0.8999999761581421
+      ],
+      "bounds_max_studs": [
+        0.550000011920929,
+        3.0,
+        0.8999999761581421
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 2940,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "PinkFlamingo__Body",
+          "triangles": 2940,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.11175954341888428
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "smooth_S_curve_neck_embossed_wings_and_wire_legs": 1
+      },
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          1.0784313678741455,
+          1.0676156282424927,
+          1.167763590812683
+        ],
+        "offset": [
+          0.0,
+          0.0,
+          0.11175954341888428
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        0.0,
+        0.0,
+        -16.079999923706055
+      ]
+    },
+    {
+      "name": "GardenWindmill",
+      "folder": "Decorations",
+      "instruction": 34,
+      "triangle_budget": 7000,
+      "detail_guidance_min": 2500,
+      "dimensions_studs": [
+        2.4,
+        5.400001,
+        2.0
+      ],
+      "bounds_min_studs": [
+        -1.2000000476837158,
+        1.0850218501445852e-09,
+        -1.0
+      ],
+      "bounds_max_studs": [
+        1.2000000476837158,
+        5.40000057220459,
+        0.9999998807907104
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 3132,
+      "mesh_objects": 2,
+      "parts": [
+        {
+          "name": "GardenWindmill__Body",
+          "triangles": 640,
+          "origin_studs": [
+            0.0,
+            -0.039729129523038864,
+            -5.960464477539063e-08
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "GardenWindmill__Spinner",
+          "triangles": 2492,
+          "origin_studs": [
+            0.0,
+            4.095920085906982,
+            -0.4489125609397888
+          ],
+          "role": "opening_panel",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "Z",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "separate_Z_axis_sail_wheel_and_braced_tower": 1
+      },
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          0.9561753273010254,
+          1.0391077995300293,
+          1.2826071977615356
+        ],
+        "offset": [
+          0.0,
+          -0.039729129523038864,
+          -5.960464477539063e-08
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        4.019999980926514,
+        0.0,
+        -16.079999923706055
+      ]
+    }
+  ],
+  "meters_per_stud": 0.28,
+  "source_main_commit": "2377b19",
+  "original_packs_preserved": true,
+  "studio_import_tested": false
+}

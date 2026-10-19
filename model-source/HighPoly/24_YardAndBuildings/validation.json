@@ -1,0 +1,238 @@
+{
+  "source_main_commit": "2377b19",
+  "assets": 7,
+  "checks": [
+    "source_files_and_buffers",
+    "exact_ids_and_folders",
+    "actual_exported_triangle_counts_and_20k_mesh_limit",
+    "finite_positions_normals_and_UVs",
+    "nondegenerate_triangles",
+    "actual_bounds_and_size_tolerances",
+    "preserved_grips_slots_and_old_markers",
+    "hinge_and_axle_local_frames",
+    "attachment_positions_parents_and_LookVectors",
+    "untextured_16_9_screens",
+    "interaction_marker_counts",
+    "combined_library_translation_only_roots",
+    "portable_PBR_textures_at_most_2048",
+    "binary_FBX_header",
+    "closed_authoring_components_after_coincident_vertex_matching",
+    "FBX_import_triangle_mesh_count_and_world_bounds",
+    "sRGB_atlas_pixels_match_declared_palette",
+    "complete_noncorrupt_preview_PNGs",
+    "updated_review_images_match_latest_changed_sources",
+    "sRGB_atlas_pixels_match_declared_palette",
+    "complete_noncorrupt_preview_PNGs",
+    "updated_review_images_match_latest_changed_sources"
+  ],
+  "issues": [],
+  "studio_import_tested": false,
+  "geometry": [
+    {
+      "name": "House",
+      "triangles": 17004,
+      "counts": {
+        "components": 725
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "FlowerPatch",
+      "triangles": 5230,
+      "counts": {
+        "components": 110
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "GardenGnome",
+      "triangles": 5452,
+      "counts": {
+        "components": 27
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "Shed",
+      "triangles": 19588,
+      "counts": {
+        "components": 420
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "Garage",
+      "triangles": 17336,
+      "counts": {
+        "components": 810
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "SmallOffice",
+      "triangles": 13468,
+      "counts": {
+        "components": 353
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "EquipmentYard",
+      "triangles": 20476,
+      "counts": {
+        "components": 497
+      },
+      "topology_issues": []
+    }
+  ],
+  "fbx_roundtrip": [
+    {
+      "name": "House",
+      "triangles": 17004,
+      "mesh_objects": 5,
+      "bounds_error_studs": 1.9073486328125e-06,
+      "passed": true
+    },
+    {
+      "name": "FlowerPatch",
+      "triangles": 5230,
+      "mesh_objects": 7,
+      "bounds_error_studs": 2.713242990282083e-07,
+      "passed": true
+    },
+    {
+      "name": "GardenGnome",
+      "triangles": 5452,
+      "mesh_objects": 1,
+      "bounds_error_studs": 2.086162567138672e-07,
+      "passed": true
+    },
+    {
+      "name": "Shed",
+      "triangles": 19588,
+      "mesh_objects": 17,
+      "bounds_error_studs": 1.038619302562438e-06,
+      "passed": true
+    },
+    {
+      "name": "Garage",
+      "triangles": 17336,
+      "mesh_objects": 20,
+      "bounds_error_studs": 1.92653692465683e-06,
+      "passed": true
+    },
+    {
+      "name": "SmallOffice",
+      "triangles": 13468,
+      "mesh_objects": 32,
+      "bounds_error_studs": 2.4152989226422505e-06,
+      "passed": true
+    },
+    {
+      "name": "EquipmentYard",
+      "triangles": 20476,
+      "mesh_objects": 26,
+      "bounds_error_studs": 2.7411404062149813e-06,
+      "passed": true
+    }
+  ],
+  "protected_files_unchanged_count": 557,
+  "reviewed_main_commit": "3c40d45",
+  "atlas_encoding": {
+    "pack": "24_YardAndBuildings",
+    "swatches": 28,
+    "maximum_srgb_channel_error": 0.0,
+    "passed": true
+  },
+  "preview_status": "complete",
+  "previews": [
+    {
+      "file": "Previews/House_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "7f3d694ffaf85eebb4f6cca91721d8ce73c8dbfa5c93f58d30af410e4d28a67d"
+    },
+    {
+      "file": "Previews/FlowerPatch_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "4e7d0a60255866b7b98fe51a9c4aa17f5ee111132cb4b39eabab516b6f192663"
+    },
+    {
+      "file": "Previews/GardenGnome_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "17b40ecb56a6bc9e94ca7fb1a2ea5a364782e094571593a5f68a470f3847bf2e"
+    },
+    {
+      "file": "Previews/Shed_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "585620eb8c277e6c9269e9fe051bc526d720590bc43954c7c92e41662e7c331c"
+    },
+    {
+      "file": "Previews/Garage_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "c42aaa0d4a15e0e7738917473909450151e2fcc6320b5384eb4cb8f5ea01a626"
+    },
+    {
+      "file": "Previews/SmallOffice_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "b9e55b977a359111e72479a6dbb905708b88339f9384706bdf4b03c70eff2bd9"
+    },
+    {
+      "file": "Previews/EquipmentYard_OldVsNew.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "83fc417b4b77b2f295d497beb1b9a8c0351472132754457f8c95042ad8850f7d"
+    },
+    {
+      "file": "Previews/Shed_Interior.png",
+      "resolution": [
+        1024,
+        720
+      ],
+      "sha256": "d5adc2eccd19b079de4ae3c0927ac045d01c8390ed9c9baeddaae9cc1e38f77b"
+    },
+    {
+      "file": "Previews/Garage_Interior.png",
+      "resolution": [
+        1024,
+        720
+      ],
+      "sha256": "9e6d3291c96343f2726bbb58d7f327c5e502a63193297e93e2b1aee4c0ed2546"
+    },
+    {
+      "file": "Previews/SmallOffice_Interior.png",
+      "resolution": [
+        1024,
+        720
+      ],
+      "sha256": "ce36f2d961449c0fcdb9a0ed032e61ee752bcb4c3cb361ab08c3dda329509fc9"
+    },
+    {
+      "file": "Previews/EquipmentYard_Interior.png",
+      "resolution": [
+        1024,
+        720
+      ],
+      "sha256": "87a4ce8e0a952a41713227be7a797ec708e0973d8c116775f471ecbd1304523b"
+    }
+  ]
+}

@@ -1,0 +1,400 @@
+{
+  "asset": {
+    "generator": "Khronos glTF Blender I/O v4.3.47",
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        4
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "extras": {
+        "roblox_class": "Attachment",
+        "roblox_name": "Contents",
+        "attributes_json": "{}",
+        "parent_mesh": "DeliveryBoxSmall__Body"
+      },
+      "name": "Contents",
+      "translation": [
+        0,
+        0.00955673772841692,
+        0
+      ]
+    },
+    {
+      "children": [
+        0
+      ],
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          0.0,
+          0.0002467036247253418
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 0,
+      "name": "DeliveryBoxSmall__Body",
+      "translation": [
+        0,
+        0,
+        6.907701754244044e-05
+      ]
+    },
+    {
+      "extras": {
+        "role": "opening_panel",
+        "animation_axis": "Z",
+        "stud_origin": [
+          -0.8999999761581421,
+          1.072695016860962,
+          0.0002467036247253418
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": "Rotate"
+      },
+      "mesh": 1,
+      "name": "DeliveryBoxSmall__FlapL",
+      "translation": [
+        -0.25200000405311584,
+        0.30035459995269775,
+        6.907701754244044e-05
+      ]
+    },
+    {
+      "extras": {
+        "role": "opening_panel",
+        "animation_axis": "Z",
+        "stud_origin": [
+          0.8999999761581421,
+          1.072695016860962,
+          0.0002467036247253418
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": "Rotate"
+      },
+      "mesh": 2,
+      "name": "DeliveryBoxSmall__FlapR",
+      "translation": [
+        0.25200000405311584,
+        0.30035459995269775,
+        6.907701754244044e-05
+      ]
+    },
+    {
+      "children": [
+        1,
+        2,
+        3
+      ],
+      "extras": {
+        "folder": "Props",
+        "stud_to_meter": 0.28,
+        "primary_part": "Root",
+        "primary_position_studs": [
+          0.0,
+          0.5,
+          0.0
+        ],
+        "markers_json": "[{\"name\": \"Contents\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"DeliveryBoxSmall__Body\", \"position_studs\": [0.0, 0.03413120657205582, 0.0002467036247253418], \"orientation_degrees\": [0.0, -0.0, -0.0], \"attributes\": {}, \"look_vector\": [0.0, 0.0, -1.0]}]",
+        "slots_json": "[]"
+      },
+      "name": "DeliveryBoxSmall"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "HP shared PBR 33",
+      "normalTexture": {
+        "index": 0,
+        "scale": 0.44999998807907104
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 1
+        },
+        "metallicRoughnessTexture": {
+          "index": 2
+        }
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "DeliveryBoxSmall__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "DeliveryBoxSmall__FlapL",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 4,
+            "NORMAL": 5,
+            "TEXCOORD_0": 6
+          },
+          "indices": 7,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "DeliveryBoxSmall__FlapR",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 8,
+            "NORMAL": 9,
+            "TEXCOORD_0": 10
+          },
+          "indices": 11,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    }
+  ],
+  "images": [
+    {
+      "mimeType": "image/png",
+      "name": "HP33_Normal",
+      "uri": "../../Textures/HP33_Normal.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP33_Color",
+      "uri": "../../Textures/HP33_Color.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP33_Metalness-HP33_Roughness",
+      "uri": "../../Textures/HP33_Metalness-HP33_Roughness.png"
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 568,
+      "max": [
+        0.25200000405311584,
+        0.30035459995269775,
+        0.18193091452121735
+      ],
+      "min": [
+        -0.25200000405311584,
+        0,
+        -0.1820690780878067
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 568,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 568,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "count": 1872,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 4,
+      "componentType": 5126,
+      "count": 320,
+      "max": [
+        0.2533999979496002,
+        0.006007113493978977,
+        0.17958253622055054
+      ],
+      "min": [
+        0,
+        -0.00491489889100194,
+        -0.18206904828548431
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 5,
+      "componentType": 5126,
+      "count": 320,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 6,
+      "componentType": 5126,
+      "count": 320,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 7,
+      "componentType": 5123,
+      "count": 684,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 8,
+      "componentType": 5126,
+      "count": 416,
+      "max": [
+        0,
+        0.007645402103662491,
+        0.17958253622055054
+      ],
+      "min": [
+        -0.2533999979496002,
+        -0.00491489889100194,
+        -0.18206904828548431
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 9,
+      "componentType": 5126,
+      "count": 416,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 10,
+      "componentType": 5126,
+      "count": 416,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 11,
+      "componentType": 5123,
+      "count": 828,
+      "type": "SCALAR"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 6816,
+      "byteOffset": 0,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 6816,
+      "byteOffset": 6816,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 4544,
+      "byteOffset": 13632,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 3744,
+      "byteOffset": 18176,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 3840,
+      "byteOffset": 21920,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 3840,
+      "byteOffset": 25760,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 2560,
+      "byteOffset": 29600,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 1368,
+      "byteOffset": 32160,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 4992,
+      "byteOffset": 33528,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 4992,
+      "byteOffset": 38520,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 3328,
+      "byteOffset": 43512,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 1656,
+      "byteOffset": 46840,
+      "target": 34963
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 48496,
+      "uri": "DeliveryBoxSmall.bin"
+    }
+  ]
+}

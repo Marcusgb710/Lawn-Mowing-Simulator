@@ -1,0 +1,477 @@
+{
+  "asset": {
+    "generator": "Khronos glTF Blender I/O v4.3.47",
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        4
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          0.009944814257323742,
+          -0.503110408782959
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 0,
+      "name": "SlitOverseeder__Body",
+      "translation": [
+        0,
+        0.002784548094496131,
+        -0.14087091386318207
+      ]
+    },
+    {
+      "extras": {
+        "role": "wheel",
+        "animation_axis": "X",
+        "stud_origin": [
+          0.0,
+          0.4685777425765991,
+          -1.3776410818099976
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Hull",
+        "motion_mode": "Rotate"
+      },
+      "mesh": 1,
+      "name": "SlitOverseeder__Wheel_Blades",
+      "translation": [
+        0,
+        0.13120177388191223,
+        -0.3857395052909851
+      ]
+    },
+    {
+      "extras": {
+        "role": "wheel",
+        "animation_axis": "X",
+        "stud_origin": [
+          -0.9141274094581604,
+          0.48851829767227173,
+          -0.19163374602794647
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Hull",
+        "motion_mode": "Rotate"
+      },
+      "mesh": 2,
+      "name": "SlitOverseeder__Wheel_Rear-1",
+      "translation": [
+        -0.25595566630363464,
+        0.1367851197719574,
+        -0.053657449781894684
+      ]
+    },
+    {
+      "extras": {
+        "role": "wheel",
+        "animation_axis": "X",
+        "stud_origin": [
+          0.9141274094581604,
+          0.48851829767227173,
+          -0.19163374602794647
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Hull",
+        "motion_mode": "Rotate"
+      },
+      "mesh": 3,
+      "name": "SlitOverseeder__Wheel_Rear1",
+      "translation": [
+        0.25595566630363464,
+        0.1367851197719574,
+        -0.053657449781894684
+      ]
+    },
+    {
+      "children": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "extras": {
+        "folder": "Tools",
+        "stud_to_meter": 0.28,
+        "primary_part": "Handle",
+        "primary_position_studs": [
+          0.0,
+          3.5,
+          2.6666665077209473
+        ],
+        "markers_json": "[]",
+        "slots_json": "[]"
+      },
+      "name": "SlitOverseeder"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "HP shared PBR 31",
+      "normalTexture": {
+        "index": 0,
+        "scale": 0.44999998807907104
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 1
+        },
+        "metallicRoughnessTexture": {
+          "index": 2
+        }
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "SlitOverseeder__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "SlitOverseeder__Wheel_Blades",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 4,
+            "NORMAL": 5,
+            "TEXCOORD_0": 6
+          },
+          "indices": 7,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "SlitOverseeder__Wheel_Rear-1",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 8,
+            "NORMAL": 9,
+            "TEXCOORD_0": 10
+          },
+          "indices": 11,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "SlitOverseeder__Wheel_Rear1",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 12,
+            "NORMAL": 13,
+            "TEXCOORD_0": 14
+          },
+          "indices": 15,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    }
+  ],
+  "images": [
+    {
+      "mimeType": "image/png",
+      "name": "HP31_Normal",
+      "uri": "../../Textures/HP31_Normal.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP31_Color",
+      "uri": "../../Textures/HP31_Color.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP31_Metalness-HP31_Roughness",
+      "uri": "../../Textures/HP31_Metalness-HP31_Roughness.png"
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 7246,
+      "max": [
+        0.27576178312301636,
+        0.9971876740455627,
+        0.9186484813690186
+      ],
+      "min": [
+        -0.30166205763816833,
+        0.027916785329580307,
+        -0.4813512861728668
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 7246,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 7246,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "count": 29220,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 4,
+      "componentType": 5126,
+      "count": 2016,
+      "max": [
+        0.24376730620861053,
+        0.08375036716461182,
+        0.10063093900680542
+      ],
+      "min": [
+        -0.24376730620861053,
+        -0.08375036716461182,
+        -0.10063090920448303
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 5,
+      "componentType": 5126,
+      "count": 2016,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 6,
+      "componentType": 5126,
+      "count": 2016,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 7,
+      "componentType": 5123,
+      "count": 5916,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 8,
+      "componentType": 5126,
+      "count": 1968,
+      "max": [
+        0.048631586134433746,
+        0.1367851048707962,
+        0.1651974469423294
+      ],
+      "min": [
+        -0.0520443320274353,
+        -0.1367851197719574,
+        -0.1651974469423294
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 9,
+      "componentType": 5126,
+      "count": 1968,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 10,
+      "componentType": 5126,
+      "count": 1968,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 11,
+      "componentType": 5123,
+      "count": 6252,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 12,
+      "componentType": 5126,
+      "count": 1968,
+      "max": [
+        0.0520443320274353,
+        0.1367851048707962,
+        0.1651974469423294
+      ],
+      "min": [
+        -0.048631586134433746,
+        -0.1367851197719574,
+        -0.1651974469423294
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 13,
+      "componentType": 5126,
+      "count": 1968,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 14,
+      "componentType": 5126,
+      "count": 1968,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 15,
+      "componentType": 5123,
+      "count": 6252,
+      "type": "SCALAR"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 86952,
+      "byteOffset": 0,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 86952,
+      "byteOffset": 86952,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 57968,
+      "byteOffset": 173904,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 58440,
+      "byteOffset": 231872,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 24192,
+      "byteOffset": 290312,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 24192,
+      "byteOffset": 314504,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 16128,
+      "byteOffset": 338696,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 11832,
+      "byteOffset": 354824,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 23616,
+      "byteOffset": 366656,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 23616,
+      "byteOffset": 390272,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 15744,
+      "byteOffset": 413888,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 12504,
+      "byteOffset": 429632,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 23616,
+      "byteOffset": 442136,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 23616,
+      "byteOffset": 465752,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 15744,
+      "byteOffset": 489368,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 12504,
+      "byteOffset": 505112,
+      "target": 34963
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 517616,
+      "uri": "SlitOverseeder.bin"
+    }
+  ]
+}

@@ -1,0 +1,195 @@
+{
+  "asset": {
+    "generator": "Khronos glTF Blender I/O v4.3.47",
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        1
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          0.07796710729598999,
+          0.026819318532943726
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 0,
+      "name": "ChemicalGloves__Body",
+      "translation": [
+        0,
+        0.021830789744853973,
+        0.007509409449994564
+      ]
+    },
+    {
+      "children": [
+        0
+      ],
+      "extras": {
+        "folder": "Tools",
+        "stud_to_meter": 0.28,
+        "primary_part": "Handle",
+        "primary_position_studs": [
+          0.0,
+          0.10000000149011612,
+          0.0
+        ],
+        "markers_json": "[]",
+        "slots_json": "[]"
+      },
+      "name": "ChemicalGloves"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "HP shared PBR 29",
+      "normalTexture": {
+        "index": 0,
+        "scale": 0.44999998807907104
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 1
+        },
+        "metallicRoughnessTexture": {
+          "index": 2
+        }
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "ChemicalGloves__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    }
+  ],
+  "images": [
+    {
+      "mimeType": "image/png",
+      "name": "HP29_Normal",
+      "uri": "../../Textures/HP29_Normal.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP29_Color",
+      "uri": "../../Textures/HP29_Color.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP29_Metalness-HP29_Roughness",
+      "uri": "../../Textures/HP29_Metalness-HP29_Roughness.png"
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 3364,
+      "max": [
+        0.16660000383853912,
+        0.019889211282134056,
+        0.2080906182527542
+      ],
+      "min": [
+        -0.16660000383853912,
+        -0.005730789620429277,
+        -0.13910941779613495
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 3364,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 3364,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "count": 13872,
+      "type": "SCALAR"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 40368,
+      "byteOffset": 0,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 40368,
+      "byteOffset": 40368,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 26912,
+      "byteOffset": 80736,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 27744,
+      "byteOffset": 107648,
+      "target": 34963
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 135392,
+      "uri": "ChemicalGloves.bin"
+    }
+  ]
+}

@@ -1,0 +1,559 @@
+{
+  "source_main_commit": "2377b19",
+  "assets": 22,
+  "checks": [
+    "source_files_and_buffers",
+    "exact_ids_and_folders",
+    "actual_exported_triangle_counts_and_20k_mesh_limit",
+    "finite_positions_normals_and_UVs",
+    "nondegenerate_triangles",
+    "actual_bounds_and_size_tolerances",
+    "preserved_grips_slots_and_old_markers",
+    "hinge_and_axle_local_frames",
+    "attachment_positions_parents_and_LookVectors",
+    "untextured_16_9_screens",
+    "interaction_marker_counts",
+    "combined_library_translation_only_roots",
+    "portable_PBR_textures_at_most_2048",
+    "binary_FBX_header",
+    "closed_authoring_components_after_coincident_vertex_matching",
+    "FBX_import_triangle_mesh_count_and_world_bounds",
+    "sRGB_atlas_pixels_match_declared_palette",
+    "complete_noncorrupt_preview_PNGs",
+    "updated_review_images_match_latest_changed_sources",
+    "sRGB_atlas_pixels_match_declared_palette",
+    "complete_noncorrupt_preview_PNGs",
+    "updated_review_images_match_latest_changed_sources"
+  ],
+  "issues": [],
+  "studio_import_tested": false,
+  "geometry": [
+    {
+      "name": "PicketFenceSection",
+      "triangles": 1944,
+      "counts": {
+        "components": 60
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "StoneEdgingSection",
+      "triangles": 972,
+      "counts": {
+        "components": 9
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "PaverPathSection",
+      "triangles": 2912,
+      "counts": {
+        "components": 104
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "MulchBedSection",
+      "triangles": 2340,
+      "counts": {
+        "components": 155
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "BoxwoodShrub",
+      "triangles": 6952,
+      "counts": {
+        "components": 583
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "HydrangeaBush",
+      "triangles": 6936,
+      "counts": {
+        "components": 358
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "JapaneseMaple",
+      "triangles": 12832,
+      "counts": {
+        "components": 338
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "TerracottaPlanter",
+      "triangles": 5220,
+      "counts": {
+        "components": 135
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "RaisedGardenBed",
+      "triangles": 6968,
+      "counts": {
+        "components": 119
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "BirdBath",
+      "triangles": 2928,
+      "counts": {
+        "components": 17
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "TieredFountain",
+      "triangles": 7172,
+      "counts": {
+        "components": 10
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "GardenArbor",
+      "triangles": 9324,
+      "counts": {
+        "components": 195
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "GardenBench",
+      "triangles": 3816,
+      "counts": {
+        "components": 30
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "PatioSet",
+      "triangles": 9076,
+      "counts": {
+        "components": 80
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "FirePit",
+      "triangles": 5936,
+      "counts": {
+        "components": 53
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "Mailbox",
+      "triangles": 1072,
+      "counts": {
+        "components": 10
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "LampPost",
+      "triangles": 2704,
+      "counts": {
+        "components": 26
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "SolarPathLight",
+      "triangles": 992,
+      "counts": {
+        "components": 5
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "BirdFeeder",
+      "triangles": 2340,
+      "counts": {
+        "components": 12
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "Birdhouse",
+      "triangles": 1104,
+      "counts": {
+        "components": 9
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "PinkFlamingo",
+      "triangles": 2940,
+      "counts": {
+        "components": 17
+      },
+      "topology_issues": []
+    },
+    {
+      "name": "GardenWindmill",
+      "triangles": 3132,
+      "counts": {
+        "components": 37
+      },
+      "topology_issues": []
+    }
+  ],
+  "fbx_roundtrip": [
+    {
+      "name": "PicketFenceSection",
+      "triangles": 1944,
+      "mesh_objects": 1,
+      "bounds_error_studs": 5.21540641784668e-07,
+      "passed": true
+    },
+    {
+      "name": "StoneEdgingSection",
+      "triangles": 972,
+      "mesh_objects": 1,
+      "bounds_error_studs": 2.384185791015625e-07,
+      "passed": true
+    },
+    {
+      "name": "PaverPathSection",
+      "triangles": 2912,
+      "mesh_objects": 1,
+      "bounds_error_studs": 3.502794641008222e-07,
+      "passed": true
+    },
+    {
+      "name": "MulchBedSection",
+      "triangles": 2340,
+      "mesh_objects": 1,
+      "bounds_error_studs": 3.4930195624838234e-07,
+      "passed": true
+    },
+    {
+      "name": "BoxwoodShrub",
+      "triangles": 6952,
+      "mesh_objects": 2,
+      "bounds_error_studs": 3.5762786865234375e-07,
+      "passed": true
+    },
+    {
+      "name": "HydrangeaBush",
+      "triangles": 6936,
+      "mesh_objects": 2,
+      "bounds_error_studs": 4.76837158203125e-07,
+      "passed": true
+    },
+    {
+      "name": "JapaneseMaple",
+      "triangles": 12832,
+      "mesh_objects": 2,
+      "bounds_error_studs": 1.430511474609375e-06,
+      "passed": true
+    },
+    {
+      "name": "TerracottaPlanter",
+      "triangles": 5220,
+      "mesh_objects": 2,
+      "bounds_error_studs": 2.384185791015625e-07,
+      "passed": true
+    },
+    {
+      "name": "RaisedGardenBed",
+      "triangles": 6968,
+      "mesh_objects": 2,
+      "bounds_error_studs": 4.76837158203125e-07,
+      "passed": true
+    },
+    {
+      "name": "BirdBath",
+      "triangles": 2928,
+      "mesh_objects": 2,
+      "bounds_error_studs": 4.76837158203125e-07,
+      "passed": true
+    },
+    {
+      "name": "TieredFountain",
+      "triangles": 7172,
+      "mesh_objects": 4,
+      "bounds_error_studs": 4.128057753405301e-07,
+      "passed": true
+    },
+    {
+      "name": "GardenArbor",
+      "triangles": 9324,
+      "mesh_objects": 8,
+      "bounds_error_studs": 1.1920928955078125e-06,
+      "passed": true
+    },
+    {
+      "name": "GardenBench",
+      "triangles": 3816,
+      "mesh_objects": 1,
+      "bounds_error_studs": 2.384185791015625e-07,
+      "passed": true
+    },
+    {
+      "name": "PatioSet",
+      "triangles": 9076,
+      "mesh_objects": 2,
+      "bounds_error_studs": 6.84799586814222e-07,
+      "passed": true
+    },
+    {
+      "name": "FirePit",
+      "triangles": 5936,
+      "mesh_objects": 1,
+      "bounds_error_studs": 3.128484440395596e-07,
+      "passed": true
+    },
+    {
+      "name": "Mailbox",
+      "triangles": 1072,
+      "mesh_objects": 3,
+      "bounds_error_studs": 5.960464477539062e-07,
+      "passed": true
+    },
+    {
+      "name": "LampPost",
+      "triangles": 2704,
+      "mesh_objects": 2,
+      "bounds_error_studs": 1.1920928955078125e-06,
+      "passed": true
+    },
+    {
+      "name": "SolarPathLight",
+      "triangles": 992,
+      "mesh_objects": 2,
+      "bounds_error_studs": 2.086162567138672e-07,
+      "passed": true
+    },
+    {
+      "name": "BirdFeeder",
+      "triangles": 2340,
+      "mesh_objects": 1,
+      "bounds_error_studs": 8.046627044677734e-07,
+      "passed": true
+    },
+    {
+      "name": "Birdhouse",
+      "triangles": 1104,
+      "mesh_objects": 1,
+      "bounds_error_studs": 9.5367431640625e-07,
+      "passed": true
+    },
+    {
+      "name": "PinkFlamingo",
+      "triangles": 2940,
+      "mesh_objects": 1,
+      "bounds_error_studs": 4.76837158203125e-07,
+      "passed": true
+    },
+    {
+      "name": "GardenWindmill",
+      "triangles": 3132,
+      "mesh_objects": 2,
+      "bounds_error_studs": 1.403859588577916e-07,
+      "passed": true
+    }
+  ],
+  "protected_files_unchanged_count": 557,
+  "reviewed_main_commit": "3c40d45",
+  "atlas_encoding": {
+    "pack": "34_YardDecorations",
+    "swatches": 30,
+    "maximum_srgb_channel_error": 0.0,
+    "passed": true
+  },
+  "preview_status": "complete",
+  "previews": [
+    {
+      "file": "Previews/PicketFenceSection_Preview.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "158e105e4a9909ab3d0d08912ace7c99ee4b2585477d829ebb88b9489a455337"
+    },
+    {
+      "file": "Previews/StoneEdgingSection_Preview.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "1e4103b221240c080a0835ff44fef25402d59b1d19c1d34fd1db7fde7c61017a"
+    },
+    {
+      "file": "Previews/PaverPathSection_Preview.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "30b4104fa12da2b39d1040e5320eb5218083e6ac5f5bb4ef8940b281f3748dbc"
+    },
+    {
+      "file": "Previews/MulchBedSection_Preview.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "1d5d427202e33c3f5a0183d919c586d135ae0ac22bae21ea8a0f2e5fc6005e68"
+    },
+    {
+      "file": "Previews/BoxwoodShrub_Preview.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "ba9129a57056419962ceee2c3ce43cfb3846d5347f465e51e5f941ea03893bb0"
+    },
+    {
+      "file": "Previews/HydrangeaBush_Preview.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "93bb6b3c04e398e9e80961663d14bdfa4d49d6a7fc93bef2f2bfd53c54bf1006"
+    },
+    {
+      "file": "Previews/JapaneseMaple_Preview.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "9903bf2557b5d3d4de5c9ea9aefea9ed9b5a0b0007262fe6b76d4c02cbaba956"
+    },
+    {
+      "file": "Previews/TerracottaPlanter_Preview.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "19649b102ac2dfb96f178c13a61850ade6a282688fd0609ae10135399fdd6633"
+    },
+    {
+      "file": "Previews/RaisedGardenBed_Preview.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "4cf65b7aafc9108641391720a9059398bc5b5f8290b2cce5d57edbe3aede5258"
+    },
+    {
+      "file": "Previews/BirdBath_Preview.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "f52bb03d7a1efbfbabf9e161f3ca4f5f0c39d4e93f252bfbf5d3ef229253824a"
+    },
+    {
+      "file": "Previews/TieredFountain_Preview.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "82a659f2194371180bac339058b936d4428401db7307fc908e382dcc8cc031e9"
+    },
+    {
+      "file": "Previews/GardenArbor_Preview.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "a6cbfdc9a2d4c93bcdb8be50724dd4b75deae14979fceaa07d5af310fe6a60fb"
+    },
+    {
+      "file": "Previews/GardenBench_Preview.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "41c477955f211fbd5afc06cf12fbd4e51d417f32a71f8b74d0a3a0b9762f7665"
+    },
+    {
+      "file": "Previews/PatioSet_Preview.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "9e8099140cef690374205fb600d63515ce032afd44257af6363d89ae186cdf57"
+    },
+    {
+      "file": "Previews/FirePit_Preview.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "c78255e4038f89bbe9f5e716ad0e98f64cb2f91e8e65329da486ce2b9f1d097d"
+    },
+    {
+      "file": "Previews/Mailbox_Preview.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "445cf39758bce34a2c7d8067887f3ca3d27593a410d8b92c75c5cab2e570c77b"
+    },
+    {
+      "file": "Previews/LampPost_Preview.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "4166bc77bc0f2a91c66b9febefcd757bfca13d14285aab737afb78984d5f4021"
+    },
+    {
+      "file": "Previews/SolarPathLight_Preview.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "3c740f6586134b2923c1d5d055b8d67efc63e4158b3635c76e58c51072fa64d6"
+    },
+    {
+      "file": "Previews/BirdFeeder_Preview.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "dd969b0be2a52c35d0775962a4a5eb74e7ec9da80df6bac4b07fa37cde4d2837"
+    },
+    {
+      "file": "Previews/Birdhouse_Preview.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "ce10690049d62dc77b238b413d2ed739271884534edaf3f7dca6f95db40db3da"
+    },
+    {
+      "file": "Previews/PinkFlamingo_Preview.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "f7f6da4fd45edf6d75d33b86e904b2166a53fe46023ccea14a279e24b1aab989"
+    },
+    {
+      "file": "Previews/GardenWindmill_Preview.png",
+      "resolution": [
+        1024,
+        640
+      ],
+      "sha256": "77804b612ac18b66234d55f2418148fca22012e59e2be57d2292ef5fe2e29b20"
+    },
+    {
+      "file": "Previews/DecoratedFrontLawn.png",
+      "resolution": [
+        1152,
+        800
+      ],
+      "sha256": "9b480864f24d15bb9ea943e4b655fb26d90954bd22801f0c765179b555a7dada"
+    }
+  ]
+}

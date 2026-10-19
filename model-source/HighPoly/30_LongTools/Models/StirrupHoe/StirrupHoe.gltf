@@ -1,0 +1,195 @@
+{
+  "asset": {
+    "generator": "Khronos glTF Blender I/O v4.3.47",
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        1
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          -0.0003660619258880615,
+          -0.04857326298952103,
+          -0.03173060715198517
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 0,
+      "name": "StirrupHoe__Body",
+      "translation": [
+        -0.00010249733895761892,
+        -0.013600513339042664,
+        -0.008884569630026817
+      ]
+    },
+    {
+      "children": [
+        0
+      ],
+      "extras": {
+        "folder": "Tools",
+        "stud_to_meter": 0.28,
+        "primary_part": "Handle",
+        "primary_position_studs": [
+          0.0,
+          3.968926191329956,
+          0.0
+        ],
+        "markers_json": "[]",
+        "slots_json": "[]"
+      },
+      "name": "StirrupHoe"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "HP shared PBR 30",
+      "normalTexture": {
+        "index": 0,
+        "scale": 0.44999998807907104
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 1
+        },
+        "metallicRoughnessTexture": {
+          "index": 2
+        }
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "StirrupHoe__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    }
+  ],
+  "images": [
+    {
+      "mimeType": "image/png",
+      "name": "HP30_Normal",
+      "uri": "../../Textures/HP30_Normal.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP30_Color",
+      "uri": "../../Textures/HP30_Color.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP30_Metalness-HP30_Roughness",
+      "uri": "../../Textures/HP30_Metalness-HP30_Roughness.png"
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 2224,
+      "max": [
+        0.07883935421705246,
+        1.5028997659683228,
+        0.026193801313638687
+      ],
+      "min": [
+        -0.07883935421705246,
+        0.013600513339042664,
+        -0.033233389258384705
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 2224,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 2224,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "count": 8244,
+      "type": "SCALAR"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 26688,
+      "byteOffset": 0,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 26688,
+      "byteOffset": 26688,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 17792,
+      "byteOffset": 53376,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 16488,
+      "byteOffset": 71168,
+      "target": 34963
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 87656,
+      "uri": "StirrupHoe.bin"
+    }
+  ]
+}

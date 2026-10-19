@@ -1,0 +1,239 @@
+{
+  "asset": {
+    "generator": "Khronos glTF Blender I/O v4.3.47",
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        3
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "extras": {
+        "roblox_class": "Attachment",
+        "roblox_name": "SnapL",
+        "attributes_json": "{}",
+        "parent_mesh": "StoneEdgingSection__Body"
+      },
+      "name": "SnapL",
+      "rotation": [
+        0,
+        0.7071067094802856,
+        0,
+        0.7071068286895752
+      ],
+      "translation": [
+        -0.602616548538208,
+        0.07001107931137085,
+        0
+      ]
+    },
+    {
+      "extras": {
+        "roblox_class": "Attachment",
+        "roblox_name": "SnapR",
+        "attributes_json": "{}",
+        "parent_mesh": "StoneEdgingSection__Body"
+      },
+      "name": "SnapR",
+      "rotation": [
+        0,
+        -0.7071068286895752,
+        0,
+        0.7071068286895752
+      ],
+      "translation": [
+        0.6013835072517395,
+        0.07001107931137085,
+        0
+      ]
+    },
+    {
+      "children": [
+        0,
+        1
+      ],
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0022017955780029297,
+          0.024960389360785484,
+          0.0
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 0,
+      "name": "StoneEdgingSection__Body",
+      "translation": [
+        0.0006165027734823525,
+        0.006988909095525742,
+        0
+      ]
+    },
+    {
+      "children": [
+        2
+      ],
+      "extras": {
+        "folder": "Decorations",
+        "stud_to_meter": 0.28,
+        "primary_part": "Root",
+        "primary_position_studs": [
+          0.0,
+          0.5,
+          0.0
+        ],
+        "markers_json": "[{\"name\": \"SnapL\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"StoneEdgingSection__Body\", \"position_studs\": [-2.1500000953674316, 0.2750000059604645, 0.0], \"orientation_degrees\": [-0.0, 90.00000250447816, 0.0], \"attributes\": {}, \"look_vector\": [-1.0, 0.0, 0.0]}, {\"name\": \"SnapR\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"StoneEdgingSection__Body\", \"position_studs\": [2.1500000953674316, 0.2750000059604645, 0.0], \"orientation_degrees\": [-0.0, -90.00000250447816, 0.0], \"attributes\": {}, \"look_vector\": [1.0, 0.0, 0.0]}]",
+        "slots_json": "[]"
+      },
+      "name": "StoneEdgingSection"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "HP shared PBR 34",
+      "normalTexture": {
+        "index": 0,
+        "scale": 0.44999998807907104
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 1
+        },
+        "metallicRoughnessTexture": {
+          "index": 2
+        }
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "StoneEdgingSection__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    }
+  ],
+  "images": [
+    {
+      "mimeType": "image/png",
+      "name": "HP34_Normal",
+      "uri": "../../Textures/HP34_Normal.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP34_Color",
+      "uri": "../../Textures/HP34_Color.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP34_Metalness-HP34_Roughness",
+      "uri": "../../Textures/HP34_Metalness-HP34_Roughness.png"
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 720,
+      "max": [
+        0.6013835072517395,
+        0.14701108634471893,
+        0.12600000202655792
+      ],
+      "min": [
+        -0.602616548538208,
+        -0.006988909095525742,
+        -0.12600000202655792
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 720,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 720,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "count": 2916,
+      "type": "SCALAR"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 8640,
+      "byteOffset": 0,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 8640,
+      "byteOffset": 8640,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 5760,
+      "byteOffset": 17280,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 5832,
+      "byteOffset": 23040,
+      "target": 34963
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 28872,
+      "uri": "StoneEdgingSection.bin"
+    }
+  ]
+}
