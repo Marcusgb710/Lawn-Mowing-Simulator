@@ -70,6 +70,11 @@ function BedLayout.place(display: Model, bed: Bed, cells: { number }, sizeClass:
 	local top = part.CFrame * CFrame.new(x, part.Size.Y / 2, z)
 	if STANDING[sizeClass] then
 		Assets.placeOnGround(display, top)
+		-- Its pivot is where the hand holds it (a push mower's handlebar), so centre the model
+		-- itself on its cells, or the deck pokes out past them (into the cab, on the front cells).
+		local box = display:GetBoundingBox()
+		local off = top:PointToObjectSpace(box.Position)
+		display:PivotTo(display:GetPivot() - top:VectorToWorldSpace(Vector3.new(off.X, 0, off.Z)))
 		return
 	end
 	local along = if LENGTHWISE[sizeClass] then top.LookVector else top.RightVector

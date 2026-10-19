@@ -260,7 +260,9 @@ for name, model in found do
 	for _, part in list do
 		part.Anchored = true
 		part.CanTouch = false
-		part.CanQuery = false
+		-- Left on: players aim at tools, desks, boxes and decorations to use them, and a
+		-- non-colliding part with CanQuery off is invisible to that aim.
+		part.CanQuery = true
 		part.CanCollide = solid or (name == "Workbench" and (part.Name:find("worktop") ~= nil or part.Name:find("leg") ~= nil))
 		if part:IsA("MeshPart") then
 			part.RenderFidelity = Enum.RenderFidelity.Automatic

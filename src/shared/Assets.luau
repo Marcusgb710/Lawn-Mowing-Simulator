@@ -137,6 +137,9 @@ function Assets.toolDisplay(category: string, itemId: string): Model
 		elseif descendant:IsA("BasePart") then
 			descendant.CanCollide = false
 			descendant.CanTouch = false
+			-- Players pick these up by looking at them (InteractController's aim ray), and the
+			-- imported models come with CanQuery off, which a non-colliding part honors.
+			descendant.CanQuery = descendant.Transparency < 1
 			descendant.Massless = true
 		end
 	end
