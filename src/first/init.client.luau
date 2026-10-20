@@ -20,6 +20,8 @@ local GIVE_UP = 25
 -- How long the ground under the player may take to stream in once they've arrived.
 local GROUND_WAIT = 5
 local FADE_TIME = 0.6
+-- How long the art takes to fade in over the drawn card once it has loaded.
+local ART_FADE = 0.4
 local FONT = Enum.Font.FredokaOne
 local SKY_TOP, SKY_BOTTOM = Color3.fromRGB(120, 185, 235), Color3.fromRGB(255, 214, 150)
 local STRIPES = { Color3.fromRGB(96, 168, 62), Color3.fromRGB(78, 146, 50) }
@@ -85,69 +87,78 @@ local card = new("CanvasGroup", {
 	Parent = gui,
 }) :: CanvasGroup
 
--- The background: the key art, filling the screen and cropped to it, or a drawn sunrise over a
--- freshly mown lawn.
-local hasBackground = Art.Background[1] ~= ""
-if hasBackground then
+-- The background: a drawn sunrise over a freshly mown lawn, and the key art over it once it has
+-- loaded, covering the screen and cropped to it.
+new("Frame", {
+	Size = UDim2.fromScale(1, 0.62),
+	BackgroundColor3 = Color3.new(1, 1, 1),
+	BorderSizePixel = 0,
+	Parent = card,
+}, {
+	new("UIGradient", { Rotation = 90, Color = ColorSequence.new(SKY_TOP, SKY_BOTTOM) }),
+})
+local lawn = new("Frame", {
+	Position = UDim2.fromScale(0, 0.62),
+	Size = UDim2.fromScale(1, 0.38),
+	BackgroundColor3 = STRIPES[1],
+	BorderSizePixel = 0,
+	ClipsDescendants = true,
+	Parent = card,
+})
+-- Mowing stripes running off toward the horizon.
+local count = 12
+for index = 0, count - 1 do
+	new("Frame", {
+		Position = UDim2.fromScale(index / count, 0),
+		Size = UDim2.fromScale(1 / count, 1),
+		BackgroundColor3 = STRIPES[index % 2 + 1],
+		BorderSizePixel = 0,
+		Parent = lawn,
+	})
+end
+new("Frame", {
+	Size = UDim2.fromScale(1, 1),
+	BackgroundColor3 = Color3.new(0, 0, 0),
+	BorderSizePixel = 0,
+	Parent = lawn,
+}, {
+	new("UIGradient", {
+		Rotation = 90,
+		Transparency = NumberSequence.new(0.55, 1),
+	}),
+})
+
+-- Pieces of art that fade in over what's drawn once they've loaded.
+local fadeIn: { ImageLabel } = {}
+if Art.Background[1] ~= "" then
 	local holder = new("Frame", {
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.fromScale(0.5, 0.5),
-		Size = UDim2.fromScale(1, 1),
 		BackgroundTransparency = 1,
 		Parent = card,
-	}, {
-		-- Wide enough or tall enough to cover the screen, like ScaleType Crop.
-		new("UIAspectRatioConstraint", { AspectRatio = 16 / 9, AspectType = Enum.AspectType.ScaleWithParentSize }),
-	})
+	}) :: Frame
+	-- As wide or as tall as it takes to cover the screen at 16:9, like ScaleType Crop.
+	local function cover()
+		local screen = card.AbsoluteSize
+		local width = math.max(screen.X, screen.Y * 16 / 9)
+		holder.Size = UDim2.fromOffset(width, width * 9 / 16)
+	end
+	card:GetPropertyChangedSignal("AbsoluteSize"):Connect(cover)
+	cover()
 	for index, image in Art.Background do
 		local column, row = (index - 1) % 2, (index - 1) // 2
-		new("ImageLabel", {
-			Image = image,
-			Position = UDim2.fromScale(column / 2, row / 2),
-			Size = UDim2.fromScale(0.5, 0.5),
-			BackgroundTransparency = 1,
-			Parent = holder,
-		})
+		table.insert(
+			fadeIn,
+			new("ImageLabel", {
+				Image = image,
+				ImageTransparency = 1,
+				Position = UDim2.fromScale(column / 2, row / 2),
+				Size = UDim2.fromScale(0.5, 0.5),
+				BackgroundTransparency = 1,
+				Parent = holder,
+			}) :: ImageLabel
+		)
 	end
-else
-	new("Frame", {
-		Size = UDim2.fromScale(1, 0.62),
-		BackgroundColor3 = Color3.new(1, 1, 1),
-		BorderSizePixel = 0,
-		Parent = card,
-	}, {
-		new("UIGradient", { Rotation = 90, Color = ColorSequence.new(SKY_TOP, SKY_BOTTOM) }),
-	})
-	local lawn = new("Frame", {
-		Position = UDim2.fromScale(0, 0.62),
-		Size = UDim2.fromScale(1, 0.38),
-		BackgroundColor3 = STRIPES[1],
-		BorderSizePixel = 0,
-		ClipsDescendants = true,
-		Parent = card,
-	})
-	-- Mowing stripes running off toward the horizon.
-	local count = 12
-	for index = 0, count - 1 do
-		new("Frame", {
-			Position = UDim2.fromScale(index / count, 0),
-			Size = UDim2.fromScale(1 / count, 1),
-			BackgroundColor3 = STRIPES[index % 2 + 1],
-			BorderSizePixel = 0,
-			Parent = lawn,
-		})
-	end
-	new("Frame", {
-		Size = UDim2.fromScale(1, 1),
-		BackgroundColor3 = Color3.new(0, 0, 0),
-		BorderSizePixel = 0,
-		Parent = lawn,
-	}, {
-		new("UIGradient", {
-			Rotation = 90,
-			Transparency = NumberSequence.new(0.55, 1),
-		}),
-	})
 end
 
 -- The logo, or the name set in big letters.
@@ -160,16 +171,11 @@ local logoArea = new("Frame", {
 }, {
 	new("UISizeConstraint", { MaxSize = Vector2.new(900, 450) }),
 })
-if Art.Logo ~= "" then
-	new("ImageLabel", {
-		Image = Art.Logo,
-		Size = UDim2.fromScale(1, 1),
-		BackgroundTransparency = 1,
-		ScaleType = Enum.ScaleType.Fit,
-		Parent = logoArea,
-	})
-else
-	local function words(text: string, y: number, height: number)
+-- The name in big letters shows until the logo has loaded, then gives way to it.
+local words: { TextLabel } = {}
+local function word(text: string, y: number, height: number)
+	table.insert(
+		words,
 		new("TextLabel", {
 			AnchorPoint = Vector2.new(0.5, 0),
 			Position = UDim2.fromScale(0.5, y),
@@ -182,10 +188,23 @@ else
 			Parent = logoArea,
 		}, {
 			new("UIStroke", { Color = Color3.fromRGB(35, 70, 30), Thickness = 4 }),
-		})
-	end
-	words("LAWN MOWING", 0.05, 0.58)
-	words("SIMULATOR", 0.64, 0.3)
+		}) :: TextLabel
+	)
+end
+word("LAWN MOWING", 0.05, 0.58)
+word("SIMULATOR", 0.64, 0.3)
+if Art.Logo ~= "" then
+	table.insert(
+		fadeIn,
+		new("ImageLabel", {
+			Image = Art.Logo,
+			ImageTransparency = 1,
+			Size = UDim2.fromScale(1, 1),
+			BackgroundTransparency = 1,
+			ScaleType = Enum.ScaleType.Fit,
+			Parent = logoArea,
+		}) :: ImageLabel
+	)
 end
 
 -- The loading bar along the bottom: the status line, a track that fills with mown stripes, and a
@@ -317,9 +336,28 @@ for _, image in images do
 		table.insert(toLoad, image)
 	end
 end
-if #toLoad > 0 then
-	task.spawn(pcall, ContentProvider.PreloadAsync, ContentProvider, toLoad)
-end
+-- Once the art has loaded, it fades in over what's drawn (and the logo takes over from the words).
+task.spawn(function()
+	if #toLoad > 0 then
+		pcall(ContentProvider.PreloadAsync, ContentProvider, toLoad)
+	end
+	if #fadeIn == 0 then
+		return
+	end
+	local info = TweenInfo.new(ART_FADE)
+	for _, image in fadeIn do
+		TweenService:Create(image, info, { ImageTransparency = 0 }):Play()
+	end
+	if Art.Logo ~= "" then
+		for _, label in words do
+			TweenService:Create(label, info, { TextTransparency = 1 }):Play()
+			local stroke = label:FindFirstChildOfClass("UIStroke")
+			if stroke then
+				TweenService:Create(stroke, info, { Transparency = 1 }):Play()
+			end
+		end
+	end
+end)
 
 progress(0.1, "Loading the neighborhood...")
 if not game:IsLoaded() then
