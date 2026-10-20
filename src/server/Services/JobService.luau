@@ -22,6 +22,7 @@ local GameConfig = require(Shared.Config.GameConfig)
 local Items = require(Shared.Config.Items)
 local Jobs = require(Shared.Config.Jobs)
 local Net = require(Shared.Net)
+local Premium = require(Shared.Config.Premium)
 local TaskTypes = require(Shared.Config.TaskTypes)
 local Tools = require(Shared.Config.Tools)
 local Signal = require(Shared.Signal)
@@ -353,6 +354,7 @@ local function sendHome(job, players: { Player })
 		subtitle = job.offer.address,
 		truckId = job.truckId,
 		trailerId = job.trailerId,
+		paintId = job.paintId,
 	}, function(index, player)
 		return WorldService:GetHomeCFrame(player, index)
 	end, function()
@@ -408,6 +410,9 @@ local function startDriving(job)
 	job.truckId = if leaderData then leaderData.equipped.Truck else Items.starter("Truck").id
 	job.trailerId = if leaderData then leaderData.equipped.Trailer else nil
 	job.businessId = if leaderData then leaderData.equipped.Business else nil
+	-- The leader's Robux paint job (see Premium.luau): on the truck at the job and in the trip.
+	local paint = Premium.paintFor(leaderData and leaderData.premium)
+	job.paintId = if paint then paint.id else nil
 	-- How good the business looked as the crew left: customers pay a little more for that.
 	job.curbAppeal = HomeLawnService:CurbAppeal(party.leader)
 
@@ -416,6 +421,7 @@ local function startDriving(job)
 	job.lawn = LawnService:Build(Jobs.get(job.offer.templateId), origin, job.offer.address, { soil = job.soil })
 
 	local truck = Assets.truck(job.truckId, job.trailerId)
+	Premium.applyPaint(truck, paint)
 	Assets.anchor(truck)
 	Assets.placeOnGround(truck, job.lawn.truckCFrame)
 	-- Parked at the house with the tailgate down: it's where you work on your tools.
@@ -444,6 +450,7 @@ local function startDriving(job)
 		subtitle = job.offer.address,
 		truckId = job.truckId,
 		trailerId = job.trailerId,
+		paintId = job.paintId,
 	}, function(index, player)
 		if playerJobs[player] ~= job then
 			return nil

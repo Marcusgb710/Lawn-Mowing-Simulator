@@ -806,6 +806,10 @@ never skips a level or a business requirement, and nothing is sold as plain cash
   that keep the truck's texture, plus Stealth Wrap (99), and Chrome Wrap and Gold Wrap (149 each).
   They paint the truck's body, doors, tailgate and rear door, and not the trailer. You can switch
   between the ones you own, or go back to factory paint, from the same tab.
+- **Where the looks show.** A finish is on the tool in your hands, in the truck, on the wall, in
+  its delivery box, and set down on a service spot or in the vise. A paint job is on the truck
+  parked at the business, on the drive cutscene and parked at the job (it's the leader's, so the
+  whole crew sees it).
 - **Perks** are checked in `Maintenance.wear`, so the vise, service spots and supplies still work
   as before. You just need them less.
 - **Purchases:**

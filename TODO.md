@@ -211,6 +211,15 @@ One PR per phase, each stacked on the one before. Every phase still needs a Stud
       - trimming a shaggy shrub with a hedge tool, and it growing back;
       - curb appeal going up as the yard fills (and leveling off);
       - everything with block placeholders, and on a phone.
+- [ ] **Premium: Robux purchases.** Needs each game pass and developer product made on the
+      Creator Dashboard and its id put in `src/shared/Config/Premium.luau` (until then the shop
+      shows "Soon"). To check in Studio, where purchases are free test purchases:
+      - a pass turns its perk on (Diamond Blades: blades stop dulling);
+      - a premium tool needs the base tool owned first, then shows its finish in hand, in the
+        truck, on the wall, in its delivery box, and set down at the workbench or in the vise;
+      - a paint job repaints the parked truck, the drive cutscene truck and the truck at the
+        job, and "Factory paint" puts it back;
+      - buying the same product twice doesn't break anything, and purchases survive a rejoin.
 
 ## Before release
 
