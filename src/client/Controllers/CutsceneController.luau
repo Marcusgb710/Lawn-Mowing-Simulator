@@ -14,6 +14,7 @@ local TweenService = game:GetService("TweenService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Assets = require(Shared.Assets)
 local Net = require(Shared.Net)
+local Premium = require(Shared.Config.Premium)
 
 local UI = require(script.Parent.Parent.UI)
 
@@ -54,7 +55,7 @@ local function part(parent: Instance, props)
 	return newPart
 end
 
-local function buildScene(truckId: string, trailerId: string?, roadLength: number)
+local function buildScene(truckId: string, trailerId: string?, paintId: string?, roadLength: number)
 	local folder = Instance.new("Folder")
 	folder.Name = "TruckCutscene"
 	local rng = Random.new(7)
@@ -112,6 +113,11 @@ local function buildScene(truckId: string, trailerId: string?, roadLength: numbe
 	end
 
 	local truck = Assets.truck(truckId, trailerId)
+	-- The crew's Robux paint job, the same one as on the truck at home (see Premium.luau).
+	local paint = if typeof(paintId) == "string" then Premium.get(paintId) else nil
+	if paint and Premium.isPaint(paint) then
+		Premium.applyPaint(truck, paint)
+	end
 	Assets.anchor(truck)
 	truck.Parent = folder
 	folder.Parent = workspace
@@ -226,7 +232,7 @@ local function play(info)
 
 	local driveTime = math.max(info.duration - FADE_TIME * 2 - 0.2, 1)
 	local distance = DRIVE_SPEED * driveTime
-	local scene, truck = buildScene(info.truckId, info.trailerId, distance)
+	local scene, truck = buildScene(info.truckId, info.trailerId, info.paintId, distance)
 	local startCFrame = CFrame.new(SCENE_ORIGIN + Vector3.new(LANE_OFFSET, 0.2, distance / 2))
 	local endCFrame = CFrame.new(SCENE_ORIGIN + Vector3.new(LANE_OFFSET, 0.2, -distance / 2))
 	Assets.placeOnGround(truck, startCFrame)

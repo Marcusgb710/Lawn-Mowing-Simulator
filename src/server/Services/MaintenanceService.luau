@@ -21,6 +21,7 @@ local Format = require(Shared.Format)
 local Items = require(Shared.Config.Items)
 local Maintenance = require(Shared.Config.Maintenance)
 local Net = require(Shared.Net)
+local Premium = require(Shared.Config.Premium)
 local Service = require(Shared.Service)
 local Sounds = require(Shared.Sounds)
 local Tools = require(Shared.Config.Tools)
@@ -311,6 +312,8 @@ function MaintenanceService:SetDown(player: Player, pad: Instance): (boolean, st
 		TruckService:Release(player)
 	end
 	local model = Assets.toolDisplay(item.category, item.id)
+	-- A premium tool's finish (see Premium.luau).
+	Premium.applyFinish(model, Premium.finishFor(data.premium, item.id))
 	Assets.anchor(model)
 	model.Name = "Servicing_" .. player.UserId
 	model:SetAttribute("Interact", "ServiceTool")

@@ -18,6 +18,7 @@ local Deliveries = require(Shared.Deliveries)
 local GameConfig = require(Shared.Config.GameConfig)
 local Items = require(Shared.Config.Items)
 local Net = require(Shared.Net)
+local Premium = require(Shared.Config.Premium)
 local Sounds = require(Shared.Sounds)
 local Tools = require(Shared.Config.Tools)
 
@@ -298,6 +299,8 @@ function DeliveryService:Open(player: Player, key: number): (boolean, string)
 
 	local contents = model:FindFirstChild("Contents", true)
 	local shown = Assets.toolDisplay(tool.category, tool.id)
+	-- A premium tool's finish (see Premium.luau).
+	Premium.applyFinish(shown, Premium.finishFor(data.premium, tool.id))
 	Assets.anchor(shown)
 	Assets.placeOnGround(
 		shown,
