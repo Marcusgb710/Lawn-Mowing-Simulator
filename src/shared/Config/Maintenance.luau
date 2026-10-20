@@ -54,6 +54,9 @@ Maintenance.Supplies = {
 	TrimmerLine = { action = "Reload", seconds = 4, uses = 5 },
 }
 
+-- With the Big Tank perk, a tank of fuel lasts this many times as long.
+Maintenance.BigTank = 3
+
 -- The order supplies are listed in at the workbench.
 Maintenance.SupplyOrder = {
 	"GasCan",
@@ -219,7 +222,9 @@ function Maintenance.warnings(_tool, condition): { string }
 end
 
 -- Wears a tool for `seconds` of use. `running` = engine on, `rolling` = moving on its wheels,
--- `cutting` = it did work this tick. `random` is a 0-1 number for the puncture roll.
+-- `cutting` = it did work this tick. `random` is a 0-1 number for the puncture roll. `perks` are
+-- the Robux perks working on it (see Premium.perksFor): blades that never dull, tires that never
+-- go flat, line that never runs out, a tank that lasts BIG_TANK times as long.
 function Maintenance.wear(
 	tool,
 	condition,
@@ -227,24 +232,29 @@ function Maintenance.wear(
 	running: boolean,
 	rolling: boolean,
 	cutting: boolean,
-	random: number
+	random: number,
+	perks: { [string]: boolean }?
 )
 	local wear = Maintenance.Wear
+	local has = perks or {}
 	if running and condition.fuel then
 		local tank = if tool.engine == "TwoStroke" then wear.TwoStrokeFuel else wear.FourStrokeFuel
+		if has.bigTank then
+			tank *= Maintenance.BigTank
+		end
 		condition.fuel = math.max(0, condition.fuel - seconds / tank)
 	end
-	if rolling and condition.pressure then
+	if rolling and condition.pressure and not has.neverFlat then
 		condition.pressure = math.max(0, condition.pressure - seconds / wear.Pressure)
 		if not condition.flat and random < Maintenance.PunctureChance * seconds then
 			condition.flat = true
 			condition.pressure = 0
 		end
 	end
-	if cutting and condition.sharpness then
+	if cutting and condition.sharpness and not has.neverDull then
 		condition.sharpness = math.max(0, condition.sharpness - seconds / wear.Blade)
 	end
-	if cutting and condition.line then
+	if cutting and condition.line and not has.endlessLine then
 		condition.line = math.max(0, condition.line - seconds / wear.Line)
 	end
 end

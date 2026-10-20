@@ -16,6 +16,7 @@ local LOAD_ORDER = {
 	"DeliveryService",
 	"ShopService",
 	"MaintenanceService",
+	"PremiumService",
 }
 
 local loaded = {}

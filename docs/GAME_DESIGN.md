@@ -786,6 +786,36 @@ which earns your business curb appeal and a bonus on every job.
   - **Limits:** up to 60 per business. With no model they're block placeholders built to the
     same conventions.
 
+## 10. Premium
+
+Things players can buy with Robux. The catalog is `Shared/Config/Premium.luau`, the server side
+is `PremiumService` and they're sold in the shop computer's Orders app under **Premium**. Robux
+never skips a level or a business requirement, and nothing is sold as plain cash.
+
+- **Pro upgrades** are game passes, and each one works on every tool you own:
+  - Diamond Blades (199): blades never dull.
+  - Run-Flat Tires (149): tires never lose air or go flat.
+  - Endless Spool (99): trimmer line never runs out.
+  - Big Tank (99): fuel lasts three times as long.
+- **Premium tools** are developer products that upgrade a tool you already own, for good. Each
+  one gets a finish (Gold, Chrome or Stealth: the body loses its texture for that colour and
+  material, while wheels and glass keep theirs) and a perk on that tool only. They are the
+  Golden Push Mower, Chrome Self-Propelled Mower, Stealth String Trimmer, Chrome Leaf Blower,
+  Golden Riding Mower and Stealth Zero-Turn, from 149 to 799.
+- **Truck paint jobs** are developer products that change looks only. There are four tints at 49
+  that keep the truck's texture, plus Stealth Wrap (99), and Chrome Wrap and Gold Wrap (149 each).
+  They paint the truck's body, doors, tailgate and rear door, and not the trailer. You can switch
+  between the ones you own, or go back to factory paint, from the same tab.
+- **Perks** are checked in `Maintenance.wear`, so the vise, service spots and supplies still work
+  as before. You just need them less.
+- **Purchases:**
+  - Game passes are checked when you join and when you buy one.
+  - Developer products are granted in `ProcessReceipt`. That saves the player straight away and
+    keeps the receipt id, so a purchase is never granted twice or lost. If the save fails, Roblox
+    tries again later.
+  - Each item's `gamePassId` or `productId` comes from the Creator Dashboard. Until it has one,
+    the shop shows "Soon".
+
 ## Phases
 
 | Phase | What | Status |
@@ -838,6 +868,8 @@ phase that gives them work.
   overgrown.
 - **Version 8 (decorations)** adds `decor`: the decorations `placed` in the yard (id, where in
   plot space, and a shrub's trim state) and those still in their `boxes`. Nobody has any yet.
+- **`premium`** (Robux purchases) holds `owned`, `passes`, `truckPaint` and `receipts`. It needs
+  no new version: loading fills in whatever's missing, so older saves start with nothing bought.
 
 ## New item ids for modelers
 

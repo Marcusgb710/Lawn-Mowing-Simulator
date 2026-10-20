@@ -29,6 +29,7 @@ local GameConfig = require(Shared.Config.GameConfig)
 local Items = require(Shared.Config.Items)
 local Maintenance = require(Shared.Config.Maintenance)
 local Net = require(Shared.Net)
+local Premium = require(Shared.Config.Premium)
 local Sounds = require(Shared.Sounds)
 local Storage = require(Shared.Config.Storage)
 local Tools = require(Shared.Config.Tools)
@@ -183,6 +184,8 @@ local function startCarrying(player: Player, item): boolean
 	end
 
 	local model = Assets.toolDisplay(item.category, item.id)
+	local owner = DataService:Get(player)
+	Premium.applyFinish(model, Premium.finishFor(owner and owner.premium, item.id))
 	local primary = model.PrimaryPart
 	if not primary then
 		model:Destroy()
@@ -319,6 +322,7 @@ local function renderBed(owner: Player)
 				continue
 			end
 			local display = Assets.toolDisplay(item.category, id)
+			Premium.applyFinish(display, Premium.finishFor(data.premium, id))
 			Assets.anchor(display)
 			display.Parent = folder
 			interactable(display, "Unload", "Take", item.name)

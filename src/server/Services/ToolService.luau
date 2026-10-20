@@ -23,6 +23,7 @@ local GameConfig = require(Shared.Config.GameConfig)
 local Items = require(Shared.Config.Items)
 local Maintenance = require(Shared.Config.Maintenance)
 local Net = require(Shared.Net)
+local Premium = require(Shared.Config.Premium)
 local Storage = require(Shared.Config.Storage)
 local Tools = require(Shared.Config.Tools)
 
@@ -331,6 +332,8 @@ end
 -- does a ride-on that can tow pull the tow-behind aerator.
 local function makeTool(player: Player, data, item, height: number?, atJob: boolean): Tool
 	local tool = Assets.tool(item.category, item.id)
+	-- A premium tool's finish (see Premium.luau).
+	Premium.applyFinish(tool, Premium.finishFor(data.premium, item.id))
 	tool.Name = item.name
 	tool.ToolTip = Items.CategoryInfo[item.category].displayName
 	tool.CanBeDropped = false
@@ -560,7 +563,17 @@ local function workTick(elapsed: number)
 				ragged = quality < RAGGED_BELOW,
 			})
 		end
-		Maintenance.wear(item, condition, elapsed, true, moving, cut == true, rng:NextNumber())
+		local premium = data and data.premium
+		Maintenance.wear(
+			item,
+			condition,
+			elapsed,
+			true,
+			moving,
+			cut == true,
+			rng:NextNumber(),
+			Premium.perksFor(premium, itemId)
+		)
 		syncCondition(tool, condition)
 		-- The Truck menu reads the profile, so send it when something new goes wrong.
 		local warnings = table.concat(Maintenance.warnings(item, condition), ",")
@@ -593,7 +606,16 @@ local function workTick(elapsed: number)
 						qualityScale = towQuality,
 						ragged = towQuality < RAGGED_BELOW,
 					})
-				Maintenance.wear(towed, towedCondition, elapsed, false, true, towedCut == true, rng:NextNumber())
+				Maintenance.wear(
+					towed,
+					towedCondition,
+					elapsed,
+					false,
+					true,
+					towedCut == true,
+					rng:NextNumber(),
+					Premium.perksFor(premium, towedId)
+				)
 			end
 		end
 		setFx(tool, true)

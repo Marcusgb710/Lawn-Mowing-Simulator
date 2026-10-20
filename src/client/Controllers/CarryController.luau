@@ -17,6 +17,7 @@ local Assets = require(Shared.Assets)
 local Deliveries = require(Shared.Deliveries)
 local Items = require(Shared.Config.Items)
 local Net = require(Shared.Net)
+local Premium = require(Shared.Config.Premium)
 local Storage = require(Shared.Config.Storage)
 local Tools = require(Shared.Config.Tools)
 
@@ -236,6 +237,7 @@ local function renderStorage()
 		end
 
 		local display = Assets.toolDisplay(item.category, item.id)
+		Premium.applyFinish(display, Premium.finishFor(profile.premium, item.id))
 		Assets.anchor(display)
 		if spot then
 			CarryController.placeInSpot(display, spot, floorY)

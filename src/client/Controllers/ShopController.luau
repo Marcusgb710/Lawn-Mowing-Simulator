@@ -1,9 +1,11 @@
 -- Two apps on the shop computer (see ComputerController), one tab per category:
 --   Orders    tools and supplies (delivered in a box to the shop), yard decorations for your
---             crew's business, and a Sell tab for tools you don't need, to free up storage
+--             crew's business, a Premium tab of things bought with Robux (see Premium.luau), and
+--             a Sell tab for tools you don't need, to free up storage
 --   Business  building upgrades, trucks and trailers
 -- Every tool says what it's for: that's how players learn which tool fits which job.
 
+local MarketplaceService = game:GetService("MarketplaceService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -13,6 +15,7 @@ local Format = require(Shared.Format)
 local Items = require(Shared.Config.Items)
 local Maintenance = require(Shared.Config.Maintenance)
 local Net = require(Shared.Net)
+local Premium = require(Shared.Config.Premium)
 local Shop = require(Shared.Shop)
 local Storage = require(Shared.Config.Storage)
 local Tools = require(Shared.Config.Tools)
@@ -30,12 +33,21 @@ local ShopController = {}
 
 local SELL_TAB = "Sell"
 local DECOR_TAB = "Decorations"
+local PREMIUM_TAB = "Premium"
+-- What each Robux perk says on a premium card.
+local PERK_TEXT = {
+	neverDull = "Blade never dulls",
+	neverFlat = "Tires never go flat",
+	endlessLine = "Line never runs out",
+	bigTank = "Fuel lasts 3x as long",
+}
 -- Which tabs each app shows.
 local APPS = {
 	Orders = { title = "Orders", tabs = table.clone(Items.ToolCategories) },
 	Business = { title = "Business", tabs = { "Business", "Truck", "Trailer" } },
 }
 table.insert(APPS.Orders.tabs, DECOR_TAB)
+table.insert(APPS.Orders.tabs, PREMIUM_TAB)
 table.insert(APPS.Orders.tabs, SELL_TAB)
 
 local window: Frame
@@ -206,6 +218,183 @@ local function buttonFor(profile, item, category: string): (string, Color3, stri
 	return Format.money(item.price), if affordable then UI.Colors.Money else UI.Colors.Disabled, "BuyItem", nil
 end
 
+-- One card on the Premium tab: name, description and details down the left, a button on the right.
+local function premiumCard(
+	order: number,
+	name: string,
+	description: string,
+	details: string,
+	note: string?,
+	buttonText: string,
+	color: Color3,
+	onClick: (() -> ())?
+)
+	local card = UI.new("Frame", {
+		Size = UDim2.new(1, -8, 0, 0),
+		AutomaticSize = Enum.AutomaticSize.Y,
+		BackgroundColor3 = UI.Colors.Card,
+		LayoutOrder = order,
+		Parent = list,
+	}, { UI.corner(8) })
+	local text = UI.new("Frame", {
+		Size = UDim2.new(1, -150, 0, 0),
+		AutomaticSize = Enum.AutomaticSize.Y,
+		BackgroundTransparency = 1,
+		Parent = card,
+	}, { UI.list(3), UI.padding(10) })
+	UI.label(name, { TextSize = 20, LayoutOrder = 1, Parent = text })
+	for index, line in { description, details, note or "" } do
+		if line ~= "" then
+			UI.label(line, {
+				Size = UDim2.fromScale(1, 0),
+				AutomaticSize = Enum.AutomaticSize.Y,
+				TextWrapped = true,
+				TextSize = 14,
+				Font = if index == 1 then Enum.Font.Gotham else nil,
+				TextColor3 = if index == 1
+					then UI.Colors.Text
+					elseif index == 2 then UI.Colors.SubText
+					else UI.Colors.Money,
+				LayoutOrder = index + 1,
+				Parent = text,
+			})
+		end
+	end
+	UI.button(buttonText, function()
+		if onClick then
+			onClick()
+		end
+	end, {
+		AnchorPoint = Vector2.new(1, 0.5),
+		Position = UDim2.new(1, -12, 0.5, 0),
+		Size = UDim2.fromOffset(120, 36),
+		BackgroundColor3 = color,
+		TextColor3 = if color == UI.Colors.Money then UI.Colors.Background else UI.Colors.Text,
+		TextScaled = true,
+		Parent = card,
+	})
+end
+
+local function premiumHeading(order: number, text: string)
+	UI.label(text, {
+		Size = UDim2.new(1, -8, 0, 28),
+		TextSize = 22,
+		TextColor3 = UI.Colors.Money,
+		LayoutOrder = order,
+		Parent = list,
+	})
+end
+
+-- The Premium tab: Pro upgrades (game passes), premium tools and truck paint, bought with Robux.
+-- Roblox's own prompt does the buying; the server grants it (see PremiumService).
+local function renderPremium(profile)
+	local premium = profile.premium or Premium.empty()
+	local player = Players.LocalPlayer
+	local order = 0
+	local function nextOrder(): number
+		order += 1
+		return order
+	end
+	local function price(robux: number): string
+		return `R$ {robux}`
+	end
+
+	premiumHeading(nextOrder(), "Pro upgrades")
+	for _, pass in Premium.Passes do
+		local owned = premium.passes and premium.passes[pass.id]
+		local text, color, onClick =
+			price(pass.robux), UI.Colors.Money, function()
+				MarketplaceService:PromptGamePassPurchase(player, pass.gamePassId)
+			end
+		if owned then
+			text, color, onClick = "Owned", UI.Colors.Disabled, nil
+		elseif pass.gamePassId == 0 then
+			text, color, onClick = "Soon", UI.Colors.Disabled, nil
+		end
+		premiumCard(nextOrder(), pass.name, pass.description, "Works on every tool you own", nil, text, color, onClick)
+	end
+
+	premiumHeading(nextOrder(), "Premium tools")
+	for _, variant in Premium.Variants do
+		local base = Tools.get(variant.baseId)
+		local baseName = if base then base.name else variant.baseId
+		local perks = {}
+		for perk in variant.perks do
+			table.insert(perks, PERK_TEXT[perk] or perk)
+		end
+		table.sort(perks)
+		local ownsBase = base ~= nil and profile.owned[base.category] and profile.owned[base.category][base.id]
+		local text, color, note, onClick =
+			price(variant.robux), UI.Colors.Money, nil, function()
+				MarketplaceService:PromptProductPurchase(player, variant.productId)
+			end
+		if premium.owned and premium.owned[variant.id] then
+			text, color, onClick = "Owned", UI.Colors.Disabled, nil
+		elseif variant.productId == 0 then
+			text, color, onClick = "Soon", UI.Colors.Disabled, nil
+		elseif not ownsBase then
+			text, color, note, onClick = "Locked", UI.Colors.Disabled, `Needs your own {baseName} first.`, nil
+		end
+		premiumCard(
+			nextOrder(),
+			variant.name,
+			variant.description,
+			`Upgrades your {baseName}  ·  {table.concat(perks, "  ·  ")}`,
+			note,
+			text,
+			color,
+			onClick
+		)
+	end
+
+	premiumHeading(nextOrder(), "Truck paint")
+	local current = Premium.paintFor(premium)
+	if current then
+		premiumCard(
+			nextOrder(),
+			"Factory paint",
+			"Take the paint job off.",
+			"",
+			nil,
+			"Use",
+			UI.Colors.Accent,
+			function()
+				local _, message = Net.func("SetTruckPaint"):InvokeServer("")
+				UI.notify(message)
+			end
+		)
+	end
+	for _, paint in Premium.Paints do
+		local owned = premium.owned and premium.owned[paint.id]
+		local text, color, onClick =
+			price(paint.robux), UI.Colors.Money, function()
+				MarketplaceService:PromptProductPurchase(player, paint.productId)
+			end
+		if current == paint then
+			text, color, onClick = "In use", UI.Colors.Disabled, nil
+		elseif owned then
+			text, color, onClick =
+				"Use", UI.Colors.Accent, function()
+					local _, message = Net.func("SetTruckPaint"):InvokeServer(paint.id)
+					UI.notify(message)
+				end
+		elseif paint.productId == 0 then
+			text, color, onClick = "Soon", UI.Colors.Disabled, nil
+		end
+		local look = if paint.finish then `{paint.finish} finish` else "Paint"
+		premiumCard(
+			nextOrder(),
+			paint.name,
+			`A {string.lower(paint.name)} paint job for whichever truck you drive. Looks only.`,
+			look,
+			nil,
+			text,
+			color,
+			onClick
+		)
+	end
+end
+
 function render()
 	for category, button in tabButtons do
 		button.BackgroundColor3 = if category == selectedCategory then UI.Colors.Accent else UI.Colors.Card
@@ -214,6 +403,10 @@ function render()
 	UI.clearList(list)
 	local profile = ClientState.profile
 	if not profile then
+		return
+	end
+	if selectedCategory == PREMIUM_TAB then
+		renderPremium(profile)
 		return
 	end
 	local header = nil
@@ -370,6 +563,7 @@ function ShopController:Start()
 
 	local allTabs = table.clone(Items.Categories)
 	table.insert(allTabs, DECOR_TAB)
+	table.insert(allTabs, PREMIUM_TAB)
 	table.insert(allTabs, SELL_TAB)
 	for index, category in allTabs do
 		local info = Items.CategoryInfo[category]

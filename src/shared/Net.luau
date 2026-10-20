@@ -43,6 +43,7 @@ local FUNCTIONS = {
 	"CancelDecor",
 	"ReturnDecor",
 	"UseMailbox",
+	"SetTruckPaint",
 	"SetDownTool",
 	"PickUpServiced",
 	"StartService",
