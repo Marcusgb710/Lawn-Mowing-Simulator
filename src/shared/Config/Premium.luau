@@ -32,7 +32,7 @@ Premium.Passes = {
 		description = "Every blade you own stays factory sharp, forever: mowers, edgers, hedge trimmers and "
 			.. "pruners never need filing or swapping.",
 		robux = 199,
-		gamePassId = 0,
+		gamePassId = 2041838797,
 		perk = "neverDull",
 	},
 	{
@@ -41,7 +41,7 @@ Premium.Passes = {
 		description = "Every tire you own stays firm and can't go flat: no more pumping, patching or "
 			.. "swapping wheels.",
 		robux = 149,
-		gamePassId = 0,
+		gamePassId = 2040328879,
 		perk = "neverFlat",
 	},
 	{
@@ -49,7 +49,7 @@ Premium.Passes = {
 		name = "Endless Spool",
 		description = "Your string trimmers and brush cutters never run out of line.",
 		robux = 99,
-		gamePassId = 0,
+		gamePassId = 2036381430,
 		perk = "endlessLine",
 	},
 	{
@@ -57,7 +57,7 @@ Premium.Passes = {
 		name = "Big Tank",
 		description = "Every gas engine you own runs three times as long on a tank.",
 		robux = 99,
-		gamePassId = 0,
+		gamePassId = 2037311420,
 		perk = "bigTank",
 	},
 }
@@ -78,7 +78,7 @@ Premium.Variants = {
 		name = "Golden Push Mower",
 		description = "Your gas push mower in solid gold, with a blade that never dulls.",
 		robux = 249,
-		productId = 0,
+		productId = 3720356541,
 		finish = "Gold",
 		perks = { neverDull = true },
 	},
@@ -88,7 +88,7 @@ Premium.Variants = {
 		name = "Chrome Self-Propelled Mower",
 		description = "Your self-propelled mower in mirror chrome. Its blade never dulls and its tires never go flat.",
 		robux = 299,
-		productId = 0,
+		productId = 3720356835,
 		finish = "Chrome",
 		perks = { neverDull = true, neverFlat = true },
 	},
@@ -98,7 +98,7 @@ Premium.Variants = {
 		name = "Stealth String Trimmer",
 		description = "Your gas string trimmer in matte black, with a spool that never runs out.",
 		robux = 199,
-		productId = 0,
+		productId = 3720356857,
 		finish = "Stealth",
 		perks = { endlessLine = true },
 	},
@@ -118,7 +118,7 @@ Premium.Variants = {
 		name = "Golden Riding Mower",
 		description = "Your riding mower in solid gold. Its blades never dull and its tires never go flat.",
 		robux = 499,
-		productId = 0,
+		productId = 3720357006,
 		finish = "Gold",
 		perks = { neverDull = true, neverFlat = true },
 	},
@@ -138,7 +138,7 @@ Premium.Variants = {
 -- Paint jobs for whichever truck you drive. `tint` colours the truck's own paint; `finish` swaps
 -- it for one of the finishes above.
 Premium.Paints = {
-	{ id = "RacingRed", name = "Racing Red", robux = 49, productId = 0, tint = Color3.fromRGB(196, 40, 36) },
+	{ id = "RacingRed", name = "Racing Red", robux = 49, productId = 3720356546, tint = Color3.fromRGB(196, 40, 36) },
 	{ id = "MidnightBlack", name = "Midnight Black", robux = 49, productId = 0, tint = Color3.fromRGB(40, 42, 48) },
 	{ id = "ForestGreen", name = "Forest Green", robux = 49, productId = 0, tint = Color3.fromRGB(46, 110, 58) },
 	{ id = "SkyBlue", name = "Sky Blue", robux = 49, productId = 0, tint = Color3.fromRGB(90, 160, 220) },
