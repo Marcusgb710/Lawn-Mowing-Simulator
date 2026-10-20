@@ -1,0 +1,24 @@
+{
+  "TitleCard.blend": {
+    "size_px": [
+      2048,
+      1152
+    ],
+    "camera_projection": "PERSP",
+    "packed_texture_images": 21,
+    "missing_external_textures": 0,
+    "output_path": "//../Background_Master.png",
+    "transparent_background": false
+  },
+  "Mower.blend": {
+    "size_px": [
+      512,
+      512
+    ],
+    "camera_projection": "ORTHO",
+    "packed_texture_images": 3,
+    "missing_external_textures": 0,
+    "output_path": "//../Mower.png",
+    "transparent_background": true
+  }
+}

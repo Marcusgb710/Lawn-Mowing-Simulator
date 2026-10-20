@@ -1,0 +1,12 @@
+{
+  "projection": "ORTHO",
+  "view": "exact right-facing side; Blender +X view; Z up",
+  "target_meters": [
+    0.0036900192499160767,
+    0.6752018332481384,
+    0.7339150309562683
+  ],
+  "orthographic_scale_meters": 1.5656854550043742,
+  "bottom_padding_px": 16,
+  "horizontal_padding_px": 16
+}

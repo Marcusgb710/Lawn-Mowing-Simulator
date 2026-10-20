@@ -1,0 +1,59 @@
+{
+  "TitleCard_16x9.png": {
+    "screen_size_px": [
+      1920,
+      1080
+    ],
+    "logo_canvas_rect_px": [
+      571,
+      108,
+      1349,
+      497
+    ],
+    "loading_track_rect_px": [
+      640,
+      942,
+      1280,
+      960
+    ],
+    "progress": 0.68
+  },
+  "TitleCard_Phone.png": {
+    "screen_size_px": [
+      2340,
+      1080
+    ],
+    "logo_canvas_rect_px": [
+      781,
+      108,
+      1559,
+      497
+    ],
+    "loading_track_rect_px": [
+      850,
+      942,
+      1490,
+      960
+    ],
+    "progress": 0.68
+  },
+  "TitleCard_Tablet.png": {
+    "screen_size_px": [
+      2048,
+      1536
+    ],
+    "logo_canvas_rect_px": [
+      574,
+      154,
+      1474,
+      604
+    ],
+    "loading_track_rect_px": [
+      704,
+      1352,
+      1344,
+      1370
+    ],
+    "progress": 0.68
+  }
+}

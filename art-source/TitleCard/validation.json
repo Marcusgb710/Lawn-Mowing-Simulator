@@ -1,0 +1,118 @@
+{
+  "status": "passed",
+  "checks": {
+    "png_sizes_and_integrity": {
+      "passed": true,
+      "images": 13,
+      "upload_images": 7
+    },
+    "straight_transparency_and_opaque_backgrounds": true,
+    "background_tiles_pixel_exact": {
+      "passed": true,
+      "max_channel_difference": 0,
+      "order": [
+        "TL",
+        "TR",
+        "BL",
+        "BR"
+      ]
+    },
+    "stripe_seams": {
+      "passed": true,
+      "left_right_max_difference": 0,
+      "top_bottom_max_difference": 0
+    },
+    "wordmark": {
+      "passed": true,
+      "text": "Lawn Mowing Simulator",
+      "typeface": "Fredoka",
+      "weight": 650,
+      "phone_proof": "Previews/Logo_300px.png",
+      "font_license": "Source/Fonts/OFL.txt"
+    },
+    "mower_icon": {
+      "passed": true,
+      "alpha_bounds_px": [
+        15,
+        102,
+        497,
+        497
+      ],
+      "projection": "ORTHO",
+      "facing": "right",
+      "bottom_padding_px": 15
+    },
+    "editable_blender_scenes": {
+      "passed": true,
+      "scenes": {
+        "TitleCard.blend": {
+          "size_px": [
+            2048,
+            1152
+          ],
+          "camera_projection": "PERSP",
+          "packed_texture_images": 21,
+          "missing_external_textures": 0,
+          "output_path": "//../Background_Master.png",
+          "transparent_background": false
+        },
+        "Mower.blend": {
+          "size_px": [
+            512,
+            512
+          ],
+          "camera_projection": "ORTHO",
+          "packed_texture_images": 3,
+          "missing_external_textures": 0,
+          "output_path": "//../Mower.png",
+          "transparent_background": true
+        }
+      }
+    },
+    "common_safe_zone": {
+      "passed": true,
+      "rect_px": [
+        256,
+        103.5,
+        1792,
+        1048.5
+      ],
+      "fully_inside": [
+        "Shed",
+        "RustyPickup",
+        "Mower \u2022 last cut stripe",
+        "Mower \u2022 truck bed",
+        "Mailbox",
+        "PicketFenceSection",
+        "PicketFenceSection.002",
+        "FlowerPatch",
+        "FlowerPatch.001",
+        "FlowerPatch.002",
+        "HydrangeaBush"
+      ],
+      "decorative_crop_allowed": [
+        "Outer fence extensions",
+        "Far houses"
+      ]
+    },
+    "source_provenance": {
+      "passed": true,
+      "unique_game_models": 14,
+      "referenced_files": 49
+    },
+    "repository_scope": {
+      "passed": true,
+      "only": "art-source/TitleCard/",
+      "outside_changes": []
+    }
+  },
+  "reviewed_main_commit": "85ca6d95f778212309b96036c2d80bb482d5b304",
+  "manual_visual_review": {
+    "logo_reads_at_300px": true,
+    "open_shed_and_visible_pegboard_tools": true,
+    "pickup_tailgate_down_and_mower_in_bed": true,
+    "half_mown_lawn_with_crisp_stripes_and_long_grass": true,
+    "no_people_or_text_in_background": true,
+    "all_three_device_mockups_reviewed": true
+  }
+}
