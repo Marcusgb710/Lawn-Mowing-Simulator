@@ -23,6 +23,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Assets = require(Shared.Assets)
 local GameConfig = require(Shared.Config.GameConfig)
 local Items = require(Shared.Config.Items)
+local Premium = require(Shared.Config.Premium)
 local Net = require(Shared.Net)
 local Signal = require(Shared.Signal)
 
@@ -520,6 +521,8 @@ local function buildPlot(plot)
 	ServiceSpots.add(bench, ServiceSpots.forBench(bench))
 
 	local truck = Assets.truck(data.equipped.Truck or Items.Catalog.Truck[1].id, data.equipped.Trailer)
+	-- Their Robux paint job, if they've put one on (see Premium.luau).
+	Premium.applyPaint(truck, Premium.paintFor(data.premium))
 	Assets.anchor(truck)
 	-- On the driveway with its tailgate to the door (on older buildings, about 10 studs out, like
 	-- the TruckParking marker says for the new ones).

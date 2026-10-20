@@ -6,12 +6,14 @@
 local DataStoreService = game:GetService("DataStoreService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local GameConfig = require(Shared.Config.GameConfig)
 local Items = require(Shared.Config.Items)
 local Maintenance = require(Shared.Config.Maintenance)
 local Net = require(Shared.Net)
+local Premium = require(Shared.Config.Premium)
 local Storage = require(Shared.Config.Storage)
 
 local DataService = {}
@@ -161,6 +163,8 @@ local function defaultData()
 		-- grown }) and ones still in their `boxes` ({ key, id, arrives }) (see DecorService)
 		decor = { placed = {}, boxes = {} },
 		trailerUnlocked = false,
+		-- What they've bought with Robux (see Premium.luau and PremiumService)
+		premium = Premium.empty(),
 	}
 	for _, category in Items.Categories do
 		data.owned[category] = {}
@@ -203,6 +207,11 @@ local function reconcile(data)
 	for key, value in defaultData() do
 		if data[key] == nil then
 			data[key] = value
+		end
+	end
+	for key, value in Premium.empty() do
+		if data.premium[key] == nil then
+			data.premium[key] = value
 		end
 	end
 	for _, category in Items.Categories do
@@ -370,10 +379,10 @@ local function load(player: Player)
 	return defaultData(), false
 end
 
-local function save(player: Player)
+local function save(player: Player): boolean
 	local profile = profiles[player]
 	if not (profile and profile.canSave and store) then
-		return
+		return false
 	end
 	local ok, err = pcall(store.UpdateAsync, store, keyFor(player), function(stored)
 		-- Never write the older format over a save from a newer version of the game.
@@ -385,6 +394,7 @@ local function save(player: Player)
 	if not ok then
 		warn(`Couldn't save data for {player.Name}: {err}`)
 	end
+	return ok
 end
 
 local function snapshot(data)
@@ -405,6 +415,8 @@ local function snapshot(data)
 		-- Their own truck and trailer (in a crew, PartyUpdated has the leader's truck instead).
 		truck = { used = usedSpace, space = space, baysUsed = usedBays, bays = bays },
 		trailerUnlocked = data.trailerUnlocked,
+		-- What they own with Robux, for the Premium tab and their tools' looks (not the receipts).
+		premium = { owned = data.premium.owned, passes = data.premium.passes, truckPaint = data.premium.truckPaint },
 	}
 end
 
@@ -441,6 +453,17 @@ local function onPlayerAdded(player: Player)
 end
 
 -- Public API ---------------------------------------------------------------------------------
+
+-- Saves a player's data now, not at the next autosave (after a Robux purchase). Returns whether it
+-- was saved. In Studio without API access nothing can be saved, so it says yes there, to let test
+-- purchases through; in a live game a save it couldn't load or write is a no.
+function DataService:Save(player: Player): boolean
+	local profile = profiles[player]
+	if profile and profile.canSave and store then
+		return save(player)
+	end
+	return RunService:IsStudio()
+end
 
 function DataService:Get(player: Player)
 	local profile = profiles[player]
