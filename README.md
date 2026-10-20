@@ -1,5 +1,7 @@
 # Lawn Mowing Simulator
 
+> **Picking this project up?** Start with [HANDOFF.md](HANDOFF.md): what's done, the open PRs and what to do next.
+
 A Roblox lawn care game for crews of 1–4 players. Run your own lawn care business, take jobs on
 the computer in your shop, load the right tools into your truck, drive out to the house and get the yard done
 fast without wrecking the customer's flowers. Earn money, upgrade your gear, and grow your business
