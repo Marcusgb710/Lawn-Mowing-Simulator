@@ -1,0 +1,495 @@
+{
+  "instruction": 35,
+  "title": "Lawn Mowing Simulator",
+  "reviewed_main_commit": "85ca6d95f778212309b96036c2d80bb482d5b304",
+  "files": [
+    {
+      "path": "Background_BL.png",
+      "size_px": [
+        1024,
+        576
+      ],
+      "bytes": 894462,
+      "sha256": "bc07b65dfdf3e9d3c200620d1b88901a2162aca5dcc1e1a4fc0b081f4c004e05",
+      "role": "upload",
+      "purpose": "Background tile 3: bottom left"
+    },
+    {
+      "path": "Background_BR.png",
+      "size_px": [
+        1024,
+        576
+      ],
+      "bytes": 964749,
+      "sha256": "faa48231659fd0d6a5f03216003af0b8b64a0b2960bd40db284f5102c78d0a57",
+      "role": "upload",
+      "purpose": "Background tile 4: bottom right"
+    },
+    {
+      "path": "Background_Master.png",
+      "size_px": [
+        2048,
+        1152
+      ],
+      "bytes": 2963404,
+      "sha256": "64482d35daa7fe52b22988fd0dd20e883a614d4db4956a7351ad650086330aaa",
+      "role": "source",
+      "purpose": "Full-size key-art render; slice rather than uploading directly"
+    },
+    {
+      "path": "Background_TL.png",
+      "size_px": [
+        1024,
+        576
+      ],
+      "bytes": 373838,
+      "sha256": "3074f9045cdcbafc10768b0cf9b16b2da21c79e8027901c655b4b8024f92a58e",
+      "role": "upload",
+      "purpose": "Background tile 1: top left"
+    },
+    {
+      "path": "Background_TR.png",
+      "size_px": [
+        1024,
+        576
+      ],
+      "bytes": 387944,
+      "sha256": "f0a0bc8a89b146b8d2a28e1172c2002b29c7172b805f4c3bf081eb96d3b7f23b",
+      "role": "upload",
+      "purpose": "Background tile 2: top right"
+    },
+    {
+      "path": "Logo.png",
+      "size_px": [
+        1024,
+        512
+      ],
+      "bytes": 159320,
+      "sha256": "3b89208118a200aa68fdfb3871e4fed892b365f2c597ba478f4105c39e985a57",
+      "role": "upload",
+      "purpose": "Transparent Fredoka wordmark"
+    },
+    {
+      "path": "Mower.png",
+      "size_px": [
+        512,
+        512
+      ],
+      "bytes": 205084,
+      "sha256": "58d89a47cc574a25820f06e0b04fbf75501969ff199f9d1141d42a7656eb9c16",
+      "role": "upload",
+      "purpose": "Actual SelfPropelledMower, orthographic right-facing side, transparent"
+    },
+    {
+      "path": "Previews/Background_SafeZone.png",
+      "size_px": [
+        2048,
+        1152
+      ],
+      "bytes": 2632012,
+      "sha256": "8c852c6e7ce60eca386c5f3e8f6af322945c7ac3e28c0aadff6da30e280d8f51",
+      "role": "review",
+      "purpose": "Common crop-safe rectangle over actual key art"
+    },
+    {
+      "path": "Previews/Logo_300px.png",
+      "size_px": [
+        300,
+        150
+      ],
+      "bytes": 40650,
+      "sha256": "7924824329aad918896e590c4718c7045b02be1bf86dfaee2a76847913edb28a",
+      "role": "review",
+      "purpose": "Phone-size wordmark legibility proof"
+    },
+    {
+      "path": "Previews/TitleCard_16x9.png",
+      "size_px": [
+        1920,
+        1080
+      ],
+      "bytes": 2327697,
+      "sha256": "1c371b0ca9986234ed8a30f2b6b503d5bae717a44b6e9dd6da54af3dc548bd7b",
+      "role": "preview",
+      "purpose": "PC mock-up with actual UI layout constraints"
+    },
+    {
+      "path": "Previews/TitleCard_Phone.png",
+      "size_px": [
+        2340,
+        1080
+      ],
+      "bytes": 2659095,
+      "sha256": "6212cd23b7611f9bf7393f21ae150806699b289aaf6f5ca20a2b981cb632d438",
+      "role": "preview",
+      "purpose": "19.5:9 phone crop and UI mock-up"
+    },
+    {
+      "path": "Previews/TitleCard_Tablet.png",
+      "size_px": [
+        2048,
+        1536
+      ],
+      "bytes": 3104485,
+      "sha256": "ea1bd543aed796f0f50a1b64c2c580ace297f67e4db18c41c836aa37982c02c4",
+      "role": "preview",
+      "purpose": "4:3 tablet crop and UI mock-up"
+    },
+    {
+      "path": "README.md",
+      "size_px": null,
+      "bytes": 4523,
+      "sha256": "bd3fc05aef94bf5a64dfd095ebdad2e6cf6aafeb16db7cea3d8ac21a33ffc1bf",
+      "role": "documentation",
+      "purpose": "Local Studio upload mapping, source instructions and crop guide"
+    },
+    {
+      "path": "Source/Fonts/Fredoka-SemiBold.ttf",
+      "size_px": null,
+      "bytes": 50016,
+      "sha256": "4b7e63bf7a305a0340fc90d118ef6509b121173ce6e6123cb6de1b88e0e21a98",
+      "role": "source",
+      "purpose": "Fredoka static instance, weight 650 and width 100"
+    },
+    {
+      "path": "Source/Fonts/Fredoka.ttf",
+      "size_px": null,
+      "bytes": 159184,
+      "sha256": "2ba02e68b152868aef9ba28e24b3648c7d457fe6f25c761f2c2c53fb61a73fc8",
+      "role": "source",
+      "purpose": "Original Fredoka variable font from Google Fonts"
+    },
+    {
+      "path": "Source/Fonts/OFL.txt",
+      "size_px": null,
+      "bytes": 4387,
+      "sha256": "9bbd4f5f107895d5a213579b73821fadd05105241cf4360e86050199fcfd6034",
+      "role": "source",
+      "purpose": "Fredoka SIL Open Font License and copyright notice"
+    },
+    {
+      "path": "Source/Logo.svg",
+      "size_px": null,
+      "bytes": 22055,
+      "sha256": "c3b5fde511e1b48d180d82afa29d3eb981c78b58ec67a28c4c5114903081787f",
+      "role": "source",
+      "purpose": "Portable editable vector outlines and lawn-care mark"
+    },
+    {
+      "path": "Source/Mower.blend",
+      "size_px": null,
+      "bytes": 3744229,
+      "sha256": "1117d2ec99f3c8a26957c411a80c20ed6dd1885adbd3d3b39358c3598c48fd85",
+      "role": "source",
+      "purpose": "Editable orthographic icon scene with packed textures"
+    },
+    {
+      "path": "Source/TitleCard.blend",
+      "size_px": null,
+      "bytes": 33089957,
+      "sha256": "def9705e6a97b13c4b79e8bd2643ef553c176a60995538c09909bddc6d86d42a",
+      "role": "source",
+      "purpose": "Editable key-art scene with packed source-model textures"
+    },
+    {
+      "path": "Source/build_graphics.py",
+      "size_px": null,
+      "bytes": 8733,
+      "sha256": "a5fc5834cfbe276bea38068a2b76818dadcea5bcb319c30a38426a0c91df14de",
+      "role": "source",
+      "purpose": "Generate Fredoka logo, seamless stripes, exact tiles and UI mock-ups"
+    },
+    {
+      "path": "Source/build_mower.py",
+      "size_px": null,
+      "bytes": 2675,
+      "sha256": "d0edaf707d1adf243bcadf8a5eb8d6acc267d19155d0ede02bb59e8f2c8877f0",
+      "role": "source",
+      "purpose": "Rebuild the orthographic right-facing mower icon"
+    },
+    {
+      "path": "Source/build_scene.py",
+      "size_px": null,
+      "bytes": 13267,
+      "sha256": "b89be7eae317f8132b6398a9bd19c91e6be5ff5b23c2d4980370c3ced7b80534",
+      "role": "source",
+      "purpose": "Rebuild key-art scene from unchanged game glTF models"
+    },
+    {
+      "path": "Source/composition_review.json",
+      "size_px": null,
+      "bytes": 2276,
+      "sha256": "2dec5c26e34ab7a1d8d386bf58fc257219e6edf6dbb3676248ad5b2c1cdc9760",
+      "role": "source",
+      "purpose": "Projected source-model bounds for crop safety"
+    },
+    {
+      "path": "Source/logo_layout.json",
+      "size_px": null,
+      "bytes": 433,
+      "sha256": "f0e927fa717fb0a68a0e681cd0f7f9a0d3951f44791f8877d0172e49cfd7b998",
+      "role": "source",
+      "purpose": "Wordmark spelling, font axes and letter/mark layout"
+    },
+    {
+      "path": "Source/mockup_layouts.json",
+      "size_px": null,
+      "bytes": 812,
+      "sha256": "8ddf9a86e549e103b78c60da7db210f7a2393fcff75d6c826cad3dd3d2943057",
+      "role": "source",
+      "purpose": "Pixel coordinates of logo and loading bar in each mock-up"
+    },
+    {
+      "path": "Source/mower_camera.json",
+      "size_px": null,
+      "bytes": 297,
+      "sha256": "24c802b2fbe76d697399d07c31ceb8f53507e7859273f109c3a60c0d0695a8b6",
+      "role": "source",
+      "purpose": "Orthographic icon camera and padding"
+    },
+    {
+      "path": "Source/native_scene_review.json",
+      "size_px": null,
+      "bytes": 509,
+      "sha256": "4c7c92b450c9c4f62a27fa1a41bd46ea5f43b3f26b2547f996cab90ee198ca68",
+      "role": "source",
+      "purpose": "Native scene camera, texture packing and portability audit"
+    },
+    {
+      "path": "Source/prepare_sources.py",
+      "size_px": null,
+      "bytes": 1422,
+      "sha256": "9941b46b5dbe850af796cb6f4e08e7fc576fde41e8c17cb0b0054a46746a7aca",
+      "role": "source",
+      "purpose": "Make native output paths relative and audit packed scene textures"
+    },
+    {
+      "path": "Source/scene_inventory.json",
+      "size_px": null,
+      "bytes": 5034,
+      "sha256": "f84bc5ebab3c54efa3fa3e59049ecb1b1df63137c47e8238b1c40837bada3c92",
+      "role": "source",
+      "purpose": "Game-model placements and scene provenance"
+    },
+    {
+      "path": "Source/validate.py",
+      "size_px": null,
+      "bytes": 10805,
+      "sha256": "167e7e6e8ddb69874eaa1245ad90a71b2f984c4d8127abdeb90e816260770d29",
+      "role": "source",
+      "purpose": "Validate output files and regenerate manifest and report"
+    },
+    {
+      "path": "Stripes.png",
+      "size_px": [
+        256,
+        64
+      ],
+      "bytes": 5707,
+      "sha256": "4e021bdcc3a3dcff83c1d053bc9a1546c27692cbbdd3c54aa157eb136c856ca8",
+      "role": "upload",
+      "purpose": "Two mown lawn stripes with soft periodic grass texture"
+    },
+    {
+      "path": "validation.json",
+      "size_px": null,
+      "bytes": 2886,
+      "sha256": "f8803e64c81dcdb297ba51735362058969e12a459d672cd2e5ff4bb466d9d7af",
+      "role": "documentation",
+      "purpose": "Validation results and visual-review checklist"
+    },
+    {
+      "path": "manifest.json",
+      "size_px": null,
+      "role": "documentation",
+      "purpose": "File inventory, safe zones, logo visual centre and upload mapping; self-hash omitted"
+    }
+  ],
+  "safe_zones": {
+    "master_size_px": [
+      2048,
+      1152
+    ],
+    "pc_crop_px": [
+      0,
+      0,
+      2048,
+      1152
+    ],
+    "phone_crop_px": [
+      0,
+      103.5,
+      2048,
+      1048.5
+    ],
+    "tablet_crop_px": [
+      256,
+      0,
+      1792,
+      1152
+    ],
+    "common_rect_px": [
+      256,
+      103.5,
+      1792,
+      1048.5
+    ],
+    "coordinate_convention": "left, top, right, bottom; right and bottom exclusive"
+  },
+  "logo": {
+    "canvas_px": [
+      1024,
+      512
+    ],
+    "frame_center_px": [
+      512,
+      256
+    ],
+    "alpha_bounds_px": [
+      32,
+      71,
+      997,
+      472
+    ],
+    "alpha_bounds_center_px": [
+      514.5,
+      271.5
+    ],
+    "visual_center_px": [
+      518.242,
+      213.517
+    ],
+    "visual_center_method": "alpha-weighted pixel centroid, including soft shadow",
+    "typeface": "Fredoka",
+    "weight": 650
+  },
+  "upload_mapping": {
+    "Logo": "Logo.png",
+    "Background": [
+      "Background_TL.png",
+      "Background_TR.png",
+      "Background_BL.png",
+      "Background_BR.png"
+    ],
+    "Mower": "Mower.png",
+    "Stripes": "Stripes.png"
+  },
+  "runtime_layout": {
+    "TitleCard_16x9.png": {
+      "screen_size_px": [
+        1920,
+        1080
+      ],
+      "logo_canvas_rect_px": [
+        571,
+        108,
+        1349,
+        497
+      ],
+      "loading_track_rect_px": [
+        640,
+        942,
+        1280,
+        960
+      ],
+      "progress": 0.68
+    },
+    "TitleCard_Phone.png": {
+      "screen_size_px": [
+        2340,
+        1080
+      ],
+      "logo_canvas_rect_px": [
+        781,
+        108,
+        1559,
+        497
+      ],
+      "loading_track_rect_px": [
+        850,
+        942,
+        1490,
+        960
+      ],
+      "progress": 0.68
+    },
+    "TitleCard_Tablet.png": {
+      "screen_size_px": [
+        2048,
+        1536
+      ],
+      "logo_canvas_rect_px": [
+        574,
+        154,
+        1474,
+        604
+      ],
+      "loading_track_rect_px": [
+        704,
+        1352,
+        1344,
+        1370
+      ],
+      "progress": 0.68
+    }
+  },
+  "source_model_dependencies_sha256": {
+    "model-source/HighPoly/24_YardAndBuildings/Models/Shed/Shed.gltf": "6df772f097b2316f1d8af57364c2ab5db7a8213173eea228098961ee2baac97e",
+    "model-source/HighPoly/24_YardAndBuildings/Models/Shed/Shed.bin": "c356961b5516b5066e48b05566bc589f5bd3569389600e7cd0ecafa1f5231c42",
+    "model-source/HighPoly/24_YardAndBuildings/Textures/HP24_Normal.png": "b643288ba64e0ce07fc6f26f76b7a2702801fa8bbc775df09eb3ec9871996c85",
+    "model-source/HighPoly/24_YardAndBuildings/Textures/HP24_Color.png": "4b9d635b2542b450e940dc0abfd31a707c4c60559d7ceb88ee1a1032cafafa18",
+    "model-source/HighPoly/24_YardAndBuildings/Textures/HP24_Metalness-HP24_Roughness.png": "d5649e8e07381479c6af87c3dbabf58d9941b883f33badda0ffce7a4e8c55dca",
+    "model-source/HighPoly/25_TrucksAndTrailers/Models/RustyPickup/RustyPickup.gltf": "7a4579cf3edaece38ba811a934090ecc0bea2769baef43fb1c206e8ae85389f2",
+    "model-source/HighPoly/25_TrucksAndTrailers/Models/RustyPickup/RustyPickup.bin": "85c1eb7e7c17effbe0ac86ef486baaec944da279e908aed9ba9833efde206222",
+    "model-source/HighPoly/25_TrucksAndTrailers/Textures/HP25_Normal.png": "a2c91618fbc69b93ec3422b550c0caa245094fb39c03038271a16fae4571628f",
+    "model-source/HighPoly/25_TrucksAndTrailers/Textures/HP25_Color.png": "4af5fe27d2670fbccdcaf869da2c8209f75555195ebf26d53ba362fb9018a706",
+    "model-source/HighPoly/25_TrucksAndTrailers/Textures/HP25_Metalness-HP25_Roughness.png": "3fc9e9f9093c09bf973bb8d25790bf978d679ddcfd1b9a83b64dbb408a42c4ae",
+    "model-source/HighPoly/26_MowersAndRideOns/Models/SelfPropelledMower/SelfPropelledMower.gltf": "0033fa3723945cc52da5e7e8756625b0edd5ed0ca16f90c22a25413282d81e1e",
+    "model-source/HighPoly/26_MowersAndRideOns/Models/SelfPropelledMower/SelfPropelledMower.bin": "6d1efa5afcc5c99ede686df0a90394b1ea9b52f1b4f765fb7222f88ddc044566",
+    "model-source/HighPoly/26_MowersAndRideOns/Textures/HP26_Normal.png": "5cf005d5fdff5251dbed8436c04672719dac5be74c91624d452ec400529f00bf",
+    "model-source/HighPoly/26_MowersAndRideOns/Textures/HP26_Color.png": "71e1a4fb1dd728d7575d06e0c461c0faed4e4fe60e42fb5a1e2adf441984be13",
+    "model-source/HighPoly/26_MowersAndRideOns/Textures/HP26_Metalness-HP26_Roughness.png": "7a26bc2a210bd0827c635e4fc8f246f2080ead138d9ca207952dbee6a93658eb",
+    "model-source/HighPoly/32_SuppliesAndStorage/Models/StoragePegboard/StoragePegboard.gltf": "522d9d2855ba5a49c29a4da53b8bb5f77e3e4a129fdc8770a11d407e9fcf13c4",
+    "model-source/HighPoly/32_SuppliesAndStorage/Models/StoragePegboard/StoragePegboard.bin": "29a8c80a0f3b4075827639012de426a2ccf992aa318a40414746fd6ece525fe0",
+    "model-source/HighPoly/32_SuppliesAndStorage/Textures/HP32_Normal.png": "242a137a07d6cbd1b911b2e52a08cd920f73d46b018a6cdb7aac90028e013581",
+    "model-source/HighPoly/32_SuppliesAndStorage/Textures/HP32_Color.png": "c71e255177055ba25df68dbcc6cdfc0bb32ece59068e6420683061049c611748",
+    "model-source/HighPoly/32_SuppliesAndStorage/Textures/HP32_Metalness-HP32_Roughness.png": "6b1b2acf4559a09d38e4e1b4da327bd20badcca1020751c08fcbf0cdb61337f7",
+    "model-source/HighPoly/32_SuppliesAndStorage/Models/StorageWallRack/StorageWallRack.gltf": "f29032633ba5fff50391dc9457e1d181523d937ce417f48b806f3fe0ddc00a7e",
+    "model-source/HighPoly/32_SuppliesAndStorage/Models/StorageWallRack/StorageWallRack.bin": "1224f22eff7f15b7a1343b62a5cb819e0c95aca0e334090c5bb25ec0f9b732db",
+    "model-source/HighPoly/30_LongTools/Models/GardenSpade/GardenSpade.gltf": "fd5f0c243fc4b691a741d5f0bd0557e9d468935b92118f75b7c6be379c2d9338",
+    "model-source/HighPoly/30_LongTools/Models/GardenSpade/GardenSpade.bin": "38b6bc40c01660015eed4217a8e4fecee86f1a86450c80bc722929c9f65e81f4",
+    "model-source/HighPoly/30_LongTools/Textures/HP30_Normal.png": "f1f5281630fc6298d459b1f5d44b5876e5a642f0969935ed91e6140040c83bea",
+    "model-source/HighPoly/30_LongTools/Textures/HP30_Color.png": "b3c5fa3a79c1fd46667877d9b1bbf205b9cef435f7c99aa03959407220ef6d68",
+    "model-source/HighPoly/30_LongTools/Textures/HP30_Metalness-HP30_Roughness.png": "9d03c4ebedcae7bcd1277485cd5493b64f78351a5428040244d6736d780c7402",
+    "model-source/HighPoly/30_LongTools/Models/WideRake/WideRake.gltf": "7a6cbc4e922fe0932b1781696c2f98a744dcf3aadc1fae2962bec5c46fd67898",
+    "model-source/HighPoly/30_LongTools/Models/WideRake/WideRake.bin": "502e536afe15c28b12bb2812d211750a132dcd5ed5c1dffae20a4ac6616e41a4",
+    "model-source/HighPoly/29_HandTools/Models/HandTrowel/HandTrowel.gltf": "5fbb6de769bb157d670ed080afb6d859439475d71951fb77d26668a805846582",
+    "model-source/HighPoly/29_HandTools/Models/HandTrowel/HandTrowel.bin": "0388cbc4114a1a1925650fac5c4959f51e7f4686ea9c40ee2d5543c2809d63aa",
+    "model-source/HighPoly/29_HandTools/Textures/HP29_Normal.png": "22bee9af373634e3ec0d554596f87aa6249caed2bffabd28742849188e7d3452",
+    "model-source/HighPoly/29_HandTools/Textures/HP29_Color.png": "098789f7193cd696492f747c15513d7abfc3b9353ac7096489a3541d0e22bb22",
+    "model-source/HighPoly/29_HandTools/Textures/HP29_Metalness-HP29_Roughness.png": "4c055d4579392fca48a3659ab41733e1a2cf505209bf7e6087c709db25458e7b",
+    "model-source/HighPoly/34_YardDecorations/Models/PicketFenceSection/PicketFenceSection.gltf": "155fc589e46a49313dd188048c977f95e5a21c98d769285747e3bb29ddb12d41",
+    "model-source/HighPoly/34_YardDecorations/Models/PicketFenceSection/PicketFenceSection.bin": "bfb61c7d313dff83e582a2da6ed675b328ce4b4671b59ecb0a5785a480f20cf1",
+    "model-source/HighPoly/34_YardDecorations/Textures/HP34_Normal.png": "e7e16c54ff19d6b32b70d3cc2740bd6b6b79efbd567ec7d6bfc7b233b1d68a51",
+    "model-source/HighPoly/34_YardDecorations/Textures/HP34_Color.png": "cb60ce0a2637b1060b62f691108174e8b9d952e3b1d6c0adaf9bfe1cac05290f",
+    "model-source/HighPoly/34_YardDecorations/Textures/HP34_Metalness-HP34_Roughness.png": "f8246adbd93534a2fff85a90cb2b9c4b333f865eeac572421cf99be406c227a5",
+    "model-source/HighPoly/34_YardDecorations/Models/Mailbox/Mailbox.gltf": "e6273e32714e2bda7821d0cd0a2026bb2b846bb86e932b7ba95866b82585d8bc",
+    "model-source/HighPoly/34_YardDecorations/Models/Mailbox/Mailbox.bin": "00ee591d9c1db01fca04f825ae8f9f66e95961b91bfd26d21a7e9760f0c4b8a1",
+    "model-source/HighPoly/34_YardDecorations/Models/TerracottaPlanter/TerracottaPlanter.gltf": "b5e6789e924616b5483aaf7d8dcb8720824bd8affe7058f7d8114e8eb620f861",
+    "model-source/HighPoly/34_YardDecorations/Models/TerracottaPlanter/TerracottaPlanter.bin": "0f2f9fbde5dbd52af8181a91e1f059b441657355981f1654b97fb0dafb097076",
+    "model-source/HighPoly/24_YardAndBuildings/Models/FlowerPatch/FlowerPatch.gltf": "81452fd81fe572a30d98b5886300ff36f0f76cdaaaa1d4b1997df88b86f1a69d",
+    "model-source/HighPoly/24_YardAndBuildings/Models/FlowerPatch/FlowerPatch.bin": "ad9321359ca3f90db7ea0b289a1d3195adf45e18299f097249a0c96646a912c1",
+    "model-source/HighPoly/34_YardDecorations/Models/HydrangeaBush/HydrangeaBush.gltf": "59c44c558ce6a7f31576c4daca6b68f18fb2cf8705f1a504977ca1f50d7ffdd3",
+    "model-source/HighPoly/34_YardDecorations/Models/HydrangeaBush/HydrangeaBush.bin": "349bad4ea44bd23a13ec50310668b1c7deaf4c219de4433c1b26891077e969cd",
+    "model-source/HighPoly/24_YardAndBuildings/Models/House/House.gltf": "9300c28987affe2bf52437e9dc8d9627a4f2d6cebfae719310b8854a3ae6c2b4",
+    "model-source/HighPoly/24_YardAndBuildings/Models/House/House.bin": "825dc7da38deb11d97c502d9e528b15b17d984a4428397591152a8ef3d316cb1"
+  },
+  "source_model_geometry_changed": false,
+  "roblox_upload_performed": false,
+  "notes": [
+    "Upload the seven mapped PNGs as Big Dink Studios in the local Studio session.",
+    "Master and preview images are reference files, not direct upload assets.",
+    "Background RGB values assemble exactly; do not rescale or trim the tiles.",
+    "The loading-screen runtime files remain unchanged."
+  ]
+}
