@@ -154,4 +154,3 @@ manifest=dict(
     notes=['Upload the seven mapped PNGs as Big Dink Studios in the local Studio session.','Master and preview images are reference files, not direct upload assets.','Background RGB values assemble exactly; do not rescale or trim the tiles.','The loading-screen runtime files remain unchanged.'])
 (OUT/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
 print('PASS: 13 PNGs; 7 upload images; exact four-tile reconstruction; transparency; seams; core safe bounds; font; repository scope.')
-
