@@ -1,0 +1,25 @@
+{
+  "text": "Lawn Mowing Simulator",
+  "font_family": "Fredoka",
+  "weight": 650,
+  "width_axis": 100,
+  "canvas": [
+    1024,
+    512
+  ],
+  "lines": [
+    {
+      "text": "LAWN MOWING",
+      "font_size": 130,
+      "baseline_y": 180,
+      "outline_px": 14
+    },
+    {
+      "text": "SIMULATOR",
+      "font_size": 112,
+      "baseline_y": 322,
+      "outline_px": 12
+    }
+  ],
+  "mark": "mown stripes with five grass blades"
+}

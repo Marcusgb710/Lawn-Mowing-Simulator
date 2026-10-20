@@ -1,0 +1,279 @@
+{
+  "models": [
+    {
+      "model": "Shed",
+      "pack": 24,
+      "position_studs": [
+        -10,
+        0,
+        8
+      ],
+      "yaw_degrees": 0,
+      "placement": "Shed"
+    },
+    {
+      "model": "RustyPickup",
+      "pack": 25,
+      "position_studs": [
+        8.3,
+        0.035,
+        8.5
+      ],
+      "yaw_degrees": 148,
+      "placement": "RustyPickup"
+    },
+    {
+      "model": "SelfPropelledMower",
+      "pack": 26,
+      "position_studs": [
+        -12.6,
+        0.015,
+        -4.5
+      ],
+      "yaw_degrees": -90,
+      "placement": "Mower \u2022 last cut stripe"
+    },
+    {
+      "model": "SelfPropelledMower",
+      "pack": 26,
+      "position_studs": [
+        10.843613624572754,
+        2.945000171661377,
+        4.429369926452637
+      ],
+      "yaw_degrees": 148,
+      "placement": "Mower \u2022 truck bed"
+    },
+    {
+      "model": "StoragePegboard",
+      "pack": 32,
+      "position_studs": [
+        -10,
+        3.25,
+        13.7
+      ],
+      "yaw_degrees": 0,
+      "placement": "StoragePegboard"
+    },
+    {
+      "model": "StorageWallRack",
+      "pack": 32,
+      "position_studs": [
+        -6.7,
+        3.1,
+        13.7
+      ],
+      "yaw_degrees": 0,
+      "placement": "StorageWallRack"
+    },
+    {
+      "model": "GardenSpade",
+      "pack": 30,
+      "position_studs": [
+        -10.9,
+        0.32,
+        13.1
+      ],
+      "yaw_degrees": 0,
+      "placement": "GardenSpade"
+    },
+    {
+      "model": "WideRake",
+      "pack": 30,
+      "position_studs": [
+        -9.4,
+        0.32,
+        13.1
+      ],
+      "yaw_degrees": 0,
+      "placement": "WideRake"
+    },
+    {
+      "model": "HandTrowel",
+      "pack": 29,
+      "position_studs": [
+        -11.7,
+        4.6,
+        13.0
+      ],
+      "yaw_degrees": 0,
+      "placement": "HandTrowel"
+    },
+    {
+      "model": "PicketFenceSection",
+      "pack": 34,
+      "position_studs": [
+        -20,
+        0,
+        10
+      ],
+      "yaw_degrees": 0,
+      "placement": "PicketFenceSection"
+    },
+    {
+      "model": "PicketFenceSection",
+      "pack": 34,
+      "position_studs": [
+        -28.6,
+        0,
+        10
+      ],
+      "yaw_degrees": 0,
+      "placement": "PicketFenceSection.001"
+    },
+    {
+      "model": "PicketFenceSection",
+      "pack": 34,
+      "position_studs": [
+        19.8,
+        0,
+        12
+      ],
+      "yaw_degrees": 0,
+      "placement": "PicketFenceSection.002"
+    },
+    {
+      "model": "PicketFenceSection",
+      "pack": 34,
+      "position_studs": [
+        28.4,
+        0,
+        12
+      ],
+      "yaw_degrees": 0,
+      "placement": "PicketFenceSection.003"
+    },
+    {
+      "model": "Mailbox",
+      "pack": 34,
+      "position_studs": [
+        17.8,
+        0,
+        5
+      ],
+      "yaw_degrees": -16,
+      "placement": "Mailbox"
+    },
+    {
+      "model": "TerracottaPlanter",
+      "pack": 34,
+      "position_studs": [
+        -16.4,
+        0,
+        2
+      ],
+      "yaw_degrees": 0,
+      "placement": "TerracottaPlanter"
+    },
+    {
+      "model": "TerracottaPlanter",
+      "pack": 34,
+      "position_studs": [
+        -3.3,
+        0,
+        2
+      ],
+      "yaw_degrees": 0,
+      "placement": "TerracottaPlanter.001"
+    },
+    {
+      "model": "FlowerPatch",
+      "pack": 24,
+      "position_studs": [
+        -17.0,
+        0.03,
+        -0.5
+      ],
+      "yaw_degrees": 0,
+      "placement": "FlowerPatch"
+    },
+    {
+      "model": "FlowerPatch",
+      "pack": 24,
+      "position_studs": [
+        -15.0,
+        0.03,
+        -0.5
+      ],
+      "yaw_degrees": 0,
+      "placement": "FlowerPatch.001"
+    },
+    {
+      "model": "FlowerPatch",
+      "pack": 24,
+      "position_studs": [
+        -3.4,
+        0.03,
+        -0.5
+      ],
+      "yaw_degrees": 0,
+      "placement": "FlowerPatch.002"
+    },
+    {
+      "model": "HydrangeaBush",
+      "pack": 34,
+      "position_studs": [
+        -18.4,
+        0,
+        4.0
+      ],
+      "yaw_degrees": 0,
+      "placement": "HydrangeaBush"
+    },
+    {
+      "model": "House",
+      "pack": 24,
+      "position_studs": [
+        -61,
+        0,
+        110
+      ],
+      "yaw_degrees": 0,
+      "placement": "Distant house 0"
+    },
+    {
+      "model": "House",
+      "pack": 24,
+      "position_studs": [
+        -24,
+        0,
+        119
+      ],
+      "yaw_degrees": 0,
+      "placement": "Distant house 1"
+    },
+    {
+      "model": "House",
+      "pack": 24,
+      "position_studs": [
+        20,
+        0,
+        110
+      ],
+      "yaw_degrees": 0,
+      "placement": "Distant house 2"
+    },
+    {
+      "model": "House",
+      "pack": 24,
+      "position_studs": [
+        59,
+        0,
+        119
+      ],
+      "yaw_degrees": 0,
+      "placement": "Distant house 3"
+    }
+  ],
+  "camera_position_studs": [
+    1,
+    6.7,
+    -39
+  ],
+  "camera_target_studs": [
+    0,
+    9.2,
+    1
+  ],
+  "note": "All source-model geometry is unchanged; the truck tailgate uses its authored hinge. Other geometry is render-only staging."
+}
