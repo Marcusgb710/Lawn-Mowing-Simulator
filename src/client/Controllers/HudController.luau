@@ -28,6 +28,10 @@ local MENUS = {
 	{ name = "Crew", key = Enum.KeyCode.C },
 }
 local MOTION_KEY = Enum.KeyCode.V
+-- The left column (money, level and the menu buttons) is full size on screens at least this tall
+-- (in pixels), and shrinks on shorter ones (phones held sideways), down to this much.
+local SIDE_FULL_HEIGHT = 560
+local SIDE_MIN_SCALE = 0.7
 
 local HudController = {}
 
@@ -94,14 +98,39 @@ local function buildCondition()
 	UI.new("UISizeConstraint", { MaxSize = Vector2.new(420, math.huge), Parent = conditionLabel })
 end
 
+-- The money and level panel and the menu buttons stack in one column down the left, so they can't
+-- run into each other on a short screen (a phone held sideways), and the column shrinks to fit.
+local side: Frame
+local function buildSide()
+	side = UI.new("Frame", {
+		Name = "Side",
+		Position = UDim2.fromOffset(12, 12),
+		Size = UDim2.fromOffset(220, 0),
+		AutomaticSize = Enum.AutomaticSize.Y,
+		BackgroundTransparency = 1,
+		Parent = UI.getScreen(),
+	}, { UI.list(8) })
+	local scale = UI.new("UIScale", { Parent = side })
+	local camera = workspace.CurrentCamera
+	local function fit()
+		-- Full size from SIDE_FULL_HEIGHT of screen height up, smaller below it.
+		local height = if camera then camera.ViewportSize.Y else SIDE_FULL_HEIGHT
+		scale.Scale = math.clamp(height / SIDE_FULL_HEIGHT, SIDE_MIN_SCALE, 1)
+	end
+	if camera then
+		camera:GetPropertyChangedSignal("ViewportSize"):Connect(fit)
+	end
+	fit()
+end
+
 local function buildStats()
 	local frame = UI.new("Frame", {
 		Name = "Stats",
-		Position = UDim2.fromOffset(12, 12),
 		Size = UDim2.fromOffset(220, 104),
 		BackgroundColor3 = UI.Colors.Background,
 		BackgroundTransparency = 0.2,
-		Parent = UI.getScreen(),
+		LayoutOrder = 1,
+		Parent = side,
 	}, { UI.corner(10), UI.padding(10) })
 
 	moneyLabel = UI.label("$0", {
@@ -148,11 +177,11 @@ end
 local function buildMenuButtons()
 	local frame = UI.new("Frame", {
 		Name = "Menu",
-		AnchorPoint = Vector2.new(0, 0.5),
-		Position = UDim2.new(0, 12, 0.5, 0),
-		Size = UDim2.fromOffset(110, 220),
+		Size = UDim2.fromOffset(150, 0),
+		AutomaticSize = Enum.AutomaticSize.Y,
 		BackgroundTransparency = 1,
-		Parent = UI.getScreen(),
+		LayoutOrder = 2,
+		Parent = side,
 	}, { UI.list(8) })
 
 	local keyboard = UserInputService.KeyboardEnabled
@@ -407,6 +436,7 @@ local function updateJob()
 end
 
 function HudController:Start()
+	buildSide()
 	buildStats()
 	buildMenuButtons()
 	buildTracker()
