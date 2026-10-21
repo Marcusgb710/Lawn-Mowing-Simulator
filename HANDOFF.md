@@ -2,7 +2,8 @@
 
 Written 2026-10-19 for whoever takes over from here. Read this first. Then use
 [README.md](README.md) for setup, [TODO.md](TODO.md) for the full checklist and
-[docs/GAME_DESIGN.md](docs/GAME_DESIGN.md) for how every system is meant to work.
+[docs/GAME_DESIGN.md](docs/GAME_DESIGN.md) for how every system is meant to work, and
+[docs/STORY.md](docs/STORY.md) for the story (Grandma's Rival) and what it needs built.
 
 ## Where things stand
 
