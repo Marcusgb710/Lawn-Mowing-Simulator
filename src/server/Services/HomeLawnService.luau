@@ -1,6 +1,7 @@
 -- Your business's own front lawn (docs/GAME_DESIGN.md, "Your own lawn"). Every business plot has
 -- one, left of the driveway. It has the same kit grass as customers' lawns, mowed on the same
--- LawnGrid, plus an edge along the sidewalk and driveway, a few weeds and the odd pile of leaves.
+-- LawnGrid, plus an edge along the sidewalk and driveway, a few weeds, the odd pile of leaves and
+-- a stick or two hidden in the grass (Config/Debris.luau).
 -- You look after it with your own tools, straight out of storage (TruckService hands them to
 -- you), and they fit and wear just as they do on a job. Your crew can help with the leader's lawn.
 --
@@ -15,6 +16,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Debris = require(Shared.Config.Debris)
 local Format = require(Shared.Format)
 local GameConfig = require(Shared.Config.GameConfig)
 local HomeLawn = require(Shared.HomeLawn)
@@ -277,21 +279,29 @@ function HomeLawnService:CurbAppeal(owner: Player): number
 	return if typeof(value) == "number" then value else 0
 end
 
--- Called by ToolService every tick a player uses a tool on their crew's home lawn. Takes the
--- same options as JobService:ApplyWork, and says whether anything got done.
+-- Called by ToolService every tick a player uses a tool on their crew's home lawn (and for every
+-- snip of hand shears). Takes the same options as JobService:ApplyWork, and says whether anything
+-- got done and what junk in the grass a mower just chewed up.
 function HomeLawnService:ApplyWork(
 	player: Player,
 	position: Vector3,
 	radius: number,
 	toolId: string,
 	amount: number,
-	options: { quiet: boolean?, moving: boolean?, seconds: number?, ragged: boolean? }
-): boolean
+	options: {
+		quiet: boolean?,
+		moving: boolean?,
+		seconds: number?,
+		ragged: boolean?,
+		snip: boolean?,
+		strikes: boolean?,
+	}
+): (boolean, { any }?)
 	local owner = leaderOf(player)
 	local entry = lawnUnder(player)
 	local data = DataService:Get(player)
 	if not data then
-		return false
+		return false, nil
 	end
 	-- The yard's shrubs first: a hedge tool near one trims it.
 	local trimmed, wrongTool = DecorService:Trim(owner, position, radius, toolId, amount)
@@ -300,7 +310,7 @@ function HomeLawnService:ApplyWork(
 			warnedAt[player] = os.clock()
 			notify(player, "That won't work here.")
 		end
-		return trimmed
+		return trimmed, nil
 	end
 	local result = entry.lawn:ApplyWork(position, radius, toolId, amount, {
 		protections = protectionsOf(player, data),
@@ -308,20 +318,28 @@ function HomeLawnService:ApplyWork(
 		moving = options.moving,
 		seconds = options.seconds,
 		ragged = options.ragged,
+		closest = options.snip,
+		strikes = options.strikes,
 	})
 	if result.message then
 		notify(player, result.message)
+	end
+	for _, debris in result.struck do
+		notify(player, debris.kind.hit)
 	end
 	local warnedRecently = os.clock() - (warnedAt[player] or 0) <= 4
 	if result.hurt and not warnedRecently then
 		warnedAt[player] = os.clock()
 		notify(player, HURT_MESSAGES[result.hurt] or "You need some protection for that.")
+	elseif result.debris and not warnedRecently then
+		warnedAt[player] = os.clock()
+		notify(player, Debris.blockedMessage(result.debris.kind, options.snip == true))
 	elseif result.blocked and not (result.changed or trimmed) and not options.quiet and not warnedRecently then
 		warnedAt[player] = os.clock()
 		notify(player, "That won't work here.")
 	end
 	if not result.changed or doneCount(entry.lawn) == entry.done then
-		return result.changed or trimmed
+		return result.changed or trimmed, result.struck
 	end
 
 	-- Something got finished: save it, and see whether the lawn's tidy now.
@@ -345,7 +363,21 @@ function HomeLawnService:ApplyWork(
 		end
 	end
 	entry.tidy = tidy
-	return true
+	return true, result.struck
+end
+
+-- Picks up the junk in their crew's lawn that `thing` is part of, if it's within `reach` studs of
+-- `from` (their eyes). It's never saved: a lawn rebuilt later hides its own.
+function HomeLawnService:PickUpDebris(player: Player, thing: Instance, from: Vector3, reach: number): (boolean, string?)
+	local entry = lawns[leaderOf(player)]
+	if not entry then
+		return false, nil
+	end
+	local debris, reason = entry.lawn:PickUpDebris(thing, from, reach)
+	if not debris then
+		return false, reason
+	end
+	return true, `Picked up the {debris.kind.name}.`
 end
 
 -- Lifecycle ----------------------------------------------------------------------------------

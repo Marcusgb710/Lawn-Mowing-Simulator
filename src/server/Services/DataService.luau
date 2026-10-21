@@ -20,7 +20,7 @@ local DataService = {}
 
 -- Bump this whenever the save format changes, and add a step to MIGRATIONS that turns the
 -- previous version into the new one. Never delete a step: old saves still need it.
-local DATA_VERSION = 8
+local DATA_VERSION = 9
 
 -- MIGRATIONS[n] turns a version n - 1 save into version n. Steps must keep money, xp and every
 -- owned item. Don't use the live config to read an old save: write down what it looked like.
@@ -128,6 +128,15 @@ local MIGRATIONS = {
 			placed = if typeof(saved.placed) == "table" then saved.placed else {},
 			boxes = if typeof(saved.boxes) == "table" then saved.boxes else {},
 		}
+	end,
+
+	-- 8 -> 9, starting out with grass shears. New players now start with free grass shears and buy
+	-- the reel mower. Up to now the reel mower was free starter gear that every save got on every
+	-- load, so it stays theirs. (reconcile() gives everyone the shears.)
+	[9] = function(data)
+		data.owned = if typeof(data.owned) == "table" then data.owned else {}
+		data.owned.Mower = if typeof(data.owned.Mower) == "table" then data.owned.Mower else {}
+		data.owned.Mower.ReelMower = true
 	end,
 }
 

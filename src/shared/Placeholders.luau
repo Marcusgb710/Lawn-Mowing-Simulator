@@ -819,6 +819,94 @@ local PROP_BUILDERS = {
 	end,
 }
 
+-- Junk hidden in the grass (Config/Debris.luau), built like the decorations: origin on the ground
+-- at the centre, front toward -Z, a "Root" part and `<Id>__Body` parts. All of it lies low, so it
+-- hides in tall grass.
+local function debrisAdder(model: Model, id: string)
+	local add = propAdder(model)
+	rootPart(model, add)
+	return function(props)
+		props.Name = id .. "__Body"
+		props.CanCollide = false
+		return add(props)
+	end
+end
+
+-- A dead stick with a short twig off one side.
+PROP_BUILDERS.DebrisStick = function(model: Model)
+	local add = debrisAdder(model, "DebrisStick")
+	local bark = Color3.fromRGB(110, 80, 50)
+	add({
+		Shape = Enum.PartType.Cylinder,
+		Size = Vector3.new(2.4, 0.2, 0.2),
+		CFrame = CFrame.new(0, 0.1, 0) * CFrame.Angles(0, math.rad(15), 0),
+		Color = bark,
+		Material = Enum.Material.Wood,
+	})
+	add({
+		Shape = Enum.PartType.Cylinder,
+		Size = Vector3.new(0.7, 0.12, 0.12),
+		CFrame = CFrame.new(0.35, 0.08, -0.25) * CFrame.Angles(0, math.rad(55), 0),
+		Color = bark,
+		Material = Enum.Material.Wood,
+	})
+end
+
+-- A fist-sized field stone.
+PROP_BUILDERS.DebrisRock = function(model: Model)
+	local add = debrisAdder(model, "DebrisRock")
+	add({
+		Size = Vector3.new(0.8, 0.5, 0.65),
+		CFrame = CFrame.new(0, 0.22, 0) * CFrame.Angles(math.rad(8), math.rad(25), math.rad(-6)),
+		Color = Color3.fromRGB(130, 130, 125),
+		Material = Enum.Material.Slate,
+	})
+end
+
+-- A dog's tennis ball.
+PROP_BUILDERS.DebrisDogBall = function(model: Model)
+	local add = debrisAdder(model, "DebrisDogBall")
+	add({
+		Shape = Enum.PartType.Ball,
+		Size = Vector3.new(0.55, 0.55, 0.55),
+		Position = Vector3.new(0, 0.275, 0),
+		Color = Color3.fromRGB(200, 230, 60),
+		Material = Enum.Material.Fabric,
+	})
+end
+
+-- A kid's plastic toy dump truck, facing -Z.
+PROP_BUILDERS.DebrisToyTruck = function(model: Model)
+	local add = debrisAdder(model, "DebrisToyTruck")
+	add({ Size = Vector3.new(0.55, 0.3, 1.1), Position = Vector3.new(0, 0.3, 0), Color = Color3.fromRGB(220, 50, 40) })
+	add({
+		Size = Vector3.new(0.5, 0.3, 0.35),
+		Position = Vector3.new(0, 0.6, -0.35),
+		Color = Color3.fromRGB(250, 210, 40),
+	})
+	for _, x in { -0.3, 0.3 } do
+		for _, z in { -0.35, 0.35 } do
+			add({
+				Shape = Enum.PartType.Cylinder,
+				Size = Vector3.new(0.12, 0.3, 0.3),
+				Position = Vector3.new(x, 0.15, z),
+				Color = Color3.fromRGB(30, 30, 30),
+			})
+		end
+	end
+end
+
+-- A plastic frisbee lying flat.
+PROP_BUILDERS.DebrisFrisbee = function(model: Model)
+	local add = debrisAdder(model, "DebrisFrisbee")
+	add({
+		Shape = Enum.PartType.Cylinder,
+		Size = Vector3.new(0.08, 1, 1),
+		CFrame = CFrame.new(0, 0.04, 0) * CFrame.Angles(0, 0, math.rad(90)),
+		Color = Color3.fromRGB(240, 130, 30),
+	})
+end
+
 -- Job computer desks, one per business tier.
 PROP_BUILDERS.JobLaptopTable = function(model: Model)
 	desk(model, "JobLaptopTable", Vector3.new(4.5, 0, 2.6), Color3.fromRGB(230, 230, 225), 1)

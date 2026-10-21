@@ -13,6 +13,8 @@
 --   MoveDecor    picks up one of your crew's yard decorations to move it (DecorOwner, DecorKey;
 --                R opens the mailbox), see DecorController
 --   DriveToJob   heads off in the crew truck
+--   PickUpDebris picks up junk hidden in a lawn's grass, whatever's in your hands (see
+--                Config/Debris.luau)
 --   PickUp       takes one of your tools out of storage (ToolId)
 --   PutBack      puts what you're carrying back in this free spot (SpotKind, SpotIndex)
 --   Unload       takes one of your tools back out of the truck (ToolId, OnlyFor)
@@ -287,6 +289,8 @@ local function targetFor(thing: Instance, item, hit: Instance?): Target?
 			return nil
 		end
 		return { action = "PutBackSupply", text = text, name = item.name, fits = true }
+	elseif action == "PickUpDebris" then
+		return { action = action, text = text, name = name, fits = true, instance = thing }
 	elseif action == "DriveToJob" or action == "UseComputer" then
 		if item then
 			return nil
@@ -607,6 +611,8 @@ local function perform(target: Target, second: boolean)
 		local _, message
 		if action == "DriveToJob" then
 			_, message = invoke("DriveToJob")
+		elseif action == "PickUpDebris" then
+			_, message = invoke("PickUpDebris", target.instance)
 		elseif action == "PickUp" then
 			_, message = invoke("PickUpTool", target.toolId)
 		elseif action == "Unload" then

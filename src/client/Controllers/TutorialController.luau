@@ -1,5 +1,6 @@
 -- Coaches a brand-new player through their first job, one step at a time, then goes away for
--- good. It never says which tool to use, only where to look (the Guide).
+-- good: the grass shears they start with, and picking up the junk hidden in the grass. Past the
+-- shears it never says which tool to use, only where to look (the Guide).
 
 local ClientState = require(script.Parent.Parent.ClientState)
 local UI = require(script.Parent.Parent.UI)
@@ -11,8 +12,9 @@ local banner: TextLabel
 -- What to tell a player who hasn't finished a job yet, given where they are.
 local function step(job): string
 	if not job then
-		return "Welcome to your lawn care business! Look at the computer in your shop and press E (or "
-			.. "tap the button), then take the first job in Jobs. Your reel mower is already in the truck."
+		return "Welcome to your lawn care business! You're starting from the bottom: a pair of grass "
+			.. "shears, already in the truck. Look at the computer in your shop and press E (or tap the "
+			.. "button), then take the first job in Jobs."
 	elseif job.state == "Ready" then
 		return "Read what the customer wants. Not sure what a tool is for? Tap Guide. Look at a tool in "
 			.. "storage and press E (or tap the button) to take it, put it in the truck bed, then look "
@@ -20,10 +22,13 @@ local function step(job): string
 	elseif job.state == "Traveling" then
 		return "On the way to the customer's house..."
 	elseif job.state == "Working" then
-		return "Work through the to-do list. Mowers cut while you hold them and walk; other tools "
-			.. "work while you hold the button. Stay off the flowers and gnomes!"
+		return "Shears cut a snip at a time: aim the dot at the grass and click (or tap Snip), or hold "
+			.. "it to keep snipping. Long grass takes a few snips. Sticks, toys and rocks hide in the "
+			.. "grass: look at one and press E (or tap the button) to pick it up before you cut there. "
+			.. "Stay off the flowers!"
 	end
-	return "Nice work, you got paid! Spend it in Orders, on the shop computer: cheap hand tools open up garden jobs."
+	return "Nice work, you got paid! A couple more jobs like that buys a push mower in Orders, on the "
+		.. "shop computer, and cheap hand tools open up garden jobs."
 end
 
 local function update()

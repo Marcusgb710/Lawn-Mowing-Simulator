@@ -22,6 +22,11 @@
 -- walkSpeed (your speed while using it), motorized (false = only cuts while you push) and ride.
 -- Ride-ons have `ride` (where you sit, or `stand` on a platform) and maybe `tows` (they can pull
 -- a tow-behind attachment).
+--
+-- Hand shears have `snip` instead of working while the button is held: each click (or tap of the
+-- Snip button, or every `interval` seconds while it's held down) cuts the one thing nearest where
+-- you aim, within `reach` studs of your eyes and `radius` studs of where the snip lands, doing
+-- `work` (see ToolService and docs/GAME_DESIGN.md, "Starting out").
 
 local Tools = {}
 
@@ -86,7 +91,8 @@ Tools.List = {
 		verbs = { "Mow" },
 		sizeClass = "FloorManual",
 		use = "Passive",
-		price = 0,
+		-- The first thing a new player buys: 2-3 jobs' pay with the starting shears (Jobs QuickMow).
+		price = 150,
 		power = 3,
 		radius = 2.5,
 		walkSpeed = 12,
@@ -201,17 +207,24 @@ Tools.List = {
 		name = "Grass Shears",
 		category = "Trimmer",
 		tier = "Homeowner",
+		-- No Mow verb (that would make their blade a mower's), but TaskTypes lists them for small
+		-- lawns: you can cut one by hand, a snip at a time.
 		verbs = { "Trim" },
 		sizeClass = "Hand",
 		use = "Hold",
-		price = 100,
+		-- Every new player starts with a pair.
+		price = 0,
 		power = 1,
 		radius = 3,
+		-- On a small lawn (a good fit, x0.8) a snip does 0.18 of a tile, so a tile takes 6 snips and
+		-- a weed 12. A dull pair takes a snip more.
+		snip = { interval = 0.5, work = 0.225, reach = 7.5, radius = 1.5 },
 		quality = 0.9,
 		engine = "None",
 		color = Color3.fromRGB(150, 150, 150),
-		description = "Hand grass shears. Short blades for snipping long grass and weeds along walls, "
-			.. "fences and posts where a mower can't reach. Precise, but slow going.",
+		description = "Hand grass shears. Short, sharp blades that cut grass one snip at a time: slow "
+			.. "going, but careful work gets a small lawn done, and they're precise along walls, fences "
+			.. "and posts where a mower can't reach. Anything hidden in the grass has to come out first.",
 	},
 	{
 		id = "ElectricTrimmer",

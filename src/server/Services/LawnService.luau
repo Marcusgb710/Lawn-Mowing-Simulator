@@ -13,6 +13,9 @@
 --                  ========= sidewalk ==========================
 --                  ============ road (truck parks here) ========
 --
+-- A lawn that needs mowing also hides some junk in its uncut grass (sticks, toys, rocks; see
+-- Config/Debris.luau), to pick up before cutting there.
+--
 -- Everything uses the Lawn Mowing kit (Assets.Kit) when it's there and falls back to blocks.
 -- Grass is special: the server only tracks which tiles are mowed (see LawnGrid) and each client
 -- draws the grass itself (see GrassController), which keeps big lawns cheap on phones.
@@ -21,6 +24,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Assets = require(Shared.Assets)
+local Debris = require(Shared.Config.Debris)
 local GameConfig = require(Shared.Config.GameConfig)
 local LawnGrid = require(Shared.LawnGrid)
 local TaskTypes = require(Shared.Config.TaskTypes)
@@ -126,10 +130,16 @@ end
 -- How each kind of yard target looks as it gets worked on. `fraction` goes from 0 (untouched)
 -- to 1 (done). The kinds match TaskTypes' `target` field.
 local VISUALS = {
-	-- A dull blade leaves it torn and ragged (see GrassController).
+	-- A dull blade leaves it torn and ragged (see GrassController). Cut by hand, a snip at a time,
+	-- it gets shorter on the way.
 	Grass = function(target, fraction: number)
 		if fraction >= 1 then
 			target.lawn:_setGrass(target.index, if target.raggedCut then LawnGrid.RAGGED else LawnGrid.MOWED)
+		elseif target.handCut then
+			local state = LawnGrid.partlyCut(fraction)
+			if target.lawn.grassState[target.index] ~= state then
+				target.lawn:_setGrass(target.index, state)
+			end
 		end
 	end,
 
@@ -1827,6 +1837,142 @@ function Lawn:_buildDandelions(task, rng: Random, hazardTiles)
 	end
 end
 
+-- Junk in the grass ----------------------------------------------------------------------------
+-- Sticks, toys and rocks hidden in the uncut grass, for players to spot and pick up before they
+-- cut there (see Config/Debris.luau). Each piece is { kind, model, position, index (its grass
+-- tile) }. `debris` lists the ones still on the lawn and `debrisByTile` finds them by tile;
+-- `debrisCounts` says how many there were, and how many got picked up or chewed up by a mower.
+
+-- Puts a piece of `kind` somewhere on grass tile `target`, turned any which way. Players look at
+-- it and press E to pick it up (see InteractController).
+function Lawn:_placeDebris(target, kind, rng: Random)
+	if not self.debrisFolder then
+		self.debrisFolder = Instance.new("Folder")
+		self.debrisFolder.Name = "Debris"
+		self.debrisFolder.Parent = self.folder
+	end
+	local model = Assets.prop(kind.id)
+	Assets.anchor(model)
+	for _, part in model:GetDescendants() do
+		if part:IsA("BasePart") then
+			part.CanCollide = false
+			part.CanTouch = false
+			-- Players aim at it to pick it up; an invisible Root doesn't count.
+			part.CanQuery = part.Transparency < 1
+		end
+	end
+	local spread = GameConfig.TileSize * 0.3
+	local position = target.position + Vector3.new(rng:NextNumber(-spread, spread), 0, rng:NextNumber(-spread, spread))
+	Assets.placeOnGround(
+		model,
+		CFrame.new(position + Vector3.new(0, 0.03, 0)) * CFrame.Angles(0, rng:NextNumber(0, math.pi * 2), 0)
+	)
+	model:SetAttribute("Interact", "PickUpDebris")
+	model:SetAttribute("InteractText", "Pick up")
+	model:SetAttribute("InteractName", kind.label)
+	model.Parent = self.debrisFolder
+	local debris = { kind = kind, model = model, position = position, index = target.index }
+	table.insert(self.debris, debris)
+	self.debrisByTile[target.index] = debris
+	self.debrisCounts.total += 1
+	return debris
+end
+
+-- Hides `count` pieces of junk in the uncut grass, a tile or more apart and away from the flowers.
+function Lawn:_buildDebris(task, count: number, rng: Random)
+	local candidates = {}
+	for _, target in task.targets do
+		if not target.optional then
+			table.insert(candidates, target)
+		end
+	end
+	local used = {}
+	for _ = 1, count * 20 do
+		if #used >= count or #candidates == 0 then
+			break
+		end
+		local target = candidates[rng:NextInteger(1, #candidates)]
+		local column, row = LawnGrid.cell(target.index, self.rows)
+		local crowded = false
+		for _, other in used do
+			if math.abs(other.column - column) < 2 and math.abs(other.row - row) < 2 then
+				crowded = true
+				break
+			end
+		end
+		if not crowded then
+			table.insert(used, { column = column, row = row })
+			self:_placeDebris(target, Debris.pick(rng:NextNumber()), rng)
+		end
+	end
+end
+
+-- The junk lying on grass tile `index`, if there is any.
+function Lawn:_debrisOn(index: number?)
+	return if index then self.debrisByTile[index] else nil
+end
+
+-- Takes a piece off the lawn: `how` it went ("picked" up or "hit" by a mower), or nil to just
+-- tidy it away.
+function Lawn:_removeDebris(debris, how: string?)
+	local index = table.find(self.debris, debris)
+	if not index then
+		return
+	end
+	table.remove(self.debris, index)
+	self.debrisByTile[debris.index] = nil
+	debris.model:Destroy()
+	if how then
+		self.debrisCounts[how] += 1
+	end
+end
+
+-- A motorized mower ran over it: it's chewed up, and bits of it fly out from under the deck.
+function Lawn:_strike(debris)
+	self:_removeDebris(debris, "hit")
+	local burst = Instance.new("Attachment")
+	burst.Name = "DebrisBits"
+	burst.Position = debris.position + Vector3.new(0, 0.3, 0)
+	local bits = Instance.new("ParticleEmitter")
+	bits.Color = ColorSequence.new(debris.kind.color)
+	bits.Size = NumberSequence.new(0.2)
+	bits.Lifetime = NumberRange.new(0.4, 0.8)
+	bits.Rate = 60
+	bits.Speed = NumberRange.new(8, 14)
+	bits.SpreadAngle = Vector2.new(70, 70)
+	bits.Acceleration = Vector3.new(0, -40, 0)
+	bits.Parent = burst
+	burst.Parent = workspace.Terrain
+	task.delay(0.25, function()
+		bits.Enabled = false
+	end)
+	task.delay(1.5, function()
+		burst:Destroy()
+	end)
+end
+
+-- Picks up the piece of junk that `thing` is part of, if it's still on the lawn and within
+-- `reach` studs of `from` (the player's eyes). Returns it, or nil and why not.
+function Lawn:PickUpDebris(thing: Instance, from: Vector3, reach: number): (any?, string?)
+	for _, debris in self.debris do
+		if thing == debris.model or thing:IsDescendantOf(debris.model) then
+			if (debris.position - from).Magnitude > reach then
+				return nil, "Get a little closer."
+			end
+			self:_removeDebris(debris, "picked")
+			return debris, nil
+		end
+	end
+	return nil, nil
+end
+
+-- How the junk in the grass went: { total, picked (up), hit (chewed up by a mower), left (still
+-- on the lawn) }.
+function Lawn:DebrisCounts(): { total: number, picked: number, hit: number, left: number }
+	local counts = self.debrisCounts
+	return { total = counts.total, picked = counts.picked, hit = counts.hit, left = #self.debris }
+end
+
 -- Public API ---------------------------------------------------------------------------------
 
 -- `origin` is the front-left corner of the lawn, where it meets the sidewalk.
@@ -1862,6 +2008,11 @@ function LawnService:Build(template, origin: Vector3, address: string, condition
 		thatch = layout.thatch,
 		probed = false,
 		home = conditions and conditions.home == true,
+		-- Junk hidden in the grass (see "Junk in the grass" above).
+		debris = {},
+		debrisByTile = {},
+		debrisCounts = { total = 0, picked = 0, hit = 0 },
+		rng = rng,
 	}, Lawn)
 
 	-- Which task each kind of yard target belongs to (one task per kind).
@@ -1935,6 +2086,10 @@ function LawnService:Build(template, origin: Vector3, address: string, condition
 	if not lawn.home then
 		lawn:_buildDecor(rng)
 	end
+	-- Last, so a home lawn's seeded layout (weeds, leaves) stays where it always was.
+	if byTarget.Grass then
+		lawn:_buildDebris(byTarget.Grass, Debris.countFor(template), rng)
+	end
 
 	-- The truck parks on the road facing along the curb; the crew hops out onto the sidewalk.
 	lawn.truckCFrame = CFrame.new(origin + Vector3.new(lawn.width / 2, 0.2, -SIDEWALK_DEPTH - 5))
@@ -1960,6 +2115,10 @@ export type WorkResult = {
 	hurt: string?,
 	-- Something worth telling the player (a barrow filled up, tipped over...).
 	message: string?,
+	-- Junk hidden in the grass that stopped the tool cutting there (see "Junk in the grass").
+	debris: any?,
+	-- Junk a motorized mower just ran over and chewed up.
+	struck: { any },
 }
 
 -- Who's doing the work and how, for things that depend on it.
@@ -1968,12 +2127,18 @@ export type WorkResult = {
 --   moving       whether they're walking
 --   seconds      how long this bit of work took
 --   ragged       a dull blade: mowed grass is left torn
+--   closest      a snip of hand shears: only the one thing nearest `position` gets cut, and grass
+--                gets shorter with every snip
+--   strikes      a motorized mower: it runs over junk hidden in the grass (and chews it up)
+--                instead of stopping at it
 export type WorkContext = {
 	protections: { [string]: boolean }?,
 	holder: any?,
 	moving: boolean?,
 	seconds: number?,
 	ragged: boolean?,
+	closest: boolean?,
+	strikes: boolean?,
 }
 
 -- Targets that cover the whole lawn. Walking a tool across them on the way to its real work isn't
@@ -1984,8 +2149,60 @@ local LAWN_WIDE = { Grass = true, Fertilize = true, Thatch = true, Aerate = true
 local TIP_CHANCE = 0.05
 local tipRng = Random.new()
 
+-- Does `amount` of work (what a perfectly fitting tool would do) on one target with a tool that
+-- fits its task, and adds it to `result`. `fits` is every task's fit for the tool.
+function Lawn:_work(task, target, fit, toolId: string, amount: number, context: WorkContext?, result, fits)
+	-- Renovation steps depend on what's been done before (and may not count yet).
+	local scale = 1
+	if task.type.step then
+		-- A tool that can do two steps (a spreader seeds and feeds) does the earlier one first.
+		for _, other in self.tasks do
+			local otherTarget = other.byIndex and target.index and other.byIndex[target.index]
+			if
+				other.type.step
+				and other.type.step < task.type.step
+				and fits[other]
+				and otherTarget
+				and otherTarget.work > 0
+			then
+				return
+			end
+		end
+		local counts
+		counts, scale = self:_renovation(task, target)
+		if not counts then
+			-- Watering unseeded soil still wets it, which helps aerating.
+			result.changed = true
+			if not self.wetNoticeSent then
+				self.wetNoticeSent = true
+				result.message = "The soil soaks the water up."
+			end
+			return
+		end
+	end
+	-- Some targets are harder for some tools (rocky ground).
+	local hit = target.speedHits and target.speedHits[toolId] or 1
+	local applied = math.min(target.work, amount * fit.speed * hit)
+	target.work -= applied
+	target.raggedCut = context ~= nil and context.ragged == true
+	target.handCut = context ~= nil and context.closest == true
+	VISUALS[target.kind](target, 1 - target.work / target.maxWork)
+	if target.work <= 0 then
+		target.work = 0
+		task.done += 1
+		if task.type.step then
+			self:_finishRenovation(task, target, result)
+		end
+	end
+	result.changed = true
+	result.work += applied
+	result.fitWork += applied * fit.pay
+	result.qualityWork += applied * fit.quality * scale
+end
+
 -- Uses tool `toolId` on everything within `radius` of `position` that it can work on. `amount`
--- is the work a perfectly fitting tool would do this tick; worse fits do less.
+-- is the work a perfectly fitting tool would do this tick; worse fits do less. A snip of hand
+-- shears (`closest`) only works the one thing nearest `position`.
 function Lawn:ApplyWork(
 	position: Vector3,
 	radius: number,
@@ -1993,9 +2210,20 @@ function Lawn:ApplyWork(
 	amount: number,
 	context: WorkContext?
 ): WorkResult
-	local result =
-		{ changed = false, blocked = false, work = 0, fitWork = 0, qualityWork = 0, hurt = nil, message = nil }
+	local result = {
+		changed = false,
+		blocked = false,
+		work = 0,
+		fitWork = 0,
+		qualityWork = 0,
+		hurt = nil,
+		message = nil,
+		debris = nil,
+		struck = {},
+	}
 	local protections = context and context.protections
+	local closest = context ~= nil and context.closest == true
+	local strikes = context ~= nil and context.strikes == true
 
 	local fits = {}
 	local usefulHere = false
@@ -2006,10 +2234,16 @@ function Lawn:ApplyWork(
 		end
 	end
 
+	-- For a snip: the nearest thing in reach, { task, target, distance }, and whether there's
+	-- lawn-wide work in reach this tool can't do.
+	local nearest = nil
+	local underneath = false
 	for _, task in self.tasks do
 		local fit = fits[task]
 		if task.haul then
-			self:_applyHaul(task, fit, position, radius, toolId, amount, context, result)
+			if not closest then
+				self:_applyHaul(task, fit, position, radius, toolId, amount, context, result)
+			end
 			continue
 		end
 		local needs = task.type.protection
@@ -2019,7 +2253,20 @@ function Lawn:ApplyWork(
 				continue
 			end
 			local offset = target.position - position
-			if Vector2.new(offset.X, offset.Z).Magnitude > radius + target.reach then
+			local distance = Vector2.new(offset.X, offset.Z).Magnitude
+			if distance > radius + target.reach then
+				continue
+			end
+			if closest then
+				if fit or not LAWN_WIDE[target.kind] then
+					if not nearest or distance < nearest.distance then
+						nearest = { task = task, target = target, distance = distance }
+					end
+				else
+					-- Lawn-wide work this tool can't do lies under everything else: it only
+					-- matters when there's nothing else here.
+					underneath = true
+				end
 				continue
 			end
 			if not fit then
@@ -2032,57 +2279,36 @@ function Lawn:ApplyWork(
 				result.hurt = needs
 				break
 			end
-			-- Renovation steps depend on what's been done before (and may not count yet).
-			local scale = 1
-			if task.type.step then
-				-- A tool that can do two steps (a spreader seeds and feeds) does the earlier one first.
-				local earlier = false
-				for _, other in self.tasks do
-					local otherTarget = other.byIndex and target.index and other.byIndex[target.index]
-					if
-						other.type.step
-						and other.type.step < task.type.step
-						and fits[other]
-						and otherTarget
-						and otherTarget.work > 0
-					then
-						earlier = true
-						break
-					end
-				end
-				if earlier then
+			-- Junk hidden in the grass: a motorized mower runs over it, anything else stops there.
+			local debris = target.kind == "Grass" and self:_debrisOn(target.index)
+			if debris then
+				if not strikes then
+					result.debris = result.debris or debris
 					continue
 				end
-				local counts
-				counts, scale = self:_renovation(task, target)
-				if not counts then
-					-- Watering unseeded soil still wets it, which helps aerating.
-					result.changed = true
-					if not self.wetNoticeSent then
-						self.wetNoticeSent = true
-						result.message = "The soil soaks the water up."
-					end
-					continue
-				end
+				self:_strike(debris)
+				table.insert(result.struck, debris)
 			end
-			-- Some targets are harder for some tools (rocky ground).
-			local hit = target.speedHits and target.speedHits[toolId] or 1
-			local applied = math.min(target.work, amount * fit.speed * hit)
-			target.work -= applied
-			target.raggedCut = context ~= nil and context.ragged == true
-			VISUALS[target.kind](target, 1 - target.work / target.maxWork)
-			if target.work <= 0 then
-				target.work = 0
-				task.done += 1
-				if task.type.step then
-					self:_finishRenovation(task, target, result)
-				end
-			end
-			result.changed = true
-			result.work += applied
-			result.fitWork += applied * fit.pay
-			result.qualityWork += applied * fit.quality * scale
+			self:_work(task, target, fit, toolId, amount, context, result, fits)
 		end
+	end
+
+	if nearest then
+		local task, target = nearest.task, nearest.target
+		local fit = fits[task]
+		local needs = task.type.protection
+		local debris = target.kind == "Grass" and self:_debrisOn(target.index)
+		if not fit then
+			result.blocked = true
+		elseif needs and not (protections and protections[needs]) then
+			result.hurt = needs
+		elseif debris then
+			result.debris = debris
+		else
+			self:_work(task, target, fit, toolId, amount, context, result, fits)
+		end
+	elseif underneath then
+		result.blocked = true
 	end
 
 	-- One attribute update per tick, however many tiles just got mowed.
@@ -2251,19 +2477,25 @@ local function flushGrass(lawn)
 	end
 end
 
--- Marks a target done without anyone working on it (a home lawn as it was left last time).
+-- Marks a target done without anyone working on it (a home lawn as it was left last time). Grass
+-- that was cut had nothing left in it.
 function Lawn:Finish(target)
 	if target.work <= 0 then
 		return
 	end
 	target.work = 0
 	target.task.done += 1
+	local debris = target.kind == "Grass" and self:_debrisOn(target.index)
+	if debris then
+		self:_removeDebris(debris)
+	end
 	VISUALS[target.kind](target, 1)
 	flushGrass(self)
 end
 
 -- Grows a finished target back: tall grass, an overgrown edge, a weed or a leaf pile again.
--- Only grass, edges, weeds and leaves can.
+-- Only grass, edges, weeds and leaves can. Now and then something turns up in a home lawn's grass
+-- as it grows back (Debris.HomeRegrowChance).
 function Lawn:Regrow(target): boolean
 	if target.work > 0 or not (target.kind == "Grass" or target.regrow) then
 		return false
@@ -2273,6 +2505,9 @@ function Lawn:Regrow(target): boolean
 	if target.kind == "Grass" then
 		self:_setGrass(target.index, LawnGrid.TALL)
 		flushGrass(self)
+		if self.home and #self.debris < Debris.HomeMax and self.rng:NextNumber() < Debris.HomeRegrowChance then
+			self:_placeDebris(target, Debris.pick(self.rng:NextNumber()), self.rng)
+		end
 	else
 		target.regrow(target)
 	end

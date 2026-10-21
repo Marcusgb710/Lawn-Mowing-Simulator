@@ -49,7 +49,8 @@ TaskTypes.List = {
 		workPerTarget = 1,
 		grassHeight = 3,
 		ideal = { "ReelMower", "GasPushMower", "SelfPropelledMower" },
-		good = { "RidingMower", "StandOnMower" },
+		-- Hand grass shears cut a small lawn too, by hand, a snip at a time (nothing bigger).
+		good = { "RidingMower", "StandOnMower", "GardenShears" },
 	},
 	{
 		id = "MowMediumLawn",
