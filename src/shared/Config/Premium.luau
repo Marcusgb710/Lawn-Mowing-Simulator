@@ -6,10 +6,9 @@
 --   Paints    paint jobs for your truck: looks only
 --
 -- Prices are in Robux and only shown in the game: what a player actually pays is what the game
--- pass or developer product is set to on Roblox. Make each one on the Creator Dashboard (game
--- passes under Monetization > Passes, the rest under Monetization > Developer Products) at the
--- price here, and put its id in `gamePassId` or `productId`. Until it has one, the shop shows
--- "Soon" and can't sell it.
+-- pass or developer product is set to on Roblox. To add one, put it here with id 0 and run
+-- `python3 scripts/premium-setup.py`: it creates it on Roblox at this price, puts it on sale and
+-- writes its id in. Until it has an id, the shop shows "Soon" and can't sell it.
 --
 -- What a player owns is saved in their data as `premium`:
 --   { owned = { [variant or paint id] = true }, passes = { [pass id] = true },
@@ -108,7 +107,7 @@ Premium.Variants = {
 		name = "Chrome Leaf Blower",
 		description = "Your leaf blower in mirror chrome, with a tank that lasts three times as long.",
 		robux = 149,
-		productId = 0,
+		productId = 3720660280,
 		finish = "Chrome",
 		perks = { bigTank = true },
 	},
@@ -129,7 +128,7 @@ Premium.Variants = {
 		description = "Your zero-turn in matte black. Its blades never dull, its tires never go flat and its "
 			.. "tank lasts three times as long.",
 		robux = 799,
-		productId = 0,
+		productId = 3720660282,
 		finish = "Stealth",
 		perks = { neverDull = true, neverFlat = true, bigTank = true },
 	},
@@ -139,12 +138,24 @@ Premium.Variants = {
 -- it for one of the finishes above.
 Premium.Paints = {
 	{ id = "RacingRed", name = "Racing Red", robux = 49, productId = 3720356546, tint = Color3.fromRGB(196, 40, 36) },
-	{ id = "MidnightBlack", name = "Midnight Black", robux = 49, productId = 0, tint = Color3.fromRGB(40, 42, 48) },
-	{ id = "ForestGreen", name = "Forest Green", robux = 49, productId = 0, tint = Color3.fromRGB(46, 110, 58) },
-	{ id = "SkyBlue", name = "Sky Blue", robux = 49, productId = 0, tint = Color3.fromRGB(90, 160, 220) },
-	{ id = "StealthWrap", name = "Stealth Wrap", robux = 99, productId = 0, finish = "Stealth" },
-	{ id = "ChromeWrap", name = "Chrome Wrap", robux = 149, productId = 0, finish = "Chrome" },
-	{ id = "GoldWrap", name = "Gold Wrap", robux = 149, productId = 0, finish = "Gold" },
+	{
+		id = "MidnightBlack",
+		name = "Midnight Black",
+		robux = 49,
+		productId = 3720660284,
+		tint = Color3.fromRGB(40, 42, 48),
+	},
+	{
+		id = "ForestGreen",
+		name = "Forest Green",
+		robux = 49,
+		productId = 3720660287,
+		tint = Color3.fromRGB(46, 110, 58),
+	},
+	{ id = "SkyBlue", name = "Sky Blue", robux = 49, productId = 3720660293, tint = Color3.fromRGB(90, 160, 220) },
+	{ id = "StealthWrap", name = "Stealth Wrap", robux = 99, productId = 3720660297, finish = "Stealth" },
+	{ id = "ChromeWrap", name = "Chrome Wrap", robux = 149, productId = 3720660305, finish = "Chrome" },
+	{ id = "GoldWrap", name = "Gold Wrap", robux = 149, productId = 3720660307, finish = "Gold" },
 }
 
 local byId = {}

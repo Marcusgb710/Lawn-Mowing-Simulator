@@ -220,11 +220,8 @@ One PR per phase, each stacked on the one before. Every phase still needs a Stud
       - a paint job repaints the parked truck, the drive cutscene truck and the truck at the
         job, and "Factory paint" puts it back;
       - buying the same product twice doesn't break anything, and purchases survive a rejoin.
-      - Still to do on the Creator Dashboard (as of 2026-10-20): put the four passes on sale at
-        199 / 149 / 99 / 99 (they exist but are offsale), and create the eight products that
-        still have `productId = 0`: Chrome Leaf Blower (149), Stealth Zero-Turn (799), Midnight
-        Black, Forest Green and Sky Blue (49 each), Stealth Wrap (99), Chrome Wrap and Gold Wrap
-        (149 each), with Managed pricing off like the others.
+      - All 4 passes and 13 products are made and on sale at their catalog prices (2026-10-21).
+        `scripts/premium-setup.py` creates or re-prices anything added to `Premium.luau` later.
 
 ## Before release
 
