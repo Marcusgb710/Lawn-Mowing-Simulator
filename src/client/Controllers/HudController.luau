@@ -327,6 +327,18 @@ local function resultText(result): string
 	if (result.curbBonus or 1) > 1 then
 		table.insert(lines, `Curb appeal {result.curbAppeal} +{Format.percent(result.curbBonus - 1)}`)
 	end
+	-- Junk in the grass left behind or chewed up (its cost is in the damage).
+	local left, hit = result.debrisLeft or 0, result.debrisHit or 0
+	if left > 0 or hit > 0 then
+		local parts = {}
+		if left > 0 then
+			table.insert(parts, `{left} left in the grass`)
+		end
+		if hit > 0 then
+			table.insert(parts, `{hit} chewed up by a mower`)
+		end
+		table.insert(lines, `Junk: {table.concat(parts, ", ")}`)
+	end
 	if result.penalty > 0 then
 		table.insert(lines, `Damage -{Format.money(result.penalty)}`)
 	end
@@ -432,6 +444,19 @@ local function updateJob()
 		local fraction = if info.needed > 0 then info.done / info.needed else 1
 		row.fill.Size = UDim2.fromScale(fraction, 1)
 		row.fill.BackgroundColor3 = if fraction >= 1 then UI.Colors.Money else UI.Colors.Accent
+	end
+	-- Junk hidden in the grass: how much has been found (it costs if it's left, or run over).
+	local debris = job.debris
+	if debris and debris.total > 0 then
+		local row = getTaskRow("Debris", #job.tasks + 1)
+		row.label.Text = `Pick up junk in the grass  {debris.picked}/{debris.total}`
+			.. (if debris.hit > 0 then `  ({debris.hit} chewed up)` else "")
+		local fraction = (debris.picked + debris.hit) / debris.total
+		row.fill.Size = UDim2.fromScale(fraction, 1)
+		row.fill.BackgroundColor3 = if debris.hit > 0
+			then UI.Colors.Danger
+			elseif fraction >= 1 then UI.Colors.Money
+			else UI.Colors.Accent
 	end
 end
 

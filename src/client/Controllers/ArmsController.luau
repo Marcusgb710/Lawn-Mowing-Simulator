@@ -8,7 +8,8 @@
 -- The tool in your hands is posed for the view too, on your screen only (everyone else sees the
 -- normal pose, and the work still happens just in front of you): machines and string trimmers
 -- stand on the ground ahead of you the way they were modelled, rakes and shovels lean out ahead,
--- small hand tools sit low on the right. Nothing gets closer to the camera than
+-- small hand tools sit low on the right (grass shears tipped down at the grass you aim at, jabbing
+-- forward with every snip). Nothing gets closer to the camera than
 -- CAMERA_CLEARANCE. A model can say exactly where the hands go with Attachments named GripLeft
 -- and GripRight; otherwise they go where that kind of tool is usually held.
 
@@ -62,6 +63,13 @@ local REACH_SIDE, REACH_AHEAD = 0.3, 1.1
 -- They follow part of the way when you look up or down.
 local HAND_POSE = CFrame.new(0.62, -0.72, -1.55) * CFrame.Angles(math.rad(-12), math.rad(-6), 0)
 local HAND_PITCH_FOLLOW = 0.7
+-- Grass shears (`snip` in Tools.luau) sit a little lower and nearer the middle, tipped down so
+-- their blades point at the grass you're aiming at, and follow your view nearly all the way.
+-- Each snip jabs them forward and down (SNIP_JAB, at its furthest halfway through SNIP_TIME).
+local SNIP_POSE = CFrame.new(0.45, -0.7, -1.6) * CFrame.Angles(math.rad(-28), math.rad(-5), 0)
+local SNIP_PITCH_FOLLOW = 0.9
+local SNIP_JAB = CFrame.new(0, -0.12, -0.3) * CFrame.Angles(math.rad(-15), 0, 0)
+local SNIP_TIME = 0.18
 -- Ride-on controls (steering wheel or lap bars), from the camera, unless the model has grips.
 local RIDE_RIGHT = Vector3.new(0.5, -1, -1.45)
 
@@ -99,6 +107,8 @@ local fromRight: Vector3? = nil
 local fromLeft: Vector3? = nil
 local shownRight: Vector3? = nil
 local shownLeft: Vector3? = nil
+-- When you last snipped with grass shears (see ArmsController.snip).
+local snippedAt = -math.huge
 
 local function ease(alpha: number): number
 	return alpha * alpha * (3 - 2 * alpha)
@@ -159,6 +169,8 @@ end
 local function holdOf(item, shape: Shape): string
 	if item and item.onBack then
 		return "Back"
+	elseif item and item.snip then
+		return "Hand"
 	end
 	local hold = item and HOLDS[item.sizeClass]
 	return hold or (if shape.below >= REACH_DEPTH then "Reach" else "Hand")
@@ -214,17 +226,27 @@ local function longPose(shape: Shape, camera: Vector3): CFrame
 	return clearCamera(shape, CFrame.new(LONG_SIDE, 0.05 - lowest, -LONG_AHEAD) * lean, camera)
 end
 
--- Small tools, from the camera: low on the right, following your view part of the way.
-local function handPose(shape: Shape, body: CFrame, view: CFrame): CFrame
+-- Small tools, from the camera: at `base` (low on the right), following your view `follow` of the
+-- way when you look up or down.
+local function handPose(shape: Shape, body: CFrame, view: CFrame, base: CFrame, follow: number): CFrame
 	local pitch = math.asin(math.clamp(view.LookVector.Y, -1, 1))
 	local frame = CFrame.new(view.Position)
 		* body.Rotation
-		* CFrame.Angles(math.clamp(pitch, -0.95, 0.5) * HAND_PITCH_FOLLOW, 0, 0)
+		* CFrame.Angles(math.clamp(pitch, -0.95, 0.5) * follow, 0, 0)
 	local push = 0
 	for _, corner in shape.corners do
-		push = math.max(push, (HAND_POSE * corner).Z + CAMERA_CLEARANCE)
+		push = math.max(push, (base * corner).Z + CAMERA_CLEARANCE)
 	end
-	return frame * CFrame.new(0, 0, -math.min(push, 2)) * HAND_POSE
+	return frame * CFrame.new(0, 0, -math.min(push, 2)) * base
+end
+
+-- Where grass shears sit right now: jabbing forward and down just after a snip.
+local function snipPose(): CFrame
+	local since = os.clock() - snippedAt
+	if since >= SNIP_TIME then
+		return SNIP_POSE
+	end
+	return CFrame.new():Lerp(SNIP_JAB, math.sin(math.pi * since / SNIP_TIME)) * SNIP_POSE
 end
 
 local function restorePose()
@@ -320,7 +342,8 @@ local function grips(held: Instance, character: Model, body: CFrame, view: CFram
 			return nil, nil
 		end
 		local shape = shapeOf(held, handle)
-		local hold = holdOf(itemOf(held:GetAttribute("ItemId")), shape)
+		local item = itemOf(held:GetAttribute("ItemId"))
+		local hold = holdOf(item, shape)
 		if hold == "Back" then
 			-- Modelled as worn (the pack behind your hand, the wand ahead), so the normal hold works.
 			restorePose()
@@ -333,8 +356,10 @@ local function grips(held: Instance, character: Model, body: CFrame, view: CFram
 			pose = body * longPose(shape, camera)
 		elseif hold == "Reach" then
 			pose = body * clearCamera(shape, CFrame.new(REACH_SIDE, shape.below + 0.05, -REACH_AHEAD), camera)
+		elseif item and item.snip then
+			pose = handPose(shape, body, view, snipPose(), SNIP_PITCH_FOLLOW)
 		else
-			pose = handPose(shape, body, view)
+			pose = handPose(shape, body, view, HAND_POSE, HAND_PITCH_FOLLOW)
 		end
 		-- Machines stay on the ground; everything else comes up into view.
 		if hold ~= "Machine" then
@@ -495,6 +520,11 @@ local function update(deltaTime: number)
 	setVisible(true)
 	placeArm(armParts.Right, rightShoulder, body * (shownRight :: Vector3), body.RightVector, body)
 	placeArm(armParts.Left, leftShoulder, body * (shownLeft :: Vector3), -body.RightVector, body)
+end
+
+-- Jabs the grass shears in your hands forward for a snip (see SnipController).
+function ArmsController.snip()
+	snippedAt = os.clock()
 end
 
 function ArmsController:Start()

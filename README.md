@@ -94,15 +94,19 @@ Services*. Without it the game still runs, it just doesn't save progress.
    prune shrubs and roses (bring gloves for the thorns) and water beds and seedlings. Serious
    jobs dig planting holes (some in rocky ground), lift sod, loosen and turn beds, spread mulch,
    cut branches, haul soil, stone and leaves from a delivered pile with a barrow (one wheel can
-   tip!), feed the lawn and spot-spray weeds (with chemical gloves). Mowers work while equipped; every other
-   tool works while you hold the mouse button. A tool that can't do a job says "That won't work
-   here"; a tool that can but isn't the best fit works slower and pays less.
+   tip!), feed the lawn and spot-spray weeds (with chemical gloves). Mowers work while equipped;
+   grass shears (what everyone starts with) cut one snip at a time where you aim (click, or hold
+   to keep snipping); every other tool works while you hold the mouse button. Sticks, toys and
+   rocks hide in the grass: pick them up (E) before you cut there, or a mower chews them up and
+   blunts its blade. A tool that can't do a job says "That won't work here"; a tool that can but
+   isn't the best fit works slower and pays less.
 6. **Get paid.** Pay depends on:
    - **Tool fit:** the right tools pay in full, okay ones 80%, poor ones 55%.
    - **Finish and speed:** how clean the work is (reel mowers cut cleanest) and how it compares
      to the par time, weighted by what the customer cares about.
    - **Accuracy:** each flower patch or garden gnome you run over with a mower, trimmer or edger
-     costs 10% of the job's pay.
+     costs 10% of the job's pay, and each bit of junk left in the grass (or chewed up by a mower)
+     4% and a little of the finish.
    - **Bonuses:** bigger crews, better trucks, a bigger business and your business's **curb
      appeal** all pay more.
    The money is split evenly across the crew, then the truck drives everyone back to the business.
@@ -116,8 +120,8 @@ Services*. Without it the game still runs, it just doesn't save progress.
    by hand: set the machine down in front of the workbench (hand tools go in its vise) or behind
    the truck on a job, then hold a supply, look at it and hold E to pour, pump, plug, wind or
    sharpen. A mower's blade comes off with the wrench first.
-8. **Upgrade.** Order better tools on the shop computer's **Orders** app (reel push mower → gas →
-   self propelled → riding → zero-turn, and so on for each tool): they're delivered in a box to
+8. **Upgrade.** Order better tools on the shop computer's **Orders** app (grass shears → reel push
+   mower → gas → self propelled → riding → zero-turn, and so on for each tool): they're delivered in a box to
    your shop a few seconds later, and you open it and put the tool away. Trucks, trailers and
    building upgrades are in the **Business** app. Serious gear needs level 3 and a garage; pro
    gear needs level 8 and a small office. Sell what you don't use from the Orders app.

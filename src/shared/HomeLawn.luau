@@ -1,13 +1,15 @@
 -- Your business's own front lawn and its curb appeal (docs/GAME_DESIGN.md, "Your own lawn"): the
 -- rules HomeLawnService, JobService and the HUD share.
 
+local Debris = require(script.Parent.Config.Debris)
 local Decorations = require(script.Parent.Config.Decorations)
 local GameConfig = require(script.Parent.Config.GameConfig)
 
 local HomeLawn = {}
 
 -- What's on it, besides the grass: the edge along the sidewalk and driveway, a few weeds and the
--- odd pile of leaves. The same task types as customers' lawns, so the same tools fit.
+-- odd pile of leaves. The same task types as customers' lawns, so the same tools fit. A stick or
+-- two hides in the grass too (more turn up as it grows back, see Debris.HomeRegrowChance).
 local TASKS = {
 	{ type = "MowSmallLawn" },
 	{ type = "EdgeSidewalk" },
@@ -18,7 +20,7 @@ local TASKS = {
 -- The lawn to build (see LawnService:Build), this many tiles across and deep.
 function HomeLawn.template(columns: number, rows: number)
 	return {
-		lawn = { columns = columns, rows = rows, flowerPatches = 0 },
+		lawn = { columns = columns, rows = rows, flowerPatches = 0, debris = Debris.Home },
 		tasks = table.clone(TASKS),
 	}
 end

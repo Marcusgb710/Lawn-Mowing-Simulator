@@ -1,6 +1,6 @@
 # What's left — Lawn Mowing Simulator
 
-Last updated: 2026-10-18
+Last updated: 2026-10-21
 
 ## Done so far
 
@@ -211,6 +211,25 @@ One PR per phase, each stacked on the one before. Every phase still needs a Stud
       - trimming a shaggy shrub with a hedge tool, and it growing back;
       - curb appeal going up as the yard fills (and leveling off);
       - everything with block placeholders, and on a phone.
+- [ ] **Starting out: grass shears, junk in the grass, a 5-minute first job.** To check in Studio:
+      - a brand-new save starts with only the grass shears, already in the truck, and the coach
+        talks about snipping and picking up junk; an old save keeps its reel mower and gets the
+        shears too;
+      - snipping on PC (click, and hold for a steady rhythm) and on a phone (tap the world, and
+        hold the Snip button): one tile at a time where the dot is, 6 snips a tile, the grass
+        getting shorter every couple of snips, nothing out past about 6 studs, weeds too;
+      - the shears in view (`SNIP_POSE`, `SNIP_JAB` in `ArmsController.luau`) on PC and a phone,
+        R15 and R6: not clipping the camera, blades toward the grass, the jab easy to read;
+      - the junk on the first job: 4 pieces, hidden but findable; the look-at hint and E / the
+        button picking them up; "There's a stick in the grass there" with the shears and the reel
+        mower jamming; the tracker's "Pick up junk in the grass" row;
+      - a gas mower over a rock: the THUNK message, the 1.5 s stall, "Cut is getting ragged", the
+        bits flying; the pay breakdown with junk left behind or chewed up;
+      - time the first job as a new player: about 5 minutes (tune `snip` in `Tools.luau` and
+        `QuickMow` in `Jobs.luau`), and a little over a minute with the reel mower;
+      - a couple of pieces on your own lawn, and more turning up as it grows back;
+      - the junk placeholders (`Placeholders.luau`) look like what they are, and ids for the new
+        `Snip` and `BladeHit` sounds in `Sounds.luau`.
 - [ ] **Premium: Robux purchases.** Needs each game pass and developer product made on the
       Creator Dashboard and its id put in `src/shared/Config/Premium.luau` (until then the shop
       shows "Soon"). To check in Studio, where purchases are free test purchases:

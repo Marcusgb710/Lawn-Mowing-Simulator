@@ -29,6 +29,12 @@ local GameConfig = {
 	-- Running over a flower patch or gnome takes this fraction of the job's pay (at least MinDamagePenalty).
 	DamagePenalty = 0.1,
 	MinDamagePenalty = 5,
+	-- Junk hidden in the grass (sticks, toys, rocks: see Config/Debris.luau). Each piece still on the
+	-- lawn when the job's done, or chewed up by a mower, takes this much off the finish (0-1) and
+	-- this fraction of the job's pay (at least MinDebrisPenalty).
+	DebrisQualityHit = 0.04,
+	DebrisPenalty = 0.04,
+	MinDebrisPenalty = 3,
 
 	-- Lawn generation
 	TileSize = 4,

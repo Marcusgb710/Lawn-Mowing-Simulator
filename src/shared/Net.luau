@@ -20,6 +20,7 @@ local EVENTS = {
 	"AbandonJob",
 	"LeaveParty",
 	"StopService",
+	"Snip",
 }
 
 local FUNCTIONS = {
@@ -37,6 +38,7 @@ local FUNCTIONS = {
 	"TakeFromBucket",
 	"ParkRide",
 	"DriveToJob",
+	"PickUpDebris",
 	"OpenBox",
 	"PlaceDecor",
 	"MoveDecor",

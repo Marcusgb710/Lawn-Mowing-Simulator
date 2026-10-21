@@ -5,7 +5,9 @@
 --
 --   tier      "Homeowner", "Serious" or "Pro"
 --   lawn      the yard: columns and rows (tiles of GameConfig.TileSize studs) and how many
---             flower patches / gnomes the crew must not hit
+--             flower patches / gnomes the crew must not hit. Lawns that need mowing also hide some
+--             junk in the grass (Config/Debris.luau); `debris` sets how many instead of the usual
+--             count for the lawn's size and tier.
 --   tasks     { type = a TaskTypes id, amount = how many } in the order the customer lists them.
 --             A job without a mowing task gets an already-mown lawn. `rocky` (0-1) is the share of
 --             a task's targets in rocky ground, for tasks with TaskTypes `rocky`.
@@ -70,17 +72,22 @@ Jobs.Customers = {
 }
 
 Jobs.Templates = {
+	-- Every new player's first job (the board's first slot is always one the free gear can do),
+	-- done with grass shears in about 5 minutes (docs/GAME_DESIGN.md, "Starting out"): it's done at
+	-- 52 of its 62 grass tiles (the 8 by the flowers are optional, then 95%), at 6 snips a tile and
+	-- 2 snips a second, with 4 bits of junk to find in the grass (Debris.countFor). A reel mower does
+	-- it in about a minute, and 2-3 of these with shears pay for one.
 	{
 		id = "QuickMow",
-		name = "Quick Mow",
+		name = "Front Lawn",
 		tier = "Homeowner",
 		minLevel = 1,
-		lawn = { columns = 6, rows = 5, flowerPatches = 1 },
+		lawn = { columns = 9, rows = 7, flowerPatches = 1 },
 		tasks = { { type = "MowSmallLawn" } },
-		notes = { "It's only a small patch out front, and the grass isn't very long." },
-		parTime = 45,
-		basePay = 40,
-		xp = 10,
+		notes = { "Just the front lawn. The kids and the dog play out there, so watch what's in the grass." },
+		parTime = 300,
+		basePay = 70,
+		xp = 15,
 	},
 	{
 		id = "EdgingTouchUp",

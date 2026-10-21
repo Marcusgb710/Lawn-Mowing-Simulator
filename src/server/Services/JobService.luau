@@ -9,13 +9,16 @@
 --
 -- Pay (GameConfig.jobPay) = job pay x how well the tools fit the tasks x a blend of finish
 -- quality and speed (weighted by what the customer wants) x crew/truck/business bonuses, minus
--- damage for every flower patch or gnome the crew ran over. Then it's split evenly.
+-- damage for every flower patch or gnome the crew ran over. Then it's split evenly. Junk hidden
+-- in the grass (Config/Debris.luau) that's still there at the end, or that a mower chewed up,
+-- takes some off the finish and the pay too.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Assets = require(Shared.Assets)
+local Debris = require(Shared.Config.Debris)
 local Format = require(Shared.Format)
 local HomeLawn = require(Shared.HomeLawn)
 local GameConfig = require(Shared.Config.GameConfig)
@@ -37,6 +40,10 @@ local WorldService = require(script.Parent.WorldService)
 
 -- How close to the truck (its bounding box) you have to be to drive off.
 local TRUCK_REACH = 10
+-- How far from your eyes you can pick up junk in the grass (the look-at reach is 10 from the camera).
+local PICK_UP_REACH = 12
+-- A snip of hand shears only hurts flowers right where it lands.
+local SNIP_HAZARD_REACH = 0.3
 
 local JobService = {}
 -- Fired with (player) when they head out on a job, arrive at the house, or leave the job.
@@ -192,6 +199,11 @@ local function damagePenalty(job): number
 	return math.max(GameConfig.MinDamagePenalty, math.floor(job.offer.payout * GameConfig.DamagePenalty + 0.5))
 end
 
+-- What each piece of junk left in the grass, or chewed up by a mower, costs.
+local function debrisPenalty(job): number
+	return math.max(GameConfig.MinDebrisPenalty, math.floor(job.offer.payout * GameConfig.DebrisPenalty + 0.5))
+end
+
 local function refreshBoard()
 	table.clear(board)
 	table.clear(offerPreferences)
@@ -228,6 +240,8 @@ local function sendUpdate(job)
 		result = job.result,
 		-- What the soil probe read, once someone has used it.
 		soil = if job.lawn and job.lawn.probed then job.lawn:SoilReading() else nil,
+		-- How many bits of junk hide in the grass, and how many have been picked up or chewed up.
+		debris = if job.lawn then job.lawn:DebrisCounts() else nil,
 	}
 	for _, player in recipients(job) do
 		Net.event("JobUpdated"):FireClient(player, payload)
@@ -483,6 +497,11 @@ local function completeJob(job)
 	-- Averages over all the work done, so the tool used most counts most.
 	local toolFit = if job.work > 0 then job.fitWork / job.work else 1
 	local quality = if job.work > 0 then job.qualityWork / job.work else 0.75
+	-- Junk still in the grass, or chewed up by a mower, spoils the finish. Each piece left costs
+	-- some pay now (chewed-up ones already did, when they were hit).
+	local debris = job.lawn:DebrisCounts()
+	quality = math.max(0, quality - (debris.left + debris.hit) * GameConfig.DebrisQualityHit)
+	job.penalty += debris.left * debrisPenalty(job)
 	local weights = Jobs.Preferences[job.preference]
 	local total = GameConfig.jobPay({
 		basePay = job.offer.payout,
@@ -510,6 +529,9 @@ local function completeJob(job)
 		curbAppeal = job.curbAppeal or 0,
 		curbBonus = curbBonus,
 		penalty = job.penalty,
+		-- Junk left in the grass, and chewed up by a mower (both are in the penalty).
+		debrisLeft = debris.left,
+		debrisHit = debris.hit,
 		total = total,
 		share = share,
 	}
@@ -552,6 +574,9 @@ end
 --   seconds         how long this bit of work took
 --   qualityScale    how the tool's condition changes its finish (a dull blade tears instead of cutting)
 --   ragged          the cut is torn enough to see in the grass
+--   snip            a snip of hand shears: it only cuts the one thing nearest `position`, and only
+--                   hurts flowers right there
+--   strikes         a motorized mower: it runs over junk hidden in the grass instead of stopping
 export type WorkOptions = {
 	damagesHazards: boolean?,
 	quiet: boolean?,
@@ -559,9 +584,13 @@ export type WorkOptions = {
 	seconds: number?,
 	qualityScale: number?,
 	ragged: boolean?,
+	snip: boolean?,
+	strikes: boolean?,
 }
 
--- Called by ToolService every tick a player is using a tool.
+-- Called by ToolService every tick a player is using a tool (and for every snip of hand shears).
+-- Returns whether anything got done, and the junk in the grass a mower just chewed up (for the
+-- blade's wear).
 function JobService:ApplyWork(
 	player: Player,
 	position: Vector3,
@@ -569,14 +598,14 @@ function JobService:ApplyWork(
 	toolId: string,
 	amount: number,
 	options: WorkOptions
-)
+): (boolean, { any }?)
 	local job = playerJobs[player]
 	if not job or job.state ~= "Working" then
-		return false
+		return false, nil
 	end
 
 	if options.damagesHazards then
-		for _, hazard in job.lawn:CheckHazards(position, radius) do
+		for _, hazard in job.lawn:CheckHazards(position, if options.snip then SNIP_HAZARD_REACH else radius) do
 			local penalty = damagePenalty(job)
 			job.penalty += penalty
 			job.damageCount += 1
@@ -593,9 +622,26 @@ function JobService:ApplyWork(
 		moving = options.moving,
 		seconds = options.seconds,
 		ragged = options.ragged,
+		closest = options.snip,
+		strikes = options.strikes,
 	})
 	if result.message then
 		notify(player, result.message)
+	end
+	-- A mower chewed something up: the customer's going to notice.
+	for _, debris in result.struck do
+		local penalty = debrisPenalty(job)
+		job.penalty += penalty
+		job.dirty = true
+		local cost = Format.money(penalty)
+		for _, member in job.members do
+			notify(
+				member,
+				if member == player
+					then `{debris.kind.hit} -{cost}`
+					else `{player.DisplayName}'s mower chewed up a {debris.kind.name} in the grass! -{cost}`
+			)
+		end
 	end
 	job.work += result.work
 	job.fitWork += result.fitWork
@@ -604,6 +650,10 @@ function JobService:ApplyWork(
 	if result.hurt and not warnedRecently then
 		wrongToolWarnings[player] = os.clock()
 		notify(player, HURT_MESSAGES[result.hurt] or "You need some protection for that.")
+	elseif result.debris and not warnedRecently then
+		-- Something hidden in the grass is in the way (it never says which tool would cut through).
+		wrongToolWarnings[player] = os.clock()
+		notify(player, Debris.blockedMessage(result.debris.kind, options.snip == true))
 	elseif result.blocked and not result.changed and not options.quiet and not warnedRecently then
 		-- Never say which tool would work: knowing your tools is the game.
 		wrongToolWarnings[player] = os.clock()
@@ -615,7 +665,35 @@ function JobService:ApplyWork(
 			completeJob(job)
 		end
 	end
-	return result.changed
+	return result.changed, result.struck
+end
+
+-- Picks up the piece of junk in the grass that `thing` is part of (the client says what the
+-- player's looking at; the server checks it's on their job's lawn and within reach). Off a job,
+-- it's their crew's own lawn.
+function JobService:PickUpDebris(player: Player, thing: Instance): (boolean, string?)
+	local character = player.Character
+	local head = character and character:FindFirstChild("Head")
+	if not (head and head:IsA("BasePart")) then
+		return false, nil
+	end
+	local job = playerJobs[player]
+	if not job then
+		return HomeLawnService:PickUpDebris(player, thing, head.Position, PICK_UP_REACH)
+	end
+	if job.state ~= "Working" or not job.lawn then
+		return false, nil
+	end
+	local debris, reason = job.lawn:PickUpDebris(thing, head.Position, PICK_UP_REACH)
+	if not debris then
+		return false, reason
+	end
+	job.dirty = true
+	local left = #job.lawn.debris
+	return true,
+		if left == 0
+			then `Picked up the {debris.kind.name}. That's everything out of the grass.`
+			else `Picked up the {debris.kind.name}. {left} more hidden in the grass.`
 end
 
 -- The player put a tool away: a barrow load they were pushing spills.
@@ -739,6 +817,18 @@ function JobService:Init()
 	Net.event("AbandonJob").OnServerEvent:Connect(function(player)
 		self:Abandon(player)
 	end)
+	-- Looking at junk in the grass and pressing E (see InteractController) picks it up.
+	local lastPickUp = {}
+	Players.PlayerRemoving:Connect(function(player)
+		lastPickUp[player] = nil
+	end)
+	Net.func("PickUpDebris").OnServerInvoke = function(player, thing)
+		if typeof(thing) ~= "Instance" or os.clock() - (lastPickUp[player] or 0) < 0.2 then
+			return false, nil
+		end
+		lastPickUp[player] = os.clock()
+		return self:PickUpDebris(player, thing)
+	end
 end
 
 function JobService:Start()

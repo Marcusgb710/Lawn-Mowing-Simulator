@@ -3,7 +3,11 @@
 -- where the tool you take out of storage is the real thing (see GiveHeld).
 --
 -- Mowers work the whole time they're equipped (the reel mower only while you're walking).
--- Every other tool works while you hold down the mouse button / tap and hold.
+-- Every other tool works while you hold down the mouse button / tap and hold, except hand shears
+-- (`snip` in Tools.luau), which cut one snip at a time where you aim: the client says which way
+-- you're looking, and the server works out what's in reach there and what gets cut.
+-- A motorized mower that runs over junk hidden in the grass (Config/Debris.luau) chews it up: its
+-- blade loses a chunk of its edge and it stalls for a moment.
 -- Riding mowers aren't held at all: they're welded under the player, who sits on them and
 -- drives them around like walking. Push mowers and other walk-behind machines are held low
 -- enough that their wheels touch the ground. Tools say whether they're working with a "Working"
@@ -19,11 +23,13 @@ local RunService = game:GetService("RunService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Assets = require(Shared.Assets)
+local Debris = require(Shared.Config.Debris)
 local GameConfig = require(Shared.Config.GameConfig)
 local Items = require(Shared.Config.Items)
 local Maintenance = require(Shared.Config.Maintenance)
 local Net = require(Shared.Net)
 local Premium = require(Shared.Config.Premium)
+local Sounds = require(Shared.Sounds)
 local Storage = require(Shared.Config.Storage)
 local Tools = require(Shared.Config.Tools)
 
@@ -69,6 +75,20 @@ local lastWarnings = setmetatable({}, { __mode = "k" })
 local withheld = {}
 -- A blade cutting below this finish leaves the grass torn and ragged (see GrassController).
 local RAGGED_BELOW = 0.8
+-- [Tool] = os.clock() a mower that hit something hidden in the grass starts again
+local stalledUntil = setmetatable({}, { __mode = "k" })
+
+-- Snips of hand shears land where your aim crosses this high above your feet (about the top of
+-- tall grass, which is what you see when you aim at it).
+local SNIP_AIM_HEIGHT = 1
+-- How many snips can bank up, so one that arrives a little early over the network still counts.
+local SNIP_BURST = 2
+-- How long the clippings fly after a snip that cut something (seconds).
+local SNIP_FX_TIME = 0.15
+-- [Player] = { at = os.clock() of their last snip, banked = snips they may make right now }
+local snips = {}
+local snipRay = RaycastParams.new()
+snipRay.FilterType = Enum.RaycastFilterType.Exclude
 
 -- Condition fields copied onto Tool attributes, and their attribute names.
 local CONDITION_ATTRIBUTES =
@@ -293,7 +313,8 @@ local function hookTool(player: Player, tool: Tool, item)
 		end
 	end)
 
-	if not passive then
+	-- Hand shears cut a snip at a time instead (see snip below).
+	if not passive and not item.snip then
 		tool.Activated:Connect(function()
 			running[tool] = true
 		end)
@@ -483,7 +504,8 @@ end
 
 -- Lifecycle ----------------------------------------------------------------------------------
 
--- Work goes to the job they're on, or to their crew's own lawn.
+-- Work goes to the job they're on, or to their crew's own lawn. Says whether anything got done,
+-- and what junk hidden in the grass a mower just chewed up.
 local function applyWork(
 	player: Player,
 	atJob: boolean,
@@ -492,11 +514,136 @@ local function applyWork(
 	toolId: string,
 	amount: number,
 	options
-): boolean
+): (boolean, { any }?)
 	if atJob then
 		return JobService:ApplyWork(player, position, radius, toolId, amount, options)
 	end
 	return HomeLawnService:ApplyWork(player, position, radius, toolId, amount, options)
+end
+
+-- The Truck menu reads the profile, so send it when something new goes wrong with a tool.
+local function noteWarnings(player: Player, tool: Tool, item, condition, data)
+	local warnings = table.concat(Maintenance.warnings(item, condition), ",")
+	if lastWarnings[tool] ~= warnings then
+		if lastWarnings[tool] ~= nil and data then
+			DataService:Changed(player)
+		end
+		lastWarnings[tool] = warnings
+	end
+end
+
+-- A mower ran over junk hidden in the grass: each piece takes a chunk out of its blade's edge
+-- (Debris.luau `wear`), and the engine stalls for a moment.
+local function strike(tool: Tool, condition, hits: { any }?, perks)
+	if not (hits and #hits > 0) then
+		return
+	end
+	for _, debris in hits do
+		Maintenance.strike(condition, debris.kind.wear, perks)
+	end
+	stalledUntil[tool] = os.clock() + Debris.StallTime
+	local base = toolBase(tool)
+	if base then
+		Sounds.play(base, "BladeHit")
+	end
+end
+
+local function isStalled(tool: Tool): boolean
+	return (stalledUntil[tool] or 0) > os.clock()
+end
+
+-- One snip of hand shears, aimed along `direction`: which way the player's looking, the only thing
+-- the client says. The server checks they're holding shears, that it isn't sooner than the shears'
+-- rhythm allows, and where the snip lands: where their aim crosses grass-top height, within the
+-- shears' reach of their eyes, with nothing solid in the way. Then the one thing nearest there
+-- gets cut (see Lawn:ApplyWork), and the shears wear as they cut.
+local function snip(player: Player, direction: unknown)
+	if typeof(direction) ~= "Vector3" then
+		return
+	end
+	local length = direction.Magnitude
+	-- NaN fails every comparison, so this catches it too.
+	if not (length > 0.5 and length < 1.5) then
+		return
+	end
+	direction /= length
+	local character = player.Character
+	local tool = character and character:FindFirstChildOfClass("Tool")
+	local itemId = tool and tool:GetAttribute("ItemId")
+	local item = if typeof(itemId) == "string" then Tools.get(itemId) else nil
+	local config = item and item.snip
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	local head = character and character:FindFirstChild("Head")
+	local data = DataService:Get(player)
+	if
+		not (tool and item and config and data and humanoid and humanoid.Health > 0)
+		or not (root and root:IsA("BasePart") and head and head:IsA("BasePart"))
+	then
+		return
+	end
+
+	-- No faster than the shears' rhythm, with a snip or two banked for network hiccups.
+	local now = os.clock()
+	local rhythm = snips[player] or { at = now, banked = SNIP_BURST }
+	snips[player] = rhythm
+	rhythm.banked = math.min(SNIP_BURST, rhythm.banked + (now - rhythm.at) / config.interval)
+	rhythm.at = now
+	if rhythm.banked < 1 then
+		return
+	end
+	rhythm.banked -= 1
+
+	-- Off the job, only on your crew's own lawn.
+	local atJob = JobService:IsAtJobSite(player)
+	local condition = data.condition[item.id] or {}
+	if not (atJob or HomeLawnService:CanWork(player, item.id)) or Maintenance.blocker(item, condition) then
+		return
+	end
+
+	-- Where it lands: you have to look down at the grass, close enough to reach it.
+	if direction.Y > -0.05 then
+		return
+	end
+	local legs = if humanoid.RigType == Enum.HumanoidRigType.R15 then humanoid.HipHeight else 2
+	local grassTop = root.Position.Y - root.Size.Y / 2 - legs + SNIP_AIM_HEIGHT
+	local eyes = head.Position
+	local distance = (eyes.Y - grassTop) / -direction.Y
+	if distance <= 0 or distance > config.reach then
+		return
+	end
+	snipRay.FilterDescendantsInstances = { character }
+	if workspace:Raycast(eyes, direction * distance, snipRay) then
+		-- Something solid in the way: a wall, the truck, someone else.
+		return
+	end
+	local point = eyes + direction * distance
+
+	local speed, quality = Maintenance.effects(condition)
+	local cut = applyWork(player, atJob, point, config.radius, item.id, config.work * speed, {
+		damagesHazards = Tools.damagesHazards(item),
+		snip = true,
+		seconds = config.interval,
+		qualityScale = quality,
+		ragged = quality < RAGGED_BELOW,
+	})
+	local perks = Premium.perksFor(data.premium, item.id)
+	Maintenance.wear(item, condition, config.interval, false, false, cut == true, rng:NextNumber(), perks)
+	syncCondition(tool, condition)
+	noteWarnings(player, tool, item, condition, data)
+	local base = toolBase(tool)
+	if base then
+		Sounds.play(base, "Snip", 0.4)
+	end
+	if cut then
+		-- A puff of clippings (the shears' WorkFx), on everyone's screen.
+		setFx(tool, true)
+		task.delay(SNIP_FX_TIME, function()
+			if tool.Parent then
+				setFx(tool, false)
+			end
+		end)
+	end
 end
 
 local function workTick(elapsed: number)
@@ -535,6 +682,11 @@ local function workTick(elapsed: number)
 			setFx(tool, false)
 			continue
 		end
+		-- It hit something hidden in the grass: it catches again in a moment.
+		if isStalled(tool) then
+			setFx(tool, false)
+			continue
+		end
 		if item.motorized == false and not moving then
 			setFx(tool, false)
 			continue
@@ -551,38 +703,26 @@ local function workTick(elapsed: number)
 
 		-- While it tows, a ride-on's own deck is up: the attachment behind does the work.
 		local towedId = tool:GetAttribute("Towing")
-		local cut = false
+		local cut, hits = false, nil
 		if not towedId then
 			local position = root.Position + root.CFrame.LookVector * REACH_OFFSET
-			cut = applyWork(player, atJob, position, item.radius, itemId, item.power * elapsed * speed, {
+			cut, hits = applyWork(player, atJob, position, item.radius, itemId, item.power * elapsed * speed, {
 				damagesHazards = Tools.damagesHazards(item),
 				quiet = item.use == "Passive" and not moving,
 				moving = moving,
 				seconds = elapsed,
 				qualityScale = quality,
 				ragged = quality < RAGGED_BELOW,
+				-- An engine-driven blade runs over junk in the grass instead of stopping at it.
+				strikes = item.motorized == true,
 			})
 		end
 		local premium = data and data.premium
-		Maintenance.wear(
-			item,
-			condition,
-			elapsed,
-			true,
-			moving,
-			cut == true,
-			rng:NextNumber(),
-			Premium.perksFor(premium, itemId)
-		)
+		local perks = Premium.perksFor(premium, itemId)
+		Maintenance.wear(item, condition, elapsed, true, moving, cut == true, rng:NextNumber(), perks)
+		strike(tool, condition, hits, perks)
 		syncCondition(tool, condition)
-		-- The Truck menu reads the profile, so send it when something new goes wrong.
-		local warnings = table.concat(Maintenance.warnings(item, condition), ",")
-		if lastWarnings[tool] ~= warnings then
-			if lastWarnings[tool] ~= nil and data then
-				DataService:Changed(player)
-			end
-			lastWarnings[tool] = warnings
-		end
+		noteWarnings(player, tool, item, condition, data)
 
 		-- Whatever it's towing works behind it, wearing its own tires.
 		local towed = towedId and Tools.get(towedId)
@@ -618,7 +758,7 @@ local function workTick(elapsed: number)
 				)
 			end
 		end
-		setFx(tool, true)
+		setFx(tool, not isStalled(tool))
 	end
 end
 
@@ -647,7 +787,9 @@ function ToolService:Start()
 	end
 	Players.PlayerRemoving:Connect(function(player)
 		withheld[player] = nil
+		snips[player] = nil
 	end)
+	Net.event("Snip").OnServerEvent:Connect(snip)
 
 	local accumulated = 0
 	RunService.Heartbeat:Connect(function(deltaTime)

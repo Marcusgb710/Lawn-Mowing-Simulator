@@ -259,6 +259,14 @@ function Maintenance.wear(
 	end
 end
 
+-- A blade that hit something hidden in the grass (a rock, a stick, a toy: see Debris.luau) loses
+-- `wear` of its edge at once, unless it never dulls (the Diamond Blades perk).
+function Maintenance.strike(condition, wear: number, perks: { [string]: boolean }?)
+	if condition.sharpness and not (perks and perks.neverDull) then
+		condition.sharpness = math.max(0, condition.sharpness - wear)
+	end
+end
+
 -- Uses a supply on a tool. `has(id)` says whether another supply is available here.
 -- Changes `condition` and returns whether it worked, what to tell the player, and the repair
 -- cost (when a wrecked engine got fixed). Using up a consumable is the caller's job.

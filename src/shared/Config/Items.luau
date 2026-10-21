@@ -1,7 +1,7 @@
 -- Everything you can buy in the shop, by shop tab.
 -- Tools come from Tools.luau (only the ones available right now are sold); trucks, trailers and
 -- business upgrades are listed below. Each tab is cheapest first, and `rank` is an item's place
--- in its tab. Players start owning every item with price = 0 (the reel mower, the rusty pickup
+-- in its tab. Players start owning every item with price = 0 (the grass shears, the rusty pickup
 -- and the tool shed).
 --
 -- Truck space: every tool takes some `space` by its size class (Tools.SizeClasses), and each

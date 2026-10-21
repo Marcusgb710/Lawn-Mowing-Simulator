@@ -10,6 +10,8 @@ Sounds.Ids = {
 	Pickup = "", -- taking a tool off the wall or out of the truck
 	Hang = "", -- hanging a tool back up
 	Bucket = "", -- a hand tool dropped in the tool bucket
+	Snip = "", -- a snip of grass shears
+	BladeHit = "", -- a mower's blade hitting a rock or a stick hidden in the grass
 }
 
 -- Plays `name` from `parent` (a part or attachment), if it has an id.

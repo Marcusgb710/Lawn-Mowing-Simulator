@@ -17,6 +17,26 @@ LawnGrid.MOWED = "1"
 LawnGrid.RAGGED = "2"
 -- No grass here (a flower patch or gnome sits on this tile).
 LawnGrid.EMPTY = "-"
+-- Tall grass partly cut by hand (grass shears snip a tile down a bit at a time): a quarter, half
+-- and three quarters of the way down.
+LawnGrid.PARTLY_CUT = { "3", "4", "5" }
+
+-- The state for tall grass `fraction` (0-1) of the way cut by hand, in quarters: tall until the
+-- first quarter's done.
+function LawnGrid.partlyCut(fraction: number): string
+	local quarters = math.clamp(math.floor(fraction * 4), 0, 3)
+	return if quarters == 0 then LawnGrid.TALL else LawnGrid.PARTLY_CUT[quarters]
+end
+
+-- How much of a tile's tall grass is still standing: 1 when it's uncut, down to 0.25 when it's
+-- three quarters cut by hand. Nil when it isn't tall grass.
+function LawnGrid.standing(state: string): number?
+	if state == LawnGrid.TALL then
+		return 1
+	end
+	local quarters = table.find(LawnGrid.PARTLY_CUT, state)
+	return if quarters then 1 - quarters / 4 else nil
+end
 
 function LawnGrid.index(column: number, row: number, rows: number): number
 	return column * rows + row + 1

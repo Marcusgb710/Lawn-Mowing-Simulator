@@ -52,7 +52,7 @@ Every job task has a **task type** with one verb and a **fit table**
 | Can't | - | a tool without the verb that isn't listed, anything in `exclude`, or a mower whose `maxGrassHeight` is below the task's `grassHeight` |
 
 - A listed tool always counts, even without the verb (a leaf blower is a Good fit for clearing
-  leaves).
+  leaves, and grass shears are a Good fit for mowing a small lawn by hand; see "Starting out").
 - `qualityHits` lower the finish some tools leave on a task (a bow rake tears turf: x0.6;
   anvil pruners crush live stems: x0.7).
 - `speedHits` slow some tools down further (a shovel on hard ground: x0.6).
@@ -100,6 +100,30 @@ you already own stay yours either way:
 `GasStickEdger` moved to Pro, so it swapped price and power with `WalkBehindEdger` ($2,200 /
 3.5 Serious, $8,500 / 6 Pro). `GardenShears` is now described as hand grass shears and
 `OldRake` as a leaf (fan) rake, matching what they do in the game.
+
+### Starting out
+
+You start from the bottom: a new player's only tool is a free pair of **grass shears**
+(`GardenShears`, price 0), and the **reel push mower** (`ReelMower`) is the first thing they buy,
+for **$150**: the pay of 2-3 early jobs with the shears.
+
+- **Shears cut by hand, a snip at a time** (`snip` in `Tools.luau`, `SnipController`, `ToolService`).
+  Each click (or tap, or the **Snip** button on a phone) cuts the one thing nearest where you aim:
+  a grass tile, or a weed. Holding the button keeps snipping, two snips a second. A snip lands
+  where your aim crosses grass-top height (1 stud up), up to 7.5 studs from your eyes, so you look
+  down at the grass and move along as you go. The client only says which way you're looking; the
+  server works out where that lands and what's there, and limits snips to the shears' rhythm.
+- **Tall grass takes several snips.** The shears are listed as a Good fit for `MowSmallLawn` (x0.8),
+  so a snip does 0.225 x 0.8 = 0.18 of a tile: **6 snips a tile** (7 once they're dull), and 12 for
+  a weed. The tile gets shorter every quarter of the way (`LawnGrid.PARTLY_CUT`), and the shears
+  wear like any fine edge (a sharpening stone fixes them). They have no Mow verb, so their blade
+  stays a fine one, and they can't do any lawn bigger than a small one.
+- **In first person** the shears sit low in front of you, tipped down at the grass, following
+  your view, and jab forward with every snip (`SNIP_POSE`, `SNIP_JAB` in `ArmsController`). Only
+  snips that cut something throw clippings.
+- Snips only hurt a flower patch they land right on (0.3 studs), not everything around them.
+- **Existing players keep their reel mower** (save version 9, below) and get the shears too.
+  Selling the reel mower now gives half its price back, like any bought tool.
 
 ### New tools
 
@@ -177,12 +201,14 @@ pay = base pay
     x tool fit         (fit of every bit of work, averaged by how much work it did)
     x (quality weight x quality multiplier + time weight x time multiplier)
     x crew, truck and business bonuses
-    - damage (10% of base pay, at least $5, per flower patch or gnome hit)
+    - damage (10% of base pay, at least $5, per flower patch or gnome hit;
+              4%, at least $3, per piece of junk left in the grass or chewed up by a mower)
 ```
 
 - **Quality multiplier**: 1 + (quality - 0.75) x 1.5, clamped to 0.5-1.3. The finish quality is
   the average of each tool's quality (mowers: cut quality) times any `qualityHits`, weighted by
-  the work it did.
+  the work it did, minus 0.04 for every piece of junk left in the grass or chewed up
+  (`GameConfig.DebrisQualityHit`).
 - **Time multiplier**: 1.25 at half the par time or faster, 1 at par, down to 0.5 at twice par.
 - The breakdown after a job shows the customer's preference, finish and speed scores, and how well
   the tools fit (as a percentage, never naming tools).
@@ -209,6 +235,55 @@ slots are level 1 jobs. `Jobs.luau` also refuses templates that couldn't be fini
 - a counted task with no amount Jobs vary: some need one tool, others
 several. Later phases add task `protection`, ordering, and soil conditions for pro jobs.
 
+### The first job
+
+With only the shears, the board's first slot is always `QuickMow` (shown as **Front Lawn**), the
+one job the free gear can finish. It's built to take a new player **about 5 minutes** with the
+shears:
+
+| | |
+| --- | --- |
+| Lawn | 9 x 7 tiles, 1 flower patch: 62 grass tiles. The 8 around the flowers are optional, so it's done at 95% of the other 54 = **52 tiles** |
+| Snipping | 52 tiles x 6 snips x 0.5 s = **156 s** |
+| Re-aiming | about one lost beat (0.5 s) per tile = **26 s** |
+| Walking | a few steps every few tiles (you reach about 6 studs) = **~30 s** |
+| Junk | 4 pieces to spot and pick up, ~10 s each = **~40 s** |
+| Finding your feet | reading the coach, first snips = **~30 s** |
+| Total | **~282 s, about 4 3/4 minutes**; par time 300 s |
+
+It pays $70 base (offers roll $65-90). With the shears' Good fit (x0.8) and a fine finish, a
+new player earns about **$66 a job**, so the $150 reel mower takes 2-3 jobs. The same lawn takes a
+reel mower (about 8 studs a pass at 12 studs/s, after picking up the junk) a little over a minute,
+which beats half par for the full speed bonus: about $94 a job. That's the reward for upgrading;
+every later mowing job is sized for real mowers. 15 xp.
+
+### Junk in the grass
+
+The challenge in every lawn that needs mowing: sticks, a dog's ball, a kid's toy truck, a frisbee
+and rocks lie hidden in the uncut grass (`src/shared/Config/Debris.luau`, `LawnService`). Players
+have to spot them and pick them up (look at one and press **E**, or tap the big button) before
+cutting there.
+
+- **How much:** one piece per 16 lawn tiles on homeowner jobs, per 14 on serious ones and per 12
+  on pro ones, rounded, 1 to 10 (a job's `lawn.debris` sets it outright): 2 on a tiny yard, 4 on
+  the first job, 5 on a suburban lawn, 10 on the big ones. Never on the tiles by the flowers, and a
+  tile or more apart. Sticks turn up most often, then rocks and balls, then toys and frisbees.
+- **Grass shears can't cut a spot with something in it** ("There's a stick in the grass there.
+  Pick it up first."), and a **reel mower** jams on it ("The mower jams on..."), so that tile stays
+  tall until it's cleared.
+- **A motorized mower runs right over it and chews it up.** Its blade loses a chunk of its edge at
+  once (`wear`: a rock 0.3, a stick or a toy 0.15, a ball or frisbee 0.05, through
+  `Maintenance.strike`; Diamond Blades still never dull), the engine stalls for 1.5 s, bits fly
+  out, and the customer notices: the crew is told, and it costs 4% of the pay (at least $3).
+- **Whatever's left at the end** costs the same, and every piece left or chewed up takes 0.04 off
+  the finish. The tracker shows "Pick up junk in the grass 1/4" (how many there are, never where),
+  and the pay breakdown says how many were left or chewed up.
+- **Your own lawn** hides a couple too, and each bit of grass that grows back has a 5% chance of
+  something new turning up in it (up to 3 at a time). There they only cost blade wear and stalls.
+  They aren't saved: a rebuilt lawn hides its own again.
+- The server checks every pick-up: the piece must still be on your job's lawn (or your crew's own
+  lawn) and within 12 studs of your eyes.
+
 ### Garden jobs (phase C)
 
 The homeowner tier is small housework: potting up, seedlings, perennials, bulbs, seed rows,
@@ -228,8 +303,9 @@ them with the old mowing jobs.
   to the best player's level (`HomeownerJobsOnBoard`), and the rest go a little above it.
 - **Learning tools:** the **Guide** menu lists every tool in the store with its "what it's for"
   text, by shop tab. Until a player finishes their first job, a coach banner walks them through
-  it one step at a time (take the job, load the truck, drive, do the work), and the Jobs app
-  marks the free-gear job as a good first job.
+  it one step at a time (take the job, load the truck, drive, do the work: snipping with the
+  shears and picking up the junk in the grass), and the Jobs app marks the free-gear job as a
+  good first job.
 - New shop tabs: Planting & Weeding, Pruning, Watering and Gloves.
 
 ### Serious gardening (phase D)
@@ -301,7 +377,7 @@ probe is the only way to know.
 
 | Phase | Task type | Verb | Ideal / Good / Poor |
 | --- | --- | --- | --- |
-| now | MowSmallLawn | Mow | ReelMower, GasPushMower, SelfPropelledMower / RidingMower, StandOnMower |
+| now | MowSmallLawn | Mow | ReelMower, GasPushMower, SelfPropelledMower / RidingMower, StandOnMower, GardenShears (by hand) |
 | now | MowMediumLawn | Mow | SelfPropelledMower, RidingMower, ZeroTurnMower / GasPushMower, StandOnMower, CommercialZeroTurn |
 | now | MowLargeLawn | Mow | CommercialZeroTurn / StandOnMower, ZeroTurnMower, RidingMower |
 | now | EdgeSidewalk | Edge | HalfMoonEdger, ElectricEdger, WalkBehindEdger, GasStickEdger / GardenSpade / string trimmers (ragged) |
@@ -422,7 +498,7 @@ their front. Mount heights are `MOUNT_HEIGHT` in `BusinessStorage.luau`, to tune
 
 - A crew shares the leader's truck and trailer. The truck won't leave overloaded.
 - Trailers unlock the first time the truck is full (a load that fills it, or one that won't fit).
-- A new player owns the reel mower, and it starts in the truck (4 of 6 space).
+- A new player owns the grass shears, and they start in the truck (1 of 6 space).
 - In the truck bed every tool gets a stretch of bed as long as its space; push machines stand,
   everything else lies across. Ride-on machines park on the trailer's `BaySpot` parts.
 - Push and walk-behind machines are held so their lowest point touches the ground, from the
@@ -443,7 +519,9 @@ Every owned tool has a **condition**, saved with the player:
 | Blade | mowers, edgers, spades ("heavy"); pruners, shears, hedge trimmers ("fine") | 1200 s of cutting | slower and rougher cut (quality down to 60%) |
 | Trimmer line | string trimmers | 240 s of trimming | won't cut |
 
-Electric and battery tools need no fuel; flat-free tires never need air.
+Electric and battery tools need no fuel; flat-free tires never need air. A motorized mower that
+runs over junk hidden in the grass loses a chunk of its blade's edge at once (see "Junk in the
+grass").
 
 **Supplies** (Supplies tab) fix things. Consumables have uses and are restocked by buying them
 again.
@@ -498,7 +576,9 @@ The game is played in first person (`StarterPlayer.CameraMode = LockFirstPerson`
   machines and barrows stand on their wheels with the handlebar centred ahead of you, string
   trimmers and edgers stand on the ground the way they were modelled, rakes, forks and shovels
   lean out with their head on the ground (just far enough that the shaft stays below your eyes),
-  and small hand tools sit low on the right and follow your view part of the way. Nothing near
+  and small hand tools sit low on the right and follow your view part of the way (grass shears
+  sit lower and nearer the middle, tipped down at the grass, and jab forward with each snip; see
+  "Starting out"). Nothing near
   eye level gets closer than 0.7 studs to the camera. Backpack blowers and sprayers (`onBack`)
   keep their normal hold, since they're modelled as worn. Where the work happens doesn't change:
   just in front of you, whichever way you face.
@@ -838,7 +918,8 @@ never skips a level or a business requirement, and nothing is sold as plain cash
 | Hub 2 | Bigger plots with a driveway, leaving from the truck's driver door, pulling back in | done |
 | Hub 3 | Your own lawn (regrowing, saved, worked with your own tools) and curb appeal's pay bonus | done |
 | Hub 3b | Decorations: ordering, boxes, first-person placing with snapping, markers, shrubs to trim, curb appeal | done |
-| Immersion 3 | Hands-on maintenance at service spots and the vise, steps for blades and wheels, tailgate supplies on a job, visible wear and ragged grass | **this PR** |
+| Immersion 3 | Hands-on maintenance at service spots and the vise, steps for blades and wheels, tailgate supplies on a job, visible wear and ragged grass | done |
+| Starting out | Grass shears as the free starting tool (cutting a snip at a time), the reel mower as the first buy, junk hidden in the grass, a 5-minute first job | **this PR** |
 
 New tools are already in `Tools.luau` with `available = false`, so they aren't sold until the
 phase that gives them work.
@@ -875,6 +956,10 @@ phase that gives them work.
   plot space, and a shrub's trim state) and those still in their `boxes`. Nobody has any yet.
 - **`premium`** (Robux purchases) holds `owned`, `passes`, `truckPaint` and `receipts`. It needs
   no new version: loading fills in whatever's missing, so older saves start with nothing bought.
+- **Version 9 (starting out with shears)** keeps everyone's reel mower. Until now it was free
+  starter gear that every load handed out, so every older save gets `owned.Mower.ReelMower` (it
+  stays wherever it was, truck included). Loading gives everyone the free grass shears, as it does
+  all starter gear. Junk in the grass isn't saved.
 
 ## New item ids for modelers
 
@@ -943,6 +1028,21 @@ by a part named `Handle` (see `assets/README.md`).
 | SharpeningStone | Supply | Gray whetstone, about 6 in long |
 | BenchGrinder | Supply | Bench grinder with two wheels and eye shields (stays in the building) |
 | SpareMowerBlade | Supply | Flat mower blade with a center hole |
+
+### Junk in the grass (`Assets/Props/<id>`)
+
+Small things lying on the lawn, hidden in tall grass (see "Junk in the grass"). Built like the
+decorations: origin on the ground at the centre, front toward -Z, an invisible `Root` part at
+(0, 0.5, 0) and `<Id>__Body` parts, real size, nothing taller than about 0.6 studs so it hides in
+the grass. No collision; players look at it to pick it up.
+
+| Id | Look |
+| --- | --- |
+| DebrisStick | A dead, bark-brown stick about 2.4 studs long with a short twig, lying flat |
+| DebrisRock | A fist-sized grey field stone, about 0.8 x 0.5 x 0.65 |
+| DebrisDogBall | A slightly chewed, fuzzy yellow-green tennis ball, 0.55 across |
+| DebrisToyTruck | A kid's plastic toy dump truck, red bed and yellow cab, about 1.1 long, facing -Z |
+| DebrisFrisbee | A plastic frisbee lying flat, orange, 1 stud across |
 
 ### Vehicles, buildings and fixtures
 

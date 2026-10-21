@@ -7,6 +7,7 @@
 -- RenderFidelity, so Roblox lowers their detail with distance itself, smoothly, and swapping in
 -- the kit's thin _LOD clumps made the grass pop as you walked.
 -- Grass cut with a dull blade is ragged: short, but duller, with torn tufts sticking up.
+-- Grass being cut by hand with shears gets shorter with every few snips (LawnGrid.PARTLY_CUT).
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -32,6 +33,9 @@ local RAGGED_STRIPE = Color3.fromRGB(150, 170, 80)
 local RAGGED_TUFTS = 1
 local TUFT_SCALE = 0.45
 local BLOCK_TALL_COLOR = Color3.fromRGB(70, 125, 45)
+-- How tall partly cut grass stands, next to uncut: this much at least, plus the rest by how much
+-- of it is still standing.
+local PARTLY_CUT_MIN = 0.3
 
 local GrassController = {}
 
@@ -61,8 +65,9 @@ local function ghost(part: BasePart)
 	part.CastShadow = false
 end
 
--- Builds the part(s) for one tile in a given state.
-local function buildTile(lawn, index: number, kind: string): { BasePart }
+-- Builds the part(s) for one tile in a given state. `standing` (0-1) is how much of tall grass
+-- is still standing (see LawnGrid.standing).
+local function buildTile(lawn, index: number, kind: string, standing: number): { BasePart }
 	local column, row = LawnGrid.cell(index, lawn.rows)
 	local tileSize = lawn.tileSize
 	local turn = math.floor(noise(index, 1) * 4) * (math.pi / 2)
@@ -77,9 +82,13 @@ local function buildTile(lawn, index: number, kind: string): { BasePart }
 	end
 	local clumps = CLUMPS[kind]
 	local source = template(clumps[if noise(index, 2) < 0.5 then 1 else 2])
+	-- Partly cut by hand: shorter tall grass.
+	local cut = PARTLY_CUT_MIN + (1 - PARTLY_CUT_MIN) * standing
 	if source then
 		local clump = source:Clone()
-		local height = source.Size.Y * (0.85 + noise(index, 3) * 0.3) * (if kind == "Tall" then lawn.tallScale else 1)
+		local height = source.Size.Y
+			* (0.85 + noise(index, 3) * 0.3)
+			* (if kind == "Tall" then lawn.tallScale * cut else 1)
 		Assets.standOn(clump, ground, Vector3.new(tileSize * 0.95, height, tileSize * 0.95))
 		table.insert(parts, clump)
 		if kind == "Short" then
@@ -97,7 +106,7 @@ local function buildTile(lawn, index: number, kind: string): { BasePart }
 		local tall = kind == "Tall"
 		block.Color = if tall then BLOCK_TALL_COLOR else stripe
 		local height = if tall
-			then GameConfig.TallGrassHeight * (0.85 + noise(index, 3) * 0.3) * lawn.tallScale
+			then GameConfig.TallGrassHeight * (0.85 + noise(index, 3) * 0.3) * lawn.tallScale * cut
 			else GameConfig.MowedGrassHeight
 		Assets.standOn(block, ground, Vector3.new(tileSize, height, tileSize))
 		table.insert(parts, block)
@@ -143,7 +152,8 @@ end
 -- Makes one tile match the lawn's state.
 local function updateTile(lawn, index: number)
 	local state = string.sub(lawn.state, index, index)
-	local kind = if state == LawnGrid.TALL
+	local standing = LawnGrid.standing(state)
+	local kind = if standing
 		then "Tall"
 		elseif state == LawnGrid.MOWED then "Short"
 		elseif state == LawnGrid.RAGGED then "Ragged"
@@ -154,11 +164,12 @@ local function updateTile(lawn, index: number)
 		return
 	end
 
-	if tile and tile.kind == kind then
+	-- Partly cut tall grass is rebuilt shorter.
+	if tile and tile.kind == kind and tile.standing == standing then
 		return
 	end
 	clearTile(lawn, index)
-	lawn.tiles[index] = { kind = kind, parts = buildTile(lawn, index, kind) }
+	lawn.tiles[index] = { kind = kind, standing = standing, parts = buildTile(lawn, index, kind, standing or 1) }
 end
 
 local function show(lawn)
