@@ -817,8 +817,9 @@ never skips a level or a business requirement, and nothing is sold as plain cash
   - Developer products are granted in `ProcessReceipt`. That saves the player straight away and
     keeps the receipt id, so a purchase is never granted twice or lost. If the save fails, Roblox
     tries again later.
-  - Each item's `gamePassId` or `productId` comes from the Creator Dashboard. Until it has one,
-    the shop shows "Soon".
+  - Each item's `gamePassId` or `productId` is its id on Roblox. `scripts/premium-setup.py`
+    creates any item with id 0 on Roblox through Open Cloud, puts everything on sale at its price
+    and writes the ids in. Until an item has one, the shop shows "Soon".
 
 ## Phases
 

@@ -62,12 +62,12 @@ Follow [README.md → Setup](README.md#setup-rojo):
 Keep **two-way sync OFF** in the Rojo plugin. It once wrote stale Studio copies back over freshly
 merged files.
 
-### 2. Turn on Robux sales (PR #32)
+### 2. Robux sales
 
-Everything is built and tested in Studio. What's missing is the Roblox-side ids, so every item
-shows **"Soon"** in the shop until it has one. On the [Creator
-Dashboard](https://create.roblox.com/dashboard/creations/experiences/10771693515/overview),
-create these at these prices.
+**Done on 2026-10-21.** Everything below exists on Roblox, is on sale at its price, and has its
+id in `Premium.luau`. To add or re-price an item, edit `Premium.luau` (a new item gets id 0) and
+run `python3 scripts/premium-setup.py`. It needs an Open Cloud API key, and its header says how
+to make one. What's still left is the Studio purchase test in step 2 below.
 
 **Monetization → Passes:**
 
