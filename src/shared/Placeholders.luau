@@ -7,6 +7,9 @@ local Tools = require(script.Parent.Config.Tools)
 
 local Placeholders = {}
 
+-- The story's people (see PROP_BUILDERS) share a skin tone until they have real models.
+local SKIN = Color3.fromRGB(240, 200, 160)
+
 local function part(props): BasePart
 	local className = props.ClassName or "Part"
 	props.ClassName = nil
@@ -816,6 +819,306 @@ local PROP_BUILDERS = {
 				Color = Color3.fromRGB(150, 200, 230),
 			})
 		end
+	end,
+
+	-- The story's people and places (docs/STORY.md). People are built like the decorations: origin
+	-- on the ground under them, front toward -Z, a "Root" part. They don't collide.
+
+	-- Grandma June's white porch rocker. Its seat's top is 1.8 studs up, where June sits.
+	PorchRockingChair = function(model: Model)
+		local add = propAdder(model)
+		rootPart(model, add)
+		local paint = Color3.fromRGB(236, 232, 222)
+		for _, x in { -1, 1 } do
+			add({
+				Name = "Rocker",
+				Size = Vector3.new(0.2, 0.25, 3.2),
+				Position = Vector3.new(x, 0.125, 0.1),
+				Color = paint,
+			})
+			for _, z in { -0.8, 0.8 } do
+				add({
+					Name = "Leg",
+					Size = Vector3.new(0.2, 1.35, 0.2),
+					Position = Vector3.new(x, 0.925, z),
+					Color = paint,
+				})
+			end
+			add({
+				Name = "Arm",
+				Size = Vector3.new(0.2, 0.15, 1.8),
+				Position = Vector3.new(x * 1.15, 2.5, 0.05),
+				Color = paint,
+			})
+			add({
+				Name = "ArmPost",
+				Size = Vector3.new(0.15, 0.7, 0.15),
+				Position = Vector3.new(x * 1.15, 2.1, -0.75),
+				Color = paint,
+			})
+		end
+		add({ Name = "Seat", Size = Vector3.new(2.3, 0.2, 1.9), Position = Vector3.new(0, 1.7, 0), Color = paint })
+		add({
+			Name = "Back",
+			Size = Vector3.new(2.3, 2.6, 0.15),
+			CFrame = CFrame.new(0, 3.1, 1) * CFrame.Angles(math.rad(10), 0, 0),
+			Color = paint,
+		})
+	end,
+
+	-- Grandma June, sitting (on a seat 1.8 studs up): green dress, white hair, glasses, and her
+	-- straw sun hat with the red band.
+	GrandmaJune = function(model: Model)
+		local add = propAdder(model)
+		rootPart(model, add)
+		local dress = Color3.fromRGB(94, 140, 74)
+		local function person(props)
+			props.CanCollide = false
+			return add(props)
+		end
+		person({
+			Name = "Lap",
+			Size = Vector3.new(1.8, 0.55, 1.6),
+			Position = Vector3.new(0, 2.05, -0.35),
+			Color = dress,
+		})
+		person({ Name = "Body", Size = Vector3.new(1.8, 2, 1), Position = Vector3.new(0, 3.3, 0.3), Color = dress })
+		person({
+			Name = "Collar",
+			Size = Vector3.new(1, 0.25, 0.1),
+			Position = Vector3.new(0, 4.15, -0.22),
+			Color = Color3.fromRGB(244, 235, 208),
+		})
+		for _, x in { -1, 1 } do
+			person({
+				Name = "Leg",
+				Size = Vector3.new(0.5, 1.55, 0.5),
+				Position = Vector3.new(x * 0.4, 1, -1.05),
+				Color = SKIN,
+			})
+			person({
+				Name = "Shoe",
+				Size = Vector3.new(0.6, 0.35, 0.85),
+				Position = Vector3.new(x * 0.4, 0.175, -1.2),
+				Color = Color3.fromRGB(90, 60, 45),
+			})
+			person({
+				Name = "Arm",
+				Size = Vector3.new(0.5, 1.6, 0.55),
+				Position = Vector3.new(x * 1.15, 3.25, 0.1),
+				Color = dress,
+			})
+			person({
+				Name = "Hand",
+				Size = Vector3.new(0.45, 0.45, 0.45),
+				Position = Vector3.new(x * 0.95, 2.45, -0.6),
+				Color = SKIN,
+			})
+			person({
+				Name = "Glasses",
+				Size = Vector3.new(0.42, 0.32, 0.05),
+				Position = Vector3.new(x * 0.28, 5.3, -0.56),
+				Color = Color3.fromRGB(30, 40, 30),
+				Transparency = 0.3,
+			})
+		end
+		person({ Name = "Neck", Size = Vector3.new(0.5, 0.3, 0.5), Position = Vector3.new(0, 4.4, 0.25), Color = SKIN })
+		person({
+			Name = "Hair",
+			Shape = Enum.PartType.Ball,
+			Size = Vector3.new(1.6, 1.6, 1.6),
+			Position = Vector3.new(0, 5.4, 0.4),
+			Color = Color3.fromRGB(232, 232, 232),
+		})
+		person({
+			Name = "Head",
+			Shape = Enum.PartType.Ball,
+			Size = Vector3.new(1.5, 1.5, 1.5),
+			Position = Vector3.new(0, 5.25, 0.2),
+			Color = SKIN,
+		})
+		-- Cylinders lie along X, so they're stood on end to make the hat.
+		local upright = CFrame.Angles(0, 0, math.rad(90))
+		local straw = Color3.fromRGB(227, 194, 122)
+		person({
+			Name = "Hat",
+			Shape = Enum.PartType.Cylinder,
+			Size = Vector3.new(0.12, 3.2, 3.2),
+			CFrame = CFrame.new(0, 5.95, 0.2) * upright,
+			Color = straw,
+		})
+		person({
+			Name = "Hat",
+			Shape = Enum.PartType.Cylinder,
+			Size = Vector3.new(1, 1.55, 1.55),
+			CFrame = CFrame.new(0, 6.45, 0.2) * upright,
+			Color = straw,
+		})
+		person({
+			Name = "HatBand",
+			Shape = Enum.PartType.Cylinder,
+			Size = Vector3.new(0.28, 1.6, 1.6),
+			CFrame = CFrame.new(0, 6.15, 0.2) * upright,
+			Color = Color3.fromRGB(200, 70, 60),
+		})
+	end,
+
+	-- Gloria Pemberton, standing: pink cardigan, pearls, and a lot of auburn hair.
+	GloriaPemberton = function(model: Model)
+		local add = propAdder(model)
+		rootPart(model, add)
+		local cardigan = Color3.fromRGB(230, 140, 170)
+		local function person(props)
+			props.CanCollide = false
+			return add(props)
+		end
+		for _, x in { -1, 1 } do
+			person({
+				Name = "Shoe",
+				Size = Vector3.new(0.6, 0.3, 0.9),
+				Position = Vector3.new(x * 0.45, 0.15, -0.1),
+				Color = Color3.fromRGB(245, 245, 240),
+			})
+			person({
+				Name = "Leg",
+				Size = Vector3.new(0.55, 1.9, 0.55),
+				Position = Vector3.new(x * 0.45, 1.25, 0),
+				Color = SKIN,
+			})
+			person({
+				Name = "Arm",
+				Size = Vector3.new(0.5, 1.9, 0.55),
+				Position = Vector3.new(x * 1.2, 4.05, 0),
+				Color = cardigan,
+			})
+			person({
+				Name = "Hand",
+				Size = Vector3.new(0.45, 0.45, 0.45),
+				Position = Vector3.new(x * 1.2, 2.9, 0),
+				Color = SKIN,
+			})
+		end
+		person({
+			Name = "Skirt",
+			Size = Vector3.new(1.9, 1.3, 1.1),
+			Position = Vector3.new(0, 2.6, 0),
+			Color = Color3.fromRGB(240, 230, 210),
+		})
+		person({ Name = "Body", Size = Vector3.new(1.9, 1.9, 1), Position = Vector3.new(0, 4.15, 0), Color = cardigan })
+		person({
+			Name = "Pearls",
+			Size = Vector3.new(1, 0.18, 0.12),
+			Position = Vector3.new(0, 4.95, -0.52),
+			Color = Color3.fromRGB(250, 248, 240),
+		})
+		person({ Name = "Neck", Size = Vector3.new(0.5, 0.3, 0.5), Position = Vector3.new(0, 5.25, 0), Color = SKIN })
+		person({
+			Name = "Hair",
+			Shape = Enum.PartType.Ball,
+			Size = Vector3.new(1.8, 1.8, 1.8),
+			Position = Vector3.new(0, 6.3, 0.18),
+			Color = Color3.fromRGB(150, 75, 50),
+		})
+		person({
+			Name = "Head",
+			Shape = Enum.PartType.Ball,
+			Size = Vector3.new(1.5, 1.5, 1.5),
+			Position = Vector3.new(0, 6.05, 0),
+			Color = SKIN,
+		})
+	end,
+
+	-- Gloria's house across the street: two storeys in lavender with a white front porch. Front
+	-- toward -Z: the house's front wall is at Z = 0, the porch in front of it. A "Porch" marker is
+	-- where Gloria stands.
+	GloriasHouse = function(model: Model)
+		local add = propAdder(model)
+		rootPart(model, add)
+		local width, depth, height = 34, 22, 14
+		local white = Color3.fromRGB(240, 238, 232)
+		add({
+			Name = "Walls",
+			Size = Vector3.new(width, height, depth),
+			Position = Vector3.new(0, height / 2, depth / 2),
+			Color = Color3.fromRGB(200, 185, 225),
+		})
+		add({
+			Name = "Trim",
+			Size = Vector3.new(width + 0.4, 0.6, depth + 0.4),
+			Position = Vector3.new(0, height / 2, depth / 2),
+			Color = white,
+		})
+		local roof = Color3.fromRGB(85, 70, 100)
+		add({
+			ClassName = "WedgePart",
+			Name = "Roof",
+			Size = Vector3.new(width + 2, 7, depth / 2 + 1),
+			CFrame = CFrame.new(0, height + 3.5, depth / 4 - 0.5),
+			Color = roof,
+		})
+		add({
+			ClassName = "WedgePart",
+			Name = "Roof",
+			Size = Vector3.new(width + 2, 7, depth / 2 + 1),
+			CFrame = CFrame.new(0, height + 3.5, depth * 3 / 4 + 0.5) * CFrame.Angles(0, math.pi, 0),
+			Color = roof,
+		})
+		add({
+			Name = "Chimney",
+			Size = Vector3.new(2.5, 6, 2.5),
+			Position = Vector3.new(11, height + 4, depth * 0.7),
+			Color = Color3.fromRGB(150, 80, 70),
+		})
+		local porchHeight, porchDepth = 1.2, 7
+		add({
+			Name = "Porch",
+			Size = Vector3.new(width, porchHeight, porchDepth),
+			Position = Vector3.new(0, porchHeight / 2, -porchDepth / 2),
+			Color = white,
+		})
+		add({
+			Name = "PorchRoof",
+			Size = Vector3.new(width, 0.6, porchDepth + 0.6),
+			Position = Vector3.new(0, 9.3, -porchDepth / 2 - 0.3),
+			Color = white,
+		})
+		for _, x in { -16, -8, 8, 16 } do
+			add({
+				Name = "Column",
+				Size = Vector3.new(0.8, 9 - porchHeight, 0.8),
+				Position = Vector3.new(x, (9 + porchHeight) / 2, -porchDepth + 0.4),
+				Color = white,
+			})
+		end
+		add({
+			Name = "Step",
+			Size = Vector3.new(8, 0.6, 2.4),
+			Position = Vector3.new(0, 0.3, -porchDepth - 1.2),
+			Color = white,
+		})
+		add({
+			Name = "Step",
+			Size = Vector3.new(8, 0.6, 1.2),
+			Position = Vector3.new(0, 0.9, -porchDepth - 0.6),
+			Color = white,
+		})
+		add({
+			Name = "Door",
+			Size = Vector3.new(4, 7, 0.3),
+			Position = Vector3.new(0, porchHeight + 3.5, -0.15),
+			Color = Color3.fromRGB(110, 60, 120),
+		})
+		for _, x in { -11, -5.5, 5.5, 11 } do
+			for _, y in { porchHeight + 4, height - 3.2 } do
+				add({
+					Name = "Window",
+					Size = Vector3.new(4, 3.5, 0.3),
+					Position = Vector3.new(x, y, -0.15),
+					Color = Color3.fromRGB(165, 205, 230),
+				})
+			end
+		end
+		marker(model, "Porch", CFrame.new(-7, porchHeight, -porchDepth / 2))
 	end,
 }
 

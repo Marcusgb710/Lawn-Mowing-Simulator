@@ -29,6 +29,7 @@ local FUNCTIONS = {
 	"GetProfile",
 	"GetJobBoard",
 	"GetStory",
+	"TalkToJune",
 	"AcceptJob",
 	"BuyItem",
 	"SellItem",

@@ -29,6 +29,7 @@ local Signal = require(Shared.Signal)
 
 local BusinessStorage = require(script.Parent.Parent.BusinessStorage)
 local DataService = require(script.Parent.DataService)
+local GrandmaJune = require(script.Parent.Parent.GrandmaJune)
 local Openings = require(script.Parent.Parent.Openings)
 local ServiceSpots = require(script.Parent.Parent.ServiceSpots)
 
@@ -63,6 +64,12 @@ local TAILGATE_TIME = 0.6
 local COMPUTER_REACH = 8
 -- The building's own machines, for its Compressor and Grinder mounts.
 local SHOP_MACHINES = { Compressor = "AirCompressor", Grinder = "BenchGrinder" }
+-- Grandma June's porch rocker (see GrandmaJune) stands this far to the right of the building and
+-- this far in front of it, turned this much toward the driveway. Beside an older building, whose
+-- delivery boxes stand out front on the right, she sits at least JUNE_PAST_BOXES across, clear of
+-- them, and never closer than JUNE_EDGE to the plot's side.
+local JUNE_GAP, JUNE_AHEAD, JUNE_TURN = 5, 2.5, math.rad(30)
+local JUNE_PAST_BOXES, JUNE_EDGE = 25, 7
 -- Walls put up for a walk-in building whose walls don't collide properly (see makeWalkable).
 local FALLBACK_WALL = 0.8
 -- A wall mesh no thicker than this (studs) is a flat piece that collides fine as it is, and one
@@ -131,6 +138,8 @@ end
 local function buildPlaceholderTown(): Model
 	local town = Instance.new("Model")
 	town.Name = "Town"
+	-- So GloriaService knows where it may put her house.
+	town:SetAttribute("Placeholder", true)
 
 	part(town, {
 		Name = "Ground",
@@ -519,6 +528,17 @@ local function buildPlot(plot)
 	end
 	-- Machines are set down in front of it to be worked on, and hand tools go in its vise.
 	ServiceSpots.add(bench, ServiceSpots.forBench(bench))
+
+	-- Grandma June on her porch rocker beside the shop, looking out over the driveway.
+	local buildingRight = origin:PointToObjectSpace(buildingBox.Position).X + buildingSize.X / 2
+	local juneX = buildingRight + JUNE_GAP
+	if not markers.delivery then
+		juneX = math.max(juneX, JUNE_PAST_BOXES)
+	end
+	juneX = math.min(juneX, plot.width / 2 - JUNE_EDGE)
+	local june = GrandmaJune.build(at(juneX, 0, frontZ - JUNE_AHEAD) * CFrame.Angles(0, JUNE_TURN, 0))
+	june:SetAttribute("OwnerUserId", owner.UserId)
+	june.Parent = model
 
 	local truck = Assets.truck(data.equipped.Truck or Items.Catalog.Truck[1].id, data.equipped.Trailer)
 	-- Their Robux paint job, if they've put one on (see Premium.luau).

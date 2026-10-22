@@ -10,6 +10,7 @@
 -- bought, a level up, the business's curb appeal changing) and checks the beats and act gates in
 -- Story.luau against the save. Players who were already playing when the story arrived are
 -- caught up to their act on joining, quietly: the act's texts arrive, but no scenes play for it.
+-- Talking to Grandma June on her porch (see GrandmaJune) asks here what she says.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -26,17 +27,25 @@ local DataService = require(script.Parent.DataService)
 local HomeLawnService = require(script.Parent.HomeLawnService)
 local JobService = require(script.Parent.JobService)
 local ShopService = require(script.Parent.ShopService)
+local WorldService = require(script.Parent.WorldService)
 
 -- How long joining waits for the business's curb appeal (its lawn is built just after the plot),
 -- so a returning player is caught up to the right act.
 local CURB_APPEAL_WAIT = 10
 -- How long the client's first request for the story waits for the player to join it.
 local JOIN_WAIT = 30
+-- How close to June you have to be to talk to her (a little more than the look-at reach), and
+-- how often.
+local TALK_REACH = 14
+local TALK_COOLDOWN = 0.5
 
 local StoryService = {}
 
 -- [Player] = true once they've joined the story this session
 local joined = {}
+-- [Player] = how many times they've talked to June this session, and when they last did
+local talks = {}
+local talkedAt = {}
 
 local function notify(player: Player, message: string)
 	Net.event("Notify"):FireClient(player, message)
@@ -209,7 +218,6 @@ local function handle(player: Player, event, quiet: boolean?)
 		-- A jump over several acts only plays the last one's scene.
 		if index == #started and not quiet then
 			queueScene(story, Story.openingScene(act, event))
-			notify(player, `Act {act}: {info.name}`)
 		end
 		sendTexts(player, story, info.texts or {}, values, quiet)
 		changed = true
@@ -217,6 +225,17 @@ local function handle(player: Player, event, quiet: boolean?)
 	if changed then
 		update(player)
 	end
+end
+
+-- What June says when you talk to her: about your act's goal, or about Gloria, taking turns.
+local function juneSays(player: Player, data, story): string
+	local values = { appeal = HomeLawnService:CurbAppeal(player), bar = Story.ContestBar }
+	local goal = goalFor(story.act)
+	if goal and goal.kind == "Money" and data.money < goal.need then
+		values.left = Format.money(goal.need - data.money)
+	end
+	talks[player] = (talks[player] or 0) + 1
+	return Story.juneLine(story.act, talks[player], values)
 end
 
 local function join(player: Player)
@@ -264,6 +283,22 @@ function StoryService:Init()
 		local data = DataService:Get(player)
 		return if data and joined[player] then view(storyOf(data)) else nil
 	end
+	-- Talking to June: any June on her porch, within reach.
+	Net.func("TalkToJune").OnServerInvoke = function(player, june)
+		local data = DataService:Get(player)
+		if
+			not data
+			or os.clock() - (talkedAt[player] or 0) < TALK_COOLDOWN
+			or typeof(june) ~= "Instance"
+			or not june:IsA("Model")
+			or june:GetAttribute("Interact") ~= "Talk"
+			or not WorldService:IsNear(player, june, TALK_REACH)
+		then
+			return nil
+		end
+		talkedAt[player] = os.clock()
+		return juneSays(player, data, storyOf(data))
+	end
 	-- The client watched (or skipped) a scene it was sent.
 	Net.event("SceneWatched").OnServerEvent:Connect(function(player, sceneId)
 		local data = DataService:Get(player)
@@ -309,6 +344,8 @@ function StoryService:Start()
 	end
 	Players.PlayerRemoving:Connect(function(player)
 		joined[player] = nil
+		talks[player] = nil
+		talkedAt[player] = nil
 	end)
 end
 

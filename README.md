@@ -165,6 +165,7 @@ src/shared/                  -> ReplicatedStorage.Shared   code used by both ser
   Config/Jobs.luau              job types: customers, stories, yard, tasks, par time, pay
   Config/Items.luau             the shop tabs: tools from Tools.luau, trucks, trailers, businesses
   Config/Storage.luau           storage spots at the business and truck space
+  Config/Story.luau             the story (docs/STORY.md): every line, beat and act gate
   Shop.luau                     what a player may buy (shared by the server and the shop menu)
   Assets.luau                   finds a real model or falls back to a placeholder
   Placeholders.luau             the block models used until real ones exist
@@ -181,10 +182,13 @@ src/server/                  -> ServerScriptService.Server
   Services/ToolService          gives tools and applies their work every tick
   Services/TruckService         carrying tools from storage to the truck and back
   Services/ShopService          buying, selling and equipping
+  Services/StoryService         the story: acts, beats, scenes to play and texts
+  Services/GloriaService        Gloria's house across the street
 src/client/                  -> StarterPlayer.StarterPlayerScripts.Client
   init.client.luau              starts every controller
   Controllers/                  HUD, shop computer (jobs, orders, business), truck checklist, carrying tools, crew menu,
-                                drive cutscene, first-person camera and arms
+                                drive cutscene, first-person camera and arms, the story's dialogue
+  StoryArt.luau                 image ids for the story's portraits, dialogue box and bubbles
 ```
 
 Most balancing happens in the files in `src/shared/Config/`, no other code changes needed. The

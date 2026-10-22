@@ -249,11 +249,31 @@ One PR per phase, each stacked on the one before. Every phase still needs a Stud
       - the texts after the first and second jobs ("Grandma June: Saw you finish Edna's lawn...",
         "Bridge Club: Is the grandchild free Thursday?") show as toasts, and June's critiques
         after later act 1 jobs;
-      - buying the Reel Push Mower says "Act 2: TurfKing" and Chad texts; a gas mower (or a crew
-        job, or level 4) starts act 3 and Sam texts; curb appeal 75 starts act 4;
+      - buying the Reel Push Mower starts act 2 (its scene plays, see Story 2) and Chad texts; a
+        gas mower (or a crew job, or level 4) starts act 3 and Sam texts; curb appeal 75 starts
+        act 4;
       - the starter job on the board is always Mrs. Alvarez's;
       - all of it is still there after a rejoin, and nothing fires twice;
       - `lune run scripts/check-story` passes after any change to `Story.luau`.
+- [ ] **Story 2: the dialogue box, the intro, June and Gloria's house.** To check in Studio, on
+      PC and on a phone (Device emulator, landscape):
+      - a brand-new save: the intro starts right after the title card lifts, with the camera on
+        Gloria's house and her bubble, then on June on her porch; the "New tool" card on the
+        shears line; the coach's "Edna's front lawn..." banner only once it's over;
+      - Skip ("Skip intro" on PC), clicking anywhere, Space and Enter, tapping on a phone; a line
+        typing out finishes on the first click; nothing walks while it's up;
+      - the HUD, hotbar, dot and look-at hints hidden during it, all back after, and the camera
+        back in first person facing the shop;
+      - the box on a short phone screen: portrait, name tag, text and "Tap to continue" not
+        overlapping, nothing under the notch, Skip clear of Roblox's own buttons;
+      - leaving mid-intro and rejoining plays it again; finishing it doesn't;
+      - buying the reel mower, then walking away from the computer, plays act 2's scene;
+      - June on her rocker beside every building (Shed to Equipment Yard), clear of the truck,
+        driveway, delivery spot and decorations; sitting in the chair; E on her says a line in
+        a bubble over her hat, taking turns about the goal and Gloria;
+      - Gloria's house across the south street with her on the porch, her bubble readable from
+        the intro's shot, and the fence and shrubs standing right (real decoration models);
+      - fill in `src/client/StoryArt.luau` when the GUI art arrives.
 
 ## Before release
 
