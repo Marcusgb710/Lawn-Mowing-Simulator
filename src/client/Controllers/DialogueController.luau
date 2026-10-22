@@ -225,14 +225,17 @@ function DialogueController.setFace(frame: Frame, castKey: string)
 		}, { round() })
 		return
 	end
+	local color = UI.Colors.Cast[castKey] or UI.Colors.Card
+	-- Dark initials on a light color, light ones on a dark color.
+	local light = color.R * 0.299 + color.G * 0.587 + color.B * 0.114 > 0.55
 	UI.new("TextLabel", {
 		Name = "Picture",
 		Size = UDim2.fromScale(1, 1),
-		BackgroundColor3 = UI.Colors.Cast[castKey] or UI.Colors.Card,
+		BackgroundColor3 = color,
 		Font = UI.Font,
 		Text = if cast then cast.initials else "",
 		TextScaled = true,
-		TextColor3 = UI.Colors.BubbleText,
+		TextColor3 = if light then UI.Colors.BubbleText else UI.Colors.Text,
 		Parent = frame,
 	}, {
 		round(),
@@ -808,13 +811,15 @@ local function build()
 		Parent = bars,
 	})
 
-	-- A click or tap anywhere goes on.
+	-- A click or tap anywhere goes on. It's modal, so it frees the mouse first person locks (the
+	-- HUD's own button for that is hidden with the HUD).
 	local catcher = UI.new("TextButton", {
 		Name = "Continue",
 		Size = UDim2.fromScale(1, 1),
 		BackgroundTransparency = 1,
 		Text = "",
 		AutoButtonColor = false,
+		Modal = true,
 		Parent = screen,
 	})
 	catcher.Activated:Connect(advance)
