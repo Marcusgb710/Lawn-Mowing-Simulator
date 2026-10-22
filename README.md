@@ -167,6 +167,7 @@ src/shared/                  -> ReplicatedStorage.Shared   code used by both ser
   Config/Items.luau             the shop tabs: tools from Tools.luau, trucks, trailers, businesses
   Config/Storage.luau           storage spots at the business and truck space
   Config/Story.luau             the story (docs/STORY.md): every line, beat and act gate
+  Config/TurfKing.luau          TurfKing taking jobs off your board, and customers won back from it
   Shop.luau                     what a player may buy (shared by the server and the shop menu)
   Assets.luau                   finds a real model or falls back to a placeholder
   Placeholders.luau             the block models used until real ones exist
@@ -184,12 +185,13 @@ src/server/                  -> ServerScriptService.Server
   Services/TruckService         carrying tools from storage to the truck and back
   Services/ShopService          buying, selling and equipping
   Services/StoryService         the story: acts, beats, scenes to play and texts
-  Services/GloriaService        Gloria's house across the street
+  Services/GloriaService        Gloria's house across the street, and her yard for every act
+  Services/TurfKingService      TurfKing taking jobs off your board, and the won-back bonus
 src/client/                  -> StarterPlayer.StarterPlayerScripts.Client
   init.client.luau              starts every controller
   Controllers/                  HUD, shop computer (jobs, orders, business), truck checklist, carrying tools, crew menu,
-                                drive cutscene, first-person camera and arms, the story's dialogue
-                                and the Messages app
+                                drive cutscene, first-person camera and arms, the story's dialogue,
+                                the Messages app and Gloria's yard as your act has it
   StoryArt.luau                 image ids for the story's portraits, dialogue box and bubbles
 ```
 
@@ -210,6 +212,7 @@ Models live in `ReplicatedStorage.Assets`, sorted into folders. Name each model 
 | `Assets/Buildings` | `Shed`, `Garage`, `SmallOffice`, `EquipmentYard` | A Model with the front door facing forward |
 | `Assets/Props` | `House`, `FlowerPatch`, `GardenGnome` | Models for the customer's yard |
 | `Assets/Props` | `StoragePegboard`, `StorageWallRack`, `StorageWallHooks`, `StorageShelf` | Storage at the business: back flat on Z = 0, front toward -Z, with `Slot1`, `Slot2`... attachments where tools go |
+| `Assets/Story` | e.g. `GloriaHouse`, `GloriaYard_Stage1`, `TurfKingTruck`, `NPC_Chad` | The story's people, places and props (ids in alphainstructions/instructions37.md): origin on the ground, front toward -Z, a `Root` part |
 
 There are two ways to add them:
 

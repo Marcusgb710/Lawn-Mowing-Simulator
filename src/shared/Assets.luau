@@ -15,6 +15,8 @@
 --                                                     toward -Z, with their markers on "Root"
 --   Props/StoragePegboard, StorageWallRack,           storage at the business, back flat on Z = 0 with
 --         StorageWallHooks, StorageShelf              "Slot1", "Slot2"... attachments where tools go
+--   Story/<id>          e.g. Story/GloriaHouse        the story's people, places and props
+--                                                     (alphainstructions/instructions37.md)
 --
 -- New models have an invisible "Root" part as their PrimaryPart, 0.5 studs above the model's
 -- origin (see Assets.placeAt).
@@ -24,6 +26,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Placeholders = require(script.Parent.Placeholders)
+local Premium = require(script.Parent.Config.Premium)
 
 local Assets = {}
 
@@ -285,6 +288,143 @@ function Assets.prop(name: string): Model
 		return prepareModel(found:Clone())
 	end
 	return Placeholders.prop(name)
+end
+
+-- The story's models (alphainstructions/instructions37.md): Story/<id>, or Props/<id> (where
+-- the TurfKing sign is filed), or nil while it isn't in the game yet.
+function Assets.storyModel(id: string): Model?
+	local found = findAsset("Story", id) or findAsset("Props", id)
+	if found and found:IsA("Model") then
+		return prepareModel(found:Clone())
+	end
+	return nil
+end
+
+-- The block stand-ins some of the story's models had before their ids were set, by id.
+local STORY_STAND_INS = {
+	GloriaHouse = "GloriasHouse",
+	NPC_Gloria = "GloriaPemberton",
+}
+
+-- A story model, or its block placeholder: one built like the real model (front toward -Z, a
+-- Root 0.5 above the origin), so the real one drops in with no code change.
+function Assets.story(id: string): Model
+	local found = Assets.storyModel(id)
+	if found then
+		return found
+	end
+	local older = STORY_STAND_INS[id]
+	local model = if older then Assets.prop(older) else Placeholders.prop(id)
+	model.Name = id
+	return model
+end
+
+-- TurfKing's livery, for the stand-in truck below.
+local TURFKING_TRUCK = "HeavyDutyPickup"
+local TURFKING_PURPLE = Color3.fromRGB(88, 52, 150)
+local TURFKING_GOLD = Color3.fromRGB(230, 185, 60)
+local TURFKING_AMBER = Color3.fromRGB(255, 170, 40)
+
+-- Where a part's corners reach in `frame`'s space: its lowest and highest corner.
+local function extentIn(part: BasePart, frame: CFrame): (Vector3, Vector3)
+	local low, high = Vector3.one * math.huge, -Vector3.one * math.huge
+	local half = part.Size / 2
+	for _, x in { -1, 1 } do
+		for _, y in { -1, 1 } do
+			for _, z in { -1, 1 } do
+				local corner = frame:PointToObjectSpace(part.CFrame:PointToWorldSpace(half * Vector3.new(x, y, z)))
+				low, high = low:Min(corner), high:Max(corner)
+			end
+		end
+	end
+	return low, high
+end
+
+-- TurfKing's purple truck: Story/TurfKingTruck, or until that's in the game, the heavy-duty
+-- pickup in TurfKing's livery: purple paint (as a Robux paint job does it, Premium.applyPaint), a
+-- gold stripe down each side at door height, the gold crown on both doors and an amber light bar
+-- on the roof. It isn't anchored; its front faces its pivot's LookVector, like any truck.
+function Assets.turfKingTruck(): Model
+	local found = Assets.storyModel("TurfKingTruck")
+	if found then
+		return found
+	end
+	local truck = Assets.truck(TURFKING_TRUCK)
+	truck.Name = "TurfKingTruck"
+	Premium.applyPaint(truck, { tint = TURFKING_PURPLE })
+	-- A placeholder truck's body is plain blocks the paint job doesn't know.
+	for _, piece in truck:GetDescendants() do
+		if piece:IsA("BasePart") and (piece.Name == "Hood" or piece.Name == "Cab" or piece.Name == "Box") then
+			piece.Color = TURFKING_PURPLE
+		elseif piece:IsA("BasePart") and (piece.Name == "BedLeft" or piece.Name == "BedRight") then
+			piece.Color = TURFKING_PURPLE:Lerp(Color3.new(0, 0, 0), 0.2)
+		end
+	end
+
+	-- Worked out in the truck's own space (X across, Y up, -Z forward).
+	local pivot = truck:GetPivot()
+	local low, high = Vector3.one * math.huge, -Vector3.one * math.huge
+	local door: BasePart? = nil
+	for _, piece in truck:GetDescendants() do
+		if piece:IsA("BasePart") and piece.Transparency < 1 and not piece:FindFirstAncestor("Trailer") then
+			local partLow, partHigh = extentIn(piece, pivot)
+			low, high = low:Min(partLow), high:Max(partHigh)
+			if string.sub(piece.Name, -12) == "__DriverDoor" then
+				door = piece
+			end
+		end
+	end
+	if low.X > high.X then
+		return truck
+	end
+	-- The stripe and crowns sit on the doors' outside, so mirrors sticking out don't count.
+	local side, stripeY, doorZ = high.X, low.Y + (high.Y - low.Y) * 0.45, (low.Z + high.Z) / 2
+	local doorHeight = (high.Y - low.Y) * 0.3
+	if door then
+		local doorLow, doorHigh = extentIn(door, pivot)
+		side = math.max(math.abs(doorLow.X), math.abs(doorHigh.X))
+		stripeY = doorLow.Y + (doorHigh.Y - doorLow.Y) * 0.3
+		doorZ = (doorLow.Z + doorHigh.Z) / 2
+		doorHeight = doorHigh.Y - doorLow.Y
+	end
+	local length = (high.Z - low.Z) * 0.78
+	local function livery(name: string, size: Vector3, offset: CFrame, color: Color3, material: Enum.Material?)
+		local piece = Instance.new("Part")
+		piece.Name = name
+		piece.Size = size
+		piece.CFrame = pivot * offset
+		piece.Color = color
+		piece.Material = material or Enum.Material.SmoothPlastic
+		piece.CanCollide = false
+		piece.CanQuery = false
+		piece.CanTouch = false
+		piece.CastShadow = false
+		piece.TopSurface = Enum.SurfaceType.Smooth
+		piece.BottomSurface = Enum.SurfaceType.Smooth
+		piece.Parent = truck
+		return piece
+	end
+	for _, sign in { -1, 1 } do
+		local x = sign * (side + 0.04)
+		livery("Stripe", Vector3.new(0.06, 0.3, length), CFrame.new(x, stripeY, (low.Z + high.Z) / 2), TURFKING_GOLD)
+		-- The crown faces out from the door.
+		local crownFrame = CFrame.new(x + sign * 0.02, stripeY + doorHeight * 0.32, doorZ)
+			* CFrame.Angles(0, sign * math.pi / 2, 0)
+		for _, crownPart in Placeholders.crown(crownFrame, math.min(1.4, doorHeight * 0.4), 0.06) do
+			crownPart.Parent = truck
+		end
+	end
+	local bar = livery(
+		"LightBar",
+		Vector3.new((high.X - low.X) * 0.55, 0.35, 0.7),
+		CFrame.new(0, high.Y + 0.17, doorZ + 0.4),
+		TURFKING_AMBER,
+		Enum.Material.Neon
+	)
+	local light = Instance.new("Attachment")
+	light.Name = "Light"
+	light.Parent = bar
+	return truck
 end
 
 -- Moves a model so its origin lands on `frame`. The origin is 0.5 studs below its "Root" part

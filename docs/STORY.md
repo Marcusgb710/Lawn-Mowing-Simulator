@@ -210,7 +210,7 @@ This is in rough order, as separate PRs.
      - from the mock-up's Messages board: Mrs. Alvarez's *"Thank you, dear! Same time next
        week?"*, your *"Saving for the reel mower."* and June's *"Good. Gloria's TurfKing boys
        scalped her front lawn this morning. I took pictures."*, after the first job.
-   - Not done: the small bonus from a customer won over from TurfKing.
+   - The small bonus from a customer won over from TurfKing came with item 4.
 2. **`DialogueController`.** The dialogue box from the mock-up. It handles skip, works on phones
    (44 px+ targets) and hides the HUD while it's up. It plays after the title card on first
    join. *Built.*
@@ -245,8 +245,7 @@ This is in rough order, as separate PRs.
      9-slices, the bubble 9-slice and tail, the two chevrons and the "New tool" card icon.
      Colors are `UI.Colors` (new: `Outline`, `Letterbox`, `Track`, `Bubble`, `BubbleText`,
      and `Cast` for each character) and the font is `UI.Font`.
-   - Not built: the TurfKing truck pulling up in the intro (it needs item 4's livery); the
-     first line says it, over a shot of Gloria's house.
+   - The TurfKing truck backing into Gloria's drive on the intro's first line came with item 4.
 3. **The Messages app** in `ComputerController`: threads, unread badge, goal card, and a
    notification when a text arrives outside the shop. *Built* (`MessagesController`).
    - **Threads:** Grandma June, the Bridge Club (each text says who in the club sent it), Chad
@@ -269,10 +268,70 @@ This is in rough order, as separate PRs.
    - Art slots in `StoryArt`: `TheirText` and `MyText` (9-slices) and `TextToast`.
 4. **NPCs and the world:**
    - June on a porch chair at each player's plot (*built*, with item 2);
-   - Gloria's house and yard in three stages (*a fixed house is built*, with item 2; the stages
-     aren't);
+   - Gloria's house and yard in three stages;
    - TurfKing's livery (a purple truck with a crown) for the cutscene and job sites;
    - the "Taken by TurfKing" job flip.
+
+   *Built.*
+   - **Gloria's yard by act.** Each player sees her yard as it is in their own act, so the
+     house is the server's (`GloriaService`) and the yard is each screen's own
+     (`GloriaController`). The server builds all three yards and TurfKing's truck into
+     `ReplicatedStorage.GloriasYard`, already in place, and each screen puts a copy of the ones
+     for its act in the house's `Yard` folder (`Story.GloriaYard`):
+     - act 1, stage 1: tired. Shaggy patches, dandelions, shrubs that need a trim and a small
+       flower bed;
+     - acts 2 and 3, stage 2: TurfKing's mowing stripes, crisp edges down the path, black mulch
+       beds under squared shrubs, and a TurfKing sign by the walk;
+     - act 4, stage 3: over the top. Checks instead of stripes, topiary balls in planters, a
+       tiered fountain, rose beds, solar lights all the way up the path and nine pink flamingos
+       in a V.
+     With real models, `Story/GloriaYard_Stage1..3` replace them, placed at the house's origin;
+     the placeholder path, fence and mailbox are only built while the yards are placeholders.
+   - **Gloria on her porch** says something now and then when you're within about 130 studs
+     (a speech bubble, every 35-55 s): `Story.GloriaRemarks`, three lines an act. From act 2,
+     Chad takes turns with her from beside his truck (`Story.ChadRemarks`, starting with "Cute
+     scissors, bud."). New lines, in the same voice:
+     - act 1: *"Are those scissors? How quaint."*, *"June, dear, your grass is waving at me."*;
+     - act 2: *"TurfKing does my edges with a laser, you know."*, *"Chad says your mower is
+       vintage. That's one word for it."*;
+     - act 3: *"Oh, a crew! How ambitious."*, *"My hedges are squared, June. Squared."*, *"I saw
+       you bought a shrub. Just the one?"*;
+     - act 4: *"Flamingos, June. In formation."*, *"The judges adore a fountain. Or so I've
+       heard."*, *"Thirty years. This is my year, June. I can feel it."*;
+     - Chad: *"Stay in your lane, bud."*, *"TurfKing, bud. Look it up."*, *"That's a lot of grass
+       for one kid, bud."*
+   - **TurfKing's truck** (`Assets.turfKingTruck`): `Story/TurfKingTruck`, or until it's in, the
+     heavy-duty pickup painted TurfKing purple the way a Robux paint job is (`Premium.applyPaint`),
+     with a gold stripe down each side at door height, the gold crown on both doors and an amber
+     light bar. From act 2 it's parked in Gloria's drive (on the house's `Driveway` marker, if it
+     has one) with Chad beside it. In the intro it backs into her drive from the street on the
+     first line, and goes again after.
+   - **"Taken by TurfKing"** (`TurfKingService`, rules in `Config/TurfKing.luau`). From act 2, a
+     few seconds after you walk up to your shop's computer (a random 4-9 s), one of the job
+     cards can flip to "Taken by TurfKing": a purple card with the stamp, which lands with a
+     thump if you're looking, and a "Taken" button. The server won't accept it. Chad texts you
+     about it (`Story.TurfKingTexts`), and a toast says which address it was.
+     - At most once every 3 jobs you finish, with a 50% chance each time you walk up to the
+       computer.
+     - Never the starter job, never one someone's accepted, never one above your level.
+     - Only a crew's leader (or someone on their own) has jobs taken, since they're the one who
+       accepts. Everyone else's board is the same as before: the board is shared, and the
+       "taken" mark is only on your view of it.
+     - A new board (every 3 minutes) brings the jobs back.
+   - **Beating TurfKing:** the first time each Quality customer gets a 90%+ finish from someone
+     in act 2 or later, they're won back. They text *"TurfKing scalped my lawn last month. You're
+     hired for good."* (the `QualityWin` beat, now once per customer) and pay a bonus: 20% of the
+     job's pay, from $10 to $100, rounded to $5. It's split with the crew like the rest of the
+     pay, and shows as a "Won from TurfKing" line in the pay breakdown. It's the business of the
+     leader who drove out that wins the customer.
+   - **Models** use the instructions37 ids in `Assets/Story/<id>` (`Props/<id>` works too, where
+     instructions37 files the sign): `GloriaHouse`, `GloriaYard_Stage1..3`, `TurfKingTruck`,
+     `TurfKingSign`, `NPC_Gloria` and `NPC_Chad`. Until they're in, `Assets.story` falls back to
+     block placeholders built to the same conventions (`Placeholders.luau`: the older
+     `GloriasHouse` and `GloriaPemberton` blocks, and new ones for Chad and the sign). A real
+     model's `Head` marker places the speech bubbles.
+   - Not built: TurfKing's truck at the job sites it's taken (the taken job never happens
+     anywhere you can go).
 5. **The contest:** `ContestService` (scoring from home lawn, edges and decorations against
    Gloria's bar for the act), the judging cutscene, the results screen, rewards and the trophy
    decoration.

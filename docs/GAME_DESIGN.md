@@ -733,7 +733,8 @@ which earns your business curb appeal and a bonus on every job.
   2. the camera eases in to `ScreenView` and the field of view narrows;
   3. the desktop opens, with five apps:
      - **Jobs:** today's board, with hints only. Anyone can look; only the crew leader can take
-       a job.
+       a job. From the story's act 2, TurfKing now and then takes a job off a leader's board
+       ("Taken by TurfKing", docs/STORY.md).
      - **Orders:** tools and supplies, plus a Sell tab for tools in storage.
      - **Business:** building, truck and trailer upgrades.
      - **Crew.**
@@ -968,6 +969,10 @@ phase that gives them work.
   and the number the next text gets. Everyone starts in act 1 with nothing seen. Players who
   have already done a job aren't shown the intro: `StoryService` catches them up to their act
   when they join.
+- **TurfKing** (docs/STORY.md, item 4) needs no new version. It keeps two numbers in `story`:
+  `flippedAt` (how many jobs you'd done when it last took one of yours) and `flips` (how many
+  it's taken). A customer won back from it is remembered as the beat `QualityWin:<customer>` in
+  `seen`. Loading fills in nothing: a save without them has never had a job taken.
 
 ## New item ids for modelers
 

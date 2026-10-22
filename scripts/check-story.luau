@@ -1,11 +1,14 @@
--- Checks the story's config and logic (src/shared/Config/Story.luau) outside Roblox:
+-- Checks the story's config and logic outside Roblox:
 --   lune run scripts/check-story
--- It checks every scene, beat and act points at things that exist, and that the act gates and
--- beats fire when docs/STORY.md says they should. Exits with an error if anything's off.
+-- It checks every scene, beat and act points at things that exist, that the act gates and beats
+-- fire when docs/STORY.md says they should (src/shared/Config/Story.luau), and TurfKing's rules
+-- for taking jobs and winning customers back (src/shared/Config/TurfKing.luau). Exits with an
+-- error if anything's off.
 
 local process = require("@lune/process")
 
 local Story = require("../src/shared/Config/Story")
+local TurfKing = require("../src/shared/Config/TurfKing")
 
 local failures = 0
 local function check(ok: boolean, message: string)
@@ -121,6 +124,23 @@ for act, lines in Story.JuneTalk.Progress do
 		checkText(line, `June's act {act} talk`)
 	end
 end
+check(#Story.GloriaRemarks == #Story.Acts, "Gloria has remarks for every act")
+for act, lines in Story.GloriaRemarks do
+	check(#lines > 0, `Gloria has nothing to say in act {act}`)
+	for _, line in lines do
+		checkText(line, `Gloria's act {act} remark`)
+	end
+end
+for _, line in Story.ChadRemarks do
+	checkText(line, "Chad's remark")
+end
+for _, line in Story.TurfKingTexts do
+	checkText(line, "Chad's text when TurfKing takes a job")
+end
+check(#Story.GloriaYard.Stages == #Story.Acts, "Gloria's yard has a stage for every act")
+for act, stage in Story.GloriaYard.Stages do
+	check(stage >= 1 and stage <= 3, `act {act}: no yard stage {stage}`)
+end
 
 -- Act gates -----------------------------------------------------------------------------------
 
@@ -177,20 +197,93 @@ local job =
 	{ kind = "JobFinished", customer = "Mrs. Alvarez", pay = 66, quality = 0.8, preference = "Balanced", crew = 1 }
 check(same(beatIds(job, facts({ jobsCompleted = 1 })), { "FirstJob" }), "June texts after the first job")
 check(same(beatIds(job, facts({ jobsCompleted = 2 })), { "SecondJob" }), "Mrs. Rossi texts after the second job")
-local perfect = { kind = "JobFinished", customer = "Ms. Nguyen", quality = 0.92, preference = "Quality", crew = 1 }
-check(#beatIds(perfect, facts({ act = 1, jobsCompleted = 9 })) == 0, "beating TurfKing waits for act 2")
-check(
-	same(beatIds(perfect, facts({ act = 2, jobsCompleted = 9 })), { "QualityWin" }),
-	"a 90% finish for a Quality customer beats TurfKing"
-)
-local almost = { kind = "JobFinished", customer = "Ms. Nguyen", quality = 0.89, preference = "Quality", crew = 1 }
-check(#beatIds(almost, facts({ act = 2, jobsCompleted = 9 })) == 0, "89% isn't enough to beat TurfKing")
+-- Winning a customer back from TurfKing: JobService says `wonBack` when it pays their bonus.
+local perfect = {
+	kind = "JobFinished",
+	customer = "Ms. Nguyen",
+	quality = 0.92,
+	preference = "Quality",
+	crew = 1,
+	wonBack = TurfKing.winsBack(2, "Quality", 0.92),
+}
+check(perfect.wonBack, "a 90% finish for a Quality customer wins them back")
+check(not TurfKing.winsBack(2, "Quality", 0.89), "89% isn't enough to beat TurfKing")
+check(not TurfKing.winsBack(1, "Quality", 0.99), "beating TurfKing waits for act 2")
+check(not TurfKing.winsBack(3, "Balanced", 0.99), "only customers who wanted it perfect are won back")
+check(#beatIds(perfect, facts({ act = 1, jobsCompleted = 9 })) == 0, "the won-back text waits for act 2")
+check(same(beatIds(perfect, facts({ act = 2, jobsCompleted = 9 })), { "QualityWin" }), "the won-back customer texts")
+local wonBefore = { ["QualityWin:Ms. Nguyen"] = true }
+check(#beatIds(perfect, facts({ act = 2 }), wonBefore) == 0, "a customer is only won back once")
+local another = table.clone(perfect)
+another.customer = "Mr. Chen"
+check(same(beatIds(another, facts({ act = 2 }), wonBefore), { "QualityWin" }), "each customer can be won back")
+local notWon = table.clone(perfect)
+notWon.wonBack = false
+check(#beatIds(notWon, facts({ act = 2 })) == 0, "no text without the bonus")
+check(Story.beatKey(Story.beat("QualityWin"), perfect) == "QualityWin:Ms. Nguyen", "won-back beats are per customer")
+check(Story.beatKey(Story.beat("FirstJob"), perfect) == "FirstJob", "other beats fire once in all")
+for _, payout in { 0, 45, 66, 250, 650, 3500 } do
+	local bonus = TurfKing.bonus(payout)
+	check(
+		bonus >= TurfKing.WinBonusMin and bonus <= TurfKing.WinBonusMax and bonus % 5 == 0,
+		`the won-back bonus on {payout} is {bonus}`
+	)
+end
+check(TurfKing.bonus(3500) == TurfKing.WinBonusMax, "the won-back bonus is capped")
 
 check(Story.critique(facts({ jobsCompleted = 1 }), job) == nil, "the first job has its own texts, no critique")
 check(Story.critique(facts({ jobsCompleted = 2 }), job) ~= nil, "June critiques the second job")
 check(Story.critique(facts({ act = 2, jobsCompleted = 5 }), job) == nil, "June stops critiquing after act 1")
 local poor = Story.critique(facts({ jobsCompleted = 2 }), { kind = "JobFinished", quality = 0.4 })
 check(poor == Story.Critiques[3].lines[1], "a poor finish gets a poor critique")
+
+-- TurfKing taking jobs ------------------------------------------------------------------------
+
+check(not TurfKing.canFlip(1, 20, nil), "TurfKing doesn't take jobs in act 1")
+check(TurfKing.canFlip(2, 5, nil), "TurfKing can take a job once act 2 starts")
+check(not TurfKing.canFlip(2, 6, 5), "TurfKing waits a few jobs between takes")
+check(not TurfKing.canFlip(4, 5 + TurfKing.FlipEveryJobs - 1, 5), "...all of them")
+check(TurfKing.canFlip(3, 5 + TurfKing.FlipEveryJobs, 5), "...then it can take another")
+local board = {
+	{ id = "1", kind = "StarterGear", minLevel = 1 },
+	{ id = "2", kind = "Homeowner", minLevel = 1 },
+	{ id = "3", kind = "Homeowner", minLevel = 1 },
+	{ id = "4", kind = "Open", minLevel = 1 },
+	{ id = "5", kind = "Open", minLevel = 6 },
+	{ id = "6", kind = "Open", minLevel = 2 },
+}
+local ids = {}
+for _, offer in TurfKing.candidates(board, { ["2"] = true }, { ["4"] = true }, 3) do
+	table.insert(ids, offer.id)
+end
+check(same(ids, { "3", "6" }), "TurfKing never takes the starter job, a taken or accepted one, or a locked one")
+check(#TurfKing.candidates({ board[1] }, nil, nil, 99) == 0, "a board with only the starter job is safe")
+
+-- Gloria's yard ------------------------------------------------------------------------------
+
+local stages = {}
+for act = 1, #Story.Acts do
+	local stage, turfKing = Story.gloriaStage(act)
+	stages[act] = `{stage}{if turfKing then "+" else ""}`
+end
+check(same(stages, { "1", "2+", "2+", "3+" }), "Gloria's yard: tired, TurfKing's, TurfKing's, over the top")
+local speaker, line = Story.porchRemark(1, 2)
+check(speaker == "Gloria", "Chad isn't across the street in act 1")
+speaker, line = Story.porchRemark(2, 2)
+check(speaker == "Chad" and line == "Cute scissors, bud.", "Chad's first word from her drive")
+speaker = Story.porchRemark(2, 3)
+check(speaker == "Gloria", "Gloria and Chad take turns")
+for act = 1, #Story.Acts do
+	for turn = 1, 8 do
+		local _, remark = Story.porchRemark(act, turn)
+		check(typeof(remark) == "string" and #remark > 0, `a porch remark, act {act} turn {turn}`)
+	end
+end
+for count = 1, 6 do
+	local text = Story.turfKingText(count, "Mr. Chen")
+	check(not string.find(text, "{", 1, true), `Chad's text {count} fills in`)
+end
+check(Story.turfKingText(1, nil) ~= "", "Chad has something to say without a customer")
 
 -- Lines ---------------------------------------------------------------------------------------
 

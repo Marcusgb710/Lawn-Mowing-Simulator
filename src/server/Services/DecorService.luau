@@ -212,6 +212,9 @@ local function dress(model: Model)
 	end
 end
 
+-- Gloria's yard (GloriaService) dresses its decorations the same way.
+DecorService.dress = dress
+
 local function remove(owner: Player, key: number)
 	local shown = models[owner]
 	local model = shown and shown[key]

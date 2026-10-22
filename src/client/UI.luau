@@ -30,6 +30,10 @@ UI.Colors = {
 	Track = Color3.fromRGB(78, 100, 78), -- a line dot still to come, an empty progress bar
 	Bubble = Color3.fromRGB(255, 255, 255),
 	BubbleText = Color3.fromRGB(30, 40, 30),
+	-- TurfKing and Gloria's side: the "Taken by TurfKing" job card, and her side of the contest.
+	TurfKing = Color3.fromRGB(88, 52, 150), -- TurfKing's purple
+	Rival = Color3.fromRGB(185, 166, 238), -- light purple writing on a dark panel
+	RivalFill = Color3.fromRGB(138, 112, 214), -- her score bars
 	-- Each character's color (by their key in Config/Story.luau's Cast): the caption on their
 	-- speech bubbles, and their circle where there's no portrait yet.
 	Cast = {

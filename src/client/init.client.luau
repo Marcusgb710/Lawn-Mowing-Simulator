@@ -16,6 +16,7 @@ local CONTROLLERS = {
 	"GuideController",
 	"DialogueController",
 	"MessagesController",
+	"GloriaController",
 	"TutorialController",
 	"CarryController",
 	"ComputerController",

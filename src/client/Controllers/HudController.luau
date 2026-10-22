@@ -328,6 +328,10 @@ local function resultText(result): string
 	if (result.curbBonus or 1) > 1 then
 		table.insert(lines, `Curb appeal {result.curbAppeal} +{Format.percent(result.curbBonus - 1)}`)
 	end
+	-- A customer won back from TurfKing pays a little extra (split with the crew like the rest).
+	if (result.wonBack or 0) > 0 then
+		table.insert(lines, `Won from TurfKing +{Format.money(result.wonBack)}`)
+	end
 	-- Junk in the grass left behind or chewed up (its cost is in the damage).
 	local left, hit = result.debrisLeft or 0, result.debrisHit or 0
 	if left > 0 or hit > 0 then

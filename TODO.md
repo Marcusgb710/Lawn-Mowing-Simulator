@@ -287,6 +287,25 @@ One PR per phase, each stacked on the one before. Every phase still needs a Stud
         card under both, and all five taskbar buttons fitting;
       - the taskbar's open app in green; no toast while at the computer or during a scene;
       - the inbox staying at 60 texts at most after many jobs.
+- [ ] **Story 4: TurfKing and Gloria's yard.** To check in Studio, with 2 players in different
+      acts (Test → Clients and Servers) so each sees their own:
+      - Gloria's yard in act 1 (shaggy patches, dandelions, shaggy shrubs), acts 2-3 (stripes,
+        edges along the path, mulch beds, the TurfKing sign by the walk) and act 4 (checks,
+        topiary, the fountain running, path lights, the flamingo V), swapping as soon as the act
+        changes, and nothing poking through the fence, path, drive or porch;
+      - TurfKing's truck from act 2: purple, the gold stripe and crowns on the doors and the
+        light bar sitting on the real HeavyDutyPickup model (`Assets.turfKingTruck`), parked in
+        her drive facing the street, with Chad beside it;
+      - the intro: the truck backing into her drive on the first line, then gone after;
+      - Gloria's and Chad's porch remarks from your shop (every 35-55 s within about 130 studs),
+        readable, and none while a scene, a job or the computer is up;
+      - at the computer in act 2+: a card flipping to "Taken by TurfKing" a few seconds in (the
+        stamp landing), "Taken" not accepting, Chad's text and the toast; never the starter job;
+        not again for 3 jobs; the other player's board unchanged;
+      - a Quality job with a 90%+ finish in act 2+: the customer's text, the "Won from TurfKing"
+        line in the pay breakdown, and only once per customer;
+      - the real models dropping in (`Assets/Story/<id>`) with no code change once they're
+        imported (instructions37): the house, the three yards, the truck, the sign, Gloria, Chad.
 
 ## Before release
 
