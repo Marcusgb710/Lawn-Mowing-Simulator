@@ -15,6 +15,7 @@
 --   DriveToJob   heads off in the crew truck
 --   PickUpDebris picks up junk hidden in a lawn's grass, whatever's in your hands (see
 --                Config/Debris.luau)
+--   Talk         talks to Grandma June on her porch (see DialogueController)
 --   PickUp       takes one of your tools out of storage (ToolId)
 --   PutBack      puts what you're carrying back in this free spot (SpotKind, SpotIndex)
 --   Unload       takes one of your tools back out of the truck (ToolId, OnlyFor)
@@ -45,6 +46,7 @@ local UI = require(script.Parent.Parent.UI)
 local CameraController = require(script.Parent.CameraController)
 local CarryController = require(script.Parent.CarryController)
 local ComputerController = require(script.Parent.ComputerController)
+local DialogueController = require(script.Parent.DialogueController)
 
 local player = Players.LocalPlayer
 
@@ -289,7 +291,7 @@ local function targetFor(thing: Instance, item, hit: Instance?): Target?
 			return nil
 		end
 		return { action = "PutBackSupply", text = text, name = item.name, fits = true }
-	elseif action == "PickUpDebris" then
+	elseif action == "PickUpDebris" or action == "Talk" then
 		return { action = action, text = text, name = name, fits = true, instance = thing }
 	elseif action == "DriveToJob" or action == "UseComputer" then
 		if item then
@@ -603,6 +605,11 @@ local function perform(target: Target, second: boolean)
 		local desk = target.instance
 		if desk and desk:IsA("Model") then
 			ComputerController.use(desk)
+		end
+		return
+	elseif action == "Talk" then
+		if target.instance then
+			DialogueController.talk(target.instance)
 		end
 		return
 	end

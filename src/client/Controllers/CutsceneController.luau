@@ -8,7 +8,6 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
-local StarterGui = game:GetService("StarterGui")
 local TweenService = game:GetService("TweenService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -129,8 +128,7 @@ local function tweenFade(transparency: number)
 end
 
 local function setGameUiVisible(visible: boolean)
-	UI.getScreen().Enabled = visible
-	pcall(StarterGui.SetCoreGuiEnabled, StarterGui, Enum.CoreGuiType.Backpack, visible)
+	UI.hideGame("Cutscene", not visible)
 end
 
 -- Back to the normal camera, which is locked in first person (see CameraController).

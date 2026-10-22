@@ -1,7 +1,8 @@
 -- The title card (docs/GAME_DESIGN.md, "Joining"). It runs from ReplicatedFirst, before anything
 -- else, and covers the screen while the world loads, the server reads the player's save and
 -- builds their business, and they're moved to it (the server sets the "ArrivedAtBusiness"
--- attribute). Then it asks for a tap or click and fades out on the player standing at their shop.
+-- attribute). Then it asks for a tap or click and fades out on the player standing at their shop,
+-- and sets the TitleCardDone attribute (on this screen only) for the story's intro to start.
 -- Its art is in TitleCardArt; anything not uploaded yet is drawn instead.
 
 local ContentProvider = game:GetService("ContentProvider")
@@ -426,3 +427,5 @@ local fade = TweenService:Create(card, TweenInfo.new(FADE_TIME), { GroupTranspar
 fade:Play()
 fade.Completed:Wait()
 gui:Destroy()
+-- The story's intro plays now (see DialogueController). Only this player's screen sees it.
+player:SetAttribute("TitleCardDone", true)

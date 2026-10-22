@@ -219,8 +219,9 @@ local function buildMenuButtons()
 end
 
 local function onKey(input: InputObject, processed: boolean)
-	-- `processed` is set while typing in chat or a text box.
-	if processed then
+	-- `processed` is set while typing in chat or a text box. While a scene or the drive cutscene
+	-- has the screen, the HUD is hidden and its keys do nothing.
+	if processed or not UI.getScreen().Enabled then
 		return
 	end
 	for _, menu in MENUS do

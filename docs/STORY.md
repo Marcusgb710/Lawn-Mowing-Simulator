@@ -213,12 +213,46 @@ This is in rough order, as separate PRs.
    - Not done: the small bonus from a customer won over from TurfKing.
 2. **`DialogueController`.** The dialogue box from the mock-up. It handles skip, works on phones
    (44 px+ targets) and hides the HUD while it's up. It plays after the title card on first
-   join.
+   join. *Built.*
+   - **The box:** letterbox bars, the round portrait poking above the box, the green name tag,
+     line dots, "Click to continue" ("Tap" on a phone, Space or Enter on a keyboard, A on a
+     gamepad), and Skip (44 px tall) in the top bar, with the scene's caption in the middle. A
+     line types out; going on finishes it first. Walking is off, the HUD and hotbar hide
+     (`UI.hideGame`) and the mouse is free (`UI.holdCursor`) while it's up. Phones held sideways
+     (under 500 px tall) get the smaller sizes from the phone mock-up.
+   - **When scenes play:** StoryService queues them, and they play once the title card is gone
+     (`TitleCardDone`) and you're not on a job, at the computer, in a menu or placing a
+     decoration. Skipping counts as watched. A crew heading off to a job stops a scene, and it
+     plays again later.
+   - **Camera shots:** a line's `shot` points the camera at June (her `TalkView`) or Gloria's
+     house (`IntroView`); far apart shots cut behind a quick fade. It goes back to first person,
+     facing the same way, at the end.
+   - **Speech bubbles:** `DialogueController.bubble(adornee, speaker, text)`, white with a dark
+     outline and the speaker's name in their color. Gloria's lines in scenes and June's porch
+     talk use them; customer reactions can later.
+   - **The intro hands off to the first-job coach:** `TutorialController` waits while the intro
+     is queued or playing, then shows its first step, now "Edna's front lawn is your first
+     job...".
+   - **Grandma June** (`src/server/GrandmaJune.luau`) sits on her porch rocker beside the shop on
+     every plot, turned toward the driveway. E (or the phone button) on her says a line from
+     `Story.JuneTalk`, taking turns between your act's goal and Gloria.
+   - **Gloria's house** (`GloriaService`) is one fixed house across the south street from the
+     second row of plots, with her standing on the porch. In a Studio-built town it goes on a
+     part named `GloriasLot`. Its stages, TurfKing trucks and judging day are still to do (item
+     4 and 5); its `Yard` folder holds what they'd swap.
+   - **The art** is all in `src/client/StoryArt.luau`, empty for now: portraits for June,
+     Gloria, Chad, Sam, Edna, the Bridge Club and customers, the dialogue box and name tag
+     9-slices, the bubble 9-slice and tail, the two chevrons and the "New tool" card icon.
+     Colors are `UI.Colors` (new: `Outline`, `Letterbox`, `Track`, `Bubble`, `BubbleText`,
+     and `Cast` for each character) and the font is `UI.Font`.
+   - Not built: the TurfKing truck pulling up in the intro (it needs item 4's livery); the
+     first line says it, over a shot of Gloria's house.
 3. **The Messages app** in `ComputerController`: threads, unread badge, goal card, and a
    notification when a text arrives outside the shop.
 4. **NPCs and the world:**
-   - June on a porch chair at each player's plot;
-   - Gloria's house and yard in three stages;
+   - June on a porch chair at each player's plot (*built*, with item 2);
+   - Gloria's house and yard in three stages (*a fixed house is built*, with item 2; the stages
+     aren't);
    - TurfKing's livery (a purple truck with a crown) for the cutscene and job sites;
    - the "Taken by TurfKing" job flip.
 5. **The contest:** `ContestService` (scoring from home lawn, edges and decorations against
@@ -227,6 +261,10 @@ This is in rough order, as separate PRs.
 6. **Models for ChatGPT** (the next instructions file is `instructions37.md`):
    - Grandma June, Gloria, Chad and Sam (simple stylized NPCs, R15-compatible or static);
    - a porch rocking chair;
+   - The block placeholders are `Props/GrandmaJune` (sitting, on a seat 1.8 studs up),
+     `Props/PorchRockingChair`, `Props/GloriaPemberton` and `Props/GloriasHouse` (front wall at
+     Z = 0, porch in front, a `Porch` attachment where she stands). Real models with those names
+     drop in; the markers the scenes need are worked out from their size.
    - TurfKing truck livery;
    - the Best Yard Trophy;
    - Gloria's house (three tidiness stages).

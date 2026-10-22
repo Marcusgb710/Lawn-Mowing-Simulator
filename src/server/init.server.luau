@@ -6,6 +6,7 @@ local Services = script:WaitForChild("Services")
 local LOAD_ORDER = {
 	"DataService",
 	"WorldService",
+	"GloriaService",
 	"PartyService",
 	"LawnService",
 	"DecorService",

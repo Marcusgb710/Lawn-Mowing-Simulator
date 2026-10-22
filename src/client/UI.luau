@@ -3,6 +3,7 @@
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local StarterGui = game:GetService("StarterGui")
 local TweenService = game:GetService("TweenService")
 
 local Signal = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Signal"))
@@ -23,9 +24,28 @@ UI.Colors = {
 	Disabled = Color3.fromRGB(90, 90, 90),
 	Text = Color3.fromRGB(255, 255, 255),
 	SubText = Color3.fromRGB(200, 215, 200),
+	-- The story's dialogue box, speech bubbles and texts (DialogueController, the Messages app).
+	Outline = Color3.fromRGB(30, 40, 30), -- the dark edge around boxes, bubbles and name tags
+	Letterbox = Color3.fromRGB(14, 19, 14),
+	Track = Color3.fromRGB(78, 100, 78), -- a line dot still to come, an empty progress bar
+	Bubble = Color3.fromRGB(255, 255, 255),
+	BubbleText = Color3.fromRGB(30, 40, 30),
+	-- Each character's color (by their key in Config/Story.luau's Cast): the caption on their
+	-- speech bubbles, and their circle where there's no portrait yet.
+	Cast = {
+		June = Color3.fromRGB(227, 194, 122),
+		Gloria = Color3.fromRGB(107, 79, 191),
+		Chad = Color3.fromRGB(107, 79, 191),
+		Sam = Color3.fromRGB(110, 190, 180),
+		Edna = Color3.fromRGB(232, 160, 184),
+		BridgeClub = Color3.fromRGB(168, 200, 232),
+		Customer = Color3.fromRGB(232, 160, 184),
+	},
 }
 
 local FONT = Enum.Font.FredokaOne
+-- The game's font, for anything not made with UI.label or UI.button.
+UI.Font = FONT
 
 local screen: ScreenGui = nil
 local panels = {}
@@ -272,9 +292,36 @@ function UI.panelWindow(name: string): Frame?
 	return panels[name]
 end
 
--- Whether a menu (or the shop computer) is open, which needs the mouse to click on.
+-- Things besides menus that need the mouse free while they're up (the dialogue box), by name.
+local cursorHolders: { [string]: boolean } = {}
+function UI.holdCursor(reason: string, held: boolean)
+	cursorHolders[reason] = if held then true else nil
+	UI.CursorChanged:Fire()
+end
+
+-- Whether a menu (or the shop computer, or the dialogue box) is open, which needs the mouse to
+-- click on.
 function UI.needsCursor(): boolean
-	return host ~= nil or UI.anyOpen()
+	return host ~= nil or UI.anyOpen() or next(cursorHolders) ~= nil
+end
+
+-- Hides the game's own screen (the HUD, menus, the dot) and the hotbar while something else
+-- takes over the screen: the drive cutscene, or a dialogue. Each says why, so one ending doesn't
+-- bring them back while the other's still up.
+local hiders: { [string]: boolean } = {}
+function UI.hideGame(reason: string, hidden: boolean)
+	hiders[reason] = if hidden then true else nil
+	local visible = next(hiders) == nil
+	UI.getScreen().Enabled = visible
+	pcall(StarterGui.SetCoreGuiEnabled, StarterGui, Enum.CoreGuiType.Backpack, visible)
+end
+
+-- A story line (Config/Story.luau) for a RichText label: its `*highlights*` in the highlight
+-- color, and anything RichText would read as a tag escaped.
+function UI.highlight(text: string, color: Color3?): string
+	local escaped = string.gsub(text, "[&<>]", { ["&"] = "&amp;", ["<"] = "&lt;", [">"] = "&gt;" })
+	local hex = (color or UI.Colors.Money):ToHex()
+	return (string.gsub(escaped, "%*(.-)%*", `<font color="#{hex}">%1</font>`))
 end
 
 -- Little message that pops up at the top of the screen. Toasts have a screen of their own, above

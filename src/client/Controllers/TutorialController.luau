@@ -1,9 +1,12 @@
 -- Coaches a brand-new player through their first job, one step at a time, then goes away for
 -- good: the grass shears they start with, and picking up the junk hidden in the grass. Past the
 -- shears it never says which tool to use, only where to look (the Guide).
+-- It takes over from the story's intro (DialogueController): Grandma June hands you her shears
+-- and sends you to Edna's front lawn, and the coach waits until she's done talking.
 
 local ClientState = require(script.Parent.Parent.ClientState)
 local UI = require(script.Parent.Parent.UI)
+local DialogueController = require(script.Parent.DialogueController)
 
 local TutorialController = {}
 
@@ -12,9 +15,9 @@ local banner: TextLabel
 -- What to tell a player who hasn't finished a job yet, given where they are.
 local function step(job): string
 	if not job then
-		return "Welcome to your lawn care business! You're starting from the bottom: a pair of grass "
+		return "Edna's front lawn is your first job. You're starting from the bottom: Grandma's grass "
 			.. "shears, already in the truck. Look at the computer in your shop and press E (or tap the "
-			.. "button), then take the first job in Jobs."
+			.. "button), then take the Front Lawn job in Jobs."
 	elseif job.state == "Ready" then
 		return "Read what the customer wants. Not sure what a tool is for? Tap Guide. Look at a tool in "
 			.. "storage and press E (or tap the button) to take it, put it in the truck bed, then look "
@@ -37,7 +40,8 @@ local function update()
 	-- Stay up through the payout of the first job, then never again.
 	local firstJob = profile
 		and (profile.jobsCompleted == 0 or (profile.jobsCompleted == 1 and job ~= nil and job.state == "Complete"))
-	banner.Visible = firstJob == true
+	-- Not until the intro's over: June has the first word.
+	banner.Visible = firstJob == true and not DialogueController.isPending("Intro")
 	if firstJob then
 		banner.Text = step(job)
 	end
@@ -64,10 +68,11 @@ function TutorialController:Start()
 	UI.new("UISizeConstraint", { MaxSize = Vector2.new(520, math.huge), Parent = banner })
 
 	ClientState.Changed:Connect(function(key)
-		if key == "profile" or key == "job" then
+		if key == "profile" or key == "job" or key == "story" then
 			update()
 		end
 	end)
+	DialogueController.Closed:Connect(update)
 	update()
 end
 
