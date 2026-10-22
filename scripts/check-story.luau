@@ -216,6 +216,22 @@ for act = 1, #Story.Acts do
 end
 check(Story.juneLine(1, 1, { left = "$84" }) ~= Story.juneLine(1, 2, { left = "$84" }), "June takes turns")
 
+-- Unread texts --------------------------------------------------------------------------------
+
+local inbox = {
+	{ n = 1, thread = "June" },
+	{ n = 2, thread = "June" },
+	{ n = 3, thread = "June", mine = true },
+	{ n = 4, thread = "BridgeClub" },
+	{ n = 5, thread = "June" },
+}
+local total, byThread = Story.unread(inbox, {})
+check(total == 4 and byThread.June == 3 and byThread.BridgeClub == 1, "unread counts every thread, not yours")
+total, byThread = Story.unread(inbox, { June = 3 })
+check(total == 2 and byThread.June == 1, "reading a thread clears what came before")
+total = Story.unread(inbox, { June = 5, BridgeClub = 4 })
+check(total == 0, "all read")
+
 if failures > 0 then
 	print(`{failures} check(s) failed`)
 	process.exit(1)

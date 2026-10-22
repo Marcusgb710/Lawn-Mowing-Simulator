@@ -23,6 +23,7 @@ local EVENTS = {
 	"StopService",
 	"Snip",
 	"SceneWatched",
+	"ReadThread",
 }
 
 local FUNCTIONS = {

@@ -238,6 +238,11 @@ local function dock(panel: Frame)
 	end
 end
 
+-- Whether menus are showing inside the shop computer's screen: someone's at the computer.
+function UI.hosted(): boolean
+	return host ~= nil
+end
+
 -- Shows menus inside `frame` (the shop computer's screen) until it's set back to nil.
 function UI.setHost(frame: Frame?)
 	host = frame
@@ -324,10 +329,10 @@ function UI.highlight(text: string, color: Color3?): string
 	return (string.gsub(escaped, "%*(.-)%*", `<font color="#{hex}">%1</font>`))
 end
 
--- Little message that pops up at the top of the screen. Toasts have a screen of their own, above
--- the shop computer's monitor (so its replies show) but under the drive cutscene.
+-- Little messages pop up in a stack at the top of the screen. Toasts have a screen of their own,
+-- above the shop computer's monitor (so its replies show) but under the drive cutscene.
 local toastHolder: Frame = nil
-function UI.notify(message: string)
+local function toastStack(): Frame
 	if not toastHolder then
 		local toasts = UI.new("ScreenGui", {
 			Name = "Toasts",
@@ -344,14 +349,29 @@ function UI.notify(message: string)
 			Parent = toasts,
 		}, { UI.list(6), UI.new("UISizeConstraint", { MaxSize = Vector2.new(420, 200) }) })
 	end
+	return toastHolder
+end
 
+-- Puts a toast of your own (a CanvasGroup, as wide as the stack) in the stack for `seconds`, then
+-- fades it out: a new text in the Messages app, say.
+function UI.toast(toast: CanvasGroup, seconds: number)
+	toast.Parent = toastStack()
+	task.delay(seconds, function()
+		local fade = TweenService:Create(toast, TweenInfo.new(0.4), { GroupTransparency = 1 })
+		fade:Play()
+		fade.Completed:Wait()
+		toast:Destroy()
+	end)
+end
+
+function UI.notify(message: string)
 	local toast = UI.label(message, {
 		Size = UDim2.new(1, 0, 0, 36),
 		BackgroundTransparency = 0.15,
 		BackgroundColor3 = UI.Colors.Background,
 		TextXAlignment = Enum.TextXAlignment.Center,
 		TextWrapped = true,
-		Parent = toastHolder,
+		Parent = toastStack(),
 	})
 	UI.corner(8).Parent = toast
 

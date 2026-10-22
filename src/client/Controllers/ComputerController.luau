@@ -5,9 +5,11 @@
 --   Orders    tools and supplies, delivered in a box to the shop, and selling
 --   Business  building upgrades, trucks and trailers
 --   Crew      inviting and managing your crew
--- The apps are the game's usual menus, shown inside the monitor. Back, or walking away, eases the
--- camera back to first person. The desk's ScreenView attachment is where the camera goes and
--- UseSpot is where you stand.
+--   Messages  texts from Grandma June and the neighborhood, and your goal (MessagesController);
+--             its buttons show how many texts are unread
+-- The apps are the game's usual menus, shown inside the monitor. The open app's button on the
+-- taskbar is green. Back, or walking away, eases the camera back to first person. The desk's
+-- ScreenView attachment is where the camera goes and UseSpot is where you stand.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -17,6 +19,7 @@ local TweenService = game:GetService("TweenService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local GameConfig = require(Shared.Config.GameConfig)
 local Net = require(Shared.Net)
+local Story = require(Shared.Config.Story)
 
 local ClientState = require(script.Parent.Parent.ClientState)
 local UI = require(script.Parent.Parent.UI)
@@ -37,10 +40,12 @@ local WALK_GRACE = 0.5
 -- up within this many seconds.
 local REBUILD_GRACE = 2
 
+-- Each app opens a menu (`panel`); Orders and Business share the shop's.
 local APPS = {
 	{
 		name = "Jobs",
 		hint = "Today's jobs",
+		panel = "Jobs",
 		open = function()
 			UI.open("Jobs")
 		end,
@@ -48,6 +53,7 @@ local APPS = {
 	{
 		name = "Orders",
 		hint = "Tools and supplies",
+		panel = "Shop",
 		open = function()
 			ShopController.openApp("Orders")
 		end,
@@ -55,6 +61,7 @@ local APPS = {
 	{
 		name = "Business",
 		hint = "Building, truck, trailer",
+		panel = "Shop",
 		open = function()
 			ShopController.openApp("Business")
 		end,
@@ -62,8 +69,19 @@ local APPS = {
 	{
 		name = "Crew",
 		hint = "Your crew",
+		panel = "Crew",
 		open = function()
 			UI.open("Crew")
+		end,
+	},
+	{
+		name = "Messages",
+		hint = "Texts and your goal",
+		panel = "Messages",
+		-- Its buttons show how many texts are unread.
+		badge = true,
+		open = function()
+			UI.open("Messages")
 		end,
 	},
 }
@@ -76,6 +94,10 @@ local desktop: Frame
 local using: { desk: Model, spot: Vector3, since: number, lostAt: number? }? = nil
 -- The camera easing in to the screen or back out, so it can be stopped.
 local cameraTween: Tween? = nil
+-- The app that's open (its taskbar button is green), the taskbar's buttons, and the unread badges.
+local activeApp = nil
+local taskButtons: { [any]: TextButton } = {}
+local badges: { TextLabel } = {}
 
 local function moveCamera(goal: { [string]: any }): Tween
 	if cameraTween then
@@ -198,6 +220,53 @@ local function followDesk(current)
 	end
 end
 
+-- Greens the open app's taskbar button.
+local function updateActive()
+	if activeApp and not UI.isOpen(activeApp.panel) then
+		activeApp = nil
+	end
+	for app, button in taskButtons do
+		local active = app == activeApp
+		button.BackgroundColor3 = if active then UI.Colors.Accent else UI.Colors.Card
+		button.TextColor3 = if active then UI.Colors.BubbleText else UI.Colors.Text
+	end
+end
+
+local function openApp(app)
+	activeApp = app
+	app.open()
+	updateActive()
+end
+
+-- A yellow unread count in the top right corner of an app's button.
+local function addBadge(button: GuiObject, inset: number)
+	local badge = UI.label("", {
+		Name = "Unread",
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.new(1, -inset, 0, inset),
+		Size = UDim2.fromOffset(24, 24),
+		BackgroundTransparency = 0,
+		BackgroundColor3 = UI.Colors.Money,
+		TextColor3 = UI.Colors.BubbleText,
+		TextSize = 14,
+		TextXAlignment = Enum.TextXAlignment.Center,
+		Visible = false,
+		ZIndex = 3,
+		Parent = button,
+	})
+	UI.corner(12).Parent = badge
+	table.insert(badges, badge)
+end
+
+local function updateBadges()
+	local story = ClientState.story
+	local unread = if story then Story.unread(story.texts, story.read) else 0
+	for _, badge in badges do
+		badge.Visible = unread > 0
+		badge.Text = if unread > 9 then "9+" else tostring(unread)
+	end
+end
+
 local function build()
 	screen = UI.new("ScreenGui", {
 		Name = "Computer",
@@ -247,12 +316,17 @@ local function build()
 		}),
 	})
 	for index, app in APPS do
-		local icon = UI.button(app.name, app.open, {
+		local icon = UI.button(app.name, function()
+			openApp(app)
+		end, {
 			LayoutOrder = index,
 			TextSize = 24,
 			BackgroundColor3 = UI.Colors.Panel,
 			Parent = desktop,
 		})
+		if app.badge then
+			addBadge(icon, 6)
+		end
 		UI.label(app.hint, {
 			AnchorPoint = Vector2.new(0.5, 1),
 			Position = UDim2.new(0.5, 0, 1, -8),
@@ -278,14 +352,23 @@ local function build()
 		BackgroundTransparency = 1,
 		Parent = taskbar,
 	}, { UI.list(6, Enum.FillDirection.Horizontal) })
+	-- The buttons share the bar, so all five fit on a phone.
 	for index, app in APPS do
-		UI.button(app.name, app.open, {
+		local button = UI.button(app.name, function()
+			openApp(app)
+		end, {
 			LayoutOrder = index,
-			Size = UDim2.fromOffset(96, 36),
-			TextSize = 16,
+			Size = UDim2.new(1 / #APPS, -6, 1, 0),
+			TextScaled = true,
 			BackgroundColor3 = UI.Colors.Card,
 			Parent = buttons,
 		})
+		UI.new("UITextSizeConstraint", { MaxTextSize = 16, Parent = button })
+		UI.new("UIPadding", { PaddingLeft = UDim.new(0, 4), PaddingRight = UDim.new(0, 4), Parent = button })
+		taskButtons[app] = button
+		if app.badge then
+			addBadge(button, 2)
+		end
 	end
 	UI.button("Back", function()
 		ComputerController.leave()
@@ -307,7 +390,9 @@ function ComputerController:Start()
 		if desktop then
 			desktop.Visible = using ~= nil and not UI.anyOpen()
 		end
+		updateActive()
 	end)
+	updateBadges()
 	-- Walking away, dying or heading off on a job puts it away.
 	RunService.Heartbeat:Connect(function()
 		local current = using
@@ -341,6 +426,8 @@ function ComputerController:Start()
 		-- Driving off to a job: the cutscene takes the camera.
 		if key == "job" and using and ClientState.job and ClientState.job.state == "Traveling" then
 			ComputerController.leave(true, true)
+		elseif key == "story" then
+			updateBadges()
 		end
 	end)
 end

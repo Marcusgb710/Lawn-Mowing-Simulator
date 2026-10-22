@@ -731,12 +731,14 @@ which earns your business curb appeal and a bonus on every job.
   SmallOffice and EquipmentYard. Look at the desk and press E (`ComputerController`):
   1. you step up to its `UseSpot`;
   2. the camera eases in to `ScreenView` and the field of view narrows;
-  3. the desktop opens, with four apps:
+  3. the desktop opens, with five apps:
      - **Jobs:** today's board, with hints only. Anyone can look; only the crew leader can take
        a job.
      - **Orders:** tools and supplies, plus a Sell tab for tools in storage.
      - **Business:** building, truck and trailer upgrades.
      - **Crew.**
+     - **Messages:** the story's texts from Grandma June, the Bridge Club, Chad, Sam and your
+       customers, with unread badges and the goal for the act you're in (docs/STORY.md).
 
   The apps are drawn in a ScreenGui framed as the monitor, so they stay readable on phones. Back,
   walking away, or the crew heading out eases the camera back to first person. The server only
