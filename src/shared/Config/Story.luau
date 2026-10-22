@@ -236,7 +236,7 @@ Story.Acts = {
 --             "LevelUp" or "CurbAppeal"
 --   fromAct   only from this act on (and `toAct`, up to this one)
 --   when      (facts, event) -> whether it fires now. `facts` is { act, level, jobsCompleted,
---             curbAppeal, money, owned = { [toolId] = true }, motorMower }; a finished job's
+--             curbAppeal, money, owned = { [toolId] = true }, motorMower, seen }; a finished job's
 --             event has { customer, pay, quality (0-1), preference, crew (how many of you) }
 --   scene     a scene to play; `texts` texts to send ({ thread, text, from = who in a group
 --             thread, mine = you sent it })
@@ -249,11 +249,12 @@ Story.Beats = {
 		end,
 		scene = "Intro",
 	},
+	-- Players who were already playing before the story came: they never had the intro.
 	{
 		id = "WelcomeBack",
 		on = "Joined",
 		when = function(facts)
-			return facts.jobsCompleted > 0
+			return facts.jobsCompleted > 0 and not facts.seen.Intro
 		end,
 		scene = "WelcomeBack",
 	},

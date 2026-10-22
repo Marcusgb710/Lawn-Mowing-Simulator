@@ -36,6 +36,7 @@ local function facts(overrides)
 		money = 0,
 		owned = { GardenShears = true },
 		motorMower = false,
+		seen = {},
 	}
 	for key, value in overrides or {} do
 		base[key] = value
@@ -168,6 +169,10 @@ check(
 	"a returning player gets the welcome back"
 )
 check(#beatIds({ kind = "Joined" }, facts(), { Intro = true }) == 0, "the intro plays once")
+check(
+	#beatIds({ kind = "Joined" }, facts({ jobsCompleted = 3, seen = { Intro = true } }), { Intro = true }) == 0,
+	"someone who had the intro isn't welcomed back"
+)
 local job =
 	{ kind = "JobFinished", customer = "Mrs. Alvarez", pay = 66, quality = 0.8, preference = "Balanced", crew = 1 }
 check(same(beatIds(job, facts({ jobsCompleted = 1 })), { "FirstJob" }), "June texts after the first job")

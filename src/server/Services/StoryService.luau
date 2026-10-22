@@ -79,6 +79,7 @@ local function factsFor(player: Player, data, story)
 		money = data.money,
 		owned = owned,
 		motorMower = motorMower,
+		seen = story.seen,
 	}
 end
 
