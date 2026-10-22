@@ -10,6 +10,8 @@
 --   snaps    joins end to end with others like it (SnapL / SnapR markers)
 --   shrub    shows its `<Id>__Overgrowth` until it's trimmed with a hedge tool, then grows back
 --   holds    ground cover other decorations stand in or on (a bed's shrubs, a bench on pavers)
+--   won      never sold: it's won (the Best Yard Trophy, from the contest; see ContestService),
+--            comes in a box like an order and can't be sent back
 --
 -- Model swap: put a model named after the id in ReplicatedStorage.Assets.Decorations.
 
@@ -273,6 +275,19 @@ Decorations.List = {
 		box = "DeliveryBoxLarge",
 		color = Color3.fromRGB(230, 90, 140),
 		description = "A patch of bright annuals.",
+	},
+	-- Won, not sold.
+	{
+		id = "BestYardTrophy",
+		name = "Best Yard Trophy",
+		price = 0,
+		appeal = 8,
+		size = Vector3.new(2.6, 5.4, 2.6),
+		box = "DeliveryCrate",
+		won = true,
+		color = Color3.fromRGB(214, 172, 52),
+		description = "The Maple Grove Best Yard trophy, on a white stand with a skirt of real turf. "
+			.. "June's 31st. Gloria's name is on it too.",
 	},
 }
 

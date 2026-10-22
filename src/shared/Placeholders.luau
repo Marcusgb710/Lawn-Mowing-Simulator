@@ -1293,6 +1293,131 @@ PROP_BUILDERS.TurfKingSign = function(model: Model)
 	end
 end
 
+-- A Best Yard judge standing: legs, a jacket, a head and whatever they're carrying (`extras`).
+local function judge(model: Model, jacket: Color3, trousers: Color3, hair: Color3, extras: (any) -> ())
+	local add = propAdder(model)
+	rootPart(model, add)
+	local function person(props)
+		props.CanCollide = false
+		return add(props)
+	end
+	for _, x in { -1, 1 } do
+		person({
+			Name = "Shoe",
+			Size = Vector3.new(0.6, 0.3, 0.9),
+			Position = Vector3.new(x * 0.42, 0.15, -0.1),
+			Color = Color3.fromRGB(70, 50, 40),
+		})
+		person({
+			Name = "Leg",
+			Size = Vector3.new(0.55, 2.1, 0.55),
+			Position = Vector3.new(x * 0.42, 1.35, 0),
+			Color = trousers,
+		})
+		person({
+			Name = "Arm",
+			Size = Vector3.new(0.5, 1.8, 0.55),
+			Position = Vector3.new(x * 1.12, 3.65, 0),
+			Color = jacket,
+		})
+	end
+	person({ Name = "Body", Size = Vector3.new(1.8, 2.1, 1), Position = Vector3.new(0, 3.45, 0), Color = jacket })
+	person({ Name = "Neck", Size = Vector3.new(0.5, 0.3, 0.5), Position = Vector3.new(0, 4.65, 0), Color = SKIN })
+	person({
+		Name = "Head",
+		Shape = Enum.PartType.Ball,
+		Size = Vector3.new(1.4, 1.4, 1.4),
+		Position = Vector3.new(0, 5.3, 0),
+		Color = SKIN,
+	})
+	person({
+		Name = "Hair",
+		Shape = Enum.PartType.Ball,
+		Size = Vector3.new(1.45, 1.1, 1.45),
+		Position = Vector3.new(0, 5.6, 0.1),
+		Color = hair,
+	})
+	extras(person)
+end
+
+-- Judge Pruitt: an older man in a seersucker jacket and a bow tie, with a magnifying glass.
+PROP_BUILDERS.NPC_Judge1 = function(model: Model)
+	judge(
+		model,
+		Color3.fromRGB(190, 210, 230),
+		Color3.fromRGB(235, 230, 215),
+		Color3.fromRGB(225, 225, 225),
+		function(person)
+			person({
+				Name = "BowTie",
+				Size = Vector3.new(0.6, 0.25, 0.1),
+				Position = Vector3.new(0, 4.35, -0.55),
+				Color = Color3.fromRGB(170, 40, 50),
+			})
+			person({
+				Name = "Hand",
+				Size = Vector3.new(0.45, 0.45, 0.45),
+				Position = Vector3.new(1.12, 2.65, -0.3),
+				Color = SKIN,
+			})
+			person({
+				Name = "MagnifyingGlass",
+				Shape = Enum.PartType.Cylinder,
+				Size = Vector3.new(0.08, 0.8, 0.8),
+				CFrame = CFrame.new(1.12, 2.5, -0.85) * CFrame.Angles(0, math.pi / 2, 0),
+				Color = Color3.fromRGB(190, 220, 235),
+				Transparency = 0.3,
+			})
+		end
+	)
+end
+
+-- Judge Marigold: a sun hat with a big flower, a lanyard and a clipboard with a pencil.
+PROP_BUILDERS.NPC_Judge2 = function(model: Model)
+	judge(
+		model,
+		Color3.fromRGB(240, 170, 120),
+		Color3.fromRGB(110, 120, 140),
+		Color3.fromRGB(120, 80, 60),
+		function(person)
+			local upright = CFrame.Angles(0, 0, math.pi / 2)
+			person({
+				Name = "Hat",
+				Shape = Enum.PartType.Cylinder,
+				Size = Vector3.new(0.12, 2.6, 2.6),
+				CFrame = CFrame.new(0, 5.85, 0.05) * upright,
+				Color = Color3.fromRGB(235, 215, 160),
+			})
+			person({
+				Name = "Hat",
+				Shape = Enum.PartType.Cylinder,
+				Size = Vector3.new(0.6, 1.4, 1.4),
+				CFrame = CFrame.new(0, 6.1, 0.05) * upright,
+				Color = Color3.fromRGB(235, 215, 160),
+			})
+			person({
+				Name = "Flower",
+				Shape = Enum.PartType.Ball,
+				Size = Vector3.new(0.6, 0.6, 0.6),
+				Position = Vector3.new(0.6, 6.2, -0.4),
+				Color = Color3.fromRGB(230, 90, 140),
+			})
+			person({
+				Name = "Lanyard",
+				Size = Vector3.new(0.35, 0.5, 0.05),
+				Position = Vector3.new(0, 3.8, -0.53),
+				Color = Color3.fromRGB(250, 250, 245),
+			})
+			person({
+				Name = "Clipboard",
+				Size = Vector3.new(1, 1.3, 0.1),
+				CFrame = CFrame.new(-0.6, 3.2, -0.75) * CFrame.Angles(math.rad(-25), 0, 0),
+				Color = Color3.fromRGB(150, 110, 70),
+			})
+		end
+	)
+end
+
 -- Junk hidden in the grass (Config/Debris.luau), built like the decorations: origin on the ground
 -- at the centre, front toward -Z, a "Root" part and `<Id>__Body` parts. All of it lies low, so it
 -- hides in tall grass.
@@ -1874,6 +1999,75 @@ local DECORATION_BUILDERS = {
 				CanCollide = false,
 			})
 		end
+	end,
+	-- The Best Yard Trophy (won, never sold): a gold loving cup on a green-marble and walnut
+	-- plinth, on a white display stand with a skirt of turf round its foot. The cup is its own
+	-- part (`BestYardTrophy__Cup`) so the game can make it shine.
+	BestYardTrophy = function(_model: Model, add)
+		local upright = CFrame.Angles(0, 0, math.pi / 2)
+		add({
+			Name = "Body",
+			Shape = Enum.PartType.Cylinder,
+			Size = Vector3.new(0.25, 2.8, 2.8),
+			CFrame = CFrame.new(0, 0.125, 0) * upright,
+			Color = Color3.fromRGB(90, 160, 70),
+			Material = Enum.Material.Grass,
+		})
+		add({
+			Name = "Body",
+			Size = Vector3.new(2, 2.2, 2),
+			Position = Vector3.new(0, 1.35, 0),
+			Color = WHITE,
+			Material = Enum.Material.Wood,
+		})
+		add({
+			Name = "Body",
+			Size = Vector3.new(1.6, 0.4, 1.6),
+			Position = Vector3.new(0, 2.65, 0),
+			Color = Color3.fromRGB(70, 110, 85),
+			Material = Enum.Material.Marble,
+		})
+		add({
+			Name = "Body",
+			Size = Vector3.new(1.2, 0.35, 1.2),
+			Position = Vector3.new(0, 3.02, 0),
+			Color = Color3.fromRGB(95, 60, 40),
+			Material = Enum.Material.Wood,
+		})
+		local gold = Color3.fromRGB(214, 172, 52)
+		add({
+			Name = "Body",
+			Shape = Enum.PartType.Cylinder,
+			Size = Vector3.new(0.5, 0.3, 0.3),
+			CFrame = CFrame.new(0, 3.45, 0) * upright,
+			Color = gold,
+			Material = Enum.Material.Foil,
+		})
+		add({
+			Name = "Cup",
+			Shape = Enum.PartType.Cylinder,
+			Size = Vector3.new(1.2, 1.3, 1.3),
+			CFrame = CFrame.new(0, 4.3, 0) * upright,
+			Color = gold,
+			Material = Enum.Material.Foil,
+		})
+		for _, x in { -0.85, 0.85 } do
+			add({
+				Name = "CupHandle",
+				Size = Vector3.new(0.18, 0.75, 0.18),
+				CFrame = CFrame.new(x, 4.35, 0) * CFrame.Angles(0, 0, x * 0.5),
+				Color = gold,
+				Material = Enum.Material.Foil,
+			})
+		end
+		-- A little gold mower on the lid.
+		add({ Name = "Body", Size = Vector3.new(0.5, 0.2, 0.7), Position = Vector3.new(0, 5.05, 0), Color = gold })
+		add({
+			Name = "Body",
+			Size = Vector3.new(0.06, 0.4, 0.06),
+			CFrame = CFrame.new(0, 5.3, 0.4) * CFrame.Angles(math.rad(-30), 0, 0),
+			Color = gold,
+		})
 	end,
 }
 

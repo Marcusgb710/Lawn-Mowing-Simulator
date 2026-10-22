@@ -20,6 +20,7 @@ local Format = require(Shared.Format)
 local GameConfig = require(Shared.Config.GameConfig)
 local Items = require(Shared.Config.Items)
 local Net = require(Shared.Net)
+local Signal = require(Shared.Signal)
 local Story = require(Shared.Config.Story)
 local Tools = require(Shared.Config.Tools)
 
@@ -40,12 +41,16 @@ local TALK_REACH = 14
 local TALK_COOLDOWN = 0.5
 
 local StoryService = {}
+-- Fired with (player, act) when an act starts for them (after their client's been told).
+StoryService.ActStarted = Signal.new()
 
 -- [Player] = true once they've joined the story this session
 local joined = {}
 -- [Player] = how many times they've talked to June this session, and when they last did
 local talks = {}
 local talkedAt = {}
+-- Set by ContestService: (player) -> more placeholder values for what June says on her porch.
+local talkValues: ((Player) -> { [string]: any }?)? = nil
 
 -- Their saved story, made sound if the save holds something odd.
 local function storyOf(data)
@@ -218,11 +223,18 @@ local function handle(player: Player, event, quiet: boolean?)
 	if changed then
 		update(player)
 	end
+	for _, act in started do
+		StoryService.ActStarted:Fire(player, act)
+	end
 end
 
 -- What June says when you talk to her: about your act's goal, or about Gloria, taking turns.
 local function juneSays(player: Player, data, story): string
 	local values = { appeal = HomeLawnService:CurbAppeal(player), bar = Story.ContestBar }
+	local extra = talkValues and talkValues(player)
+	for key, value in extra or {} do
+		values[key] = value
+	end
 	local goal = goalFor(story.act)
 	if goal and goal.kind == "Money" and data.money < goal.need then
 		values.left = Format.money(goal.need - data.money)
@@ -273,6 +285,27 @@ function StoryService:SendText(player: Player, thread: string, text: string, fro
 		addText(storyOf(data), thread, text, from)
 		update(player)
 	end
+end
+
+-- Sends this player texts from a list like a beat's ({ thread, text, from, mine }), with their
+-- placeholders filled in from `values` (texts missing one are skipped).
+function StoryService:SendTexts(player: Player, texts: { any }, values: { [string]: any }?)
+	local data = DataService:Get(player)
+	if data and joined[player] then
+		sendTexts(storyOf(data), texts, values or {})
+		update(player)
+	end
+end
+
+-- ContestService adds to what June can say on her porch: `values(player)` returns more
+-- placeholder values ({ contest, rival, jobs }), or nil.
+function StoryService:SetTalkValues(values: (Player) -> { [string]: any }?)
+	talkValues = values
+end
+
+-- Whether this player has joined the story this session (their client's been sent it).
+function StoryService:HasJoined(player: Player): boolean
+	return joined[player] == true
 end
 
 -- Whether this player has had a beat, by its key in the save (see Story.beatKey).

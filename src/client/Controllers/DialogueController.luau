@@ -2,10 +2,12 @@
 --   * Scenes: letterbox bars, and a box along the bottom with the speaker's round portrait, a
 --     name tag, the line, a dot for each line and "Click to continue" ("Tap" on a phone), with
 --     Skip up top. The camera cuts to Grandma June on her porch or to Gloria's house as the
---     lines say. The HUD hides and you can't walk while it's up. A click or tap anywhere, Space
---     or Enter goes on (finishing the line first if it's still typing out).
---   * Speech bubbles over people in the world (BillboardGuis): Gloria's remarks in a scene, and
---     what June says when you talk to her on her porch.
+--     lines say, or to a shot another controller adds (DialogueController.addShot: your yard,
+--     for the contest). Others can act on a line as it shows (LineShown: the judges walking).
+--     The HUD hides and you can't walk while it's up. A click or tap anywhere, Space or Enter
+--     goes on (finishing the line first if it's still typing out).
+--   * Speech bubbles over people in the world (BillboardGuis): Gloria's remarks in a scene and
+--     from her porch (GloriaController), and what June says when you talk to her on her porch.
 -- The server queues the scenes (StoryService). They play here once the moment's right (after
 -- the title card, not on a job, at the computer or in a menu), and the server's told when each
 -- has been watched or skipped. The first one a new player gets is the intro, and the first-job
@@ -56,6 +58,8 @@ local DialogueController = {}
 -- Fired when a scene starts and when it's over.
 DialogueController.Opened = Signal.new()
 DialogueController.Closed = Signal.new()
+-- Fired with (scene id, line number, the line) as each line shows.
+DialogueController.LineShown = Signal.new()
 
 local bars: ScreenGui
 local screen: ScreenGui
@@ -95,6 +99,8 @@ local controls = nil
 local talking = false
 -- [adornee] = the speech bubble showing over it
 local bubbles: { [Instance]: BillboardGui } = {}
+-- [shot name] = where the camera goes for it, from DialogueController.addShot
+local shots: { [string]: () -> CFrame? } = {}
 
 local function touchOnly(): boolean
 	return UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
@@ -366,12 +372,21 @@ local function fadeTo(transparency: number)
 	tween.Completed:Wait()
 end
 
--- Points the camera at June or Gloria's house. The first shot takes the camera over.
+-- Points the camera at June, Gloria's house or an added shot. The first shot takes the camera
+-- over.
 local function shoot(who: string)
-	local view = marker(who, if who == "June" then "TalkView" else "IntroView")
+	local goal: CFrame? = nil
+	local provider = shots[who]
+	if provider then
+		local ok, frame = pcall(provider)
+		goal = if ok and typeof(frame) == "CFrame" then frame else nil
+	else
+		local view = marker(who, if who == "June" then "TalkView" else "IntroView")
+		goal = if view then view.WorldCFrame else nil
+	end
 	local camera = workspace.CurrentCamera
 	local token = cameraToken
-	if not (view and camera and token) then
+	if not (goal and camera and token) then
 		return
 	end
 	if not savedCamera then
@@ -382,7 +397,6 @@ local function shoot(who: string)
 		cameraTween:Cancel()
 		cameraTween = nil
 	end
-	local goal = view.WorldCFrame
 	if (camera.CFrame.Position - goal.Position).Magnitude > CUT_DISTANCE then
 		fadeTo(0)
 		if cameraToken ~= token then
@@ -587,6 +601,7 @@ local function showLine(scene, index: number)
 			DialogueController.bubble(anchor, line.speaker, line.text)
 		end
 	end
+	DialogueController.LineShown:Fire(playing and playing.id, index, line)
 end
 
 -- Goes on: finishes the line if it's still typing, otherwise moves to the next one.
@@ -732,6 +747,19 @@ end
 
 function DialogueController.isOpen(): boolean
 	return playing ~= nil
+end
+
+-- Whether it's a good moment for something to take over the screen (a scene, the contest's
+-- results): after the title card, not on a job, at the computer, in a menu or placing a
+-- decoration.
+function DialogueController.canPlay(): boolean
+	return goodMoment()
+end
+
+-- Adds a camera shot scenes can use (a line's `shot`): `frame()` says where the camera goes, or
+-- nil to leave it where it is.
+function DialogueController.addShot(name: string, frame: () -> CFrame?)
+	shots[name] = frame
 end
 
 -- The id of the scene playing, if one is.

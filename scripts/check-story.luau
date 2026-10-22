@@ -1,12 +1,14 @@
 -- Checks the story's config and logic outside Roblox:
 --   lune run scripts/check-story
 -- It checks every scene, beat and act points at things that exist, that the act gates and beats
--- fire when docs/STORY.md says they should (src/shared/Config/Story.luau), and TurfKing's rules
--- for taking jobs and winning customers back (src/shared/Config/TurfKing.luau). Exits with an
--- error if anything's off.
+-- fire when docs/STORY.md says they should (src/shared/Config/Story.luau), TurfKing's rules for
+-- taking jobs and winning customers back (src/shared/Config/TurfKing.luau), and the Best Yard
+-- contest's scoring, Gloria's bar and when judging day comes round
+-- (src/shared/Config/Contest.luau). Exits with an error if anything's off.
 
 local process = require("@lune/process")
 
+local Contest = require("../src/shared/Config/Contest")
 local Story = require("../src/shared/Config/Story")
 local TurfKing = require("../src/shared/Config/TurfKing")
 
@@ -65,6 +67,8 @@ local placeholders = {
 	left = true,
 	appeal = true,
 	bar = true,
+	rival = true,
+	jobs = true,
 }
 local function checkText(text: string, where: string)
 	for name in string.gmatch(text, "{(%w+)}") do
@@ -84,7 +88,11 @@ for id, scene in Story.Scenes do
 		check(typeof(line.text) == "string" and #line.text > 0, `{where} has no text`)
 		checkText(line.text, where)
 		check(line.speaker == nil or Story.Cast[line.speaker] ~= nil, `{where}: unknown speaker {line.speaker}`)
-		check(line.shot == nil or line.shot == "June" or line.shot == "Gloria", `{where}: unknown shot {line.shot}`)
+		check(
+			line.shot == nil or line.shot == "June" or line.shot == "Gloria" or line.shot == "Yard",
+			`{where}: unknown shot {line.shot}`
+		)
+		check(line.judges == nil or line.judges == "Yard" or line.judges == "Gloria", `{where}: judges walk where?`)
 		check(not line.bubble or line.speaker ~= nil, `{where}: a bubble needs a speaker`)
 	end
 end
@@ -123,6 +131,24 @@ for act, lines in Story.JuneTalk.Progress do
 	for _, line in lines do
 		checkText(line, `June's act {act} talk`)
 	end
+end
+for state, lines in Story.JuneTalk.Contest do
+	for _, line in lines do
+		checkText(line, `June's contest talk ({state})`)
+	end
+end
+for kind, texts in Story.ContestTexts do
+	for index, text in texts do
+		checkThread(text.thread, `contest text {kind} {index}`)
+		checkText(text.text, `contest text {kind} {index}`)
+	end
+end
+for kind, closing in Story.ContestClosing do
+	check(Story.Cast[closing.speaker] ~= nil, `the contest's {kind} closing line has no speaker`)
+end
+-- The scenes ContestService plays.
+for _, id in { "ContestJudging", "ContestJudgingAgain", "ContestWin", "ContestWinAgain", "ContestLose" } do
+	check(Story.Scenes[id] ~= nil, `no {id} scene`)
 end
 check(#Story.GloriaRemarks == #Story.Acts, "Gloria has remarks for every act")
 for act, lines in Story.GloriaRemarks do
@@ -284,6 +310,101 @@ for count = 1, 6 do
 	check(not string.find(text, "{", 1, true), `Chad's text {count} fills in`)
 end
 check(Story.turfKingText(1, nil) ~= "", "Chad has something to say without a customer")
+
+-- The Best Yard contest -------------------------------------------------------------------------
+
+local function scored(overrides)
+	local measures = {
+		lawnShare = 1,
+		edgeShare = 1,
+		junk = 0,
+		beds = Contest.BedsWanted,
+		tidyShrubs = Contest.ShrubsWanted,
+		shaggyShrubs = 0,
+		decorShare = Contest.CharmShare,
+		kinds = Contest.KindsWanted,
+	}
+	for key, value in overrides or {} do
+		measures[key] = value
+	end
+	return Contest.score(measures)
+end
+local full = Contest.CategoryPoints
+local perfectYard = scored()
+check(perfectYard.total == full * 4, "a perfect yard scores 100")
+for _, category in Contest.Categories do
+	check(perfectYard[category.id] == full, `a perfect yard gets full marks for {category.name}`)
+end
+local nothing = Contest.score({})
+check(nothing.total == 0, "an empty yard scores nothing")
+check(scored({ lawnShare = 0.5 }).Lawn == 13, "half the lawn done is half the lawn's points")
+check(scored({ junk = 2 }).Lawn == full - 2 * Contest.JunkPoints, "junk in the grass costs lawn points")
+check(scored({ lawnShare = 0, junk = 9 }).Lawn == 0, "the lawn can't go below 0")
+check(scored({ edgeShare = 0 }).Edges == 0, "edges come from the edge targets")
+check(scored({ beds = 0 }).Beds == 13, "beds are half of beds and shrubs")
+check(
+	scored({ tidyShrubs = 0, shaggyShrubs = Contest.ShrubsWanted }).Beds
+		< scored({ tidyShrubs = Contest.ShrubsWanted }).Beds,
+	"shaggy shrubs count for less than trimmed ones"
+)
+check(scored({ beds = 99, tidyShrubs = 99 }).Beds == full, "beds and shrubs top out")
+check(scored({ decorShare = 1, kinds = 99 }).Charm == full, "charm tops out")
+check(scored({ kinds = 0 }).Charm < full, "a yard of one kind of thing is less charming")
+check(scored({ decorShare = 0, kinds = 0 }).Charm == 0, "no decorations, no charm")
+-- A yard fresh from act 3's curb appeal bar (a tidy lawn and a few decorations) isn't enough.
+local actThreeYard = scored({ beds = 1, tidyShrubs = 2, decorShare = 0.375, kinds = 4 })
+check(not Contest.won(actThreeYard, Contest.gloriaScores(1)), "a few decorations don't beat Gloria")
+
+check(Contest.bar(1) == 88, "Gloria's bar is 88 the first summer")
+check(Contest.bar(2) > Contest.bar(1), "her bar goes up each summer")
+check(Contest.bar(99) == Contest.GloriaBar.Max, "her bar is capped")
+for summer = 1, 12 do
+	local hers = Contest.gloriaScores(summer)
+	local sum, highest = 0, 0
+	for _, category in Contest.Categories do
+		sum += hers[category.id]
+		highest = math.max(highest, hers[category.id])
+	end
+	check(sum == hers.total and hers.total == Contest.bar(summer), `Gloria's scores add up, summer {summer}`)
+	check(highest <= full, `none of Gloria's scores is over {full}, summer {summer}`)
+end
+check(Contest.gloriaScores(1).Edges >= Contest.gloriaScores(1).Charm, "TurfKing's edges are its best")
+check(Contest.won({ total = 88 }, { total = 88 }), "a tie goes to June")
+check(not Contest.won({ total = 87 }, { total = 88 }), "one short loses")
+
+local fresh = { pending = false, nextAt = 0 }
+check(Contest.state(fresh, 3, 40) == "Locked", "no contest before act 4")
+check(Contest.state(fresh, 4, 40) == "Open", "June offers in act 4")
+check(Contest.state({ pending = { won = true }, nextAt = 0 }, 4, 40) == "Results", "judged: the results wait")
+check(Contest.state({ pending = false, nextAt = 44 }, 4, 41) == "Waiting", "after judging day, a wait")
+check(Contest.state({ pending = false, nextAt = 44 }, 4, 44) == "Open", "then it's open again")
+check(Contest.nextAt(false, 40) == 40 + Contest.RetryJobs, "a loss can be tried again in a few jobs")
+check(Contest.nextAt(true, 40) == 40 + Contest.SummerJobs, "a win brings next summer's contest later")
+check(Contest.RetryJobs < Contest.SummerJobs, "trying again comes sooner than next summer")
+
+local firstWin = Contest.rewards(0, { Shed = true, Garage = true })
+check(firstWin.money == Contest.Prize and firstWin.money == 2500, "winning pays $2,500")
+check(firstWin.trophy == "BestYardTrophy", "the first win brings the trophy")
+check(firstWin.discount == "SmallOffice", "...and half off the Small Office")
+check(Contest.rewards(0, { SmallOffice = true }).discount == "EquipmentYard", "with the office, the Equipment Yard")
+check(Contest.rewards(0, { SmallOffice = true, EquipmentYard = true }).discount == nil, "owning both, no discount")
+local secondWin = Contest.rewards(1, {})
+check(secondWin.trophy == nil and secondWin.discount == nil, "later wins pay the prize only")
+check(Contest.discounted(20000) == 10000, "half off")
+
+for _, state in { "Open", "Waiting", "Results" } do
+	for turn = 1, 6 do
+		local said =
+			Story.juneLine(4, turn, { appeal = 80, bar = Story.ContestBar, contest = state, rival = 88, jobs = 3 })
+		check(not string.find(said, "{", 1, true), `June's contest line, {state} turn {turn}`)
+	end
+end
+local offerLine = Story.juneLine(4, 1, { appeal = 80, contest = "Open", rival = 88 })
+check(string.find(offerLine, "88", 1, true) ~= nil, "June says what Gloria's yard would score")
+check(
+	not string.find(Story.juneLine(4, 1, { appeal = 80, contest = "Waiting" }), "{", 1, true),
+	"June still has something to say about the contest without the jobs left"
+)
 
 -- Lines ---------------------------------------------------------------------------------------
 

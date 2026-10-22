@@ -17,6 +17,7 @@ local EVENTS = {
 	"PartyInvite",
 	"Notify",
 	"StoryUpdated",
+	"ContestUpdated",
 	-- client -> server
 	"AbandonJob",
 	"LeaveParty",
@@ -31,6 +32,9 @@ local FUNCTIONS = {
 	"GetJobBoard",
 	"GetStory",
 	"TalkToJune",
+	"GetContest",
+	"StartJudging",
+	"CollectContest",
 	"AcceptJob",
 	"BuyItem",
 	"SellItem",

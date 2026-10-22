@@ -136,6 +136,9 @@ Services*. Without it the game still runs, it just doesn't save progress.
     a mailbox, lights, a windmill and the odd flamingo. Each comes in a box: open it and put it
     where you like in first person (R turns it, fences and paths snap together). Decorations add
     to curb appeal, and shrubs need a trim now and then.
+11. **Win Best Yard.** At the end of the story Grandma June enters your yard in the Maple Grove
+    Best Yard contest against Gloria's, which TurfKing does. Call the judges from the Messages app
+    when it's ready: they score your lawn, edges, beds and shrubs, and decorations, out of 25 each.
 
 ### Controls
 
@@ -168,6 +171,7 @@ src/shared/                  -> ReplicatedStorage.Shared   code used by both ser
   Config/Storage.luau           storage spots at the business and truck space
   Config/Story.luau             the story (docs/STORY.md): every line, beat and act gate
   Config/TurfKing.luau          TurfKing taking jobs off your board, and customers won back from it
+  Config/Contest.luau           the Best Yard contest: scoring, Gloria's bar, rewards, when it's on
   Shop.luau                     what a player may buy (shared by the server and the shop menu)
   Assets.luau                   finds a real model or falls back to a placeholder
   Placeholders.luau             the block models used until real ones exist
@@ -187,11 +191,13 @@ src/server/                  -> ServerScriptService.Server
   Services/StoryService         the story: acts, beats, scenes to play and texts
   Services/GloriaService        Gloria's house across the street, and her yard for every act
   Services/TurfKingService      TurfKing taking jobs off your board, and the won-back bonus
+  Services/ContestService       the Best Yard contest: judging your yard, the result and rewards
 src/client/                  -> StarterPlayer.StarterPlayerScripts.Client
   init.client.luau              starts every controller
   Controllers/                  HUD, shop computer (jobs, orders, business), truck checklist, carrying tools, crew menu,
                                 drive cutscene, first-person camera and arms, the story's dialogue,
-                                the Messages app and Gloria's yard as your act has it
+                                the Messages app, Gloria's yard as your act has it, and the Best
+                                Yard contest's judges and results screen
   StoryArt.luau                 image ids for the story's portraits, dialogue box and bubbles
 ```
 

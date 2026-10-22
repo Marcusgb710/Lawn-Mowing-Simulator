@@ -18,6 +18,8 @@ return {
 		Edna = "",
 		BridgeClub = "",
 		Customer = "",
+		Judge1 = "",
+		Judge2 = "",
 	},
 	-- The dialogue box along the bottom of the screen, with its dark outline (9-slice, 128 x 128).
 	DialogueBox = { image = "", slice = Rect.new(40, 40, 88, 88) },
@@ -46,4 +48,27 @@ return {
 	-- card it takes (`Stamp_TakenByTurfKing`, a wordmark, up to 1024 wide, about 3:1).
 	Crown = "",
 	StampTakenByTurfKing = "",
+	-- The Best Yard results screen (ContestController), named as in instructions38.
+	Contest = {
+		-- The "Maple Grove Best Yard" title wordmark (`BestYard`, up to 1024 wide, about 10:1), and
+		-- the ribbon banner behind it (`Ribbon`, a 9-slice, 256 x 64).
+		Title = "",
+		Ribbon = { image = "", slice = Rect.new(48, 16, 208, 48) },
+		-- The `Winner` and `SoClose` wordmarks under the trophy (about 6:1).
+		Winner = "",
+		SoClose = "",
+		-- The trophy (`Moments/Trophy.png`, 1024 x 1024, light rays and all).
+		Trophy = "",
+		-- The score bars: the track and each side's fill (9-slices, 64 x 32): `ScoreTrack`,
+		-- `ScoreFill_You` (green) and `ScoreFill_Rival` (purple).
+		ScoreTrack = { image = "", slice = Rect.new(16, 8, 48, 24) },
+		ScoreFillYou = { image = "", slice = Rect.new(16, 8, 48, 24) },
+		ScoreFillRival = { image = "", slice = Rect.new(16, 8, 48, 24) },
+		-- An icon for each category (128 x 128, white, tinted in game), by Config/Contest.luau's
+		-- ids: `Score_Lawn`, `Score_Edges`, `Score_Beds` and `Score_Decor`.
+		Categories = { Lawn = "", Edges = "", Beds = "", Charm = "" },
+		-- Confetti over a win: a sprite sheet of `columns` x `rows` frames (`Moments/Confetti.png`,
+		-- 1024 x 1024).
+		Confetti = { image = "", columns = 4, rows = 4 },
+	},
 }

@@ -17,6 +17,7 @@ local CONTROLLERS = {
 	"DialogueController",
 	"MessagesController",
 	"GloriaController",
+	"ContestController",
 	"TutorialController",
 	"CarryController",
 	"ComputerController",
@@ -48,6 +49,9 @@ end)
 Net.event("StoryUpdated").OnClientEvent:Connect(function(story)
 	ClientState.set("story", story)
 end)
+Net.event("ContestUpdated").OnClientEvent:Connect(function(contest)
+	ClientState.set("contest", contest)
+end)
 
 for _, name in CONTROLLERS do
 	local controller = require(Controllers:WaitForChild(name))
@@ -63,4 +67,8 @@ local story = Net.func("GetStory"):InvokeServer()
 -- An update may have come in while it was on its way, and that's newer.
 if story and not ClientState.story then
 	ClientState.set("story", story)
+end
+local contest = Net.func("GetContest"):InvokeServer()
+if contest and not ClientState.contest then
+	ClientState.set("contest", contest)
 end

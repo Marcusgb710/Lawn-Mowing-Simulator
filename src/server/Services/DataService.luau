@@ -23,7 +23,7 @@ DataService.LeveledUp = Signal.new()
 
 -- Bump this whenever the save format changes, and add a step to MIGRATIONS that turns the
 -- previous version into the new one. Never delete a step: old saves still need it.
-local DATA_VERSION = 10
+local DATA_VERSION = 11
 
 -- MIGRATIONS[n] turns a version n - 1 save into version n. Steps must keep money, xp and every
 -- owned item. Don't use the live config to read an old save: write down what it looked like.
@@ -155,6 +155,22 @@ local MIGRATIONS = {
 			nextText = if typeof(saved.nextText) == "number" then saved.nextText else 1,
 		}
 	end,
+
+	-- 10 -> 11, the Best Yard contest (`contest`, see ContestService): the first summer, nothing won
+	-- or judged yet, nothing waiting to be collected, and judging day open as soon as act 4 starts.
+	[11] = function(data)
+		local saved = if typeof(data.contest) == "table" then data.contest else {}
+		data.contest = {
+			summer = if typeof(saved.summer) == "number" then saved.summer else 1,
+			wins = if typeof(saved.wins) == "number" then saved.wins else 0,
+			judged = if typeof(saved.judged) == "number" then saved.judged else 0,
+			last = if typeof(saved.last) == "table" then saved.last else false,
+			pending = if typeof(saved.pending) == "table" then saved.pending else false,
+			nextAt = if typeof(saved.nextAt) == "number" then saved.nextAt else 0,
+			offered = if typeof(saved.offered) == "number" then saved.offered else -1,
+			discount = if typeof(saved.discount) == "string" then saved.discount else false,
+		}
+	end,
 }
 
 local store: DataStore? = nil
@@ -193,6 +209,22 @@ local function defaultData()
 		-- ({ n, thread, text, from, mine, at }), the last text they've `read` in each thread
 		-- ([thread] = n) and the number the next text gets
 		story = { act = 1, seen = {}, scenes = {}, texts = {}, read = {}, nextText = 1 },
+		-- The Best Yard contest (see ContestService and Config/Contest.luau): the `summer` it is,
+		-- how many they've `wins` and how many judging days they've had (`judged`), the `last`
+		-- result ({ summer, won, you, gloria }), the result `pending` collection (or false), the
+		-- jobs done when judging day comes round again (`nextAt`), how many judging days there had
+		-- been when June last texted that it's open (`offered`, -1 for never) and the building a
+		-- win took half off (`discount`, until it's bought)
+		contest = {
+			summer = 1,
+			wins = 0,
+			judged = 0,
+			last = false,
+			pending = false,
+			nextAt = 0,
+			offered = -1,
+			discount = false,
+		},
 		trailerUnlocked = false,
 		-- What they've bought with Robux (see Premium.luau and PremiumService)
 		premium = Premium.empty(),
@@ -448,6 +480,10 @@ local function snapshot(data)
 		trailerUnlocked = data.trailerUnlocked,
 		-- What they own with Robux, for the Premium tab and their tools' looks (not the receipts).
 		premium = { owned = data.premium.owned, passes = data.premium.passes, truckPaint = data.premium.truckPaint },
+		-- The building a Best Yard win took half off, for the Business app (see Shop.price).
+		discount = if typeof(data.contest) == "table" and typeof(data.contest.discount) == "string"
+			then data.contest.discount
+			else nil,
 	}
 end
 

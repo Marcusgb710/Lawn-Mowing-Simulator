@@ -279,6 +279,32 @@ function HomeLawnService:CurbAppeal(owner: Player): number
 	return if typeof(value) == "number" then value else 0
 end
 
+-- What the Best Yard judges look at on the owner's lawn (Config/Contest.luau): how much of its
+-- grass, weeds and leaves is done and how much of its edge (each 0-1), and how many pieces of
+-- junk are in the grass. Nil if they have no lawn.
+function HomeLawnService:YardMeasures(owner: Player): { lawnShare: number, edgeShare: number, junk: number }?
+	local entry = lawns[owner]
+	if not entry then
+		return nil
+	end
+	local lawnDone, lawnTotal, edgeDone, edgeTotal = 0, 0, 0, 0
+	for _, task in entry.lawn.tasks do
+		local done = math.min(task.done, task.total)
+		if task.type.target == "Edge" then
+			edgeDone += done
+			edgeTotal += task.total
+		else
+			lawnDone += done
+			lawnTotal += task.total
+		end
+	end
+	return {
+		lawnShare = if lawnTotal > 0 then lawnDone / lawnTotal else 1,
+		edgeShare = if edgeTotal > 0 then edgeDone / edgeTotal else 1,
+		junk = #entry.lawn.debris,
+	}
+end
+
 -- Called by ToolService every tick a player uses a tool on their crew's home lawn (and for every
 -- snip of hand shears). Takes the same options as JobService:ApplyWork, and says whether anything
 -- got done and what junk in the grass a mower just chewed up.

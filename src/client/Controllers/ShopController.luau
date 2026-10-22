@@ -173,7 +173,8 @@ local function act(action: string, item, category: string)
 	UI.notify(message)
 end
 
--- What the button on an item's card says and does, plus why it's locked (if it is).
+-- What the button on an item's card says and does, plus a note under it: why it's locked (if it
+-- is), or the Best Yard prize's discount.
 local function buttonFor(profile, item, category: string): (string, Color3, string?, string?)
 	if category == DECOR_TAB then
 		if resting(item) then
@@ -211,11 +212,15 @@ local function buttonFor(profile, item, category: string): (string, Color3, stri
 	end
 
 	local allowed, reason = Shop.canBuy(profile, category, item.id)
+	local price = Shop.price(profile, category, item.id)
+	local prize = if price < item.price
+		then `Best Yard prize: half off, {Format.money(price)} instead of {Format.money(item.price)}.`
+		else nil
 	if not allowed then
-		return "Locked", UI.Colors.Disabled, nil, reason
+		return "Locked", UI.Colors.Disabled, nil, if prize then `{reason}\n{prize}` else reason
 	end
-	local affordable = profile.money >= item.price
-	return Format.money(item.price), if affordable then UI.Colors.Money else UI.Colors.Disabled, "BuyItem", nil
+	local affordable = profile.money >= price
+	return Format.money(price), if affordable then UI.Colors.Money else UI.Colors.Disabled, "BuyItem", prize
 end
 
 -- One card on the Premium tab: name, description and details down the left, a button on the right.
@@ -454,7 +459,13 @@ function render()
 			})
 		end
 	elseif selectedCategory == DECOR_TAB then
-		items = Decorations.List
+		-- Everything but what's only won (the Best Yard Trophy).
+		items = {}
+		for _, decoration in Decorations.List do
+			if not decoration.won then
+				table.insert(items, decoration)
+			end
+		end
 	else
 		items = Items.Catalog[selectedCategory]
 	end

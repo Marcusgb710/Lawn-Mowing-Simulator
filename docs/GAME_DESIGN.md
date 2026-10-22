@@ -868,6 +868,19 @@ which earns your business curb appeal and a bonus on every job.
     `GameConfig.ShrubRegrowMinutes` (30) of play later.
   - **Limits:** up to 60 per business. With no model they're block placeholders built to the
     same conventions.
+- **The Best Yard contest** (`ContestService`, `Config/Contest.luau`; the story's act 4 in
+  docs/STORY.md). It judges your own business's yard, using what this section already measures:
+  - **Lawn and stripes:** the lawn's done share, less 2 per piece of junk in the grass.
+  - **Edges:** its edge targets.
+  - **Beds and shrubs:** beds and trimmed shrubs.
+  - **Decorations and charm:** the decoration share curb appeal uses, plus how many different
+    kinds there are.
+
+  Each category is out of 25, against Gloria's bar (88, then 2 more each summer you win, capped
+  at 96). Calling the judges from the Messages app scores the yard there and then. Winning pays
+  $2,500, and the first win also brings the Best Yard Trophy (a decoration that's only ever won)
+  and half off the next building from the Small Office up. A loss can be tried again after 4 jobs,
+  and a win brings next summer's contest after 12.
 
 ## 10. Premium
 
@@ -969,6 +982,18 @@ phase that gives them work.
   and the number the next text gets. Everyone starts in act 1 with nothing seen. Players who
   have already done a job aren't shown the intro: `StoryService` catches them up to their act
   when they join.
+- **Version 11 (the Best Yard contest)** adds `contest`:
+  - `summer`, which summer it is (a win starts the next one, with Gloria's bar higher);
+  - `wins` and `judged`, how many times you've won and how many judging days you've had;
+  - `last`, the last result (`{ summer, won, you, gloria }`, the totals);
+  - `pending`, the result waiting to be collected, with both sides' scores and the rewards. It's
+    decided when the judges are called, so leaving before collecting changes nothing;
+  - `nextAt`, the jobs done when judging day comes round again;
+  - `offered`, how many judging days there had been when June last texted that it's open;
+  - `discount`, the building a win took half off, until it's bought.
+
+  Everyone starts in summer 1 with nothing judged, and judging day opens as soon as they reach
+  act 4.
 - **TurfKing** (docs/STORY.md, item 4) needs no new version. It keeps two numbers in `story`:
   `flippedAt` (how many jobs you'd done when it last took one of yours) and `flips` (how many
   it's taken). A customer won back from it is remembered as the beat `QualityWin:<customer>` in
