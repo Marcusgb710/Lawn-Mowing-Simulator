@@ -242,6 +242,19 @@ One PR per phase, each stacked on the one before. Every phase still needs a Stud
       - All 4 passes and 13 products are made and on sale at their catalog prices (2026-10-21).
         `scripts/premium-setup.py` creates or re-prices anything added to `Premium.luau` later.
 
+- [ ] **Story 1: story state (docs/STORY.md).** To check in Studio, with API access on so it
+      saves:
+      - a brand-new save gets the "Intro" scene queued (it plays once the dialogue box is in),
+        and an old save gets "WelcomeBack" instead and lands in act 2 or later;
+      - the texts after the first and second jobs ("Grandma June: Saw you finish Edna's lawn...",
+        "Bridge Club: Is the grandchild free Thursday?") show as toasts, and June's critiques
+        after later act 1 jobs;
+      - buying the Reel Push Mower says "Act 2: TurfKing" and Chad texts; a gas mower (or a crew
+        job, or level 4) starts act 3 and Sam texts; curb appeal 75 starts act 4;
+      - the starter job on the board is always Mrs. Alvarez's;
+      - all of it is still there after a rejoin, and nothing fires twice;
+      - `lune run scripts/check-story` passes after any change to `Story.luau`.
+
 ## Before release
 
 - [ ] Turn on *Game Settings → Security → Enable Studio Access to API Services* so progress saves

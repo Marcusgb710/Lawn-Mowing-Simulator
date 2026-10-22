@@ -26,6 +26,7 @@ local Items = require(Shared.Config.Items)
 local Jobs = require(Shared.Config.Jobs)
 local Net = require(Shared.Net)
 local Premium = require(Shared.Config.Premium)
+local Story = require(Shared.Config.Story)
 local TaskTypes = require(Shared.Config.TaskTypes)
 local Tools = require(Shared.Config.Tools)
 local Signal = require(Shared.Signal)
@@ -48,6 +49,9 @@ local SNIP_HAZARD_REACH = 0.3
 local JobService = {}
 -- Fired with (player) when they head out on a job, arrive at the house, or leave the job.
 JobService.PlayerStateChanged = Signal.new()
+-- Fired with (player, info) for each of the crew once a job's been paid: info is { customer,
+-- pay (their share), quality (the finish, 0-1), preference, crew (how many of them) }.
+JobService.JobFinished = Signal.new()
 
 local rng = Random.new()
 local board = {}
@@ -184,7 +188,11 @@ local function makeOffer(kind: string)
 		name = template.name,
 		tier = template.tier,
 		address = Jobs.randomAddress(rng),
-		customer = Jobs.Customers[rng:NextInteger(1, #Jobs.Customers)],
+		-- A new player's first job is Edna's front lawn (docs/STORY.md, the intro), so the starter
+		-- job is always hers.
+		customer = if kind == "StarterGear"
+			then Story.FirstCustomer
+			else Jobs.Customers[rng:NextInteger(1, #Jobs.Customers)],
 		story = story,
 		todo = Jobs.todoList(template),
 		payout = math.floor(template.basePay * rng:NextNumber(0.9, 1.25) / 5 + 0.5) * 5,
@@ -542,6 +550,15 @@ local function completeJob(job)
 		notify(member, `Job done! You earned {Format.money(share)}.`)
 	end
 	sendUpdate(job)
+	for _, member in members do
+		JobService.JobFinished:Fire(member, {
+			customer = job.offer.customer,
+			pay = share,
+			quality = quality,
+			preference = job.preference,
+			crew = #members,
+		})
+	end
 
 	task.delay(GameConfig.ReturnDelay, function()
 		if activeJobs[job] then

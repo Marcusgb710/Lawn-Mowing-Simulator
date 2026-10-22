@@ -14,13 +14,16 @@ local Items = require(Shared.Config.Items)
 local Maintenance = require(Shared.Config.Maintenance)
 local Net = require(Shared.Net)
 local Premium = require(Shared.Config.Premium)
+local Signal = require(Shared.Signal)
 local Storage = require(Shared.Config.Storage)
 
 local DataService = {}
+-- Fired with (player, new level) when a finished job takes them up a level.
+DataService.LeveledUp = Signal.new()
 
 -- Bump this whenever the save format changes, and add a step to MIGRATIONS that turns the
 -- previous version into the new one. Never delete a step: old saves still need it.
-local DATA_VERSION = 9
+local DATA_VERSION = 10
 
 -- MIGRATIONS[n] turns a version n - 1 save into version n. Steps must keep money, xp and every
 -- owned item. Don't use the live config to read an old save: write down what it looked like.
@@ -138,6 +141,20 @@ local MIGRATIONS = {
 		data.owned.Mower = if typeof(data.owned.Mower) == "table" then data.owned.Mower else {}
 		data.owned.Mower.ReelMower = true
 	end,
+
+	-- 9 -> 10, the story (`story`, see StoryService): the first act, nothing seen yet and an empty
+	-- inbox. StoryService catches players who were already playing up to the act they've reached.
+	[10] = function(data)
+		local saved = if typeof(data.story) == "table" then data.story else {}
+		data.story = {
+			act = if typeof(saved.act) == "number" then saved.act else 1,
+			seen = if typeof(saved.seen) == "table" then saved.seen else {},
+			scenes = if typeof(saved.scenes) == "table" then saved.scenes else {},
+			texts = if typeof(saved.texts) == "table" then saved.texts else {},
+			read = if typeof(saved.read) == "table" then saved.read else {},
+			nextText = if typeof(saved.nextText) == "number" then saved.nextText else 1,
+		}
+	end,
 }
 
 local store: DataStore? = nil
@@ -171,6 +188,11 @@ local function defaultData()
 		-- Decorations for your business's yard: `placed` ones ({ key, id, x, z, turn, overgrown,
 		-- grown }) and ones still in their `boxes` ({ key, id, arrives }) (see DecorService)
 		decor = { placed = {}, boxes = {} },
+		-- Where they are in the story (see StoryService and Config/Story.luau): the `act`, the beats
+		-- they've `seen` ([beat id] = true), `scenes` still to watch, their inbox of `texts`
+		-- ({ n, thread, text, from, mine, at }), the last text they've `read` in each thread
+		-- ([thread] = n) and the number the next text gets
+		story = { act = 1, seen = {}, scenes = {}, texts = {}, read = {}, nextText = 1 },
 		trailerUnlocked = false,
 		-- What they've bought with Robux (see Premium.luau and PremiumService)
 		premium = Premium.empty(),
@@ -543,6 +565,7 @@ function DataService:RecordJob(player: Player, xp: number)
 	local newLevel = GameConfig.levelFromXp(data.xp)
 	if newLevel > oldLevel then
 		Net.event("Notify"):FireClient(player, `Level up! You're now level {newLevel}.`)
+		DataService.LeveledUp:Fire(player, newLevel)
 	end
 end
 

@@ -11,7 +11,8 @@ local ClientState = {
 	job = nil, -- the job you're on, or nil
 	party = nil, -- { leader = Player, members = { Player } }
 	board = {}, -- job board offers
-	-- Fired with the name of what changed: "profile", "job", "party" or "board"
+	story = nil, -- your place in the story: act, goal, scenes to play, texts (see StoryService)
+	-- Fired with the name of what changed: "profile", "job", "party", "board" or "story"
 	Changed = Signal.new(),
 }
 

@@ -83,6 +83,21 @@ blocks you.
 
 The level numbers are placeholders. Tune them to the real progression in GAME_DESIGN.md.
 
+**Built (act gates in `Config/Story.luau`).** An act starts as soon as any of its gates is true,
+and only once the act before it has started. The levels are tuned to the real progression
+(`GameConfig.levelFromXp` and the xp in `Jobs.luau`). They only catch players who skip the
+purchase that normally moves the story on:
+
+| Act | Starts when (any of) | Goal card |
+| --- | --- | --- |
+| 1 | A new save | Buy the Reel Push Mower |
+| 2 | You own the Reel Push Mower, any motorized mower, or level 3 (about 10 early jobs) | Buy the Gas Push Mower |
+| 3 | You own a motorized mower, finish a crew job in act 2, or level 4 (about 18 jobs) | Raise curb appeal to 75 |
+| 4 | Curb appeal 75 (`Story.ContestBar`: a tidy lawn is 60, so it takes a few decorations), or level 10 | Keep the yard sharp for judging day |
+
+Changes from the table above: act 2 → 3 and the start of act 3 were two different gates (level 5
+and level 8), so they're one now. Act 1 gets a level fallback too, so the story never stalls.
+
 ### Act 1: The Shears
 
 - **After the first job, June:**
@@ -164,11 +179,38 @@ The level numbers are placeholders. Tune them to the real progression in GAME_DE
 
 This is in rough order, as separate PRs.
 
-1. **Story state in the save.**
+1. **Story state in the save.** *Built.*
    - `story = { act, seen = { [beatId] = true } }`, with a save version bump.
    - A `StoryService` on the server that listens for what's already happening (job done, item
      bought, level up, curb appeal) and fires beats once.
    - Beats live in a config file, `Shared/Config/Story.luau`, so lines are easy to edit.
+
+   What was built:
+   - **The save** (version 10, see GAME_DESIGN.md "Saves"): `story = { act, seen, scenes, texts,
+     read, nextText }`. Besides the act and the beats seen, it holds the scenes still to play
+     and the inbox of texts (capped at 60).
+   - **`StoryService`** hooks into signals that were added where things already happen:
+     `JobService.JobFinished` (each crew member, with the customer, their pay, the finish and
+     the crew size), `ShopService.Bought`, `DataService.LeveledUp` and the player's
+     `CurbAppeal` attribute. It keeps no counts of its own: the gates read the save (owned
+     tools, xp, jobs done) and the curb appeal.
+   - **`Config/Story.luau`** has every line on this page: the intro, the acts' scenes and texts,
+     the act 1-3 beats and the contest's lines (for item 5). `lune run scripts/check-story`
+     checks it.
+   - **Players who were already playing** get a short "welcome back" scene instead of the intro
+     (the set-up lines, without the shears), and are caught up to their act on joining. Their
+     acts' texts arrive, but no act scenes play.
+   - **Edna's lawn.** The job board's starter job (the Front Lawn) is now always Mrs. Alvarez's
+     (Edna), so the intro's "Edna needs her front lawn done" is true.
+   - **Lines that are new** (not on this page before), all easy to change in `Story.luau`:
+     - June's job critiques in act 1 (`Story.Critiques`), picked by the finish;
+     - what June says when you talk to her on her porch (`Story.JuneTalk`);
+     - act 4's opening: *"Hmph. It doesn't look like a vacant lot any more."* and *"Judges walk
+       the street at the end of summer. Keep it sharp till then."*;
+     - from the mock-up's Messages board: Mrs. Alvarez's *"Thank you, dear! Same time next
+       week?"*, your *"Saving for the reel mower."* and June's *"Good. Gloria's TurfKing boys
+       scalped her front lawn this morning. I took pictures."*, after the first job.
+   - Not done: the small bonus from a customer won over from TurfKing.
 2. **`DialogueController`.** The dialogue box from the mock-up. It handles skip, works on phones
    (44 px+ targets) and hides the HUD while it's up. It plays after the title card on first
    join.

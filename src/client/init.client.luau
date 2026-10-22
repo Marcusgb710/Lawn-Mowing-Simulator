@@ -42,6 +42,9 @@ end)
 Net.event("Notify").OnClientEvent:Connect(function(message)
 	UI.notify(message)
 end)
+Net.event("StoryUpdated").OnClientEvent:Connect(function(story)
+	ClientState.set("story", story)
+end)
 
 for _, name in CONTROLLERS do
 	local controller = require(Controllers:WaitForChild(name))
@@ -52,4 +55,9 @@ ClientState.set("board", Net.func("GetJobBoard"):InvokeServer())
 local profile = Net.func("GetProfile"):InvokeServer()
 if profile then
 	ClientState.set("profile", profile)
+end
+local story = Net.func("GetStory"):InvokeServer()
+-- An update may have come in while it was on its way, and that's newer.
+if story and not ClientState.story then
+	ClientState.set("story", story)
 end

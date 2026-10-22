@@ -960,6 +960,12 @@ phase that gives them work.
   starter gear that every load handed out, so every older save gets `owned.Mower.ReelMower` (it
   stays wherever it was, truck included). Loading gives everyone the free grass shears, as it does
   all starter gear. Junk in the grass isn't saved.
+- **Version 10 (the story, docs/STORY.md)** adds `story`: the `act` you're in, the beats you've
+  `seen`, the dialogue `scenes` still to play, your inbox of `texts` (at most
+  `Story.InboxCap`, 60, the oldest dropped first), the last text you've `read` in each thread,
+  and the number the next text gets. Everyone starts in act 1 with nothing seen. Players who
+  have already done a job aren't shown the intro: `StoryService` catches them up to their act
+  when they join.
 
 ## New item ids for modelers
 
