@@ -13,6 +13,7 @@ local Items = require(Shared.Config.Items)
 local Maintenance = require(Shared.Config.Maintenance)
 local Net = require(Shared.Net)
 local Shop = require(Shared.Shop)
+local Signal = require(Shared.Signal)
 local Storage = require(Shared.Config.Storage)
 
 local DataService = require(script.Parent.DataService)
@@ -32,6 +33,9 @@ local PLOT_CATEGORIES = { Truck = true, Trailer = true, Business = true }
 local COOLDOWN = 0.25
 
 local ShopService = {}
+-- Fired with (player, category, item id) when they buy something they didn't own (not a
+-- restock or a decoration).
+ShopService.Bought = Signal.new()
 
 -- [Player] = when they last used the shop
 local lastRequest = {}
@@ -100,6 +104,7 @@ function ShopService:Buy(player: Player, category: string, itemId: string): (boo
 	if Items.isToolCategory(category) then
 		data.condition[itemId] = Maintenance.fresh(item)
 	end
+	ShopService.Bought:Fire(player, category, itemId)
 	if not Items.isToolCategory(category) then
 		return self:Equip(player, category, itemId)
 	end

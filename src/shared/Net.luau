@@ -16,16 +16,19 @@ local EVENTS = {
 	"PartyUpdated",
 	"PartyInvite",
 	"Notify",
+	"StoryUpdated",
 	-- client -> server
 	"AbandonJob",
 	"LeaveParty",
 	"StopService",
 	"Snip",
+	"SceneWatched",
 }
 
 local FUNCTIONS = {
 	"GetProfile",
 	"GetJobBoard",
+	"GetStory",
 	"AcceptJob",
 	"BuyItem",
 	"SellItem",
