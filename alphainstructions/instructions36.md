@@ -1,5 +1,8 @@
 # Instructions 36: Concept art and GUI art
 
+> **Replaced by `instructions38.md`. Don't do this file; do 38 instead.** 38 covers everything
+> here plus custom fonts, the story screens, the Robux shop and the store art.
+
 The game's GUI is still placeholder: plain rounded boxes in flat greens, drawn in code. This file
 is the art to replace it. It comes in two parts:
 
