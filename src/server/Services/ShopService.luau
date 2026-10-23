@@ -57,12 +57,17 @@ local function findItem(category, itemId)
 end
 
 local function shopState(data)
+	local contest = data.contest
 	return {
 		owned = data.owned,
 		equipped = data.equipped,
 		level = GameConfig.levelFromXp(data.xp),
 		trailerUnlocked = data.trailerUnlocked,
 		condition = data.condition,
+		-- The building a Best Yard win took half off (see ContestService).
+		discount = if typeof(contest) == "table" and typeof(contest.discount) == "string"
+			then contest.discount
+			else nil,
 	}
 end
 
@@ -90,8 +95,14 @@ function ShopService:Buy(player: Player, category: string, itemId: string): (boo
 		-- What you brought is what you've got until you're back.
 		return false, "Finish the job first. Your orders can wait."
 	end
-	if not DataService:TrySpend(player, item.price) then
-		return false, `You need {Format.money(item.price - data.money)} more.`
+	local state = shopState(data)
+	local price = Shop.price(state, category, itemId)
+	if not DataService:TrySpend(player, price) then
+		return false, `You need {Format.money(price - data.money)} more.`
+	end
+	-- The Best Yard discount is used up.
+	if state.discount == itemId and category == "Business" then
+		data.contest.discount = false
 	end
 
 	if data.owned[category][itemId] then

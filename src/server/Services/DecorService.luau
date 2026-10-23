@@ -156,9 +156,36 @@ local function particles(parent: Instance, props)
 	return emitter
 end
 
--- Brings a decoration's markers to life: lamps, fire, running water and seats.
+-- Makes the Best Yard Trophy's cup shine: a warm glow and the odd glint.
+local function shine(cup: BasePart)
+	local glow = Instance.new("PointLight")
+	glow.Range = 9
+	glow.Brightness = 0.9
+	glow.Color = Color3.fromRGB(255, 215, 120)
+	glow.Shadows = false
+	glow.Parent = cup
+	particles(cup, {
+		Color = ColorSequence.new(Color3.fromRGB(255, 245, 200)),
+		LightEmission = 1,
+		Size = NumberSequence.new({
+			NumberSequenceKeypoint.new(0, 0),
+			NumberSequenceKeypoint.new(0.5, 0.35),
+			NumberSequenceKeypoint.new(1, 0),
+		}),
+		Lifetime = NumberRange.new(0.5, 0.8),
+		Rate = 2,
+		Speed = NumberRange.new(0),
+		Rotation = NumberRange.new(0, 90),
+	})
+end
+
+-- Brings a decoration's markers to life: lamps, fire, running water and seats, and the trophy's
+-- shine.
 local function dress(model: Model)
 	for _, marker in model:GetDescendants() do
+		if marker:IsA("BasePart") and marker.Name == "BestYardTrophy__Cup" then
+			shine(marker)
+		end
 		if not marker:IsA("Attachment") then
 			continue
 		end
@@ -462,6 +489,9 @@ function DecorService:Buy(player: Player, id: string): (boolean, string)
 	if not decoration then
 		return false, "That item doesn't exist."
 	end
+	if decoration.won then
+		return false, `The {decoration.name} can't be bought. It has to be won.`
+	end
 	if not WorldService:IsAtComputer(player) then
 		return false, "Order it from the computer in your shop."
 	end
@@ -503,6 +533,55 @@ function DecorService:Buy(player: Player, id: string): (boolean, string)
 		return true, `Ordered the {decoration.name} for {owner.DisplayName}'s shop!`
 	end
 	return true, `Ordered the {decoration.name}! It'll be delivered to your shop.`
+end
+
+-- Delivers a decoration the owner won (the Best Yard Trophy) in a box at their shop, like an
+-- order, free. A full yard still takes it.
+function DecorService:Gift(owner: Player, id: string): boolean
+	local data = DataService:Get(owner)
+	if not (data and Decorations.get(id)) then
+		return false
+	end
+	local decor = stateOf(data)
+	table.insert(decor.boxes, {
+		key = nextKey(decor),
+		id = id,
+		arrives = os.time() + GameConfig.DeliveryTime,
+		buyer = owner.UserId,
+	})
+	DecorService.BoxesChanged:Fire(owner)
+	return true
+end
+
+-- What the Best Yard judges look at among the owner's decorations (Config/Contest.luau): how
+-- many beds (`bedIds`), trimmed and shaggy shrubs and different kinds there are, and how well
+-- decorated the yard is (0-1, as for curb appeal).
+function DecorService:YardMeasures(owner: Player, bedIds: { string })
+	local measures = { beds = 0, tidyShrubs = 0, shaggyShrubs = 0, kinds = 0, decorShare = self:DecorShare(owner) }
+	local data = DataService:Get(owner)
+	if not data then
+		return measures
+	end
+	local kinds = {}
+	for _, entry in stateOf(data).placed do
+		local decoration = Decorations.get(entry.id)
+		if not decoration then
+			continue
+		end
+		kinds[decoration.id] = true
+		if table.find(bedIds, decoration.id) then
+			measures.beds += 1
+		end
+		if decoration.shrub and entry.overgrown then
+			measures.shaggyShrubs += 1
+		elseif decoration.shrub then
+			measures.tidyShrubs += 1
+		end
+	end
+	for _ in kinds do
+		measures.kinds += 1
+	end
+	return measures
 end
 
 -- The owner's decoration boxes that have arrived and aren't being placed, for DeliveryService.
@@ -663,6 +742,9 @@ function DecorService:Return(player: Player): (boolean, string)
 	local decoration = Decorations.get(current.id)
 	if not (data and decoration) then
 		return false, "You can't send that back right now."
+	end
+	if decoration.won then
+		return false, `You won the {decoration.name}. It's not going anywhere.`
 	end
 	local decor = stateOf(data)
 	local list = if current.box then decor.boxes else decor.placed

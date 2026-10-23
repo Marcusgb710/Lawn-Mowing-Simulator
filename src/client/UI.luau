@@ -44,6 +44,8 @@ UI.Colors = {
 		Edna = Color3.fromRGB(232, 160, 184),
 		BridgeClub = Color3.fromRGB(168, 200, 232),
 		Customer = Color3.fromRGB(232, 160, 184),
+		Judge1 = Color3.fromRGB(190, 210, 230),
+		Judge2 = Color3.fromRGB(240, 170, 120),
 	},
 }
 

@@ -11,6 +11,8 @@
 --   {left}      the money you still need for it
 --   {appeal}    your business's curb appeal
 --   {bar}       the contest bar (ContestBar)
+--   {rival}     Gloria's score this summer (Config/Contest.luau), while the contest is open
+--   {jobs}      how many jobs until judging day comes round again
 -- A line with a placeholder that has no value right then is skipped.
 -- `*word*` in a line is shown in the highlight color.
 --
@@ -41,6 +43,9 @@ Story.Cast = {
 	Edna = { name = "Edna Alvarez", initials = "EA" },
 	BridgeClub = { name = "Bridge Club", initials = "BC" },
 	Customer = { name = "Customer", initials = "" },
+	-- The Best Yard judges.
+	Judge1 = { name = "Judge Pruitt", caption = "Judge Pruitt · Best Yard", initials = "JP" },
+	Judge2 = { name = "Judge Marigold", caption = "Judge Marigold · Best Yard", initials = "JM" },
 }
 
 -- The Messages app's threads. A customer's thread is named after them (see Story.thread).
@@ -57,9 +62,10 @@ Story.CustomerCast = { ["Mrs. Alvarez"] = "Edna" }
 --   caption   shown in the top letterbox bar
 --   skipText  the Skip button's text on a computer (phones always say "Skip")
 --   lines     in order. `speaker` is a Cast key (none: the narrator). `shot` points the camera at
---             "June" (on her porch at your shop) or "Gloria" (her house); it stays put until a
---             line changes it. `bubble` also shows the line in a speech bubble over the speaker.
---             `card` pops up a card (a new tool).
+--             "June" (on her porch at your shop), "Gloria" (her house) or "Yard" (your own front
+--             lawn); it stays put until a line changes it. `bubble` also shows the line in a
+--             speech bubble over the speaker. `card` pops up a card (a new tool). `judges` walks
+--             the two Best Yard judges across "Yard" (yours) or "Gloria" (hers).
 Story.Scenes = {
 	Intro = {
 		caption = "Maple Grove · First day of summer",
@@ -149,10 +155,24 @@ Story.Scenes = {
 			{ speaker = "June", text = "Judges walk the street at the end of summer. Keep it sharp till then." },
 		},
 	},
-	-- Judging day (the contest isn't built yet: docs/STORY.md, "What needs building" 5).
-	ContestSecret = {
+	-- Judging day (ContestService): the judges walk your yard, then Gloria's, and the first time
+	-- the 1994 secret comes out. The results screen follows.
+	ContestJudging = {
 		caption = "Judging day",
+		skipText = "Skip to the results",
 		lines = {
+			{
+				shot = "Yard",
+				judges = "Yard",
+				text = "Judging day. Two judges with clipboards walk the length of your yard.",
+			},
+			{ speaker = "Judge1", text = "Hmm. *Edges.*" },
+			{ speaker = "Judge2", text = "Noted. Very noted." },
+			{
+				shot = "Gloria",
+				judges = "Gloria",
+				text = "Then they cross the street to Gloria's. TurfKing's stripes are very, very straight.",
+			},
 			{
 				speaker = "Gloria",
 				shot = "Gloria",
@@ -160,18 +180,48 @@ Story.Scenes = {
 				text = "Half that trophy's always been mine, June. You know it.",
 			},
 			{ shot = "June", text = "June goes quiet for the first time all summer." },
+			{
+				text = "The very first Best Yard, in 1994, June and Gloria won together. Only June's name went on the trophy.",
+			},
+		},
+	},
+	-- Every judging day after the first.
+	ContestJudgingAgain = {
+		caption = "Judging day",
+		skipText = "Skip to the results",
+		lines = {
+			{ shot = "Yard", judges = "Yard", text = "Judging day again. The judges start with your yard." },
+			{ speaker = "Judge1", text = "Hmm. *Edges.*" },
+			{ shot = "Gloria", judges = "Gloria", text = "Then Gloria's, which has somehow grown more flamingos." },
+			{ speaker = "Gloria", shot = "Gloria", bubble = true, text = "This year, June. *This* year." },
 		},
 	},
 	ContestWin = {
 		caption = "Best Yard",
 		lines = {
 			{ shot = "June", text = "June scratches Gloria's name onto the new trophy, next to hers." },
+			{ speaker = "June", text = "There. Should've done that in '94." },
 			{ speaker = "Gloria", shot = "Gloria", bubble = true, text = "Fine. FINE. Same time next year, June." },
 		},
 	},
+	ContestWinAgain = {
+		caption = "Best Yard",
+		lines = {
+			{ speaker = "June", shot = "June", text = "Another one for the mantel. Don't let it go to your head." },
+			{ speaker = "Gloria", shot = "Gloria", bubble = true, text = "Fine. FINE. Same time next year, June." },
+		},
+	},
+	-- Gloria wins, insufferably.
 	ContestLose = {
 		caption = "Best Yard",
 		lines = {
+			{
+				speaker = "Gloria",
+				shot = "Gloria",
+				bubble = true,
+				text = "Oh, June. Thirty years, and all it took was a *franchise*.",
+			},
+			{ speaker = "Gloria", bubble = true, text = "I'll keep it polished for you. You can visit." },
 			{ speaker = "June", shot = "June", text = "Next summer. And you're mowing every Tuesday." },
 		},
 	},
@@ -346,6 +396,20 @@ Story.JuneTalk = {
 			"Judging day's coming. Gloria's pacing her porch.",
 		},
 	},
+	-- In act 4, the contest's turn about your progress, by where the contest is (Contest.state).
+	Contest = {
+		Open = {
+			"Gloria's yard'd score about {rival}. Ours has to beat it. Text me when you're ready and I'll call the judges.",
+			"Judges are in town. Mow, edge, trim. Then text me.",
+		},
+		Waiting = {
+			"The judges come back in {jobs} jobs. Mow every Tuesday.",
+			"Next time: edges. Then shrubs. Then we'll see.",
+		},
+		Results = {
+			"Well? Go and look at the scores.",
+		},
+	},
 	Gloria = {
 		"Gloria's been watching you all morning. Pretending to water her hydrangeas.",
 		"Gloria says her TurfKing boys use a laser level. On grass.",
@@ -401,6 +465,36 @@ Story.TurfKingTexts = {
 	"{customer} went with the professionals. No hard feelings, bud.",
 	"Another one for TurfKing. Maybe try a mower, bud.",
 	"We'll handle {customer}. You handle your little scissors.",
+}
+
+-- The contest (ContestService, Config/Contest.luau): June's texts when judging day's open, the
+-- first summer (`Open`), after a loss (`Retry`) and every summer after a win (`Again`), once each,
+-- and the texts when you call the judges from the Messages app (`Start`).
+Story.ContestTexts = {
+	Open = {
+		{
+			thread = "June",
+			text = "Judges are in town. Gloria's yard'd score about {rival}. Text me when you're ready and I'll call them.",
+		},
+	},
+	Retry = {
+		{ thread = "June", text = "Judges are back for another look. Text me when you're ready. And fix those edges." },
+	},
+	Again = {
+		{
+			thread = "June",
+			text = "Judges are back. Gloria's bought more flamingos. A LOT more flamingos. Text me when you're ready.",
+		},
+	},
+	Start = {
+		{ thread = "June", mine = true, text = "Call the judges. We're ready." },
+		{ thread = "June", text = "Calling them now. Go stand by the yard and don't touch anything." },
+	},
+}
+-- Who has the last word on the results screen, and what they say.
+Story.ContestClosing = {
+	Win = { speaker = "Gloria", text = "Fine. FINE. Same time next year, June." },
+	Lose = { speaker = "Gloria", text = "Better luck next summer, June. Truly." },
 }
 
 -- Helpers -------------------------------------------------------------------------------------
@@ -581,9 +675,14 @@ function Story.turfKingText(count: number, customer: string?): string
 	return usable[(count - 1) % #usable + 1]
 end
 
--- What June says the `turn`th time you talk to her (1, 2, 3...), in act `act`.
+-- What June says the `turn`th time you talk to her (1, 2, 3...), in act `act`. In the last act,
+-- `values.contest` (Contest.state) picks her lines about the contest.
 function Story.juneLine(act: number, turn: number, values: { [string]: any }?): string
 	local progress = Story.JuneTalk.Progress[math.clamp(act, 1, #Story.JuneTalk.Progress)]
+	local contest = values and values.contest and Story.JuneTalk.Contest[values.contest]
+	if contest and act >= #Story.Acts then
+		progress = contest
+	end
 	local pool = if turn % 2 == 1 then progress else Story.JuneTalk.Gloria
 	local usable = {}
 	for _, line in pool do

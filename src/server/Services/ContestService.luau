@@ -1,0 +1,324 @@
+-- The Maple Grove Best Yard contest (docs/STORY.md, act 4). Your business's own yard against
+-- Gloria's, which TurfKing does:
+--   1. Once you're in act 4, June offers to enter you: she texts that the judges are in town, says
+--      so on her porch, and the Messages app's goal card has a "Call the judges" button.
+--   2. You call them when you're ready (StartJudging). Your yard is scored there and then from
+--      what the game already measures (Config/Contest.luau: the lawn, its edge, beds and shrubs,
+--      decorations), against Gloria's bar for the summer, and the judging scene is queued: the
+--      judges walk your yard, then Gloria's, and the first time the 1994 secret comes out.
+--   3. After the scene the results screen shows (ContestController). Collect (CollectContest)
+--      pays out and plays the ending: June scratches Gloria's name onto the trophy, or Gloria
+--      wins, insufferably.
+--   4. A loss can be tried again after a few jobs; a win brings next summer's contest after more,
+--      with Gloria's bar a little higher.
+-- Winning pays Contest.Prize, and the first win also brings the Best Yard Trophy (a decoration,
+-- delivered in a box like an order) and half off the Small Office (or the Equipment Yard, if you
+-- have the office). The server decides all of it; the client only asks to start and to collect.
+--
+-- Saved in the player's data as `contest` (DataService, version 11):
+--   summer    which summer it is (1 at first; a win starts the next one)
+--   wins      how many times you've won, and `judged`, how many judging days you've had
+--   last      the last result: { summer, won, you, gloria } (totals), or false
+--   pending   the result waiting to be collected: { summer, first, won, you, gloria, rewards,
+--             scene }, or false. It's decided when judging starts, so leaving doesn't change it.
+--   nextAt    the jobs done when judging day comes round again
+--   offered   how many judging days there had been when June last texted it's open (-1: never)
+--   discount  the building a win took half off, until it's bought (Shop.price), or false
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Contest = require(Shared.Config.Contest)
+local Format = require(Shared.Format)
+local Items = require(Shared.Config.Items)
+local Net = require(Shared.Net)
+local Story = require(Shared.Config.Story)
+
+local DataService = require(script.Parent.DataService)
+local DecorService = require(script.Parent.DecorService)
+local HomeLawnService = require(script.Parent.HomeLawnService)
+local JobService = require(script.Parent.JobService)
+local StoryService = require(script.Parent.StoryService)
+
+-- Seconds between a player's requests (starting judging, collecting).
+local COOLDOWN = 1
+-- How long the client's first request waits for the player's story.
+local JOIN_WAIT = 30
+
+local ContestService = {}
+
+-- [Player] = os.clock() of their last request
+local lastRequest = {}
+
+local function tooSoon(player: Player): boolean
+	local now = os.clock()
+	if now - (lastRequest[player] or 0) < COOLDOWN then
+		return true
+	end
+	lastRequest[player] = now
+	return false
+end
+
+-- Their saved contest, made sound if the save holds something odd.
+local function stateOf(data)
+	local contest = data.contest
+	if typeof(contest) ~= "table" then
+		contest = {}
+		data.contest = contest
+	end
+	contest.summer = if typeof(contest.summer) == "number" then math.max(1, math.floor(contest.summer)) else 1
+	for _, key in { "wins", "judged", "nextAt" } do
+		contest[key] = if typeof(contest[key]) == "number" then math.max(0, math.floor(contest[key])) else 0
+	end
+	if typeof(contest.offered) ~= "number" then
+		contest.offered = -1
+	end
+	for _, key in { "last", "pending" } do
+		if typeof(contest[key]) ~= "table" then
+			contest[key] = false
+		end
+	end
+	if typeof(contest.discount) ~= "string" then
+		contest.discount = false
+	end
+	return contest
+end
+
+local function stateFor(player: Player, data, contest): string
+	return Contest.state(contest, StoryService:GetAct(player), data.jobsCompleted or 0)
+end
+
+-- How many jobs until judging day comes round again, and how many the wait was.
+local function jobsUntil(data, contest): (number, number)
+	local length = if contest.last and contest.last.won then Contest.SummerJobs else Contest.RetryJobs
+	return math.max(0, contest.nextAt - (data.jobsCompleted or 0)), length
+end
+
+-- What the client is sent: everything it shows, nothing it decides.
+local function view(player: Player, data)
+	local contest = stateOf(data)
+	local jobsLeft, jobsWait = jobsUntil(data, contest)
+	return {
+		state = stateFor(player, data, contest),
+		summer = contest.summer,
+		bar = Contest.bar(contest.summer),
+		wins = contest.wins,
+		jobsLeft = jobsLeft,
+		jobsWait = jobsWait,
+		result = if contest.pending then contest.pending else nil,
+	}
+end
+
+local function update(player: Player)
+	local data = DataService:Get(player)
+	if data and StoryService:HasJoined(player) then
+		Net.event("ContestUpdated"):FireClient(player, view(player, data))
+	end
+end
+
+-- June's text once judging day is open: the first time, after a loss, or each summer after a win.
+local function offer(player: Player)
+	local data = DataService:Get(player)
+	if not (data and StoryService:HasJoined(player)) then
+		return
+	end
+	local contest = stateOf(data)
+	if stateFor(player, data, contest) ~= "Open" or contest.offered == contest.judged then
+		return
+	end
+	contest.offered = contest.judged
+	local texts = if contest.judged == 0
+		then Story.ContestTexts.Open
+		elseif contest.last and contest.last.won then Story.ContestTexts.Again
+		else Story.ContestTexts.Retry
+	StoryService:SendTexts(player, texts, { rival = Contest.bar(contest.summer) })
+end
+
+-- What the judges look at in the player's own yard, or nil if it isn't built.
+local function measure(player: Player)
+	local lawn = HomeLawnService:YardMeasures(player)
+	if not lawn then
+		return nil
+	end
+	local measures = DecorService:YardMeasures(player, Contest.BedIds)
+	measures.lawnShare = lawn.lawnShare
+	measures.edgeShare = lawn.edgeShare
+	measures.junk = lawn.junk
+	return measures
+end
+
+-- Public API ---------------------------------------------------------------------------------
+
+-- Calls the judges: scores the player's yard now and queues judging day's scene. The result is
+-- kept until they collect it.
+function ContestService:StartJudging(player: Player): (boolean, string)
+	local data = DataService:Get(player)
+	if not (data and StoryService:HasJoined(player)) then
+		return false, "Try again in a moment."
+	end
+	local contest = stateOf(data)
+	local state = stateFor(player, data, contest)
+	if state == "Locked" then
+		return false, "The contest isn't till the end of summer."
+	elseif state == "Results" then
+		return false, "The judges have been. Go and see the results."
+	elseif state == "Waiting" then
+		local jobsLeft = jobsUntil(data, contest)
+		return false, `The judges come back in {jobsLeft} {if jobsLeft == 1 then "job" else "jobs"}.`
+	end
+	if JobService:IsBusy(player) then
+		return false, "Finish the job first."
+	end
+	local measures = measure(player)
+	if not measures then
+		return false, "Your yard isn't ready for the judges yet."
+	end
+
+	local you = Contest.score(measures)
+	local gloria = Contest.gloriaScores(contest.summer)
+	local won = Contest.won(you, gloria)
+	local first = contest.judged == 0
+	local scene = if first then "ContestJudging" else "ContestJudgingAgain"
+	contest.pending = {
+		summer = contest.summer,
+		first = first,
+		won = won,
+		you = you,
+		gloria = gloria,
+		-- June's wins before this one, for the screen's "June's 31st win".
+		juneWins = Contest.JuneWins + contest.wins,
+		rewards = if won then Contest.rewards(contest.wins, data.owned.Business) else nil,
+		retryJobs = if won then nil else Contest.RetryJobs,
+		scene = scene,
+	}
+	contest.judged += 1
+	StoryService:SendTexts(player, Story.ContestTexts.Start)
+	StoryService:PlayScene(player, scene)
+	update(player)
+	return true, "June's calling the judges. Go and stand by your yard."
+end
+
+-- Collects the result: pays out a win and plays the ending.
+function ContestService:Collect(player: Player): (boolean, string)
+	local data = DataService:Get(player)
+	if not data then
+		return false, "Try again in a moment."
+	end
+	local contest = stateOf(data)
+	local pending = contest.pending
+	if not pending then
+		return false, "There's nothing to collect."
+	end
+	contest.pending = false
+	local jobs = data.jobsCompleted or 0
+	local won = pending.won == true
+	contest.last = {
+		summer = pending.summer,
+		won = won,
+		you = pending.you and pending.you.total,
+		gloria = pending.gloria and pending.gloria.total,
+	}
+	contest.nextAt = Contest.nextAt(won, jobs)
+
+	local message
+	if won then
+		local rewards = pending.rewards or Contest.rewards(contest.wins, data.owned.Business)
+		contest.wins += 1
+		contest.summer += 1
+		DataService:AddMoney(player, rewards.money or 0)
+		if rewards.trophy then
+			DecorService:Gift(player, rewards.trophy)
+		end
+		local building = rewards.discount and Items.get("Business", rewards.discount)
+		if building and not data.owned.Business[building.id] then
+			contest.discount = building.id
+		end
+		DataService:Changed(player)
+		StoryService:PlayScene(player, if contest.wins == 1 then "ContestWin" else "ContestWinAgain")
+		message = `Best Yard! You won {Format.money(rewards.money or 0)}.`
+		if rewards.trophy then
+			message ..= " The trophy's on its way to your shop."
+		end
+	else
+		StoryService:PlayScene(player, "ContestLose")
+		message = `Gloria wins this one. The judges come back in {Contest.RetryJobs} jobs.`
+	end
+	update(player)
+	return true, message
+end
+
+-- Lifecycle ----------------------------------------------------------------------------------
+
+function ContestService:Init()
+	Net.func("GetContest").OnServerInvoke = function(player)
+		local deadline = os.clock() + JOIN_WAIT
+		while not StoryService:HasJoined(player) and player.Parent == Players and os.clock() < deadline do
+			task.wait(0.1)
+		end
+		local data = DataService:Get(player)
+		return if data and StoryService:HasJoined(player) then view(player, data) else nil
+	end
+	-- The client only asks; it sends nothing else, and anything it does send is ignored.
+	Net.func("StartJudging").OnServerInvoke = function(player)
+		if tooSoon(player) then
+			return false, nil
+		end
+		return self:StartJudging(player)
+	end
+	Net.func("CollectContest").OnServerInvoke = function(player)
+		if tooSoon(player) then
+			return false, nil
+		end
+		return self:Collect(player)
+	end
+	-- What June says on her porch in act 4 is about the contest.
+	StoryService:SetTalkValues(function(player)
+		local data = DataService:Get(player)
+		if not data or StoryService:GetAct(player) < Contest.FromAct then
+			return nil
+		end
+		local contest = stateOf(data)
+		local state = stateFor(player, data, contest)
+		local jobsLeft = jobsUntil(data, contest)
+		return {
+			contest = state,
+			rival = if state == "Open" then Contest.bar(contest.summer) else nil,
+			jobs = if state == "Waiting" then jobsLeft else nil,
+		}
+	end)
+end
+
+function ContestService:Start()
+	-- Act 4 starting, or the jobs that bring judging day round again.
+	StoryService.ActStarted:Connect(function(player)
+		offer(player)
+		update(player)
+	end)
+	JobService.JobFinished:Connect(function(player)
+		task.defer(function()
+			offer(player)
+			update(player)
+		end)
+	end)
+
+	local function onPlayerAdded(player: Player)
+		local deadline = os.clock() + JOIN_WAIT
+		while not StoryService:HasJoined(player) and player.Parent == Players and os.clock() < deadline do
+			task.wait(0.2)
+		end
+		if StoryService:HasJoined(player) then
+			offer(player)
+			update(player)
+		end
+	end
+	Players.PlayerAdded:Connect(onPlayerAdded)
+	for _, player in Players:GetPlayers() do
+		task.spawn(onPlayerAdded, player)
+	end
+	Players.PlayerRemoving:Connect(function(player)
+		lastRequest[player] = nil
+	end)
+end
+
+return ContestService

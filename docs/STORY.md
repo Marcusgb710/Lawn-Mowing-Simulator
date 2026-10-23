@@ -334,7 +334,66 @@ This is in rough order, as separate PRs.
      anywhere you can go).
 5. **The contest:** `ContestService` (scoring from home lawn, edges and decorations against
    Gloria's bar for the act), the judging cutscene, the results screen, rewards and the trophy
-   decoration.
+   decoration. *Built.*
+   - **Entering.** Once you're in act 4, June texts that the judges are in town and what
+     Gloria's yard would score. On her porch she talks about it (`Story.JuneTalk.Contest`), and the
+     Messages app's goal card becomes "Beat Gloria's 88 on judging day" with a **Call the judges**
+     button. Pressing it texts June ("Call the judges. We're ready.") and puts the computer away,
+     so judging day plays when you're ready.
+   - **Scoring** (`Config/Contest.luau`, all tunable). There are four categories of 25 points
+     each, from what the game already measures about your own business's yard. The yard is scored
+     the moment you call the judges, so the result can't change after that.
+     - **Lawn and stripes:** the share of your lawn's grass, weeds and leaves that's done, less 2
+       for each piece of junk still in the grass.
+     - **Edges:** the share of the lawn's edge targets done.
+     - **Beds and shrubs:** half for beds (mulch beds, raised beds, planters and flower patches,
+       full marks at 3), half for trimmed shrubs (full marks at 4; a shaggy one counts a quarter).
+     - **Decorations and charm:** 70% for how well decorated the yard is (`DecorService` share, as
+       for curb appeal, full marks at 0.6), and 30% for variety (full marks at 8 different kinds).
+     - A yard fresh past act 3's curb appeal of 75 (a tidy lawn and a few decorations) scores about
+       75. Beating 88 takes a fresh mow and edge, three beds, four trimmed shrubs and a
+       well-decorated yard.
+   - **Gloria's bar** is 88 the first summer and 2 more each summer after (each one you win),
+     capped at 96. Her score splits over the categories with TurfKing's edges the strongest. A tie
+     goes to June, the champion. (Not the same as `Story.ContestBar`, the curb appeal of 75 that
+     starts act 4.)
+   - **Judging day** (`ContestJudging`): a "Yard" shot of your front lawn with the two judges
+     (`NPC_Judge1` Judge Pruitt and `NPC_Judge2` Judge Marigold, block placeholders until the
+     models are in) walking it, then the same across the street at Gloria's. Gloria says *"Half
+     that trophy's always been mine, June. You know it."*, June goes quiet, and the narrator tells
+     the 1994 secret. Later summers play a shorter `ContestJudgingAgain` without the secret.
+     `DialogueController` gained `addShot` (named camera shots from other controllers) and
+     `LineShown` (a line's `judges` walks them).
+   - **The results screen** (`ContestController`) follows the mock-up's "Best Yard results" board:
+     "END OF SUMMER" and "Maple Grove Best Yard" in yellow; your yard's card (green outline when
+     you win, a big score), the trophy with "June's 31st win", and Gloria's card in purple ("Done
+     by TurfKing"); the category table with your bars in green and hers in purple; the reward
+     chips; Gloria's closing line; and **Collect**. It's laid out at 1100 × 640 and scaled to fit,
+     so Collect is still about 44 px tall on a phone held sideways. Confetti falls on a win.
+   - **Winning** pays $2,500 every time. The first win also brings:
+     - the **Best Yard Trophy**, a decoration delivered in a box like an order (in the catalog with
+       `won = true`: never sold, can't be sent back; appeal 8; its cup shines);
+     - **half off the Small Office** (or the Equipment Yard, if you already have the office). The
+       buildings are only gated by buying them in order, so the office is always reachable, and a
+       discount fits better than an unlock. It's shown in the Business app and used up when you
+       buy it (`Shop.price`).
+
+     Then the ending plays (`ContestWin`). June scratches Gloria's name onto the trophy and says
+     *"There. Should've done that in '94."* (a new line), and Gloria answers *"Fine. FINE. Same
+     time next year, June."* Later wins play `ContestWinAgain`.
+   - **Losing:** Gloria wins, insufferably (`ContestLose`: *"Oh, June. Thirty years, and all it
+     took was a franchise."*, *"I'll keep it polished for you. You can visit."*, both new). Then
+     June: *"Next summer. And you're mowing every Tuesday."* You can try again after **4 jobs**
+     (a jobs cooldown, not play time). The goal card counts them down.
+   - **Every summer after:** a win brings the next summer's contest after 12 jobs, with Gloria's
+     bar 2 higher, and June texts when the judges are back.
+   - **Saving:** save version 11 adds `contest` (see GAME_DESIGN.md "Saves").
+   - **Remotes:** `GetContest`, `StartJudging` and `CollectContest` take nothing from the client,
+     are rate-limited to one a second, and the server checks the act, the state, that you're not on
+     a job and that your yard exists. `ContestUpdated` sends the state, the bar and the result.
+   - **Art slots** in `StoryArt.Contest`: the title wordmark and ribbon, the Winner and So Close
+     wordmarks, the trophy, the score track and both fills, the four category icons and the
+     confetti sheet. Plus `Judge1` and `Judge2` portraits.
 6. **Models for ChatGPT** (the next instructions file is `instructions37.md`):
    - Grandma June, Gloria, Chad and Sam (simple stylized NPCs, R15-compatible or static);
    - a porch rocking chair;

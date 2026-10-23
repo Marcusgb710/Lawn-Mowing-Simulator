@@ -5,7 +5,9 @@
 -- play: away from the computer, a new text pops up as a small toast with the game's others.
 -- On a narrow screen (a phone) the list of threads and the open thread take turns.
 -- The inbox, what's been read and the goal all come from the server (StoryService); opening a
--- thread tells it that thread's been read. The art is in StoryArt, the colors and font in UI.
+-- thread tells it that thread's been read. In act 4 the goal card is the Best Yard contest's
+-- (ContestService): a button to text June to call the judges, the jobs until they come round
+-- again, or a button to see the results. The art is in StoryArt, the colors and font in UI.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -19,6 +21,7 @@ local Story = require(Shared.Config.Story)
 local ClientState = require(script.Parent.Parent.ClientState)
 local StoryArt = require(script.Parent.Parent.StoryArt)
 local UI = require(script.Parent.Parent.UI)
+local ComputerController = require(script.Parent.ComputerController)
 local DialogueController = require(script.Parent.DialogueController)
 
 local player = Players.LocalPlayer
@@ -48,6 +51,10 @@ local goalText: TextLabel
 local goalTrack: Frame
 local goalFill: Frame
 local goalValue: TextLabel
+local goalButton: TextButton
+-- What the goal card's button does: "Start" (call the judges) or "Results".
+local goalAction: string? = nil
+local calling = false
 
 -- The thread shown, and on a narrow screen whether it's the thread showing (not the list).
 local selected: string? = nil
@@ -91,9 +98,31 @@ local function preview(text): string
 	return if text.from then `{text.from}: {body}` else body
 end
 
--- What the goal's progress is right now: your money toward a price, or your curb appeal.
+-- The goal card's goal: the act's, or in act 4 the contest's (Contest.state): calling the
+-- judges, the jobs until they come round again, or the results. A goal with a `button` shows it
+-- instead of a bar.
+local function currentGoal()
+	local story = ClientState.story
+	local goal = story and story.goal
+	local contest = ClientState.contest
+	if not (goal and contest) or contest.state == "Locked" then
+		return goal
+	elseif contest.state == "Open" then
+		return { text = `Beat Gloria's {contest.bar} on judging day`, button = "Call the judges", action = "Start" }
+	elseif contest.state == "Results" then
+		return { text = "The judges have been", button = "See the results", action = "Results" }
+	end
+	local length = math.max(1, contest.jobsWait or 1)
+	return { text = "Best Yard comes round again", kind = "Jobs", need = length, have = length - contest.jobsLeft }
+end
+
+-- What the goal's progress is right now: your money toward a price, your curb appeal, or the
+-- jobs done toward the judges coming back.
 local function goalProgress(goal): (number, string)
-	if goal.kind == "Money" then
+	if goal.kind == "Jobs" then
+		local left = goal.need - goal.have
+		return goal.have, `{left} {if left == 1 then "job" else "jobs"} to go`
+	elseif goal.kind == "Money" then
 		local money = if ClientState.profile then ClientState.profile.money else 0
 		return money, `{Format.money(money)} / {Format.money(goal.need)}`
 	end
@@ -108,16 +137,44 @@ end
 
 -- Drawing the app ----------------------------------------------------------------------------
 
+-- The goal card with a button (the contest's): on one row where it fits, the button under the
+-- goal where it doesn't.
+local function renderGoalButton(goal, width: number): number
+	goalButton.Text = goal.button
+	goalAction = goal.action
+	local labelWidth = textWidth("GOAL", 14) + 14
+	local buttonWidth = textWidth(goal.button, 18) + 36
+	local textX = 16 + labelWidth
+	local oneRow = width - textX - textWidth(goal.text, 18) - buttonWidth - 16 * 2 >= 16
+	local rowHeight = if oneRow then 60 else 48
+	goalLabel.Position = UDim2.fromOffset(16, 0)
+	goalLabel.Size = UDim2.fromOffset(labelWidth, rowHeight)
+	goalText.Position = UDim2.fromOffset(textX, 0)
+	goalText.Size = if oneRow
+		then UDim2.fromOffset(textWidth(goal.text, 18) + 4, rowHeight)
+		else UDim2.new(1, -textX - 16, 0, rowHeight)
+	goalButton.Size = UDim2.fromOffset(buttonWidth, 44)
+	goalButton.Position = if oneRow then UDim2.new(1, -16 - buttonWidth, 0, 8) else UDim2.fromOffset(16, 52)
+	return if oneRow then 60 else 108
+end
+
 -- The goal card: on one row (the mock-up) where it fits, the bar under the goal where it doesn't.
 local function renderGoal(width: number): number
-	local story = ClientState.story
-	local goal = story and story.goal
+	local goal = currentGoal()
 	goalCard.Visible = goal ~= nil
 	if not goal then
 		return 0
 	end
-	local have, value = goalProgress(goal)
+	local hasButton = goal.button ~= nil
+	goalButton.Visible = hasButton
+	goalTrack.Visible = not hasButton
+	goalValue.Visible = not hasButton
 	goalText.Text = goal.text
+	if hasButton then
+		return renderGoalButton(goal, width)
+	end
+	goalAction = nil
+	local have, value = goalProgress(goal)
 	goalValue.Text = value
 	goalFill.Size = UDim2.fromScale(if goal.need > 0 then math.clamp(have / goal.need, 0, 1) else 1, 1)
 	local labelWidth, valueWidth = textWidth("GOAL", 14) + 14, textWidth(value, 18) + 4
@@ -140,6 +197,30 @@ local function renderGoal(width: number): number
 	end
 	goalText.Position = UDim2.fromOffset(textX, 0)
 	return height
+end
+
+-- The goal card's button: texts June to call the judges (the server decides if they come), or
+-- goes to see the results. Either way the computer's put away, so judging day's scene (or the
+-- results) can show.
+local function onGoalButton()
+	if goalAction == "Results" then
+		ComputerController.leave()
+		return
+	end
+	if goalAction ~= "Start" or calling then
+		return
+	end
+	calling = true
+	local ok, started, message = pcall(function()
+		return Net.func("StartJudging"):InvokeServer()
+	end)
+	calling = false
+	if ok and typeof(message) == "string" then
+		UI.notify(message)
+	end
+	if ok and started then
+		ComputerController.leave()
+	end
 end
 
 local function markRead(thread)
@@ -546,6 +627,14 @@ function MessagesController:Start()
 		ZIndex = 2,
 		Parent = goalCard,
 	})
+	goalButton = UI.button("", onGoalButton, {
+		Name = "Action",
+		BackgroundColor3 = UI.Colors.Money,
+		TextColor3 = UI.Colors.Background,
+		Visible = false,
+		ZIndex = 2,
+		Parent = goalCard,
+	})
 
 	window:GetPropertyChangedSignal("Visible"):Connect(function()
 		-- It opens on the list of threads.
@@ -558,6 +647,8 @@ function MessagesController:Start()
 	ClientState.Changed:Connect(function(key)
 		if key == "story" then
 			onStoryChanged()
+		elseif key == "contest" then
+			MessagesController.render()
 		elseif key == "profile" then
 			refreshGoal()
 		end

@@ -306,6 +306,29 @@ One PR per phase, each stacked on the one before. Every phase still needs a Stud
         line in the pay breakdown, and only once per customer;
       - the real models dropping in (`Assets/Story/<id>`) with no code change once they're
         imported (instructions37): the house, the three yards, the truck, the sign, Gloria, Chad.
+- [ ] **Story 5: the Best Yard contest.** To check in Studio, with API access on so it saves (to
+      get to act 4 quickly, raise curb appeal to 75 or give yourself level 10's xp), on PC and on
+      a phone:
+      - June's "Judges are in town" text when act 4 starts, her porch lines about the contest, and
+        the goal card's "Beat Gloria's 88 on judging day" with **Call the judges**;
+      - pressing it: your text and June's reply, the computer put away, then the judging scene:
+        the "Yard" shot over your own lawn with both judges walking it, then Gloria's yard with
+        them walking hers, Gloria's bubble, June going quiet, the 1994 line;
+      - the results screen after it: the title, both cards (the winner's outline), the trophy and
+        "June's 31st win", the four bars filling, the chips, Gloria's line and Collect, scaled to
+        fit on a phone held sideways with Collect still easy to tap; confetti on a win;
+      - a win: $2,500, the trophy's box at the shop (placing it, its cup shining, Send back
+        refused), the Small Office at half price in the Business app (and full price again once
+        bought), and the ending (June scratching the name, "Fine. FINE.");
+      - a loss: Gloria's gloating, June's "Next summer...", the goal card counting 4 jobs down,
+        June's text when the judges are back;
+      - leaving between calling the judges and collecting, then rejoining: the scene, then the
+        same result;
+      - the next summer after 12 jobs, with Gloria at 90, the shorter judging scene and
+        `ContestWinAgain`;
+      - the Best Yard Trophy isn't in the Decorations tab;
+      - tune the scoring (`Config/Contest.luau`) once real yards are judged, and fill in
+        `StoryArt.Contest` and the judges' portraits when the GUI art (instructions38) arrives.
 
 ## Before release
 

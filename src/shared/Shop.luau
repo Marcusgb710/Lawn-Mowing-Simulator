@@ -1,6 +1,7 @@
 -- What a player is allowed to buy. The server enforces these rules, and the shop menu uses the
 -- same ones to show why something is locked.
 
+local Contest = require(script.Parent.Config.Contest)
 local GameConfig = require(script.Parent.Config.GameConfig)
 local Items = require(script.Parent.Config.Items)
 local Maintenance = require(script.Parent.Config.Maintenance)
@@ -16,7 +17,7 @@ function Shop.canRestock(state, itemId: string): boolean
 	return supply ~= nil and supply.uses ~= nil and condition ~= nil and (condition.uses or 0) < supply.uses
 end
 
--- `state` is a player's profile: { owned, equipped, level, trailerUnlocked, condition }.
+-- `state` is a player's profile: { owned, equipped, level, trailerUnlocked, condition, discount }.
 -- Returns whether they may buy the item (money aside) and, if not, why. Buying a consumable
 -- you already own restocks it.
 function Shop.canBuy(state, category: string, itemId: string): (boolean, string?)
@@ -52,6 +53,19 @@ function Shop.canBuy(state, category: string, itemId: string): (boolean, string?
 		end
 	end
 	return true, nil
+end
+
+-- What an item costs this player: its price, or half that for the building a Best Yard win took
+-- half off (`state.discount`, see Config/Contest.luau).
+function Shop.price(state, category: string, itemId: string): number
+	local item = Items.get(category, itemId)
+	if not item then
+		return 0
+	end
+	if category == "Business" and state.discount == itemId then
+		return Contest.discounted(item.price)
+	end
+	return item.price
 end
 
 -- Whether a tool can be sold back to the store. Free starter gear can't be.
