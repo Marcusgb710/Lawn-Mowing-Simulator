@@ -41,4 +41,9 @@ return {
 	TheirText = { image = "", slice = Rect.new(24, 24, 40, 40) },
 	MyText = { image = "", slice = Rect.new(24, 24, 40, 40) },
 	TextToast = { image = "", slice = Rect.new(32, 24, 96, 40) },
+	-- TurfKing (alphainstructions/instructions38.md): its gold `Crown` glyph (128 x 128, white,
+	-- tinted in game) and the purple-and-gold "Taken by TurfKing" rubber stamp that lands on a job
+	-- card it takes (`Stamp_TakenByTurfKing`, a wordmark, up to 1024 wide, about 3:1).
+	Crown = "",
+	StampTakenByTurfKing = "",
 }

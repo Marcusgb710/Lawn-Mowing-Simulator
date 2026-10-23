@@ -1122,6 +1122,177 @@ local PROP_BUILDERS = {
 	end,
 }
 
+-- The story's people and props (alphainstructions/instructions37.md: Story/<id>) -------------
+
+local TURFKING_PURPLE = Color3.fromRGB(88, 52, 150)
+local TURFKING_GOLD = Color3.fromRGB(230, 185, 60)
+
+-- TurfKing's mark: a gold crown, as flat blocks (a band and three points) standing in `frame`'s
+-- XY plane, `width` studs across, `depth` thick. Returns the parts, unparented.
+function Placeholders.crown(frame: CFrame, width: number, depth: number, color: Color3?): { BasePart }
+	local parts = {}
+	local gold = color or TURFKING_GOLD
+	local band = width * 0.32
+	local function add(name: string, size: Vector3, offset: CFrame)
+		local piece = part({
+			Name = name,
+			Size = size,
+			CFrame = frame * offset,
+			Color = gold,
+			Material = Enum.Material.SmoothPlastic,
+			Anchored = true,
+			CanCollide = false,
+			CanQuery = false,
+			CanTouch = false,
+			CastShadow = false,
+		})
+		table.insert(parts, piece)
+	end
+	add("CrownBand", Vector3.new(width, band, depth), CFrame.new(0, -width * 0.2, 0))
+	for _, x in { -1, 0, 1 } do
+		local point = width * (if x == 0 then 0.36 else 0.28)
+		add(
+			"CrownPoint",
+			Vector3.new(point * 0.7, point * 0.7, depth),
+			CFrame.new(x * width * 0.36, -width * 0.2 + band / 2 + point * 0.2, 0) * CFrame.Angles(0, 0, math.pi / 4)
+		)
+	end
+	return parts
+end
+
+-- Chad, TurfKing's local boss: a purple TurfKing polo with the crown on the chest, a gold visor
+-- with sunglasses pushed up on it, khaki shorts, white sneakers, a clipboard and a thumbs-up.
+PROP_BUILDERS.NPC_Chad = function(model: Model)
+	local add = propAdder(model)
+	rootPart(model, add)
+	local function person(props)
+		props.CanCollide = false
+		return add(props)
+	end
+	local khaki = Color3.fromRGB(200, 180, 130)
+	for _, x in { -1, 1 } do
+		person({
+			Name = "Shoe",
+			Size = Vector3.new(0.65, 0.35, 1),
+			Position = Vector3.new(x * 0.45, 0.175, -0.1),
+			Color = Color3.fromRGB(250, 250, 250),
+		})
+		person({
+			Name = "Leg",
+			Size = Vector3.new(0.6, 1.6, 0.6),
+			Position = Vector3.new(x * 0.45, 1.15, 0),
+			Color = SKIN,
+		})
+	end
+	person({ Name = "Shorts", Size = Vector3.new(1.9, 1.1, 1.05), Position = Vector3.new(0, 2.45, 0), Color = khaki })
+	person({
+		Name = "Body",
+		Size = Vector3.new(2, 2.1, 1.1),
+		Position = Vector3.new(0, 4.05, 0),
+		Color = TURFKING_PURPLE,
+	})
+	for _, crownPart in Placeholders.crown(CFrame.new(-0.5, 4.6, -0.58), 0.45, 0.06) do
+		crownPart.Parent = model
+	end
+	-- His right arm up in a thumbs-up, his left holding the clipboard against his side.
+	person({
+		Name = "Sleeve",
+		Size = Vector3.new(0.6, 0.8, 0.65),
+		Position = Vector3.new(1.3, 4.6, 0),
+		Color = TURFKING_PURPLE,
+	})
+	person({
+		Name = "Arm",
+		Size = Vector3.new(0.5, 1.3, 0.5),
+		CFrame = CFrame.new(1.45, 4.85, -0.35) * CFrame.Angles(math.rad(60), 0, 0),
+		Color = SKIN,
+	})
+	person({ Name = "Hand", Size = Vector3.new(0.5, 0.5, 0.5), Position = Vector3.new(1.45, 5.3, -0.85), Color = SKIN })
+	person({
+		Name = "Thumb",
+		Size = Vector3.new(0.18, 0.4, 0.18),
+		Position = Vector3.new(1.45, 5.7, -0.85),
+		Color = SKIN,
+	})
+	person({
+		Name = "Sleeve",
+		Size = Vector3.new(0.6, 0.8, 0.65),
+		Position = Vector3.new(-1.3, 4.6, 0),
+		Color = TURFKING_PURPLE,
+	})
+	person({ Name = "Arm", Size = Vector3.new(0.5, 1.4, 0.5), Position = Vector3.new(-1.3, 3.6, 0), Color = SKIN })
+	person({
+		Name = "Clipboard",
+		Size = Vector3.new(0.12, 1.6, 1.2),
+		Position = Vector3.new(-1.62, 3.7, 0),
+		Color = Color3.fromRGB(150, 110, 70),
+	})
+	person({
+		Name = "Paper",
+		Size = Vector3.new(0.04, 1.3, 1),
+		Position = Vector3.new(-1.7, 3.7, 0),
+		Color = Color3.fromRGB(250, 250, 245),
+	})
+	person({ Name = "Neck", Size = Vector3.new(0.55, 0.35, 0.55), Position = Vector3.new(0, 5.25, 0), Color = SKIN })
+	person({
+		Name = "Head",
+		Shape = Enum.PartType.Ball,
+		Size = Vector3.new(1.5, 1.5, 1.5),
+		Position = Vector3.new(0, 6.0, 0),
+		Color = SKIN,
+	})
+	person({
+		Name = "Hair",
+		Size = Vector3.new(1.4, 0.4, 1.3),
+		Position = Vector3.new(0, 6.65, 0.1),
+		Color = Color3.fromRGB(205, 165, 90),
+	})
+	-- The gold visor and its brim, with the sunglasses pushed up on it.
+	person({
+		Name = "Visor",
+		Size = Vector3.new(1.6, 0.3, 1.5),
+		Position = Vector3.new(0, 6.45, 0),
+		Color = TURFKING_GOLD,
+	})
+	person({
+		Name = "Brim",
+		Size = Vector3.new(1.4, 0.1, 0.8),
+		Position = Vector3.new(0, 6.35, -1),
+		Color = TURFKING_GOLD,
+	})
+	person({
+		Name = "Sunglasses",
+		Size = Vector3.new(1.2, 0.25, 0.1),
+		Position = Vector3.new(0, 6.7, -0.7),
+		Color = Color3.fromRGB(30, 30, 35),
+	})
+end
+
+-- A TurfKing yard sign: a purple panel with the gold crown, on two wire stakes.
+PROP_BUILDERS.TurfKingSign = function(model: Model)
+	local add = propAdder(model)
+	rootPart(model, add)
+	for _, x in { -0.55, 0.55 } do
+		add({
+			Name = "TurfKingSign__Stake",
+			Size = Vector3.new(0.06, 1.3, 0.06),
+			Position = Vector3.new(x, 0.35, 0),
+			Color = Color3.fromRGB(90, 90, 95),
+			CanCollide = false,
+		})
+	end
+	add({
+		Name = "TurfKingSign__Body",
+		Size = Vector3.new(1.6, 1.1, 0.08),
+		Position = Vector3.new(0, 1.4, 0),
+		Color = TURFKING_PURPLE,
+		CanCollide = false,
+	})
+	for _, crownPart in Placeholders.crown(CFrame.new(0, 1.45, -0.06), 0.8, 0.04) do
+		crownPart.Parent = model
+	end
+end
+
 -- Junk hidden in the grass (Config/Debris.luau), built like the decorations: origin on the ground
 -- at the centre, front toward -Z, a "Root" part and `<Id>__Body` parts. All of it lies low, so it
 -- hides in tall grass.

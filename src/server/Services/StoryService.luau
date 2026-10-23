@@ -193,7 +193,7 @@ local function handle(player: Player, event, quiet: boolean?)
 	local changed = false
 
 	for _, beat in Story.beatsFor(event, facts, story.seen, story.act) do
-		story.seen[beat.id] = true
+		story.seen[Story.beatKey(beat, event)] = true
 		queueScene(story, beat.scene)
 		sendTexts(story, beat.texts or {}, values)
 		changed = true
@@ -265,6 +265,29 @@ function StoryService:PlayScene(player: Player, sceneId: string)
 	end
 end
 
+-- Sends this player a text (a toast pops up for it), from `thread` (Story.Threads, or a
+-- customer's name). `from` says who in a group thread sent it.
+function StoryService:SendText(player: Player, thread: string, text: string, from: string?)
+	local data = DataService:Get(player)
+	if data and joined[player] then
+		addText(storyOf(data), thread, text, from)
+		update(player)
+	end
+end
+
+-- Whether this player has had a beat, by its key in the save (see Story.beatKey).
+function StoryService:HasSeen(player: Player, key: string): boolean
+	local data = DataService:Get(player)
+	return data ~= nil and storyOf(data).seen[key] == true
+end
+
+-- This player's saved story table, made sound, for services that keep a little of their own in
+-- it (TurfKingService's `flippedAt`). Nil until their data's loaded.
+function StoryService:GetStory(player: Player)
+	local data = DataService:Get(player)
+	return if data then storyOf(data) else nil
+end
+
 -- Lifecycle ----------------------------------------------------------------------------------
 
 function StoryService:Init()
@@ -334,6 +357,7 @@ function StoryService:Start()
 			quality = info.quality,
 			preference = info.preference,
 			crew = info.crew,
+			wonBack = info.wonBack,
 		})
 	end)
 	ShopService.Bought:Connect(function(player, category, itemId)

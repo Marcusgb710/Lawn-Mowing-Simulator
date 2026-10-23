@@ -734,6 +734,11 @@ function DialogueController.isOpen(): boolean
 	return playing ~= nil
 end
 
+-- The id of the scene playing, if one is.
+function DialogueController.current(): string?
+	return if playing then playing.id else nil
+end
+
 -- Whether a scene is waiting to play (or playing): the intro, say.
 function DialogueController.isPending(sceneId: string): boolean
 	local story = ClientState.story

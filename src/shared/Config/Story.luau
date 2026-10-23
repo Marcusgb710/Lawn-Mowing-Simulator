@@ -237,9 +237,12 @@ Story.Acts = {
 --   fromAct   only from this act on (and `toAct`, up to this one)
 --   when      (facts, event) -> whether it fires now. `facts` is { act, level, jobsCompleted,
 --             curbAppeal, money, owned = { [toolId] = true }, motorMower, seen }; a finished job's
---             event has { customer, pay, quality (0-1), preference, crew (how many of you) }
+--             event has { customer, pay, quality (0-1), preference, crew (how many of you),
+--             wonBack (the customer was won back from TurfKing) }
 --   scene     a scene to play; `texts` texts to send ({ thread, text, from = who in a group
 --             thread, mine = you sent it })
+--   perCustomer  fires once for each customer instead of once in all (it's remembered as
+--             "<id>:<customer>", see Story.beatKey)
 Story.Beats = {
 	{
 		id = "Intro",
@@ -285,13 +288,16 @@ Story.Beats = {
 			{ thread = "BridgeClub", from = "Mrs. Rossi", text = "Is the grandchild free Thursday?" },
 		},
 	},
-	-- Beating TurfKing on quality: a customer who wanted it perfect, and got a 90%+ finish.
+	-- Beating TurfKing on quality: a customer who wanted it perfect got a 90%+ finish (see
+	-- Config/TurfKing.luau), so they're yours for good. JobService says so (`wonBack`) when it
+	-- pays their bonus, the first time for each customer.
 	{
 		id = "QualityWin",
 		on = "JobFinished",
 		fromAct = 2,
+		perCustomer = true,
 		when = function(_facts, event)
-			return event.preference == "Quality" and (event.quality or 0) >= 0.9
+			return event.wonBack == true
 		end,
 		texts = {
 			{ thread = "{customer}", text = "TurfKing scalped my lawn last month. You're hired for good." },
@@ -346,6 +352,55 @@ Story.JuneTalk = {
 		"Don't wave at Gloria. It only encourages her.",
 		"Thirty years she's lost. Thirty. And she still brings a casserole to the judging.",
 	},
+}
+
+-- Gloria's yard across the street (GloriaService builds it, GloriaController shows it). Each
+-- player sees it as it is in their own act: `Stages[act]` is which of her three yards shows
+-- (1 before TurfKing, 2 TurfKing's sharp stripes and sign, 3 over the top for contest week), and
+-- from act `TurfKingFrom` TurfKing's purple truck is parked in her drive with Chad beside it.
+Story.GloriaYard = {
+	Stages = { 1, 2, 2, 3 },
+	TurfKingFrom = 2,
+}
+
+-- What Gloria says from her porch now and then, when you're in sight of it (a speech bubble),
+-- by act, taking turns. From act 2 Chad, by his truck, gets a word in every other time.
+Story.GloriaRemarks = {
+	{
+		"Morning, June! Lovely… dandelions.",
+		"Are those *scissors*? How quaint.",
+		"June, dear, your grass is waving at me.",
+	},
+	{
+		"Isn't it sweet, June's little helper.",
+		"TurfKing does my edges with a laser, you know.",
+		"Chad says your mower is *vintage*. That's one word for it.",
+	},
+	{
+		"Oh, a crew! How ambitious.",
+		"My hedges are squared, June. *Squared*.",
+		"I saw you bought a shrub. Just the one?",
+	},
+	{
+		"Flamingos, June. In *formation*.",
+		"The judges adore a fountain. Or so I've heard.",
+		"Thirty years. This is my year, June. I can feel it.",
+	},
+}
+Story.ChadRemarks = {
+	"Cute scissors, bud.",
+	"Stay in your lane, bud.",
+	"TurfKing, bud. Look it up.",
+	"That's a lot of grass for one kid, bud.",
+}
+
+-- Chad's texts when TurfKing takes a job off your board (Config/TurfKing.luau), taking turns.
+-- {customer} is whose job it was.
+Story.TurfKingTexts = {
+	"Took the {customer} job. Snooze you lose, bud.",
+	"{customer} went with the professionals. No hard feelings, bud.",
+	"Another one for TurfKing. Maybe try a mower, bud.",
+	"We'll handle {customer}. You handle your little scissors.",
 }
 
 -- Helpers -------------------------------------------------------------------------------------
@@ -439,13 +494,32 @@ function Story.openingScene(act: number, event): string?
 	return if boughtMower and info.mowerScene then info.mowerScene else info.scene
 end
 
+-- What a beat is remembered as in the save's `seen` once it's fired for `event`: its id, or
+-- "<id>:<customer>" for a beat that fires once per customer.
+function Story.beatKey(beat, event): string
+	if beat.perCustomer then
+		return `{beat.id}:{event and event.customer or ""}`
+	end
+	return beat.id
+end
+
+-- The beat with this id.
+function Story.beat(id: string)
+	for _, beat in Story.Beats do
+		if beat.id == id then
+			return beat
+		end
+	end
+	return nil
+end
+
 -- The beats that fire for `event`: not seen yet, in their acts, and their `when` is true.
 function Story.beatsFor(event, facts, seen: { [string]: boolean }, act: number)
 	local beats = {}
 	for _, beat in Story.Beats do
 		if
 			beat.on == event.kind
-			and not seen[beat.id]
+			and not seen[Story.beatKey(beat, event)]
 			and act >= (beat.fromAct or 1)
 			and act <= (beat.toAct or #Story.Acts)
 			and (beat.when == nil or beat.when(facts, event))
@@ -468,6 +542,43 @@ function Story.critique(facts, event): string?
 		end
 	end
 	return nil
+end
+
+-- Which of Gloria's yards shows for someone in act `act`, and whether TurfKing's truck (and Chad)
+-- is in her drive.
+function Story.gloriaStage(act: number): (number, boolean)
+	local stages = Story.GloriaYard.Stages
+	local stage = stages[math.clamp(act, 1, #stages)]
+	return stage, act >= Story.GloriaYard.TurfKingFrom
+end
+
+-- What's said from Gloria's porch the `turn`th time (1, 2, 3...) in act `act`: who says it (a
+-- Cast key) and the line. Gloria takes turns with Chad once TurfKing's in her drive.
+function Story.porchRemark(act: number, turn: number): (string, string)
+	local _, turfKing = Story.gloriaStage(act)
+	if turfKing and turn % 2 == 0 then
+		local lines = Story.ChadRemarks
+		return "Chad", lines[(turn // 2 - 1) % #lines + 1]
+	end
+	local lines = Story.GloriaRemarks[math.clamp(act, 1, #Story.GloriaRemarks)]
+	local index = if turfKing then (turn - 1) // 2 else turn - 1
+	return "Gloria", lines[index % #lines + 1]
+end
+
+-- Chad's text the `count`th time TurfKing takes one of your jobs (1, 2, 3...), for that job's
+-- customer. Lines that don't fill are skipped.
+function Story.turfKingText(count: number, customer: string?): string
+	local usable = {}
+	for _, line in Story.TurfKingTexts do
+		local filled = Story.fill(line, { customer = customer })
+		if filled then
+			table.insert(usable, filled)
+		end
+	end
+	if #usable == 0 then
+		return "Another one for TurfKing, bud."
+	end
+	return usable[(count - 1) % #usable + 1]
 end
 
 -- What June says the `turn`th time you talk to her (1, 2, 3...), in act `act`.

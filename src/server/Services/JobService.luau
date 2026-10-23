@@ -12,6 +12,10 @@
 -- damage for every flower patch or gnome the crew ran over. Then it's split evenly. Junk hidden
 -- in the grass (Config/Debris.luau) that's still there at the end, or that a mower chewed up,
 -- takes some off the finish and the pay too.
+--
+-- TurfKing (TurfKingService) can take a job off one player's board: they see it as "Taken by
+-- TurfKing" and can't accept it, while everyone else's board is the same as before. A customer
+-- won back from TurfKing pays a bonus on top (see SetWinBackBonus).
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -50,13 +54,19 @@ local JobService = {}
 -- Fired with (player) when they head out on a job, arrive at the house, or leave the job.
 JobService.PlayerStateChanged = Signal.new()
 -- Fired with (player, info) for each of the crew once a job's been paid: info is { customer,
--- pay (their share), quality (the finish, 0-1), preference, crew (how many of them) }.
+-- pay (their share), quality (the finish, 0-1), preference, crew (how many of them), wonBack
+-- (the customer was won back from TurfKing and paid a bonus) }.
 JobService.JobFinished = Signal.new()
 
 local rng = Random.new()
 local board = {}
 local nextOfferId = 0
 local sitesFolder: Folder
+-- [Player] = { [offer id] = true } for the jobs TurfKing took off their board
+local takenFor = {}
+-- Set by TurfKingService: (leader, { customer, preference, quality, payout }) -> the bonus a
+-- customer won back from TurfKing pays, or 0.
+local winBackBonus: ((Player, any) -> number)? = nil
 
 -- [party] = job that's been accepted but the crew hasn't driven to yet
 local readyJobs = {}
@@ -212,6 +222,47 @@ local function debrisPenalty(job): number
 	return math.max(GameConfig.MinDebrisPenalty, math.floor(job.offer.payout * GameConfig.DebrisPenalty + 0.5))
 end
 
+-- The board as this player sees it: the jobs TurfKing took from them are marked `takenBy`.
+local function boardFor(player: Player)
+	local taken = takenFor[player]
+	if not taken or next(taken) == nil then
+		return board
+	end
+	local view = table.create(#board)
+	for index, offer in board do
+		if taken[offer.id] then
+			local copy = table.clone(offer)
+			copy.takenBy = "TurfKing"
+			view[index] = copy
+		else
+			view[index] = offer
+		end
+	end
+	return view
+end
+
+-- Sends everyone (or one player) the board, as each of them sees it. Jobs no longer on the board
+-- are forgotten from what TurfKing took.
+local function sendBoard(only: Player?)
+	local onBoard = {}
+	for _, offer in board do
+		onBoard[offer.id] = true
+	end
+	for player, taken in takenFor do
+		for id in taken do
+			if not onBoard[id] then
+				taken[id] = nil
+			end
+		end
+		if next(taken) == nil then
+			takenFor[player] = nil
+		end
+	end
+	for _, player in if only then { only } else Players:GetPlayers() do
+		Net.event("JobBoardUpdated"):FireClient(player, boardFor(player))
+	end
+end
+
 local function refreshBoard()
 	table.clear(board)
 	table.clear(offerPreferences)
@@ -219,7 +270,7 @@ local function refreshBoard()
 	for index = 1, GameConfig.JobBoardSize do
 		table.insert(board, makeOffer(slotKind(index)))
 	end
-	Net.event("JobBoardUpdated"):FireAllClients(board)
+	sendBoard()
 end
 
 -- Sending job state to players ---------------------------------------------------------------
@@ -521,6 +572,24 @@ local function completeJob(job)
 		bonus = crewBonus * truckBonus * businessBonus * curbBonus,
 		penalty = job.penalty,
 	})
+	-- A customer won back from TurfKing pays a little extra, the first time (it's the business of
+	-- the leader who drove out to them that wins them).
+	local wonBack = 0
+	local leader = job.truckOwner
+	if winBackBonus and leader and leader.Parent == Players then
+		local ok, amount = pcall(winBackBonus, leader, {
+			customer = job.offer.customer,
+			preference = job.preference,
+			quality = quality,
+			payout = job.offer.payout,
+		})
+		if ok and typeof(amount) == "number" and amount > 0 then
+			wonBack = math.floor(amount)
+			total += wonBack
+		elseif not ok then
+			warn(`The TurfKing bonus failed: {amount}`)
+		end
+	end
 	local share = math.floor(total / #members)
 
 	job.result = {
@@ -540,6 +609,8 @@ local function completeJob(job)
 		-- Junk left in the grass, and chewed up by a mower (both are in the penalty).
 		debrisLeft = debris.left,
 		debrisHit = debris.hit,
+		-- What a customer won back from TurfKing paid on top (it's in the total).
+		wonBack = wonBack,
 		total = total,
 		share = share,
 	}
@@ -557,6 +628,7 @@ local function completeJob(job)
 			quality = quality,
 			preference = job.preference,
 			crew = #members,
+			wonBack = wonBack > 0,
 		})
 	end
 
@@ -749,12 +821,15 @@ function JobService:AcceptJob(player: Player, offerId: string): (boolean, string
 		return false, "Another crew already took that job."
 	end
 	local offer = board[index]
+	if takenFor[player] and takenFor[player][offer.id] then
+		return false, "TurfKing got there first. Pick another job."
+	end
 	if DataService:GetLevel(player) < offer.minLevel then
 		return false, `You need to be level {offer.minLevel} for this job.`
 	end
 
 	board[index] = makeOffer(offer.kind)
-	Net.event("JobBoardUpdated"):FireAllClients(board)
+	sendBoard()
 	local preference = offerPreferences[offer.id] or "Balanced"
 	offerPreferences[offer.id] = nil
 	local soil = offerSoil[offer.id]
@@ -778,6 +853,52 @@ function JobService:AcceptJob(player: Player, offerId: string): (boolean, string
 	readyJobs[party] = job
 	sendUpdate(job)
 	return true, "Job accepted! Load the tools you think you'll need, then get in at the truck's driver door."
+end
+
+-- The offers on the board right now (read them, don't change them).
+function JobService:GetBoard(): { any }
+	return board
+end
+
+-- The jobs TurfKing took off this player's board, by offer id.
+function JobService:GetTaken(player: Player): { [string]: boolean }
+	return takenFor[player] or {}
+end
+
+-- The offers some crew has accepted and not finished, by id. (They're off the board already;
+-- TurfKing never takes one.)
+function JobService:GetAccepted(): { [string]: boolean }
+	local accepted = {}
+	for _, job in readyJobs do
+		accepted[job.id] = true
+	end
+	for job in activeJobs do
+		accepted[job.id] = true
+	end
+	return accepted
+end
+
+-- TurfKing takes an offer off this player's board (TurfKingService picks which): they see it as
+-- taken and can't accept it. Only an offer still on the board, and never the starter job.
+function JobService:TakeOffer(player: Player, offerId: string): boolean
+	for _, offer in board do
+		if offer.id == offerId then
+			if offer.kind == "StarterGear" or self:GetAccepted()[offerId] then
+				return false
+			end
+			takenFor[player] = takenFor[player] or {}
+			takenFor[player][offerId] = true
+			sendBoard(player)
+			return true
+		end
+	end
+	return false
+end
+
+-- TurfKingService says what a customer won back from TurfKing pays on top of a finished job:
+-- `bonus(leader, { customer, preference, quality, payout })` returns the amount (0 for none).
+function JobService:SetWinBackBonus(bonus: (Player, any) -> number)
+	winBackBonus = bonus
 end
 
 function JobService:Abandon(player: Player)
@@ -822,8 +943,8 @@ function JobService:Init()
 		return self:IsBusy(player)
 	end)
 
-	Net.func("GetJobBoard").OnServerInvoke = function()
-		return board
+	Net.func("GetJobBoard").OnServerInvoke = function(player)
+		return boardFor(player)
 	end
 	Net.func("AcceptJob").OnServerInvoke = function(player, offerId)
 		if typeof(offerId) ~= "string" then
@@ -961,6 +1082,7 @@ function JobService:Start()
 	Players.PlayerRemoving:Connect(function(player)
 		traveling[player] = nil
 		wrongToolWarnings[player] = nil
+		takenFor[player] = nil
 		local job = playerJobs[player]
 		if job then
 			detach(job, player)
