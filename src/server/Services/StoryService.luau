@@ -47,10 +47,6 @@ local joined = {}
 local talks = {}
 local talkedAt = {}
 
-local function notify(player: Player, message: string)
-	Net.event("Notify"):FireClient(player, message)
-end
-
 -- Their saved story, made sound if the save holds something odd.
 local function storyOf(data)
 	local story = data.story
@@ -153,16 +149,14 @@ local function addText(story, thread: string, text: string, from: string?, mine:
 	end
 end
 
--- Sends a beat's texts, with their placeholders filled in. Catching up, they arrive quietly.
-local function sendTexts(player: Player, story, texts, values, quiet: boolean?)
+-- Sends a beat's texts to the inbox, with their placeholders filled in. (The Messages app pops
+-- up a toast for each new one.)
+local function sendTexts(story, texts, values)
 	for _, entry in texts do
 		local thread = Story.fill(entry.thread, values)
 		local text = Story.fill(entry.text, values)
 		if thread and text then
 			addText(story, thread, text, entry.from, entry.mine)
-			if not quiet and not entry.mine then
-				notify(player, `{Story.thread(thread).name}: {Story.plain(text)}`)
-			end
 		end
 	end
 end
@@ -187,8 +181,7 @@ local function valuesFor(event)
 end
 
 -- Something happened: fires the beats it sets off, June's job critique in act 1, and the acts
--- whose gates it opens. `quiet` is for catching up on joining: acts start without their scenes and
--- texts arrive without a toast.
+-- whose gates it opens. `quiet` is for catching up on joining: acts start without their scenes.
 local function handle(player: Player, event, quiet: boolean?)
 	local data = DataService:Get(player)
 	if not (data and joined[player]) then
@@ -202,12 +195,12 @@ local function handle(player: Player, event, quiet: boolean?)
 	for _, beat in Story.beatsFor(event, facts, story.seen, story.act) do
 		story.seen[beat.id] = true
 		queueScene(story, beat.scene)
-		sendTexts(player, story, beat.texts or {}, values, quiet)
+		sendTexts(story, beat.texts or {}, values)
 		changed = true
 	end
 	local critique = Story.critique(facts, event)
 	if critique then
-		sendTexts(player, story, { { thread = "June", text = critique } }, values, quiet)
+		sendTexts(story, { { thread = "June", text = critique } }, values)
 		changed = true
 	end
 
@@ -219,7 +212,7 @@ local function handle(player: Player, event, quiet: boolean?)
 		if index == #started and not quiet then
 			queueScene(story, Story.openingScene(act, event))
 		end
-		sendTexts(player, story, info.texts or {}, values, quiet)
+		sendTexts(story, info.texts or {}, values)
 		changed = true
 	end
 	if changed then
@@ -299,6 +292,24 @@ function StoryService:Init()
 		talkedAt[player] = os.clock()
 		return juneSays(player, data, storyOf(data))
 	end
+	-- The Messages app opened a thread: everything in it has been read.
+	Net.event("ReadThread").OnServerEvent:Connect(function(player, thread)
+		local data = DataService:Get(player)
+		if typeof(thread) ~= "string" or not data then
+			return
+		end
+		local story = storyOf(data)
+		local last = nil
+		for _, text in story.texts do
+			if text.thread == thread then
+				last = text.n
+			end
+		end
+		if last and last ~= story.read[thread] then
+			story.read[thread] = last
+			update(player)
+		end
+	end)
 	-- The client watched (or skipped) a scene it was sent.
 	Net.event("SceneWatched").OnServerEvent:Connect(function(player, sceneId)
 		local data = DataService:Get(player)

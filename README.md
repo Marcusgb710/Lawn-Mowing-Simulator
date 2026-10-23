@@ -69,7 +69,8 @@ Services*. Without it the game still runs, it just doesn't save progress.
    bays. You can't buy a tool you have nowhere to store (the shed has no room for a gas mower), so
    sell what you don't use (half price back) or upgrade.
 2. **Take a job.** At the shop computer (look at it and press E) the crew leader picks a job in
-   the **Jobs** app; everyone can look. Customers say what they want done
+   the **Jobs** app; everyone can look. The **Messages** app has the story's texts (from
+   Grandma June, who sits on her porch beside your shop) and your next goal. Customers say what they want done
    and hint at how ("it has to look immaculate" or "just knock it down before noon"), but **no job
    ever says which tool to use**. Every tool's description in the shop, the Truck checklist and
    the **Guide** says what it's for; knowing your tools is the game. New players get a coach for
@@ -188,6 +189,7 @@ src/client/                  -> StarterPlayer.StarterPlayerScripts.Client
   init.client.luau              starts every controller
   Controllers/                  HUD, shop computer (jobs, orders, business), truck checklist, carrying tools, crew menu,
                                 drive cutscene, first-person camera and arms, the story's dialogue
+                                and the Messages app
   StoryArt.luau                 image ids for the story's portraits, dialogue box and bubbles
 ```
 

@@ -1,4 +1,5 @@
--- The story's art (docs/STORY.md): portraits, the dialogue box, speech bubbles and their bits.
+-- The story's art (docs/STORY.md): portraits, the dialogue box, speech bubbles and their bits,
+-- and the Messages app's texts.
 -- Uploaded images as "rbxassetid://..." ids, or "" to draw that piece with plain frames instead
 -- (colors from UI.Colors, the font from UI.Font). Upload as Big Dink Studios, like the title
 -- card's art (src/first/TitleCardArt.luau), and only this file changes.
@@ -34,4 +35,10 @@ return {
 	CardIcons = {
 		Shears = "",
 	},
+	-- The Messages app on the shop computer (MessagesController): a text from someone else
+	-- (grey) and one from you (green), as 9-slices (64 x 64), and the toast a new text pops up
+	-- in (9-slice, 128 x 64).
+	TheirText = { image = "", slice = Rect.new(24, 24, 40, 40) },
+	MyText = { image = "", slice = Rect.new(24, 24, 40, 40) },
+	TextToast = { image = "", slice = Rect.new(32, 24, 96, 40) },
 }

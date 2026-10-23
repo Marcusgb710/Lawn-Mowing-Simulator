@@ -248,7 +248,25 @@ This is in rough order, as separate PRs.
    - Not built: the TurfKing truck pulling up in the intro (it needs item 4's livery); the
      first line says it, over a shot of Gloria's house.
 3. **The Messages app** in `ComputerController`: threads, unread badge, goal card, and a
-   notification when a text arrives outside the shop.
+   notification when a text arrives outside the shop. *Built* (`MessagesController`).
+   - **Threads:** Grandma June, the Bridge Club (each text says who in the club sent it), Chad
+     from TurfKing, Sam (from act 3) and one per customer, newest first. Each card has a face
+     (portrait, or initials on the person's color), the name, the last line and a yellow unread
+     count. The open thread has their texts in grey on the left and yours in green on the right.
+   - **Unread:** opening a thread reads it (`ReadThread`, saved as the last text read in each
+     thread). The Messages buttons on the desktop and the taskbar show the total, and the open
+     app's taskbar button is green, as in the mock-up.
+   - **Toasts:** a new text pops up with the game's other toasts (face, name, the line) when
+     you're away from the computer, and waits until a scene is over. At the computer the badge
+     goes up instead.
+   - **The goal card** at the bottom of the thread: the act's goal with its progress bar, money
+     toward the price ("Buy the Reel Push Mower $66 / $150") or curb appeal toward its number.
+     It wraps the bar under the goal where one row doesn't fit.
+   - **Phones:** under 560 px wide the thread list and the open thread take turns (a back
+     button returns to the list), and the goal card sits under both.
+   - **Saving:** the inbox is in the save (`story.texts`, at most 60, the oldest dropped) with
+     what's been read.
+   - Art slots in `StoryArt`: `TheirText` and `MyText` (9-slices) and `TextToast`.
 4. **NPCs and the world:**
    - June on a porch chair at each player's plot (*built*, with item 2);
    - Gloria's house and yard in three stages (*a fixed house is built*, with item 2; the stages

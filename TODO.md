@@ -274,6 +274,19 @@ One PR per phase, each stacked on the one before. Every phase still needs a Stud
       - Gloria's house across the south street with her on the porch, her bubble readable from
         the intro's shot, and the fence and shrubs standing right (real decoration models);
       - fill in `src/client/StoryArt.luau` when the GUI art arrives.
+- [ ] **Story 3: the Messages app.** To check in Studio, on PC and on a phone:
+      - after the first job: toasts for Mrs. Alvarez's and June's texts at the job site, and a
+        badge on the computer's Messages buttons back at the shop;
+      - opening Messages: threads newest first with faces, last lines and unread counts; the
+        open thread's grey and green bubbles wrapping at a sensible width; the Bridge Club's
+        texts saying who sent them; opening a thread clears its count, and it stays cleared
+        after a rejoin;
+      - the goal card: "Buy the Reel Push Mower $66 / $150" filling as money comes in, then the
+        Gas Push Mower, then curb appeal toward 75;
+      - on a phone (under 560 px): the list, tapping into a thread, the back button, the goal
+        card under both, and all five taskbar buttons fitting;
+      - the taskbar's open app in green; no toast while at the computer or during a scene;
+      - the inbox staying at 60 texts at most after many jobs.
 
 ## Before release
 

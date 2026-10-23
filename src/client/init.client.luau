@@ -15,6 +15,7 @@ local CONTROLLERS = {
 	"TruckController",
 	"GuideController",
 	"DialogueController",
+	"MessagesController",
 	"TutorialController",
 	"CarryController",
 	"ComputerController",

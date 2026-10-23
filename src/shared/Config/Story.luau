@@ -379,6 +379,19 @@ function Story.thread(id: string)
 	return { name = id, status = "Customer", cast = Story.CustomerCast[id] or "Customer" }
 end
 
+-- How many texts haven't been read, in all and by thread. `texts` and `read` are the inbox as
+-- StoryService sends it: { n, thread, mine } each, and the last text read in each thread.
+function Story.unread(texts: { any }, read: { [string]: number }): (number, { [string]: number })
+	local total, byThread = 0, {}
+	for _, text in texts do
+		if not text.mine and text.n > (read[text.thread] or 0) then
+			total += 1
+			byThread[text.thread] = (byThread[text.thread] or 0) + 1
+		end
+	end
+	return total, byThread
+end
+
 -- Whether any of an act's `startsWhen` is true.
 function Story.gateMet(gate, facts, event): boolean
 	if not gate then
