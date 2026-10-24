@@ -1,0 +1,780 @@
+[
+  {
+    "id": "ReelMower",
+    "model": "ReelMower",
+    "path": "model-source/HighPoly/26_MowersAndRideOns/Models/ReelMower/ReelMower.gltf",
+    "finish": null
+  },
+  {
+    "id": "GasPushMower",
+    "model": "GasPushMower",
+    "path": "art-source/GUI/Source/RenderOnly/Models/Mower_Push_21in/Mower_Push_21in.gltf",
+    "finish": null
+  },
+  {
+    "id": "SelfPropelledMower",
+    "model": "SelfPropelledMower",
+    "path": "model-source/HighPoly/26_MowersAndRideOns/Models/SelfPropelledMower/SelfPropelledMower.gltf",
+    "finish": null
+  },
+  {
+    "id": "RidingMower",
+    "model": "RidingMower",
+    "path": "art-source/GUI/Source/RenderOnly/Models/Mower_LawnTractor_42in/Mower_LawnTractor_42in.gltf",
+    "finish": null
+  },
+  {
+    "id": "ZeroTurnMower",
+    "model": "ZeroTurnMower",
+    "path": "art-source/GUI/Source/RenderOnly/Models/Mower_ZeroTurn_52in/Mower_ZeroTurn_52in.gltf",
+    "finish": null
+  },
+  {
+    "id": "CommercialZeroTurn",
+    "model": "CommercialZeroTurn",
+    "path": "model-source/HighPoly/26_MowersAndRideOns/Models/CommercialZeroTurn/CommercialZeroTurn.gltf",
+    "finish": null
+  },
+  {
+    "id": "StandOnMower",
+    "model": "StandOnMower",
+    "path": "model-source/HighPoly/26_MowersAndRideOns/Models/StandOnMower/StandOnMower.gltf",
+    "finish": null
+  },
+  {
+    "id": "CommercialReelMower",
+    "model": "CommercialReelMower",
+    "path": "model-source/HighPoly/26_MowersAndRideOns/Models/CommercialReelMower/CommercialReelMower.gltf",
+    "finish": null
+  },
+  {
+    "id": "GardenShears",
+    "model": "GardenShears",
+    "path": "model-source/HighPoly/29_HandTools/Models/GardenShears/GardenShears.gltf",
+    "finish": null
+  },
+  {
+    "id": "ElectricTrimmer",
+    "model": "ElectricTrimmer",
+    "path": "art-source/GUI/Source/RenderOnly/Models/Trimmer_Battery/Trimmer_Battery.gltf",
+    "finish": null
+  },
+  {
+    "id": "GasTrimmer",
+    "model": "GasTrimmer",
+    "path": "art-source/GUI/Source/RenderOnly/Models/Trimmer_Petrol/Trimmer_Petrol.gltf",
+    "finish": null
+  },
+  {
+    "id": "Brushcutter",
+    "model": "Brushcutter",
+    "path": "model-source/HighPoly/27_TrimmersBlowersSprayer/Models/Brushcutter/Brushcutter.gltf",
+    "finish": null
+  },
+  {
+    "id": "StraightShaftTrimmer",
+    "model": "StraightShaftTrimmer",
+    "path": "model-source/HighPoly/27_TrimmersBlowersSprayer/Models/StraightShaftTrimmer/StraightShaftTrimmer.gltf",
+    "finish": null
+  },
+  {
+    "id": "OldRake",
+    "model": "OldRake",
+    "path": "art-source/GUI/Source/RenderOnly/Models/Prop_Rake/Prop_Rake.gltf",
+    "finish": null
+  },
+  {
+    "id": "WideRake",
+    "model": "WideRake",
+    "path": "model-source/HighPoly/30_LongTools/Models/WideRake/WideRake.gltf",
+    "finish": null
+  },
+  {
+    "id": "LeafBlower",
+    "model": "LeafBlower",
+    "path": "model-source/HighPoly/27_TrimmersBlowersSprayer/Models/LeafBlower/LeafBlower.gltf",
+    "finish": null
+  },
+  {
+    "id": "BackpackBlower",
+    "model": "BackpackBlower",
+    "path": "model-source/HighPoly/27_TrimmersBlowersSprayer/Models/BackpackBlower/BackpackBlower.gltf",
+    "finish": null
+  },
+  {
+    "id": "HalfMoonEdger",
+    "model": "HalfMoonEdger",
+    "path": "model-source/HighPoly/30_LongTools/Models/HalfMoonEdger/HalfMoonEdger.gltf",
+    "finish": null
+  },
+  {
+    "id": "ElectricEdger",
+    "model": "ElectricEdger",
+    "path": "model-source/HighPoly/27_TrimmersBlowersSprayer/Models/ElectricEdger/ElectricEdger.gltf",
+    "finish": null
+  },
+  {
+    "id": "WalkBehindEdger",
+    "model": "WalkBehindEdger",
+    "path": "model-source/HighPoly/31_PushMachines/Models/WalkBehindEdger/WalkBehindEdger.gltf",
+    "finish": null
+  },
+  {
+    "id": "GasStickEdger",
+    "model": "GasStickEdger",
+    "path": "model-source/HighPoly/27_TrimmersBlowersSprayer/Models/GasStickEdger/GasStickEdger.gltf",
+    "finish": null
+  },
+  {
+    "id": "HandHedgeShears",
+    "model": "HandHedgeShears",
+    "path": "model-source/HighPoly/28_HedgeAndHose/Models/HandHedgeShears/HandHedgeShears.gltf",
+    "finish": null
+  },
+  {
+    "id": "ElectricHedgeTrimmer",
+    "model": "ElectricHedgeTrimmer",
+    "path": "model-source/HighPoly/28_HedgeAndHose/Models/ElectricHedgeTrimmer/ElectricHedgeTrimmer.gltf",
+    "finish": null
+  },
+  {
+    "id": "CordlessHedgeTrimmer",
+    "model": "CordlessHedgeTrimmer",
+    "path": "model-source/HighPoly/28_HedgeAndHose/Models/CordlessHedgeTrimmer/CordlessHedgeTrimmer.gltf",
+    "finish": null
+  },
+  {
+    "id": "GasHedgeTrimmer",
+    "model": "GasHedgeTrimmer",
+    "path": "model-source/HighPoly/28_HedgeAndHose/Models/GasHedgeTrimmer/GasHedgeTrimmer.gltf",
+    "finish": null
+  },
+  {
+    "id": "ArticulatingHedgeTrimmer",
+    "model": "ArticulatingHedgeTrimmer",
+    "path": "model-source/HighPoly/28_HedgeAndHose/Models/ArticulatingHedgeTrimmer/ArticulatingHedgeTrimmer.gltf",
+    "finish": null
+  },
+  {
+    "id": "HandTrowel",
+    "model": "HandTrowel",
+    "path": "model-source/HighPoly/29_HandTools/Models/HandTrowel/HandTrowel.gltf",
+    "finish": null
+  },
+  {
+    "id": "HandTransplanter",
+    "model": "HandTransplanter",
+    "path": "model-source/HighPoly/29_HandTools/Models/HandTransplanter/HandTransplanter.gltf",
+    "finish": null
+  },
+  {
+    "id": "HandCultivator",
+    "model": "HandCultivator",
+    "path": "model-source/HighPoly/29_HandTools/Models/HandCultivator/HandCultivator.gltf",
+    "finish": null
+  },
+  {
+    "id": "DandelionWeeder",
+    "model": "DandelionWeeder",
+    "path": "model-source/HighPoly/29_HandTools/Models/DandelionWeeder/DandelionWeeder.gltf",
+    "finish": null
+  },
+  {
+    "id": "Dibber",
+    "model": "Dibber",
+    "path": "model-source/HighPoly/29_HandTools/Models/Dibber/Dibber.gltf",
+    "finish": null
+  },
+  {
+    "id": "StirrupHoe",
+    "model": "StirrupHoe",
+    "path": "model-source/HighPoly/30_LongTools/Models/StirrupHoe/StirrupHoe.gltf",
+    "finish": null
+  },
+  {
+    "id": "BypassPruners",
+    "model": "BypassPruners",
+    "path": "model-source/HighPoly/29_HandTools/Models/BypassPruners/BypassPruners.gltf",
+    "finish": null
+  },
+  {
+    "id": "AnvilPruners",
+    "model": "AnvilPruners",
+    "path": "model-source/HighPoly/29_HandTools/Models/AnvilPruners/AnvilPruners.gltf",
+    "finish": null
+  },
+  {
+    "id": "FloralSnips",
+    "model": "FloralSnips",
+    "path": "model-source/HighPoly/29_HandTools/Models/FloralSnips/FloralSnips.gltf",
+    "finish": null
+  },
+  {
+    "id": "Loppers",
+    "model": "Loppers",
+    "path": "model-source/HighPoly/29_HandTools/Models/Loppers/Loppers.gltf",
+    "finish": null
+  },
+  {
+    "id": "PruningSaw",
+    "model": "PruningSaw",
+    "path": "model-source/HighPoly/29_HandTools/Models/PruningSaw/PruningSaw.gltf",
+    "finish": null
+  },
+  {
+    "id": "GardenHoseWand",
+    "model": "GardenHoseWand",
+    "path": "model-source/HighPoly/28_HedgeAndHose/Models/GardenHoseWand/GardenHoseWand.gltf",
+    "finish": null
+  },
+  {
+    "id": "WateringCan",
+    "model": "WateringCan",
+    "path": "model-source/HighPoly/29_HandTools/Models/WateringCan/WateringCan.gltf",
+    "finish": null
+  },
+  {
+    "id": "NitrileGloves",
+    "model": "NitrileGloves",
+    "path": "model-source/HighPoly/29_HandTools/Models/NitrileGloves/NitrileGloves.gltf",
+    "finish": null
+  },
+  {
+    "id": "ChemicalGloves",
+    "model": "ChemicalGloves",
+    "path": "model-source/HighPoly/29_HandTools/Models/ChemicalGloves/ChemicalGloves.gltf",
+    "finish": null
+  },
+  {
+    "id": "RoundPointShovel",
+    "model": "RoundPointShovel",
+    "path": "model-source/HighPoly/30_LongTools/Models/RoundPointShovel/RoundPointShovel.gltf",
+    "finish": null
+  },
+  {
+    "id": "GardenSpade",
+    "model": "GardenSpade",
+    "path": "model-source/HighPoly/30_LongTools/Models/GardenSpade/GardenSpade.gltf",
+    "finish": null
+  },
+  {
+    "id": "Broadfork",
+    "model": "Broadfork",
+    "path": "model-source/HighPoly/30_LongTools/Models/Broadfork/Broadfork.gltf",
+    "finish": null
+  },
+  {
+    "id": "DiggingFork",
+    "model": "DiggingFork",
+    "path": "model-source/HighPoly/30_LongTools/Models/DiggingFork/DiggingFork.gltf",
+    "finish": null
+  },
+  {
+    "id": "BowRake",
+    "model": "BowRake",
+    "path": "model-source/HighPoly/30_LongTools/Models/BowRake/BowRake.gltf",
+    "finish": null
+  },
+  {
+    "id": "Mattock",
+    "model": "Mattock",
+    "path": "model-source/HighPoly/30_LongTools/Models/Mattock/Mattock.gltf",
+    "finish": null
+  },
+  {
+    "id": "SingleWheelbarrow",
+    "model": "SingleWheelbarrow",
+    "path": "model-source/HighPoly/31_PushMachines/Models/SingleWheelbarrow/SingleWheelbarrow.gltf",
+    "finish": null
+  },
+  {
+    "id": "SingleWheelbarrowFlatFree",
+    "model": "SingleWheelbarrowFlatFree",
+    "path": "model-source/HighPoly/31_PushMachines/Models/SingleWheelbarrowFlatFree/SingleWheelbarrowFlatFree.gltf",
+    "finish": null
+  },
+  {
+    "id": "DualWheelbarrow",
+    "model": "DualWheelbarrow",
+    "path": "model-source/HighPoly/31_PushMachines/Models/DualWheelbarrow/DualWheelbarrow.gltf",
+    "finish": null
+  },
+  {
+    "id": "PolyCart",
+    "model": "PolyCart",
+    "path": "model-source/HighPoly/31_PushMachines/Models/PolyCart/PolyCart.gltf",
+    "finish": null
+  },
+  {
+    "id": "BroadcastSpreader",
+    "model": "BroadcastSpreader",
+    "path": "model-source/HighPoly/31_PushMachines/Models/BroadcastSpreader/BroadcastSpreader.gltf",
+    "finish": null
+  },
+  {
+    "id": "BackpackSprayer",
+    "model": "BackpackSprayer",
+    "path": "model-source/HighPoly/27_TrimmersBlowersSprayer/Models/BackpackSprayer/BackpackSprayer.gltf",
+    "finish": null
+  },
+  {
+    "id": "StandOnAerator",
+    "model": "StandOnAerator",
+    "path": "model-source/HighPoly/26_MowersAndRideOns/Models/StandOnAerator/StandOnAerator.gltf",
+    "finish": null
+  },
+  {
+    "id": "TowBehindAerator",
+    "model": "TowBehindAerator",
+    "path": "model-source/HighPoly/26_MowersAndRideOns/Models/TowBehindAerator/TowBehindAerator.gltf",
+    "finish": null
+  },
+  {
+    "id": "SlitOverseeder",
+    "model": "SlitOverseeder",
+    "path": "model-source/HighPoly/31_PushMachines/Models/SlitOverseeder/SlitOverseeder.gltf",
+    "finish": null
+  },
+  {
+    "id": "PowerRakeDethatcher",
+    "model": "PowerRakeDethatcher",
+    "path": "model-source/HighPoly/31_PushMachines/Models/PowerRakeDethatcher/PowerRakeDethatcher.gltf",
+    "finish": null
+  },
+  {
+    "id": "RideOnSpreaderSprayer",
+    "model": "RideOnSpreaderSprayer",
+    "path": "model-source/HighPoly/26_MowersAndRideOns/Models/RideOnSpreaderSprayer/RideOnSpreaderSprayer.gltf",
+    "finish": null
+  },
+  {
+    "id": "SoilProbe",
+    "model": "SoilProbe",
+    "path": "model-source/HighPoly/29_HandTools/Models/SoilProbe/SoilProbe.gltf",
+    "finish": null
+  },
+  {
+    "id": "ToolBucket",
+    "model": "ToolBucket",
+    "path": "model-source/HighPoly/32_SuppliesAndStorage/Models/ToolBucket/ToolBucket.gltf",
+    "finish": null
+  },
+  {
+    "id": "GasCan",
+    "model": "GasCan",
+    "path": "model-source/HighPoly/32_SuppliesAndStorage/Models/GasCan/GasCan.gltf",
+    "finish": null
+  },
+  {
+    "id": "MixGasCan",
+    "model": "MixGasCan",
+    "path": "model-source/HighPoly/32_SuppliesAndStorage/Models/MixGasCan/MixGasCan.gltf",
+    "finish": null
+  },
+  {
+    "id": "TrimmerLine",
+    "model": "TrimmerLine",
+    "path": "model-source/HighPoly/32_SuppliesAndStorage/Models/TrimmerLine/TrimmerLine.gltf",
+    "finish": null
+  },
+  {
+    "id": "FootPump",
+    "model": "FootPump",
+    "path": "model-source/HighPoly/32_SuppliesAndStorage/Models/FootPump/FootPump.gltf",
+    "finish": null
+  },
+  {
+    "id": "ElectricInflator",
+    "model": "ElectricInflator",
+    "path": "model-source/HighPoly/32_SuppliesAndStorage/Models/ElectricInflator/ElectricInflator.gltf",
+    "finish": null
+  },
+  {
+    "id": "AirCompressor",
+    "model": "AirCompressor",
+    "path": "model-source/HighPoly/32_SuppliesAndStorage/Models/AirCompressor/AirCompressor.gltf",
+    "finish": null
+  },
+  {
+    "id": "TirePatchKit",
+    "model": "TirePatchKit",
+    "path": "model-source/HighPoly/32_SuppliesAndStorage/Models/TirePatchKit/TirePatchKit.gltf",
+    "finish": null
+  },
+  {
+    "id": "SpareTire",
+    "model": "SpareTire",
+    "path": "model-source/HighPoly/32_SuppliesAndStorage/Models/SpareTire/SpareTire.gltf",
+    "finish": null
+  },
+  {
+    "id": "WrenchSet",
+    "model": "WrenchSet",
+    "path": "model-source/HighPoly/32_SuppliesAndStorage/Models/WrenchSet/WrenchSet.gltf",
+    "finish": null
+  },
+  {
+    "id": "BladeFile",
+    "model": "BladeFile",
+    "path": "model-source/HighPoly/32_SuppliesAndStorage/Models/BladeFile/BladeFile.gltf",
+    "finish": null
+  },
+  {
+    "id": "SharpeningStone",
+    "model": "SharpeningStone",
+    "path": "model-source/HighPoly/32_SuppliesAndStorage/Models/SharpeningStone/SharpeningStone.gltf",
+    "finish": null
+  },
+  {
+    "id": "BenchGrinder",
+    "model": "BenchGrinder",
+    "path": "model-source/HighPoly/32_SuppliesAndStorage/Models/BenchGrinder/BenchGrinder.gltf",
+    "finish": null
+  },
+  {
+    "id": "SpareMowerBlade",
+    "model": "SpareMowerBlade",
+    "path": "model-source/HighPoly/32_SuppliesAndStorage/Models/SpareMowerBlade/SpareMowerBlade.gltf",
+    "finish": null
+  },
+  {
+    "id": "PicketFenceSection",
+    "model": "PicketFenceSection",
+    "path": "model-source/HighPoly/34_YardDecorations/Models/PicketFenceSection/PicketFenceSection.gltf",
+    "finish": null
+  },
+  {
+    "id": "StoneEdgingSection",
+    "model": "StoneEdgingSection",
+    "path": "model-source/HighPoly/34_YardDecorations/Models/StoneEdgingSection/StoneEdgingSection.gltf",
+    "finish": null
+  },
+  {
+    "id": "PaverPathSection",
+    "model": "PaverPathSection",
+    "path": "model-source/HighPoly/34_YardDecorations/Models/PaverPathSection/PaverPathSection.gltf",
+    "finish": null
+  },
+  {
+    "id": "MulchBedSection",
+    "model": "MulchBedSection",
+    "path": "model-source/HighPoly/34_YardDecorations/Models/MulchBedSection/MulchBedSection.gltf",
+    "finish": null
+  },
+  {
+    "id": "BoxwoodShrub",
+    "model": "BoxwoodShrub",
+    "path": "model-source/HighPoly/34_YardDecorations/Models/BoxwoodShrub/BoxwoodShrub.gltf",
+    "finish": null
+  },
+  {
+    "id": "HydrangeaBush",
+    "model": "HydrangeaBush",
+    "path": "model-source/HighPoly/34_YardDecorations/Models/HydrangeaBush/HydrangeaBush.gltf",
+    "finish": null
+  },
+  {
+    "id": "JapaneseMaple",
+    "model": "JapaneseMaple",
+    "path": "model-source/HighPoly/34_YardDecorations/Models/JapaneseMaple/JapaneseMaple.gltf",
+    "finish": null
+  },
+  {
+    "id": "TerracottaPlanter",
+    "model": "TerracottaPlanter",
+    "path": "model-source/HighPoly/34_YardDecorations/Models/TerracottaPlanter/TerracottaPlanter.gltf",
+    "finish": null
+  },
+  {
+    "id": "RaisedGardenBed",
+    "model": "RaisedGardenBed",
+    "path": "model-source/HighPoly/34_YardDecorations/Models/RaisedGardenBed/RaisedGardenBed.gltf",
+    "finish": null
+  },
+  {
+    "id": "BirdBath",
+    "model": "BirdBath",
+    "path": "model-source/HighPoly/34_YardDecorations/Models/BirdBath/BirdBath.gltf",
+    "finish": null
+  },
+  {
+    "id": "TieredFountain",
+    "model": "TieredFountain",
+    "path": "model-source/HighPoly/34_YardDecorations/Models/TieredFountain/TieredFountain.gltf",
+    "finish": null
+  },
+  {
+    "id": "GardenArbor",
+    "model": "GardenArbor",
+    "path": "model-source/HighPoly/34_YardDecorations/Models/GardenArbor/GardenArbor.gltf",
+    "finish": null
+  },
+  {
+    "id": "GardenBench",
+    "model": "GardenBench",
+    "path": "model-source/HighPoly/34_YardDecorations/Models/GardenBench/GardenBench.gltf",
+    "finish": null
+  },
+  {
+    "id": "PatioSet",
+    "model": "PatioSet",
+    "path": "model-source/HighPoly/34_YardDecorations/Models/PatioSet/PatioSet.gltf",
+    "finish": null
+  },
+  {
+    "id": "FirePit",
+    "model": "FirePit",
+    "path": "model-source/HighPoly/34_YardDecorations/Models/FirePit/FirePit.gltf",
+    "finish": null
+  },
+  {
+    "id": "Mailbox",
+    "model": "Mailbox",
+    "path": "model-source/HighPoly/34_YardDecorations/Models/Mailbox/Mailbox.gltf",
+    "finish": null
+  },
+  {
+    "id": "LampPost",
+    "model": "LampPost",
+    "path": "model-source/HighPoly/34_YardDecorations/Models/LampPost/LampPost.gltf",
+    "finish": null
+  },
+  {
+    "id": "SolarPathLight",
+    "model": "SolarPathLight",
+    "path": "model-source/HighPoly/34_YardDecorations/Models/SolarPathLight/SolarPathLight.gltf",
+    "finish": null
+  },
+  {
+    "id": "BirdFeeder",
+    "model": "BirdFeeder",
+    "path": "model-source/HighPoly/34_YardDecorations/Models/BirdFeeder/BirdFeeder.gltf",
+    "finish": null
+  },
+  {
+    "id": "Birdhouse",
+    "model": "Birdhouse",
+    "path": "model-source/HighPoly/34_YardDecorations/Models/Birdhouse/Birdhouse.gltf",
+    "finish": null
+  },
+  {
+    "id": "PinkFlamingo",
+    "model": "PinkFlamingo",
+    "path": "model-source/HighPoly/34_YardDecorations/Models/PinkFlamingo/PinkFlamingo.gltf",
+    "finish": null
+  },
+  {
+    "id": "GardenWindmill",
+    "model": "GardenWindmill",
+    "path": "model-source/HighPoly/34_YardDecorations/Models/GardenWindmill/GardenWindmill.gltf",
+    "finish": null
+  },
+  {
+    "id": "GardenGnome",
+    "model": "GardenGnome",
+    "path": "model-source/HighPoly/24_YardAndBuildings/Models/GardenGnome/GardenGnome.gltf",
+    "finish": null
+  },
+  {
+    "id": "FlowerPatch",
+    "model": "FlowerPatch",
+    "path": "model-source/HighPoly/24_YardAndBuildings/Models/FlowerPatch/FlowerPatch.gltf",
+    "finish": null
+  },
+  {
+    "id": "RustyPickup",
+    "model": "RustyPickup",
+    "path": "model-source/HighPoly/25_TrucksAndTrailers/Models/RustyPickup/RustyPickup.gltf",
+    "finish": null
+  },
+  {
+    "id": "WorkPickup",
+    "model": "WorkPickup",
+    "path": "model-source/HighPoly/25_TrucksAndTrailers/Models/WorkPickup/WorkPickup.gltf",
+    "finish": null
+  },
+  {
+    "id": "HeavyDutyPickup",
+    "model": "HeavyDutyPickup",
+    "path": "model-source/HighPoly/25_TrucksAndTrailers/Models/HeavyDutyPickup/HeavyDutyPickup.gltf",
+    "finish": null
+  },
+  {
+    "id": "LandscapingTruck",
+    "model": "LandscapingTruck",
+    "path": "model-source/HighPoly/25_TrucksAndTrailers/Models/LandscapingTruck/LandscapingTruck.gltf",
+    "finish": null
+  },
+  {
+    "id": "UtilityTrailer",
+    "model": "UtilityTrailer",
+    "path": "model-source/HighPoly/25_TrucksAndTrailers/Models/UtilityTrailer/UtilityTrailer.gltf",
+    "finish": null
+  },
+  {
+    "id": "LandscapeTrailer",
+    "model": "LandscapeTrailer",
+    "path": "model-source/HighPoly/25_TrucksAndTrailers/Models/LandscapeTrailer/LandscapeTrailer.gltf",
+    "finish": null
+  },
+  {
+    "id": "EquipmentTrailer",
+    "model": "EquipmentTrailer",
+    "path": "model-source/HighPoly/25_TrucksAndTrailers/Models/EquipmentTrailer/EquipmentTrailer.gltf",
+    "finish": null
+  },
+  {
+    "id": "Shed",
+    "model": "Shed",
+    "path": "model-source/HighPoly/24_YardAndBuildings/Models/Shed/Shed.gltf",
+    "finish": null
+  },
+  {
+    "id": "Garage",
+    "model": "Garage",
+    "path": "model-source/HighPoly/24_YardAndBuildings/Models/Garage/Garage.gltf",
+    "finish": null
+  },
+  {
+    "id": "SmallOffice",
+    "model": "SmallOffice",
+    "path": "model-source/HighPoly/24_YardAndBuildings/Models/SmallOffice/SmallOffice.gltf",
+    "finish": null
+  },
+  {
+    "id": "EquipmentYard",
+    "model": "EquipmentYard",
+    "path": "model-source/HighPoly/24_YardAndBuildings/Models/EquipmentYard/EquipmentYard.gltf",
+    "finish": null
+  },
+  {
+    "id": "BestYardTrophy",
+    "model": "BestYardTrophy",
+    "path": "model-source/HighPoly/37_Story/Models/BestYardTrophy/BestYardTrophy.gltf",
+    "finish": null
+  },
+  {
+    "id": "DebrisStick",
+    "model": "DebrisStick",
+    "path": "model-source/HighPoly/37_Story/Models/DebrisStick/DebrisStick.gltf",
+    "finish": null
+  },
+  {
+    "id": "DebrisRock",
+    "model": "DebrisRock",
+    "path": "model-source/HighPoly/37_Story/Models/DebrisRock/DebrisRock.gltf",
+    "finish": null
+  },
+  {
+    "id": "DebrisDogBall",
+    "model": "DebrisDogBall",
+    "path": "model-source/HighPoly/37_Story/Models/DebrisDogBall/DebrisDogBall.gltf",
+    "finish": null
+  },
+  {
+    "id": "DebrisToyTruck",
+    "model": "DebrisToyTruck",
+    "path": "model-source/HighPoly/37_Story/Models/DebrisToyTruck/DebrisToyTruck.gltf",
+    "finish": null
+  },
+  {
+    "id": "DebrisFrisbee",
+    "model": "DebrisFrisbee",
+    "path": "model-source/HighPoly/37_Story/Models/DebrisFrisbee/DebrisFrisbee.gltf",
+    "finish": null
+  },
+  {
+    "id": "GoldenGasPushMower",
+    "model": "GasPushMower",
+    "path": "art-source/GUI/Source/RenderOnly/Models/Mower_Push_21in/Mower_Push_21in.gltf",
+    "finish": "gold"
+  },
+  {
+    "id": "ChromeSelfPropelledMower",
+    "model": "SelfPropelledMower",
+    "path": "model-source/HighPoly/26_MowersAndRideOns/Models/SelfPropelledMower/SelfPropelledMower.gltf",
+    "finish": "chrome"
+  },
+  {
+    "id": "StealthGasTrimmer",
+    "model": "GasTrimmer",
+    "path": "art-source/GUI/Source/RenderOnly/Models/Trimmer_Petrol/Trimmer_Petrol.gltf",
+    "finish": "stealth"
+  },
+  {
+    "id": "ChromeLeafBlower",
+    "model": "LeafBlower",
+    "path": "model-source/HighPoly/27_TrimmersBlowersSprayer/Models/LeafBlower/LeafBlower.gltf",
+    "finish": "chrome"
+  },
+  {
+    "id": "GoldenRidingMower",
+    "model": "RidingMower",
+    "path": "art-source/GUI/Source/RenderOnly/Models/Mower_LawnTractor_42in/Mower_LawnTractor_42in.gltf",
+    "finish": "gold"
+  },
+  {
+    "id": "StealthZeroTurn",
+    "model": "ZeroTurnMower",
+    "path": "art-source/GUI/Source/RenderOnly/Models/Mower_ZeroTurn_52in/Mower_ZeroTurn_52in.gltf",
+    "finish": "stealth"
+  },
+  {
+    "id": "RacingRed",
+    "model": "WorkPickup",
+    "path": "model-source/HighPoly/25_TrucksAndTrailers/Models/WorkPickup/WorkPickup.gltf",
+    "finish": [
+      196,
+      40,
+      36
+    ]
+  },
+  {
+    "id": "MidnightBlack",
+    "model": "WorkPickup",
+    "path": "model-source/HighPoly/25_TrucksAndTrailers/Models/WorkPickup/WorkPickup.gltf",
+    "finish": [
+      40,
+      42,
+      48
+    ]
+  },
+  {
+    "id": "ForestGreen",
+    "model": "WorkPickup",
+    "path": "model-source/HighPoly/25_TrucksAndTrailers/Models/WorkPickup/WorkPickup.gltf",
+    "finish": [
+      46,
+      110,
+      58
+    ]
+  },
+  {
+    "id": "SkyBlue",
+    "model": "WorkPickup",
+    "path": "model-source/HighPoly/25_TrucksAndTrailers/Models/WorkPickup/WorkPickup.gltf",
+    "finish": [
+      90,
+      160,
+      220
+    ]
+  },
+  {
+    "id": "StealthWrap",
+    "model": "WorkPickup",
+    "path": "model-source/HighPoly/25_TrucksAndTrailers/Models/WorkPickup/WorkPickup.gltf",
+    "finish": "stealth"
+  },
+  {
+    "id": "ChromeWrap",
+    "model": "WorkPickup",
+    "path": "model-source/HighPoly/25_TrucksAndTrailers/Models/WorkPickup/WorkPickup.gltf",
+    "finish": "chrome"
+  },
+  {
+    "id": "GoldWrap",
+    "model": "WorkPickup",
+    "path": "model-source/HighPoly/25_TrucksAndTrailers/Models/WorkPickup/WorkPickup.gltf",
+    "finish": "gold"
+  }
+]

@@ -1,0 +1,1293 @@
+{
+  "HUD_PC": [
+    {
+      "asset": "Kit/HudPanel.png",
+      "rect_px": [
+        30,
+        25,
+        425,
+        175
+      ]
+    },
+    {
+      "asset": "Kit/ProgressTrack.png",
+      "rect_px": [
+        106,
+        153,
+        303,
+        23
+      ]
+    },
+    {
+      "asset": "Kit/HudPanel.png",
+      "rect_px": [
+        1585,
+        25,
+        305,
+        145
+      ]
+    },
+    {
+      "asset": "Kit/ProgressTrack.png",
+      "rect_px": [
+        1623,
+        133,
+        236,
+        24
+      ]
+    },
+    {
+      "asset": "Kit/MenuButton.png",
+      "rect_px": [
+        26,
+        240,
+        250,
+        98
+      ]
+    },
+    {
+      "asset": "Kit/MenuButton.png",
+      "rect_px": [
+        26,
+        348,
+        250,
+        98
+      ]
+    },
+    {
+      "asset": "Kit/MenuButton.png",
+      "rect_px": [
+        26,
+        456,
+        250,
+        98
+      ]
+    },
+    {
+      "asset": "Kit/StickyNote.png",
+      "rect_px": [
+        36,
+        645,
+        395,
+        200
+      ]
+    },
+    {
+      "asset": "Kit/ProgressTrack.png",
+      "rect_px": [
+        64,
+        795,
+        320,
+        17
+      ]
+    },
+    {
+      "asset": "Kit/GoalTracker.png",
+      "rect_px": [
+        1506,
+        240,
+        384,
+        450
+      ]
+    },
+    {
+      "asset": "Kit/ProgressTrack.png",
+      "rect_px": [
+        1549,
+        603,
+        300,
+        20
+      ]
+    },
+    {
+      "asset": "Kit/Reticle_Active.png",
+      "rect_px": [
+        944,
+        524,
+        32,
+        32
+      ]
+    },
+    {
+      "asset": "Kit/Prompt.png",
+      "rect_px": [
+        695,
+        582,
+        530,
+        88
+      ]
+    },
+    {
+      "asset": "Kit/KeyBadge.png",
+      "rect_px": [
+        718,
+        600,
+        52,
+        52
+      ]
+    }
+  ],
+  "HUD_Phone": [
+    {
+      "asset": "Kit/HudPanel.png",
+      "rect_px": [
+        30,
+        25,
+        425,
+        175
+      ]
+    },
+    {
+      "asset": "Kit/ProgressTrack.png",
+      "rect_px": [
+        106,
+        153,
+        303,
+        23
+      ]
+    },
+    {
+      "asset": "Kit/HudPanel.png",
+      "rect_px": [
+        2005,
+        25,
+        305,
+        145
+      ]
+    },
+    {
+      "asset": "Kit/ProgressTrack.png",
+      "rect_px": [
+        2043,
+        133,
+        236,
+        24
+      ]
+    },
+    {
+      "asset": "Kit/MenuButton.png",
+      "rect_px": [
+        26,
+        240,
+        250,
+        98
+      ]
+    },
+    {
+      "asset": "Kit/MenuButton.png",
+      "rect_px": [
+        26,
+        348,
+        250,
+        98
+      ]
+    },
+    {
+      "asset": "Kit/MenuButton.png",
+      "rect_px": [
+        26,
+        456,
+        250,
+        98
+      ]
+    },
+    {
+      "asset": "Kit/StickyNote.png",
+      "rect_px": [
+        36,
+        645,
+        395,
+        200
+      ]
+    },
+    {
+      "asset": "Kit/ProgressTrack.png",
+      "rect_px": [
+        64,
+        795,
+        320,
+        17
+      ]
+    },
+    {
+      "asset": "Kit/GoalTracker.png",
+      "rect_px": [
+        1926,
+        240,
+        384,
+        450
+      ]
+    },
+    {
+      "asset": "Kit/ProgressTrack.png",
+      "rect_px": [
+        1969,
+        603,
+        300,
+        20
+      ]
+    },
+    {
+      "asset": "Kit/Reticle_Active.png",
+      "rect_px": [
+        1154,
+        524,
+        32,
+        32
+      ]
+    },
+    {
+      "asset": "Kit/Prompt.png",
+      "rect_px": [
+        905,
+        582,
+        530,
+        88
+      ]
+    },
+    {
+      "asset": "Kit/TouchButton.png",
+      "rect_px": [
+        1995,
+        825,
+        145,
+        145
+      ]
+    },
+    {
+      "asset": "Kit/TouchButton.png",
+      "rect_px": [
+        2160,
+        825,
+        145,
+        145
+      ]
+    }
+  ],
+  "Computer_Jobs": [
+    {
+      "asset": "Kit/Panel.png",
+      "rect_px": [
+        55,
+        40,
+        1810,
+        980
+      ]
+    },
+    {
+      "asset": "Kit/Button_Neutral.png",
+      "rect_px": [
+        1615,
+        65,
+        190,
+        88
+      ]
+    },
+    {
+      "asset": "Computer/Taskbar.png",
+      "rect_px": [
+        0,
+        1000,
+        1920,
+        80
+      ]
+    },
+    {
+      "asset": "Kit/Card.png",
+      "rect_px": [
+        100,
+        260,
+        550,
+        650
+      ]
+    },
+    {
+      "asset": "Kit/Button_Primary.png",
+      "rect_px": [
+        135,
+        815,
+        480,
+        88
+      ]
+    },
+    {
+      "asset": "Kit/Card.png",
+      "rect_px": [
+        675,
+        260,
+        550,
+        650
+      ]
+    },
+    {
+      "asset": "Kit/Button_Primary.png",
+      "rect_px": [
+        710,
+        815,
+        480,
+        88
+      ]
+    },
+    {
+      "asset": "Kit/Button_Disabled.png",
+      "rect_px": [
+        710,
+        815,
+        480,
+        88
+      ]
+    },
+    {
+      "asset": "Kit/Card.png",
+      "rect_px": [
+        1250,
+        260,
+        550,
+        650
+      ]
+    },
+    {
+      "asset": "Kit/Button_Primary.png",
+      "rect_px": [
+        1285,
+        815,
+        480,
+        88
+      ]
+    }
+  ],
+  "Computer_Orders": [
+    {
+      "asset": "Kit/Panel.png",
+      "rect_px": [
+        55,
+        40,
+        1810,
+        980
+      ]
+    },
+    {
+      "asset": "Kit/Button_Neutral.png",
+      "rect_px": [
+        1615,
+        65,
+        190,
+        88
+      ]
+    },
+    {
+      "asset": "Computer/Taskbar.png",
+      "rect_px": [
+        0,
+        1000,
+        1920,
+        80
+      ]
+    },
+    {
+      "asset": "Kit/Tab_Active.png",
+      "rect_px": [
+        104,
+        177,
+        265,
+        92
+      ]
+    },
+    {
+      "asset": "Kit/Tab.png",
+      "rect_px": [
+        386,
+        177,
+        265,
+        92
+      ]
+    },
+    {
+      "asset": "Kit/Tab.png",
+      "rect_px": [
+        668,
+        177,
+        265,
+        92
+      ]
+    },
+    {
+      "asset": "Kit/Tab.png",
+      "rect_px": [
+        950,
+        177,
+        265,
+        92
+      ]
+    },
+    {
+      "asset": "Kit/Tab.png",
+      "rect_px": [
+        1232,
+        177,
+        265,
+        92
+      ]
+    },
+    {
+      "asset": "Kit/Tab.png",
+      "rect_px": [
+        1514,
+        177,
+        265,
+        92
+      ]
+    },
+    {
+      "asset": "Kit/Card.png",
+      "rect_px": [
+        105,
+        285,
+        405,
+        660
+      ]
+    },
+    {
+      "asset": "Kit/Button_Money.png",
+      "rect_px": [
+        131,
+        840,
+        353,
+        88
+      ]
+    },
+    {
+      "asset": "Kit/Card.png",
+      "rect_px": [
+        534,
+        285,
+        405,
+        660
+      ]
+    },
+    {
+      "asset": "Kit/Button_Disabled.png",
+      "rect_px": [
+        560,
+        840,
+        353,
+        88
+      ]
+    },
+    {
+      "asset": "Kit/Card.png",
+      "rect_px": [
+        963,
+        285,
+        405,
+        660
+      ]
+    },
+    {
+      "asset": "Kit/Button_Danger.png",
+      "rect_px": [
+        989,
+        840,
+        353,
+        88
+      ]
+    },
+    {
+      "asset": "Kit/Card_Locked.png",
+      "rect_px": [
+        1392,
+        285,
+        405,
+        660
+      ]
+    },
+    {
+      "asset": "Kit/Button_Disabled.png",
+      "rect_px": [
+        1418,
+        840,
+        353,
+        88
+      ]
+    }
+  ],
+  "Computer_Premium": [
+    {
+      "asset": "Kit/Panel.png",
+      "rect_px": [
+        55,
+        40,
+        1810,
+        980
+      ]
+    },
+    {
+      "asset": "Kit/Button_Neutral.png",
+      "rect_px": [
+        1615,
+        65,
+        190,
+        88
+      ]
+    },
+    {
+      "asset": "Computer/Taskbar.png",
+      "rect_px": [
+        0,
+        1000,
+        1920,
+        80
+      ]
+    },
+    {
+      "asset": "Kit/Card.png",
+      "rect_px": [
+        111,
+        220,
+        402,
+        270
+      ]
+    },
+    {
+      "asset": "Kit/Button_Robux.png",
+      "rect_px": [
+        271,
+        351,
+        220,
+        92
+      ]
+    },
+    {
+      "asset": "Kit/Card.png",
+      "rect_px": [
+        540,
+        220,
+        402,
+        270
+      ]
+    },
+    {
+      "asset": "Kit/Button_Robux.png",
+      "rect_px": [
+        700,
+        351,
+        220,
+        92
+      ]
+    },
+    {
+      "asset": "Kit/Card.png",
+      "rect_px": [
+        969,
+        220,
+        402,
+        270
+      ]
+    },
+    {
+      "asset": "Kit/Button_Robux.png",
+      "rect_px": [
+        1129,
+        351,
+        220,
+        92
+      ]
+    },
+    {
+      "asset": "Kit/Card.png",
+      "rect_px": [
+        1398,
+        220,
+        402,
+        270
+      ]
+    },
+    {
+      "asset": "Kit/Button_Disabled.png",
+      "rect_px": [
+        1558,
+        351,
+        220,
+        92
+      ]
+    },
+    {
+      "asset": "Kit/Card.png",
+      "rect_px": [
+        112,
+        587,
+        402,
+        360
+      ]
+    },
+    {
+      "asset": "Kit/Button_Robux.png",
+      "rect_px": [
+        137,
+        860,
+        352,
+        88
+      ]
+    },
+    {
+      "asset": "Kit/Card.png",
+      "rect_px": [
+        541,
+        587,
+        402,
+        360
+      ]
+    },
+    {
+      "asset": "Kit/Button_Neutral.png",
+      "rect_px": [
+        566,
+        860,
+        352,
+        88
+      ]
+    },
+    {
+      "asset": "Kit/Card.png",
+      "rect_px": [
+        970,
+        587,
+        402,
+        360
+      ]
+    },
+    {
+      "asset": "Kit/Button_Neutral.png",
+      "rect_px": [
+        995,
+        860,
+        352,
+        88
+      ]
+    },
+    {
+      "asset": "Kit/Card.png",
+      "rect_px": [
+        1399,
+        587,
+        402,
+        360
+      ]
+    },
+    {
+      "asset": "Kit/Button_Neutral.png",
+      "rect_px": [
+        1424,
+        860,
+        352,
+        88
+      ]
+    }
+  ],
+  "Computer_Messages": [
+    {
+      "asset": "Kit/Panel.png",
+      "rect_px": [
+        55,
+        40,
+        1810,
+        980
+      ]
+    },
+    {
+      "asset": "Kit/Button_Neutral.png",
+      "rect_px": [
+        1615,
+        65,
+        190,
+        88
+      ]
+    },
+    {
+      "asset": "Computer/Taskbar.png",
+      "rect_px": [
+        0,
+        1000,
+        1920,
+        80
+      ]
+    },
+    {
+      "asset": "Kit/Card.png",
+      "rect_px": [
+        95,
+        177,
+        487,
+        780
+      ]
+    },
+    {
+      "asset": "Kit/ThreadCard_Active.png",
+      "rect_px": [
+        113,
+        200,
+        450,
+        147
+      ]
+    },
+    {
+      "asset": "Kit/PortraitRing.png",
+      "rect_px": [
+        126,
+        213,
+        101,
+        101
+      ]
+    },
+    {
+      "asset": "Kit/Badge_Unread.png",
+      "rect_px": [
+        509,
+        223,
+        31,
+        31
+      ]
+    },
+    {
+      "asset": "Kit/ThreadCard.png",
+      "rect_px": [
+        113,
+        365,
+        450,
+        147
+      ]
+    },
+    {
+      "asset": "Kit/PortraitRing.png",
+      "rect_px": [
+        126,
+        378,
+        101,
+        101
+      ]
+    },
+    {
+      "asset": "Kit/ThreadCard.png",
+      "rect_px": [
+        113,
+        530,
+        450,
+        147
+      ]
+    },
+    {
+      "asset": "Kit/PortraitRing.png",
+      "rect_px": [
+        126,
+        543,
+        101,
+        101
+      ]
+    },
+    {
+      "asset": "Kit/ThreadCard.png",
+      "rect_px": [
+        113,
+        695,
+        450,
+        147
+      ]
+    },
+    {
+      "asset": "Kit/PortraitRing.png",
+      "rect_px": [
+        126,
+        708,
+        101,
+        101
+      ]
+    },
+    {
+      "asset": "Kit/PortraitRing.png",
+      "rect_px": [
+        632,
+        184,
+        130,
+        130
+      ]
+    },
+    {
+      "asset": "Kit/Bubble_Theirs.png",
+      "rect_px": [
+        648,
+        350,
+        1010,
+        145
+      ]
+    },
+    {
+      "asset": "Kit/Bubble_Theirs.png",
+      "rect_px": [
+        648,
+        515,
+        1010,
+        130
+      ]
+    },
+    {
+      "asset": "Kit/Bubble_Mine.png",
+      "rect_px": [
+        870,
+        670,
+        881,
+        110
+      ]
+    },
+    {
+      "asset": "Kit/GoalCard.png",
+      "rect_px": [
+        646,
+        814,
+        1110,
+        140
+      ]
+    }
+  ],
+  "Dialogue_PC": [
+    {
+      "asset": "Kit/Bubble.png",
+      "rect_px": [
+        1275,
+        180,
+        565,
+        155
+      ]
+    },
+    {
+      "asset": "Kit/BubbleTail.png",
+      "rect_px": [
+        1445,
+        311,
+        75,
+        45
+      ]
+    },
+    {
+      "asset": "Kit/DialogueBox.png",
+      "rect_px": [
+        265,
+        722,
+        1580,
+        280
+      ]
+    },
+    {
+      "asset": "Kit/PortraitRing.png",
+      "rect_px": [
+        46,
+        651,
+        280,
+        280
+      ]
+    },
+    {
+      "asset": "Kit/NameTag.png",
+      "rect_px": [
+        343,
+        682,
+        348,
+        80
+      ]
+    },
+    {
+      "asset": "Kit/Button_Neutral.png",
+      "rect_px": [
+        1697,
+        25,
+        184,
+        92
+      ]
+    }
+  ],
+  "Dialogue_Phone": [
+    {
+      "asset": "Kit/Bubble.png",
+      "rect_px": [
+        1695,
+        180,
+        565,
+        155
+      ]
+    },
+    {
+      "asset": "Kit/BubbleTail.png",
+      "rect_px": [
+        1865,
+        311,
+        75,
+        45
+      ]
+    },
+    {
+      "asset": "Kit/DialogueBox.png",
+      "rect_px": [
+        265,
+        722,
+        2000,
+        280
+      ]
+    },
+    {
+      "asset": "Kit/PortraitRing.png",
+      "rect_px": [
+        46,
+        651,
+        280,
+        280
+      ]
+    },
+    {
+      "asset": "Kit/NameTag.png",
+      "rect_px": [
+        343,
+        682,
+        348,
+        80
+      ]
+    },
+    {
+      "asset": "Kit/Button_Neutral.png",
+      "rect_px": [
+        2117,
+        25,
+        184,
+        92
+      ]
+    }
+  ],
+  "PayBreakdown": [
+    {
+      "asset": "Kit/Panel.png",
+      "rect_px": [
+        380,
+        60,
+        1160,
+        940
+      ]
+    },
+    {
+      "asset": "Kit/ProgressTrack.png",
+      "rect_px": [
+        474,
+        797,
+        972,
+        13
+      ]
+    },
+    {
+      "asset": "Kit/Button_Primary.png",
+      "rect_px": [
+        652,
+        912,
+        616,
+        88
+      ]
+    }
+  ],
+  "BestYard": [
+    {
+      "asset": "Kit/Panel.png",
+      "rect_px": [
+        220,
+        45,
+        1480,
+        975
+      ]
+    },
+    {
+      "asset": "Kit/Ribbon.png",
+      "rect_px": [
+        435,
+        62,
+        1050,
+        151
+      ]
+    },
+    {
+      "asset": "Kit/ProgressTrack.png",
+      "rect_px": [
+        658,
+        591,
+        420,
+        25
+      ]
+    },
+    {
+      "asset": "Kit/ProgressTrack.png",
+      "rect_px": [
+        1190,
+        591,
+        320,
+        25
+      ]
+    },
+    {
+      "asset": "Kit/ProgressTrack.png",
+      "rect_px": [
+        658,
+        658,
+        420,
+        25
+      ]
+    },
+    {
+      "asset": "Kit/ProgressTrack.png",
+      "rect_px": [
+        1190,
+        658,
+        320,
+        25
+      ]
+    },
+    {
+      "asset": "Kit/ProgressTrack.png",
+      "rect_px": [
+        658,
+        725,
+        420,
+        25
+      ]
+    },
+    {
+      "asset": "Kit/ProgressTrack.png",
+      "rect_px": [
+        1190,
+        725,
+        320,
+        25
+      ]
+    },
+    {
+      "asset": "Kit/ProgressTrack.png",
+      "rect_px": [
+        658,
+        792,
+        420,
+        25
+      ]
+    },
+    {
+      "asset": "Kit/ProgressTrack.png",
+      "rect_px": [
+        1190,
+        792,
+        320,
+        25
+      ]
+    },
+    {
+      "asset": "Kit/Button_Primary.png",
+      "rect_px": [
+        1206,
+        891,
+        380,
+        90
+      ]
+    }
+  ],
+  "Sheet": [
+    {
+      "asset": "Kit/Button_Primary.png",
+      "rect_px": [
+        82,
+        865,
+        350,
+        100
+      ]
+    },
+    {
+      "asset": "Kit/Button_Primary_Pressed.png",
+      "rect_px": [
+        447,
+        865,
+        225,
+        100
+      ]
+    },
+    {
+      "asset": "Kit/Button_Money.png",
+      "rect_px": [
+        717,
+        865,
+        350,
+        100
+      ]
+    },
+    {
+      "asset": "Kit/Button_Money_Pressed.png",
+      "rect_px": [
+        1082,
+        865,
+        225,
+        100
+      ]
+    },
+    {
+      "asset": "Kit/Button_Danger.png",
+      "rect_px": [
+        1352,
+        865,
+        350,
+        100
+      ]
+    },
+    {
+      "asset": "Kit/Button_Danger_Pressed.png",
+      "rect_px": [
+        1717,
+        865,
+        225,
+        100
+      ]
+    },
+    {
+      "asset": "Kit/Button_Neutral.png",
+      "rect_px": [
+        82,
+        993,
+        350,
+        100
+      ]
+    },
+    {
+      "asset": "Kit/Button_Neutral_Pressed.png",
+      "rect_px": [
+        447,
+        993,
+        225,
+        100
+      ]
+    },
+    {
+      "asset": "Kit/Button_Disabled.png",
+      "rect_px": [
+        717,
+        993,
+        350,
+        100
+      ]
+    },
+    {
+      "asset": "Kit/Button_Disabled_Pressed.png",
+      "rect_px": [
+        1082,
+        993,
+        225,
+        100
+      ]
+    },
+    {
+      "asset": "Kit/Button_Robux.png",
+      "rect_px": [
+        1352,
+        993,
+        350,
+        100
+      ]
+    },
+    {
+      "asset": "Kit/Button_Robux_Pressed.png",
+      "rect_px": [
+        1717,
+        993,
+        225,
+        100
+      ]
+    },
+    {
+      "asset": "Kit/Panel.png",
+      "rect_px": [
+        82,
+        1190,
+        590,
+        340
+      ]
+    },
+    {
+      "asset": "Kit/Card.png",
+      "rect_px": [
+        104,
+        1290,
+        548,
+        210
+      ]
+    },
+    {
+      "asset": "Kit/Tab_Active.png",
+      "rect_px": [
+        118,
+        1310,
+        230,
+        92
+      ]
+    },
+    {
+      "asset": "Kit/Tab.png",
+      "rect_px": [
+        363,
+        1310,
+        230,
+        92
+      ]
+    },
+    {
+      "asset": "Kit/ProgressTrack.png",
+      "rect_px": [
+        120,
+        1440,
+        490,
+        27
+      ]
+    },
+    {
+      "asset": "Kit/Prompt.png",
+      "rect_px": [
+        740,
+        1188,
+        570,
+        103
+      ]
+    },
+    {
+      "asset": "Kit/Prompt_Blocked.png",
+      "rect_px": [
+        740,
+        1313,
+        570,
+        103
+      ]
+    },
+    {
+      "asset": "Kit/Toast.png",
+      "rect_px": [
+        740,
+        1450,
+        570,
+        100
+      ]
+    },
+    {
+      "asset": "Kit/Bubble_Theirs.png",
+      "rect_px": [
+        1380,
+        1190,
+        570,
+        150
+      ]
+    },
+    {
+      "asset": "Kit/StickyNote.png",
+      "rect_px": [
+        1380,
+        1390,
+        570,
+        150
+      ]
+    }
+  ]
+}
