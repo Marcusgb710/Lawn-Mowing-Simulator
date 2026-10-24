@@ -305,7 +305,7 @@ function CutsceneController:Start()
 			Parent = overlay,
 		})
 	end
-	title = UI.label("", {
+	title = UI.heading("", {
 		AnchorPoint = Vector2.new(0.5, 1),
 		Position = UDim2.new(0.5, 0, 0.88, -36),
 		Size = UDim2.new(0.8, 0, 0, 40),

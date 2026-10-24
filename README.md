@@ -172,6 +172,10 @@ src/shared/                  -> ReplicatedStorage.Shared   code used by both ser
   Config/Story.luau             the story (docs/STORY.md): every line, beat and act gate
   Config/TurfKing.luau          TurfKing taking jobs off your board, and customers won back from it
   Config/Contest.luau           the Best Yard contest: scoring, Gloria's bar, rewards, when it's on
+  Config/GuiArt.luau            GENERATED: the GUI art's image ids, slices, palette and bitmap fonts
+                                (scripts/gui-art-ids.py; see HANDOFF.md, "GUI art")
+  GuiLayout.luau                the GUI's layout maths: bitmap text, the hold ring, striped fills
+  PayBreakdown.luau             a finished job's pay split into dollar lines for the pay breakdown
   Shop.luau                     what a player may buy (shared by the server and the shop menu)
   Assets.luau                   finds a real model or falls back to a placeholder
   Placeholders.luau             the block models used until real ones exist
@@ -198,7 +202,11 @@ src/client/                  -> StarterPlayer.StarterPlayerScripts.Client
                                 drive cutscene, first-person camera and arms, the story's dialogue,
                                 the Messages app, Gloria's yard as your act has it, and the Best
                                 Yard contest's judges and results screen
-  StoryArt.luau                 image ids for the story's portraits, dialogue box and bubbles
+  UI.luau                       the look: colours, fonts, windows, cards, buttons, bars, prompts
+  Art.luau                      the GUI art by name (plain frames wherever an id is still "")
+  BitmapText.luau               money, scores, timers and headlines in the display font's atlases
+  Goal.luau                     your story goal, for the Messages app and Grandma's sticky note
+  StoryArt.luau                 the story's art: portraits by mood, dialogue box, bubbles, contest
 ```
 
 Most balancing happens in the files in `src/shared/Config/`, no other code changes needed. The

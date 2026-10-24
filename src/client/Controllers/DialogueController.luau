@@ -11,8 +11,10 @@
 -- The server queues the scenes (StoryService). They play here once the moment's right (after
 -- the title card, not on a job, at the computer or in a menu), and the server's told when each
 -- has been watched or skipped. The first one a new player gets is the intro, and the first-job
--- coach (TutorialController) waits for it. The lines are in Config/Story.luau, the art in
--- StoryArt (plain frames until it's uploaded), and the colors and font in UI.
+-- coach (TutorialController) waits for it. An act's opening scene starts with its title card
+-- ("Act 2: TurfKing"). The lines are in Config/Story.luau (each speaker's portrait wears the
+-- line's `mood`), the art in StoryArt (plain frames until it's uploaded), and the colors and fonts
+-- in UI.
 
 local ContextActionService = game:GetService("ContextActionService")
 local Players = game:GetService("Players")
@@ -27,6 +29,7 @@ local Net = require(Shared.Net)
 local Signal = require(Shared.Signal)
 local Story = require(Shared.Config.Story)
 
+local Art = require(script.Parent.Parent.Art)
 local ClientState = require(script.Parent.Parent.ClientState)
 local StoryArt = require(script.Parent.Parent.StoryArt)
 local UI = require(script.Parent.Parent.UI)
@@ -68,7 +71,6 @@ local topBar: Frame
 local bottomBar: Frame
 local caption: TextLabel
 local skipButton: TextButton
-local skipLabel: TextLabel
 local box: GuiObject
 local portrait: Frame
 local nameTag: GuiObject
@@ -143,16 +145,12 @@ local function round(): UICorner
 	return UI.new("UICorner", { CornerRadius = UDim.new(0.5, 0) })
 end
 
--- A box from a 9-slice image, or a plain rounded frame with a dark outline.
-local function sliced(art, color: Color3, radius: number, props): GuiObject
+-- A box from a kit piece (StoryArt's 9-slices), or a plain rounded frame with a dark outline.
+local function sliced(art: Art.Slice?, color: Color3, radius: number, props): GuiObject
 	local frame: GuiObject
-	if art.image ~= "" then
-		frame = UI.new("ImageLabel", {
-			Image = art.image,
-			ScaleType = Enum.ScaleType.Slice,
-			SliceCenter = art.slice,
-			BackgroundTransparency = 1,
-		})
+	if art then
+		frame = UI.new("ImageLabel", {})
+		UI.applySlice(frame :: ImageLabel, art)
 	else
 		frame = UI.new("Frame", { BackgroundColor3 = color }, {
 			UI.corner(radius),
@@ -199,36 +197,61 @@ local function chevron(image: string, pointing: string, color: Color3, size: num
 	return holder
 end
 
--- A round face for someone in Config/Story.luau's Cast: their portrait, or their initials on
--- their color until it's uploaded. Also used by the Messages app.
-function DialogueController.face(castKey: string, size: number): Frame
+-- A round face for someone in Config/Story.luau's Cast: their portrait in the art's portrait ring,
+-- or their initials on their color until it's uploaded. Also used by the Messages app.
+function DialogueController.face(castKey: string, size: number, mood: string?): Frame
 	local frame = UI.new("Frame", {
 		Name = "Face",
 		Size = UDim2.fromOffset(size, size),
 		BackgroundColor3 = UI.Colors.Card,
 	}, { round() })
-	DialogueController.setFace(frame, castKey)
+	DialogueController.setFace(frame, castKey, mood)
 	return frame
 end
 
--- Changes who a face shows.
-function DialogueController.setFace(frame: Frame, castKey: string)
+-- Changes who a face shows, and wearing which `mood` (their usual one if it's nil).
+function DialogueController.setFace(frame: Frame, castKey: string, mood: string?)
 	for _, child in frame:GetChildren() do
-		if child.Name == "Picture" then
+		if child.Name == "Picture" or child.Name == "Ring" then
 			child:Destroy()
 		end
 	end
-	local image = StoryArt.Portraits[castKey] or ""
+	local image = StoryArt.portrait(castKey, mood)
 	local cast = Story.Cast[castKey]
+	local ring = StoryArt.PortraitRing
+	-- The ring is its own frame, so the face's plain outline (if it has one) steps aside for it.
+	local framed = image ~= "" and ring ~= ""
+	frame.BackgroundTransparency = if framed then 1 else 0
+	local stroke = frame:FindFirstChildOfClass("UIStroke")
+	if stroke then
+		stroke.Enabled = not framed
+	end
 	if image ~= "" then
+		-- Inside the ring, the portrait fills its inner circle.
+		local inset, inner = 0, 1
+		if framed then
+			inset, inner = Art.portraitInset()
+		end
 		UI.new("ImageLabel", {
 			Name = "Picture",
 			Image = image,
-			Size = UDim2.fromScale(1, 1),
+			Position = UDim2.fromScale(inset, inset),
+			Size = UDim2.fromScale(inner, inner),
 			BackgroundTransparency = 1,
 			ScaleType = Enum.ScaleType.Crop,
+			ZIndex = frame.ZIndex,
 			Parent = frame,
 		}, { round() })
+		if framed then
+			UI.new("ImageLabel", {
+				Name = "Ring",
+				Image = ring,
+				Size = UDim2.fromScale(1, 1),
+				BackgroundTransparency = 1,
+				ZIndex = frame.ZIndex + 1,
+				Parent = frame,
+			})
+		end
 		return
 	end
 	local color = UI.Colors.Cast[castKey] or UI.Colors.Card
@@ -238,10 +261,11 @@ function DialogueController.setFace(frame: Frame, castKey: string)
 		Name = "Picture",
 		Size = UDim2.fromScale(1, 1),
 		BackgroundColor3 = color,
-		Font = UI.Font,
+		FontFace = UI.Fonts.Heading,
 		Text = if cast then cast.initials else "",
 		TextScaled = true,
 		TextColor3 = if light then UI.Colors.BubbleText else UI.Colors.Text,
+		ZIndex = frame.ZIndex,
 		Parent = frame,
 	}, {
 		round(),
@@ -304,6 +328,7 @@ function DialogueController.bubble(adornee: Instance, speaker: string?, text: st
 		AutomaticSize = Enum.AutomaticSize.Y,
 		RichText = true,
 		TextWrapped = true,
+		FontFace = UI.Fonts.Medium,
 		TextSize = sizes.bubbleText,
 		TextColor3 = UI.Colors.BubbleText,
 		LayoutOrder = 2,
@@ -311,11 +336,11 @@ function DialogueController.bubble(adornee: Instance, speaker: string?, text: st
 		Parent = frame,
 	})
 	-- The tail, half tucked under the bubble.
-	if StoryArt.BubbleTail ~= "" then
+	if StoryArt.BubbleTail ~= "" and StoryArt.Bubble then
 		UI.new("ImageLabel", {
 			AnchorPoint = Vector2.new(0.5, 1),
 			Position = UDim2.fromScale(0.5, 1),
-			Size = UDim2.fromOffset(26, 16),
+			Size = UDim2.fromOffset(36, 18),
 			Image = StoryArt.BubbleTail,
 			BackgroundTransparency = 1,
 			ZIndex = 3,
@@ -477,12 +502,13 @@ local function setDots(count: number, current: number)
 	UI.clearList(dots)
 	for index = 1, count do
 		UI.new("Frame", {
-			Size = UDim2.fromOffset(22, 6),
-			BackgroundColor3 = if index <= current then UI.Colors.Accent else UI.Colors.Track,
+			Size = UDim2.fromOffset(8, 8),
+			BackgroundColor3 = if index == current then UI.Colors.Money else UI.Colors.SubText,
+			BackgroundTransparency = if index < current then 0.2 elseif index == current then 0 else 0.55,
 			BorderSizePixel = 0,
 			LayoutOrder = index,
 			Parent = dots,
-		}, { UI.corner(3) })
+		}, { round() })
 	end
 end
 
@@ -501,14 +527,14 @@ local function layoutBox(text: string, speaking: boolean)
 	portrait.Size = UDim2.fromOffset(sizes.portrait, sizes.portrait)
 	portrait.Position = UDim2.fromOffset(sizes.padX, sizes.padTop - sizes.portraitRise)
 	nameLabel.TextSize = sizes.name
-	nameTag.Position = UDim2.fromOffset(textX - 12, -(sizes.name + 12) / 2 - 3)
+	nameTag.Position = UDim2.fromOffset(textX - 12, -(sizes.name + 16) / 2 - 3)
 	lineLabel.TextSize = sizes.text
 	lineLabel.Position = UDim2.fromOffset(textX, sizes.padTop)
 	lineLabel.Size = UDim2.fromOffset(textWidth, bounds.Y + 6)
 	dots.Position = UDim2.new(0, textX, 1, -sizes.padBottom - sizes.footer / 2)
 	continueButton.Position = UDim2.new(1, -sizes.padX + 6, 1, -sizes.padBottom)
 	continueLabel.TextSize = if sizes.compact then 16 else 18
-	skipLabel.TextSize = if sizes.compact then 16 else 17
+	skipButton.TextSize = if sizes.compact then 16 else 17
 	card.Position = UDim2.new(0.5, 0, 0, sizes.topBar + 14)
 end
 
@@ -541,6 +567,7 @@ local function showCard(info)
 		return
 	end
 	cardLabel.Text = string.upper(info.label or "")
+	cardIcon.BackgroundTransparency = if info.icon and StoryArt.CardIcons[info.icon] ~= "" then 1 else 0
 	cardName.Text = info.name or ""
 	for _, child in cardIcon:GetChildren() do
 		child:Destroy()
@@ -582,8 +609,8 @@ local function showLine(scene, index: number)
 	portrait.Visible = cast ~= nil
 	nameTag.Visible = cast ~= nil
 	if cast then
-		DialogueController.setFace(portrait, line.speaker)
-		nameLabel.Text = cast.name
+		DialogueController.setFace(portrait, line.speaker, line.mood)
+		nameLabel.Text = string.upper(cast.name)
 	end
 	lineLabel.Text = UI.highlight(line.text)
 	-- The narrator's lines are a touch quieter than people's.
@@ -632,10 +659,54 @@ local function onKey(_, state: Enum.UserInputState)
 	return Enum.ContextActionResult.Sink
 end
 
+-- An act's title card over the scene as it starts: its wordmark ("Act 2: TurfKing"), or the words
+-- in the display face, popping in then fading away.
+local titleCard: GuiObject? = nil
+local function actTitle(act: number)
+	if titleCard then
+		titleCard:Destroy()
+	end
+	local info = Story.Acts[act]
+	local holder = UI.new("CanvasGroup", {
+		Name = "ActTitle",
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.34),
+		Size = UDim2.new(0.86, 0, 0, 110),
+		BackgroundTransparency = 1,
+		GroupTransparency = 1,
+		ZIndex = 5,
+		Parent = screen,
+	}, { UI.new("UISizeConstraint", { MaxSize = Vector2.new(760, 110) }) })
+	titleCard = holder
+	UI.wordmark(`Act{act}`, `Act {act}: {if info then info.name else ""}`, 96, {
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.5),
+		Parent = holder,
+	})
+	local scale = UI.new("UIScale", { Scale = 0.7, Parent = holder })
+	TweenService:Create(scale, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = 1 })
+		:Play()
+	TweenService:Create(holder, TweenInfo.new(0.25), { GroupTransparency = 0 }):Play()
+	task.delay(2.6, function()
+		if titleCard ~= holder then
+			return
+		end
+		local out = TweenService:Create(holder, TweenInfo.new(0.5), { GroupTransparency = 1 })
+		out:Play()
+		out.Completed:Wait()
+		holder:Destroy()
+		if titleCard == holder then
+			titleCard = nil
+		end
+	end)
+end
+
 local function open(scene)
 	local touch = touchOnly()
 	caption.Text = string.upper(scene.caption or "")
-	skipLabel.Text = if touch then "Skip" else scene.skipText or "Skip"
+	local skipText = if touch then "Skip" else scene.skipText or "Skip"
+	-- Without the Skip glyph, a » says where it goes.
+	skipButton.Text = if Art.icon("Skip") ~= "" then skipText else `{skipText}  »`
 	continueLabel.Text = if touch then "Tap to continue" else "Click to continue"
 	UI.closeAll()
 	UI.hideGame("Dialogue", true)
@@ -645,6 +716,9 @@ local function open(scene)
 	fade.BackgroundTransparency = 1
 	bars.Enabled = true
 	screen.Enabled = true
+	if scene.act then
+		actTitle(scene.act)
+	end
 	ContextActionService:BindActionAtPriority(
 		"DialogueNext",
 		onKey,
@@ -660,6 +734,10 @@ end
 
 local function close()
 	ContextActionService:UnbindAction("DialogueNext")
+	if titleCard then
+		titleCard:Destroy()
+		titleCard = nil
+	end
 	if typing then
 		typing:Disconnect()
 		typing = nil
@@ -843,6 +921,24 @@ local function build()
 		BorderSizePixel = 0,
 		Parent = bars,
 	})
+	-- The art's soft inner edge along each bar (turned over for the bottom one).
+	if StoryArt.Letterbox ~= "" then
+		for _, bar in { topBar, bottomBar } do
+			local bottom = bar == bottomBar
+			UI.new("ImageLabel", {
+				Name = "Edge",
+				AnchorPoint = Vector2.new(0, if bottom then 1 else 0),
+				Position = UDim2.fromScale(0, if bottom then 0 else 1),
+				Size = UDim2.new(1, 0, 0, 28),
+				Image = StoryArt.Letterbox,
+				ImageColor3 = UI.Colors.Letterbox,
+				ScaleType = Enum.ScaleType.Stretch,
+				Rotation = if bottom then 180 else 0,
+				BackgroundTransparency = 1,
+				Parent = bar,
+			})
+		end
+	end
 
 	-- A click or tap anywhere goes on. It's modal, so it frees the mouse first person locks (the
 	-- HUD's own button for that is hidden with the HUD).
@@ -868,32 +964,20 @@ local function build()
 		TextTruncate = Enum.TextTruncate.AtEnd,
 		Parent = screen,
 	})
-	skipButton = UI.new("TextButton", {
+	skipButton = UI.button("Skip", skip, {
 		Name = "Skip",
+		Style = "Neutral",
+		Icon = "Skip",
+		IconSize = 18,
 		AnchorPoint = Vector2.new(1, 0),
 		Position = UDim2.new(1, -12, 0, 6),
 		Size = UDim2.fromOffset(0, 44),
 		AutomaticSize = Enum.AutomaticSize.X,
-		BackgroundColor3 = UI.Colors.Panel,
-		Text = "",
-		Parent = screen,
-	}, {
-		UI.corner(12),
-		UI.new("UIStroke", { Color = UI.Colors.Card, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }),
-		UI.new("UIPadding", { PaddingLeft = UDim.new(0, 16), PaddingRight = UDim.new(0, 12) }),
-		UI.list(6, Enum.FillDirection.Horizontal),
-	})
-	local skipList = skipButton:FindFirstChildOfClass("UIListLayout") :: UIListLayout
-	skipList.VerticalAlignment = Enum.VerticalAlignment.Center
-	skipLabel = UI.label("Skip", {
-		Size = UDim2.fromOffset(0, 44),
-		AutomaticSize = Enum.AutomaticSize.X,
 		TextSize = 17,
-		LayoutOrder = 1,
-		Parent = skipButton,
+		FontFace = UI.Fonts.Heavy,
+		Parent = screen,
 	})
-	chevron(StoryArt.SkipChevron, "Right", UI.Colors.Text, 16, { LayoutOrder = 2, Parent = skipButton })
-	skipButton.Activated:Connect(skip)
+	UI.new("UIPadding", { PaddingLeft = UDim.new(0, 16), PaddingRight = UDim.new(0, 16), Parent = skipButton })
 
 	-- The box along the bottom.
 	box = sliced(StoryArt.DialogueBox, UI.Colors.Panel, 20, {
@@ -908,20 +992,20 @@ local function build()
 	portrait.ZIndex = 3
 	portrait.Parent = box
 	UI.new("UIStroke", { Color = UI.Colors.Outline, Thickness = 3, Parent = portrait })
-	nameTag = sliced(StoryArt.NameTag, UI.Colors.Accent, 12, {
+	nameTag = sliced(StoryArt.NameTag, UI.Colors.Grandma, 12, {
 		Size = UDim2.fromOffset(0, 0),
 		AutomaticSize = Enum.AutomaticSize.XY,
 		ZIndex = 3,
 		Parent = box,
 	})
 	UI.new("UIPadding", {
-		PaddingLeft = UDim.new(0, 16),
-		PaddingRight = UDim.new(0, 16),
-		PaddingTop = UDim.new(0, 4),
-		PaddingBottom = UDim.new(0, 4),
+		PaddingLeft = UDim.new(0, 20),
+		PaddingRight = UDim.new(0, 20),
+		PaddingTop = UDim.new(0, 6),
+		PaddingBottom = UDim.new(0, 6),
 		Parent = nameTag,
 	})
-	nameLabel = UI.label("", {
+	nameLabel = UI.heading("", {
 		Size = UDim2.fromOffset(0, 0),
 		AutomaticSize = Enum.AutomaticSize.XY,
 		TextColor3 = UI.Colors.BubbleText,
@@ -929,6 +1013,8 @@ local function build()
 		Parent = nameTag,
 	})
 	lineLabel = UI.label("", {
+		-- The body font, which TextService measures exactly (see layoutBox).
+		FontFace = UI.Fonts.Body,
 		TextWrapped = true,
 		RichText = true,
 		TextYAlignment = Enum.TextYAlignment.Top,
@@ -958,6 +1044,7 @@ local function build()
 	local continueList = continueButton:FindFirstChildOfClass("UIListLayout") :: UIListLayout
 	continueList.VerticalAlignment = Enum.VerticalAlignment.Center
 	continueLabel = UI.label("Click to continue", {
+		FontFace = UI.Fonts.Heavy,
 		Size = UDim2.fromOffset(0, 44),
 		AutomaticSize = Enum.AutomaticSize.X,
 		TextColor3 = UI.Colors.SubText,
@@ -973,7 +1060,7 @@ local function build()
 	continueButton.Activated:Connect(advance)
 
 	-- The card that pops up for a new tool.
-	card = sliced({ image = "" }, UI.Colors.Panel, 16, {
+	card = sliced(Art.slice("Card"), UI.Colors.Panel, 16, {
 		Name = "Card",
 		AnchorPoint = Vector2.new(0.5, 0),
 		Size = UDim2.fromOffset(300, 64),
@@ -988,15 +1075,15 @@ local function build()
 		ZIndex = 3,
 		Parent = card,
 	}, { UI.corner(10) })
-	cardLabel = UI.label("", {
+	cardLabel = UI.heading("", {
 		Position = UDim2.fromOffset(68, 10),
 		Size = UDim2.new(1, -80, 0, 18),
-		TextSize = 13,
+		TextSize = 14,
 		TextColor3 = UI.Colors.Accent,
 		ZIndex = 3,
 		Parent = card,
 	})
-	cardName = UI.label("", {
+	cardName = UI.heading("", {
 		Position = UDim2.fromOffset(68, 28),
 		Size = UDim2.new(1, -80, 0, 24),
 		TextSize = 18,

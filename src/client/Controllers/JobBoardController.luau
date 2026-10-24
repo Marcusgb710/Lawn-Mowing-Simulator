@@ -35,11 +35,11 @@ local function stamp(card: GuiObject, landing: boolean)
 		holder = UI.new("ImageLabel", {
 			Image = StoryArt.StampTakenByTurfKing,
 			ScaleType = Enum.ScaleType.Fit,
-			Size = UDim2.fromOffset(240, 80),
+			Size = UDim2.fromOffset(254, 80),
 			BackgroundTransparency = 1,
 		})
 	else
-		holder = UI.label("TAKEN BY TURFKING", {
+		holder = UI.heading("TAKEN BY TURFKING", {
 			Size = UDim2.fromOffset(0, 40),
 			AutomaticSize = Enum.AutomaticSize.X,
 			TextSize = 22,
@@ -101,21 +101,27 @@ local function render()
 		local locked = level < offer.minLevel
 		local taken = offer.takenBy ~= nil
 
-		local card = UI.new("Frame", {
-			Size = UDim2.new(1, -8, 0, 0),
-			AutomaticSize = Enum.AutomaticSize.Y,
-			BackgroundColor3 = if taken then UI.Colors.Card:Lerp(UI.Colors.TurfKing, 0.45) else UI.Colors.Card,
-			LayoutOrder = index,
-			Parent = list,
-		}, { UI.corner(8) })
+		local card = if taken
+			then UI.sliced("Card_Locked", {
+				Size = UDim2.new(1, -8, 0, 0),
+				AutomaticSize = Enum.AutomaticSize.Y,
+				LayoutOrder = index,
+				Parent = list,
+			}, { color = UI.Colors.Card:Lerp(UI.Colors.TurfKing, 0.45), radius = 8 })
+			else UI.card({
+				Size = UDim2.new(1, -8, 0, 0),
+				AutomaticSize = Enum.AutomaticSize.Y,
+				LayoutOrder = index,
+				Parent = list,
+			})
 
 		-- Text down the left; pay and the button sit on the right.
 		local text = UI.new("Frame", {
-			Size = UDim2.new(1, -140, 0, 0),
+			Size = UDim2.new(1, -150, 0, 0),
 			AutomaticSize = Enum.AutomaticSize.Y,
 			BackgroundTransparency = 1,
 			Parent = card,
-		}, { UI.list(4), UI.padding(10) })
+		}, { UI.list(4), UI.padding(12) })
 		local function line(content: string, props)
 			props.Text = content
 			props.Size = UDim2.fromScale(1, 0)
@@ -125,7 +131,24 @@ local function render()
 			return UI.label(content, props)
 		end
 
-		line(`{offer.name}  ·  {offer.address}`, { TextSize = 20, LayoutOrder = 1 })
+		-- The job and where, with the Jobs glyph (a clipboard) before it.
+		local title = UI.new("Frame", {
+			Size = UDim2.fromScale(1, 0),
+			AutomaticSize = Enum.AutomaticSize.Y,
+			BackgroundTransparency = 1,
+			LayoutOrder = 1,
+			Parent = text,
+		})
+		local clipboard = UI.icon("Jobs", { Size = UDim2.fromOffset(24, 24), Parent = title })
+		local titleX = if clipboard then 32 else 0
+		UI.heading(`{offer.name}  ·  {offer.address}`, {
+			Position = UDim2.fromOffset(titleX, 0),
+			Size = UDim2.new(1, -titleX, 0, 0),
+			AutomaticSize = Enum.AutomaticSize.Y,
+			TextWrapped = true,
+			TextSize = 21,
+			Parent = title,
+		})
 		-- Point brand-new players at the job their free gear can do.
 		local newPlayer = ClientState.profile and ClientState.profile.jobsCompleted == 0
 		if newPlayer and offer.kind == "StarterGear" then
@@ -138,11 +161,12 @@ local function render()
 		line(`"{offer.story}"  - {offer.customer}`, {
 			TextSize = 15,
 			TextColor3 = UI.Colors.Text,
-			Font = Enum.Font.Gotham,
+			FontFace = UI.Fonts.Body,
 			LayoutOrder = 2,
 		})
 		line(table.concat(offer.todo, "  •  "), {
 			TextSize = 14,
+			FontFace = UI.Fonts.Medium,
 			TextColor3 = UI.Colors.SubText,
 			LayoutOrder = 3,
 		})
@@ -153,29 +177,35 @@ local function render()
 			LayoutOrder = 4,
 		})
 
-		UI.label(Format.money(offer.payout), {
-			AnchorPoint = Vector2.new(1, 0),
-			Position = UDim2.new(1, -12, 0, 8),
-			Size = UDim2.fromOffset(120, 24),
-			TextSize = 22,
-			TextColor3 = UI.Colors.Money,
-			TextXAlignment = Enum.TextXAlignment.Right,
-			Parent = card,
-		})
+		UI.display(
+			"Numbers",
+			Format.money(offer.payout),
+			{ TextSize = 40, Color = UI.Colors.Money, XAlignment = "Right", Fit = true },
+			{
+				AnchorPoint = Vector2.new(1, 0),
+				Position = UDim2.new(1, -12, 0, 8),
+				Size = UDim2.fromOffset(126, 40),
+				Parent = card,
+			}
+		)
 
 		local canAccept = leader and not locked and not taken and ClientState.job == nil
-		UI.button(if taken then "Taken" elseif locked then "Locked" else "Accept", function()
+		UI.button(if taken then "Taken" elseif locked then "Locked" else "Take job", function()
 			if canAccept then
 				accept(offer.id)
 			end
 		end, {
 			AnchorPoint = Vector2.new(1, 0),
-			Position = UDim2.new(1, -12, 0, 40),
-			Size = UDim2.fromOffset(110, 32),
-			BackgroundColor3 = if canAccept then UI.Colors.Accent else UI.Colors.Disabled,
+			Position = UDim2.new(1, -12, 0, 54),
+			Size = UDim2.fromOffset(126, 40),
+			Style = if canAccept then "Primary" else "Disabled",
+			Icon = if locked and not taken then "Lock" else nil,
+			IconSize = 16,
 			AutoButtonColor = canAccept,
 			Parent = card,
 		})
+		-- The card's at least as tall as the pay and the button.
+		UI.new("Frame", { Size = UDim2.fromOffset(1, 106), BackgroundTransparency = 1, Parent = card })
 		if taken then
 			stamp(card, shownOpen[offer.id] == true)
 			shownOpen[offer.id] = nil
@@ -187,7 +217,7 @@ end
 
 function JobBoardController:Start()
 	local window, content = UI.panel("Jobs", "Jobs")
-	status = UI.label("", { TextColor3 = UI.Colors.SubText, Parent = content })
+	status = UI.label("", { FontFace = UI.Fonts.Medium, TextColor3 = UI.Colors.SubText, Parent = content })
 	list = UI.scrollingList(content, {
 		Position = UDim2.fromOffset(0, 30),
 		Size = UDim2.new(1, 0, 1, -30),

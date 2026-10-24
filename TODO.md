@@ -1,6 +1,6 @@
 # What's left — Lawn Mowing Simulator
 
-Last updated: 2026-10-21
+Last updated: 2026-10-24
 
 ## Done so far
 
@@ -273,7 +273,7 @@ One PR per phase, each stacked on the one before. Every phase still needs a Stud
         a bubble over her hat, taking turns about the goal and Gloria;
       - Gloria's house across the south street with her on the porch, her bubble readable from
         the intro's shot, and the fence and shrubs standing right (real decoration models);
-      - fill in `src/client/StoryArt.luau` when the GUI art arrives.
+      - the art (portraits, box, bubbles) once it's uploaded: see **GUI overhaul** below.
 - [ ] **Story 3: the Messages app.** To check in Studio, on PC and on a phone:
       - after the first job: toasts for Mrs. Alvarez's and June's texts at the job site, and a
         badge on the computer's Messages buttons back at the shop;
@@ -327,8 +327,68 @@ One PR per phase, each stacked on the one before. Every phase still needs a Stud
       - the next summer after 12 jobs, with Gloria at 90, the shorter judging scene and
         `ContestWinAgain`;
       - the Best Yard Trophy isn't in the Decorations tab;
-      - tune the scoring (`Config/Contest.luau`) once real yards are judged, and fill in
-        `StoryArt.Contest` and the judges' portraits when the GUI art (instructions38) arrives.
+      - tune the scoring (`Config/Contest.luau`) once real yards are judged. The contest's art
+        (title, ribbon, trophy, striped bars, confetti) is wired: see **GUI overhaul** below.
+
+## GUI overhaul (instructions 38)
+
+ChatGPT's "Maple Grove Summer" GUI art is wired into the code. Until its 312 images are uploaded
+every id in `src/shared/Config/GuiArt.luau` is `""` and each piece is drawn with plain frames in the
+new palette and fonts (DenkOne headings, Nunito text). To switch the art on, see HANDOFF.md
+("GUI art from ChatGPT"): upload, list the ids in `art-source/GUI/uploaded.json`, run
+`python3 scripts/gui-art-ids.py`, then `lune run scripts/check-gui`.
+
+- [ ] **Before the upload: to check in Studio** (PC, and a phone in the Device emulator, landscape):
+      - the new fonts everywhere: DenkOne headings and Nunito text; nothing cut off, especially the
+        Messages app's names, its goal card and the dialogue box (both measure their text);
+      - the HUD: money, level and xp bar top left; the menu buttons with T/G/C badges on the left
+        of each; Grandma's sticky note under them once the story's goal arrives ("Buy the Reel Push
+        Mower $66 / $150"); curb appeal top right; the job tracker under it (to-dos with bars, the
+        timer, damage, Cancel); on a short phone screen both columns shrink to fit, and curb
+        appeal hides while a job's on;
+      - the pay breakdown after a job: the lines add up to what you earned (crew jobs show your
+        share), it stays through the drive home, frees the mouse, and Nice! closes it;
+      - Level Up! and New Tool! (buy a tool) popping in the middle, over the shop computer too;
+        Payday! after collecting the Best Yard prize; the act title at the start of acts 1 to 4;
+      - the look-at prompt under the dot ("[E] Take  Reel Push Mower", red when it won't fit), the
+        dot going green on something usable and red when blocked, and the decoration placing
+        prompt;
+      - buttons in every menu: green, yellow (prices), red (sell, cancel), grey (locked, owned),
+        gold for Robux; the shop and Guide tabs, the selected one green; the Back and X buttons;
+      - toasts, including "New text from Grandma June";
+      - the shop computer: the taskbar's money on a wide screen (hidden on a phone), all five
+        taskbar buttons fitting on a phone, the open app's button green;
+      - dialogue: the straw name tag in capitals, the portrait circle, the round progress dots,
+        Skip, Continue, the scenes' faces for each mood (initials until the portraits are up);
+      - the Best Yard results screen at its usual size on PC and a phone.
+- [ ] **After the upload: to check in Studio**, PC and phone:
+      - **9-slices:** windows, cards, buttons, tabs and prompts keep their round corners at every
+        size (corners shrink on thin buttons and short cards rather than overlapping); buttons sink
+        to their `_Pressed` art while held; nothing draws over a button's words;
+      - **bitmap fonts:** the money counter, the job timer, the pay breakdown total, the Jobs app's
+        pay and the contest scores drawn from the atlases (outline under a cream/yellow face),
+        sharp at their size, kerned and centred; a long amount shrinks to fit; anything the fonts
+        can't draw falls back to the live font;
+      - **HUD:** HudPanel transparency over bright grass; glyphs (money, level, curb appeal, truck,
+        guide, crew, timer, damage, flags and checks) at 16 to 30 px; the sticky note's ink text;
+        menu buttons' key badges sitting in the MenuButton's slot;
+      - **reticle and hold ring:** the three dots at 26 px; the ring sweeping clockwise from the top
+        while you hold E on a tool at the workbench, and gone when it's done or you let go;
+      - **phone buttons:** Pick up, Talk, Place and the rest with their glyphs and words under
+        them, greyed when they won't work; Snip; the decoration buttons with glyphs;
+      - **shop computer:** the wallpaper, the five app icons on the desktop (and their unread
+        badge), the taskbar's icons; item pictures on every Orders, Business, Premium and Sell card,
+        in the Truck menu and the Guide; the pass circles; the Taken by TurfKing stamp;
+      - **story:** portraits in the ring for every mood in the scenes, the dialogue box and name tag,
+        the letterbox's soft edges, bubbles and their tails, the Messages bubbles, thread cards,
+        unread badges and goal card;
+      - **big moments:** the Job Complete, Level Up, New Tool, Payday and act wordmarks at their
+        size; the contest's ribbon, title, trophy, Winner / So Close, striped bars and confetti;
+      - **performance:** frame rate with the HUD up on a phone (the timer reuses its glyphs).
+- [ ] Not used yet: `PriceTag`, `GoalTracker` (the HUD goal uses `StickyNote`), `Stamp_Sold`,
+      `Stamp_Bought`, `Sparkle`, the tier and most tool-condition glyphs, `Crown`. The shop cards
+      stay rows (picture on the left) instead of the style frames' 4-across grid, so long stats
+      and phones still fit.
 
 ## Before release
 
@@ -342,7 +402,9 @@ One PR per phase, each stacked on the one before. Every phase still needs a Stud
 - [ ] **Sounds**: the kit has none. Mower engine, trimmer, rake and blower, cash register, UI
       clicks.
 - [ ] **Animations**: pushing and holding poses for mowers and trimmers.
-- [ ] **UI art**: shop and hotbar icons for every item, a game icon and thumbnails.
+- [ ] **Store art**: put `art-source/GUI/Store/` on the Roblox page (game icon, 5 thumbnails, the
+      pass and product icons) on the Creator Dashboard. The in-game GUI art is under **GUI
+      overhaul** above.
 
 ## Known quirks
 
