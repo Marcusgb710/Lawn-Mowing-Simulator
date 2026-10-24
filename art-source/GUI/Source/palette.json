@@ -1,0 +1,20 @@
+{
+  "ink": "#17301C",
+  "panel": "#24442B",
+  "card": "#315A39",
+  "text": "#FFF7E0",
+  "subtext": "#CFE3C6",
+  "accent": "#7BC74D",
+  "accent_dark": "#4E9A2E",
+  "money": "#FFD24A",
+  "danger": "#E0553F",
+  "info": "#6FB7E8",
+  "rival": "#6B4FBF",
+  "gold": "#E8B931",
+  "grandma": "#E3C27A",
+  "hat_band": "#C8463C",
+  "disabled": "#626D63",
+  "primary_face": "#386E28",
+  "danger_face": "#A43A2E",
+  "locked_card": "#465448"
+}

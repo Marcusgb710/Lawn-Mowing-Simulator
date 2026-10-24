@@ -1,0 +1,1003 @@
+{
+  "Panel": {
+    "file": "Kit/Panel.png",
+    "size_px": [
+      512,
+      320
+    ],
+    "slice_center_px": [
+      64,
+      176,
+      448,
+      256
+    ],
+    "content_inset_px": [
+      26,
+      92,
+      26,
+      32
+    ],
+    "draw_scale": 2
+  },
+  "DialogueBox": {
+    "file": "Kit/DialogueBox.png",
+    "size_px": [
+      512,
+      320
+    ],
+    "slice_center_px": [
+      64,
+      64,
+      448,
+      256
+    ],
+    "content_inset_px": [
+      26,
+      24,
+      26,
+      32
+    ],
+    "draw_scale": 2
+  },
+  "Card": {
+    "file": "Kit/Card.png",
+    "size_px": [
+      384,
+      224
+    ],
+    "slice_center_px": [
+      64,
+      64,
+      320,
+      160
+    ],
+    "content_inset_px": [
+      26,
+      24,
+      26,
+      32
+    ],
+    "draw_scale": 2
+  },
+  "Card_Selected": {
+    "file": "Kit/Card_Selected.png",
+    "size_px": [
+      384,
+      224
+    ],
+    "slice_center_px": [
+      64,
+      64,
+      320,
+      160
+    ],
+    "content_inset_px": [
+      26,
+      24,
+      26,
+      32
+    ],
+    "draw_scale": 2
+  },
+  "Card_Locked": {
+    "file": "Kit/Card_Locked.png",
+    "size_px": [
+      384,
+      224
+    ],
+    "slice_center_px": [
+      64,
+      64,
+      320,
+      160
+    ],
+    "content_inset_px": [
+      26,
+      24,
+      26,
+      32
+    ],
+    "draw_scale": 2
+  },
+  "ThreadCard": {
+    "file": "Kit/ThreadCard.png",
+    "size_px": [
+      384,
+      224
+    ],
+    "slice_center_px": [
+      64,
+      64,
+      320,
+      160
+    ],
+    "content_inset_px": [
+      26,
+      24,
+      26,
+      32
+    ],
+    "draw_scale": 2
+  },
+  "ThreadCard_Active": {
+    "file": "Kit/ThreadCard_Active.png",
+    "size_px": [
+      384,
+      224
+    ],
+    "slice_center_px": [
+      64,
+      64,
+      320,
+      160
+    ],
+    "content_inset_px": [
+      26,
+      24,
+      26,
+      32
+    ],
+    "draw_scale": 2
+  },
+  "GoalCard": {
+    "file": "Kit/GoalCard.png",
+    "size_px": [
+      384,
+      224
+    ],
+    "slice_center_px": [
+      64,
+      64,
+      320,
+      160
+    ],
+    "content_inset_px": [
+      26,
+      24,
+      26,
+      32
+    ],
+    "draw_scale": 2
+  },
+  "GoalTracker": {
+    "file": "Kit/GoalTracker.png",
+    "size_px": [
+      384,
+      224
+    ],
+    "slice_center_px": [
+      64,
+      64,
+      320,
+      160
+    ],
+    "content_inset_px": [
+      26,
+      24,
+      26,
+      32
+    ],
+    "draw_scale": 2
+  },
+  "Button_Primary": {
+    "file": "Kit/Button_Primary.png",
+    "size_px": [
+      384,
+      144
+    ],
+    "slice_center_px": [
+      56,
+      48,
+      328,
+      88
+    ],
+    "content_inset_px": [
+      26,
+      24,
+      26,
+      32
+    ],
+    "draw_scale": 2
+  },
+  "Button_Primary_Pressed": {
+    "file": "Kit/Button_Primary_Pressed.png",
+    "size_px": [
+      384,
+      144
+    ],
+    "slice_center_px": [
+      56,
+      48,
+      328,
+      88
+    ],
+    "content_inset_px": [
+      26,
+      24,
+      26,
+      32
+    ],
+    "draw_scale": 2
+  },
+  "Button_Money": {
+    "file": "Kit/Button_Money.png",
+    "size_px": [
+      384,
+      144
+    ],
+    "slice_center_px": [
+      56,
+      48,
+      328,
+      88
+    ],
+    "content_inset_px": [
+      26,
+      24,
+      26,
+      32
+    ],
+    "draw_scale": 2
+  },
+  "Button_Money_Pressed": {
+    "file": "Kit/Button_Money_Pressed.png",
+    "size_px": [
+      384,
+      144
+    ],
+    "slice_center_px": [
+      56,
+      48,
+      328,
+      88
+    ],
+    "content_inset_px": [
+      26,
+      24,
+      26,
+      32
+    ],
+    "draw_scale": 2
+  },
+  "Button_Danger": {
+    "file": "Kit/Button_Danger.png",
+    "size_px": [
+      384,
+      144
+    ],
+    "slice_center_px": [
+      56,
+      48,
+      328,
+      88
+    ],
+    "content_inset_px": [
+      26,
+      24,
+      26,
+      32
+    ],
+    "draw_scale": 2
+  },
+  "Button_Danger_Pressed": {
+    "file": "Kit/Button_Danger_Pressed.png",
+    "size_px": [
+      384,
+      144
+    ],
+    "slice_center_px": [
+      56,
+      48,
+      328,
+      88
+    ],
+    "content_inset_px": [
+      26,
+      24,
+      26,
+      32
+    ],
+    "draw_scale": 2
+  },
+  "Button_Neutral": {
+    "file": "Kit/Button_Neutral.png",
+    "size_px": [
+      384,
+      144
+    ],
+    "slice_center_px": [
+      56,
+      48,
+      328,
+      88
+    ],
+    "content_inset_px": [
+      26,
+      24,
+      26,
+      32
+    ],
+    "draw_scale": 2
+  },
+  "Button_Neutral_Pressed": {
+    "file": "Kit/Button_Neutral_Pressed.png",
+    "size_px": [
+      384,
+      144
+    ],
+    "slice_center_px": [
+      56,
+      48,
+      328,
+      88
+    ],
+    "content_inset_px": [
+      26,
+      24,
+      26,
+      32
+    ],
+    "draw_scale": 2
+  },
+  "Button_Disabled": {
+    "file": "Kit/Button_Disabled.png",
+    "size_px": [
+      384,
+      144
+    ],
+    "slice_center_px": [
+      56,
+      48,
+      328,
+      88
+    ],
+    "content_inset_px": [
+      26,
+      24,
+      26,
+      32
+    ],
+    "draw_scale": 2
+  },
+  "Button_Disabled_Pressed": {
+    "file": "Kit/Button_Disabled_Pressed.png",
+    "size_px": [
+      384,
+      144
+    ],
+    "slice_center_px": [
+      56,
+      48,
+      328,
+      88
+    ],
+    "content_inset_px": [
+      26,
+      24,
+      26,
+      32
+    ],
+    "draw_scale": 2
+  },
+  "Button_Robux": {
+    "file": "Kit/Button_Robux.png",
+    "size_px": [
+      384,
+      144
+    ],
+    "slice_center_px": [
+      56,
+      48,
+      328,
+      88
+    ],
+    "content_inset_px": [
+      26,
+      24,
+      26,
+      32
+    ],
+    "draw_scale": 2
+  },
+  "Button_Robux_Pressed": {
+    "file": "Kit/Button_Robux_Pressed.png",
+    "size_px": [
+      384,
+      144
+    ],
+    "slice_center_px": [
+      56,
+      48,
+      328,
+      88
+    ],
+    "content_inset_px": [
+      26,
+      24,
+      26,
+      32
+    ],
+    "draw_scale": 2
+  },
+  "Tab": {
+    "file": "Kit/Tab.png",
+    "size_px": [
+      256,
+      128
+    ],
+    "slice_center_px": [
+      42,
+      42,
+      214,
+      86
+    ],
+    "content_inset_px": [
+      26,
+      24,
+      26,
+      32
+    ],
+    "draw_scale": 2
+  },
+  "Tab_Active": {
+    "file": "Kit/Tab_Active.png",
+    "size_px": [
+      256,
+      128
+    ],
+    "slice_center_px": [
+      42,
+      42,
+      214,
+      86
+    ],
+    "content_inset_px": [
+      26,
+      24,
+      26,
+      32
+    ],
+    "draw_scale": 2
+  },
+  "ProgressTrack": {
+    "file": "Kit/ProgressTrack.png",
+    "size_px": [
+      256,
+      64
+    ],
+    "slice_center_px": [
+      32,
+      24,
+      224,
+      40
+    ],
+    "content_inset_px": [
+      26,
+      24,
+      26,
+      32
+    ],
+    "draw_scale": 2
+  },
+  "ProgressFill": {
+    "file": "Kit/ProgressFill.png",
+    "size_px": [
+      256,
+      48
+    ],
+    "slice_center_px": [
+      2,
+      8,
+      254,
+      40
+    ],
+    "tile_mode": "horizontal",
+    "tile_display_size_px": [
+      64,
+      12
+    ],
+    "draw_scale": 2
+  },
+  "ProgressFill_Money": {
+    "file": "Kit/ProgressFill_Money.png",
+    "size_px": [
+      256,
+      48
+    ],
+    "slice_center_px": [
+      2,
+      8,
+      254,
+      40
+    ],
+    "tile_mode": "horizontal",
+    "tile_display_size_px": [
+      64,
+      12
+    ],
+    "draw_scale": 2
+  },
+  "ProgressFill_TurfKing": {
+    "file": "Kit/ProgressFill_TurfKing.png",
+    "size_px": [
+      256,
+      48
+    ],
+    "slice_center_px": [
+      2,
+      8,
+      254,
+      40
+    ],
+    "tile_mode": "horizontal",
+    "tile_display_size_px": [
+      64,
+      12
+    ],
+    "draw_scale": 2
+  },
+  "ScoreFill_You": {
+    "file": "Kit/ScoreFill_You.png",
+    "size_px": [
+      256,
+      48
+    ],
+    "slice_center_px": [
+      2,
+      8,
+      254,
+      40
+    ],
+    "tile_mode": "horizontal",
+    "tile_display_size_px": [
+      64,
+      12
+    ],
+    "draw_scale": 2
+  },
+  "ScoreFill_Rival": {
+    "file": "Kit/ScoreFill_Rival.png",
+    "size_px": [
+      256,
+      48
+    ],
+    "slice_center_px": [
+      2,
+      8,
+      254,
+      40
+    ],
+    "tile_mode": "horizontal",
+    "tile_display_size_px": [
+      64,
+      12
+    ],
+    "draw_scale": 2
+  },
+  "PriceTag": {
+    "file": "Kit/PriceTag.png",
+    "size_px": [
+      288,
+      160
+    ],
+    "slice_center_px": [
+      53,
+      53,
+      235,
+      107
+    ],
+    "content_inset_px": [
+      26,
+      24,
+      26,
+      32
+    ],
+    "draw_scale": 2
+  },
+  "Toast": {
+    "file": "Kit/Toast.png",
+    "size_px": [
+      512,
+      160
+    ],
+    "slice_center_px": [
+      53,
+      53,
+      459,
+      107
+    ],
+    "content_inset_px": [
+      26,
+      24,
+      26,
+      32
+    ],
+    "draw_scale": 2
+  },
+  "Tooltip": {
+    "file": "Kit/Tooltip.png",
+    "size_px": [
+      320,
+      160
+    ],
+    "slice_center_px": [
+      53,
+      53,
+      267,
+      107
+    ],
+    "content_inset_px": [
+      26,
+      24,
+      26,
+      32
+    ],
+    "draw_scale": 2
+  },
+  "Prompt": {
+    "file": "Kit/Prompt.png",
+    "size_px": [
+      512,
+      144
+    ],
+    "slice_center_px": [
+      48,
+      48,
+      464,
+      96
+    ],
+    "content_inset_px": [
+      26,
+      24,
+      26,
+      32
+    ],
+    "draw_scale": 2
+  },
+  "Prompt_Blocked": {
+    "file": "Kit/Prompt_Blocked.png",
+    "size_px": [
+      512,
+      144
+    ],
+    "slice_center_px": [
+      48,
+      48,
+      464,
+      96
+    ],
+    "content_inset_px": [
+      26,
+      24,
+      26,
+      32
+    ],
+    "draw_scale": 2
+  },
+  "HudPanel": {
+    "file": "Kit/HudPanel.png",
+    "size_px": [
+      512,
+      240
+    ],
+    "slice_center_px": [
+      64,
+      64,
+      448,
+      176
+    ],
+    "content_inset_px": [
+      26,
+      24,
+      26,
+      32
+    ],
+    "draw_scale": 2
+  },
+  "MenuButton": {
+    "file": "Kit/MenuButton.png",
+    "size_px": [
+      384,
+      144
+    ],
+    "slice_center_px": [
+      112,
+      48,
+      320,
+      88
+    ],
+    "content_inset_px": [
+      26,
+      24,
+      26,
+      32
+    ],
+    "draw_scale": 2
+  },
+  "KeyBadge": {
+    "file": "Kit/KeyBadge.png",
+    "size_px": [
+      128,
+      128
+    ],
+    "slice_center_px": [
+      42,
+      42,
+      86,
+      86
+    ],
+    "content_inset_px": [
+      26,
+      24,
+      26,
+      32
+    ],
+    "draw_scale": 2
+  },
+  "NameTag": {
+    "file": "Kit/NameTag.png",
+    "size_px": [
+      320,
+      128
+    ],
+    "slice_center_px": [
+      42,
+      42,
+      278,
+      86
+    ],
+    "content_inset_px": [
+      26,
+      24,
+      26,
+      32
+    ],
+    "draw_scale": 2
+  },
+  "Bubble": {
+    "file": "Kit/Bubble.png",
+    "size_px": [
+      384,
+      192
+    ],
+    "slice_center_px": [
+      64,
+      64,
+      320,
+      128
+    ],
+    "content_inset_px": [
+      26,
+      24,
+      26,
+      32
+    ],
+    "draw_scale": 2
+  },
+  "StickyNote": {
+    "file": "Kit/StickyNote.png",
+    "size_px": [
+      384,
+      256
+    ],
+    "slice_center_px": [
+      64,
+      64,
+      320,
+      192
+    ],
+    "content_inset_px": [
+      26,
+      24,
+      26,
+      32
+    ],
+    "draw_scale": 2
+  },
+  "Bubble_Theirs": {
+    "file": "Kit/Bubble_Theirs.png",
+    "size_px": [
+      384,
+      192
+    ],
+    "slice_center_px": [
+      64,
+      64,
+      320,
+      128
+    ],
+    "content_inset_px": [
+      26,
+      24,
+      26,
+      32
+    ],
+    "draw_scale": 2
+  },
+  "Bubble_Mine": {
+    "file": "Kit/Bubble_Mine.png",
+    "size_px": [
+      384,
+      192
+    ],
+    "slice_center_px": [
+      64,
+      64,
+      320,
+      128
+    ],
+    "content_inset_px": [
+      26,
+      24,
+      26,
+      32
+    ],
+    "draw_scale": 2
+  },
+  "ScoreTrack": {
+    "file": "Kit/ScoreTrack.png",
+    "size_px": [
+      384,
+      96
+    ],
+    "slice_center_px": [
+      32,
+      32,
+      352,
+      64
+    ],
+    "content_inset_px": [
+      26,
+      24,
+      26,
+      32
+    ],
+    "draw_scale": 2
+  },
+  "Ribbon": {
+    "file": "Kit/Ribbon.png",
+    "size_px": [
+      512,
+      192
+    ],
+    "slice_center_px": [
+      64,
+      64,
+      448,
+      128
+    ],
+    "content_inset_px": [
+      26,
+      24,
+      26,
+      32
+    ],
+    "draw_scale": 2
+  },
+  "TouchButton": {
+    "file": "Kit/TouchButton.png",
+    "size_px": [
+      256,
+      256
+    ],
+    "slice_center_px": null,
+    "scaling": "uniform",
+    "draw_scale": 2
+  },
+  "TouchButton_Small": {
+    "file": "Kit/TouchButton_Small.png",
+    "size_px": [
+      192,
+      192
+    ],
+    "slice_center_px": null,
+    "scaling": "uniform",
+    "draw_scale": 2
+  },
+  "HoldRing": {
+    "file": "Kit/HoldRing.png",
+    "size_px": [
+      256,
+      256
+    ],
+    "slice_center_px": null,
+    "scaling": "uniform",
+    "draw_scale": 2
+  },
+  "HoldRing_Fill": {
+    "file": "Kit/HoldRing_Fill.png",
+    "size_px": [
+      256,
+      256
+    ],
+    "slice_center_px": null,
+    "scaling": "uniform",
+    "draw_scale": 2
+  },
+  "PortraitRing": {
+    "file": "Kit/PortraitRing.png",
+    "size_px": [
+      256,
+      256
+    ],
+    "slice_center_px": null,
+    "scaling": "uniform",
+    "draw_scale": 2
+  },
+  "Badge_Unread": {
+    "file": "Kit/Badge_Unread.png",
+    "size_px": [
+      64,
+      64
+    ],
+    "slice_center_px": null,
+    "scaling": "uniform",
+    "draw_scale": 2
+  },
+  "Reticle": {
+    "file": "Kit/Reticle.png",
+    "size_px": [
+      64,
+      64
+    ],
+    "slice_center_px": null,
+    "scaling": "uniform"
+  },
+  "Reticle_Active": {
+    "file": "Kit/Reticle_Active.png",
+    "size_px": [
+      64,
+      64
+    ],
+    "slice_center_px": null,
+    "scaling": "uniform"
+  },
+  "Reticle_Blocked": {
+    "file": "Kit/Reticle_Blocked.png",
+    "size_px": [
+      64,
+      64
+    ],
+    "slice_center_px": null,
+    "scaling": "uniform"
+  },
+  "BubbleTail": {
+    "file": "Kit/BubbleTail.png",
+    "size_px": [
+      192,
+      96
+    ],
+    "slice_center_px": null,
+    "scaling": "uniform"
+  },
+  "Letterbox": {
+    "file": "Kit/Letterbox.png",
+    "size_px": [
+      1,
+      64
+    ],
+    "slice_center_px": null,
+    "scaling": "stretch_x",
+    "soft_inner_edge": "bottom; mirror vertically for lower bar"
+  },
+  "Computer/Taskbar": {
+    "file": "Computer/Taskbar.png",
+    "size_px": [
+      512,
+      128
+    ],
+    "slice_center_px": [
+      42,
+      42,
+      470,
+      86
+    ],
+    "content_inset_px": [
+      26,
+      24,
+      26,
+      32
+    ],
+    "draw_scale": 2
+  }
+}

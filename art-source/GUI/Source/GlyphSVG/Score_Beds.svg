@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+<polyline points="64,107 64,64" fill="none" stroke="white" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="64.0" cy="50.0" rx="17.0" ry="17.0" fill="none" stroke="white" stroke-width="8"/>
+<ellipse cx="45.5" cy="46.5" rx="13.5" ry="13.5" fill="none" stroke="white" stroke-width="8"/>
+<ellipse cx="82.5" cy="46.5" rx="13.5" ry="13.5" fill="none" stroke="white" stroke-width="8"/>
+<ellipse cx="63.5" cy="32.0" rx="15.5" ry="15.0" fill="none" stroke="white" stroke-width="8"/>
+<ellipse cx="63.5" cy="70.5" rx="15.5" ry="14.5" fill="none" stroke="white" stroke-width="8"/>
+<polyline points="64,88 36,76" fill="none" stroke="white" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+<polyline points="64,87 92,73" fill="none" stroke="white" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

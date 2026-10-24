@@ -1,0 +1,2288 @@
+[
+  {
+    "id": "ReelMower",
+    "raw_source": "Source/ItemRenders/ReelMower.png",
+    "source_projection_bounds_px": [
+      106.33706819547152,
+      56.77873861324983,
+      395.18372409195837,
+      446.4000788496766
+    ],
+    "uniform_scale": 1.0512771188340195,
+    "translation_px": [
+      -7.618666775642055,
+      -8.49018874036716
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "GasPushMower",
+    "raw_source": "Source/ItemRenders/GasPushMower.png",
+    "source_projection_bounds_px": [
+      97.65015923869336,
+      183.47513746657512,
+      437.687527476024,
+      412.5519394436524
+    ],
+    "uniform_scale": 1.2045734917996362,
+    "translation_px": [
+      -66.42679328894343,
+      -102.97920862044151
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "SelfPropelledMower",
+    "raw_source": "Source/ItemRenders/SelfPropelledMower.png",
+    "source_projection_bounds_px": [
+      101.02629078609749,
+      62.07607017201374,
+      402.3190299877946,
+      452.6478108776697
+    ],
+    "uniform_scale": 1.0487189863249327,
+    "translation_px": [
+      -7.933897286697061,
+      -13.90035338582959
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "RidingMower",
+    "raw_source": "Source/ItemRenders/RidingMower.png",
+    "source_projection_bounds_px": [
+      86.17211881124561,
+      171.3618143775015,
+      421.63148715881096,
+      427.5151946210557
+    ],
+    "uniform_scale": 1.22101225557552,
+    "translation_px": [
+      -54.017213157440665,
+      -109.61808378482465
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "ZeroTurnMower",
+    "raw_source": "Source/ItemRenders/ZeroTurnMower.png",
+    "source_projection_bounds_px": [
+      104.31049634274427,
+      166.33683350968641,
+      440.7537334900409,
+      442.7900633749984
+    ],
+    "uniform_scale": 1.2174416209789203,
+    "translation_px": [
+      -75.79193975262638,
+      -114.78821836257515
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "CommercialZeroTurn",
+    "raw_source": "Source/ItemRenders/CommercialZeroTurn.png",
+    "source_projection_bounds_px": [
+      81.38882797013312,
+      85.46754570661457,
+      417.3487297658507,
+      455.02882753205046
+    ],
+    "uniform_scale": 1.1083412146878433,
+    "translation_px": [
+      -20.385695275774367,
+      -43.52720342485793
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "StandOnMower",
+    "raw_source": "Source/ItemRenders/StandOnMower.png",
+    "source_projection_bounds_px": [
+      70.14043147969323,
+      105.86255989500143,
+      412.03200586730964,
+      449.66394874410975
+    ],
+    "uniform_scale": 1.1913855303818164,
+    "translation_px": [
+      -31.226632502076086,
+      -74.9231220680831
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "CommercialReelMower",
+    "raw_source": "Source/ItemRenders/CommercialReelMower.png",
+    "source_projection_bounds_px": [
+      91.2631804086574,
+      60.178875669296616,
+      404.848634296607,
+      429.2423429981411
+    ],
+    "uniform_scale": 1.1098362104614286,
+    "translation_px": [
+      -19.301428198816495,
+      -15.588695322641627
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "GardenShears",
+    "raw_source": "Source/ItemRenders/GardenShears.png",
+    "source_projection_bounds_px": [
+      139.97800157294375,
+      76.36714572291072,
+      374.89563816377574,
+      443.3437119017956
+    ],
+    "uniform_scale": 1.1161475629491233,
+    "translation_px": [
+      -31.3374791094422,
+      -34.03700358800734
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "ElectricTrimmer",
+    "raw_source": "Source/ItemRenders/ElectricTrimmer.png",
+    "source_projection_bounds_px": [
+      125.46513015821176,
+      192.50285094729614,
+      414.50504709362383,
+      325.1325471425307
+    ],
+    "uniform_scale": 1.4171053062249803,
+    "translation_px": [
+      -126.59730169340969,
+      -110.7719346614868
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "GasTrimmer",
+    "raw_source": "Source/ItemRenders/GasTrimmer.png",
+    "source_projection_bounds_px": [
+      122.24276450511945,
+      187.82700523803732,
+      414.60321691428453,
+      323.3008515659023
+    ],
+    "uniform_scale": 1.4010102824261454,
+    "translation_px": [
+      -120.06337002387022,
+      -102.04769150837893
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "Brushcutter",
+    "raw_source": "Source/ItemRenders/Brushcutter.png",
+    "source_projection_bounds_px": [
+      115.06913578538052,
+      71.24326987140526,
+      393.7451924923427,
+      452.2765110138412
+    ],
+    "uniform_scale": 1.074971828630787,
+    "translation_px": [
+      -17.480534451124868,
+      -25.384508091301143
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "StraightShaftTrimmer",
+    "raw_source": "Source/ItemRenders/StraightShaftTrimmer.png",
+    "source_projection_bounds_px": [
+      137.85195084129265,
+      55.285455045136274,
+      343.09406702045544,
+      450.8752003100989
+    ],
+    "uniform_scale": 1.0354161221384883,
+    "translation_px": [
+      7.01036961382033,
+      -6.043451473496702
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "OldRake",
+    "raw_source": "Source/ItemRenders/OldRake.png",
+    "source_projection_bounds_px": [
+      201.036675336185,
+      82.79464004176339,
+      325.9494322270646,
+      441.5622721866849
+    ],
+    "uniform_scale": 1.1416860477384012,
+    "translation_px": [
+      -44.82634317846521,
+      -43.32548536320439
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "WideRake",
+    "raw_source": "Source/ItemRenders/WideRake.png",
+    "source_projection_bounds_px": [
+      155.5829074890499,
+      76.15567787027558,
+      343.500514502492,
+      460.5545432390894
+    ],
+    "uniform_scale": 1.065559856965256,
+    "translation_px": [
+      -9.90162987551895,
+      -29.948433218542903
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "LeafBlower",
+    "raw_source": "Source/ItemRenders/LeafBlower.png",
+    "source_projection_bounds_px": [
+      155.48595712953846,
+      83.54361848120851,
+      388.3420926525873,
+      445.4198135530234
+    ],
+    "uniform_scale": 1.1318788181651858,
+    "translation_px": [
+      -51.773725136235214,
+      -43.36125215175349
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "BackpackBlower",
+    "raw_source": "Source/ItemRenders/BackpackBlower.png",
+    "source_projection_bounds_px": [
+      60.90777681668908,
+      112.79270998310017,
+      441.29916751812334,
+      420.5931522955166
+    ],
+    "uniform_scale": 1.0767856739467885,
+    "translation_px": [
+      -14.384621508159114,
+      -31.171127593684616
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "HalfMoonEdger",
+    "raw_source": "Source/ItemRenders/HalfMoonEdger.png",
+    "source_projection_bounds_px": [
+      202.90954053284253,
+      61.91968008093494,
+      309.0904594671575,
+      445.50005920091183
+    ],
+    "uniform_scale": 1.0678335553547296,
+    "translation_px": [
+      -17.36539017081077,
+      -14.91991212725219
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "ElectricEdger",
+    "raw_source": "Source/ItemRenders/ElectricEdger.png",
+    "source_projection_bounds_px": [
+      162.971027178918,
+      64.79820171442603,
+      345.25626103594914,
+      455.69373593212595
+    ],
+    "uniform_scale": 1.047850292840345,
+    "translation_px": [
+      -10.273056392701506,
+      -16.69881464198903
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "WalkBehindEdger",
+    "raw_source": "Source/ItemRenders/WalkBehindEdger.png",
+    "source_projection_bounds_px": [
+      116.1380967643648,
+      62.07649717698516,
+      390.1216852906406,
+      452.5020885138031
+    ],
+    "uniform_scale": 1.0491115569487361,
+    "translation_px": [
+      -9.561494086127254,
+      -13.925170603270772
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "GasStickEdger",
+    "raw_source": "Source/ItemRenders/GasStickEdger.png",
+    "source_projection_bounds_px": [
+      165.2219126345941,
+      58.58397899906697,
+      358.5100653349228,
+      455.64427284120586
+    ],
+    "uniform_scale": 1.031581365229248,
+    "translation_px": [
+      -14.136074424004391,
+      -9.23414103641909
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "HandHedgeShears",
+    "raw_source": "Source/ItemRenders/HandHedgeShears.png",
+    "source_projection_bounds_px": [
+      97.84738025037288,
+      134.65083679228468,
+      456.45556985714063,
+      363.5658881418684
+    ],
+    "uniform_scale": 1.1421936583465855,
+    "translation_px": [
+      -60.560657207802876,
+      -28.52999185099742
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "ElectricHedgeTrimmer",
+    "raw_source": "Source/ItemRenders/ElectricHedgeTrimmer.png",
+    "source_projection_bounds_px": [
+      100.45663166815692,
+      159.8275906604518,
+      421.50122046368983,
+      386.52064382416074
+    ],
+    "uniform_scale": 1.2758352400104345,
+    "translation_px": [
+      -76.96611077498278,
+      -92.52516543647636
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "CordlessHedgeTrimmer",
+    "raw_source": "Source/ItemRenders/CordlessHedgeTrimmer.png",
+    "source_projection_bounds_px": [
+      95.69908842906796,
+      150.33375689024658,
+      426.5226925217453,
+      384.7494705292513
+    ],
+    "uniform_scale": 1.2381220533624746,
+    "translation_px": [
+      -67.28715187071464,
+      -75.24917212622438
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "GasHedgeTrimmer",
+    "raw_source": "Source/ItemRenders/GasHedgeTrimmer.png",
+    "source_projection_bounds_px": [
+      93.24736724468943,
+      152.0974837127385,
+      428.20845923716274,
+      393.7610251480654
+    ],
+    "uniform_scale": 1.2228285905194143,
+    "translation_px": [
+      -62.82554665746983,
+      -77.74569550664302
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "ArticulatingHedgeTrimmer",
+    "raw_source": "Source/ItemRenders/ArticulatingHedgeTrimmer.png",
+    "source_projection_bounds_px": [
+      99.14964220996035,
+      210.3340824588193,
+      424.63325731712916,
+      274.42894327799684
+    ],
+    "uniform_scale": 1.2584350824084802,
+    "translation_px": [
+      -73.57338816526283,
+      -49.02139912084721
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "HandTrowel",
+    "raw_source": "Source/ItemRenders/HandTrowel.png",
+    "source_projection_bounds_px": [
+      122.1561616094686,
+      88.14502038754219,
+      389.74104240796214,
+      445.7503151896329
+    ],
+    "uniform_scale": 1.14539691093412,
+    "translation_px": [
+      -37.16273809868909,
+      -49.761034066115826
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "HandTransplanter",
+    "raw_source": "Source/ItemRenders/HandTransplanter.png",
+    "source_projection_bounds_px": [
+      124.45525944201793,
+      83.55754810419066,
+      393.192877506126,
+      450.8288311002134
+    ],
+    "uniform_scale": 1.1152519104098746,
+    "translation_px": [
+      -32.65403682576493,
+      -41.98771515236365
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "HandCultivator",
+    "raw_source": "Source/ItemRenders/HandCultivator.png",
+    "source_projection_bounds_px": [
+      57.572009338965444,
+      93.8869366274802,
+      400.1093175638223,
+      453.819448999046
+    ],
+    "uniform_scale": 1.1379911120036896,
+    "translation_px": [
+      -4.418641072713797,
+      -55.642499415326085
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "DandelionWeeder",
+    "raw_source": "Source/ItemRenders/DandelionWeeder.png",
+    "source_projection_bounds_px": [
+      128.45246385777912,
+      74.36581232000023,
+      381.721662219999,
+      456.9376123699211
+    ],
+    "uniform_scale": 1.070648699006441,
+    "translation_px": [
+      -17.108632175960622,
+      -28.419660210965446
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "Dibber",
+    "raw_source": "Source/ItemRenders/Dibber.png",
+    "source_projection_bounds_px": [
+      173.90942159822953,
+      61.899453857416404,
+      337.43375405130496,
+      431.9306909927046
+    ],
+    "uniform_scale": 1.1069335745031843,
+    "translation_px": [
+      -27.011464609774407,
+      -17.31858371818487
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "StirrupHoe",
+    "raw_source": "Source/ItemRenders/StirrupHoe.png",
+    "source_projection_bounds_px": [
+      236.16381779934102,
+      56.959716002881265,
+      277.97582395967896,
+      458.4058641038683
+    ],
+    "uniform_scale": 1.0203111972492058,
+    "translation_px": [
+      -6.291216718211672,
+      -6.916636029874553
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "BypassPruners",
+    "raw_source": "Source/ItemRenders/BypassPruners.png",
+    "source_projection_bounds_px": [
+      105.26871698260899,
+      145.66877678303217,
+      453.34707312554633,
+      339.35333933673866
+    ],
+    "uniform_scale": 1.1767465364373275,
+    "translation_px": [
+      -72.67459810448645,
+      -29.374047619721807
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "AnvilPruners",
+    "raw_source": "Source/ItemRenders/AnvilPruners.png",
+    "source_projection_bounds_px": [
+      101.79821836768099,
+      142.7979732513188,
+      453.77186949188535,
+      352.21358123785103
+    ],
+    "uniform_scale": 1.1637234738786184,
+    "translation_px": [
+      -67.2649763134919,
+      -32.02828290009586
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "FloralSnips",
+    "raw_source": "Source/ItemRenders/FloralSnips.png",
+    "source_projection_bounds_px": [
+      136.82279321422254,
+      167.76691353604267,
+      435.2634116926805,
+      333.59016292918557
+    ],
+    "uniform_scale": 1.3724673339985247,
+    "translation_px": [
+      -136.58481423295547,
+      -88.04810505876316
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "Loppers",
+    "raw_source": "Source/ItemRenders/Loppers.png",
+    "source_projection_bounds_px": [
+      95.37819159931249,
+      140.4423330337757,
+      459.1609532373035,
+      353.44692409857765
+    ],
+    "uniform_scale": 1.1259467000462293,
+    "translation_px": [
+      -56.19076008762289,
+      -22.046489628228414
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "PruningSaw",
+    "raw_source": "Source/ItemRenders/PruningSaw.png",
+    "source_projection_bounds_px": [
+      76.56634388743822,
+      143.8470275227573,
+      450.32651313049087,
+      347.2592226736534
+    ],
+    "uniform_scale": 1.0958899147266843,
+    "translation_px": [
+      -32.708284073738696,
+      -13.099193324743112
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "GardenHoseWand",
+    "raw_source": "Source/ItemRenders/GardenHoseWand.png",
+    "source_projection_bounds_px": [
+      87.62027382194793,
+      75.32967412782722,
+      447.52721366825494,
+      321.70959436309903
+    ],
+    "uniform_scale": 1.13807196986786,
+    "translation_px": [
+      -48.51817762890556,
+      30.070368796818684
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "WateringCan",
+    "raw_source": "Source/ItemRenders/WateringCan.png",
+    "source_projection_bounds_px": [
+      113.6614783073424,
+      120.5985710271083,
+      382.89874870694223,
+      368.0559187461506
+    ],
+    "uniform_scale": 1.5213346926006008,
+    "translation_px": [
+      -121.71715016123062,
+      -115.70351399355212
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "NitrileGloves",
+    "raw_source": "Source/ItemRenders/NitrileGloves.png",
+    "source_projection_bounds_px": [
+      88.14239097951094,
+      177.85131785576448,
+      437.5624181562523,
+      321.4312120681484
+    ],
+    "uniform_scale": 1.1722281728082484,
+    "translation_px": [
+      -52.122993924862385,
+      -36.63652388389403
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "ChemicalGloves",
+    "raw_source": "Source/ItemRenders/ChemicalGloves.png",
+    "source_projection_bounds_px": [
+      82.69726988047458,
+      171.08106556615854,
+      441.0192491922806,
+      330.6720855119296
+    ],
+    "uniform_scale": 1.1431059874883442,
+    "translation_px": [
+      -43.33174434931004,
+      -30.77851561925314
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "RoundPointShovel",
+    "raw_source": "Source/ItemRenders/RoundPointShovel.png",
+    "source_projection_bounds_px": [
+      229.41830917419188,
+      58.10829332087829,
+      281.01934586094643,
+      452.6803409694302
+    ],
+    "uniform_scale": 1.0380867130375986,
+    "translation_px": [
+      -8.939273763023152,
+      -9.121447213695149
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "GardenSpade",
+    "raw_source": "Source/ItemRenders/GardenSpade.png",
+    "source_projection_bounds_px": [
+      222.273841594676,
+      57.84795913518403,
+      290.6483499651236,
+      458.629042050698
+    ],
+    "uniform_scale": 1.0220043247059771,
+    "translation_px": [
+      -6.104349005891379,
+      -7.920864411572779
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "Broadfork",
+    "raw_source": "Source/ItemRenders/Broadfork.png",
+    "source_projection_bounds_px": [
+      198.86379181741063,
+      53.689026792444,
+      316.6808742986212,
+      458.47696153909953
+    ],
+    "uniform_scale": 1.0118878673010752,
+    "translation_px": [
+      -4.83669634729813,
+      -3.127274818476451
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "DiggingFork",
+    "raw_source": "Source/ItemRenders/DiggingFork.png",
+    "source_projection_bounds_px": [
+      222.72561738674202,
+      58.05789867596829,
+      290.2816607126493,
+      457.87568219018374
+    ],
+    "uniform_scale": 1.0244666867986796,
+    "translation_px": [
+      -6.7794332490461215,
+      -8.278383099062694
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "BowRake",
+    "raw_source": "Source/ItemRenders/BowRake.png",
+    "source_projection_bounds_px": [
+      212.4663038315865,
+      63.43593105407814,
+      300.453876064799,
+      457.9399995974678
+    ],
+    "uniform_scale": 1.0382655913089778,
+    "translation_px": [
+      -10.273686937213938,
+      -14.66334446609801
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "Mattock",
+    "raw_source": "Source/ItemRenders/Mattock.png",
+    "source_projection_bounds_px": [
+      181.18211304522663,
+      88.50526167800024,
+      303.2148683533621,
+      430.05868779761244
+    ],
+    "uniform_scale": 1.199226734901959,
+    "translation_px": [
+      -34.45090519949724,
+      -54.93787598375167
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "SingleWheelbarrow",
+    "raw_source": "Source/ItemRenders/SingleWheelbarrow.png",
+    "source_projection_bounds_px": [
+      80.53979440035329,
+      62.31983762431193,
+      431.3540243739741,
+      429.8255863151148
+    ],
+    "uniform_scale": 1.1145403887127021,
+    "translation_px": [
+      -29.263167878184163,
+      -18.25797605031312
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "SingleWheelbarrowFlatFree",
+    "raw_source": "Source/ItemRenders/SingleWheelbarrowFlatFree.png",
+    "source_projection_bounds_px": [
+      80.53979440035329,
+      62.31983762431193,
+      431.3540243739741,
+      429.8255863151148
+    ],
+    "uniform_scale": 1.1145403887127021,
+    "translation_px": [
+      -29.263167878184163,
+      -18.25797605031312
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "DualWheelbarrow",
+    "raw_source": "Source/ItemRenders/DualWheelbarrow.png",
+    "source_projection_bounds_px": [
+      78.76402167632395,
+      75.43373642232956,
+      423.60722288614693,
+      408.25170931176444
+    ],
+    "uniform_scale": 1.1877862128729493,
+    "translation_px": [
+      -42.354819017563784,
+      -31.257451905131973
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "PolyCart",
+    "raw_source": "Source/ItemRenders/PolyCart.png",
+    "source_projection_bounds_px": [
+      69.21348351259454,
+      61.83039455608318,
+      425.0046298722341,
+      440.8859946185778
+    ],
+    "uniform_scale": 1.080580262981129,
+    "translation_px": [
+      -11.021169465707771,
+      -15.612704009639401
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "BroadcastSpreader",
+    "raw_source": "Source/ItemRenders/BroadcastSpreader.png",
+    "source_projection_bounds_px": [
+      120.2092542145862,
+      60.263443902541184,
+      382.92357237356555,
+      444.20434614768
+    ],
+    "uniform_scale": 1.066830852365082,
+    "translation_px": [
+      -12.378811120945443,
+      -13.090901225003336
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "BackpackSprayer",
+    "raw_source": "Source/ItemRenders/BackpackSprayer.png",
+    "source_projection_bounds_px": [
+      82.33506867630734,
+      107.77538636214055,
+      437.7650002845925,
+      310.99773247826437
+    ],
+    "uniform_scale": 1.1524071654477739,
+    "translation_px": [
+      -43.68352311021113,
+      14.701428575702636
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "StandOnAerator",
+    "raw_source": "Source/ItemRenders/StandOnAerator.png",
+    "source_projection_bounds_px": [
+      73.17471196567615,
+      95.38418138773014,
+      419.77706962972786,
+      445.0086736185897
+    ],
+    "uniform_scale": 1.1715426381786154,
+    "translation_px": [
+      -32.75701535256411,
+      -60.546635503488915
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "TowBehindAerator",
+    "raw_source": "Source/ItemRenders/TowBehindAerator.png",
+    "source_projection_bounds_px": [
+      126.65039095916867,
+      154.4406852872078,
+      456.20579542305927,
+      357.17686188068626
+    ],
+    "uniform_scale": 1.242886611634615,
+    "translation_px": [
+      -106.21207528144043,
+      -61.941299826158286
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "SlitOverseeder",
+    "raw_source": "Source/ItemRenders/SlitOverseeder.png",
+    "source_projection_bounds_px": [
+      88.36107869815177,
+      57.170509347816306,
+      407.2214296661426,
+      456.76912689694916
+    ],
+    "uniform_scale": 1.0250285712002931,
+    "translation_px": [
+      2.0068847697449996,
+      -7.401405511585153
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "PowerRakeDethatcher",
+    "raw_source": "Source/ItemRenders/PowerRakeDethatcher.png",
+    "source_projection_bounds_px": [
+      98.17475182450107,
+      56.98351147780693,
+      398.1467553459303,
+      456.8953728089692
+    ],
+    "uniform_scale": 1.0242256847211018,
+    "translation_px": [
+      1.8273822382778633,
+      -7.163976061169592
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "RideOnSpreaderSprayer",
+    "raw_source": "Source/ItemRenders/RideOnSpreaderSprayer.png",
+    "source_projection_bounds_px": [
+      105.41192066500537,
+      53.53064188801645,
+      437.4248038672848,
+      447.7437398374135
+    ],
+    "uniform_scale": 1.039031940162927,
+    "translation_px": [
+      -26.01234754123692,
+      -4.4200466990726
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "SoilProbe",
+    "raw_source": "Source/ItemRenders/SoilProbe.png",
+    "source_projection_bounds_px": [
+      205.20413602752126,
+      54.78580197966764,
+      308.32741126312965,
+      443.1684902424355
+    ],
+    "uniform_scale": 1.0546299111119937,
+    "translation_px": [
+      -14.792865036171861,
+      -6.57874547201618
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "ToolBucket",
+    "raw_source": "Source/ItemRenders/ToolBucket.png",
+    "source_projection_bounds_px": [
+      149.99867189349402,
+      105.87573580817403,
+      362.00132276282443,
+      432.23948393742336
+    ],
+    "uniform_scale": 1.2550413529317197,
+    "translation_px": [
+      -65.2905829972496,
+      -81.67842671133212
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "GasCan",
+    "raw_source": "Source/ItemRenders/GasCan.png",
+    "source_projection_bounds_px": [
+      158.47970476963826,
+      96.79268618471997,
+      392.66323591261835,
+      416.7263530547484
+    ],
+    "uniform_scale": 1.2802653875323415,
+    "translation_px": [
+      -96.80461526914178,
+      -72.72032588857684
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "MixGasCan",
+    "raw_source": "Source/ItemRenders/MixGasCan.png",
+    "source_projection_bounds_px": [
+      158.47970476963826,
+      96.79268618471997,
+      392.66323591261835,
+      416.7263530547484
+    ],
+    "uniform_scale": 1.2802653875323415,
+    "translation_px": [
+      -96.80461526914178,
+      -72.72032588857684
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "TrimmerLine",
+    "raw_source": "Source/ItemRenders/TrimmerLine.png",
+    "source_projection_bounds_px": [
+      87.26528964573379,
+      101.26813162098554,
+      403.37719562650955,
+      410.7318683790145
+    ],
+    "uniform_scale": 1.2957436662474513,
+    "translation_px": [
+      -61.87344634170887,
+      -75.71037855934753
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "FootPump",
+    "raw_source": "Source/ItemRenders/FootPump.png",
+    "source_projection_bounds_px": [
+      97.63505848257557,
+      184.97973247430883,
+      449.23616688230953,
+      402.00123180459485
+    ],
+    "uniform_scale": 1.1649565095634662,
+    "translation_px": [
+      -62.540596940886076,
+      -85.90364766327463
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "ElectricInflator",
+    "raw_source": "Source/ItemRenders/ElectricInflator.png",
+    "source_projection_bounds_px": [
+      132.98506138804137,
+      70.19080575126497,
+      388.56040510197306,
+      397.1798182935921
+    ],
+    "uniform_scale": 1.2526414781199393,
+    "translation_px": [
+      -70.65474202540247,
+      -36.7239146666941
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "AirCompressor",
+    "raw_source": "Source/ItemRenders/AirCompressor.png",
+    "source_projection_bounds_px": [
+      90.26740152188364,
+      122.61129702749858,
+      401.1800822518951,
+      423.12834503360966
+    ],
+    "uniform_scale": 1.3174116894758825,
+    "translation_px": [
+      -67.71932994354262,
+      -103.48189193084403
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "TirePatchKit",
+    "raw_source": "Source/ItemRenders/TirePatchKit.png",
+    "source_projection_bounds_px": [
+      83.45640414099589,
+      87.17569056734638,
+      456.0629528860135,
+      391.77634696619856
+    ],
+    "uniform_scale": 1.099282879969718,
+    "translation_px": [
+      -40.54219629603074,
+      -7.2518875936199265
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "SpareTire",
+    "raw_source": "Source/ItemRenders/SpareTire.png",
+    "source_projection_bounds_px": [
+      129.1088349516977,
+      103.42755450594947,
+      387.5918102907488,
+      409.88733157027673
+    ],
+    "uniform_scale": 1.3365538666238186,
+    "translation_px": [
+      -89.29912264290692,
+      -87.03649789037257
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "WrenchSet",
+    "raw_source": "Source/ItemRenders/WrenchSet.png",
+    "source_projection_bounds_px": [
+      80.25185386103598,
+      107.51313507622683,
+      458.7331829600862,
+      373.57089275140834
+    ],
+    "uniform_scale": 1.0822198309624038,
+    "translation_px": [
+      -35.65014771990991,
+      -4.319337637167848
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "BladeFile",
+    "raw_source": "Source/ItemRenders/BladeFile.png",
+    "source_projection_bounds_px": [
+      58.246447465107536,
+      128.15796904408035,
+      445.6235861543113,
+      380.3791078479119
+    ],
+    "uniform_scale": 1.0573675085370122,
+    "translation_px": [
+      -10.387901037312702,
+      -12.855290995990401
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "SharpeningStone",
+    "raw_source": "Source/ItemRenders/SharpeningStone.png",
+    "source_projection_bounds_px": [
+      56.49477587095987,
+      159.24305286482803,
+      455.50522412904013,
+      351.15694416985
+    ],
+    "uniform_scale": 1.026539534962429,
+    "translation_px": [
+      -6.794120950381796,
+      -5.972887800401736
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "BenchGrinder",
+    "raw_source": "Source/ItemRenders/BenchGrinder.png",
+    "source_projection_bounds_px": [
+      52.96870109022697,
+      122.43723373634782,
+      436.24395306981614,
+      411.6026840459323
+    ],
+    "uniform_scale": 1.0686836624187068,
+    "translation_px": [
+      -5.406785474665583,
+      -29.35986760667606
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "SpareMowerBlade",
+    "raw_source": "Source/ItemRenders/SpareMowerBlade.png",
+    "source_projection_bounds_px": [
+      52.627176159692794,
+      177.17081011728177,
+      445.81463570243454,
+      328.6969999869694
+    ],
+    "uniform_scale": 1.0417422785465875,
+    "translation_px": [
+      -3.623954406070993,
+      -7.491942570687513
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "PicketFenceSection",
+    "raw_source": "Source/ItemRenders/PicketFenceSection.png",
+    "source_projection_bounds_px": [
+      51.65103116005773,
+      116.5702159968865,
+      460.34896883994224,
+      394.71906850246927
+    ],
+    "uniform_scale": 1.0022071614191068,
+    "translation_px": [
+      -0.5650333232913454,
+      -0.20889124105275414
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "StoneEdgingSection",
+    "raw_source": "Source/ItemRenders/StoneEdgingSection.png",
+    "source_projection_bounds_px": [
+      54.87737245591282,
+      174.28407867105454,
+      454.7629308013852,
+      338.6423836449054
+    ],
+    "uniform_scale": 1.0242930544796895,
+    "translation_px": [
+      -5.010511454686537,
+      -6.69350640453797
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "PaverPathSection",
+    "raw_source": "Source/ItemRenders/PaverPathSection.png",
+    "source_projection_bounds_px": [
+      57.822512537518975,
+      166.61149497360577,
+      454.17748746248105,
+      345.3885050263942
+    ],
+    "uniform_scale": 1.0334170779048388,
+    "translation_px": [
+      -8.554771943638741,
+      -8.554771943638741
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "MulchBedSection",
+    "raw_source": "Source/ItemRenders/MulchBedSection.png",
+    "source_projection_bounds_px": [
+      51.31653962396598,
+      174.47700978443777,
+      460.683460376034,
+      338.82961553284673
+    ],
+    "uniform_scale": 1.000569365124822,
+    "translation_px": [
+      -0.14575747195442545,
+      -0.7994421040401107
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "BoxwoodShrub",
+    "raw_source": "Source/ItemRenders/BoxwoodShrub.png",
+    "source_projection_bounds_px": [
+      110.5453763965221,
+      85.05187792313725,
+      393.5627183722878,
+      437.1354996281002
+    ],
+    "uniform_scale": 1.1633599939029096,
+    "translation_px": [
+      -37.229595028325036,
+      -47.74595218209197
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "HydrangeaBush",
+    "raw_source": "Source/ItemRenders/HydrangeaBush.png",
+    "source_projection_bounds_px": [
+      107.26289947340891,
+      89.4172632532181,
+      396.80152056565237,
+      423.82945274853887
+    ],
+    "uniform_scale": 1.224835735258781,
+    "translation_px": [
+      -52.698057268167304,
+      -58.32145938158345
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "JapaneseMaple",
+    "raw_source": "Source/ItemRenders/JapaneseMaple.png",
+    "source_projection_bounds_px": [
+      110.85709946365003,
+      95.09893290734917,
+      399.4649504954607,
+      414.08999088835424
+    ],
+    "uniform_scale": 1.2840485328726376,
+    "translation_px": [
+      -71.63913977127652,
+      -70.91164527743513
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "TerracottaPlanter",
+    "raw_source": "Source/ItemRenders/TerracottaPlanter.png",
+    "source_projection_bounds_px": [
+      143.66052583537024,
+      74.97220123793696,
+      368.81099329349456,
+      428.2990119989719
+    ],
+    "uniform_scale": 1.159266683209682,
+    "translation_px": [
+      -41.04557910997312,
+      -35.71277506203194
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "RaisedGardenBed",
+    "raw_source": "Source/ItemRenders/RaisedGardenBed.png",
+    "source_projection_bounds_px": [
+      52.532599143428314,
+      151.4021357115802,
+      459.73742564410736,
+      369.5472578307298
+    ],
+    "uniform_scale": 1.0058819870086118,
+    "translation_px": [
+      -1.6415952091185773,
+      -6.00680555363499
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "BirdBath",
+    "raw_source": "Source/ItemRenders/BirdBath.png",
+    "source_projection_bounds_px": [
+      132.48195260198128,
+      73.19635592832498,
+      379.5180473980187,
+      420.4822138136674
+    ],
+    "uniform_scale": 1.1794318446886796,
+    "translation_px": [
+      -45.93455224030197,
+      -35.13011309703347
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "TieredFountain",
+    "raw_source": "Source/ItemRenders/TieredFountain.png",
+    "source_projection_bounds_px": [
+      109.89336767653057,
+      135.56289024064455,
+      402.1066323234694,
+      429.2698003607998
+    ],
+    "uniform_scale": 1.3945875493104094,
+    "translation_px": [
+      -101.0144126234648,
+      -137.8543188781365
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "GardenArbor",
+    "raw_source": "Source/ItemRenders/GardenArbor.png",
+    "source_projection_bounds_px": [
+      147.54089954838054,
+      68.61874826913046,
+      364.4591004516195,
+      460.0251748520748
+    ],
+    "uniform_scale": 1.0464825618114888,
+    "translation_px": [
+      -11.899535823741132,
+      -20.60832347697732
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "GardenBench",
+    "raw_source": "Source/ItemRenders/GardenBench.png",
+    "source_projection_bounds_px": [
+      54.21575879365329,
+      89.04309150258166,
+      457.32376441013014,
+      417.5956203058065
+    ],
+    "uniform_scale": 1.0161048510400952,
+    "translation_px": [
+      -3.8888955130508407,
+      -1.399026396603972
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "PatioSet",
+    "raw_source": "Source/ItemRenders/PatioSet.png",
+    "source_projection_bounds_px": [
+      123.17058688497212,
+      111.59516791263218,
+      388.8294012766553,
+      431.425451419737
+    ],
+    "uniform_scale": 1.2806792262087372,
+    "translation_px": [
+      -71.85387432885778,
+      -91.71761329098388
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "FirePit",
+    "raw_source": "Source/ItemRenders/FirePit.png",
+    "source_projection_bounds_px": [
+      108.30594360423112,
+      152.7501043189088,
+      403.69404331680585,
+      362.84369917363557
+    ],
+    "uniform_scale": 1.3866503098755785,
+    "translation_px": [
+      -98.98247026017401,
+      -101.47415369143238
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "Mailbox",
+    "raw_source": "Source/ItemRenders/Mailbox.png",
+    "source_projection_bounds_px": [
+      165.9788159367027,
+      62.73194282557682,
+      348.05086661058454,
+      411.1386209549813
+    ],
+    "uniform_scale": 1.175637626118829,
+    "translation_px": [
+      -46.156317872253965,
+      -22.550032345283284
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "LampPost",
+    "raw_source": "Source/ItemRenders/LampPost.png",
+    "source_projection_bounds_px": [
+      223.37016792668896,
+      71.20191267428157,
+      288.62983207331104,
+      448.1803973066686
+    ],
+    "uniform_scale": 1.0865341569809324,
+    "translation_px": [
+      -22.152744187118685,
+      -26.16331016298045
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "SolarPathLight",
+    "raw_source": "Source/ItemRenders/SolarPathLight.png",
+    "source_projection_bounds_px": [
+      190.4318349964912,
+      68.9430539552105,
+      321.5681650035088,
+      422.8676270489394
+    ],
+    "uniform_scale": 1.157308735077648,
+    "translation_px": [
+      -40.27103617987791,
+      -28.58839856529471
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "BirdFeeder",
+    "raw_source": "Source/ItemRenders/BirdFeeder.png",
+    "source_projection_bounds_px": [
+      217.36522224776448,
+      58.422671630772385,
+      302.95473590881454,
+      434.791119583983
+    ],
+    "uniform_scale": 1.0882952655237472,
+    "translation_px": [
+      -27.13087350965958,
+      -12.381116935018099
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "Birdhouse",
+    "raw_source": "Source/ItemRenders/Birdhouse.png",
+    "source_projection_bounds_px": [
+      218.79952394257268,
+      58.90767648507199,
+      299.95781832329635,
+      443.4907603231548
+    ],
+    "uniform_scale": 1.0650494450048402,
+    "translation_px": [
+      -20.25110973622492,
+      -11.53958814695062
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "PinkFlamingo",
+    "raw_source": "Source/ItemRenders/PinkFlamingo.png",
+    "source_projection_bounds_px": [
+      195.58392967740838,
+      114.32746674865047,
+      347.1231774704555,
+      407.06671978420025
+    ],
+    "uniform_scale": 1.3991973941064162,
+    "translation_px": [
+      -123.6771850421614,
+      -108.76669354949968
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "GardenWindmill",
+    "raw_source": "Source/ItemRenders/GardenWindmill.png",
+    "source_projection_bounds_px": [
+      163.81895255998717,
+      71.80998910039068,
+      348.0268075876544,
+      458.8776354688122
+    ],
+    "uniform_scale": 1.0582129605586608,
+    "translation_px": [
+      -14.820908597616949,
+      -24.790261163609614
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "GardenGnome",
+    "raw_source": "Source/ItemRenders/GardenGnome.png",
+    "source_projection_bounds_px": [
+      196.30798678039582,
+      87.8306330026669,
+      314.1860326735188,
+      443.22436475866346
+    ],
+    "uniform_scale": 1.1525245478477375,
+    "translation_px": [
+      -38.178444475048536,
+      -50.02696058857924
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "FlowerPatch",
+    "raw_source": "Source/ItemRenders/FlowerPatch.png",
+    "source_projection_bounds_px": [
+      108.62280384068629,
+      160.40198957061256,
+      403.3771961593137,
+      333.41223933975033
+    ],
+    "uniform_scale": 1.3896315395945833,
+    "translation_px": [
+      -99.74567413621332,
+      -87.10991359720975
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "RustyPickup",
+    "raw_source": "Source/ItemRenders/RustyPickup.png",
+    "source_projection_bounds_px": [
+      58.64249313740606,
+      145.1610905461031,
+      452.5582008527107,
+      424.4266672696431
+    ],
+    "uniform_scale": 1.0398163667442044,
+    "translation_px": [
+      -9.777424150959519,
+      -40.13333643697348
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "WorkPickup",
+    "raw_source": "Source/ItemRenders/WorkPickup.png",
+    "source_projection_bounds_px": [
+      58.529767872166474,
+      86.37738027964954,
+      453.5659179132019,
+      426.59602137227216
+    ],
+    "uniform_scale": 1.0368671321787937,
+    "translation_px": [
+      -9.487592560703774,
+      -9.94262992741426
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "HeavyDutyPickup",
+    "raw_source": "Source/ItemRenders/HeavyDutyPickup.png",
+    "source_projection_bounds_px": [
+      56.84440862768332,
+      153.24345898064365,
+      454.272421936692,
+      426.4821746386581
+    ],
+    "uniform_scale": 1.030626896653929,
+    "translation_px": [
+      -7.385376456077097,
+      -42.740415343896814
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "LandscapingTruck",
+    "raw_source": "Source/ItemRenders/LandscapingTruck.png",
+    "source_projection_bounds_px": [
+      57.6167851996687,
+      65.16761560879795,
+      454.0806872589624,
+      448.63145795620426
+    ],
+    "uniform_scale": 1.0331331500105694,
+    "translation_px": [
+      -8.325810786816078,
+      -9.411427672361526
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "UtilityTrailer",
+    "raw_source": "Source/ItemRenders/UtilityTrailer.png",
+    "source_projection_bounds_px": [
+      110.78440361480278,
+      127.50801663763414,
+      446.037250913153,
+      350.6066692145157
+    ],
+    "uniform_scale": 1.2217644184107,
+    "translation_px": [
+      -84.15244245141582,
+      -36.07175554688314
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "LandscapeTrailer",
+    "raw_source": "Source/ItemRenders/LandscapeTrailer.png",
+    "source_projection_bounds_px": [
+      103.89505402987771,
+      70.81532626006401,
+      447.7315768605479,
+      410.8755009178183
+    ],
+    "uniform_scale": 1.1912637919553315,
+    "translation_px": [
+      -72.56641602903613,
+      -30.910420667012147
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "EquipmentTrailer",
+    "raw_source": "Source/ItemRenders/EquipmentTrailer.png",
+    "source_projection_bounds_px": [
+      98.27021261257235,
+      128.26373688890897,
+      449.15305810873025,
+      355.8251241343186
+    ],
+    "uniform_scale": 1.1673411945255245,
+    "translation_px": [
+      -63.5148673774375,
+      -26.548434641677545
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "Shed",
+    "raw_source": "Source/ItemRenders/Shed.png",
+    "source_projection_bounds_px": [
+      51.42685766208683,
+      89.37241847075967,
+      460.57314233791317,
+      459.78197591756316
+    ],
+    "uniform_scale": 1.00110893179571,
+    "translation_px": [
+      -0.28388653970176847,
+      -18.881684578506963
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "Garage",
+    "raw_source": "Source/ItemRenders/Garage.png",
+    "source_projection_bounds_px": [
+      51.31492114667722,
+      130.74082931712184,
+      460.6850788533228,
+      419.9378489385482
+    ],
+    "uniform_scale": 1.000561453464615,
+    "translation_px": [
+      -0.14373208694144068,
+      -19.493929353733165
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "SmallOffice",
+    "raw_source": "Source/ItemRenders/SmallOffice.png",
+    "source_projection_bounds_px": [
+      51.28694034301432,
+      108.40091205404804,
+      460.7130596569857,
+      405.5917168616832
+    ],
+    "uniform_scale": 1.0004246936817807,
+    "translation_px": [
+      -0.10872158253584985,
+      -1.1054591688568394
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "EquipmentYard",
+    "raw_source": "Source/ItemRenders/EquipmentYard.png",
+    "source_projection_bounds_px": [
+      51.273329165879886,
+      124.59205770840487,
+      460.7266708341201,
+      408.0422756317589
+    ],
+    "uniform_scale": 1.0003581808153337,
+    "translation_px": [
+      -0.09169428872542085,
+      -10.412556369977096
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "BestYardTrophy",
+    "raw_source": "Source/ItemRenders/BestYardTrophy.png",
+    "source_projection_bounds_px": [
+      161.59195164775295,
+      79.99098357715624,
+      350.40804260091807,
+      447.22931441087985
+    ],
+    "uniform_scale": 1.1153519815595088,
+    "translation_px": [
+      -29.530104071856158,
+      -38.0181020396754
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "DebrisStick",
+    "raw_source": "Source/ItemRenders/DebrisStick.png",
+    "source_projection_bounds_px": [
+      68.32319689850902,
+      189.79209018285275,
+      409.64283185707416,
+      344.97135402969457
+    ],
+    "uniform_scale": 1.200048160281561,
+    "translation_px": [
+      -30.79112674261063,
+      -64.87094370654921
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "DebrisToyTruck",
+    "raw_source": "Source/ItemRenders/DebrisToyTruck.png",
+    "source_projection_bounds_px": [
+      63.91048215272383,
+      74.49039668468939,
+      446.57975125806774,
+      422.74248789059294
+    ],
+    "uniform_scale": 1.0703759958504597,
+    "translation_px": [
+      -17.208245979504852,
+      -10.113071998432247
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "DebrisFrisbee",
+    "raw_source": "Source/ItemRenders/DebrisFrisbee.png",
+    "source_projection_bounds_px": [
+      108.62280336182968,
+      179.73717804571294,
+      403.3771966381703,
+      329.3926717941472
+    ],
+    "uniform_scale": 1.3896315350794057,
+    "translation_px": [
+      -99.74567298032787,
+      -97.7514473938561
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "GoldenGasPushMower",
+    "raw_source": "Source/ItemRenders/GoldenGasPushMower.png",
+    "source_projection_bounds_px": [
+      97.65015923869336,
+      183.47513746657512,
+      437.687527476024,
+      412.5519394436524
+    ],
+    "uniform_scale": 1.2045734917996362,
+    "translation_px": [
+      -66.42679328894343,
+      -102.97920862044151
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "ChromeSelfPropelledMower",
+    "raw_source": "Source/ItemRenders/ChromeSelfPropelledMower.png",
+    "source_projection_bounds_px": [
+      101.02629078609749,
+      62.07607017201374,
+      402.3190299877946,
+      452.6478108776697
+    ],
+    "uniform_scale": 1.0487189863249327,
+    "translation_px": [
+      -7.933897286697061,
+      -13.90035338582959
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "StealthGasTrimmer",
+    "raw_source": "Source/ItemRenders/StealthGasTrimmer.png",
+    "source_projection_bounds_px": [
+      122.24276450511945,
+      187.82700523803732,
+      414.60321691428453,
+      323.3008515659023
+    ],
+    "uniform_scale": 1.4010102824261454,
+    "translation_px": [
+      -120.06337002387022,
+      -102.04769150837893
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "ChromeLeafBlower",
+    "raw_source": "Source/ItemRenders/ChromeLeafBlower.png",
+    "source_projection_bounds_px": [
+      155.48595712953846,
+      83.54361848120851,
+      388.3420926525873,
+      445.4198135530234
+    ],
+    "uniform_scale": 1.1318788181651858,
+    "translation_px": [
+      -51.773725136235214,
+      -43.36125215175349
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "GoldenRidingMower",
+    "raw_source": "Source/ItemRenders/GoldenRidingMower.png",
+    "source_projection_bounds_px": [
+      86.17211881124561,
+      171.3618143775015,
+      421.63148715881096,
+      427.5151946210557
+    ],
+    "uniform_scale": 1.22101225557552,
+    "translation_px": [
+      -54.017213157440665,
+      -109.61808378482465
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "StealthZeroTurn",
+    "raw_source": "Source/ItemRenders/StealthZeroTurn.png",
+    "source_projection_bounds_px": [
+      104.31049634274427,
+      166.33683350968641,
+      440.7537334900409,
+      442.7900633749984
+    ],
+    "uniform_scale": 1.2174416209789203,
+    "translation_px": [
+      -75.79193975262638,
+      -114.78821836257515
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "DebrisRock",
+    "raw_source": "Source/ItemRenders/DebrisRock.png",
+    "source_projection_bounds_px": [
+      104.97599875175447,
+      146.85742708436365,
+      407.02400124824555,
+      363.7237741957885
+    ],
+    "uniform_scale": 1.3560758442849108,
+    "translation_px": [
+      -91.15541613693716,
+      -90.19341680099319
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "DebrisDogBall",
+    "raw_source": "Source/ItemRenders/DebrisDogBall.png",
+    "source_projection_bounds_px": [
+      118.64844272858124,
+      120.96073958201865,
+      391.6458268181227,
+      391.0396981009003
+    ],
+    "uniform_scale": 1.5003806771483705,
+    "translation_px": [
+      -126.8178308437084,
+      -128.09778169547997
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "RacingRed",
+    "raw_source": "Source/ItemRenders/RacingRed.png",
+    "source_projection_bounds_px": [
+      58.529767872166474,
+      86.37738027964954,
+      453.5659179132019,
+      426.59602137227216
+    ],
+    "uniform_scale": 1.0368671321787937,
+    "translation_px": [
+      -9.487592560703774,
+      -9.94262992741426
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "MidnightBlack",
+    "raw_source": "Source/ItemRenders/MidnightBlack.png",
+    "source_projection_bounds_px": [
+      58.529767872166474,
+      86.37738027964954,
+      453.5659179132019,
+      426.59602137227216
+    ],
+    "uniform_scale": 1.0368671321787937,
+    "translation_px": [
+      -9.487592560703774,
+      -9.94262992741426
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "ForestGreen",
+    "raw_source": "Source/ItemRenders/ForestGreen.png",
+    "source_projection_bounds_px": [
+      58.529767872166474,
+      86.37738027964954,
+      453.5659179132019,
+      426.59602137227216
+    ],
+    "uniform_scale": 1.0368671321787937,
+    "translation_px": [
+      -9.487592560703774,
+      -9.94262992741426
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "SkyBlue",
+    "raw_source": "Source/ItemRenders/SkyBlue.png",
+    "source_projection_bounds_px": [
+      58.529767872166474,
+      86.37738027964954,
+      453.5659179132019,
+      426.59602137227216
+    ],
+    "uniform_scale": 1.0368671321787937,
+    "translation_px": [
+      -9.487592560703774,
+      -9.94262992741426
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "StealthWrap",
+    "raw_source": "Source/ItemRenders/StealthWrap.png",
+    "source_projection_bounds_px": [
+      58.529767872166474,
+      86.37738027964954,
+      453.5659179132019,
+      426.59602137227216
+    ],
+    "uniform_scale": 1.0368671321787937,
+    "translation_px": [
+      -9.487592560703774,
+      -9.94262992741426
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "ChromeWrap",
+    "raw_source": "Source/ItemRenders/ChromeWrap.png",
+    "source_projection_bounds_px": [
+      58.529767872166474,
+      86.37738027964954,
+      453.5659179132019,
+      426.59602137227216
+    ],
+    "uniform_scale": 1.0368671321787937,
+    "translation_px": [
+      -9.487592560703774,
+      -9.94262992741426
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  },
+  {
+    "id": "GoldWrap",
+    "raw_source": "Source/ItemRenders/GoldWrap.png",
+    "source_projection_bounds_px": [
+      58.529767872166474,
+      86.37738027964954,
+      453.5659179132019,
+      426.59602137227216
+    ],
+    "uniform_scale": 1.0368671321787937,
+    "translation_px": [
+      -9.487592560703774,
+      -9.94262992741426
+    ],
+    "final_longest_projection_fraction": 0.8,
+    "view_unchanged": true,
+    "lighting_unchanged": true
+  }
+]

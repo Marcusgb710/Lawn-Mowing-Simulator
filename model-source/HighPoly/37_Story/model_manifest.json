@@ -1,0 +1,2638 @@
+{
+  "assets": [
+    {
+      "name": "NPC_June_Sitting",
+      "folder": "Story",
+      "instruction": 37,
+      "triangle_budget": 15000,
+      "detail_guidance_min": 8000,
+      "dimensions_studs": [
+        2.40746,
+        4.29022,
+        3.111278
+      ],
+      "bounds_min_studs": [
+        -1.2924604415893555,
+        0.0,
+        -2.3912782669067383
+      ],
+      "bounds_max_studs": [
+        1.1150000095367432,
+        4.290220260620117,
+        0.7199999690055847
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [
+        {
+          "name": "Head",
+          "instance_type": "Attachment",
+          "parent_mesh": "NPC_June_Sitting__Head",
+          "position_studs": [
+            0,
+            3.5700000000000003,
+            -0.46
+          ],
+          "orientation_degrees": [
+            0,
+            0,
+            0
+          ],
+          "look_vector": [
+            0,
+            0,
+            -1
+          ],
+          "attributes": {}
+        },
+        {
+          "name": "Talk",
+          "instance_type": "Attachment",
+          "parent_mesh": "NPC_June_Sitting__Body",
+          "position_studs": [
+            0,
+            2.6,
+            -1.0
+          ],
+          "orientation_degrees": [
+            0,
+            0,
+            0
+          ],
+          "look_vector": [
+            0,
+            0,
+            -1
+          ],
+          "attributes": {}
+        }
+      ],
+      "slots": [],
+      "triangles": 14052,
+      "mesh_objects": 2,
+      "parts": [
+        {
+          "name": "NPC_June_Sitting__Body",
+          "triangles": 5704,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "NPC_June_Sitting__Head",
+          "triangles": 8348,
+          "origin_studs": [
+            0.0,
+            3.009999990463257,
+            0.0
+          ],
+          "role": "head",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "shares_ground_origin_with": "PorchRockingChair",
+        "seated_pose_authored_without_recentering": 1,
+        "clothed_static_pose": 1,
+        "individual_fingers": 1,
+        "separate_neck_pivot_head": 1,
+        "expression": "unimpressed"
+      },
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "offset": [
+          0,
+          0,
+          0
+        ],
+        "authored_at_nominal_size": true
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "name": "NPC_June_Standing",
+      "folder": "Story",
+      "instruction": 37,
+      "triangle_budget": 15000,
+      "detail_guidance_min": 8000,
+      "dimensions_studs": [
+        2.0,
+        5.0,
+        1.6
+      ],
+      "bounds_min_studs": [
+        -1.0,
+        0.0,
+        -0.800000011920929
+      ],
+      "bounds_max_studs": [
+        1.0000001192092896,
+        5.0,
+        0.7999999523162842
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [
+        {
+          "name": "Head",
+          "instance_type": "Attachment",
+          "parent_mesh": "NPC_June_Standing__Head",
+          "position_studs": [
+            -0.00030034780502319336,
+            4.326887130737305,
+            -0.37632402777671814
+          ],
+          "orientation_degrees": [
+            0,
+            0,
+            0
+          ],
+          "look_vector": [
+            0,
+            0,
+            -1
+          ],
+          "attributes": {}
+        },
+        {
+          "name": "Talk",
+          "instance_type": "Attachment",
+          "parent_mesh": "NPC_June_Standing__Body",
+          "position_studs": [
+            -0.00030034780502319336,
+            2.8970518112182617,
+            -0.914641797542572
+          ],
+          "orientation_degrees": [
+            0,
+            0,
+            0
+          ],
+          "look_vector": [
+            0,
+            0,
+            -1
+          ],
+          "attributes": {}
+        }
+      ],
+      "slots": [],
+      "triangles": 14098,
+      "mesh_objects": 2,
+      "parts": [
+        {
+          "name": "NPC_June_Standing__Body",
+          "triangles": 5790,
+          "origin_studs": [
+            -0.00030034780502319336,
+            0.0,
+            0.08224296569824219
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "NPC_June_Standing__Head",
+          "triangles": 8308,
+          "origin_studs": [
+            -0.00030034780502319336,
+            3.80354905128479,
+            0.08224296569824219
+          ],
+          "role": "head",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "clothed_static_pose": 1,
+        "individual_fingers": 1,
+        "separate_neck_pivot_head": 1,
+        "expression": "proud"
+      },
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          1.1787320375442505,
+          0.934532880783081,
+          0.9968847632408142
+        ],
+        "offset": [
+          -0.00030034780502319336,
+          0.0,
+          0.08224296569824219
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        13.820000648498535,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "name": "NPC_Gloria",
+      "folder": "Story",
+      "instruction": 37,
+      "triangle_budget": 15000,
+      "detail_guidance_min": 8000,
+      "dimensions_studs": [
+        1.8,
+        5.6,
+        1.4
+      ],
+      "bounds_min_studs": [
+        -0.8999999761581421,
+        0.0,
+        -0.699999988079071
+      ],
+      "bounds_max_studs": [
+        0.9000000357627869,
+        5.599999904632568,
+        0.6999999284744263
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [
+        {
+          "name": "Head",
+          "instance_type": "Attachment",
+          "parent_mesh": "NPC_Gloria__Head",
+          "position_studs": [
+            -0.0001233816146850586,
+            5.073972702026367,
+            -0.2196621298789978
+          ],
+          "orientation_degrees": [
+            0,
+            0,
+            0
+          ],
+          "look_vector": [
+            0,
+            0,
+            -1
+          ],
+          "attributes": {}
+        },
+        {
+          "name": "Talk",
+          "instance_type": "Attachment",
+          "parent_mesh": "NPC_Gloria__Body",
+          "position_studs": [
+            -0.0001233816146850586,
+            3.3972601890563965,
+            -0.7600423097610474
+          ],
+          "orientation_degrees": [
+            0,
+            0,
+            0
+          ],
+          "look_vector": [
+            0,
+            0,
+            -1
+          ],
+          "attributes": {}
+        }
+      ],
+      "slots": [],
+      "triangles": 14052,
+      "mesh_objects": 2,
+      "parts": [
+        {
+          "name": "NPC_Gloria__Body",
+          "triangles": 7404,
+          "origin_studs": [
+            -0.0001233816146850586,
+            0.0,
+            0.24066174030303955
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "NPC_Gloria__Head",
+          "triangles": 6648,
+          "origin_studs": [
+            -0.0001233816146850586,
+            4.4602742195129395,
+            0.24066174030303955
+          ],
+          "role": "head",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "clothed_static_pose": 1,
+        "individual_fingers": 1,
+        "separate_neck_pivot_head": 1,
+        "expression": "smug"
+      },
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          1.0592783689498901,
+          1.0958904027938843,
+          1.000704050064087
+        ],
+        "offset": [
+          -0.0001233816146850586,
+          0.0,
+          0.24066174030303955
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        27.64000129699707,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "name": "NPC_Chad",
+      "folder": "Story",
+      "instruction": 37,
+      "triangle_budget": 15000,
+      "detail_guidance_min": 8000,
+      "dimensions_studs": [
+        2.0,
+        6.0,
+        1.4
+      ],
+      "bounds_min_studs": [
+        -1.0,
+        0.0,
+        -0.699999988079071
+      ],
+      "bounds_max_studs": [
+        0.9999999403953552,
+        6.0,
+        0.7000000476837158
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [
+        {
+          "name": "Head",
+          "instance_type": "Attachment",
+          "parent_mesh": "NPC_Chad__Head",
+          "position_studs": [
+            0.05381143093109131,
+            5.436398983001709,
+            -0.4177438020706177
+          ],
+          "orientation_degrees": [
+            0,
+            0,
+            0
+          ],
+          "look_vector": [
+            0,
+            0,
+            -1
+          ],
+          "attributes": {}
+        },
+        {
+          "name": "Talk",
+          "instance_type": "Attachment",
+          "parent_mesh": "NPC_Chad__Body",
+          "position_studs": [
+            0.05381143093109131,
+            3.6399214267730713,
+            -1.0747194290161133
+          ],
+          "orientation_degrees": [
+            0,
+            0,
+            0
+          ],
+          "look_vector": [
+            0,
+            0,
+            -1
+          ],
+          "attributes": {}
+        }
+      ],
+      "slots": [],
+      "triangles": 14098,
+      "mesh_objects": 2,
+      "parts": [
+        {
+          "name": "NPC_Chad__Body",
+          "triangles": 6402,
+          "origin_studs": [
+            0.05381143093109131,
+            0.0,
+            0.1419021487236023
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "NPC_Chad__Head",
+          "triangles": 7696,
+          "origin_studs": [
+            0.05381143093109131,
+            4.778864860534668,
+            0.1419021487236023
+          ],
+          "role": "head",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "clothed_static_pose": 1,
+        "individual_fingers": 1,
+        "separate_neck_pivot_head": 1,
+        "expression": "grin"
+      },
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          1.0813583135604858,
+          1.1741682291030884,
+          1.2166216373443604
+        ],
+        "offset": [
+          0.05381143093109131,
+          0.0,
+          0.1419021487236023
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        41.46000289916992,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "name": "NPC_Sam_TurfKing",
+      "folder": "Story",
+      "instruction": 37,
+      "triangle_budget": 15000,
+      "detail_guidance_min": 8000,
+      "dimensions_studs": [
+        1.8,
+        5.4,
+        1.2
+      ],
+      "bounds_min_studs": [
+        -0.8999999761581421,
+        0.0,
+        -0.6000000238418579
+      ],
+      "bounds_max_studs": [
+        0.9000000953674316,
+        5.400000095367432,
+        0.5999999642372131
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [
+        {
+          "name": "Head",
+          "instance_type": "Attachment",
+          "parent_mesh": "NPC_Sam_TurfKing__Head",
+          "position_studs": [
+            5.960464477539063e-08,
+            4.892759323120117,
+            -0.4716861844062805
+          ],
+          "orientation_degrees": [
+            0,
+            0,
+            0
+          ],
+          "look_vector": [
+            0,
+            0,
+            -1
+          ],
+          "attributes": {}
+        },
+        {
+          "name": "Talk",
+          "instance_type": "Attachment",
+          "parent_mesh": "NPC_Sam_TurfKing__Body",
+          "position_studs": [
+            5.960464477539063e-08,
+            3.2759294509887695,
+            -1.101590633392334
+          ],
+          "orientation_degrees": [
+            0,
+            0,
+            0
+          ],
+          "look_vector": [
+            0,
+            0,
+            -1
+          ],
+          "attributes": {}
+        }
+      ],
+      "slots": [],
+      "triangles": 14012,
+      "mesh_objects": 2,
+      "parts": [
+        {
+          "name": "NPC_Sam_TurfKing__Body",
+          "triangles": 5680,
+          "origin_studs": [
+            5.960464477539063e-08,
+            0.0,
+            0.0648990273475647
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "NPC_Sam_TurfKing__Head",
+          "triangles": 8332,
+          "origin_studs": [
+            5.960464477539063e-08,
+            4.300978660583496,
+            0.0648990273475647
+          ],
+          "role": "head",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "clothed_static_pose": 1,
+        "individual_fingers": 1,
+        "separate_neck_pivot_head": 1,
+        "expression": "fedup"
+      },
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          1.0607701539993286,
+          1.0567514896392822,
+          1.166489601135254
+        ],
+        "offset": [
+          5.960464477539063e-08,
+          0.0,
+          0.0648990273475647
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        55.28000259399414,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "name": "NPC_Sam_Casual",
+      "folder": "Story",
+      "instruction": 37,
+      "triangle_budget": 15000,
+      "detail_guidance_min": 8000,
+      "dimensions_studs": [
+        1.8,
+        5.4,
+        1.2
+      ],
+      "bounds_min_studs": [
+        -0.8999999761581421,
+        0.0,
+        -0.6000000238418579
+      ],
+      "bounds_max_studs": [
+        0.9000000953674316,
+        5.400000095367432,
+        0.5999999642372131
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [
+        {
+          "name": "Head",
+          "instance_type": "Attachment",
+          "parent_mesh": "NPC_Sam_Casual__Head",
+          "position_studs": [
+            5.960464477539063e-08,
+            4.892759323120117,
+            -0.4716861844062805
+          ],
+          "orientation_degrees": [
+            0,
+            0,
+            0
+          ],
+          "look_vector": [
+            0,
+            0,
+            -1
+          ],
+          "attributes": {}
+        },
+        {
+          "name": "Talk",
+          "instance_type": "Attachment",
+          "parent_mesh": "NPC_Sam_Casual__Body",
+          "position_studs": [
+            5.960464477539063e-08,
+            3.2759294509887695,
+            -1.101590633392334
+          ],
+          "orientation_degrees": [
+            0,
+            0,
+            0
+          ],
+          "look_vector": [
+            0,
+            0,
+            -1
+          ],
+          "attributes": {}
+        }
+      ],
+      "slots": [],
+      "triangles": 14098,
+      "mesh_objects": 2,
+      "parts": [
+        {
+          "name": "NPC_Sam_Casual__Body",
+          "triangles": 6966,
+          "origin_studs": [
+            5.960464477539063e-08,
+            0.0,
+            0.0648990273475647
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "NPC_Sam_Casual__Head",
+          "triangles": 7132,
+          "origin_studs": [
+            5.960464477539063e-08,
+            4.300978660583496,
+            0.0648990273475647
+          ],
+          "role": "head",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "clothed_static_pose": 1,
+        "individual_fingers": 1,
+        "separate_neck_pivot_head": 1,
+        "expression": "grin"
+      },
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          1.0607701539993286,
+          1.0567514896392822,
+          1.166489601135254
+        ],
+        "offset": [
+          5.960464477539063e-08,
+          0.0,
+          0.0648990273475647
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        0.0,
+        0.0,
+        -19.979999542236328
+      ]
+    },
+    {
+      "name": "NPC_Edna",
+      "folder": "Story",
+      "instruction": 37,
+      "triangle_budget": 15000,
+      "detail_guidance_min": 8000,
+      "dimensions_studs": [
+        1.8,
+        5.0,
+        1.4
+      ],
+      "bounds_min_studs": [
+        -0.8999999761581421,
+        0.0,
+        -0.699999988079071
+      ],
+      "bounds_max_studs": [
+        0.9000000357627869,
+        5.0,
+        0.7000000476837158
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [
+        {
+          "name": "Head",
+          "instance_type": "Attachment",
+          "parent_mesh": "NPC_Edna__Head",
+          "position_studs": [
+            -0.07127034664154053,
+            4.530332565307617,
+            -0.36798974871635437
+          ],
+          "orientation_degrees": [
+            0,
+            0,
+            0
+          ],
+          "look_vector": [
+            0,
+            0,
+            -1
+          ],
+          "attributes": {}
+        },
+        {
+          "name": "Talk",
+          "instance_type": "Attachment",
+          "parent_mesh": "NPC_Edna__Body",
+          "position_studs": [
+            -0.07127034664154053,
+            3.0332679748535156,
+            -0.946330189704895
+          ],
+          "orientation_degrees": [
+            0,
+            0,
+            0
+          ],
+          "look_vector": [
+            0,
+            0,
+            -1
+          ],
+          "attributes": {}
+        }
+      ],
+      "slots": [],
+      "triangles": 14052,
+      "mesh_objects": 2,
+      "parts": [
+        {
+          "name": "NPC_Edna__Body",
+          "triangles": 9026,
+          "origin_studs": [
+            -0.07127034664154053,
+            0.0,
+            0.12467062473297119
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "NPC_Edna__Head",
+          "triangles": 5026,
+          "origin_studs": [
+            -0.07127034664154053,
+            3.9823875427246094,
+            0.12467062473297119
+          ],
+          "role": "head",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "clothed_static_pose": 1,
+        "individual_fingers": 1,
+        "separate_neck_pivot_head": 1,
+        "expression": "happy"
+      },
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          0.9761511087417603,
+          0.9784735441207886,
+          1.0710008144378662
+        ],
+        "offset": [
+          -0.07127034664154053,
+          0.0,
+          0.12467062473297119
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        13.820000648498535,
+        0.0,
+        -19.979999542236328
+      ]
+    },
+    {
+      "name": "NPC_Judge1",
+      "folder": "Story",
+      "instruction": 37,
+      "triangle_budget": 15000,
+      "detail_guidance_min": 8000,
+      "dimensions_studs": [
+        2.0,
+        5.4,
+        1.6
+      ],
+      "bounds_min_studs": [
+        -0.9999999403953552,
+        0.0,
+        -0.800000011920929
+      ],
+      "bounds_max_studs": [
+        1.0,
+        5.400000095367432,
+        0.800000011920929
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [
+        {
+          "name": "Head",
+          "instance_type": "Attachment",
+          "parent_mesh": "NPC_Judge1__Head",
+          "position_studs": [
+            0.00010132789611816406,
+            4.872097969055176,
+            -0.3271477520465851
+          ],
+          "orientation_degrees": [
+            0,
+            0,
+            0
+          ],
+          "look_vector": [
+            0,
+            0,
+            -1
+          ],
+          "attributes": {}
+        },
+        {
+          "name": "Talk",
+          "instance_type": "Attachment",
+          "parent_mesh": "NPC_Judge1__Body",
+          "position_studs": [
+            0.00010132789611816406,
+            3.4093687534332275,
+            -0.9209621548652649
+          ],
+          "orientation_degrees": [
+            0,
+            0,
+            0
+          ],
+          "look_vector": [
+            0,
+            0,
+            -1
+          ],
+          "attributes": {}
+        }
+      ],
+      "slots": [],
+      "triangles": 14098,
+      "mesh_objects": 2,
+      "parts": [
+        {
+          "name": "NPC_Judge1__Body",
+          "triangles": 6948,
+          "origin_studs": [
+            0.00010132789611816406,
+            0.0,
+            0.17869418859481812
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "NPC_Judge1__Head",
+          "triangles": 7150,
+          "origin_studs": [
+            0.00010132789611816406,
+            4.25621223449707,
+            0.17869418859481812
+          ],
+          "role": "head",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "clothed_static_pose": 1,
+        "individual_fingers": 1,
+        "separate_neck_pivot_head": 1,
+        "expression": "fussy"
+      },
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          1.177481770515442,
+          1.0997964143753052,
+          1.099656343460083
+        ],
+        "offset": [
+          0.00010132789611816406,
+          0.0,
+          0.17869418859481812
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        27.64000129699707,
+        0.0,
+        -19.979999542236328
+      ]
+    },
+    {
+      "name": "NPC_Judge2",
+      "folder": "Story",
+      "instruction": 37,
+      "triangle_budget": 15000,
+      "detail_guidance_min": 8000,
+      "dimensions_studs": [
+        2.0,
+        5.4,
+        1.6
+      ],
+      "bounds_min_studs": [
+        -1.0,
+        0.0,
+        -0.800000011920929
+      ],
+      "bounds_max_studs": [
+        1.0,
+        5.400000095367432,
+        0.7999999523162842
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [
+        {
+          "name": "Head",
+          "instance_type": "Attachment",
+          "parent_mesh": "NPC_Judge2__Head",
+          "position_studs": [
+            -0.0005412697792053223,
+            4.673038482666016,
+            -0.3889467418193817
+          ],
+          "orientation_degrees": [
+            0,
+            0,
+            0
+          ],
+          "look_vector": [
+            0,
+            0,
+            -1
+          ],
+          "attributes": {}
+        },
+        {
+          "name": "Talk",
+          "instance_type": "Attachment",
+          "parent_mesh": "NPC_Judge2__Body",
+          "position_studs": [
+            -0.0005412697792053223,
+            3.1288161277770996,
+            -0.933040976524353
+          ],
+          "orientation_degrees": [
+            0,
+            0,
+            0
+          ],
+          "look_vector": [
+            0,
+            0,
+            -1
+          ],
+          "attributes": {}
+        }
+      ],
+      "slots": [],
+      "triangles": 14098,
+      "mesh_objects": 2,
+      "parts": [
+        {
+          "name": "NPC_Judge2__Body",
+          "triangles": 5292,
+          "origin_studs": [
+            -0.0005412697792053223,
+            0.0,
+            0.07454097270965576
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "NPC_Judge2__Head",
+          "triangles": 8806,
+          "origin_studs": [
+            -0.0005412697792053223,
+            4.107833385467529,
+            0.07454097270965576
+          ],
+          "role": "head",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "clothed_static_pose": 1,
+        "individual_fingers": 1,
+        "separate_neck_pivot_head": 1,
+        "expression": "fussy"
+      },
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          1.1774005889892578,
+          1.0092955827713013,
+          1.0075819492340088
+        ],
+        "offset": [
+          -0.0005412697792053223,
+          0.0,
+          0.07454097270965576
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        41.46000289916992,
+        0.0,
+        -19.979999542236328
+      ]
+    },
+    {
+      "name": "PorchRockingChair",
+      "folder": "Story",
+      "instruction": 37,
+      "triangle_budget": 6000,
+      "detail_guidance_min": 1500,
+      "dimensions_studs": [
+        2.4,
+        4.0,
+        3.0
+      ],
+      "bounds_min_studs": [
+        -1.2000000476837158,
+        1.5360956950871696e-10,
+        -1.5
+      ],
+      "bounds_max_studs": [
+        1.2000000476837158,
+        4.0,
+        1.4999998807907104
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [
+        {
+          "name": "Seat",
+          "instance_type": "Attachment",
+          "parent_mesh": "PorchRockingChair__Body",
+          "position_studs": [
+            0.0,
+            1.8287153244018555,
+            0.0
+          ],
+          "orientation_degrees": [
+            0,
+            0,
+            0
+          ],
+          "look_vector": [
+            0,
+            0,
+            -1
+          ],
+          "attributes": {}
+        }
+      ],
+      "slots": [],
+      "triangles": 5640,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "PorchRockingChair__Body",
+          "triangles": 5640,
+          "origin_studs": [
+            0.0,
+            0.015113354660570621,
+            0.0
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {},
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          1.188118815422058,
+          1.007556676864624,
+          0.9890949130058289
+        ],
+        "offset": [
+          0.0,
+          0.015113354660570621,
+          0.0
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        55.28000259399414,
+        0.0,
+        -19.979999542236328
+      ]
+    },
+    {
+      "name": "PorchDeck",
+      "folder": "Story",
+      "instruction": 37,
+      "triangle_budget": 10000,
+      "detail_guidance_min": 4000,
+      "dimensions_studs": [
+        10.0,
+        4.4,
+        8.0
+      ],
+      "bounds_min_studs": [
+        -5.0,
+        0.0,
+        -4.0
+      ],
+      "bounds_max_studs": [
+        5.0,
+        4.400000095367432,
+        4.0
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [
+        {
+          "name": "ChairSpot",
+          "instance_type": "Attachment",
+          "parent_mesh": "PorchDeck__Body",
+          "position_studs": [
+            -1.0,
+            1.600000023841858,
+            1.0
+          ],
+          "orientation_degrees": [
+            0,
+            0,
+            0
+          ],
+          "look_vector": [
+            0,
+            0,
+            -1
+          ],
+          "attributes": {}
+        }
+      ],
+      "slots": [],
+      "triangles": 7144,
+      "mesh_objects": 5,
+      "parts": [
+        {
+          "name": "PorchDeck__Body",
+          "triangles": 6712,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "PorchDeck__Deck",
+          "triangles": 108,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "collision_floor",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "PorchDeck__Step0",
+          "triangles": 108,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "collision_step",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "PorchDeck__Step1",
+          "triangles": 108,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "collision_step",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "PorchDeck__Step2",
+          "triangles": 108,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "collision_step",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {},
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "offset": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        0.0,
+        0.0,
+        -39.959999084472656
+      ]
+    },
+    {
+      "name": "GloriaHouse",
+      "folder": "Story",
+      "instruction": 37,
+      "triangle_budget": 35000,
+      "detail_guidance_min": 15000,
+      "dimensions_studs": [
+        44.0,
+        30.0,
+        36.0
+      ],
+      "bounds_min_studs": [
+        -22.0,
+        0.0,
+        -18.0
+      ],
+      "bounds_max_studs": [
+        22.000001907348633,
+        30.0,
+        18.0
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [
+        {
+          "name": "Porch",
+          "instance_type": "Attachment",
+          "parent_mesh": "GloriaHouse__Body",
+          "position_studs": [
+            7.090767860412598,
+            0.8741719126701355,
+            -10.022160530090332
+          ],
+          "orientation_degrees": [
+            0,
+            0,
+            0
+          ],
+          "look_vector": [
+            0,
+            0,
+            -1
+          ],
+          "attributes": {}
+        },
+        {
+          "name": "Driveway",
+          "instance_type": "Attachment",
+          "parent_mesh": "GloriaHouse__Body",
+          "position_studs": [
+            -13.1674222946167,
+            0.16454999148845673,
+            -27.972299575805664
+          ],
+          "orientation_degrees": [
+            0,
+            0,
+            0
+          ],
+          "look_vector": [
+            0,
+            0,
+            -1
+          ],
+          "attributes": {}
+        }
+      ],
+      "slots": [],
+      "triangles": 25932,
+      "mesh_objects": 3,
+      "parts": [
+        {
+          "name": "GloriaHouse__Body",
+          "triangles": 18908,
+          "origin_studs": [
+            2.0262203216552734,
+            0.0,
+            0.9473686218261719
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "GloriaHouse__Details_1",
+          "triangles": 6160,
+          "origin_studs": [
+            2.0262203216552734,
+            0.0,
+            0.9473686218261719
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "GloriaHouse__Windows",
+          "triangles": 864,
+          "origin_studs": [
+            2.0262203216552734,
+            0.0,
+            0.9473686218261719
+          ],
+          "role": "glass",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {},
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          1.0129095315933228,
+          1.0284374952316284,
+          0.9972299337387085
+        ],
+        "offset": [
+          2.0262203216552734,
+          0.0,
+          0.9473686218261719
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        13.820000648498535,
+        0.0,
+        -39.959999084472656
+      ]
+    },
+    {
+      "name": "GloriaYard_Stage1",
+      "folder": "Story",
+      "instruction": 37,
+      "triangle_budget": 14000,
+      "detail_guidance_min": 6000,
+      "dimensions_studs": [
+        44.0,
+        1.9,
+        30.0
+      ],
+      "bounds_min_studs": [
+        -22.0,
+        0.0,
+        -48.0
+      ],
+      "bounds_max_studs": [
+        22.0,
+        1.899999976158142,
+        -18.0
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 9428,
+      "mesh_objects": 2,
+      "parts": [
+        {
+          "name": "GloriaYard_Stage1__Body",
+          "triangles": 9248,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "GloriaYard_Stage1__Lawn",
+          "triangles": 180,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "lawn",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "shared_footprint_origin": "GloriaHouse ground origin; yard occupies Z -48 to -18",
+        "layout": {
+          "walk_x": 7.090767226720327,
+          "walk_width": 3,
+          "drive_x": -13.167422323658531,
+          "drive_width": 15.193642162784144,
+          "drive_z": [
+            -48,
+            -8
+          ],
+          "beds": [
+            [
+              -5.170601242266459,
+              5.090767226720327
+            ],
+            [
+              9.090767226720327,
+              21.3
+            ]
+          ]
+        }
+      },
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "offset": [
+          0,
+          0,
+          0
+        ],
+        "authored_at_nominal_size": true
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        27.64000129699707,
+        0.0,
+        -39.959999084472656
+      ]
+    },
+    {
+      "name": "GloriaYard_Stage2",
+      "folder": "Story",
+      "instruction": 37,
+      "triangle_budget": 14000,
+      "detail_guidance_min": 6000,
+      "dimensions_studs": [
+        44.0,
+        1.958,
+        30.0
+      ],
+      "bounds_min_studs": [
+        -22.0,
+        0.0,
+        -48.0
+      ],
+      "bounds_max_studs": [
+        22.0,
+        1.9579999446868896,
+        -18.0
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 9691,
+      "mesh_objects": 2,
+      "parts": [
+        {
+          "name": "GloriaYard_Stage2__Body",
+          "triangles": 9620,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "GloriaYard_Stage2__Lawn",
+          "triangles": 71,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "lawn",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "shared_footprint_origin": "GloriaHouse ground origin; yard occupies Z -48 to -18",
+        "layout": {
+          "walk_x": 7.090767226720327,
+          "walk_width": 3,
+          "drive_x": -13.167422323658531,
+          "drive_width": 15.193642162784144,
+          "drive_z": [
+            -48,
+            -8
+          ],
+          "beds": [
+            [
+              -5.170601242266459,
+              5.090767226720327
+            ],
+            [
+              9.090767226720327,
+              21.3
+            ]
+          ]
+        }
+      },
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "offset": [
+          0,
+          0,
+          0
+        ],
+        "authored_at_nominal_size": true
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        41.46000289916992,
+        0.0,
+        -39.959999084472656
+      ]
+    },
+    {
+      "name": "GloriaYard_Stage3",
+      "folder": "Story",
+      "instruction": 37,
+      "triangle_budget": 14000,
+      "detail_guidance_min": 6000,
+      "dimensions_studs": [
+        44.0,
+        4.270998,
+        30.0
+      ],
+      "bounds_min_studs": [
+        -22.0,
+        -0.0,
+        -48.0
+      ],
+      "bounds_max_studs": [
+        22.0,
+        4.270998477935791,
+        -18.0
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 13160,
+      "mesh_objects": 2,
+      "parts": [
+        {
+          "name": "GloriaYard_Stage3__Body",
+          "triangles": 11036,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "GloriaYard_Stage3__Lawn",
+          "triangles": 2124,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "lawn",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "shared_footprint_origin": "GloriaHouse ground origin; yard occupies Z -48 to -18",
+        "layout": {
+          "walk_x": 7.090767226720327,
+          "walk_width": 3,
+          "drive_x": -13.167422323658531,
+          "drive_width": 15.193642162784144,
+          "drive_z": [
+            -48,
+            -8
+          ],
+          "beds": [
+            [
+              -5.170601242266459,
+              5.090767226720327
+            ],
+            [
+              9.090767226720327,
+              21.3
+            ]
+          ]
+        }
+      },
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "offset": [
+          0,
+          0,
+          0
+        ],
+        "authored_at_nominal_size": true
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        55.28000259399414,
+        0.0,
+        -39.959999084472656
+      ]
+    },
+    {
+      "name": "TurfKingTruck",
+      "folder": "Story",
+      "instruction": 37,
+      "triangle_budget": 30000,
+      "detail_guidance_min": 15000,
+      "dimensions_studs": [
+        8.95,
+        8.5,
+        21.42
+      ],
+      "bounds_min_studs": [
+        -4.474999904632568,
+        0.0,
+        -10.710000038146973
+      ],
+      "bounds_max_studs": [
+        4.474999904632568,
+        8.5,
+        10.710000038146973
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [
+        {
+          "name": "Light",
+          "instance_type": "Attachment",
+          "parent_mesh": "TurfKingTruck__LightBar",
+          "position_studs": [
+            0.0,
+            6.699999809265137,
+            -3.1999998092651367
+          ],
+          "orientation_degrees": [
+            0,
+            0,
+            0
+          ],
+          "look_vector": [
+            0,
+            0,
+            -1
+          ],
+          "attributes": {}
+        }
+      ],
+      "slots": [],
+      "triangles": 17664,
+      "mesh_objects": 7,
+      "parts": [
+        {
+          "name": "TurfKingTruck__Body",
+          "triangles": 8824,
+          "origin_studs": [
+            0.0,
+            0.0,
+            -0.19999980926513672
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "TurfKingTruck__Glass",
+          "triangles": 540,
+          "origin_studs": [
+            0.0,
+            0.0,
+            -0.19999980926513672
+          ],
+          "role": "glass",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "TurfKingTruck__WheelFL",
+          "triangles": 1724,
+          "origin_studs": [
+            -3.700000047683716,
+            1.350000023841858,
+            -7.199999809265137
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "TurfKingTruck__WheelRL",
+          "triangles": 1724,
+          "origin_studs": [
+            -3.700000047683716,
+            1.350000023841858,
+            6.800000190734863
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "TurfKingTruck__WheelFR",
+          "triangles": 1724,
+          "origin_studs": [
+            3.700000047683716,
+            1.350000023841858,
+            -7.199999809265137
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "TurfKingTruck__WheelRR",
+          "triangles": 1724,
+          "origin_studs": [
+            3.700000047683716,
+            1.350000023841858,
+            6.800000190734863
+          ],
+          "role": "wheel",
+          "can_collide": false,
+          "collision_fidelity": "Hull",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "TurfKingTruck__LightBar",
+          "triangles": 1404,
+          "origin_studs": [
+            0.0,
+            6.449999809265137,
+            -3.1999998092651367
+          ],
+          "role": "lightbar",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "circular_wheel_geometry_preserved": 1
+      },
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "offset": [
+          0,
+          0,
+          0
+        ],
+        "authored_at_nominal_size": true
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        0.0,
+        0.0,
+        -59.939998626708984
+      ]
+    },
+    {
+      "name": "TurfKingSign",
+      "folder": "Props",
+      "instruction": 37,
+      "triangle_budget": 6000,
+      "detail_guidance_min": 1500,
+      "dimensions_studs": [
+        1.6,
+        2.0,
+        0.1
+      ],
+      "bounds_min_studs": [
+        -0.800000011920929,
+        0.0,
+        -0.05000000447034836
+      ],
+      "bounds_max_studs": [
+        0.800000011920929,
+        2.0,
+        0.04999999329447746
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 3244,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "TurfKingSign__Body",
+          "triangles": 3244,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.015853654593229294
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {},
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          1.0,
+          1.0214505195617676,
+          0.9756097197532654
+        ],
+        "offset": [
+          0.0,
+          0.0,
+          0.015853654593229294
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        13.820000648498535,
+        0.0,
+        -59.939998626708984
+      ]
+    },
+    {
+      "name": "BestYardTrophy",
+      "folder": "Decorations",
+      "instruction": 37,
+      "triangle_budget": 10000,
+      "detail_guidance_min": 4000,
+      "dimensions_studs": [
+        2.6,
+        5.4,
+        2.6
+      ],
+      "bounds_min_studs": [
+        -1.2999999523162842,
+        4.4901904416860816e-10,
+        -1.2999999523162842
+      ],
+      "bounds_max_studs": [
+        1.2999999523162842,
+        5.400000095367432,
+        1.2999999523162842
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 4656,
+      "mesh_objects": 2,
+      "parts": [
+        {
+          "name": "BestYardTrophy__Body",
+          "triangles": 1252,
+          "origin_studs": [
+            0.0,
+            0.009199178777635098,
+            0.0
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "BestYardTrophy__Cup",
+          "triangles": 3404,
+          "origin_studs": [
+            0.0,
+            2.461962938308716,
+            0.0
+          ],
+          "role": "cup",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {},
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          0.92428058385849,
+          1.0219848155975342,
+          1.1448272466659546
+        ],
+        "offset": [
+          0.0,
+          0.009199178777635098,
+          0.0
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        27.64000129699707,
+        0.0,
+        -59.939998626708984
+      ]
+    },
+    {
+      "name": "DebrisStick",
+      "folder": "Props",
+      "instruction": 37,
+      "triangle_budget": 1500,
+      "detail_guidance_min": 300,
+      "dimensions_studs": [
+        2.4,
+        0.36,
+        0.7
+      ],
+      "bounds_min_studs": [
+        -1.2000000476837158,
+        5.906564126689773e-10,
+        -0.3499999940395355
+      ],
+      "bounds_max_studs": [
+        1.2000000476837158,
+        0.36000001430511475,
+        0.3499999940395355
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 888,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "DebrisStick__Body",
+          "triangles": 888,
+          "origin_studs": [
+            0.005825042724609375,
+            -0.05000146105885506,
+            -0.1730787605047226
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {},
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          0.9831856489181519,
+          1.5589690208435059,
+          0.950145423412323
+        ],
+        "offset": [
+          0.005825042724609375,
+          -0.05000146105885506,
+          -0.1730787605047226
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        41.46000289916992,
+        0.0,
+        -59.939998626708984
+      ]
+    },
+    {
+      "name": "DebrisRock",
+      "folder": "Props",
+      "instruction": 37,
+      "triangle_budget": 1500,
+      "detail_guidance_min": 300,
+      "dimensions_studs": [
+        0.8,
+        0.5,
+        0.65
+      ],
+      "bounds_min_studs": [
+        -0.4000000059604645,
+        0.0,
+        -0.32499998807907104
+      ],
+      "bounds_max_studs": [
+        0.4000000059604645,
+        0.5,
+        0.32499998807907104
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 1128,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "DebrisRock__Body",
+          "triangles": 1128,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {},
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          1.0,
+          0.9891440272331238,
+          1.0
+        ],
+        "offset": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        55.28000259399414,
+        0.0,
+        -59.939998626708984
+      ]
+    },
+    {
+      "name": "DebrisDogBall",
+      "folder": "Props",
+      "instruction": 37,
+      "triangle_budget": 1500,
+      "detail_guidance_min": 300,
+      "dimensions_studs": [
+        0.55,
+        0.55,
+        0.55
+      ],
+      "bounds_min_studs": [
+        -0.2750000059604645,
+        3.336775300510908e-12,
+        -0.2750000059604645
+      ],
+      "bounds_max_studs": [
+        0.2750000059604645,
+        0.550000011920929,
+        0.2749999761581421
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 1410,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "DebrisDogBall__Body",
+          "triangles": 1410,
+          "origin_studs": [
+            0.0,
+            0.004323240369558334,
+            2.9802322387695312e-08
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {},
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          0.9842790961265564,
+          0.9842790365219116,
+          1.0000001192092896
+        ],
+        "offset": [
+          0.0,
+          0.004323240369558334,
+          2.9802322387695312e-08
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        0.0,
+        0.0,
+        -79.91999816894531
+      ]
+    },
+    {
+      "name": "DebrisToyTruck",
+      "folder": "Props",
+      "instruction": 37,
+      "triangle_budget": 1500,
+      "detail_guidance_min": 300,
+      "dimensions_studs": [
+        0.65,
+        0.58,
+        1.1
+      ],
+      "bounds_min_studs": [
+        -0.32499998807907104,
+        2.48352449716549e-10,
+        -0.550000011920929
+      ],
+      "bounds_max_studs": [
+        0.32499998807907104,
+        0.5799999833106995,
+        0.5499999523162842
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 952,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "DebrisToyTruck__Body",
+          "triangles": 952,
+          "origin_studs": [
+            0.0,
+            -0.010740745812654495,
+            -0.01341468095779419
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {},
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          0.9558823108673096,
+          1.0740740299224854,
+          1.0731706619262695
+        ],
+        "offset": [
+          0.0,
+          -0.010740745812654495,
+          -0.01341468095779419
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        13.820000648498535,
+        0.0,
+        -79.91999816894531
+      ]
+    },
+    {
+      "name": "DebrisFrisbee",
+      "folder": "Props",
+      "instruction": 37,
+      "triangle_budget": 1500,
+      "detail_guidance_min": 300,
+      "dimensions_studs": [
+        1.0,
+        0.16,
+        1.0
+      ],
+      "bounds_min_studs": [
+        -0.5,
+        0.0,
+        -0.5
+      ],
+      "bounds_max_studs": [
+        0.5,
+        0.1599999964237213,
+        0.5
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 828,
+      "mesh_objects": 1,
+      "parts": [
+        {
+          "name": "DebrisFrisbee__Body",
+          "triangles": 828,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {},
+      "baseline_source_pack": null,
+      "baseline_triangles": 0,
+      "authoring_fit": {
+        "scale": [
+          1.0,
+          0.9804151654243469,
+          1.0
+        ],
+        "offset": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        27.64000129699707,
+        0.0,
+        -79.91999816894531
+      ]
+    }
+  ],
+  "meters_per_stud": 0.28,
+  "source_main_commit": "c6a01d3",
+  "original_packs_preserved": true,
+  "studio_import_tested": false,
+  "validation": {
+    "gltf_export_checked": true,
+    "fbx_reimport_checked": true,
+    "preview_count": 26,
+    "studio_import_tested": false
+  }
+}

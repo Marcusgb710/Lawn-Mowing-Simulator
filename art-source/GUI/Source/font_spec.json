@@ -1,0 +1,49 @@
+{
+  "live_heading": {
+    "roblox_family": "DenkOne",
+    "weight": "Regular",
+    "source": "Fonts/Source/DenkOne-Regular.ttf",
+    "reason": "Compact chunky headings pair with the cream outlined title and leave space on landscape phones."
+  },
+  "live_body": {
+    "roblox_family": "Nunito",
+    "weights": [
+      "Regular",
+      "SemiBold",
+      "Bold",
+      "ExtraBold"
+    ],
+    "reason": "Rounded, open counters and a broad weight range keep dense item descriptions and dialogue readable."
+  },
+  "display": {
+    "family": "Lilita One",
+    "license": "SIL OFL 1.1",
+    "source": "Fonts/Source/LilitaOne-Regular.ttf"
+  },
+  "bitmap_fonts": [
+    {
+      "name": "Display_Numbers",
+      "cap_height_px": 128,
+      "font_size_px": 183,
+      "line_height_px": 257,
+      "base_px": 142,
+      "face_atlas": "Fonts/Display_Numbers_Face.png",
+      "outline_atlas": "Fonts/Display_Numbers_Outline.png",
+      "metrics": "Fonts/Display_Numbers.fnt",
+      "outline_metrics": "Fonts/Display_Numbers_Outline.fnt",
+      "tabular_digit_advance_px": 117
+    },
+    {
+      "name": "Display_Headline",
+      "cap_height_px": 72,
+      "font_size_px": 103,
+      "line_height_px": 157,
+      "base_px": 86,
+      "face_atlas": "Fonts/Display_Headline_Face.png",
+      "outline_atlas": "Fonts/Display_Headline_Outline.png",
+      "metrics": "Fonts/Display_Headline.fnt",
+      "outline_metrics": "Fonts/Display_Headline_Outline.fnt",
+      "tabular_digit_advance_px": null
+    }
+  ]
+}

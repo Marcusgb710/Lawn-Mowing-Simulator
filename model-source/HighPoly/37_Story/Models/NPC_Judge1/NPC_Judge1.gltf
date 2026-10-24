@@ -1,0 +1,323 @@
+{
+  "asset": {
+    "generator": "Khronos glTF Blender I/O v4.3.47",
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        4
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "extras": {
+        "roblox_class": "Attachment",
+        "roblox_name": "Talk",
+        "attributes_json": "{}",
+        "parent_mesh": "NPC_Judge1__Body"
+      },
+      "name": "Talk",
+      "translation": [
+        0,
+        0.954623281955719,
+        -0.3079037666320801
+      ]
+    },
+    {
+      "children": [
+        0
+      ],
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          0.00010132789611816406,
+          0.0,
+          0.17869418859481812
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 0,
+      "name": "NPC_Judge1__Body",
+      "translation": [
+        2.8371810913085938e-05,
+        0,
+        0.05003437399864197
+      ]
+    },
+    {
+      "extras": {
+        "roblox_class": "Attachment",
+        "roblox_name": "Head",
+        "attributes_json": "{}",
+        "parent_mesh": "NPC_Judge1__Head"
+      },
+      "name": "Head",
+      "translation": [
+        0,
+        0.1724480390548706,
+        -0.1416357457637787
+      ]
+    },
+    {
+      "children": [
+        2
+      ],
+      "extras": {
+        "role": "head",
+        "animation_axis": "",
+        "stud_origin": [
+          0.00010132789611816406,
+          4.25621223449707,
+          0.17869418859481812
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 1,
+      "name": "NPC_Judge1__Head",
+      "translation": [
+        2.8371810913085938e-05,
+        1.1917394399642944,
+        0.05003437399864197
+      ]
+    },
+    {
+      "children": [
+        1,
+        3
+      ],
+      "extras": {
+        "folder": "Story",
+        "stud_to_meter": 0.28,
+        "primary_part": "Root",
+        "primary_position_studs": [
+          0.0,
+          0.5,
+          0.0
+        ],
+        "markers_json": "[{\"name\": \"Head\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"NPC_Judge1__Head\", \"position_studs\": [0.00010132789611816406, 4.872097969055176, -0.3271477520465851], \"orientation_degrees\": [0, 0, 0], \"look_vector\": [0, 0, -1], \"attributes\": {}}, {\"name\": \"Talk\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"NPC_Judge1__Body\", \"position_studs\": [0.00010132789611816406, 3.4093687534332275, -0.9209621548652649], \"orientation_degrees\": [0, 0, 0], \"look_vector\": [0, 0, -1], \"attributes\": {}}]",
+        "slots_json": "[]"
+      },
+      "name": "NPC_Judge1"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "HP shared PBR 37",
+      "normalTexture": {
+        "index": 0,
+        "scale": 0.44999998807907104
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 1
+        },
+        "metallicRoughnessTexture": {
+          "index": 2
+        }
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "NPC_Judge1__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "NPC_Judge1__Head",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 4,
+            "NORMAL": 5,
+            "TEXCOORD_0": 6
+          },
+          "indices": 7,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    }
+  ],
+  "images": [
+    {
+      "mimeType": "image/png",
+      "name": "HP37_Normal",
+      "uri": "../../Textures/HP37_Normal.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP37_Color",
+      "uri": "../../Textures/HP37_Color.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP37_Metalness-HP37_Roughness",
+      "uri": "../../Textures/HP37_Metalness-HP37_Roughness.png"
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 3574,
+      "max": [
+        0.2799716293811798,
+        1.2194541692733765,
+        0.09789319336414337
+      ],
+      "min": [
+        -0.280028373003006,
+        0,
+        -0.27403438091278076
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 3574,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 3574,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "count": 20844,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 4,
+      "componentType": 5126,
+      "count": 3663,
+      "max": [
+        0.1691334843635559,
+        0.320260614156723,
+        0.17396563291549683
+      ],
+      "min": [
+        -0.1691334843635559,
+        -0.018476657569408417,
+        -0.1625732034444809
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 5,
+      "componentType": 5126,
+      "count": 3663,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 6,
+      "componentType": 5126,
+      "count": 3663,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 7,
+      "componentType": 5123,
+      "count": 21450,
+      "type": "SCALAR"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 42888,
+      "byteOffset": 0,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 42888,
+      "byteOffset": 42888,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 28592,
+      "byteOffset": 85776,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 41688,
+      "byteOffset": 114368,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 43956,
+      "byteOffset": 156056,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 43956,
+      "byteOffset": 200012,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 29304,
+      "byteOffset": 243968,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 42900,
+      "byteOffset": 273272,
+      "target": 34963
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 316172,
+      "uri": "NPC_Judge1.bin"
+    }
+  ]
+}

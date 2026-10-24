@@ -1,0 +1,323 @@
+{
+  "asset": {
+    "generator": "Khronos glTF Blender I/O v4.3.47",
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        4
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "extras": {
+        "roblox_class": "Attachment",
+        "roblox_name": "Talk",
+        "attributes_json": "{}",
+        "parent_mesh": "NPC_Sam_Casual__Body"
+      },
+      "name": "Talk",
+      "translation": [
+        0,
+        0.9172602295875549,
+        -0.3266170918941498
+      ]
+    },
+    {
+      "children": [
+        0
+      ],
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          5.960464477539063e-08,
+          0.0,
+          0.0648990273475647
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 0,
+      "name": "NPC_Sam_Casual__Body",
+      "translation": [
+        0,
+        0,
+        0.018171727657318115
+      ]
+    },
+    {
+      "extras": {
+        "roblox_class": "Attachment",
+        "roblox_name": "Head",
+        "attributes_json": "{}",
+        "parent_mesh": "NPC_Sam_Casual__Head"
+      },
+      "name": "Head",
+      "translation": [
+        0,
+        0.16569864749908447,
+        -0.1502438634634018
+      ]
+    },
+    {
+      "children": [
+        2
+      ],
+      "extras": {
+        "role": "head",
+        "animation_axis": "",
+        "stud_origin": [
+          5.960464477539063e-08,
+          4.300978660583496,
+          0.0648990273475647
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 1,
+      "name": "NPC_Sam_Casual__Head",
+      "translation": [
+        0,
+        1.20427405834198,
+        0.018171727657318115
+      ]
+    },
+    {
+      "children": [
+        1,
+        3
+      ],
+      "extras": {
+        "folder": "Story",
+        "stud_to_meter": 0.28,
+        "primary_part": "Root",
+        "primary_position_studs": [
+          0.0,
+          0.5,
+          0.0
+        ],
+        "markers_json": "[{\"name\": \"Head\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"NPC_Sam_Casual__Head\", \"position_studs\": [5.960464477539063e-08, 4.892759323120117, -0.4716861844062805], \"orientation_degrees\": [0, 0, 0], \"look_vector\": [0, 0, -1], \"attributes\": {}}, {\"name\": \"Talk\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"NPC_Sam_Casual__Body\", \"position_studs\": [5.960464477539063e-08, 3.2759294509887695, -1.101590633392334], \"orientation_degrees\": [0, 0, 0], \"look_vector\": [0, 0, -1], \"attributes\": {}}]",
+        "slots_json": "[]"
+      },
+      "name": "NPC_Sam_Casual"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "HP shared PBR 37",
+      "normalTexture": {
+        "index": 0,
+        "scale": 0.44999998807907104
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 1
+        },
+        "metallicRoughnessTexture": {
+          "index": 2
+        }
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "NPC_Sam_Casual__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "NPC_Sam_Casual__Head",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 4,
+            "NORMAL": 5,
+            "TEXCOORD_0": 6
+          },
+          "indices": 7,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    }
+  ],
+  "images": [
+    {
+      "mimeType": "image/png",
+      "name": "HP37_Normal",
+      "uri": "../../Textures/HP37_Normal.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP37_Color",
+      "uri": "../../Textures/HP37_Color.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP37_Metalness-HP37_Roughness",
+      "uri": "../../Textures/HP37_Metalness-HP37_Roughness.png"
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 3591,
+      "max": [
+        0.25200000405311584,
+        1.2309041023254395,
+        0.10384280234575272
+      ],
+      "min": [
+        -0.25200000405311584,
+        0,
+        -0.1861717402935028
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 3591,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 3591,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "count": 20898,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 4,
+      "componentType": 5126,
+      "count": 3648,
+      "max": [
+        0.15236902236938477,
+        0.3077259957790375,
+        0.14982827007770538
+      ],
+      "min": [
+        -0.15236902236938477,
+        -0.01775341108441353,
+        -0.17245382070541382
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 5,
+      "componentType": 5126,
+      "count": 3648,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 6,
+      "componentType": 5126,
+      "count": 3648,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 7,
+      "componentType": 5123,
+      "count": 21396,
+      "type": "SCALAR"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 43092,
+      "byteOffset": 0,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 43092,
+      "byteOffset": 43092,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 28728,
+      "byteOffset": 86184,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 41796,
+      "byteOffset": 114912,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 43776,
+      "byteOffset": 156708,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 43776,
+      "byteOffset": 200484,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 29184,
+      "byteOffset": 244260,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 42792,
+      "byteOffset": 273444,
+      "target": 34963
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 316236,
+      "uri": "NPC_Sam_Casual.bin"
+    }
+  ]
+}

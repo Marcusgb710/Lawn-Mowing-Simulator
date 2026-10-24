@@ -1,0 +1,323 @@
+{
+  "asset": {
+    "generator": "Khronos glTF Blender I/O v4.3.47",
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        4
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "extras": {
+        "roblox_class": "Attachment",
+        "roblox_name": "Talk",
+        "attributes_json": "{}",
+        "parent_mesh": "NPC_Gloria__Body"
+      },
+      "name": "Talk",
+      "translation": [
+        0,
+        0.9512328505516052,
+        -0.2801971435546875
+      ]
+    },
+    {
+      "children": [
+        0
+      ],
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          -0.0001233816146850586,
+          0.0,
+          0.24066174030303955
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 0,
+      "name": "NPC_Gloria__Body",
+      "translation": [
+        -3.4546850656624883e-05,
+        0,
+        0.06738528609275818
+      ]
+    },
+    {
+      "extras": {
+        "roblox_class": "Attachment",
+        "roblox_name": "Head",
+        "attributes_json": "{}",
+        "parent_mesh": "NPC_Gloria__Head"
+      },
+      "name": "Head",
+      "translation": [
+        0,
+        0.1718355417251587,
+        -0.12889067828655243
+      ]
+    },
+    {
+      "children": [
+        2
+      ],
+      "extras": {
+        "role": "head",
+        "animation_axis": "",
+        "stud_origin": [
+          -0.0001233816146850586,
+          4.4602742195129395,
+          0.24066174030303955
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 1,
+      "name": "NPC_Gloria__Head",
+      "translation": [
+        -3.4546850656624883e-05,
+        1.2488768100738525,
+        0.06738528609275818
+      ]
+    },
+    {
+      "children": [
+        1,
+        3
+      ],
+      "extras": {
+        "folder": "Story",
+        "stud_to_meter": 0.28,
+        "primary_part": "Root",
+        "primary_position_studs": [
+          0.0,
+          0.5,
+          0.0
+        ],
+        "markers_json": "[{\"name\": \"Head\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"NPC_Gloria__Head\", \"position_studs\": [-0.0001233816146850586, 5.073972702026367, -0.2196621298789978], \"orientation_degrees\": [0, 0, 0], \"look_vector\": [0, 0, -1], \"attributes\": {}}, {\"name\": \"Talk\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"NPC_Gloria__Body\", \"position_studs\": [-0.0001233816146850586, 3.3972601890563965, -0.7600423097610474], \"orientation_degrees\": [0, 0, 0], \"look_vector\": [0, 0, -1], \"attributes\": {}}]",
+        "slots_json": "[]"
+      },
+      "name": "NPC_Gloria"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "HP shared PBR 37",
+      "normalTexture": {
+        "index": 0,
+        "scale": 0.44999998807907104
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 1
+        },
+        "metallicRoughnessTexture": {
+          "index": 2
+        }
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "NPC_Gloria__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "NPC_Gloria__Head",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 4,
+            "NORMAL": 5,
+            "TEXCOORD_0": 6
+          },
+          "indices": 7,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    }
+  ],
+  "images": [
+    {
+      "mimeType": "image/png",
+      "name": "HP37_Normal",
+      "uri": "../../Textures/HP37_Normal.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP37_Color",
+      "uri": "../../Textures/HP37_Color.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP37_Metalness-HP37_Roughness",
+      "uri": "../../Textures/HP37_Metalness-HP37_Roughness.png"
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 3835,
+      "max": [
+        0.2520345449447632,
+        1.2764930725097656,
+        0.08908429741859436
+      ],
+      "min": [
+        -0.2519654333591461,
+        0,
+        -0.2633852958679199
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 3835,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 3835,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "count": 22212,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 4,
+      "componentType": 5126,
+      "count": 3414,
+      "max": [
+        0.15215475857257843,
+        0.31912317872047424,
+        0.12861469388008118
+      ],
+      "min": [
+        -0.15215475857257843,
+        -0.018410969525575638,
+        -0.14794407784938812
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 5,
+      "componentType": 5126,
+      "count": 3414,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 6,
+      "componentType": 5126,
+      "count": 3414,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 7,
+      "componentType": 5123,
+      "count": 19944,
+      "type": "SCALAR"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 46020,
+      "byteOffset": 0,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 46020,
+      "byteOffset": 46020,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 30680,
+      "byteOffset": 92040,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 44424,
+      "byteOffset": 122720,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 40968,
+      "byteOffset": 167144,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 40968,
+      "byteOffset": 208112,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 27312,
+      "byteOffset": 249080,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 39888,
+      "byteOffset": 276392,
+      "target": 34963
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 316280,
+      "uri": "NPC_Gloria.bin"
+    }
+  ]
+}
