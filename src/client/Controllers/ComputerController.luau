@@ -7,9 +7,10 @@
 --   Crew      inviting and managing your crew
 --   Messages  texts from Grandma June and the neighborhood, and your goal (MessagesController);
 --             its buttons show how many texts are unread
--- The apps are the game's usual menus, shown inside the monitor. The open app's button on the
--- taskbar is green. Back, or walking away, eases the camera back to first person. The desk's
--- ScreenView attachment is where the camera goes and UseSpot is where you stand.
+-- The apps are the game's usual menus, shown inside the monitor, over the art's wallpaper, with
+-- each app's icon on the desktop and the taskbar, and your money at its end. The open app's
+-- button on the taskbar is green. Back, or walking away, eases the camera back to first person.
+-- The desk's ScreenView attachment is where the camera goes and UseSpot is where you stand.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -17,10 +18,12 @@ local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Format = require(Shared.Format)
 local GameConfig = require(Shared.Config.GameConfig)
 local Net = require(Shared.Net)
 local Story = require(Shared.Config.Story)
 
+local Art = require(script.Parent.Parent.Art)
 local ClientState = require(script.Parent.Parent.ClientState)
 local UI = require(script.Parent.Parent.UI)
 local ShopController = require(script.Parent.ShopController)
@@ -32,7 +35,11 @@ local EASE_TIME = 0.6
 -- Narrower view at the screen, so the monitor fills it.
 local SCREEN_FOV = 50
 -- Height of the taskbar along the bottom of the screen.
-local TASKBAR = 44
+local TASKBAR = 48
+-- Your money shows at the taskbar's end on screens at least this wide (pixels), and how wide.
+local MONEY_FROM = 760
+local MONEY_WIDTH = 150
+local BACK_WIDTH = 104
 -- Walking this far from the desk (or starting to walk) puts the computer away.
 local WALK_AWAY = 3
 local WALK_GRACE = 0.5
@@ -97,7 +104,9 @@ local cameraTween: Tween? = nil
 -- The app that's open (its taskbar button is green), the taskbar's buttons, and the unread badges.
 local activeApp = nil
 local taskButtons: { [any]: TextButton } = {}
-local badges: { TextLabel } = {}
+local badges: { GuiObject } = {}
+local taskbarButtons: Frame
+local money
 
 local function moveCamera(goal: { [string]: any }): Tween
 	if cameraTween then
@@ -226,9 +235,7 @@ local function updateActive()
 		activeApp = nil
 	end
 	for app, button in taskButtons do
-		local active = app == activeApp
-		button.BackgroundColor3 = if active then UI.Colors.Accent else UI.Colors.Card
-		button.TextColor3 = if active then UI.Colors.BubbleText else UI.Colors.Text
+		UI.setStyle(button, if app == activeApp then "Primary" else "Neutral")
 	end
 end
 
@@ -238,23 +245,29 @@ local function openApp(app)
 	updateActive()
 end
 
--- A yellow unread count in the top right corner of an app's button.
+-- The unread count in the top right corner of an app's button: the art's round badge, or a yellow
+-- circle.
 local function addBadge(button: GuiObject, inset: number)
-	local badge = UI.label("", {
+	local art = Art.kit("Badge_Unread")
+	local badge = UI.sliced("Badge_Unread", {
 		Name = "Unread",
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.new(1, -inset, 0, inset),
 		Size = UDim2.fromOffset(24, 24),
-		BackgroundTransparency = 0,
-		BackgroundColor3 = UI.Colors.Money,
-		TextColor3 = UI.Colors.BubbleText,
-		TextSize = 14,
-		TextXAlignment = Enum.TextXAlignment.Center,
 		Visible = false,
 		ZIndex = 3,
 		Parent = button,
+	}, { color = UI.Colors.Money, radius = 12 })
+	UI.label("", {
+		Name = "Count",
+		Size = UDim2.fromScale(1, 1),
+		TextColor3 = if art ~= "" then UI.Colors.Text else UI.Colors.BubbleText,
+		TextSize = 14,
+		FontFace = UI.Fonts.Heavy,
+		TextXAlignment = Enum.TextXAlignment.Center,
+		ZIndex = 3,
+		Parent = badge,
 	})
-	UI.corner(12).Parent = badge
 	table.insert(badges, badge)
 end
 
@@ -263,8 +276,103 @@ local function updateBadges()
 	local unread = if story then Story.unread(story.texts, story.read) else 0
 	for _, badge in badges do
 		badge.Visible = unread > 0
-		badge.Text = if unread > 9 then "9+" else tostring(unread)
+		local count = badge:FindFirstChild("Count")
+		if count and count:IsA("TextLabel") then
+			count.Text = if unread > 9 then "9+" else tostring(unread)
+		end
 	end
+end
+
+-- Your money at the taskbar's end, where there's room for it.
+local function updateMoney()
+	local profile = ClientState.profile
+	if money and profile then
+		money:SetText(Format.money(profile.money))
+	end
+end
+
+local function fitTaskbar(display: GuiObject)
+	local wide = display.AbsoluteSize.X >= MONEY_FROM
+	money.Frame.Visible = wide
+	taskbarButtons.Size = UDim2.new(1, -(BACK_WIDTH + 8 + (if wide then MONEY_WIDTH else 0)), 1, 0)
+end
+
+-- An app on the desktop: its icon from the art over its name and what it's for, or a plain
+-- button with the words.
+local function desktopIcon(app, index: number)
+	local image = Art.computer(`App_{app.name}`)
+	local icon
+	if image ~= "" then
+		icon = UI.new("TextButton", {
+			Name = app.name,
+			BackgroundTransparency = 1,
+			Text = "",
+			AutoButtonColor = false,
+			LayoutOrder = index,
+			Parent = desktop,
+		})
+		local picture = UI.picture(image, {
+			AnchorPoint = Vector2.new(0.5, 0),
+			Position = UDim2.fromScale(0.5, 0),
+			Size = UDim2.new(1, 0, 1, -40),
+			Parent = icon,
+		}) :: ImageLabel
+		UI.new("UIAspectRatioConstraint", { Parent = picture })
+		UI.label(app.name, {
+			AnchorPoint = Vector2.new(0.5, 1),
+			Position = UDim2.new(0.5, 0, 1, -18),
+			Size = UDim2.new(1, 0, 0, 22),
+			TextSize = 18,
+			FontFace = UI.Fonts.Heavy,
+			TextXAlignment = Enum.TextXAlignment.Center,
+			TextStrokeColor3 = UI.Colors.Ink,
+			TextStrokeTransparency = 0.3,
+			Parent = icon,
+		})
+		-- Held down, the icon dips a little.
+		icon.InputBegan:Connect(function(input)
+			if
+				input.UserInputType == Enum.UserInputType.MouseButton1
+				or input.UserInputType == Enum.UserInputType.Touch
+			then
+				picture.Position = UDim2.new(0.5, 0, 0, 2)
+			end
+		end)
+		icon.InputEnded:Connect(function()
+			picture.Position = UDim2.fromScale(0.5, 0)
+		end)
+		icon.Activated:Connect(function()
+			openApp(app)
+		end)
+		if app.badge then
+			addBadge(picture, 6)
+		end
+	else
+		icon = UI.button(app.name, function()
+			openApp(app)
+		end, {
+			LayoutOrder = index,
+			TextSize = 24,
+			Style = "Neutral",
+			Parent = desktop,
+		})
+		if app.badge then
+			addBadge(icon, 6)
+		end
+	end
+	UI.label(app.hint, {
+		AnchorPoint = Vector2.new(0.5, 1),
+		Position = UDim2.new(0.5, 0, 1, if image ~= "" then 0 else -8),
+		Size = UDim2.new(1, -10, 0, 18),
+		TextSize = 14,
+		FontFace = UI.Fonts.Medium,
+		TextColor3 = UI.Colors.SubText,
+		TextXAlignment = Enum.TextXAlignment.Center,
+		TextStrokeColor3 = UI.Colors.Ink,
+		TextStrokeTransparency = if image ~= "" then 0.4 else 1,
+		ZIndex = 2,
+		Parent = icon,
+	})
 end
 
 local function build()
@@ -273,6 +381,7 @@ local function build()
 		ResetOnSpawn = false,
 		DisplayOrder = 4,
 		Enabled = false,
+		ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
 		Parent = player:WaitForChild("PlayerGui"),
 	})
 	-- The monitor: a dark bezel around the screen.
@@ -292,10 +401,18 @@ local function build()
 		ClipsDescendants = true,
 		Parent = bezel,
 	}, { UI.corner(6) })
+	-- The wallpaper: a freshly striped lawn with Grandma's porch at the edge.
+	UI.picture(Art.computer("Wallpaper"), {
+		Name = "Wallpaper",
+		Size = UDim2.fromScale(1, 1),
+		ScaleType = Enum.ScaleType.Crop,
+		Parent = display,
+	})
 	appArea = UI.new("Frame", {
 		Name = "Apps",
 		Size = UDim2.new(1, 0, 1, -TASKBAR),
 		BackgroundTransparency = 1,
+		ZIndex = 2,
 		Parent = display,
 	})
 
@@ -303,11 +420,12 @@ local function build()
 	desktop = UI.new("Frame", {
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.new(0.5, 0, 0.5, -TASKBAR / 2),
-		Size = UDim2.new(0.94, 0, 0, 110),
+		Size = UDim2.new(0.94, 0, 0, 130),
 		BackgroundTransparency = 1,
+		ZIndex = 2,
 		Parent = display,
 	}, {
-		UI.new("UISizeConstraint", { MaxSize = Vector2.new(660, 110) }),
+		UI.new("UISizeConstraint", { MaxSize = Vector2.new(680, 130) }),
 		UI.new("UIGridLayout", {
 			CellSize = UDim2.new(1 / #APPS, -12, 1, 0),
 			CellPadding = UDim2.fromOffset(12 * #APPS / (#APPS - 1), 0),
@@ -316,39 +434,20 @@ local function build()
 		}),
 	})
 	for index, app in APPS do
-		local icon = UI.button(app.name, function()
-			openApp(app)
-		end, {
-			LayoutOrder = index,
-			TextSize = 24,
-			BackgroundColor3 = UI.Colors.Panel,
-			Parent = desktop,
-		})
-		if app.badge then
-			addBadge(icon, 6)
-		end
-		UI.label(app.hint, {
-			AnchorPoint = Vector2.new(0.5, 1),
-			Position = UDim2.new(0.5, 0, 1, -8),
-			Size = UDim2.new(1, -10, 0, 18),
-			TextSize = 14,
-			TextColor3 = UI.Colors.SubText,
-			TextXAlignment = Enum.TextXAlignment.Center,
-			Parent = icon,
-		})
+		desktopIcon(app, index)
 	end
 
 	-- The taskbar along the bottom.
-	local taskbar = UI.new("Frame", {
+	local taskbar = UI.sliced("Computer/Taskbar", {
 		AnchorPoint = Vector2.new(0, 1),
 		Position = UDim2.fromScale(0, 1),
 		Size = UDim2.new(1, 0, 0, TASKBAR),
-		BackgroundColor3 = Color3.fromRGB(20, 30, 24),
-		BackgroundTransparency = 0.1,
+		ZIndex = 3,
 		Parent = display,
-	}, { UI.padding(4) })
-	local buttons = UI.new("Frame", {
-		Size = UDim2.new(1, -110, 1, 0),
+	}, { color = UI.Colors.Ink, transparency = 0.1, radius = 0 })
+	UI.padding(5).Parent = taskbar
+	taskbarButtons = UI.new("Frame", {
+		Size = UDim2.new(1, -(BACK_WIDTH + 8), 1, 0),
 		BackgroundTransparency = 1,
 		Parent = taskbar,
 	}, { UI.list(6, Enum.FillDirection.Horizontal) })
@@ -357,11 +456,14 @@ local function build()
 		local button = UI.button(app.name, function()
 			openApp(app)
 		end, {
+			Style = "Neutral",
+			IconImage = Art.computer(`App_{app.name}`),
+			IconSize = 24,
 			LayoutOrder = index,
 			Size = UDim2.new(1 / #APPS, -6, 1, 0),
 			TextScaled = true,
-			BackgroundColor3 = UI.Colors.Card,
-			Parent = buttons,
+			FontFace = UI.Fonts.Bold,
+			Parent = taskbarButtons,
 		})
 		UI.new("UITextSizeConstraint", { MaxTextSize = 16, Parent = button })
 		UI.new("UIPadding", { PaddingLeft = UDim.new(0, 4), PaddingRight = UDim.new(0, 4), Parent = button })
@@ -370,16 +472,28 @@ local function build()
 			addBadge(button, 2)
 		end
 	end
+	money = UI.display("Numbers", "", { TextSize = 34, Color = UI.Colors.Money, XAlignment = "Right", Fit = true }, {
+		AnchorPoint = Vector2.new(1, 0),
+		Position = UDim2.new(1, -(BACK_WIDTH + 8), 0, 0),
+		Size = UDim2.new(0, MONEY_WIDTH - 12, 1, 0),
+		Parent = taskbar,
+	})
 	UI.button("Back", function()
 		ComputerController.leave()
 	end, {
+		Style = "Neutral",
+		Icon = "Back",
 		AnchorPoint = Vector2.new(1, 0),
 		Position = UDim2.fromScale(1, 0),
-		Size = UDim2.fromOffset(100, 36),
+		Size = UDim2.new(0, BACK_WIDTH, 1, 0),
 		TextSize = 16,
-		BackgroundColor3 = UI.Colors.Danger,
 		Parent = taskbar,
 	})
+	display:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+		fitTaskbar(display)
+	end)
+	fitTaskbar(display)
+	updateMoney()
 end
 
 function ComputerController:Start()
@@ -428,6 +542,8 @@ function ComputerController:Start()
 			ComputerController.leave(true, true)
 		elseif key == "story" then
 			updateBadges()
+		elseif key == "profile" then
+			updateMoney()
 		end
 	end)
 end

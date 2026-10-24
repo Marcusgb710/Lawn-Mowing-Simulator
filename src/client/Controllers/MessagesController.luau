@@ -7,18 +7,19 @@
 -- The inbox, what's been read and the goal all come from the server (StoryService); opening a
 -- thread tells it that thread's been read. In act 4 the goal card is the Best Yard contest's
 -- (ContestService): a button to text June to call the judges, the jobs until they come round
--- again, or a button to see the results. The art is in StoryArt, the colors and font in UI.
+-- again, or a button to see the results (the goal itself comes from Goal, which Grandma's sticky note
+-- on the HUD shows too). The art is in StoryArt, the colors and fonts in UI.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local TextService = game:GetService("TextService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
-local Format = require(Shared.Format)
 local Net = require(Shared.Net)
 local Story = require(Shared.Config.Story)
 
+local Art = require(script.Parent.Parent.Art)
 local ClientState = require(script.Parent.Parent.ClientState)
+local Goal = require(script.Parent.Parent.Goal)
 local StoryArt = require(script.Parent.Parent.StoryArt)
 local UI = require(script.Parent.Parent.UI)
 local ComputerController = require(script.Parent.ComputerController)
@@ -37,7 +38,7 @@ local TOAST_QUEUE = 3
 
 local MessagesController = {}
 
-local window: Frame
+local window: GuiObject
 local content: Frame
 local listPane: ScrollingFrame
 local threadPane: Frame
@@ -47,9 +48,9 @@ local threadStatus: TextLabel
 local messages: ScrollingFrame
 local goalCard: Frame
 local goalLabel: TextLabel
+local goalFlag: ImageLabel?
 local goalText: TextLabel
-local goalTrack: Frame
-local goalFill: Frame
+local goalBar: UI.Bar
 local goalValue: TextLabel
 local goalButton: TextButton
 -- What the goal card's button does: "Start" (call the judges) or "Results".
@@ -98,41 +99,13 @@ local function preview(text): string
 	return if text.from then `{text.from}: {body}` else body
 end
 
--- The goal card's goal: the act's, or in act 4 the contest's (Contest.state): calling the
--- judges, the jobs until they come round again, or the results. A goal with a `button` shows it
--- instead of a bar.
-local function currentGoal()
-	local story = ClientState.story
-	local goal = story and story.goal
-	local contest = ClientState.contest
-	if not (goal and contest) or contest.state == "Locked" then
-		return goal
-	elseif contest.state == "Open" then
-		return { text = `Beat Gloria's {contest.bar} on judging day`, button = "Call the judges", action = "Start" }
-	elseif contest.state == "Results" then
-		return { text = "The judges have been", button = "See the results", action = "Results" }
-	end
-	local length = math.max(1, contest.jobsWait or 1)
-	return { text = "Best Yard comes round again", kind = "Jobs", need = length, have = length - contest.jobsLeft }
+local function textWidth(text: string, size: number, heading: boolean?): number
+	return UI.textWidth(text, size, heading)
 end
 
--- What the goal's progress is right now: your money toward a price, your curb appeal, or the
--- jobs done toward the judges coming back.
-local function goalProgress(goal): (number, string)
-	if goal.kind == "Jobs" then
-		local left = goal.need - goal.have
-		return goal.have, `{left} {if left == 1 then "job" else "jobs"} to go`
-	elseif goal.kind == "Money" then
-		local money = if ClientState.profile then ClientState.profile.money else 0
-		return money, `{Format.money(money)} / {Format.money(goal.need)}`
-	end
-	local appeal = player:GetAttribute("CurbAppeal")
-	local have = if typeof(appeal) == "number" then appeal else 0
-	return have, `{have} / {goal.need}`
-end
-
-local function textWidth(text: string, size: number): number
-	return TextService:GetTextSize(text, size, UI.Font, Vector2.new(4000, 100)).X
+-- How much room the goal card's "GOAL" (and its flag, with the art) takes on the left.
+local function goalLabelWidth(): number
+	return textWidth("GOAL", 16, true) + 14 + (if goalFlag then 28 else 0)
 end
 
 -- Drawing the app ----------------------------------------------------------------------------
@@ -142,13 +115,16 @@ end
 local function renderGoalButton(goal, width: number): number
 	goalButton.Text = goal.button
 	goalAction = goal.action
-	local labelWidth = textWidth("GOAL", 14) + 14
-	local buttonWidth = textWidth(goal.button, 18) + 36
+	local labelWidth = goalLabelWidth()
+	local buttonWidth = textWidth(goal.button, 18) + 44
 	local textX = 16 + labelWidth
 	local oneRow = width - textX - textWidth(goal.text, 18) - buttonWidth - 16 * 2 >= 16
 	local rowHeight = if oneRow then 60 else 48
-	goalLabel.Position = UDim2.fromOffset(16, 0)
-	goalLabel.Size = UDim2.fromOffset(labelWidth, rowHeight)
+	if goalFlag then
+		goalFlag.Position = UDim2.fromOffset(16, rowHeight / 2)
+	end
+	goalLabel.Position = UDim2.fromOffset(16 + labelWidth - textWidth("GOAL", 16, true) - 14, 0)
+	goalLabel.Size = UDim2.fromOffset(textWidth("GOAL", 16, true) + 14, rowHeight)
 	goalText.Position = UDim2.fromOffset(textX, 0)
 	goalText.Size = if oneRow
 		then UDim2.fromOffset(textWidth(goal.text, 18) + 4, rowHeight)
@@ -160,40 +136,43 @@ end
 
 -- The goal card: on one row (the mock-up) where it fits, the bar under the goal where it doesn't.
 local function renderGoal(width: number): number
-	local goal = currentGoal()
+	local goal = Goal.current()
 	goalCard.Visible = goal ~= nil
 	if not goal then
 		return 0
 	end
 	local hasButton = goal.button ~= nil
 	goalButton.Visible = hasButton
-	goalTrack.Visible = not hasButton
+	goalBar.frame.Visible = not hasButton
 	goalValue.Visible = not hasButton
 	goalText.Text = goal.text
 	if hasButton then
 		return renderGoalButton(goal, width)
 	end
 	goalAction = nil
-	local have, value = goalProgress(goal)
+	local have, value = Goal.progress(goal)
 	goalValue.Text = value
-	goalFill.Size = UDim2.fromScale(if goal.need > 0 then math.clamp(have / goal.need, 0, 1) else 1, 1)
-	local labelWidth, valueWidth = textWidth("GOAL", 14) + 14, textWidth(value, 18) + 4
+	goalBar.set(if goal.need > 0 then have / goal.need else 1)
+	local labelWidth, valueWidth = goalLabelWidth(), textWidth(value, 18) + 4
 	local textX = 16 + labelWidth
 	local oneRow = width - textX - textWidth(goal.text, 18) - valueWidth - 16 * 3 >= 80
 	local height = if oneRow then 48 else 76
-	goalLabel.Position = UDim2.fromOffset(16, 0)
-	goalLabel.Size = UDim2.fromOffset(labelWidth, 48)
+	if goalFlag then
+		goalFlag.Position = UDim2.fromOffset(16, 24)
+	end
+	goalLabel.Position = UDim2.fromOffset(16 + labelWidth - textWidth("GOAL", 16, true) - 14, 0)
+	goalLabel.Size = UDim2.fromOffset(textWidth("GOAL", 16, true) + 14, 48)
 	goalValue.Position = UDim2.new(1, -16 - valueWidth, 0, if oneRow then 0 else 36)
 	goalValue.Size = UDim2.fromOffset(valueWidth, if oneRow then 48 else 32)
 	if oneRow then
 		local barX = textX + textWidth(goal.text, 18) + 16
 		goalText.Size = UDim2.fromOffset(textWidth(goal.text, 18) + 4, 48)
-		goalTrack.Position = UDim2.fromOffset(barX, 17)
-		goalTrack.Size = UDim2.new(1, -barX - valueWidth - 30, 0, 14)
+		goalBar.frame.Position = UDim2.fromOffset(barX, 17)
+		goalBar.frame.Size = UDim2.new(1, -barX - valueWidth - 30, 0, 14)
 	else
 		goalText.Size = UDim2.new(1, -textX - 16, 0, 48)
-		goalTrack.Position = UDim2.fromOffset(16, 45)
-		goalTrack.Size = UDim2.new(1, -valueWidth - 46, 0, 14)
+		goalBar.frame.Position = UDim2.fromOffset(16, 45)
+		goalBar.frame.Size = UDim2.new(1, -valueWidth - 46, 0, 14)
 	end
 	goalText.Position = UDim2.fromOffset(textX, 0)
 	return height
@@ -243,56 +222,72 @@ end
 local function threadCard(thread, index: number)
 	local info = Story.thread(thread.id)
 	local isSelected = thread.id == selected
+	local art = if isSelected then StoryArt.ThreadCardActive else StoryArt.ThreadCard
 	local card = UI.new("TextButton", {
 		Name = "Thread",
-		Size = UDim2.new(1, -8, 0, 72),
+		Size = UDim2.new(1, -8, 0, 76),
 		BackgroundColor3 = if isSelected then UI.Colors.Card else UI.Colors.Panel,
-		AutoButtonColor = true,
+		AutoButtonColor = art == nil,
 		Text = "",
 		LayoutOrder = index,
 		Parent = listPane,
-	}, {
-		UI.corner(16),
+	})
+	if art then
+		-- The art's card behind everything on it (the button has no text of its own to cover).
+		card.BackgroundTransparency = 1
+		local skin = UI.new("ImageLabel", { Name = "Skin", Size = UDim2.fromScale(1, 1), ZIndex = 1, Parent = card })
+		UI.applySlice(skin, art)
+	else
+		UI.corner(16).Parent = card
 		UI.new("UIStroke", {
 			Color = UI.Colors.Accent,
 			Thickness = 3,
 			Transparency = if isSelected then 0 else 1,
 			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-		}),
-	})
-	local face = DialogueController.face(info.cast, 46)
+			Parent = card,
+		})
+	end
+	local face = DialogueController.face(info.cast, 50)
 	face.Position = UDim2.fromOffset(12, 13)
+	face.ZIndex = 2
 	face.Parent = card
 	local right = if thread.unread > 0 then 50 else 14
-	UI.label(info.name, {
-		Position = UDim2.fromOffset(70, 12),
-		Size = UDim2.new(1, -70 - right, 0, 24),
-		TextSize = 19,
+	UI.heading(info.name, {
+		Position = UDim2.fromOffset(74, 12),
+		Size = UDim2.new(1, -74 - right, 0, 26),
+		TextSize = 20,
 		TextTruncate = Enum.TextTruncate.AtEnd,
+		ZIndex = 2,
 		Parent = card,
 	})
 	UI.label(preview(thread.last), {
-		Position = UDim2.fromOffset(70, 38),
-		Size = UDim2.new(1, -70 - right, 0, 20),
+		Position = UDim2.fromOffset(74, 40),
+		Size = UDim2.new(1, -74 - right, 0, 20),
 		TextSize = 15,
+		FontFace = UI.Fonts.Body,
 		TextColor3 = UI.Colors.SubText,
 		TextTruncate = Enum.TextTruncate.AtEnd,
+		ZIndex = 2,
 		Parent = card,
 	})
 	if thread.unread > 0 then
-		local badge = UI.label(tostring(thread.unread), {
+		local badge = UI.sliced("Badge_Unread", {
 			Name = "Unread",
 			AnchorPoint = Vector2.new(1, 0.5),
 			Position = UDim2.new(1, -14, 0.5, 0),
 			Size = UDim2.fromOffset(26, 26),
-			BackgroundTransparency = 0,
-			BackgroundColor3 = UI.Colors.Money,
-			TextColor3 = UI.Colors.BubbleText,
+			ZIndex = 2,
+			Parent = card,
+		}, { color = UI.Colors.Money, radius = 13 })
+		UI.label(tostring(thread.unread), {
+			Size = UDim2.fromScale(1, 1),
+			FontFace = UI.Fonts.Heavy,
+			TextColor3 = if StoryArt.Unread ~= "" then UI.Colors.Text else UI.Colors.BubbleText,
 			TextSize = 15,
 			TextXAlignment = Enum.TextXAlignment.Center,
-			Parent = card,
+			ZIndex = 2,
+			Parent = badge,
 		})
-		UI.corner(13).Parent = badge
 	end
 	card.Activated:Connect(function()
 		openThread(thread.id)
@@ -321,47 +316,49 @@ local function bubble(text, index: number, maxWidth: number)
 			Size = UDim2.fromOffset(0, 18),
 			AutomaticSize = Enum.AutomaticSize.X,
 			TextSize = 14,
+			FontFace = UI.Fonts.Medium,
 			TextColor3 = UI.Colors.SubText,
 			LayoutOrder = 1,
 			Parent = row,
 		})
 	end
+	-- With the art, yours are the darker green ones with cream writing; plain, yours are bright
+	-- green with dark writing.
 	local art = if mine then StoryArt.MyText else StoryArt.TheirText
 	local color = if mine then UI.Colors.Accent else UI.Colors.Card
-	local holder = UI.new(if art.image ~= "" then "ImageLabel" else "Frame", {
+	local holder = UI.new(if art then "ImageLabel" else "Frame", {
 		Size = UDim2.fromOffset(0, 0),
 		AutomaticSize = Enum.AutomaticSize.XY,
 		BackgroundColor3 = color,
-		BackgroundTransparency = if art.image ~= "" then 1 else 0,
+		BackgroundTransparency = if art then 1 else 0,
 		LayoutOrder = 2,
 		Parent = row,
 	}, {
 		UI.new("UIPadding", {
-			PaddingTop = UDim.new(0, 10),
-			PaddingBottom = UDim.new(0, 10),
-			PaddingLeft = UDim.new(0, 16),
-			PaddingRight = UDim.new(0, 16),
+			PaddingTop = UDim.new(0, 12),
+			PaddingBottom = UDim.new(0, 12),
+			PaddingLeft = UDim.new(0, 18),
+			PaddingRight = UDim.new(0, 18),
 		}),
 	})
-	if art.image ~= "" then
-		local image = holder :: ImageLabel
-		image.Image = art.image
-		image.ScaleType = Enum.ScaleType.Slice
-		image.SliceCenter = art.slice
+	if art then
+		UI.applySlice(holder :: ImageLabel, art)
 	else
 		UI.corner(18).Parent = holder
 	end
-	local label = UI.label(UI.highlight(text.text, if mine then UI.Colors.Background else UI.Colors.Money), {
+	local dark = mine and not art
+	local label = UI.label(UI.highlight(text.text, if dark then UI.Colors.Background else UI.Colors.Money), {
 		Size = UDim2.fromOffset(0, 0),
 		AutomaticSize = Enum.AutomaticSize.XY,
 		RichText = true,
 		TextWrapped = true,
 		TextSize = 18,
-		TextColor3 = if mine then UI.Colors.BubbleText else UI.Colors.Text,
+		FontFace = UI.Fonts.Medium,
+		TextColor3 = if dark then UI.Colors.BubbleText else UI.Colors.Text,
 		Parent = holder,
 	})
 	-- As wide as the text, up to most of the thread's width, then it wraps.
-	UI.new("UISizeConstraint", { MaxSize = Vector2.new(maxWidth - 32, math.huge), Parent = label })
+	UI.new("UISizeConstraint", { MaxSize = Vector2.new(maxWidth - 36, math.huge), Parent = label })
 end
 
 local function renderThread(thread, paneWidth: number)
@@ -385,8 +382,8 @@ local function renderThread(thread, paneWidth: number)
 	end
 	local info = Story.thread(thread.id)
 	threadName.Text = info.name
-	threadName.Size = UDim2.fromOffset(textWidth(info.name, 21) + 4, 36)
-	threadStatus.Position = UDim2.fromOffset(nameX + textWidth(info.name, 21) + 12, 0)
+	threadName.Size = UDim2.fromOffset(textWidth(info.name, 22, true) + 4, 36)
+	threadStatus.Position = UDim2.fromOffset(nameX + textWidth(info.name, 22, true) + 12, 0)
 	threadStatus.Text = if info.status ~= "" then "· " .. info.status else ""
 	local maxWidth = math.floor(math.max(160, (paneWidth - 28) * 0.78))
 	for index, text in thread.texts do
@@ -477,39 +474,40 @@ end
 
 local function showToast(text)
 	local info = Story.thread(text.thread)
-	local art = StoryArt.TextToast
 	local toast = UI.new("CanvasGroup", {
 		Name = "Text",
-		Size = UDim2.new(1, 0, 0, 62),
-		BackgroundColor3 = UI.Colors.Panel,
-		BackgroundTransparency = if art.image ~= "" then 1 else 0,
-	}, { UI.corner(12) })
-	if art.image ~= "" then
-		UI.new("ImageLabel", {
-			Size = UDim2.fromScale(1, 1),
-			Image = art.image,
-			ScaleType = Enum.ScaleType.Slice,
-			SliceCenter = art.slice,
-			BackgroundTransparency = 1,
-			Parent = toast,
-		})
-	end
+		Size = UDim2.new(1, 0, 0, 64),
+		BackgroundTransparency = 1,
+	})
+	UI.toastBackground(toast)
 	local face = DialogueController.face(info.cast, 42)
-	face.Position = UDim2.fromOffset(10, 10)
+	face.Position = UDim2.fromOffset(11, 11)
+	face.ZIndex = 2
 	face.Parent = toast
-	UI.label(info.name, {
-		Position = UDim2.fromOffset(62, 8),
-		Size = UDim2.new(1, -72, 0, 22),
+	-- "New text from Grandma June", with the Messages glyph.
+	local glyph = UI.icon("Messages", {
+		Position = UDim2.fromOffset(64, 10),
+		Size = UDim2.fromOffset(20, 20),
+		ZIndex = 2,
+		Parent = toast,
+	}, UI.Colors.Accent)
+	local nameX = if glyph then 90 else 64
+	UI.label(`New text from {info.name}`, {
+		Position = UDim2.fromOffset(nameX, 9),
+		Size = UDim2.new(1, -nameX - 12, 0, 22),
 		TextSize = 16,
 		TextColor3 = UI.Colors.Accent,
 		TextTruncate = Enum.TextTruncate.AtEnd,
+		ZIndex = 2,
 		Parent = toast,
 	})
 	UI.label(preview(text), {
-		Position = UDim2.fromOffset(62, 31),
-		Size = UDim2.new(1, -72, 0, 22),
+		Position = UDim2.fromOffset(64, 33),
+		Size = UDim2.new(1, -76, 0, 22),
 		TextSize = 15,
+		FontFace = UI.Fonts.Body,
 		TextTruncate = Enum.TextTruncate.AtEnd,
+		ZIndex = 2,
 		Parent = toast,
 	})
 	UI.toast(toast, TOAST_TIME)
@@ -550,15 +548,16 @@ function MessagesController:Start()
 		BackgroundColor3 = UI.Colors.Panel,
 		Parent = content,
 	}, { UI.corner(18) })
-	backButton = UI.button("<", function()
+	backButton = UI.button(if Art.icon("Back") ~= "" then "" else "<", function()
 		showingThread = false
 		MessagesController.render()
 	end, {
 		Name = "Back",
+		Style = "Neutral",
+		Icon = "Back",
 		Position = UDim2.fromOffset(10, 10),
 		Size = UDim2.fromOffset(44, 44),
 		TextSize = 22,
-		BackgroundColor3 = UI.Colors.Card,
 		Visible = false,
 		Parent = threadPane,
 	})
@@ -569,10 +568,11 @@ function MessagesController:Start()
 		BackgroundTransparency = 1,
 		Parent = threadPane,
 	})
-	threadName = UI.label("", { Size = UDim2.fromOffset(200, 36), TextSize = 21, Parent = header })
+	threadName = UI.heading("", { Size = UDim2.fromOffset(200, 36), TextSize = 22, Parent = header })
 	threadStatus = UI.label("", {
 		Size = UDim2.new(1, -220, 0, 36),
 		TextSize = 15,
+		FontFace = UI.Fonts.Medium,
 		TextColor3 = UI.Colors.SubText,
 		TextTruncate = Enum.TextTruncate.AtEnd,
 		Parent = header,
@@ -594,34 +594,36 @@ function MessagesController:Start()
 		layout.Padding = UDim.new(0, 10)
 	end
 
-	goalCard = UI.new("Frame", {
+	-- The goal card: the art's GoalCard with its flag, or a plain dark one.
+	goalCard = UI.sliced("GoalCard", {
 		Name = "Goal",
-		BackgroundColor3 = UI.Colors.Background,
 		ZIndex = 2,
 		Parent = threadPane,
-	}, { UI.corner(14) })
-	goalLabel = UI.label("GOAL", {
-		TextSize = 14,
+	}, { color = UI.Colors.Background, radius = 14 }) :: Frame
+	goalFlag = UI.icon("Goal", {
+		AnchorPoint = Vector2.new(0, 0.5),
+		Position = UDim2.fromOffset(16, 24),
+		Size = UDim2.fromOffset(22, 22),
+		ZIndex = 2,
+		Parent = goalCard,
+	}, UI.Colors.Money)
+	goalLabel = UI.heading("GOAL", {
+		TextSize = 16,
 		TextColor3 = UI.Colors.Accent,
 		ZIndex = 2,
 		Parent = goalCard,
 	})
-	goalText = UI.label("", { TextSize = 18, TextTruncate = Enum.TextTruncate.AtEnd, ZIndex = 2, Parent = goalCard })
-	goalTrack = UI.new("Frame", {
-		BackgroundColor3 = UI.Colors.Card,
-		ClipsDescendants = true,
+	goalText = UI.label("", {
+		TextSize = 18,
+		FontFace = UI.Fonts.Body,
+		TextTruncate = Enum.TextTruncate.AtEnd,
 		ZIndex = 2,
 		Parent = goalCard,
-	}, { UI.corner(7) })
-	goalFill = UI.new("Frame", {
-		Size = UDim2.fromScale(0, 1),
-		BackgroundColor3 = UI.Colors.Money,
-		BorderSizePixel = 0,
-		ZIndex = 2,
-		Parent = goalTrack,
-	}, { UI.corner(7) })
+	})
+	goalBar = UI.bar({ ZIndex = 2, Parent = goalCard }, "Money")
 	goalValue = UI.label("", {
 		TextSize = 18,
+		FontFace = UI.Fonts.Body,
 		TextColor3 = UI.Colors.Money,
 		TextXAlignment = Enum.TextXAlignment.Right,
 		ZIndex = 2,
@@ -629,8 +631,7 @@ function MessagesController:Start()
 	})
 	goalButton = UI.button("", onGoalButton, {
 		Name = "Action",
-		BackgroundColor3 = UI.Colors.Money,
-		TextColor3 = UI.Colors.Background,
+		Style = "Money",
 		Visible = false,
 		ZIndex = 2,
 		Parent = goalCard,

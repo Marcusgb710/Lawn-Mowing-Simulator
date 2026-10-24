@@ -81,8 +81,18 @@ local function checkThread(thread: string, where: string)
 	check(Story.Threads[thread] ~= nil or thread == "{customer}", `{where}: unknown thread {thread}`)
 end
 
+-- A mood is one of the speaker's portraits.
+local function checkMood(speaker: string?, mood: string?, where: string)
+	local cast = speaker and Story.Cast[speaker]
+	check(
+		mood == nil or (cast ~= nil and cast.moods ~= nil and table.find(cast.moods, mood) ~= nil),
+		`{where}: {speaker} has no {mood} portrait`
+	)
+end
+
 for id, scene in Story.Scenes do
 	check(#scene.lines > 0, `scene {id} has no lines`)
+	check(scene.act == nil or Story.Acts[scene.act] ~= nil, `scene {id}: no act {scene.act}`)
 	for index, line in scene.lines do
 		local where = `scene {id} line {index}`
 		check(typeof(line.text) == "string" and #line.text > 0, `{where} has no text`)
@@ -94,6 +104,7 @@ for id, scene in Story.Scenes do
 		)
 		check(line.judges == nil or line.judges == "Yard" or line.judges == "Gloria", `{where}: judges walk where?`)
 		check(not line.bubble or line.speaker ~= nil, `{where}: a bubble needs a speaker`)
+		checkMood(line.speaker, line.mood, where)
 	end
 end
 
@@ -145,6 +156,7 @@ for kind, texts in Story.ContestTexts do
 end
 for kind, closing in Story.ContestClosing do
 	check(Story.Cast[closing.speaker] ~= nil, `the contest's {kind} closing line has no speaker`)
+	checkMood(closing.speaker, closing.mood, `the contest's {kind} closing line`)
 end
 -- The scenes ContestService plays.
 for _, id in { "ContestJudging", "ContestJudgingAgain", "ContestWin", "ContestWinAgain", "ContestLose" } do
