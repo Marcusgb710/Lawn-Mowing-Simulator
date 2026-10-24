@@ -29,6 +29,7 @@ local CONTROLLERS = {
 	"SnipController",
 	"PartyController",
 	"CutsceneController",
+	"StudioTestController",
 }
 
 Net.event("ProfileUpdated").OnClientEvent:Connect(function(profile)

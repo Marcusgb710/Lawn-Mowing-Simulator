@@ -21,6 +21,7 @@ local LOAD_ORDER = {
 	"StoryService",
 	"TurfKingService",
 	"ContestService",
+	"StudioTestService",
 }
 
 local loaded = {}

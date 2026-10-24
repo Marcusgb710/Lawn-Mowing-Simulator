@@ -406,6 +406,21 @@ function HomeLawnService:PickUpDebris(player: Player, thing: Instance, from: Vec
 	return true, `Picked up the {debris.kind.name}.`
 end
 
+-- For testing in Studio (StudioTestService): the owner's whole lawn done at once, as if they'd
+-- mown, edged, weeded and raked it all (and picked up the junk in the grass).
+function HomeLawnService:TidyForTesting(owner: Player): boolean
+	local entry = lawns[owner]
+	if not entry then
+		return false
+	end
+	for _, target in entry.targets do
+		entry.lawn:Finish(target)
+	end
+	entry.tidy = entry.lawn:IsComplete()
+	refresh(owner, entry)
+	return true
+end
+
 -- Lifecycle ----------------------------------------------------------------------------------
 
 function HomeLawnService:Init()

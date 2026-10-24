@@ -321,6 +321,37 @@ function StoryService:GetStory(player: Player)
 	return if data then storyOf(data) else nil
 end
 
+-- For testing in Studio (StudioTestService) --------------------------------------------------
+
+-- Puts the player straight into an act, with its opening scene and texts, as if they'd just
+-- reached it. The story still moves on by itself after: if their progress already passes a later
+-- act's gate, that act starts on the next thing that happens.
+function StoryService:JumpToAct(player: Player, act: number): boolean
+	local data = DataService:Get(player)
+	if not (data and joined[player] and Story.Acts[act]) then
+		return false
+	end
+	local story = storyOf(data)
+	story.act = act
+	queueScene(story, Story.openingScene(act, nil))
+	sendTexts(story, Story.Acts[act].texts or {}, {})
+	update(player)
+	StoryService.ActStarted:Fire(player, act)
+	return true
+end
+
+-- Starts their story over: act 1, an empty inbox, and the intro again.
+function StoryService:RestartStory(player: Player): boolean
+	local data = DataService:Get(player)
+	if not (data and joined[player]) then
+		return false
+	end
+	data.story = nil
+	queueScene(storyOf(data), "Intro")
+	update(player)
+	return true
+end
+
 -- Lifecycle ----------------------------------------------------------------------------------
 
 function StoryService:Init()
