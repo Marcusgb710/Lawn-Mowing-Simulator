@@ -1,0 +1,323 @@
+{
+  "asset": {
+    "generator": "Khronos glTF Blender I/O v4.3.47",
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        4
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "extras": {
+        "roblox_class": "Attachment",
+        "roblox_name": "Talk",
+        "attributes_json": "{}",
+        "parent_mesh": "NPC_Chad__Body"
+      },
+      "name": "Talk",
+      "translation": [
+        0,
+        1.019178032875061,
+        -0.34065404534339905
+      ]
+    },
+    {
+      "children": [
+        0
+      ],
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          0.05381143093109131,
+          0.0,
+          0.1419021487236023
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 0,
+      "name": "NPC_Chad__Body",
+      "translation": [
+        0.015067201107740402,
+        0,
+        0.03973260149359703
+      ]
+    },
+    {
+      "extras": {
+        "roblox_class": "Attachment",
+        "roblox_name": "Head",
+        "attributes_json": "{}",
+        "parent_mesh": "NPC_Chad__Head"
+      },
+      "name": "Head",
+      "translation": [
+        0,
+        0.18410956859588623,
+        -0.15670086443424225
+      ]
+    },
+    {
+      "children": [
+        2
+      ],
+      "extras": {
+        "role": "head",
+        "animation_axis": "",
+        "stud_origin": [
+          0.05381143093109131,
+          4.778864860534668,
+          0.1419021487236023
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 1,
+      "name": "NPC_Chad__Head",
+      "translation": [
+        0.015067201107740402,
+        1.338082194328308,
+        0.03973260149359703
+      ]
+    },
+    {
+      "children": [
+        1,
+        3
+      ],
+      "extras": {
+        "folder": "Story",
+        "stud_to_meter": 0.28,
+        "primary_part": "Root",
+        "primary_position_studs": [
+          0.0,
+          0.5,
+          0.0
+        ],
+        "markers_json": "[{\"name\": \"Head\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"NPC_Chad__Head\", \"position_studs\": [0.05381143093109131, 5.436398983001709, -0.4177438020706177], \"orientation_degrees\": [0, 0, 0], \"look_vector\": [0, 0, -1], \"attributes\": {}}, {\"name\": \"Talk\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"NPC_Chad__Body\", \"position_studs\": [0.05381143093109131, 3.6399214267730713, -1.0747194290161133], \"orientation_degrees\": [0, 0, 0], \"look_vector\": [0, 0, -1], \"attributes\": {}}]",
+        "slots_json": "[]"
+      },
+      "name": "NPC_Chad"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "HP shared PBR 37",
+      "normalTexture": {
+        "index": 0,
+        "scale": 0.44999998807907104
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 1
+        },
+        "metallicRoughnessTexture": {
+          "index": 2
+        }
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "NPC_Chad__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "NPC_Chad__Head",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 4,
+            "NORMAL": 5,
+            "TEXCOORD_0": 6
+          },
+          "indices": 7,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    }
+  ],
+  "images": [
+    {
+      "mimeType": "image/png",
+      "name": "HP37_Normal",
+      "uri": "../../Textures/HP37_Normal.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP37_Color",
+      "uri": "../../Textures/HP37_Color.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP37_Metalness-HP37_Roughness",
+      "uri": "../../Textures/HP37_Metalness-HP37_Roughness.png"
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 3301,
+      "max": [
+        0.264932781457901,
+        1.3676711320877075,
+        0.10830564796924591
+      ],
+      "min": [
+        -0.2950671911239624,
+        0,
+        -0.23573260009288788
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 3301,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 3301,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "count": 19206,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 4,
+      "componentType": 5126,
+      "count": 3938,
+      "max": [
+        0.15532632172107697,
+        0.34191784262657166,
+        0.1562674194574356
+      ],
+      "min": [
+        -0.15532632172107697,
+        -0.019725952297449112,
+        -0.19417281448841095
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 5,
+      "componentType": 5126,
+      "count": 3938,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 6,
+      "componentType": 5126,
+      "count": 3938,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 7,
+      "componentType": 5123,
+      "count": 23088,
+      "type": "SCALAR"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 39612,
+      "byteOffset": 0,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 39612,
+      "byteOffset": 39612,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 26408,
+      "byteOffset": 79224,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 38412,
+      "byteOffset": 105632,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 47256,
+      "byteOffset": 144044,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 47256,
+      "byteOffset": 191300,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 31504,
+      "byteOffset": 238556,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 46176,
+      "byteOffset": 270060,
+      "target": 34963
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 316236,
+      "uri": "NPC_Chad.bin"
+    }
+  ]
+}

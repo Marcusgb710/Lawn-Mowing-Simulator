@@ -1,0 +1,172 @@
+{
+  "status": "passed",
+  "models": [
+    {
+      "name": "NPC_June_Sitting",
+      "triangles": 14052,
+      "mesh_objects": 2,
+      "bounds_error_studs": 9.366444153613429e-08,
+      "passed": true
+    },
+    {
+      "name": "NPC_June_Standing",
+      "triangles": 14098,
+      "mesh_objects": 2,
+      "bounds_error_studs": 9.793127131452195e-08,
+      "passed": true
+    },
+    {
+      "name": "NPC_Gloria",
+      "triangles": 14052,
+      "mesh_objects": 2,
+      "bounds_error_studs": 5.534716951416385e-08,
+      "passed": true
+    },
+    {
+      "name": "NPC_Chad",
+      "triangles": 14098,
+      "mesh_objects": 2,
+      "bounds_error_studs": 1.319817126699263e-07,
+      "passed": true
+    },
+    {
+      "name": "NPC_Sam_TurfKing",
+      "triangles": 14012,
+      "mesh_objects": 2,
+      "bounds_error_studs": 9.792191590918264e-08,
+      "passed": true
+    },
+    {
+      "name": "NPC_Sam_Casual",
+      "triangles": 14098,
+      "mesh_objects": 2,
+      "bounds_error_studs": 9.792191590918264e-08,
+      "passed": true
+    },
+    {
+      "name": "NPC_Edna",
+      "triangles": 14052,
+      "mesh_objects": 2,
+      "bounds_error_studs": 1.2772423829687796e-07,
+      "passed": true
+    },
+    {
+      "name": "NPC_Judge1",
+      "triangles": 14098,
+      "mesh_objects": 2,
+      "bounds_error_studs": 9.792191590918264e-08,
+      "passed": true
+    },
+    {
+      "name": "NPC_Judge2",
+      "triangles": 14098,
+      "mesh_objects": 2,
+      "bounds_error_studs": 4.256019425774582e-08,
+      "passed": true
+    },
+    {
+      "name": "PorchRockingChair",
+      "triangles": 5640,
+      "mesh_objects": 1,
+      "bounds_error_studs": 1.8832672843416276e-07,
+      "passed": true
+    },
+    {
+      "name": "PorchDeck",
+      "triangles": 7144,
+      "mesh_objects": 5,
+      "bounds_error_studs": 1.1920928955078125e-07,
+      "passed": true
+    },
+    {
+      "name": "GloriaHouse",
+      "triangles": 25932,
+      "mesh_objects": 3,
+      "bounds_error_studs": 1.3623918846406013e-06,
+      "passed": true
+    },
+    {
+      "name": "GloriaYard_Stage1",
+      "triangles": 9428,
+      "mesh_objects": 2,
+      "bounds_error_studs": 1.9073486257070726e-06,
+      "passed": true
+    },
+    {
+      "name": "GloriaYard_Stage2",
+      "triangles": 9691,
+      "mesh_objects": 2,
+      "bounds_error_studs": 1.9073486257070726e-06,
+      "passed": true
+    },
+    {
+      "name": "GloriaYard_Stage3",
+      "triangles": 13160,
+      "mesh_objects": 2,
+      "bounds_error_studs": 1.9073486257070726e-06,
+      "passed": true
+    },
+    {
+      "name": "TurfKingTruck",
+      "triangles": 17664,
+      "mesh_objects": 7,
+      "bounds_error_studs": 4.0871756290528083e-07,
+      "passed": true
+    },
+    {
+      "name": "TurfKingSign",
+      "triangles": 3244,
+      "mesh_objects": 1,
+      "bounds_error_studs": 1.2772423785278875e-08,
+      "passed": true
+    },
+    {
+      "name": "BestYardTrophy",
+      "triangles": 4656,
+      "mesh_objects": 2,
+      "bounds_error_studs": 2.0435878145264041e-07,
+      "passed": true
+    },
+    {
+      "name": "DebrisStick",
+      "triangles": 888,
+      "mesh_objects": 1,
+      "bounds_error_studs": 2.9769060994055963e-08,
+      "passed": true
+    },
+    {
+      "name": "DebrisRock",
+      "triangles": 1128,
+      "mesh_objects": 1,
+      "bounds_error_studs": 6.386211892639437e-09,
+      "passed": true
+    },
+    {
+      "name": "DebrisDogBall",
+      "triangles": 1410,
+      "mesh_objects": 1,
+      "bounds_error_studs": 3.08666910919797e-08,
+      "passed": true
+    },
+    {
+      "name": "DebrisToyTruck",
+      "triangles": 952,
+      "mesh_objects": 1,
+      "bounds_error_studs": 2.7241185307502747e-08,
+      "passed": true
+    },
+    {
+      "name": "DebrisFrisbee",
+      "triangles": 828,
+      "mesh_objects": 1,
+      "bounds_error_studs": 2.1287373253020547e-09,
+      "passed": true
+    }
+  ],
+  "combined_roots_translation_only": true,
+  "combined_grid_nonoverlap": true,
+  "house_yard_walk_drive_and_parked_truck_alignment": true,
+  "porch_chair_height_studs": 1.6,
+  "textures_max_px": 2048,
+  "studio_import_tested": false
+}

@@ -1,0 +1,795 @@
+{
+  "asset": {
+    "generator": "Khronos glTF Blender I/O v4.3.47",
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        8
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          0.0,
+          -0.19999980926513672
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 0,
+      "name": "TurfKingTruck__Body",
+      "translation": [
+        0,
+        0,
+        -0.05599994584918022
+      ]
+    },
+    {
+      "extras": {
+        "role": "glass",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          0.0,
+          -0.19999980926513672
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 1,
+      "name": "TurfKingTruck__Glass",
+      "translation": [
+        0,
+        0,
+        -0.05599994584918022
+      ]
+    },
+    {
+      "extras": {
+        "roblox_class": "Attachment",
+        "roblox_name": "Light",
+        "attributes_json": "{}",
+        "parent_mesh": "TurfKingTruck__LightBar"
+      },
+      "name": "Light",
+      "translation": [
+        0,
+        0.0700000524520874,
+        0
+      ]
+    },
+    {
+      "children": [
+        2
+      ],
+      "extras": {
+        "role": "lightbar",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          6.449999809265137,
+          -3.1999998092651367
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 2,
+      "name": "TurfKingTruck__LightBar",
+      "translation": [
+        0,
+        1.805999994277954,
+        -0.8959999680519104
+      ]
+    },
+    {
+      "extras": {
+        "role": "wheel",
+        "animation_axis": "X",
+        "stud_origin": [
+          -3.700000047683716,
+          1.350000023841858,
+          -7.199999809265137
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Hull",
+        "motion_mode": "Rotate"
+      },
+      "mesh": 3,
+      "name": "TurfKingTruck__WheelFL",
+      "translation": [
+        -1.0360000133514404,
+        0.37800002098083496,
+        -2.0160000324249268
+      ]
+    },
+    {
+      "extras": {
+        "role": "wheel",
+        "animation_axis": "X",
+        "stud_origin": [
+          3.700000047683716,
+          1.350000023841858,
+          -7.199999809265137
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Hull",
+        "motion_mode": "Rotate"
+      },
+      "mesh": 4,
+      "name": "TurfKingTruck__WheelFR",
+      "translation": [
+        1.0360000133514404,
+        0.37800002098083496,
+        -2.0160000324249268
+      ]
+    },
+    {
+      "extras": {
+        "role": "wheel",
+        "animation_axis": "X",
+        "stud_origin": [
+          -3.700000047683716,
+          1.350000023841858,
+          6.800000190734863
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Hull",
+        "motion_mode": "Rotate"
+      },
+      "mesh": 5,
+      "name": "TurfKingTruck__WheelRL",
+      "translation": [
+        -1.0360000133514404,
+        0.37800002098083496,
+        1.9040000438690186
+      ]
+    },
+    {
+      "extras": {
+        "role": "wheel",
+        "animation_axis": "X",
+        "stud_origin": [
+          3.700000047683716,
+          1.350000023841858,
+          6.800000190734863
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Hull",
+        "motion_mode": "Rotate"
+      },
+      "mesh": 6,
+      "name": "TurfKingTruck__WheelRR",
+      "translation": [
+        1.0360000133514404,
+        0.37800002098083496,
+        1.9040000438690186
+      ]
+    },
+    {
+      "children": [
+        0,
+        1,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "extras": {
+        "folder": "Story",
+        "stud_to_meter": 0.28,
+        "primary_part": "Root",
+        "primary_position_studs": [
+          0.0,
+          0.5,
+          0.0
+        ],
+        "markers_json": "[{\"name\": \"Light\", \"instance_type\": \"Attachment\", \"parent_mesh\": \"TurfKingTruck__LightBar\", \"position_studs\": [0.0, 6.699999809265137, -3.1999998092651367], \"orientation_degrees\": [0, 0, 0], \"look_vector\": [0, 0, -1], \"attributes\": {}}]",
+        "slots_json": "[]"
+      },
+      "name": "TurfKingTruck"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "HP shared PBR 37",
+      "normalTexture": {
+        "index": 0,
+        "scale": 0.44999998807907104
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 1
+        },
+        "metallicRoughnessTexture": {
+          "index": 2
+        }
+      }
+    },
+    {
+      "alphaMode": "BLEND",
+      "doubleSided": true,
+      "extras": {
+        "palette": "glass",
+        "finish": "glass"
+      },
+      "name": "HP_glass",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.20507873594760895,
+          0.3967552185058594,
+          0.47353148460388184,
+          0.41999998688697815
+        ],
+        "metallicFactor": 0.11999999731779099,
+        "roughnessFactor": 0.11999999731779099
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "TurfKingTruck__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "TurfKingTruck__Glass",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 4,
+            "NORMAL": 5,
+            "TEXCOORD_0": 6
+          },
+          "indices": 7,
+          "material": 1
+        }
+      ]
+    },
+    {
+      "name": "TurfKingTruck__LightBar",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 8,
+            "NORMAL": 9,
+            "TEXCOORD_0": 10
+          },
+          "indices": 11,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "TurfKingTruck__WheelFL",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 12,
+            "NORMAL": 13,
+            "TEXCOORD_0": 14
+          },
+          "indices": 15,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "TurfKingTruck__WheelFR",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 16,
+            "NORMAL": 17,
+            "TEXCOORD_0": 18
+          },
+          "indices": 19,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "TurfKingTruck__WheelRL",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 20,
+            "NORMAL": 21,
+            "TEXCOORD_0": 22
+          },
+          "indices": 23,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "TurfKingTruck__WheelRR",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 24,
+            "NORMAL": 25,
+            "TEXCOORD_0": 26
+          },
+          "indices": 27,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    }
+  ],
+  "images": [
+    {
+      "mimeType": "image/png",
+      "name": "HP37_Normal",
+      "uri": "../../Textures/HP37_Normal.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP37_Color",
+      "uri": "../../Textures/HP37_Color.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP37_Metalness-HP37_Roughness",
+      "uri": "../../Textures/HP37_Metalness-HP37_Roughness.png"
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 6745,
+      "max": [
+        1.253000020980835,
+        2.380000114440918,
+        3.054800033569336
+      ],
+      "min": [
+        -1.253000020980835,
+        0.4830000102519989,
+        -2.9428000450134277
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 6745,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 6745,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "count": 26472,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 4,
+      "componentType": 5126,
+      "count": 400,
+      "max": [
+        1.0920000076293945,
+        1.6660001277923584,
+        -0.021000012755393982
+      ],
+      "min": [
+        -1.0920000076293945,
+        1.1949679851531982,
+        -2.045907497406006
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 5,
+      "componentType": 5126,
+      "count": 400,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 6,
+      "componentType": 5126,
+      "count": 400,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 7,
+      "componentType": 5123,
+      "count": 1620,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 8,
+      "componentType": 5126,
+      "count": 1040,
+      "max": [
+        0.6720000505447388,
+        0.07559999823570251,
+        0.09799997508525848
+      ],
+      "min": [
+        -0.6720000505447388,
+        -0.03499986603856087,
+        -0.09799997508525848
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 9,
+      "componentType": 5126,
+      "count": 1040,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 10,
+      "componentType": 5126,
+      "count": 1040,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 11,
+      "componentType": 5123,
+      "count": 4212,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 12,
+      "componentType": 5126,
+      "count": 1248,
+      "max": [
+        0.10214399546384811,
+        0.37800002098083496,
+        0.3779999613761902
+      ],
+      "min": [
+        -0.10931205004453659,
+        -0.37800002098083496,
+        -0.3780001103878021
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 13,
+      "componentType": 5126,
+      "count": 1248,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 14,
+      "componentType": 5126,
+      "count": 1248,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 15,
+      "componentType": 5123,
+      "count": 5172,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 16,
+      "componentType": 5126,
+      "count": 1248,
+      "max": [
+        0.10931205004453659,
+        0.37800002098083496,
+        0.3779999613761902
+      ],
+      "min": [
+        -0.10214399546384811,
+        -0.37800002098083496,
+        -0.3780001103878021
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 17,
+      "componentType": 5126,
+      "count": 1248,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 18,
+      "componentType": 5126,
+      "count": 1248,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 19,
+      "componentType": 5123,
+      "count": 5172,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 20,
+      "componentType": 5126,
+      "count": 1248,
+      "max": [
+        0.10214399546384811,
+        0.37800002098083496,
+        0.3780001103878021
+      ],
+      "min": [
+        -0.10931205004453659,
+        -0.37800002098083496,
+        -0.3779999613761902
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 21,
+      "componentType": 5126,
+      "count": 1248,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 22,
+      "componentType": 5126,
+      "count": 1248,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 23,
+      "componentType": 5123,
+      "count": 5172,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 24,
+      "componentType": 5126,
+      "count": 1248,
+      "max": [
+        0.10931205004453659,
+        0.37800002098083496,
+        0.3780001103878021
+      ],
+      "min": [
+        -0.10214399546384811,
+        -0.37800002098083496,
+        -0.3779999613761902
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 25,
+      "componentType": 5126,
+      "count": 1248,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 26,
+      "componentType": 5126,
+      "count": 1248,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 27,
+      "componentType": 5123,
+      "count": 5172,
+      "type": "SCALAR"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 80940,
+      "byteOffset": 0,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 80940,
+      "byteOffset": 80940,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 53960,
+      "byteOffset": 161880,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 52944,
+      "byteOffset": 215840,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 4800,
+      "byteOffset": 268784,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 4800,
+      "byteOffset": 273584,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 3200,
+      "byteOffset": 278384,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 3240,
+      "byteOffset": 281584,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 12480,
+      "byteOffset": 284824,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 12480,
+      "byteOffset": 297304,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 8320,
+      "byteOffset": 309784,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 8424,
+      "byteOffset": 318104,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 14976,
+      "byteOffset": 326528,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 14976,
+      "byteOffset": 341504,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 9984,
+      "byteOffset": 356480,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 10344,
+      "byteOffset": 366464,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 14976,
+      "byteOffset": 376808,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 14976,
+      "byteOffset": 391784,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 9984,
+      "byteOffset": 406760,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 10344,
+      "byteOffset": 416744,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 14976,
+      "byteOffset": 427088,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 14976,
+      "byteOffset": 442064,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 9984,
+      "byteOffset": 457040,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 10344,
+      "byteOffset": 467024,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 14976,
+      "byteOffset": 477368,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 14976,
+      "byteOffset": 492344,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 9984,
+      "byteOffset": 507320,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 10344,
+      "byteOffset": 517304,
+      "target": 34963
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 527648,
+      "uri": "TurfKingTruck.bin"
+    }
+  ]
+}
