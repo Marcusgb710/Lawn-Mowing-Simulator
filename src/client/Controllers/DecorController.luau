@@ -49,7 +49,7 @@ local placingId: string? = nil
 local turn = 0
 local ghost: Model? = nil
 local highlight: Highlight
-local hint: TextLabel
+local prompt: UI.Prompt
 local buttons: Frame
 local returnButton: TextButton? = nil
 local spot: { x: number, z: number, turn: number, fits: boolean, reason: string? }? = nil
@@ -223,7 +223,7 @@ local function update()
 			ghost.Parent = nil
 		end
 		spot = nil
-		hint.Text = `Look at the ground where you want the {decoration.name}.`
+		prompt.set({ { text = `Look at the ground where you want the {decoration.name}.` } })
 		return
 	end
 
@@ -288,8 +288,12 @@ local function update()
 		then "[E] Put it here   [R] Turn   [Q] Put it back" .. (if own then "   [F] Send it back" else "")
 		elseif UserInputService.GamepadEnabled then "[X] Put it here   [Y] Turn   [B] Put it back"
 		else ""
-	hint.Text = if fits then `{decoration.name}\n{keys}` else `{decoration.name}: {reason}\n{keys}`
-	hint.TextColor3 = if fits then UI.Colors.Text else UI.Colors.Danger
+	local lines: { UI.PromptLine } =
+		{ { text = if fits then decoration.name else `{decoration.name}: {reason}`, blocked = not fits } }
+	if keys ~= "" then
+		table.insert(lines, { text = keys })
+	end
+	prompt.set(lines)
 end
 
 local function place()
@@ -361,7 +365,7 @@ local function setPlacing(id: string?)
 	end
 	clearGhost()
 	placingId = id
-	hint.Visible = id ~= nil
+	prompt.frame.Visible = id ~= nil
 	buttons.Visible = id ~= nil and UserInputService.TouchEnabled
 	if returnButton then
 		returnButton.Visible = player:GetAttribute("PlacingOwn") == true
@@ -417,15 +421,9 @@ function DecorController:Start()
 		ResetOnSpawn = false,
 		Parent = player:WaitForChild("PlayerGui"),
 	})
-	hint = UI.label("", {
+	prompt = UI.prompt({
 		AnchorPoint = Vector2.new(0.5, 0),
-		Position = UDim2.new(0.5, 0, 0.5, 18),
-		Size = UDim2.fromOffset(440, 0),
-		AutomaticSize = Enum.AutomaticSize.Y,
-		TextXAlignment = Enum.TextXAlignment.Center,
-		TextWrapped = true,
-		TextSize = 16,
-		TextStrokeTransparency = 0.4,
+		Position = UDim2.new(0.5, 0, 0.5, 22),
 		Visible = false,
 		Parent = screen,
 	})
@@ -440,22 +438,25 @@ function DecorController:Start()
 	}, { UI.list(8) })
 	for index, entry in
 		{
-			{ "Place", place },
+			{ "Place", place, "Place" },
 			{
 				"Turn",
 				function()
 					turnBy(TURN_STEP)
 				end,
+				"Turn",
 			},
-			{ "Put back", putBack },
-			{ "Send back", sendBack },
+			{ "Put back", putBack, "PutBack" },
+			{ "Send back", sendBack, "Back" },
 		}
 	do
 		local made = UI.button(entry[1], entry[2], {
 			LayoutOrder = index,
 			Size = UDim2.fromOffset(110, if index == 1 then 80 else 44),
 			TextSize = if index == 1 then 22 else 16,
-			BackgroundColor3 = if index == 1 then UI.Colors.Accent else UI.Colors.Card,
+			Style = if index == 1 then "Primary" else "Neutral",
+			Icon = entry[3],
+			IconSize = if index == 1 then 26 else 18,
 			Parent = buttons,
 		})
 		if index == 4 then

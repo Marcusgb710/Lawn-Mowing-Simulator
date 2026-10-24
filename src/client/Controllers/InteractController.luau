@@ -92,9 +92,32 @@ local rayParams = RaycastParams.new()
 rayParams.FilterType = Enum.RaycastFilterType.Exclude
 
 local screen: ScreenGui
-local hint: TextLabel
+local prompt: UI.Prompt
 local button: TextButton
 local secondButton: TextButton
+-- The glyph on the phone button for each kind of thing it does (Icons/<name>.png).
+local ACTION_ICONS = {
+	Service = "Wrench",
+	SetDown = "Wrench",
+	PickUpServiced = "PickUp",
+	OpenPanel = "Info",
+	TakeSupply = "PickUp",
+	PutBackSupply = "PutBack",
+	PickUpDebris = "PickUp",
+	Talk = "Talk",
+	DriveToJob = "Truck",
+	UseComputer = "Jobs",
+	OpenBox = "Orders",
+	MoveDecor = "Place",
+	PickUp = "PickUp",
+	Unload = "PickUp",
+	PutBack = "PutBack",
+	PutInBucket = "PutBack",
+	TakeFromBucket = "PickUp",
+	Place = "Place",
+	Park = "Truck",
+	UseMailbox = "Info",
+}
 
 local ghost: Model? = nil
 local ghostId: string? = nil
@@ -723,8 +746,9 @@ end
 local function updateUI()
 	local target = current
 	local touch = UserInputService.TouchEnabled
+	CameraController.setReticle(if not target then "Idle" elseif target.fits then "Active" else "Blocked")
 	if not target then
-		hint.Visible = false
+		prompt.frame.Visible = false
 		button.Visible = false
 		secondButton.Visible = false
 		return
@@ -733,18 +757,23 @@ local function updateUI()
 	if not target.fits then
 		label ..= `  ({target.reason or "won't work"})`
 	end
-	if UserInputService.KeyboardEnabled then
-		label = (if target.hold then "[Hold E] " else "[E] ") .. label
-		if target.second then
-			label ..= (if target.second.hold then "\n[Hold R] " else "\n[R] ") .. target.second.text
-		end
+	local keyboard = UserInputService.KeyboardEnabled
+	local lines: { UI.PromptLine } = {
+		{
+			key = if keyboard then (if target.hold then "Hold E" else "E") else nil,
+			text = label,
+			blocked = not target.fits,
+		},
+	}
+	if keyboard and target.second then
+		table.insert(lines, { key = if target.second.hold then "Hold R" else "R", text = target.second.text })
 	end
-	hint.Text = label
-	hint.TextColor3 = if target.fits then UI.Colors.Text else UI.Colors.Danger
-	hint.Visible = not touch or target.name ~= nil
+	prompt.set(lines)
+	prompt.frame.Visible = not touch or target.name ~= nil
 	button.Visible = touch
 	button.Text = target.text
-	button.BackgroundColor3 = if target.fits then UI.Colors.Accent else UI.Colors.Disabled
+	UI.setTouchIcon(button, ACTION_ICONS[target.action] or "Info")
+	UI.setTouchBlocked(button, not target.fits)
 	secondButton.Visible = touch and target.second ~= nil
 	if target.second then
 		secondButton.Text = target.second.text
@@ -758,32 +787,26 @@ function InteractController:Start()
 		ResetOnSpawn = false,
 		Parent = player:WaitForChild("PlayerGui"),
 	})
-	hint = UI.label("", {
+	-- Under the dot.
+	prompt = UI.prompt({
 		AnchorPoint = Vector2.new(0.5, 0),
-		Position = UDim2.new(0.5, 0, 0.5, 18),
-		Size = UDim2.fromOffset(420, 0),
-		AutomaticSize = Enum.AutomaticSize.Y,
-		TextXAlignment = Enum.TextXAlignment.Center,
-		TextWrapped = true,
-		TextSize = 16,
-		TextStrokeTransparency = 0.4,
+		Position = UDim2.new(0.5, 0, 0.5, 22),
 		Visible = false,
 		Parent = screen,
 	})
-	button = UI.button("", function()
-		if current and not heldByButton and not isHold(current, false) then
-			perform(current, false)
-		end
-	end, {
+	-- On a phone: the big round button that does what E does, with its glyph and words.
+	button = UI.touchButton("", "PickUp", {
 		AnchorPoint = Vector2.new(1, 0.5),
 		Position = UDim2.new(1, -24, 0.55, 0),
 		Size = UDim2.fromOffset(110, 110),
-		TextSize = 22,
-		TextWrapped = true,
 		Visible = false,
 		Parent = screen,
 	})
-	UI.corner(55).Parent = button
+	button.Activated:Connect(function()
+		if current and not heldByButton and not isHold(current, false) then
+			perform(current, false)
+		end
+	end)
 	secondButton = UI.button("", function()
 		if current and current.second and not heldByButton and not isHold(current, true) then
 			perform(current, true)
@@ -793,7 +816,7 @@ function InteractController:Start()
 		Position = UDim2.new(1, -24, 0.55, -66),
 		Size = UDim2.fromOffset(110, 44),
 		TextSize = 16,
-		BackgroundColor3 = UI.Colors.Card,
+		Style = "Neutral",
 		Visible = false,
 		Parent = screen,
 	})

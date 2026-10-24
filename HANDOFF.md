@@ -127,22 +127,34 @@ the latest code, use **File → Publish to Roblox**. Then test on a real phone:
 
 ### 5. GUI art from ChatGPT
 
-[alphainstructions/instructions36.md](alphainstructions/instructions36.md) asked ChatGPT for
-concept art and a full GUI kit in `art-source/GUI/`:
-- 9-slice panels and buttons;
-- glyphs;
-- the computer's wallpaper and app icons;
-- **108 item icons named by item id**.
+ChatGPT delivered the full GUI overhaul from
+[alphainstructions/instructions38.md](alphainstructions/instructions38.md) in `art-source/GUI/`
+(`manifest.json` lists every file). The game's code already uses all of it: the theme in
+`src/client/UI.luau`, the bitmap fonts in `src/client/BitmapText.luau`, and the image ids in one
+generated module, [src/shared/Config/GuiArt.luau](src/shared/Config/GuiArt.luau). Every id there is
+`""` until the images are uploaded, and any piece whose id is `""` is drawn with plain frames, so
+the game works the same before, during and after the upload.
 
-When it's delivered (usually on a `codex/*` branch):
+To switch the art on:
 
-1. **Upload:** in Studio, use Asset Manager → Import, with **Big Dink Studios** as creator. Roblox
-   shrinks anything over 1024 px, so split big images into tiles (the title card's key art is 4
-   tiles for that reason).
-2. **Wire it in (code):** put the ids in a table module, the way
-   [src/first/TitleCardArt.luau](src/first/TitleCardArt.luau) does. Then use them in the shop
-   cards (`ShopController`), the HUD (`HudController`), the computer screen and the hotbar.
-   Today the UI is drawn with plain frames from `src/client/UI.luau`.
+1. **Upload** the 312 images marked `"role": "upload"` in `manifest.json` (Asset Manager →
+   Import, creator **Big Dink Studios**). Keep the names.
+2. **Record the ids** in `art-source/GUI/uploaded.json`, by the image's path in the manifest. An
+   id can be a number, a string of digits or an `rbxassetid://` string:
+
+   ```json
+   {
+     "Kit/Panel.png": 123456789,
+     "Icons/Money.png": "123456790",
+     "Items/ReelMower.png": "rbxassetid://123456791"
+   }
+   ```
+
+3. **Regenerate** with `python3 scripts/gui-art-ids.py` (pass the GUI folder if it's somewhere
+   else, like another worktree). Only `GuiArt.luau` changes. Then run
+   `lune run scripts/check-gui` and commit.
+
+You can upload in batches: whatever has an id shows, and the rest stays plain.
 
 ### 6. Playtest checklist
 

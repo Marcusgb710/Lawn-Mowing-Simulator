@@ -1,6 +1,6 @@
--- The "Truck" menu: a checklist of your tools (what each is for, how much room it takes, what
--- shape it's in, and whether it's in the truck, in your hands or in storage) next to the
--- customer's to-do list. It never says which tool a job needs, or which supply fixes a tool. Loading happens by hand (see CarryController); "Grab" here
+-- The "Truck" menu: a checklist of your tools (each with its picture: what it's for, how much room
+-- it takes, what shape it's in, and whether it's in the truck, in your hands or in storage) next
+-- to the customer's to-do list. It never says which tool a job needs, or which supply fixes a tool. Loading happens by hand (see CarryController); "Grab" here
 -- picks a tool out of storage for you when you're standing at it.
 
 local Players = game:GetService("Players")
@@ -13,6 +13,7 @@ local Maintenance = require(Shared.Config.Maintenance)
 local Storage = require(Shared.Config.Storage)
 local Tools = require(Shared.Config.Tools)
 
+local Art = require(script.Parent.Parent.Art)
 local ClientState = require(script.Parent.Parent.ClientState)
 local CarryController = require(script.Parent.CarryController)
 local UI = require(script.Parent.Parent.UI)
@@ -93,32 +94,42 @@ local function render()
 		local inBucket = profile.bucket ~= nil and profile.bucket[item.id] == true
 		local boxed = Deliveries.pending(profile.deliveries, item.id)
 
-		local card = UI.new("Frame", {
+		local card = UI.card({
 			Size = UDim2.new(1, -8, 0, 0),
 			AutomaticSize = Enum.AutomaticSize.Y,
-			BackgroundColor3 = UI.Colors.Card,
 			LayoutOrder = index,
 			Parent = list,
-		}, { UI.corner(8) })
+		}, if loaded or inHands then "Selected" else nil)
+		-- The tool's picture on the left, when it's uploaded (its frame keeps the card that tall).
+		local image = Art.item(item.id)
+		local left = 0
+		if image ~= "" then
+			local holder =
+				UI.new("Frame", { Size = UDim2.fromOffset(80, 80), BackgroundTransparency = 1, Parent = card })
+			UI.picture(image, { Position = UDim2.fromOffset(10, 8), Size = UDim2.fromOffset(64, 64), Parent = holder })
+			left = 72
+		end
 		local details = UI.new("Frame", {
-			Size = UDim2.new(1, -150, 0, 0),
+			Position = UDim2.fromOffset(left, 0),
+			Size = UDim2.new(1, -150 - left, 0, 0),
 			AutomaticSize = Enum.AutomaticSize.Y,
 			BackgroundTransparency = 1,
 			Parent = card,
 		}, { UI.list(2), UI.padding(8) })
-		UI.label(item.name, { TextSize = 19, LayoutOrder = 1, Parent = details })
+		UI.heading(item.name, { TextSize = 19, LayoutOrder = 1, Parent = details })
 		UI.label(item.description, {
 			Size = UDim2.fromScale(1, 0),
 			AutomaticSize = Enum.AutomaticSize.Y,
 			TextWrapped = true,
 			TextSize = 14,
-			Font = Enum.Font.Gotham,
+			FontFace = UI.Fonts.Body,
 			TextColor3 = UI.Colors.SubText,
 			LayoutOrder = 2,
 			Parent = details,
 		})
 		UI.label(`{Items.CategoryInfo[item.category].toolName}  ·  {spaceText(item)}`, {
 			TextSize = 14,
+			FontFace = UI.Fonts.Medium,
 			TextColor3 = UI.Colors.SubText,
 			LayoutOrder = 3,
 			Parent = details,
@@ -162,9 +173,12 @@ local function render()
 					CarryController.pickUp(item.id)
 				end
 			end, {
+				Style = if inHands then "Neutral" else "Primary",
+				Icon = if inHands then "PutBack" else "PickUp",
+				IconSize = 18,
 				AnchorPoint = Vector2.new(1, 0),
 				Position = UDim2.new(1, -12, 0, 40),
-				Size = UDim2.fromOffset(110, 32),
+				Size = UDim2.fromOffset(124, 40),
 				TextSize = 16,
 				Parent = card,
 			})
@@ -175,13 +189,14 @@ end
 function TruckController:Start()
 	local content
 	window, content = UI.panel("Truck", "Your Truck")
-	summary = UI.label("", { TextSize = 20, Parent = content })
+	summary = UI.heading("", { TextSize = 20, Parent = content })
 	hint = UI.label("", {
 		Position = UDim2.fromOffset(0, 26),
 		Size = UDim2.new(1, 0, 0, 40),
 		TextSize = 15,
 		TextWrapped = true,
 		TextYAlignment = Enum.TextYAlignment.Top,
+		FontFace = UI.Fonts.Medium,
 		TextColor3 = UI.Colors.SubText,
 		Parent = content,
 	})

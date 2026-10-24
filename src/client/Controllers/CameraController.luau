@@ -3,7 +3,9 @@
 -- own camera and hands it back after. This also:
 --   * frees the mouse while a menu is open, or while you hold Left Alt: in first person
 --     it's locked to the middle of the screen, so menu buttons couldn't be clicked otherwise
---   * draws the dot in the middle of the screen that you aim with
+--   * draws the dot in the middle of the screen that you aim with (InteractController says when
+--     it's on something you can use, or something that won't work there), and around it the hold
+--     ring that fills while you hold E to work on a tool
 --   * bobs the camera a little as you walk and shakes it slightly while a gas engine you're using
 --     is running, unless camera motion is switched off (GameConfig.Camera, or the player's
 --     "Camera motion" switch in the Guide, or V)
@@ -16,10 +18,12 @@ local UserInputService = game:GetService("UserInputService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local GameConfig = require(Shared.Config.GameConfig)
+local GuiLayout = require(Shared.GuiLayout)
 local Maintenance = require(Shared.Config.Maintenance)
 local Signal = require(Shared.Signal)
 local Tools = require(Shared.Config.Tools)
 
+local Art = require(script.Parent.Parent.Art)
 local UI = require(script.Parent.Parent.UI)
 
 local player = Players.LocalPlayer
@@ -36,6 +40,9 @@ local BOB_DIP = 0.08
 local SHAKE_ON_FOOT = 0.012
 local SHAKE_RIDING = 0.025
 local SHAKE_SPEED = 22
+-- The dot's size with its art, and the hold ring's around it.
+local RETICLE_SIZE = 26
+local RING_SIZE = 76
 
 local CameraController = {}
 
@@ -48,6 +55,10 @@ local cursorButton: TextButton
 local crosshair: ScreenGui
 local bobPhase = 0
 local bobAmount = 0
+-- The dot, and what it's on: "Idle", "Active" (something you can use) or "Blocked".
+local reticle: GuiObject
+local reticleState = "Idle"
+local RETICLE_ART = { Idle = "Reticle", Active = "Reticle_Active", Blocked = "Reticle_Blocked" }
 
 function CameraController.isFirstPerson(): boolean
 	local camera = workspace.CurrentCamera
@@ -73,6 +84,91 @@ function CameraController.setMotion(on: boolean)
 		motionOn = on
 		CameraController.MotionChanged:Fire(on)
 	end
+end
+
+-- What the dot is on: "Idle", "Active" (something you can use) or "Blocked" (it won't work there).
+-- With its art, each has its own dot; plain, the dot turns green or red.
+function CameraController.setReticle(state: string)
+	if state == reticleState or not reticle then
+		return
+	end
+	reticleState = state
+	if reticle:IsA("ImageLabel") then
+		local image = Art.kit(RETICLE_ART[state] or "Reticle")
+		reticle.Image = if image ~= "" then image else Art.kit("Reticle")
+	else
+		reticle.BackgroundColor3 = if state == "Active"
+			then UI.Colors.Accent
+			elseif state == "Blocked" then UI.Colors.Danger
+			else Color3.new(1, 1, 1)
+	end
+end
+
+-- The hold ring: while you hold E to work on a tool (the server sets MaintainingUntil), it fills
+-- clockwise round the dot until the work's done. Only with its art: plain, the HUD's "Working on
+-- it... 3s" says the same.
+local function buildHoldRing()
+	local track, fill = Art.kit("HoldRing"), Art.kit("HoldRing_Fill")
+	if track == "" or fill == "" then
+		return
+	end
+	local ring = UI.new("Frame", {
+		Name = "HoldRing",
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.5),
+		Size = UDim2.fromOffset(RING_SIZE, RING_SIZE),
+		BackgroundTransparency = 1,
+		Visible = false,
+		Parent = crosshair,
+	})
+	UI.new("ImageLabel", { Image = track, Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Parent = ring })
+	-- Each half shows the fill through a gradient that's opaque on one side of a line through the
+	-- middle: turning the line sweeps the fill round (GuiLayout.ring).
+	local edge = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 0),
+		NumberSequenceKeypoint.new(0.5, 0),
+		NumberSequenceKeypoint.new(0.501, 1),
+		NumberSequenceKeypoint.new(1, 1),
+	})
+	local gradients = {}
+	for index, x in { 0.5, 0 } do
+		local half = UI.new("Frame", {
+			Position = UDim2.fromScale(x, 0),
+			Size = UDim2.fromScale(0.5, 1),
+			BackgroundTransparency = 1,
+			ClipsDescendants = true,
+			Parent = ring,
+		})
+		local image = UI.new("ImageLabel", {
+			Image = fill,
+			Position = UDim2.fromScale(-x * 2, 0),
+			Size = UDim2.fromScale(2, 1),
+			BackgroundTransparency = 1,
+			Parent = half,
+		})
+		gradients[index] = UI.new("UIGradient", { Transparency = edge, Parent = image })
+	end
+	local filling: RBXScriptConnection? = nil
+	local function update()
+		if filling then
+			filling:Disconnect()
+			filling = nil
+		end
+		local untilTime = player:GetAttribute("MaintainingUntil")
+		ring.Visible = typeof(untilTime) == "number"
+		if typeof(untilTime) ~= "number" then
+			return
+		end
+		local from = workspace:GetServerTimeNow()
+		local length = math.max(0.05, untilTime - from)
+		filling = RunService.RenderStepped:Connect(function()
+			local right, left = GuiLayout.ring((workspace:GetServerTimeNow() - from) / length)
+			gradients[1].Rotation = right
+			gradients[2].Rotation = left
+		end)
+	end
+	player:GetAttributeChangedSignal("MaintainingUntil"):Connect(update)
+	update()
 end
 
 -- A visible Modal button frees the mouse in first person; it's only shown while it's needed.
@@ -157,14 +253,29 @@ function CameraController:Start()
 		Enabled = false,
 		Parent = player:WaitForChild("PlayerGui"),
 	})
-	UI.new("Frame", {
-		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.fromScale(0.5, 0.5),
-		Size = UDim2.fromOffset(6, 6),
-		BackgroundColor3 = Color3.new(1, 1, 1),
-		BackgroundTransparency = 0.15,
-		Parent = crosshair,
-	}, { UI.corner(3), UI.new("UIStroke", { Color = Color3.new(0, 0, 0), Transparency = 0.5 }) })
+	local dot = Art.kit("Reticle")
+	if dot ~= "" then
+		reticle = UI.new("ImageLabel", {
+			Name = "Dot",
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Position = UDim2.fromScale(0.5, 0.5),
+			Size = UDim2.fromOffset(RETICLE_SIZE, RETICLE_SIZE),
+			Image = dot,
+			BackgroundTransparency = 1,
+			Parent = crosshair,
+		})
+	else
+		reticle = UI.new("Frame", {
+			Name = "Dot",
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Position = UDim2.fromScale(0.5, 0.5),
+			Size = UDim2.fromOffset(6, 6),
+			BackgroundColor3 = Color3.new(1, 1, 1),
+			BackgroundTransparency = 0.15,
+			Parent = crosshair,
+		}, { UI.corner(3), UI.new("UIStroke", { Color = Color3.new(0, 0, 0), Transparency = 0.5 }) })
+	end
+	buildHoldRing()
 
 	UserInputService.InputBegan:Connect(function(input)
 		if input.KeyCode == Enum.KeyCode.LeftAlt then

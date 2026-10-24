@@ -33,15 +33,28 @@ Story.FirstCustomer = "Mrs. Alvarez"
 -- What June calls the bridge club ladies who are customers (Jobs.Customers).
 Story.JuneCalls = { ["Mrs. Alvarez"] = "Edna" }
 
--- Who's who. `portrait` is the key of their picture in the client's StoryArt (and their color in
--- UI.Colors.Cast); `initials` stand in for a picture that isn't uploaded yet.
+-- Who's who. The key is their picture's in the client's StoryArt (and their color in
+-- UI.Colors.Cast); `initials` stand in for a picture that isn't uploaded yet. `moods` are the
+-- expressions they have portraits for (a line's `mood`), the first the one they usually wear;
+-- someone with none has one portrait (or none, for customers without a face).
 Story.Cast = {
-	June = { name = "Grandma June", initials = "GJ" },
-	Gloria = { name = "Gloria Pemberton", caption = "Gloria Pemberton · next door", initials = "GP" },
-	Chad = { name = "Chad", caption = "Chad · TurfKing", initials = "CH" },
-	Sam = { name = "Sam Pemberton", initials = "SP" },
-	Edna = { name = "Edna Alvarez", initials = "EA" },
+	June = {
+		name = "Grandma June",
+		initials = "GJ",
+		moods = { "Neutral", "Smug", "Annoyed", "Proud", "Laughing" },
+	},
+	Gloria = {
+		name = "Gloria Pemberton",
+		caption = "Gloria Pemberton · next door",
+		initials = "GP",
+		moods = { "Smug", "FakeSmile", "Furious", "Defeated" },
+	},
+	Chad = { name = "Chad", caption = "Chad · TurfKing", initials = "CH", moods = { "Cocky", "Panicked" } },
+	Sam = { name = "Sam Pemberton", initials = "SP", moods = { "Happy", "FedUp" } },
+	Edna = { name = "Edna Alvarez", initials = "EA", moods = { "Happy" } },
 	BridgeClub = { name = "Bridge Club", initials = "BC" },
+	Rossi = { name = "Mrs. Rossi", initials = "MR", moods = { "Gossip" } },
+	Nguyen = { name = "Ms. Nguyen", initials = "MN", moods = { "Picky" } },
 	Customer = { name = "Customer", initials = "" },
 	-- The Best Yard judges.
 	Judge1 = { name = "Judge Pruitt", caption = "Judge Pruitt · Best Yard", initials = "JP" },
@@ -56,18 +69,21 @@ Story.Threads = {
 	Sam = { name = "Sam", status = "Gloria's grandkid", cast = "Sam" },
 }
 -- Customers with a face of their own.
-Story.CustomerCast = { ["Mrs. Alvarez"] = "Edna" }
+Story.CustomerCast = { ["Mrs. Alvarez"] = "Edna", ["Mrs. Rossi"] = "Rossi", ["Ms. Nguyen"] = "Nguyen" }
 
 -- Dialogue scenes, played in the box at the bottom of the screen (DialogueController).
 --   caption   shown in the top letterbox bar
 --   skipText  the Skip button's text on a computer (phones always say "Skip")
---   lines     in order. `speaker` is a Cast key (none: the narrator). `shot` points the camera at
+--   act       an act's opening scene: its title card ("Act 2: TurfKing") shows as it starts
+--   lines     in order. `speaker` is a Cast key (none: the narrator), and `mood` which of their
+--             Cast `moods` their portrait wears for it (none: their usual one). `shot` points the camera at
 --             "June" (on her porch at your shop), "Gloria" (her house) or "Yard" (your own front
 --             lawn); it stays put until a line changes it. `bubble` also shows the line in a
 --             speech bubble over the speaker. `card` pops up a card (a new tool). `judges` walks
 --             the two Best Yard judges across "Yard" (yours) or "Gloria" (hers).
 Story.Scenes = {
 	Intro = {
+		act = 1,
 		caption = "Maple Grove · First day of summer",
 		skipText = "Skip intro",
 		lines = {
@@ -75,14 +91,22 @@ Story.Scenes = {
 				shot = "Gloria",
 				text = "Sunrise over Maple Grove. A purple TurfKing truck pulls into the drive next door.",
 			},
-			{ speaker = "Gloria", shot = "Gloria", bubble = true, text = "Morning, June! Lovely… dandelions." },
+			{
+				speaker = "Gloria",
+				mood = "Smug",
+				shot = "Gloria",
+				bubble = true,
+				text = "Morning, June! Lovely… dandelions.",
+			},
 			{
 				speaker = "June",
+				mood = "Annoyed",
 				shot = "June",
 				text = "Thirty years. Thirty years I've won Best Yard on this street… and Gloria Pemberton goes and *hires* somebody.",
 			},
 			{
 				speaker = "June",
+				mood = "Proud",
 				text = "My mower died in '09. These never did. They won me the trophy in '94, so don't you lose 'em.",
 				card = { label = "New tool", name = "Grandma's Grass Shears", icon = "Shears" },
 			},
@@ -100,9 +124,16 @@ Story.Scenes = {
 	WelcomeBack = {
 		caption = "Maple Grove",
 		lines = {
-			{ speaker = "Gloria", shot = "Gloria", bubble = true, text = "Morning, June! Lovely… dandelions." },
+			{
+				speaker = "Gloria",
+				mood = "Smug",
+				shot = "Gloria",
+				bubble = true,
+				text = "Morning, June! Lovely… dandelions.",
+			},
 			{
 				speaker = "June",
+				mood = "Annoyed",
 				shot = "June",
 				text = "Thirty years. Thirty years I've won Best Yard on this street… and Gloria Pemberton goes and *hires* somebody.",
 			},
@@ -113,45 +144,78 @@ Story.Scenes = {
 		},
 	},
 	Act2 = {
+		act = 2,
 		caption = "Act 2 · TurfKing",
 		lines = {
-			{ speaker = "Gloria", shot = "Gloria", bubble = true, text = "Isn't it sweet, June's little helper." },
+			{
+				speaker = "Gloria",
+				mood = "FakeSmile",
+				shot = "Gloria",
+				bubble = true,
+				text = "Isn't it sweet, June's little helper.",
+			},
 		},
 	},
 	-- Act 2 when it starts with a new mower.
 	Act2Mower = {
+		act = 2,
 		caption = "Act 2 · TurfKing",
 		lines = {
 			{
 				speaker = "June",
+				mood = "Laughing",
 				shot = "June",
 				text = "Now THAT's a mower. Your grandfather had one just like it. He was terrible with it.",
 			},
-			{ speaker = "Gloria", shot = "Gloria", bubble = true, text = "Isn't it sweet, June's little helper." },
+			{
+				speaker = "Gloria",
+				mood = "FakeSmile",
+				shot = "Gloria",
+				bubble = true,
+				text = "Isn't it sweet, June's little helper.",
+			},
 		},
 	},
 	Act3 = {
-		caption = "Act 3 · The Crew",
-		lines = {
-			{ speaker = "June", shot = "June", text = "Contest's coming. Our yard looks like a vacant lot. Fix it." },
-		},
-	},
-	-- Act 3 when it starts with your first motorized mower.
-	Act3Mower = {
+		act = 3,
 		caption = "Act 3 · The Crew",
 		lines = {
 			{
 				speaker = "June",
+				mood = "Annoyed",
+				shot = "June",
+				text = "Contest's coming. Our yard looks like a vacant lot. Fix it.",
+			},
+		},
+	},
+	-- Act 3 when it starts with your first motorized mower.
+	Act3Mower = {
+		act = 3,
+		caption = "Act 3 · The Crew",
+		lines = {
+			{
+				speaker = "June",
+				mood = "Proud",
 				shot = "June",
 				text = "Well. Look at you. Gloria's boys have three of those, so don't get cocky.",
 			},
-			{ speaker = "June", text = "Contest's coming. Our yard looks like a vacant lot. Fix it." },
+			{
+				speaker = "June",
+				mood = "Annoyed",
+				text = "Contest's coming. Our yard looks like a vacant lot. Fix it.",
+			},
 		},
 	},
 	Act4 = {
+		act = 4,
 		caption = "Act 4 · The Contest",
 		lines = {
-			{ speaker = "June", shot = "June", text = "Hmph. It doesn't look like a vacant lot any more." },
+			{
+				speaker = "June",
+				mood = "Proud",
+				shot = "June",
+				text = "Hmph. It doesn't look like a vacant lot any more.",
+			},
 			{ speaker = "June", text = "Judges walk the street at the end of summer. Keep it sharp till then." },
 		},
 	},
@@ -175,6 +239,7 @@ Story.Scenes = {
 			},
 			{
 				speaker = "Gloria",
+				mood = "Smug",
 				shot = "Gloria",
 				bubble = true,
 				text = "Half that trophy's always been mine, June. You know it.",
@@ -193,22 +258,45 @@ Story.Scenes = {
 			{ shot = "Yard", judges = "Yard", text = "Judging day again. The judges start with your yard." },
 			{ speaker = "Judge1", text = "Hmm. *Edges.*" },
 			{ shot = "Gloria", judges = "Gloria", text = "Then Gloria's, which has somehow grown more flamingos." },
-			{ speaker = "Gloria", shot = "Gloria", bubble = true, text = "This year, June. *This* year." },
+			{
+				speaker = "Gloria",
+				mood = "Smug",
+				shot = "Gloria",
+				bubble = true,
+				text = "This year, June. *This* year.",
+			},
 		},
 	},
 	ContestWin = {
 		caption = "Best Yard",
 		lines = {
 			{ shot = "June", text = "June scratches Gloria's name onto the new trophy, next to hers." },
-			{ speaker = "June", text = "There. Should've done that in '94." },
-			{ speaker = "Gloria", shot = "Gloria", bubble = true, text = "Fine. FINE. Same time next year, June." },
+			{ speaker = "June", mood = "Proud", text = "There. Should've done that in '94." },
+			{
+				speaker = "Gloria",
+				mood = "Defeated",
+				shot = "Gloria",
+				bubble = true,
+				text = "Fine. FINE. Same time next year, June.",
+			},
 		},
 	},
 	ContestWinAgain = {
 		caption = "Best Yard",
 		lines = {
-			{ speaker = "June", shot = "June", text = "Another one for the mantel. Don't let it go to your head." },
-			{ speaker = "Gloria", shot = "Gloria", bubble = true, text = "Fine. FINE. Same time next year, June." },
+			{
+				speaker = "June",
+				mood = "Laughing",
+				shot = "June",
+				text = "Another one for the mantel. Don't let it go to your head.",
+			},
+			{
+				speaker = "Gloria",
+				mood = "Defeated",
+				shot = "Gloria",
+				bubble = true,
+				text = "Fine. FINE. Same time next year, June.",
+			},
 		},
 	},
 	-- Gloria wins, insufferably.
@@ -217,12 +305,23 @@ Story.Scenes = {
 		lines = {
 			{
 				speaker = "Gloria",
+				mood = "Smug",
 				shot = "Gloria",
 				bubble = true,
 				text = "Oh, June. Thirty years, and all it took was a *franchise*.",
 			},
-			{ speaker = "Gloria", bubble = true, text = "I'll keep it polished for you. You can visit." },
-			{ speaker = "June", shot = "June", text = "Next summer. And you're mowing every Tuesday." },
+			{
+				speaker = "Gloria",
+				mood = "FakeSmile",
+				bubble = true,
+				text = "I'll keep it polished for you. You can visit.",
+			},
+			{
+				speaker = "June",
+				mood = "Annoyed",
+				shot = "June",
+				text = "Next summer. And you're mowing every Tuesday.",
+			},
 		},
 	},
 }
@@ -493,8 +592,8 @@ Story.ContestTexts = {
 }
 -- Who has the last word on the results screen, and what they say.
 Story.ContestClosing = {
-	Win = { speaker = "Gloria", text = "Fine. FINE. Same time next year, June." },
-	Lose = { speaker = "Gloria", text = "Better luck next summer, June. Truly." },
+	Win = { speaker = "Gloria", mood = "Defeated", text = "Fine. FINE. Same time next year, June." },
+	Lose = { speaker = "Gloria", mood = "Smug", text = "Better luck next summer, June. Truly." },
 }
 
 -- Helpers -------------------------------------------------------------------------------------

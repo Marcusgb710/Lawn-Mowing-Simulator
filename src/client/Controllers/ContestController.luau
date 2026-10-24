@@ -5,7 +5,8 @@
 --   * the results screen, once the scene's over: the title, your yard's card, the trophy and
 --     Gloria's card, the four categories with your bar and hers, what you won, Gloria's last word
 --     and a Collect button. Collecting asks the server, which pays out and plays the ending.
--- Colors and the font are UI's; the art is StoryArt.Contest (plain frames until it's uploaded).
+-- Colors and fonts are UI's (the scores in the display face); the art is StoryArt.Contest (plain
+-- frames until it's uploaded).
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -195,71 +196,50 @@ local function ordinal(number: number): string
 	return `{number}{suffix}`
 end
 
--- A bar out of the category's points: its track, and a fill in `color` (or their art).
-local function scoreBar(parent: Instance, value: number, fill, color: Color3, props): Frame
-	local track = UI.new(if StoryArt.Contest.ScoreTrack.image ~= "" then "ImageLabel" else "Frame", {
-		BackgroundColor3 = UI.Colors.Card,
-		BackgroundTransparency = if StoryArt.Contest.ScoreTrack.image ~= "" then 1 else 0,
-		ClipsDescendants = true,
-		Parent = parent,
-	})
-	if StoryArt.Contest.ScoreTrack.image ~= "" then
-		local image = track :: ImageLabel
-		image.Image = StoryArt.Contest.ScoreTrack.image
-		image.ScaleType = Enum.ScaleType.Slice
-		image.SliceCenter = StoryArt.Contest.ScoreTrack.slice
-	else
-		UI.corner(7).Parent = track
-	end
-	for key, setting in props do
-		(track :: any)[key] = setting
-	end
+-- A bar out of the category's points: the art's score track, striped in your green or Gloria's
+-- purple (`fill`: "You" or "Rival"), or plain ones. It fills up as the screen opens.
+local function scoreBar(parent: Instance, value: number, fill: string, props): GuiObject
+	local options = table.clone(props)
+	options.Parent = parent
+	local bar = UI.bar(options, fill, StoryArt.Contest.ScoreTrack)
 	local share = math.clamp(value / Contest.CategoryPoints, 0, 1)
-	local bar = UI.new(if fill.image ~= "" then "ImageLabel" else "Frame", {
-		Size = UDim2.fromScale(0, 1),
-		BackgroundColor3 = color,
-		BackgroundTransparency = if fill.image ~= "" then 1 else 0,
-		BorderSizePixel = 0,
-		Parent = track,
-	})
-	if fill.image ~= "" then
-		local image = bar :: ImageLabel
-		image.Image = fill.image
-		image.ScaleType = Enum.ScaleType.Slice
-		image.SliceCenter = fill.slice
-	else
-		UI.corner(7).Parent = bar
-	end
-	-- The bars fill up as the screen opens.
-	TweenService:Create(bar, TweenInfo.new(0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-		Size = UDim2.fromScale(share, 1),
-	}):Play()
-	return track
+	local progress = Instance.new("NumberValue")
+	progress.Changed:Connect(function(current)
+		bar.set(current)
+	end)
+	local tween = TweenService:Create(
+		progress,
+		TweenInfo.new(0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+		{ Value = share }
+	)
+	tween.Completed:Once(function()
+		progress:Destroy()
+	end)
+	tween:Play()
+	return bar.frame
 end
 
--- A yard's card: who it is, a line under, and the big score. The winner's has a colored outline.
+-- A yard's card: who it is, a line under, and the big score. The winner's stands out (the art's
+-- selected card, or a colored outline).
 local function yardCard(parent: Instance, x: number, info)
-	local card = UI.new("Frame", {
+	local card = UI.sliced(if info.winner then "Card_Selected" else "Card", {
 		Position = UDim2.fromOffset(x, 0),
 		Size = UDim2.fromOffset(330, 190),
-		BackgroundColor3 = UI.Colors.Panel,
 		Parent = parent,
 	}, {
-		UI.corner(20),
-		UI.new("UIStroke", {
-			Color = if info.winner then info.color else UI.Colors.Card,
-			Thickness = 3,
-			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-		}),
-		UI.new("UIPadding", {
-			PaddingTop = UDim.new(0, 18),
-			PaddingBottom = UDim.new(0, 18),
-			PaddingLeft = UDim.new(0, 22),
-			PaddingRight = UDim.new(0, 22),
-		}),
+		color = UI.Colors.Panel,
+		radius = 20,
+		stroke = if info.winner then info.color else UI.Colors.Card,
 	})
-	UI.label(info.tag, { Size = UDim2.new(1, 0, 0, 18), TextSize = 15, TextColor3 = info.color, Parent = card })
-	UI.label(
+	UI.new("UIPadding", {
+		PaddingTop = UDim.new(0, 18),
+		PaddingBottom = UDim.new(0, 18),
+		PaddingLeft = UDim.new(0, 22),
+		PaddingRight = UDim.new(0, 22),
+		Parent = card,
+	})
+	UI.heading(info.tag, { Size = UDim2.new(1, 0, 0, 18), TextSize = 16, TextColor3 = info.color, Parent = card })
+	UI.heading(
 		info.name,
 		{ Position = UDim2.fromOffset(0, 22), Size = UDim2.new(1, 0, 0, 30), TextSize = 26, Parent = card }
 	)
@@ -267,15 +247,18 @@ local function yardCard(parent: Instance, x: number, info)
 		Position = UDim2.fromOffset(0, 54),
 		Size = UDim2.new(1, 0, 0, 20),
 		TextSize = 16,
+		FontFace = UI.Fonts.Medium,
 		TextColor3 = UI.Colors.SubText,
 		Parent = card,
 	})
-	UI.label(tostring(info.score), {
+	UI.display("Numbers", `{info.score}/{Contest.CategoryPoints * #Contest.Categories}`, {
+		TextSize = 76,
+		Color = info.color,
+		Fit = true,
+	}, {
 		AnchorPoint = Vector2.new(0, 1),
 		Position = UDim2.fromScale(0, 1),
-		Size = UDim2.new(1, 0, 0, 64),
-		TextSize = 64,
-		TextColor3 = info.color,
+		Size = UDim2.new(1, 0, 0, 66),
 		Parent = card,
 	})
 end
@@ -385,11 +368,11 @@ local function categoryRow(parent: Instance, index: number, category, yours: num
 	})
 	local sides = {
 		{ yours, StoryArt.Contest.ScoreFillYou, UI.Colors.Accent },
-		{ hers, StoryArt.Contest.ScoreFillRival, UI.Colors.RivalFill },
+		{ hers, StoryArt.Contest.ScoreFillRival, UI.Colors.Rival },
 	}
 	for side, info in sides do
 		local x = COLUMN_YOU + (side - 1) * (COLUMN_GLORIA - COLUMN_YOU)
-		scoreBar(row, info[1], info[2], info[3], {
+		scoreBar(row, info[1], info[2], {
 			AnchorPoint = Vector2.new(0, 0.5),
 			Position = UDim2.new(0, x, 0.5, 0),
 			Size = UDim2.fromOffset(BAR_WIDTH, 14),
@@ -398,6 +381,8 @@ local function categoryRow(parent: Instance, index: number, category, yours: num
 			Position = UDim2.fromOffset(x + BAR_WIDTH + 8, 0),
 			Size = UDim2.new(0, 60, 1, 0),
 			TextSize = 20,
+			FontFace = UI.Fonts.Heavy,
+			TextColor3 = info[3],
 			Parent = row,
 		})
 	end
@@ -459,7 +444,7 @@ local function confetti()
 		local piece: GuiObject
 		if art.image ~= "" then
 			local cell = (index - 1) % (art.columns * art.rows)
-			local size = Vector2.new(1024 / art.columns, 1024 / art.rows)
+			local size = art.frameSize
 			piece = UI.new("ImageLabel", {
 				Image = art.image,
 				ImageRectSize = size,
@@ -512,12 +497,18 @@ local function collect()
 		return
 	end
 	collecting = true
+	local result = showing
 	local ok, success, message = pcall(function()
 		return Net.func("CollectContest"):InvokeServer()
 	end)
 	collecting = false
 	if ok and success then
 		hide()
+		-- Payday! for the prize money.
+		local prize = result and result.won and result.rewards and result.rewards.money
+		if prize and prize > 0 then
+			UI.moment("Payday", "Payday!", `+{Format.money(prize)}`)
+		end
 	end
 	if ok and typeof(message) == "string" then
 		UI.notify(message)
@@ -533,7 +524,7 @@ local function show(result)
 	local won = result.won == true
 
 	-- The title: its wordmark on the ribbon, or the words in yellow.
-	UI.label(if (result.summer or 1) > 1 then `END OF SUMMER {result.summer}` else "END OF SUMMER", {
+	UI.heading(if (result.summer or 1) > 1 then `END OF SUMMER {result.summer}` else "END OF SUMMER", {
 		Position = UDim2.fromOffset(0, 0),
 		Size = UDim2.new(1, 0, 0, 20),
 		TextSize = 17,
@@ -542,17 +533,14 @@ local function show(result)
 		Parent = panel,
 	})
 	local art = StoryArt.Contest
-	if art.Ribbon.image ~= "" then
-		UI.new("ImageLabel", {
+	if art.Ribbon then
+		local ribbon = UI.new("ImageLabel", {
 			AnchorPoint = Vector2.new(0.5, 0),
-			Position = UDim2.new(0.5, 0, 0, 18),
-			Size = UDim2.fromOffset(620, 62),
-			Image = art.Ribbon.image,
-			ScaleType = Enum.ScaleType.Slice,
-			SliceCenter = art.Ribbon.slice,
-			BackgroundTransparency = 1,
+			Position = UDim2.new(0.5, 0, 0, 14),
+			Size = UDim2.fromOffset(660, 70),
 			Parent = panel,
 		})
+		UI.applySlice(ribbon, art.Ribbon)
 	end
 	if art.Title ~= "" then
 		UI.new("ImageLabel", {
@@ -566,15 +554,13 @@ local function show(result)
 			Parent = panel,
 		})
 	else
-		UI.label("Maple Grove Best Yard", {
-			Position = UDim2.fromOffset(0, 22),
-			Size = UDim2.new(1, 0, 0, 50),
-			TextSize = 44,
-			TextColor3 = UI.Colors.Money,
-			TextXAlignment = Enum.TextXAlignment.Center,
-			ZIndex = 2,
-			Parent = panel,
-		})
+		local title = UI.display(
+			"Headline",
+			"Maple Grove Best Yard",
+			{ TextSize = 60, Color = UI.Colors.Money, XAlignment = "Center", Fit = true, ZIndex = 2 },
+			{ Position = UDim2.fromOffset(0, 20), Size = UDim2.new(1, 0, 0, 56), Parent = panel }
+		)
+		title.Frame.ZIndex = 2
 	end
 
 	-- Your yard, the trophy, Gloria's yard.
@@ -651,7 +637,7 @@ local function show(result)
 		TextSize = 18,
 		TextWrapped = true,
 		TextColor3 = UI.Colors.SubText,
-		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium, Enum.FontStyle.Italic),
+		FontFace = Font.new(UI.Fonts.Body.Family, Enum.FontWeight.SemiBold, Enum.FontStyle.Italic),
 		Parent = footer,
 	})
 	local button = UI.button("Collect", collect, {
@@ -659,20 +645,20 @@ local function show(result)
 		Position = UDim2.new(1, 0, 0, 14),
 		Size = UDim2.fromOffset(180, 66),
 		TextSize = 26,
-		BackgroundColor3 = UI.Colors.Accent,
-		TextColor3 = UI.Colors.Background,
+		Style = "Primary",
 		Parent = footer,
 	})
+	-- Plain, it gets a dark outline (the art has its own).
 	local corner = button:FindFirstChildOfClass("UICorner")
 	if corner then
 		corner.CornerRadius = UDim.new(0, 14)
+		UI.new("UIStroke", {
+			Color = UI.Colors.Outline,
+			Thickness = 3,
+			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+			Parent = button,
+		})
 	end
-	UI.new("UIStroke", {
-		Color = UI.Colors.Outline,
-		Thickness = 3,
-		ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-		Parent = button,
-	})
 
 	fit()
 	screen.Enabled = true
@@ -721,15 +707,15 @@ local function build()
 		Modal = true,
 		Parent = screen,
 	})
-	panel = UI.new("Frame", {
+	panel = UI.sliced("Panel", {
 		Name = "Results",
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.fromScale(0.5, 0.5),
 		Size = UDim2.fromOffset(LAYOUT.X, LAYOUT.Y),
-		BackgroundColor3 = UI.Colors.Background,
 		ClipsDescendants = true,
 		Parent = screen,
-	}, { UI.corner(24), UI.new("UIPadding", { PaddingTop = UDim.new(0, 24) }) })
+	}, { color = UI.Colors.Background, radius = 24 }) :: Frame
+	UI.new("UIPadding", { PaddingTop = UDim.new(0, 24), Parent = panel })
 	scale = UI.new("UIScale", { Parent = panel })
 	screen:GetPropertyChangedSignal("AbsoluteSize"):Connect(fit)
 end

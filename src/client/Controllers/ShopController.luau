@@ -3,7 +3,8 @@
 --             crew's business, a Premium tab of things bought with Robux (see Premium.luau), and
 --             a Sell tab for tools you don't need, to free up storage
 --   Business  building upgrades, trucks and trailers
--- Every tool says what it's for: that's how players learn which tool fits which job.
+-- Every tool says what it's for: that's how players learn which tool fits which job. Each tab has
+-- its category's glyph and each card its item's picture, from the GUI art (plain until uploaded).
 
 local MarketplaceService = game:GetService("MarketplaceService")
 local Players = game:GetService("Players")
@@ -20,6 +21,7 @@ local Shop = require(Shared.Shop)
 local Storage = require(Shared.Config.Storage)
 local Tools = require(Shared.Config.Tools)
 
+local Art = require(script.Parent.Parent.Art)
 local ClientState = require(script.Parent.Parent.ClientState)
 local UI = require(script.Parent.Parent.UI)
 
@@ -41,6 +43,14 @@ local PERK_TEXT = {
 	endlessLine = "Line never runs out",
 	bigTank = "Fuel lasts 3x as long",
 }
+-- The glyph on each tab (Icons/<name>.png): the tool categories' are Cat_<category>.
+local TAB_ICONS = {
+	[DECOR_TAB] = "Cat_Decorations",
+	[PREMIUM_TAB] = "Premium",
+	[SELL_TAB] = "Sell",
+}
+-- How big an item's picture is on its card.
+local PICTURE = 84
 -- Which tabs each app shows.
 local APPS = {
 	Orders = { title = "Orders", tabs = table.clone(Items.ToolCategories) },
@@ -50,7 +60,7 @@ table.insert(APPS.Orders.tabs, DECOR_TAB)
 table.insert(APPS.Orders.tabs, PREMIUM_TAB)
 table.insert(APPS.Orders.tabs, SELL_TAB)
 
-local window: Frame
+local window: GuiObject
 local selectedCategory = Items.Categories[1]
 local tabButtons = {}
 local list: ScrollingFrame
@@ -173,42 +183,39 @@ local function act(action: string, item, category: string)
 	UI.notify(message)
 end
 
--- What the button on an item's card says and does, plus a note under it: why it's locked (if it
--- is), or the Best Yard prize's discount.
-local function buttonFor(profile, item, category: string): (string, Color3, string?, string?)
+-- What the button on an item's card says and does (its style, see UI.setStyle), plus a note
+-- under it: why it's locked (if it is), or the Best Yard prize's discount.
+local function buttonFor(profile, item, category: string): (string, string, string?, string?)
 	if category == DECOR_TAB then
 		if resting(item) then
-			return "Bought", UI.Colors.Disabled, nil, nil
+			return "Bought", "Disabled", nil, nil
 		end
 		local affordable = profile.money >= item.price
-		return Format.money(item.price), if affordable then UI.Colors.Money else UI.Colors.Disabled, "BuyItem", nil
+		return Format.money(item.price), if affordable then "Money" else "Disabled", "BuyItem", nil
 	end
 	local owned = profile.owned[category] and profile.owned[category][item.id]
 	if Items.isToolCategory(category) then
 		if owned and resting(item) then
-			return "Bought", UI.Colors.Disabled, nil, nil
+			return "Bought", "Disabled", nil, nil
 		elseif owned then
 			if Shop.canRestock(profile, item.id) then
 				local affordable = profile.money >= item.price
-				return `Restock {Format.money(item.price)}`,
-					if affordable then UI.Colors.Money else UI.Colors.Disabled,
-					"BuyItem",
-					nil
+				return `Restock {Format.money(item.price)}`, if affordable then "Money" else "Disabled", "BuyItem", nil
 			elseif not Shop.canSell(item) then
-				return "Starter", UI.Colors.Disabled, nil, nil
+				return "Starter", "Disabled", nil, nil
 			elseif confirmingSell == item.id then
-				return "Tap to sell", UI.Colors.Danger, "SellItem", nil
+				return "Tap to sell", "Danger", "SellItem", nil
 			end
 			local sellPrice = Shop.sellPrice(item, profile.condition and profile.condition[item.id])
-			return `Sell {Format.money(sellPrice)}`, UI.Colors.Card, "SellItem", nil
+			return `Sell {Format.money(sellPrice)}`, "Danger", "SellItem", nil
 		end
 	elseif profile.equipped[category] == item.id then
-		return if category == "Business" then "Current" else "Equipped", UI.Colors.Disabled, nil, nil
+		return if category == "Business" then "Current" else "Equipped", "Disabled", nil, nil
 	elseif owned then
 		if category == "Business" then
-			return "Owned", UI.Colors.Disabled, nil, nil
+			return "Owned", "Disabled", nil, nil
 		end
-		return "Equip", UI.Colors.Accent, "EquipItem", nil
+		return "Equip", "Primary", "EquipItem", nil
 	end
 
 	local allowed, reason = Shop.canBuy(profile, category, item.id)
@@ -217,37 +224,81 @@ local function buttonFor(profile, item, category: string): (string, Color3, stri
 		then `Best Yard prize: half off, {Format.money(price)} instead of {Format.money(item.price)}.`
 		else nil
 	if not allowed then
-		return "Locked", UI.Colors.Disabled, nil, if prize then `{reason}\n{prize}` else reason
+		return "Locked", "Disabled", nil, if prize then `{reason}\n{prize}` else reason
 	end
 	local affordable = profile.money >= price
-	return Format.money(price), if affordable then UI.Colors.Money else UI.Colors.Disabled, "BuyItem", prize
+	return Format.money(price), if affordable then "Money" else "Disabled", "BuyItem", prize
 end
 
--- One card on the Premium tab: name, description and details down the left, a button on the right.
+-- An item card: the art's card (greyed when it's locked), with the item's picture on the left
+-- when it's uploaded. Returns the card and the frame its words go in (left of the button).
+local function itemCard(order: number, image: string, locked: boolean, round: boolean?): (GuiObject, Frame)
+	local card = UI.card({
+		Size = UDim2.new(1, -8, 0, 0),
+		AutomaticSize = Enum.AutomaticSize.Y,
+		LayoutOrder = order,
+		Parent = list,
+	}, if locked then "Locked" else nil)
+	local left = 0
+	if image ~= "" then
+		-- The picture's frame also keeps the card at least as tall as the picture.
+		local holder = UI.new("Frame", {
+			Name = "Picture",
+			Size = UDim2.fromOffset(PICTURE + 20, PICTURE + 20),
+			BackgroundTransparency = 1,
+			Parent = card,
+		})
+		local picture = UI.picture(image, {
+			Position = UDim2.fromOffset(12, 10),
+			Size = UDim2.fromOffset(PICTURE, PICTURE),
+			Parent = holder,
+		}) :: ImageLabel
+		if round then
+			UI.new("UICorner", { CornerRadius = UDim.new(0.5, 0), Parent = picture })
+		end
+		left = PICTURE + 14
+	end
+	local details = UI.new("Frame", {
+		Position = UDim2.fromOffset(left, 0),
+		Size = UDim2.new(1, -150 - left, 0, 0),
+		AutomaticSize = Enum.AutomaticSize.Y,
+		BackgroundTransparency = 1,
+		Parent = card,
+	}, { UI.list(3), UI.padding(10) })
+	return card, details
+end
+
+-- The button on the right of a card.
+local function cardButton(card: GuiObject, text: string, style: string, onClick: () -> ())
+	local button = UI.button(text, onClick, {
+		Style = style,
+		Icon = if text == "Locked" then "Lock" else nil,
+		IconSize = 16,
+		AnchorPoint = Vector2.new(1, 0.5),
+		Position = UDim2.new(1, -12, 0.5, 0),
+		Size = UDim2.fromOffset(124, 40),
+		TextScaled = true,
+		Parent = card,
+	})
+	UI.new("UITextSizeConstraint", { MaxTextSize = 18, Parent = button })
+	UI.new("UIPadding", { PaddingLeft = UDim.new(0, 8), PaddingRight = UDim.new(0, 8), Parent = button })
+end
+
+-- One card on the Premium tab: its picture (a pass's circle, a tool or a truck), name,
+-- description and details down the left, a button on the right.
 local function premiumCard(
 	order: number,
+	image: string,
 	name: string,
 	description: string,
 	details: string,
 	note: string?,
 	buttonText: string,
-	color: Color3,
+	style: string,
 	onClick: (() -> ())?
 )
-	local card = UI.new("Frame", {
-		Size = UDim2.new(1, -8, 0, 0),
-		AutomaticSize = Enum.AutomaticSize.Y,
-		BackgroundColor3 = UI.Colors.Card,
-		LayoutOrder = order,
-		Parent = list,
-	}, { UI.corner(8) })
-	local text = UI.new("Frame", {
-		Size = UDim2.new(1, -150, 0, 0),
-		AutomaticSize = Enum.AutomaticSize.Y,
-		BackgroundTransparency = 1,
-		Parent = card,
-	}, { UI.list(3), UI.padding(10) })
-	UI.label(name, { TextSize = 20, LayoutOrder = 1, Parent = text })
+	local card, text = itemCard(order, image, false, string.find(image, "Pass_") ~= nil)
+	UI.heading(name, { TextSize = 20, LayoutOrder = 1, Parent = text })
 	for index, line in { description, details, note or "" } do
 		if line ~= "" then
 			UI.label(line, {
@@ -255,7 +306,7 @@ local function premiumCard(
 				AutomaticSize = Enum.AutomaticSize.Y,
 				TextWrapped = true,
 				TextSize = 14,
-				Font = if index == 1 then Enum.Font.Gotham else nil,
+				FontFace = if index == 1 then UI.Fonts.Body else UI.Fonts.Medium,
 				TextColor3 = if index == 1
 					then UI.Colors.Text
 					elseif index == 2 then UI.Colors.SubText
@@ -265,24 +316,16 @@ local function premiumCard(
 			})
 		end
 	end
-	UI.button(buttonText, function()
+	cardButton(card, buttonText, style, function()
 		if onClick then
 			onClick()
 		end
-	end, {
-		AnchorPoint = Vector2.new(1, 0.5),
-		Position = UDim2.new(1, -12, 0.5, 0),
-		Size = UDim2.fromOffset(120, 36),
-		BackgroundColor3 = color,
-		TextColor3 = if color == UI.Colors.Money then UI.Colors.Background else UI.Colors.Text,
-		TextScaled = true,
-		Parent = card,
-	})
+	end)
 end
 
 local function premiumHeading(order: number, text: string)
-	UI.label(text, {
-		Size = UDim2.new(1, -8, 0, 28),
+	UI.heading(string.upper(text), {
+		Size = UDim2.new(1, -8, 0, 30),
 		TextSize = 22,
 		TextColor3 = UI.Colors.Money,
 		LayoutOrder = order,
@@ -307,16 +350,26 @@ local function renderPremium(profile)
 	premiumHeading(nextOrder(), "Pro upgrades")
 	for _, pass in Premium.Passes do
 		local owned = premium.passes and premium.passes[pass.id]
-		local text, color, onClick =
-			price(pass.robux), UI.Colors.Money, function()
+		local text, style, onClick =
+			price(pass.robux), "Robux", function()
 				MarketplaceService:PromptGamePassPurchase(player, pass.gamePassId)
 			end
 		if owned then
-			text, color, onClick = "Owned", UI.Colors.Disabled, nil
+			text, style, onClick = "Owned", "Disabled", nil
 		elseif pass.gamePassId == 0 then
-			text, color, onClick = "Soon", UI.Colors.Disabled, nil
+			text, style, onClick = "Soon", "Disabled", nil
 		end
-		premiumCard(nextOrder(), pass.name, pass.description, "Works on every tool you own", nil, text, color, onClick)
+		premiumCard(
+			nextOrder(),
+			Art.store(`Pass_{pass.id}`),
+			pass.name,
+			pass.description,
+			"Works on every tool you own",
+			nil,
+			text,
+			style,
+			onClick
+		)
 	end
 
 	premiumHeading(nextOrder(), "Premium tools")
@@ -329,25 +382,26 @@ local function renderPremium(profile)
 		end
 		table.sort(perks)
 		local ownsBase = base ~= nil and profile.owned[base.category] and profile.owned[base.category][base.id]
-		local text, color, note, onClick =
-			price(variant.robux), UI.Colors.Money, nil, function()
+		local text, style, note, onClick =
+			price(variant.robux), "Robux", nil, function()
 				MarketplaceService:PromptProductPurchase(player, variant.productId)
 			end
 		if premium.owned and premium.owned[variant.id] then
-			text, color, onClick = "Owned", UI.Colors.Disabled, nil
+			text, style, onClick = "Owned", "Disabled", nil
 		elseif variant.productId == 0 then
-			text, color, onClick = "Soon", UI.Colors.Disabled, nil
+			text, style, onClick = "Soon", "Disabled", nil
 		elseif not ownsBase then
-			text, color, note, onClick = "Locked", UI.Colors.Disabled, `Needs your own {baseName} first.`, nil
+			text, style, note, onClick = "Locked", "Disabled", `Needs your own {baseName} first.`, nil
 		end
 		premiumCard(
 			nextOrder(),
+			Art.item(variant.id),
 			variant.name,
 			variant.description,
 			`Upgrades your {baseName}  ·  {table.concat(perks, "  ·  ")}`,
 			note,
 			text,
-			color,
+			style,
 			onClick
 		)
 	end
@@ -357,12 +411,13 @@ local function renderPremium(profile)
 	if current then
 		premiumCard(
 			nextOrder(),
+			Art.item("WorkPickup"),
 			"Factory paint",
 			"Take the paint job off.",
 			"",
 			nil,
 			"Use",
-			UI.Colors.Accent,
+			"Primary",
 			function()
 				local _, message = Net.func("SetTruckPaint"):InvokeServer("")
 				UI.notify(message)
@@ -371,39 +426,52 @@ local function renderPremium(profile)
 	end
 	for _, paint in Premium.Paints do
 		local owned = premium.owned and premium.owned[paint.id]
-		local text, color, onClick =
-			price(paint.robux), UI.Colors.Money, function()
+		local text, style, onClick =
+			price(paint.robux), "Robux", function()
 				MarketplaceService:PromptProductPurchase(player, paint.productId)
 			end
 		if current == paint then
-			text, color, onClick = "In use", UI.Colors.Disabled, nil
+			text, style, onClick = "In use", "Disabled", nil
 		elseif owned then
-			text, color, onClick =
-				"Use", UI.Colors.Accent, function()
+			text, style, onClick =
+				"Use", "Primary", function()
 					local _, message = Net.func("SetTruckPaint"):InvokeServer(paint.id)
 					UI.notify(message)
 				end
 		elseif paint.productId == 0 then
-			text, color, onClick = "Soon", UI.Colors.Disabled, nil
+			text, style, onClick = "Soon", "Disabled", nil
 		end
 		local look = if paint.finish then `{paint.finish} finish` else "Paint"
 		premiumCard(
 			nextOrder(),
+			Art.item(paint.id),
 			paint.name,
 			`A {string.lower(paint.name)} paint job for whichever truck you drive. Looks only.`,
 			look,
 			nil,
 			text,
-			color,
+			style,
 			onClick
 		)
 	end
 end
 
+-- The window's title: the app, then the tab ("Orders / Mowers").
+local function setTitle()
+	local title = window:FindFirstChild("Title")
+	if not (title and title:IsA("TextLabel")) then
+		return
+	end
+	local app = if table.find(APPS.Business.tabs, selectedCategory) then APPS.Business else APPS.Orders
+	local info = Items.CategoryInfo[selectedCategory]
+	title.Text = `{app.title}  /  {if info then info.displayName else selectedCategory}`
+end
+
 function render()
 	for category, button in tabButtons do
-		button.BackgroundColor3 = if category == selectedCategory then UI.Colors.Accent else UI.Colors.Card
+		UI.setTab(button, category == selectedCategory)
 	end
+	setTitle()
 
 	UI.clearList(list)
 	local profile = ClientState.profile
@@ -472,28 +540,17 @@ function render()
 
 	for index, item in items do
 		local category = item.category or selectedCategory
-		local card = UI.new("Frame", {
-			Size = UDim2.new(1, -8, 0, 0),
-			AutomaticSize = Enum.AutomaticSize.Y,
-			BackgroundColor3 = UI.Colors.Card,
-			LayoutOrder = index,
-			Parent = list,
-		}, { UI.corner(8) })
+		local text, style, action, lockedBecause = buttonFor(profile, item, category)
 		-- Text down the left (it wraps, so long descriptions grow the card); button on the right.
-		local details = UI.new("Frame", {
-			Size = UDim2.new(1, -150, 0, 0),
-			AutomaticSize = Enum.AutomaticSize.Y,
-			BackgroundTransparency = 1,
-			Parent = card,
-		}, { UI.list(3), UI.padding(10) })
+		local card, details = itemCard(index, Art.item(item.id), text == "Locked")
 
-		UI.label(item.name, { TextSize = 20, LayoutOrder = 1, Parent = details })
+		UI.heading(item.name, { TextSize = 20, LayoutOrder = 1, Parent = details })
 		UI.label(item.description, {
 			Size = UDim2.fromScale(1, 0),
 			AutomaticSize = Enum.AutomaticSize.Y,
 			TextWrapped = true,
 			TextSize = 14,
-			Font = Enum.Font.Gotham,
+			FontFace = UI.Fonts.Body,
 			TextColor3 = UI.Colors.Text,
 			LayoutOrder = 2,
 			Parent = details,
@@ -503,12 +560,11 @@ function render()
 			AutomaticSize = Enum.AutomaticSize.Y,
 			TextWrapped = true,
 			TextSize = 14,
+			FontFace = UI.Fonts.Medium,
 			TextColor3 = UI.Colors.SubText,
 			LayoutOrder = 3,
 			Parent = details,
 		})
-
-		local text, color, action, lockedBecause = buttonFor(profile, item, category)
 		if lockedBecause then
 			UI.label(lockedBecause, {
 				Size = UDim2.fromScale(1, 0),
@@ -520,19 +576,11 @@ function render()
 				Parent = details,
 			})
 		end
-		UI.button(text, function()
+		cardButton(card, text, style, function()
 			if action then
 				act(action, item, category)
 			end
-		end, {
-			AnchorPoint = Vector2.new(1, 0.5),
-			Position = UDim2.new(1, -12, 0.5, 0),
-			Size = UDim2.fromOffset(120, 36),
-			BackgroundColor3 = color,
-			TextColor3 = if color == UI.Colors.Money then UI.Colors.Background else UI.Colors.Text,
-			TextScaled = true,
-			Parent = card,
-		})
+		end)
 	end
 end
 
@@ -544,10 +592,6 @@ function ShopController.openApp(name: string)
 	end
 	for category, button in tabButtons do
 		button.Visible = table.find(app.tabs, category) ~= nil
-	end
-	local title = window:FindFirstChild("Title")
-	if title and title:IsA("TextLabel") then
-		title.Text = app.title
 	end
 	if not table.find(app.tabs, selectedCategory) then
 		selectedCategory = app.tabs[1]
@@ -562,7 +606,7 @@ function ShopController:Start()
 	window, content = UI.panel("Shop", "Orders")
 
 	local tabs = UI.new("ScrollingFrame", {
-		Size = UDim2.new(1, 0, 0, 40),
+		Size = UDim2.new(1, 0, 0, 44),
 		BackgroundTransparency = 1,
 		BorderSizePixel = 0,
 		CanvasSize = UDim2.new(),
@@ -579,23 +623,16 @@ function ShopController:Start()
 	for index, category in allTabs do
 		local info = Items.CategoryInfo[category]
 		local name = if info then info.displayName else category
-		tabButtons[category] = UI.button(name, function()
+		tabButtons[category] = UI.tab(name, TAB_ICONS[category] or `Cat_{category}`, function()
 			selectedCategory = category
 			confirmingSell = nil
 			render()
-		end, {
-			Size = UDim2.fromOffset(0, 32),
-			AutomaticSize = Enum.AutomaticSize.X,
-			LayoutOrder = index,
-			TextSize = 16,
-			Parent = tabs,
-		})
-		UI.padding(8).Parent = tabButtons[category]
+		end, { LayoutOrder = index, Parent = tabs })
 	end
 
 	list = UI.scrollingList(content, {
-		Position = UDim2.fromOffset(0, 48),
-		Size = UDim2.new(1, 0, 1, -48),
+		Position = UDim2.fromOffset(0, 52),
+		Size = UDim2.new(1, 0, 1, -52),
 	})
 
 	ClientState.Changed:Connect(function(key)

@@ -9,6 +9,7 @@ local Items = require(Shared.Config.Items)
 local Storage = require(Shared.Config.Storage)
 local Tools = require(Shared.Config.Tools)
 
+local Art = require(script.Parent.Parent.Art)
 local ClientState = require(script.Parent.Parent.ClientState)
 local UI = require(script.Parent.Parent.UI)
 local CameraController = require(script.Parent.CameraController)
@@ -21,18 +22,17 @@ local list: ScrollingFrame
 
 local function render()
 	for category, button in tabButtons do
-		button.BackgroundColor3 = if category == selectedCategory then UI.Colors.Accent else UI.Colors.Card
+		UI.setTab(button, category == selectedCategory)
 	end
 	UI.clearList(list)
 	local profile = ClientState.profile
 
 	if CameraController.hasMotion() then
-		local motion = UI.new("Frame", {
-			Size = UDim2.new(1, -8, 0, 44),
-			BackgroundColor3 = UI.Colors.Card,
+		local motion = UI.card({
+			Size = UDim2.new(1, -8, 0, 52),
 			LayoutOrder = -1,
 			Parent = list,
-		}, { UI.corner(8) })
+		})
 		UI.label("Camera motion (head bob, engine shake)", {
 			Position = UDim2.fromOffset(10, 0),
 			Size = UDim2.new(1, -120, 1, 0),
@@ -46,9 +46,9 @@ local function render()
 			CameraController.setMotion(not CameraController.isMotionOn())
 		end, {
 			AnchorPoint = Vector2.new(1, 0.5),
-			Position = UDim2.new(1, -8, 0.5, 0),
-			Size = UDim2.fromOffset(90, 30),
-			BackgroundColor3 = if on then UI.Colors.Accent else UI.Colors.Disabled,
+			Position = UDim2.new(1, -10, 0.5, 0),
+			Size = UDim2.fromOffset(90, 36),
+			Style = if on then "Primary" else "Disabled",
 			Parent = motion,
 		})
 	end
@@ -64,22 +64,42 @@ local function render()
 	})
 	for index, item in Items.Catalog[selectedCategory] do
 		local owned = profile and profile.owned[selectedCategory] and profile.owned[selectedCategory][item.id]
-		local card = UI.new("Frame", {
+		local card = UI.card({
 			Size = UDim2.new(1, -8, 0, 0),
 			AutomaticSize = Enum.AutomaticSize.Y,
-			BackgroundColor3 = UI.Colors.Card,
 			LayoutOrder = index,
 			Parent = list,
-		}, { UI.corner(8), UI.list(3), UI.padding(10) })
-		UI.label(if owned then `{item.name}  (yours)` else item.name, { TextSize = 19, LayoutOrder = 1, Parent = card })
+		})
+		-- The item's picture on the left, when it's uploaded (its frame keeps the card that tall).
+		local image = Art.item(item.id)
+		local picture = if image ~= ""
+			then UI.new("Frame", { Size = UDim2.fromOffset(84, 84), BackgroundTransparency = 1, Parent = card })
+			else nil
+		if picture then
+			UI.picture(
+				image,
+				{ Position = UDim2.fromOffset(10, 10), Size = UDim2.fromOffset(64, 64), Parent = picture }
+			)
+		end
+		local words = UI.new("Frame", {
+			Position = UDim2.fromOffset(if picture then 74 else 0, 0),
+			Size = UDim2.new(1, if picture then -74 else 0, 0, 0),
+			AutomaticSize = Enum.AutomaticSize.Y,
+			BackgroundTransparency = 1,
+			Parent = card,
+		}, { UI.list(3), UI.padding(10) })
+		UI.heading(
+			if owned then `{item.name}  (yours)` else item.name,
+			{ TextSize = 19, LayoutOrder = 1, Parent = words }
+		)
 		UI.label(item.description, {
 			Size = UDim2.fromScale(1, 0),
 			AutomaticSize = Enum.AutomaticSize.Y,
 			TextWrapped = true,
 			TextSize = 14,
-			Font = Enum.Font.Gotham,
+			FontFace = UI.Fonts.Body,
 			LayoutOrder = 2,
-			Parent = card,
+			Parent = words,
 		})
 		local size = Tools.SizeClasses[item.sizeClass]
 		local spot = string.lower(Storage.Spots[size.spot].name)
@@ -88,9 +108,10 @@ local function render()
 			AutomaticSize = Enum.AutomaticSize.Y,
 			TextWrapped = true,
 			TextSize = 14,
+			FontFace = UI.Fonts.Medium,
 			TextColor3 = UI.Colors.SubText,
 			LayoutOrder = 3,
-			Parent = card,
+			Parent = words,
 		})
 	end
 end
@@ -98,7 +119,7 @@ end
 function GuideController:Start()
 	local window, content = UI.panel("Guide", "Tool Guide")
 	local tabs = UI.new("ScrollingFrame", {
-		Size = UDim2.new(1, 0, 0, 40),
+		Size = UDim2.new(1, 0, 0, 44),
 		BackgroundTransparency = 1,
 		BorderSizePixel = 0,
 		CanvasSize = UDim2.new(),
@@ -108,21 +129,14 @@ function GuideController:Start()
 		Parent = content,
 	}, { UI.list(6, Enum.FillDirection.Horizontal) })
 	for index, category in Items.ToolCategories do
-		tabButtons[category] = UI.button(Items.CategoryInfo[category].displayName, function()
+		tabButtons[category] = UI.tab(Items.CategoryInfo[category].displayName, `Cat_{category}`, function()
 			selectedCategory = category
 			render()
-		end, {
-			Size = UDim2.fromOffset(0, 32),
-			AutomaticSize = Enum.AutomaticSize.X,
-			LayoutOrder = index,
-			TextSize = 16,
-			Parent = tabs,
-		})
-		UI.padding(8).Parent = tabButtons[category]
+		end, { LayoutOrder = index, Parent = tabs })
 	end
 	list = UI.scrollingList(content, {
-		Position = UDim2.fromOffset(0, 48),
-		Size = UDim2.new(1, 0, 1, -48),
+		Position = UDim2.fromOffset(0, 52),
+		Size = UDim2.new(1, 0, 1, -52),
 	})
 	window:GetPropertyChangedSignal("Visible"):Connect(function()
 		if window.Visible then

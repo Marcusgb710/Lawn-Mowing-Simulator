@@ -1,12 +1,20 @@
--- Small helpers for building placeholder UI in code.
--- When you design real UI in Studio, the controllers are the only things that need to change.
+-- The game's look ("Maple Grove Summer", alphainstructions/instructions38.md) and small helpers for
+-- building UI in code: colours from the art's palette, the fonts, and windows, cards, buttons,
+-- tabs and bars drawn with the art's kit (Art.luau). Any piece of art that isn't uploaded yet is
+-- drawn with plain rounded frames in the same colours instead, so the game looks finished either
+-- way, and uploading the art (Config/GuiArt.luau) changes nothing else.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local StarterGui = game:GetService("StarterGui")
+local TextService = game:GetService("TextService")
 local TweenService = game:GetService("TweenService")
 
-local Signal = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Signal"))
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+local GuiLayout = require(Shared:WaitForChild("GuiLayout"))
+local Signal = require(Shared:WaitForChild("Signal"))
+local Art = require(script.Parent.Art)
+local BitmapText = require(script.Parent.BitmapText)
 
 local UI = {}
 
@@ -14,44 +22,85 @@ local UI = {}
 -- screen, so CameraController frees it while a menu is open (see UI.needsCursor).
 UI.CursorChanged = Signal.new()
 
+local palette = Art.color
 UI.Colors = {
-	Background = Color3.fromRGB(30, 40, 30),
-	Panel = Color3.fromRGB(45, 60, 45),
-	Card = Color3.fromRGB(60, 80, 60),
-	Accent = Color3.fromRGB(120, 200, 75),
-	Money = Color3.fromRGB(255, 220, 90),
-	Danger = Color3.fromRGB(200, 70, 60),
-	Disabled = Color3.fromRGB(90, 90, 90),
-	Text = Color3.fromRGB(255, 255, 255),
-	SubText = Color3.fromRGB(200, 215, 200),
+	Background = palette("panel"), -- windows and HUD panels
+	Panel = palette("panel"):Lerp(palette("card"), 0.45), -- panes inside a window
+	Card = palette("card"),
+	LockedCard = palette("locked_card"),
+	Accent = palette("accent"), -- grass green: highlights, bars, "GOAL"
+	AccentDark = palette("accent_dark"),
+	Primary = palette("primary_face"), -- a green button's face
+	Money = palette("money"),
+	Danger = palette("danger"),
+	DangerFace = palette("danger_face"), -- a red button's face
+	Disabled = palette("disabled"),
+	Info = palette("info"),
+	Text = palette("text"), -- cream
+	SubText = palette("subtext"),
+	Ink = palette("ink"), -- the deep green outline, and dark text on light faces
+	Robux = palette("gold"),
 	-- The story's dialogue box, speech bubbles and texts (DialogueController, the Messages app).
-	Outline = Color3.fromRGB(30, 40, 30), -- the dark edge around boxes, bubbles and name tags
-	Letterbox = Color3.fromRGB(14, 19, 14),
-	Track = Color3.fromRGB(78, 100, 78), -- a line dot still to come, an empty progress bar
-	Bubble = Color3.fromRGB(255, 255, 255),
-	BubbleText = Color3.fromRGB(30, 40, 30),
+	Outline = palette("ink"), -- the dark edge around boxes, bubbles and name tags
+	Letterbox = palette("ink"):Lerp(Color3.new(0, 0, 0), 0.55),
+	Track = palette("ink"):Lerp(palette("panel"), 0.35), -- an empty progress bar
+	Bubble = palette("text"),
+	BubbleText = palette("ink"),
+	-- Grandma June's straw hat (her name tag and sticky note) and its red band.
+	Grandma = palette("grandma"),
+	HatBand = palette("hat_band"),
 	-- TurfKing and Gloria's side: the "Taken by TurfKing" job card, and her side of the contest.
-	TurfKing = Color3.fromRGB(88, 52, 150), -- TurfKing's purple
+	TurfKing = palette("rival"), -- TurfKing's purple
+	Gold = palette("gold"), -- TurfKing's gold
 	Rival = Color3.fromRGB(185, 166, 238), -- light purple writing on a dark panel
-	RivalFill = Color3.fromRGB(138, 112, 214), -- her score bars
+	RivalFill = palette("rival"), -- her score bars
 	-- Each character's color (by their key in Config/Story.luau's Cast): the caption on their
 	-- speech bubbles, and their circle where there's no portrait yet.
 	Cast = {
-		June = Color3.fromRGB(227, 194, 122),
-		Gloria = Color3.fromRGB(107, 79, 191),
-		Chad = Color3.fromRGB(107, 79, 191),
+		June = palette("grandma"),
+		Gloria = palette("rival"),
+		Chad = palette("rival"),
 		Sam = Color3.fromRGB(110, 190, 180),
 		Edna = Color3.fromRGB(232, 160, 184),
 		BridgeClub = Color3.fromRGB(168, 200, 232),
+		Rossi = Color3.fromRGB(232, 180, 140),
+		Nguyen = Color3.fromRGB(170, 210, 190),
 		Customer = Color3.fromRGB(232, 160, 184),
 		Judge1 = Color3.fromRGB(190, 210, 230),
 		Judge2 = Color3.fromRGB(240, 170, 120),
 	},
 }
 
-local FONT = Enum.Font.FredokaOne
--- The game's font, for anything not made with UI.label or UI.button.
-UI.Font = FONT
+-- The fonts. Live text uses two of Roblox's built-in families, picked with the art: DenkOne for
+-- headings and Nunito for everything else. A family this Roblox doesn't have falls back to the
+-- game's old Fredoka One. The display face (big numbers and headlines) is drawn by BitmapText.
+local function family(name: string): (string, Enum.Font)
+	local ok, enum = pcall(function()
+		return (Enum.Font :: any)[name]
+	end)
+	if ok and enum then
+		return `rbxasset://fonts/families/{name}.json`, enum
+	end
+	return "rbxasset://fonts/families/FredokaOne.json", Enum.Font.FredokaOne
+end
+local headingFamily, headingEnum = family(Art.typography.heading)
+local bodyFamily, bodyEnum = family(Art.typography.body)
+UI.Fonts = {
+	Heading = Font.new(headingFamily, Enum.FontWeight.Regular),
+	Body = Font.new(bodyFamily, Enum.FontWeight.Regular),
+	Medium = Font.new(bodyFamily, Enum.FontWeight.SemiBold),
+	Bold = Font.new(bodyFamily, Enum.FontWeight.Bold),
+	Heavy = Font.new(bodyFamily, Enum.FontWeight.ExtraBold),
+}
+-- The body font as an Enum.Font, for TextService:GetTextSize (it measures Fonts.Body exactly),
+-- and the heading font's.
+UI.Font = bodyEnum
+UI.HeadingFont = headingEnum
+
+-- How wide `text` is at `size` in the body font (or the heading font).
+function UI.textWidth(text: string, size: number, heading: boolean?): number
+	return TextService:GetTextSize(text, size, if heading then headingEnum else bodyEnum, Vector2.new(4000, 1000)).X
+end
 
 local screen: ScreenGui = nil
 local panels = {}
@@ -102,7 +151,7 @@ end
 function UI.label(text: string, props): TextLabel
 	local label = UI.new("TextLabel", {
 		BackgroundTransparency = 1,
-		Font = FONT,
+		FontFace = UI.Fonts.Bold,
 		Text = text,
 		TextColor3 = UI.Colors.Text,
 		TextSize = 18,
@@ -115,22 +164,858 @@ function UI.label(text: string, props): TextLabel
 	return label
 end
 
+-- A label in the heading font (DenkOne): titles, names on cards.
+function UI.heading(text: string, props): TextLabel
+	local label = UI.label(text, { FontFace = UI.Fonts.Heading })
+	for key, value in props or {} do
+		label[key] = value
+	end
+	return label
+end
+
+-- Kit pieces -------------------------------------------------------------------------------
+
+-- The kit piece each image shows, so its slice scale can be fitted again when it changes size.
+local sliceOf: { [ImageLabel]: Art.Slice } = setmetatable({} :: any, { __mode = "k" })
+
+-- Keeps a 9-slice's corners in proportion when it's drawn smaller than the art (a thin button,
+-- a short card): its slice scale shrinks so the corners never overlap.
+local function fitSlice(image: ImageLabel)
+	local slice = sliceOf[image]
+	local center = slice and slice.center
+	local size = image.AbsoluteSize
+	if not (slice and center and size.X > 0 and size.Y > 0) then
+		return
+	end
+	local fixed = Vector2.new(center.Min.X + slice.size.X - center.Max.X, center.Min.Y + slice.size.Y - center.Max.Y)
+	image.SliceScale =
+		math.min(GuiLayout.sliceScale(fixed.X, size.X, slice.scale), GuiLayout.sliceScale(fixed.Y, size.Y, slice.scale))
+end
+
+-- Makes `image` show the kit piece `slice` (a 9-slice, or a piece that scales evenly), its corners
+-- kept in proportion as it changes size.
+local function applySlice(image: ImageLabel, slice: Art.Slice)
+	local first = sliceOf[image] == nil
+	sliceOf[image] = slice
+	image.Image = slice.image
+	image.BackgroundTransparency = 1
+	if slice.center then
+		image.ScaleType = Enum.ScaleType.Slice
+		image.SliceCenter = slice.center
+		image.SliceScale = slice.scale
+	else
+		image.ScaleType = Enum.ScaleType.Stretch
+	end
+	if first then
+		image:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+			fitSlice(image)
+		end)
+	end
+	fitSlice(image)
+end
+UI.applySlice = applySlice
+
+export type Fallback = {
+	color: Color3?,
+	transparency: number?,
+	radius: number?,
+	stroke: Color3?,
+	strokeThickness: number?,
+}
+
+-- A frame drawn as the kit piece `name` (a 9-slice from Art.slice). While that isn't uploaded, a
+-- plain frame in `fallback.color` with round corners (and an outline in `fallback.stroke`).
+function UI.sliced(name: string, props, fallback: Fallback?): GuiObject
+	local slice = Art.slice(name)
+	local plain = fallback or {}
+	local frame: GuiObject
+	if slice then
+		frame = UI.new("ImageLabel", {})
+		applySlice(frame :: ImageLabel, slice)
+	else
+		frame = UI.new("Frame", {
+			BackgroundColor3 = plain.color or UI.Colors.Background,
+			BackgroundTransparency = plain.transparency or 0,
+			BorderSizePixel = 0,
+		}, { UI.corner(plain.radius or 8) })
+		if plain.stroke then
+			UI.new("UIStroke", {
+				Color = plain.stroke,
+				Thickness = plain.strokeThickness or 3,
+				ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+				Parent = frame,
+			})
+		end
+	end
+	for key, value in props or {} do
+		if key ~= "Parent" then
+			(frame :: any)[key] = value
+		end
+	end
+	if props and props.Parent then
+		frame.Parent = props.Parent
+	end
+	return frame
+end
+
+-- A card in a list: "Card", or "Card_Selected" / "Card_Locked". Plain: a Card-coloured frame.
+function UI.card(props, kind: string?): GuiObject
+	local name = if kind then `Card_{kind}` else "Card"
+	local color = if kind == "Locked" then UI.Colors.LockedCard else UI.Colors.Card
+	return UI.sliced(name, props, { color = color, radius = 8 })
+end
+
+-- A white glyph (Icons/<name>.png) tinted `color`, or nil while it isn't uploaded (whoever asked
+-- leaves room for it only when there is one).
+function UI.icon(name: string, props, color: Color3?): ImageLabel?
+	local image = Art.icon(name)
+	if image == "" then
+		return nil
+	end
+	local icon = UI.new("ImageLabel", {
+		Name = name,
+		Image = image,
+		ImageColor3 = color or UI.Colors.Text,
+		BackgroundTransparency = 1,
+		ScaleType = Enum.ScaleType.Fit,
+		Size = UDim2.fromOffset(24, 24),
+	})
+	for key, value in props or {} do
+		if key ~= "Parent" then
+			icon[key] = value
+		end
+	end
+	if props and props.Parent then
+		icon.Parent = props.Parent
+	end
+	return icon
+end
+
+-- A picture (an item, a portrait, an app icon...) by its image id, fitted into its frame, or nil
+-- while it isn't uploaded.
+function UI.picture(image: string, props): ImageLabel?
+	if image == "" then
+		return nil
+	end
+	local picture = UI.new("ImageLabel", {
+		Image = image,
+		BackgroundTransparency = 1,
+		ScaleType = Enum.ScaleType.Fit,
+	})
+	for key, value in props or {} do
+		if key ~= "Parent" then
+			picture[key] = value
+		end
+	end
+	if props and props.Parent then
+		picture.Parent = props.Parent
+	end
+	return picture
+end
+
+-- Big text in the display face (BitmapText): "Numbers" for money, scores and timers, "Headline"
+-- for headlines. `props` are its frame's.
+function UI.display(kind: string, text: string, options: BitmapText.Options?, props): BitmapText.BitmapText
+	local display = BitmapText.new(`Display_{kind}`, options, props)
+	display:SetText(text)
+	return display
+end
+
+-- A finished wordmark ("JobComplete", "Act2"...) as tall as `height`, or until it's uploaded the
+-- same words in the display face. Returns its frame.
+function UI.wordmark(name: string, text: string, height: number, props): GuiObject
+	local image = Art.wordmark(name)
+	local frame: GuiObject
+	if image ~= "" then
+		frame = UI.new("ImageLabel", {
+			Name = name,
+			Image = image,
+			BackgroundTransparency = 1,
+			ScaleType = Enum.ScaleType.Fit,
+			Size = UDim2.fromOffset(math.floor(height * Art.aspect(`Wordmarks/{name}.png`)), height),
+		})
+	else
+		local headline = UI.display(
+			"Headline",
+			text,
+			{ TextSize = height * 0.95, Color = UI.Colors.Text, XAlignment = "Center", Fit = true },
+			{ Name = name, Size = UDim2.new(1, 0, 0, height) }
+		)
+		frame = headline.Frame
+	end
+	for key, value in props or {} do
+		if key ~= "Parent" then
+			(frame :: any)[key] = value
+		end
+	end
+	if props and props.Parent then
+		frame.Parent = props.Parent
+	end
+	return frame
+end
+
+-- Buttons ----------------------------------------------------------------------------------
+
+-- How a button can look: its kit piece (and the darker one it sinks to while held), and its face
+-- and text colours when drawn plain.
+local BUTTON_STYLES = {
+	Primary = { art = "Button_Primary", pressed = "Button_Primary_Pressed", face = "Primary", text = "Text" },
+	Money = { art = "Button_Money", pressed = "Button_Money_Pressed", face = "Money", text = "Ink" },
+	Danger = { art = "Button_Danger", pressed = "Button_Danger_Pressed", face = "DangerFace", text = "Text" },
+	Neutral = { art = "Button_Neutral", pressed = "Button_Neutral_Pressed", face = "Card", text = "Text" },
+	Disabled = { art = "Button_Disabled", pressed = "Button_Disabled_Pressed", face = "Disabled", text = "Text" },
+	Robux = { art = "Button_Robux", pressed = "Button_Robux_Pressed", face = "Robux", text = "Ink" },
+	Tab = { art = "Tab", face = "Card", text = "Text" },
+	TabActive = { art = "Tab_Active", face = "Primary", text = "Text" },
+	Menu = { art = "MenuButton", face = "Background", text = "Text" },
+}
+UI.ButtonStyles = BUTTON_STYLES
+
+-- The style a button colour stands for, for buttons made (or changed) with a BackgroundColor3.
+local function styleFor(color: Color3?): string
+	local colors = UI.Colors
+	if color == colors.Money then
+		return "Money"
+	elseif color == colors.Accent or color == colors.Primary or color == colors.AccentDark then
+		return "Primary"
+	elseif color == colors.Danger or color == colors.DangerFace then
+		return "Danger"
+	elseif color == colors.Disabled then
+		return "Disabled"
+	elseif color == colors.Robux then
+		return "Robux"
+	end
+	return "Neutral"
+end
+
+-- The text properties a button's own text has, which a button with art copies onto the label
+-- drawn over the art (a child is always drawn over its parent, text and all).
+local MIRRORED = {
+	Text = true,
+	TextColor3 = true,
+	TextSize = true,
+	TextScaled = true,
+	TextWrapped = true,
+	TextXAlignment = true,
+	TextYAlignment = true,
+	TextTruncate = true,
+	RichText = true,
+	FontFace = true,
+	LineHeight = true,
+	TextStrokeColor3 = true,
+	TextStrokeTransparency = true,
+}
+-- Room for a glyph beside a button's text.
+local ICON_GAP = 6
+
+type ButtonInfo = {
+	style: string,
+	skin: ImageLabel?,
+	label: TextLabel?,
+	icon: ImageLabel?,
+	iconSize: number,
+	padding: UIPadding?,
+	ownPadding: boolean,
+	pressed: boolean,
+}
+local buttons: { [TextButton]: ButtonInfo } = setmetatable({} :: any, { __mode = "k" })
+
+-- Where a button's glyph sits: beside the text in the left padding, or in the middle of a button
+-- with no text.
+local function placeIcon(button: TextButton, info: ButtonInfo)
+	local icon = info.icon
+	if not icon then
+		return
+	end
+	local drop = if info.pressed then 1 else 0
+	if button.Text == "" then
+		icon.AnchorPoint = Vector2.new(0.5, 0.5)
+		icon.Position = UDim2.new(0.5, 0, 0.5, drop)
+	else
+		icon.AnchorPoint = Vector2.new(0, 0.5)
+		icon.Position = UDim2.new(0, -(info.iconSize + ICON_GAP), 0.5, drop)
+	end
+end
+
+-- The skin fills the whole button, padding and all.
+local function fitSkin(info: ButtonInfo)
+	local skin, padding = info.skin, info.padding
+	if not skin then
+		return
+	end
+	if padding then
+		local left, top = padding.PaddingLeft.Offset, padding.PaddingTop.Offset
+		skin.Position = UDim2.fromOffset(-left, -top)
+		skin.Size = UDim2.new(1, left + padding.PaddingRight.Offset, 1, top + padding.PaddingBottom.Offset)
+	else
+		skin.Position = UDim2.new()
+		skin.Size = UDim2.fromScale(1, 1)
+	end
+end
+
+-- Takes on a UIPadding put in the button: the skin reaches past it, and a glyph sits in it.
+local function adoptPadding(button: TextButton, info: ButtonInfo, padding: UIPadding)
+	if info.padding == padding then
+		return
+	end
+	if info.padding and info.ownPadding then
+		info.padding:Destroy()
+	end
+	info.padding = padding
+	info.ownPadding = false
+	if info.icon and button.Text ~= "" then
+		padding.PaddingLeft = UDim.new(0, padding.PaddingLeft.Offset + info.iconSize + ICON_GAP)
+	end
+	fitSkin(info)
+	placeIcon(button, info)
+end
+
+local function setPressed(button: TextButton, info: ButtonInfo, pressed: boolean)
+	if info.pressed == pressed then
+		return
+	end
+	info.pressed = pressed
+	local style = BUTTON_STYLES[info.style]
+	local art = Art.slice(if pressed and style.pressed then style.pressed else style.art)
+	if info.skin and art then
+		info.skin.Image = art.image
+	end
+	-- The pressed art's face is 2 source pixels (1 on screen) lower: the text sinks with it.
+	if info.label then
+		info.label.Position = UDim2.fromOffset(0, if pressed then 1 else 0)
+	end
+	placeIcon(button, info)
+end
+
+-- Sets a button's style ("Primary", "Money", "Danger", "Neutral", "Disabled", "Robux", "Tab",
+-- "TabActive", "Menu"): its art, or its face colour, and its text colour.
+function UI.setStyle(button: TextButton, style: string)
+	local info = buttons[button]
+	local look = BUTTON_STYLES[style] or BUTTON_STYLES.Neutral
+	if info then
+		info.style = style
+	end
+	button.BackgroundColor3 = UI.Colors[look.face]
+	button.TextColor3 = UI.Colors[look.text]
+	if info then
+		local art = Art.slice(if info.pressed and look.pressed then look.pressed else look.art)
+		if info.skin and art then
+			applySlice(info.skin, art)
+		end
+	end
+end
+
+-- Draws a button with its art (and a glyph): its own text is hidden, and a label over the art
+-- copies it, so callers can keep setting button.Text and friends.
+local function dress(button: TextButton, info: ButtonInfo, glyph: string)
+	local style = BUTTON_STYLES[info.style]
+	local art = Art.slice(style.art)
+	if art then
+		button.BackgroundTransparency = 1
+		button.AutoButtonColor = false
+		local corner = button:FindFirstChildOfClass("UICorner")
+		if corner then
+			corner:Destroy()
+		end
+		local skin = UI.new("ImageLabel", { Name = "Skin", ZIndex = 1 })
+		applySlice(skin, art)
+		skin.Parent = button
+		info.skin = skin
+	end
+	local label = UI.new("TextLabel", {
+		Name = "Label",
+		BackgroundTransparency = 1,
+		Size = UDim2.fromScale(1, 1),
+		ZIndex = 2,
+	})
+	for property in MIRRORED do
+		(label :: any)[property] = (button :: any)[property]
+	end
+	label.Parent = button
+	info.label = label
+	button.TextTransparency = 1
+	if glyph ~= "" then
+		info.icon = UI.new("ImageLabel", {
+			Name = "Icon",
+			Image = glyph,
+			ImageColor3 = button.TextColor3,
+			BackgroundTransparency = 1,
+			ScaleType = Enum.ScaleType.Fit,
+			Size = UDim2.fromOffset(info.iconSize, info.iconSize),
+			ZIndex = 2,
+			Parent = button,
+		})
+		if button.Text ~= "" then
+			local padding = UI.new("UIPadding", {
+				Name = "IconRoom",
+				PaddingLeft = UDim.new(0, 8 + info.iconSize + ICON_GAP),
+				PaddingRight = UDim.new(0, 8),
+			})
+			info.padding = padding
+			info.ownPadding = true
+			padding.Parent = button
+		end
+	end
+	fitSkin(info)
+	placeIcon(button, info)
+	for _, child in button:GetChildren() do
+		if child:IsA("UIPadding") and child ~= info.padding then
+			adoptPadding(button, info, child)
+		end
+	end
+	button.ChildAdded:Connect(function(child)
+		if child:IsA("UIPadding") then
+			adoptPadding(button, info, child)
+		elseif child:IsA("UITextSizeConstraint") then
+			child:Clone().Parent = label
+		end
+	end)
+	button.InputBegan:Connect(function(input)
+		local kind = input.UserInputType
+		if kind == Enum.UserInputType.MouseButton1 or kind == Enum.UserInputType.Touch then
+			setPressed(button, info, true)
+		end
+	end)
+	button.InputEnded:Connect(function(input)
+		local kind = input.UserInputType
+		if kind == Enum.UserInputType.MouseButton1 or kind == Enum.UserInputType.Touch then
+			setPressed(button, info, false)
+		end
+	end)
+	button.MouseLeave:Connect(function()
+		setPressed(button, info, false)
+	end)
+end
+
+-- A button. `props` are the TextButton's, plus:
+--   Style      "Primary" (the default), "Money", "Danger", "Neutral", "Disabled", "Robux"... (see
+--              UI.setStyle); a BackgroundColor3 from UI.Colors picks one too
+--   Icon       a glyph's name (Icons/<name>.png) to show beside the text, or alone if it has none
+--   IconImage  any image to show there instead (an app's icon)
+--   IconSize   how big the glyph is (20 by default)
+-- With the art uploaded it's drawn with the kit's button, sinking while it's held down.
 function UI.button(text: string, onClick: () -> (), props): TextButton
+	props = props or {}
+	local style = props.Style or (if props.BackgroundColor3 then styleFor(props.BackgroundColor3) else "Primary")
+	local look = BUTTON_STYLES[style] or BUTTON_STYLES.Primary
+	local glyph = props.IconImage or (if props.Icon then Art.icon(props.Icon) else "")
 	local button = UI.new("TextButton", {
-		BackgroundColor3 = UI.Colors.Accent,
-		Font = FONT,
+		BackgroundColor3 = UI.Colors[look.face],
+		FontFace = UI.Fonts.Heavy,
 		Text = text,
-		TextColor3 = UI.Colors.Text,
+		TextColor3 = UI.Colors[look.text],
 		TextSize = 18,
 		AutoButtonColor = true,
 		Size = UDim2.fromOffset(110, 36),
 	}, { UI.corner(8) })
-	for key, value in props or {} do
-		button[key] = value
+	for key, value in props do
+		if key ~= "Parent" and key ~= "Style" and key ~= "Icon" and key ~= "IconImage" and key ~= "IconSize" then
+			button[key] = value
+		end
 	end
+	-- The style's face, whatever colour picked it (a green button's face is the darker green).
+	button.BackgroundColor3 = UI.Colors[look.face]
+	local info: ButtonInfo = {
+		style = style,
+		skin = nil,
+		label = nil,
+		icon = nil,
+		iconSize = props.IconSize or 20,
+		padding = nil,
+		ownPadding = false,
+		pressed = false,
+	}
+	buttons[button] = info
+	if Art.slice(look.art) or glyph ~= "" then
+		dress(button, info, glyph)
+	end
+	button.Changed:Connect(function(property)
+		local label = info.label
+		if label and MIRRORED[property] then
+			(label :: any)[property] = (button :: any)[property]
+			if property == "TextColor3" and info.icon then
+				info.icon.ImageColor3 = button.TextColor3
+			elseif property == "Text" then
+				placeIcon(button, info)
+			end
+		elseif property == "BackgroundColor3" then
+			-- A colour set later picks the style, as it would have when it was made (setting the
+			-- style's own face colour, as UI.setStyle does, keeps the style).
+			local current = BUTTON_STYLES[info.style]
+			if not (current and button.BackgroundColor3 == UI.Colors[current.face]) then
+				UI.setStyle(button, styleFor(button.BackgroundColor3))
+			end
+		end
+	end)
 	button.Activated:Connect(onClick)
+	if props.Parent then
+		button.Parent = props.Parent
+	end
 	return button
 end
+
+-- A round phone button (TouchButton, or TouchButton_Small when `small`) with a glyph in it and
+-- its words under it, like the art's Snip and Pick up. Plain, it's a round green button with the
+-- words in it. Set its words with button.Text, and its glyph with UI.setTouchIcon.
+function UI.touchButton(text: string, icon: string?, props, small: boolean?): TextButton
+	local art = Art.slice(if small then "TouchButton_Small" else "TouchButton")
+	local glyph = if icon then Art.icon(icon) else ""
+	local button = UI.new("TextButton", {
+		BackgroundColor3 = UI.Colors.Primary,
+		FontFace = UI.Fonts.Heavy,
+		Text = text,
+		TextColor3 = UI.Colors.Text,
+		TextSize = 22,
+		TextWrapped = true,
+		AutoButtonColor = true,
+		Size = UDim2.fromOffset(110, 110),
+	}, { UI.new("UICorner", { CornerRadius = UDim.new(0.5, 0) }) })
+	for key, value in props or {} do
+		if key ~= "Parent" then
+			button[key] = value
+		end
+	end
+	if art and glyph ~= "" then
+		button.BackgroundTransparency = 1
+		button.AutoButtonColor = false
+		button.TextTransparency = 1
+		local skin = UI.new("ImageLabel", { Name = "Skin", Size = UDim2.fromScale(1, 1), Parent = button })
+		applySlice(skin, art)
+		local image = UI.new("ImageLabel", {
+			Name = "Icon",
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Position = UDim2.fromScale(0.5, 0.5),
+			Size = UDim2.fromScale(0.46, 0.46),
+			Image = glyph,
+			ImageColor3 = UI.Colors.Text,
+			BackgroundTransparency = 1,
+			ScaleType = Enum.ScaleType.Fit,
+			ZIndex = 2,
+			Parent = button,
+		})
+		local caption = UI.label(text, {
+			Name = "Caption",
+			AnchorPoint = Vector2.new(0.5, 0),
+			Position = UDim2.new(0.5, 0, 1, 4),
+			Size = UDim2.new(1, 40, 0, 24),
+			FontFace = UI.Fonts.Heavy,
+			TextSize = 18,
+			TextXAlignment = Enum.TextXAlignment.Center,
+			TextStrokeColor3 = UI.Colors.Ink,
+			TextStrokeTransparency = 0.2,
+			ZIndex = 2,
+			Parent = button,
+		})
+		button:GetPropertyChangedSignal("Text"):Connect(function()
+			caption.Text = button.Text
+		end)
+		-- Held down, it darkens and its glyph sinks a little.
+		local function press(down: boolean)
+			skin.ImageColor3 = if down then Color3.fromRGB(215, 215, 215) else Color3.new(1, 1, 1)
+			image.Position = UDim2.new(0.5, 0, 0.5, if down then 2 else 0)
+		end
+		button.InputBegan:Connect(function(input)
+			if
+				input.UserInputType == Enum.UserInputType.Touch
+				or input.UserInputType == Enum.UserInputType.MouseButton1
+			then
+				press(true)
+			end
+		end)
+		button.InputEnded:Connect(function(input)
+			if
+				input.UserInputType == Enum.UserInputType.Touch
+				or input.UserInputType == Enum.UserInputType.MouseButton1
+			then
+				press(false)
+			end
+		end)
+	end
+	if props and props.Parent then
+		button.Parent = props.Parent
+	end
+	return button
+end
+
+-- Changes a round phone button's glyph (an Icons name).
+function UI.setTouchIcon(button: TextButton, icon: string)
+	local image = button:FindFirstChild("Icon")
+	local glyph = Art.icon(icon)
+	if image and image:IsA("ImageLabel") and glyph ~= "" and image.Image ~= glyph then
+		image.Image = glyph
+	end
+end
+
+-- Greys a round phone button out (with its art) or turns it grey (plain) when what it does won't
+-- work there.
+function UI.setTouchBlocked(button: TextButton, blocked: boolean)
+	local skin = button:FindFirstChild("Skin")
+	if skin and skin:IsA("ImageLabel") then
+		local tint = if blocked then Color3.fromRGB(150, 150, 150) else Color3.new(1, 1, 1)
+		if skin.ImageColor3 ~= tint then
+			skin.ImageColor3 = tint
+		end
+	else
+		local face = if blocked then UI.Colors.Disabled else UI.Colors.Primary
+		if button.BackgroundColor3 ~= face then
+			button.BackgroundColor3 = face
+		end
+	end
+end
+
+-- A tab along the top of a menu (a shop category), with a glyph if it has one. Show which one's
+-- picked with UI.setTab.
+function UI.tab(text: string, icon: string?, onClick: () -> (), props): TextButton
+	local options = {
+		Style = "Tab",
+		Icon = icon,
+		IconSize = 18,
+		Size = UDim2.fromOffset(0, 36),
+		AutomaticSize = Enum.AutomaticSize.X,
+		TextSize = 16,
+		FontFace = UI.Fonts.Bold,
+	}
+	for key, value in props or {} do
+		options[key] = value
+	end
+	local tab = UI.button(text, onClick, options)
+	UI.new("UIPadding", { PaddingLeft = UDim.new(0, 12), PaddingRight = UDim.new(0, 12), Parent = tab })
+	return tab
+end
+
+function UI.setTab(tab: TextButton, active: boolean)
+	UI.setStyle(tab, if active then "TabActive" else "Tab")
+end
+
+-- Look-at prompts ---------------------------------------------------------------------------
+
+export type PromptLine = { key: string?, text: string, blocked: boolean? }
+export type Prompt = { frame: Frame, set: (lines: { PromptLine }) -> () }
+
+-- The look-at prompt under the dot: a line for each thing you can do ("[E] Take  Reel Push
+-- Mower", "[R] Take one out"), red with the reason when it won't work. With its art each line is a
+-- Prompt pill (Prompt_Blocked when it won't work) with the key in a KeyBadge; plain, it's the
+-- words with a dark edge, as it's always been. `props` are its frame's (it grows downwards).
+-- Setting the same lines again changes nothing, so it can be set every frame.
+function UI.prompt(props): Prompt
+	local holder = UI.new("Frame", {
+		Name = "Prompt",
+		Size = UDim2.fromOffset(440, 0),
+		AutomaticSize = Enum.AutomaticSize.Y,
+		BackgroundTransparency = 1,
+	})
+	for key, value in props or {} do
+		if key ~= "Parent" then
+			holder[key] = value
+		end
+	end
+	holder.Parent = props and props.Parent
+	local shown = ""
+	if not Art.slice("Prompt") then
+		local label = UI.label("", {
+			Size = UDim2.fromScale(1, 0),
+			AutomaticSize = Enum.AutomaticSize.Y,
+			TextXAlignment = Enum.TextXAlignment.Center,
+			TextWrapped = true,
+			TextSize = 17,
+			TextStrokeTransparency = 0.4,
+			Parent = holder,
+		})
+		return {
+			frame = holder,
+			set = function(lines: { PromptLine })
+				local parts = {}
+				for _, line in lines do
+					table.insert(parts, (if line.key then `[{line.key}] ` else "") .. line.text)
+				end
+				local text = table.concat(parts, "\n")
+				local blocked = lines[1] ~= nil and lines[1].blocked == true
+				if text .. tostring(blocked) ~= shown then
+					shown = text .. tostring(blocked)
+					label.Text = text
+					label.TextColor3 = if blocked then UI.Colors.Danger else UI.Colors.Text
+				end
+			end,
+		}
+	end
+	UI.new("UIListLayout", {
+		Padding = UDim.new(0, 6),
+		HorizontalAlignment = Enum.HorizontalAlignment.Center,
+		SortOrder = Enum.SortOrder.LayoutOrder,
+		Parent = holder,
+	})
+	local pills = {}
+	local function pill(index: number)
+		local made = pills[index]
+		if made then
+			return made
+		end
+		local frame = UI.sliced("Prompt", {
+			Size = UDim2.fromOffset(0, 46),
+			AutomaticSize = Enum.AutomaticSize.XY,
+			LayoutOrder = index,
+			Parent = holder,
+		})
+		UI.new("UIPadding", {
+			PaddingLeft = UDim.new(0, 10),
+			PaddingRight = UDim.new(0, 18),
+			PaddingTop = UDim.new(0, 6),
+			PaddingBottom = UDim.new(0, 6),
+			Parent = frame,
+		})
+		UI.new("UIListLayout", {
+			Padding = UDim.new(0, 10),
+			FillDirection = Enum.FillDirection.Horizontal,
+			VerticalAlignment = Enum.VerticalAlignment.Center,
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			Parent = frame,
+		})
+		local badge = UI.sliced("KeyBadge", {
+			Size = UDim2.fromOffset(34, 34),
+			AutomaticSize = Enum.AutomaticSize.X,
+			LayoutOrder = 1,
+			Parent = frame,
+		}, { color = UI.Colors.Ink, radius = 8 })
+		local key = UI.heading("", {
+			Size = UDim2.fromOffset(34, 34),
+			AutomaticSize = Enum.AutomaticSize.X,
+			TextSize = 20,
+			TextXAlignment = Enum.TextXAlignment.Center,
+			Parent = badge,
+		})
+		UI.new("UIPadding", { PaddingLeft = UDim.new(0, 8), PaddingRight = UDim.new(0, 8), Parent = key })
+		local text = UI.label("", {
+			Size = UDim2.fromOffset(0, 34),
+			AutomaticSize = Enum.AutomaticSize.XY,
+			FontFace = UI.Fonts.Heavy,
+			TextSize = 19,
+			TextWrapped = true,
+			LayoutOrder = 2,
+			Parent = frame,
+		})
+		UI.new("UISizeConstraint", { MaxSize = Vector2.new(460, math.huge), Parent = text })
+		made = { frame = frame :: ImageLabel, badge = badge, key = key, text = text, blocked = false }
+		pills[index] = made
+		return made
+	end
+	return {
+		frame = holder,
+		set = function(lines: { PromptLine })
+			local signature = {}
+			for _, line in lines do
+				table.insert(signature, `{line.key or ""}|{line.text}|{line.blocked == true}`)
+			end
+			local text = table.concat(signature, "\n")
+			if text == shown then
+				return
+			end
+			shown = text
+			for index, line in lines do
+				local made = pill(index)
+				made.frame.Visible = true
+				made.badge.Visible = line.key ~= nil
+				made.key.Text = line.key or ""
+				made.text.Text = line.text
+				local blocked = line.blocked == true
+				if blocked ~= made.blocked then
+					made.blocked = blocked
+					local art = Art.slice(if blocked then "Prompt_Blocked" else "Prompt")
+					if art then
+						made.frame.Image = art.image
+					end
+				end
+			end
+			for index = #lines + 1, #pills do
+				pills[index].frame.Visible = false
+			end
+		end,
+	}
+end
+
+-- Progress bars -----------------------------------------------------------------------------
+
+-- What a bar fills with: mowing stripes in green, gold (money), TurfKing's purple, or your side
+-- and Gloria's in the contest. Plain, a solid colour.
+local FILLS = {
+	Grass = { art = "ProgressFill", color = "Accent" },
+	Money = { art = "ProgressFill_Money", color = "Money" },
+	TurfKing = { art = "ProgressFill_TurfKing", color = "RivalFill" },
+	Danger = { art = "ProgressFill_Money", color = "Danger", tint = "Danger" },
+	You = { art = "ScoreFill_You", color = "Accent" },
+	Rival = { art = "ScoreFill_Rival", color = "RivalFill" },
+}
+
+export type Bar = {
+	frame: GuiObject,
+	set: (fraction: number) -> (),
+	fill: (kind: string) -> (),
+}
+
+-- A progress bar: a track (`track`: "ProgressTrack" or "ScoreTrack") and a fill of `kind` whose
+-- stripes tile across it rather than stretch. `props` are the track's (its height should be an
+-- offset). Returns the track, and functions to set how full it is and what it fills with.
+function UI.bar(props, kind: string?, track: string?): Bar
+	local frame = UI.sliced(track or "ProgressTrack", props, { color = UI.Colors.Track, radius = 6 })
+	frame.ClipsDescendants = true
+	local inset = if Art.slice(track or "ProgressTrack") then 2 else 0
+	local fill: GuiObject = nil
+	local fraction = 0
+	local current = ""
+	-- The striped fill's tile size at its own height, while it has one.
+	local tile: { number }? = nil
+	local function size()
+		fill.Size = UDim2.new(fraction, -inset * 2 * fraction, 1, -inset * 2)
+	end
+	local function fitTiles()
+		local height = frame.AbsoluteSize.Y
+		if tile and fill:IsA("ImageLabel") then
+			fill.TileSize = UDim2.new(0, GuiLayout.tileWidth(tile, if height > 0 then height else tile[2]), 1, 0)
+		end
+	end
+	frame:GetPropertyChangedSignal("AbsoluteSize"):Connect(fitTiles)
+	local function setKind(name: string)
+		if name == current then
+			return
+		end
+		current = name
+		local look = FILLS[name] or FILLS.Grass
+		local art = Art.slice(look.art)
+		if fill then
+			fill:Destroy()
+		end
+		tile = if art then art.tile else nil
+		if art and art.tile then
+			fill = UI.new("ImageLabel", {
+				Name = "Fill",
+				Image = art.image,
+				ImageColor3 = if look.tint then UI.Colors[look.tint] else Color3.new(1, 1, 1),
+				ScaleType = Enum.ScaleType.Tile,
+				BackgroundTransparency = 1,
+				Position = UDim2.fromOffset(inset, inset),
+			})
+			fitTiles()
+		else
+			fill = UI.new("Frame", {
+				Name = "Fill",
+				BackgroundColor3 = UI.Colors[look.color],
+				BorderSizePixel = 0,
+			}, { UI.corner(6) })
+		end
+		size()
+		fill.Parent = frame
+	end
+	setKind(kind or "Grass")
+	return {
+		frame = frame,
+		set = function(value: number)
+			fraction = math.clamp(value, 0, 1)
+			size()
+		end,
+		fill = setKind,
+	}
+end
+
+-- Screens and menus -----------------------------------------------------------------------------
 
 function UI.getScreen(): ScreenGui
 	if not screen then
@@ -144,43 +1029,55 @@ function UI.getScreen(): ScreenGui
 	return screen
 end
 
+-- The window's title band (the Panel art's darker top) and where its content starts, docked in
+-- the shop computer or on its own.
+local function panelTop(docked: boolean): number
+	if Art.slice("Panel") then
+		return if docked then 50 else 58
+	end
+	return if docked then 40 else 52
+end
+
 -- A centered window with a title and close button. Returns the window and its content frame.
 function UI.panel(name: string, title: string)
-	local window = UI.new("Frame", {
+	local window = UI.sliced("Panel", {
 		Name = name,
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.fromScale(0.5, 0.5),
 		Size = PANEL_SIZE,
-		BackgroundColor3 = UI.Colors.Background,
 		Visible = false,
 		Parent = host or UI.getScreen(),
-	}, {
-		UI.corner(12),
-		UI.new("UISizeConstraint", { MaxSize = PANEL_MAX }),
-		UI.label(title, {
-			Name = "Title",
-			Position = UDim2.fromOffset(16, 10),
-			Size = UDim2.new(1, -80, 0, 32),
-			TextSize = 28,
-		}),
-	})
-
-	UI.button("X", function()
-		UI.close(name)
-	end, {
-		Name = "Close",
-		AnchorPoint = Vector2.new(1, 0),
-		Position = UDim2.new(1, -10, 0, 10),
-		Size = UDim2.fromOffset(36, 36),
-		BackgroundColor3 = UI.Colors.Danger,
+	}, { color = UI.Colors.Background, radius = 12 })
+	UI.new("UISizeConstraint", { MaxSize = PANEL_MAX, Parent = window })
+	UI.heading(title, {
+		Name = "Title",
+		Position = UDim2.fromOffset(16, 10),
+		Size = UDim2.new(1, -80, 0, 32),
+		TextSize = 28,
+		TextTruncate = Enum.TextTruncate.AtEnd,
 		Parent = window,
 	})
 
+	local closeArt = Art.icon("Close") ~= ""
+	UI.button(if closeArt then "" else "X", function()
+		UI.close(name)
+	end, {
+		Name = "Close",
+		Style = "Danger",
+		Icon = "Close",
+		IconSize = 18,
+		AnchorPoint = Vector2.new(1, 0),
+		Position = UDim2.new(1, -10, 0, 10),
+		Size = UDim2.fromOffset(36, 36),
+		Parent = window,
+	})
+
+	local top = panelTop(false)
 	local content = UI.new("Frame", {
 		Name = "Content",
 		BackgroundTransparency = 1,
-		Position = UDim2.fromOffset(16, 52),
-		Size = UDim2.new(1, -32, 1, -68),
+		Position = UDim2.fromOffset(16, top),
+		Size = UDim2.new(1, -32, 1, -(top + 16)),
 		Parent = window,
 	})
 
@@ -199,6 +1096,7 @@ function UI.scrollingList(parent: Instance, props): ScrollingFrame
 		CanvasSize = UDim2.new(),
 		AutomaticCanvasSize = Enum.AutomaticSize.Y,
 		ScrollBarThickness = 6,
+		ScrollBarImageColor3 = UI.Colors.SubText,
 		Parent = parent,
 	}, { UI.list(8) })
 	for key, value in props or {} do
@@ -217,7 +1115,7 @@ end
 
 -- Puts a menu inside the host frame (filling it, with a slimmer title so a phone's small screen
 -- has room for the list), or back on the screen on its own.
-local function dock(panel: Frame)
+local function dock(panel: GuiObject)
 	local docked = host ~= nil
 	local constraint = panel:FindFirstChildOfClass("UISizeConstraint")
 	panel.Parent = host or UI.getScreen()
@@ -225,17 +1123,17 @@ local function dock(panel: Frame)
 	if constraint then
 		constraint.MaxSize = if docked then Vector2.new(math.huge, math.huge) else PANEL_MAX
 	end
-	local edge, top = if docked then 10 else 16, if docked then 40 else 52
+	local edge, top = if docked then 10 else 16, panelTop(docked)
 	local title = panel:FindFirstChild("Title")
 	if title and title:IsA("TextLabel") then
-		title.Position = UDim2.fromOffset(edge, if docked then 6 else 10)
-		title.Size = UDim2.new(1, -80, 0, if docked then 28 else 32)
-		title.TextSize = if docked then 22 else 28
+		title.Position = UDim2.fromOffset(edge + (if docked then 4 else 0), if docked then 6 else 10)
+		title.Size = UDim2.new(1, -80, 0, if docked then 32 else 32)
+		title.TextSize = if docked then 24 else 28
 	end
 	local close = panel:FindFirstChild("Close")
 	if close and close:IsA("GuiObject") then
-		close.Position = if docked then UDim2.new(1, -6, 0, 4) else UDim2.new(1, -10, 0, 10)
-		close.Size = if docked then UDim2.fromOffset(32, 32) else UDim2.fromOffset(36, 36)
+		close.Position = if docked then UDim2.new(1, -8, 0, 6) else UDim2.new(1, -10, 0, 10)
+		close.Size = if docked then UDim2.fromOffset(34, 34) else UDim2.fromOffset(36, 36)
 	end
 	local content = panel:FindFirstChild("Content")
 	if content and content:IsA("GuiObject") then
@@ -299,7 +1197,7 @@ function UI.closeAll()
 end
 
 -- A menu's window, to change its title.
-function UI.panelWindow(name: string): Frame?
+function UI.panelWindow(name: string): GuiObject?
 	return panels[name]
 end
 
@@ -335,15 +1233,19 @@ function UI.highlight(text: string, color: Color3?): string
 	return (string.gsub(escaped, "%*(.-)%*", `<font color="#{hex}">%1</font>`))
 end
 
+-- Toasts and big moments ---------------------------------------------------------------------
+
 -- Little messages pop up in a stack at the top of the screen. Toasts have a screen of their own,
 -- above the shop computer's monitor (so its replies show) but under the drive cutscene.
+local toastScreen: ScreenGui = nil
 local toastHolder: Frame = nil
 local function toastStack(): Frame
 	if not toastHolder then
-		local toasts = UI.new("ScreenGui", {
+		toastScreen = UI.new("ScreenGui", {
 			Name = "Toasts",
 			ResetOnSpawn = false,
 			DisplayOrder = 5,
+			ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
 			Parent = Players.LocalPlayer:WaitForChild("PlayerGui"),
 		})
 		toastHolder = UI.new("Frame", {
@@ -352,7 +1254,7 @@ local function toastStack(): Frame
 			Position = UDim2.new(0.5, 0, 0, 60),
 			Size = UDim2.new(1, -32, 0, 200),
 			BackgroundTransparency = 1,
-			Parent = toasts,
+			Parent = toastScreen,
 		}, { UI.list(6), UI.new("UISizeConstraint", { MaxSize = Vector2.new(420, 200) }) })
 	end
 	return toastHolder
@@ -370,22 +1272,91 @@ function UI.toast(toast: CanvasGroup, seconds: number)
 	end)
 end
 
+-- The toast's background: the Toast kit piece, or a plain dark frame. Goes first in a toast.
+function UI.toastBackground(parent: Instance)
+	local back = UI.sliced(
+		"Toast",
+		{ Name = "Back", Size = UDim2.fromScale(1, 1), Parent = parent },
+		{ color = UI.Colors.Background, transparency = 0.1, radius = 10 }
+	)
+	return back
+end
+
+local TOAST_TEXT = 17
 function UI.notify(message: string)
-	local toast = UI.label(message, {
-		Size = UDim2.new(1, 0, 0, 36),
-		BackgroundTransparency = 0.15,
-		BackgroundColor3 = UI.Colors.Background,
+	-- As tall as the message wraps to (the stack is at most 420 wide, less the padding).
+	local stack = toastStack().AbsoluteSize.X
+	local width = (if stack > 100 then math.min(420, stack) else 420) - 32
+	local lines = TextService:GetTextSize(message, TOAST_TEXT, UI.Font, Vector2.new(math.max(100, width - 12), 1000))
+	local toast = UI.new("CanvasGroup", {
+		Name = "Notice",
+		Size = UDim2.new(1, 0, 0, math.max(40, lines.Y + 20)),
+		BackgroundTransparency = 1,
+	})
+	UI.toastBackground(toast)
+	UI.label(message, {
+		Position = UDim2.fromOffset(16, 0),
+		Size = UDim2.new(1, -32, 1, 0),
 		TextXAlignment = Enum.TextXAlignment.Center,
 		TextWrapped = true,
-		Parent = toastStack(),
+		TextSize = TOAST_TEXT,
+		ZIndex = 2,
+		Parent = toast,
 	})
-	UI.corner(8).Parent = toast
+	UI.toast(toast, 3.5)
+end
 
-	task.delay(3.5, function()
-		local fade = TweenInfo.new(0.4)
-		TweenService:Create(toast, fade, { TextTransparency = 1, BackgroundTransparency = 1 }):Play()
-		task.wait(0.4)
-		toast:Destroy()
+-- A big moment over the middle of the screen for a couple of seconds: a wordmark ("LevelUp",
+-- "NewTool", "Payday", "Act2"...) with `text` as its fallback, and a line under it.
+local momentHolder: Frame? = nil
+function UI.moment(name: string, text: string, subtitle: string?, seconds: number?)
+	toastStack()
+	if momentHolder then
+		momentHolder:Destroy()
+	end
+	local holder = UI.new("CanvasGroup", {
+		Name = "Moment",
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.3),
+		Size = UDim2.new(0.9, 0, 0, 140),
+		BackgroundTransparency = 1,
+		GroupTransparency = 1,
+		Parent = toastScreen,
+	}, { UI.new("UISizeConstraint", { MaxSize = Vector2.new(720, 140) }) })
+	momentHolder = holder
+	UI.wordmark(name, text, 84, {
+		AnchorPoint = Vector2.new(0.5, 0),
+		Position = UDim2.fromScale(0.5, 0),
+		Parent = holder,
+	})
+	if subtitle then
+		UI.label(subtitle, {
+			AnchorPoint = Vector2.new(0.5, 0),
+			Position = UDim2.new(0.5, 0, 0, 92),
+			Size = UDim2.new(1, 0, 0, 30),
+			TextSize = 24,
+			FontFace = UI.Fonts.Heavy,
+			TextXAlignment = Enum.TextXAlignment.Center,
+			TextStrokeColor3 = UI.Colors.Ink,
+			TextStrokeTransparency = 0.3,
+			Parent = holder,
+		})
+	end
+	local scale = UI.new("UIScale", { Scale = 0.6, Parent = holder })
+	local pop = TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+	TweenService:Create(scale, pop, { Scale = 1 }):Play()
+	TweenService:Create(holder, TweenInfo.new(0.2), { GroupTransparency = 0 }):Play()
+	task.delay(seconds or 2.4, function()
+		if momentHolder ~= holder then
+			return
+		end
+		local fade = TweenService:Create(holder, TweenInfo.new(0.4), { GroupTransparency = 1 })
+		fade:Play()
+		fade.Completed:Wait()
+		holder:Destroy()
+		if momentHolder == holder then
+			momentHolder = nil
+		end
 	end)
 end
 
