@@ -1,0 +1,25 @@
+{
+  "pass_ids": [
+    "DiamondBlades",
+    "RunFlatTires",
+    "EndlessSpool",
+    "BigTank"
+  ],
+  "product_ids": [
+    "GoldenGasPushMower",
+    "ChromeSelfPropelledMower",
+    "StealthGasTrimmer",
+    "ChromeLeafBlower",
+    "GoldenRidingMower",
+    "StealthZeroTurn",
+    "RacingRed",
+    "MidnightBlack",
+    "ForestGreen",
+    "SkyBlue",
+    "StealthWrap",
+    "ChromeWrap",
+    "GoldWrap"
+  ],
+  "game_icon_square_safe_inset_px": 40,
+  "pass_product_circle_safe_radius_px": 222
+}

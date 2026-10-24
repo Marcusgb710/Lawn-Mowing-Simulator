@@ -1,0 +1,1549 @@
+[
+  {
+    "id": "ReelMower",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/26_MowersAndRideOns/Models/ReelMower/ReelMower.gltf"
+  },
+  {
+    "id": "GasPushMower",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "art-source/GUI/Source/RenderOnly/Models/Mower_Push_21in/Mower_Push_21in.gltf"
+  },
+  {
+    "id": "SelfPropelledMower",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/26_MowersAndRideOns/Models/SelfPropelledMower/SelfPropelledMower.gltf"
+  },
+  {
+    "id": "RidingMower",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "art-source/GUI/Source/RenderOnly/Models/Mower_LawnTractor_42in/Mower_LawnTractor_42in.gltf"
+  },
+  {
+    "id": "ZeroTurnMower",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "art-source/GUI/Source/RenderOnly/Models/Mower_ZeroTurn_52in/Mower_ZeroTurn_52in.gltf"
+  },
+  {
+    "id": "CommercialZeroTurn",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/26_MowersAndRideOns/Models/CommercialZeroTurn/CommercialZeroTurn.gltf"
+  },
+  {
+    "id": "StandOnMower",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/26_MowersAndRideOns/Models/StandOnMower/StandOnMower.gltf"
+  },
+  {
+    "id": "CommercialReelMower",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/26_MowersAndRideOns/Models/CommercialReelMower/CommercialReelMower.gltf"
+  },
+  {
+    "id": "GardenShears",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/29_HandTools/Models/GardenShears/GardenShears.gltf"
+  },
+  {
+    "id": "ElectricTrimmer",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "art-source/GUI/Source/RenderOnly/Models/Trimmer_Battery/Trimmer_Battery.gltf"
+  },
+  {
+    "id": "GasTrimmer",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "art-source/GUI/Source/RenderOnly/Models/Trimmer_Petrol/Trimmer_Petrol.gltf"
+  },
+  {
+    "id": "Brushcutter",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/27_TrimmersBlowersSprayer/Models/Brushcutter/Brushcutter.gltf"
+  },
+  {
+    "id": "StraightShaftTrimmer",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/27_TrimmersBlowersSprayer/Models/StraightShaftTrimmer/StraightShaftTrimmer.gltf"
+  },
+  {
+    "id": "OldRake",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "art-source/GUI/Source/RenderOnly/Models/Prop_Rake/Prop_Rake.gltf"
+  },
+  {
+    "id": "WideRake",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/30_LongTools/Models/WideRake/WideRake.gltf"
+  },
+  {
+    "id": "LeafBlower",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/27_TrimmersBlowersSprayer/Models/LeafBlower/LeafBlower.gltf"
+  },
+  {
+    "id": "BackpackBlower",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/27_TrimmersBlowersSprayer/Models/BackpackBlower/BackpackBlower.gltf"
+  },
+  {
+    "id": "HalfMoonEdger",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/30_LongTools/Models/HalfMoonEdger/HalfMoonEdger.gltf"
+  },
+  {
+    "id": "ElectricEdger",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/27_TrimmersBlowersSprayer/Models/ElectricEdger/ElectricEdger.gltf"
+  },
+  {
+    "id": "WalkBehindEdger",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/31_PushMachines/Models/WalkBehindEdger/WalkBehindEdger.gltf"
+  },
+  {
+    "id": "GasStickEdger",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/27_TrimmersBlowersSprayer/Models/GasStickEdger/GasStickEdger.gltf"
+  },
+  {
+    "id": "HandHedgeShears",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/28_HedgeAndHose/Models/HandHedgeShears/HandHedgeShears.gltf"
+  },
+  {
+    "id": "ElectricHedgeTrimmer",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/28_HedgeAndHose/Models/ElectricHedgeTrimmer/ElectricHedgeTrimmer.gltf"
+  },
+  {
+    "id": "CordlessHedgeTrimmer",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/28_HedgeAndHose/Models/CordlessHedgeTrimmer/CordlessHedgeTrimmer.gltf"
+  },
+  {
+    "id": "GasHedgeTrimmer",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/28_HedgeAndHose/Models/GasHedgeTrimmer/GasHedgeTrimmer.gltf"
+  },
+  {
+    "id": "ArticulatingHedgeTrimmer",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/28_HedgeAndHose/Models/ArticulatingHedgeTrimmer/ArticulatingHedgeTrimmer.gltf"
+  },
+  {
+    "id": "HandTrowel",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/29_HandTools/Models/HandTrowel/HandTrowel.gltf"
+  },
+  {
+    "id": "HandTransplanter",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/29_HandTools/Models/HandTransplanter/HandTransplanter.gltf"
+  },
+  {
+    "id": "HandCultivator",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/29_HandTools/Models/HandCultivator/HandCultivator.gltf"
+  },
+  {
+    "id": "DandelionWeeder",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/29_HandTools/Models/DandelionWeeder/DandelionWeeder.gltf"
+  },
+  {
+    "id": "Dibber",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/29_HandTools/Models/Dibber/Dibber.gltf"
+  },
+  {
+    "id": "StirrupHoe",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/30_LongTools/Models/StirrupHoe/StirrupHoe.gltf"
+  },
+  {
+    "id": "BypassPruners",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/29_HandTools/Models/BypassPruners/BypassPruners.gltf"
+  },
+  {
+    "id": "AnvilPruners",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/29_HandTools/Models/AnvilPruners/AnvilPruners.gltf"
+  },
+  {
+    "id": "FloralSnips",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/29_HandTools/Models/FloralSnips/FloralSnips.gltf"
+  },
+  {
+    "id": "Loppers",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/29_HandTools/Models/Loppers/Loppers.gltf"
+  },
+  {
+    "id": "PruningSaw",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/29_HandTools/Models/PruningSaw/PruningSaw.gltf"
+  },
+  {
+    "id": "GardenHoseWand",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/28_HedgeAndHose/Models/GardenHoseWand/GardenHoseWand.gltf"
+  },
+  {
+    "id": "WateringCan",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/29_HandTools/Models/WateringCan/WateringCan.gltf"
+  },
+  {
+    "id": "NitrileGloves",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/29_HandTools/Models/NitrileGloves/NitrileGloves.gltf"
+  },
+  {
+    "id": "ChemicalGloves",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/29_HandTools/Models/ChemicalGloves/ChemicalGloves.gltf"
+  },
+  {
+    "id": "RoundPointShovel",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/30_LongTools/Models/RoundPointShovel/RoundPointShovel.gltf"
+  },
+  {
+    "id": "GardenSpade",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/30_LongTools/Models/GardenSpade/GardenSpade.gltf"
+  },
+  {
+    "id": "Broadfork",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/30_LongTools/Models/Broadfork/Broadfork.gltf"
+  },
+  {
+    "id": "DiggingFork",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/30_LongTools/Models/DiggingFork/DiggingFork.gltf"
+  },
+  {
+    "id": "BowRake",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/30_LongTools/Models/BowRake/BowRake.gltf"
+  },
+  {
+    "id": "Mattock",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/30_LongTools/Models/Mattock/Mattock.gltf"
+  },
+  {
+    "id": "SingleWheelbarrow",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/31_PushMachines/Models/SingleWheelbarrow/SingleWheelbarrow.gltf"
+  },
+  {
+    "id": "SingleWheelbarrowFlatFree",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/31_PushMachines/Models/SingleWheelbarrowFlatFree/SingleWheelbarrowFlatFree.gltf"
+  },
+  {
+    "id": "DualWheelbarrow",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/31_PushMachines/Models/DualWheelbarrow/DualWheelbarrow.gltf"
+  },
+  {
+    "id": "PolyCart",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/31_PushMachines/Models/PolyCart/PolyCart.gltf"
+  },
+  {
+    "id": "BroadcastSpreader",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/31_PushMachines/Models/BroadcastSpreader/BroadcastSpreader.gltf"
+  },
+  {
+    "id": "BackpackSprayer",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/27_TrimmersBlowersSprayer/Models/BackpackSprayer/BackpackSprayer.gltf"
+  },
+  {
+    "id": "StandOnAerator",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/26_MowersAndRideOns/Models/StandOnAerator/StandOnAerator.gltf"
+  },
+  {
+    "id": "TowBehindAerator",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/26_MowersAndRideOns/Models/TowBehindAerator/TowBehindAerator.gltf"
+  },
+  {
+    "id": "SlitOverseeder",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/31_PushMachines/Models/SlitOverseeder/SlitOverseeder.gltf"
+  },
+  {
+    "id": "PowerRakeDethatcher",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/31_PushMachines/Models/PowerRakeDethatcher/PowerRakeDethatcher.gltf"
+  },
+  {
+    "id": "RideOnSpreaderSprayer",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/26_MowersAndRideOns/Models/RideOnSpreaderSprayer/RideOnSpreaderSprayer.gltf"
+  },
+  {
+    "id": "SoilProbe",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/29_HandTools/Models/SoilProbe/SoilProbe.gltf"
+  },
+  {
+    "id": "ToolBucket",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/32_SuppliesAndStorage/Models/ToolBucket/ToolBucket.gltf"
+  },
+  {
+    "id": "GasCan",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/32_SuppliesAndStorage/Models/GasCan/GasCan.gltf"
+  },
+  {
+    "id": "MixGasCan",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/32_SuppliesAndStorage/Models/MixGasCan/MixGasCan.gltf"
+  },
+  {
+    "id": "TrimmerLine",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/32_SuppliesAndStorage/Models/TrimmerLine/TrimmerLine.gltf"
+  },
+  {
+    "id": "FootPump",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/32_SuppliesAndStorage/Models/FootPump/FootPump.gltf"
+  },
+  {
+    "id": "ElectricInflator",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/32_SuppliesAndStorage/Models/ElectricInflator/ElectricInflator.gltf"
+  },
+  {
+    "id": "AirCompressor",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/32_SuppliesAndStorage/Models/AirCompressor/AirCompressor.gltf"
+  },
+  {
+    "id": "TirePatchKit",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/32_SuppliesAndStorage/Models/TirePatchKit/TirePatchKit.gltf"
+  },
+  {
+    "id": "SpareTire",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/32_SuppliesAndStorage/Models/SpareTire/SpareTire.gltf"
+  },
+  {
+    "id": "WrenchSet",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/32_SuppliesAndStorage/Models/WrenchSet/WrenchSet.gltf"
+  },
+  {
+    "id": "BladeFile",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/32_SuppliesAndStorage/Models/BladeFile/BladeFile.gltf"
+  },
+  {
+    "id": "SharpeningStone",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/32_SuppliesAndStorage/Models/SharpeningStone/SharpeningStone.gltf"
+  },
+  {
+    "id": "BenchGrinder",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/32_SuppliesAndStorage/Models/BenchGrinder/BenchGrinder.gltf"
+  },
+  {
+    "id": "SpareMowerBlade",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/32_SuppliesAndStorage/Models/SpareMowerBlade/SpareMowerBlade.gltf"
+  },
+  {
+    "id": "PicketFenceSection",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/34_YardDecorations/Models/PicketFenceSection/PicketFenceSection.gltf"
+  },
+  {
+    "id": "StoneEdgingSection",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/34_YardDecorations/Models/StoneEdgingSection/StoneEdgingSection.gltf"
+  },
+  {
+    "id": "PaverPathSection",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/34_YardDecorations/Models/PaverPathSection/PaverPathSection.gltf"
+  },
+  {
+    "id": "MulchBedSection",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/34_YardDecorations/Models/MulchBedSection/MulchBedSection.gltf"
+  },
+  {
+    "id": "BoxwoodShrub",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/34_YardDecorations/Models/BoxwoodShrub/BoxwoodShrub.gltf"
+  },
+  {
+    "id": "HydrangeaBush",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/34_YardDecorations/Models/HydrangeaBush/HydrangeaBush.gltf"
+  },
+  {
+    "id": "JapaneseMaple",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/34_YardDecorations/Models/JapaneseMaple/JapaneseMaple.gltf"
+  },
+  {
+    "id": "TerracottaPlanter",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/34_YardDecorations/Models/TerracottaPlanter/TerracottaPlanter.gltf"
+  },
+  {
+    "id": "RaisedGardenBed",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/34_YardDecorations/Models/RaisedGardenBed/RaisedGardenBed.gltf"
+  },
+  {
+    "id": "BirdBath",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/34_YardDecorations/Models/BirdBath/BirdBath.gltf"
+  },
+  {
+    "id": "TieredFountain",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/34_YardDecorations/Models/TieredFountain/TieredFountain.gltf"
+  },
+  {
+    "id": "GardenArbor",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/34_YardDecorations/Models/GardenArbor/GardenArbor.gltf"
+  },
+  {
+    "id": "GardenBench",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/34_YardDecorations/Models/GardenBench/GardenBench.gltf"
+  },
+  {
+    "id": "PatioSet",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/34_YardDecorations/Models/PatioSet/PatioSet.gltf"
+  },
+  {
+    "id": "FirePit",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/34_YardDecorations/Models/FirePit/FirePit.gltf"
+  },
+  {
+    "id": "Mailbox",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/34_YardDecorations/Models/Mailbox/Mailbox.gltf"
+  },
+  {
+    "id": "LampPost",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/34_YardDecorations/Models/LampPost/LampPost.gltf"
+  },
+  {
+    "id": "SolarPathLight",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/34_YardDecorations/Models/SolarPathLight/SolarPathLight.gltf"
+  },
+  {
+    "id": "BirdFeeder",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/34_YardDecorations/Models/BirdFeeder/BirdFeeder.gltf"
+  },
+  {
+    "id": "Birdhouse",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/34_YardDecorations/Models/Birdhouse/Birdhouse.gltf"
+  },
+  {
+    "id": "PinkFlamingo",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/34_YardDecorations/Models/PinkFlamingo/PinkFlamingo.gltf"
+  },
+  {
+    "id": "GardenWindmill",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/34_YardDecorations/Models/GardenWindmill/GardenWindmill.gltf"
+  },
+  {
+    "id": "GardenGnome",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/24_YardAndBuildings/Models/GardenGnome/GardenGnome.gltf"
+  },
+  {
+    "id": "FlowerPatch",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/24_YardAndBuildings/Models/FlowerPatch/FlowerPatch.gltf"
+  },
+  {
+    "id": "RustyPickup",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/25_TrucksAndTrailers/Models/RustyPickup/RustyPickup.gltf"
+  },
+  {
+    "id": "WorkPickup",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/25_TrucksAndTrailers/Models/WorkPickup/WorkPickup.gltf"
+  },
+  {
+    "id": "HeavyDutyPickup",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/25_TrucksAndTrailers/Models/HeavyDutyPickup/HeavyDutyPickup.gltf"
+  },
+  {
+    "id": "LandscapingTruck",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/25_TrucksAndTrailers/Models/LandscapingTruck/LandscapingTruck.gltf"
+  },
+  {
+    "id": "UtilityTrailer",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/25_TrucksAndTrailers/Models/UtilityTrailer/UtilityTrailer.gltf"
+  },
+  {
+    "id": "LandscapeTrailer",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/25_TrucksAndTrailers/Models/LandscapeTrailer/LandscapeTrailer.gltf"
+  },
+  {
+    "id": "EquipmentTrailer",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/25_TrucksAndTrailers/Models/EquipmentTrailer/EquipmentTrailer.gltf"
+  },
+  {
+    "id": "Shed",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/24_YardAndBuildings/Models/Shed/Shed.gltf"
+  },
+  {
+    "id": "Garage",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/24_YardAndBuildings/Models/Garage/Garage.gltf"
+  },
+  {
+    "id": "SmallOffice",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/24_YardAndBuildings/Models/SmallOffice/SmallOffice.gltf"
+  },
+  {
+    "id": "EquipmentYard",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/24_YardAndBuildings/Models/EquipmentYard/EquipmentYard.gltf"
+  },
+  {
+    "id": "BestYardTrophy",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/37_Story/Models/BestYardTrophy/BestYardTrophy.gltf"
+  },
+  {
+    "id": "DebrisStick",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/37_Story/Models/DebrisStick/DebrisStick.gltf"
+  },
+  {
+    "id": "DebrisToyTruck",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/37_Story/Models/DebrisToyTruck/DebrisToyTruck.gltf"
+  },
+  {
+    "id": "DebrisFrisbee",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/37_Story/Models/DebrisFrisbee/DebrisFrisbee.gltf"
+  },
+  {
+    "id": "GoldenGasPushMower",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": "gold",
+    "source": "art-source/GUI/Source/RenderOnly/Models/Mower_Push_21in/Mower_Push_21in.gltf"
+  },
+  {
+    "id": "ChromeSelfPropelledMower",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": "chrome",
+    "source": "model-source/HighPoly/26_MowersAndRideOns/Models/SelfPropelledMower/SelfPropelledMower.gltf"
+  },
+  {
+    "id": "StealthGasTrimmer",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": "stealth",
+    "source": "art-source/GUI/Source/RenderOnly/Models/Trimmer_Petrol/Trimmer_Petrol.gltf"
+  },
+  {
+    "id": "ChromeLeafBlower",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": "chrome",
+    "source": "model-source/HighPoly/27_TrimmersBlowersSprayer/Models/LeafBlower/LeafBlower.gltf"
+  },
+  {
+    "id": "GoldenRidingMower",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": "gold",
+    "source": "art-source/GUI/Source/RenderOnly/Models/Mower_LawnTractor_42in/Mower_LawnTractor_42in.gltf"
+  },
+  {
+    "id": "StealthZeroTurn",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": "stealth",
+    "source": "art-source/GUI/Source/RenderOnly/Models/Mower_ZeroTurn_52in/Mower_ZeroTurn_52in.gltf"
+  },
+  {
+    "id": "DebrisRock",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/37_Story/Models/DebrisRock/DebrisRock.gltf"
+  },
+  {
+    "id": "DebrisDogBall",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": null,
+    "source": "model-source/HighPoly/37_Story/Models/DebrisDogBall/DebrisDogBall.gltf"
+  },
+  {
+    "id": "RacingRed",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": [
+      196,
+      40,
+      36
+    ],
+    "source": "model-source/HighPoly/25_TrucksAndTrailers/Models/WorkPickup/WorkPickup.gltf",
+    "painted_faces": 4576
+  },
+  {
+    "id": "MidnightBlack",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": [
+      40,
+      42,
+      48
+    ],
+    "source": "model-source/HighPoly/25_TrucksAndTrailers/Models/WorkPickup/WorkPickup.gltf",
+    "painted_faces": 4576
+  },
+  {
+    "id": "ForestGreen",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": [
+      46,
+      110,
+      58
+    ],
+    "source": "model-source/HighPoly/25_TrucksAndTrailers/Models/WorkPickup/WorkPickup.gltf",
+    "painted_faces": 4576
+  },
+  {
+    "id": "SkyBlue",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": [
+      90,
+      160,
+      220
+    ],
+    "source": "model-source/HighPoly/25_TrucksAndTrailers/Models/WorkPickup/WorkPickup.gltf",
+    "painted_faces": 4576
+  },
+  {
+    "id": "StealthWrap",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": "stealth",
+    "source": "model-source/HighPoly/25_TrucksAndTrailers/Models/WorkPickup/WorkPickup.gltf",
+    "painted_faces": 4576
+  },
+  {
+    "id": "ChromeWrap",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": "chrome",
+    "source": "model-source/HighPoly/25_TrucksAndTrailers/Models/WorkPickup/WorkPickup.gltf",
+    "painted_faces": 4576
+  },
+  {
+    "id": "GoldWrap",
+    "projection": "ORTHO",
+    "view_vector": [
+      -6,
+      9,
+      5
+    ],
+    "longest_projected_occupancy": 0.8,
+    "finish": "gold",
+    "source": "model-source/HighPoly/25_TrucksAndTrailers/Models/WorkPickup/WorkPickup.gltf",
+    "painted_faces": 4576
+  }
+]

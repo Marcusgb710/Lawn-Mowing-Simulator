@@ -1,0 +1,853 @@
+[
+  {
+    "name": "NPC_June_Sitting",
+    "instruction": 37,
+    "folder": "Story",
+    "output_folder": "model-source/HighPoly/37_Story",
+    "baseline": {
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "source_pack": null,
+      "triangles": 0,
+      "dimensions_studs": [
+        2.6,
+        4.2,
+        3.2
+      ],
+      "bounds_min_studs": [
+        -1.3,
+        0,
+        -1.6
+      ],
+      "bounds_max_studs": [
+        1.3,
+        4.2,
+        1.6
+      ]
+    },
+    "budget": [
+      8000,
+      15000
+    ]
+  },
+  {
+    "name": "NPC_June_Standing",
+    "instruction": 37,
+    "folder": "Story",
+    "output_folder": "model-source/HighPoly/37_Story",
+    "baseline": {
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "source_pack": null,
+      "triangles": 0,
+      "dimensions_studs": [
+        2,
+        5,
+        1.6
+      ],
+      "bounds_min_studs": [
+        -1.0,
+        0,
+        -0.8
+      ],
+      "bounds_max_studs": [
+        1.0,
+        5,
+        0.8
+      ]
+    },
+    "budget": [
+      8000,
+      15000
+    ]
+  },
+  {
+    "name": "NPC_Gloria",
+    "instruction": 37,
+    "folder": "Story",
+    "output_folder": "model-source/HighPoly/37_Story",
+    "baseline": {
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "source_pack": null,
+      "triangles": 0,
+      "dimensions_studs": [
+        1.8,
+        5.6,
+        1.4
+      ],
+      "bounds_min_studs": [
+        -0.9,
+        0,
+        -0.7
+      ],
+      "bounds_max_studs": [
+        0.9,
+        5.6,
+        0.7
+      ]
+    },
+    "budget": [
+      8000,
+      15000
+    ]
+  },
+  {
+    "name": "NPC_Chad",
+    "instruction": 37,
+    "folder": "Story",
+    "output_folder": "model-source/HighPoly/37_Story",
+    "baseline": {
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "source_pack": null,
+      "triangles": 0,
+      "dimensions_studs": [
+        2,
+        6,
+        1.4
+      ],
+      "bounds_min_studs": [
+        -1.0,
+        0,
+        -0.7
+      ],
+      "bounds_max_studs": [
+        1.0,
+        6,
+        0.7
+      ]
+    },
+    "budget": [
+      8000,
+      15000
+    ]
+  },
+  {
+    "name": "NPC_Sam_TurfKing",
+    "instruction": 37,
+    "folder": "Story",
+    "output_folder": "model-source/HighPoly/37_Story",
+    "baseline": {
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "source_pack": null,
+      "triangles": 0,
+      "dimensions_studs": [
+        1.8,
+        5.4,
+        1.2
+      ],
+      "bounds_min_studs": [
+        -0.9,
+        0,
+        -0.6
+      ],
+      "bounds_max_studs": [
+        0.9,
+        5.4,
+        0.6
+      ]
+    },
+    "budget": [
+      8000,
+      15000
+    ]
+  },
+  {
+    "name": "NPC_Sam_Casual",
+    "instruction": 37,
+    "folder": "Story",
+    "output_folder": "model-source/HighPoly/37_Story",
+    "baseline": {
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "source_pack": null,
+      "triangles": 0,
+      "dimensions_studs": [
+        1.8,
+        5.4,
+        1.2
+      ],
+      "bounds_min_studs": [
+        -0.9,
+        0,
+        -0.6
+      ],
+      "bounds_max_studs": [
+        0.9,
+        5.4,
+        0.6
+      ]
+    },
+    "budget": [
+      8000,
+      15000
+    ]
+  },
+  {
+    "name": "NPC_Edna",
+    "instruction": 37,
+    "folder": "Story",
+    "output_folder": "model-source/HighPoly/37_Story",
+    "baseline": {
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "source_pack": null,
+      "triangles": 0,
+      "dimensions_studs": [
+        1.8,
+        5,
+        1.4
+      ],
+      "bounds_min_studs": [
+        -0.9,
+        0,
+        -0.7
+      ],
+      "bounds_max_studs": [
+        0.9,
+        5,
+        0.7
+      ]
+    },
+    "budget": [
+      8000,
+      15000
+    ]
+  },
+  {
+    "name": "NPC_Judge1",
+    "instruction": 37,
+    "folder": "Story",
+    "output_folder": "model-source/HighPoly/37_Story",
+    "baseline": {
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "source_pack": null,
+      "triangles": 0,
+      "dimensions_studs": [
+        2,
+        5.4,
+        1.6
+      ],
+      "bounds_min_studs": [
+        -1.0,
+        0,
+        -0.8
+      ],
+      "bounds_max_studs": [
+        1.0,
+        5.4,
+        0.8
+      ]
+    },
+    "budget": [
+      8000,
+      15000
+    ]
+  },
+  {
+    "name": "NPC_Judge2",
+    "instruction": 37,
+    "folder": "Story",
+    "output_folder": "model-source/HighPoly/37_Story",
+    "baseline": {
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "source_pack": null,
+      "triangles": 0,
+      "dimensions_studs": [
+        2,
+        5.4,
+        1.6
+      ],
+      "bounds_min_studs": [
+        -1.0,
+        0,
+        -0.8
+      ],
+      "bounds_max_studs": [
+        1.0,
+        5.4,
+        0.8
+      ]
+    },
+    "budget": [
+      8000,
+      15000
+    ]
+  },
+  {
+    "name": "PorchRockingChair",
+    "instruction": 37,
+    "folder": "Story",
+    "output_folder": "model-source/HighPoly/37_Story",
+    "baseline": {
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "source_pack": null,
+      "triangles": 0,
+      "dimensions_studs": [
+        2.4,
+        4,
+        3
+      ],
+      "bounds_min_studs": [
+        -1.2,
+        0,
+        -1.5
+      ],
+      "bounds_max_studs": [
+        1.2,
+        4,
+        1.5
+      ]
+    },
+    "budget": [
+      1500,
+      6000
+    ]
+  },
+  {
+    "name": "PorchDeck",
+    "instruction": 37,
+    "folder": "Story",
+    "output_folder": "model-source/HighPoly/37_Story",
+    "baseline": {
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "source_pack": null,
+      "triangles": 0,
+      "dimensions_studs": [
+        10,
+        4.4,
+        8
+      ],
+      "bounds_min_studs": [
+        -5.0,
+        0,
+        -4.0
+      ],
+      "bounds_max_studs": [
+        5.0,
+        4.4,
+        4.0
+      ]
+    },
+    "budget": [
+      4000,
+      10000
+    ]
+  },
+  {
+    "name": "GloriaHouse",
+    "instruction": 37,
+    "folder": "Story",
+    "output_folder": "model-source/HighPoly/37_Story",
+    "baseline": {
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "source_pack": null,
+      "triangles": 0,
+      "dimensions_studs": [
+        44,
+        30,
+        36
+      ],
+      "bounds_min_studs": [
+        -22.0,
+        0,
+        -18.0
+      ],
+      "bounds_max_studs": [
+        22.0,
+        30,
+        18.0
+      ]
+    },
+    "budget": [
+      15000,
+      35000
+    ]
+  },
+  {
+    "name": "GloriaYard_Stage1",
+    "instruction": 37,
+    "folder": "Story",
+    "output_folder": "model-source/HighPoly/37_Story",
+    "baseline": {
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "source_pack": null,
+      "triangles": 0,
+      "dimensions_studs": [
+        44,
+        2.4,
+        30
+      ],
+      "bounds_min_studs": [
+        -22.0,
+        0,
+        -15.0
+      ],
+      "bounds_max_studs": [
+        22.0,
+        2.4,
+        15.0
+      ]
+    },
+    "budget": [
+      6000,
+      14000
+    ]
+  },
+  {
+    "name": "GloriaYard_Stage2",
+    "instruction": 37,
+    "folder": "Story",
+    "output_folder": "model-source/HighPoly/37_Story",
+    "baseline": {
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "source_pack": null,
+      "triangles": 0,
+      "dimensions_studs": [
+        44,
+        3.2,
+        30
+      ],
+      "bounds_min_studs": [
+        -22.0,
+        0,
+        -15.0
+      ],
+      "bounds_max_studs": [
+        22.0,
+        3.2,
+        15.0
+      ]
+    },
+    "budget": [
+      6000,
+      14000
+    ]
+  },
+  {
+    "name": "GloriaYard_Stage3",
+    "instruction": 37,
+    "folder": "Story",
+    "output_folder": "model-source/HighPoly/37_Story",
+    "baseline": {
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "source_pack": null,
+      "triangles": 0,
+      "dimensions_studs": [
+        44,
+        5.4,
+        30
+      ],
+      "bounds_min_studs": [
+        -22.0,
+        0,
+        -15.0
+      ],
+      "bounds_max_studs": [
+        22.0,
+        5.4,
+        15.0
+      ]
+    },
+    "budget": [
+      6000,
+      14000
+    ]
+  },
+  {
+    "name": "TurfKingTruck",
+    "instruction": 37,
+    "folder": "Story",
+    "output_folder": "model-source/HighPoly/37_Story",
+    "baseline": {
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "source_pack": null,
+      "triangles": 0,
+      "dimensions_studs": [
+        9,
+        8.5,
+        22
+      ],
+      "bounds_min_studs": [
+        -4.5,
+        0,
+        -11.0
+      ],
+      "bounds_max_studs": [
+        4.5,
+        8.5,
+        11.0
+      ]
+    },
+    "budget": [
+      15000,
+      30000
+    ]
+  },
+  {
+    "name": "TurfKingSign",
+    "instruction": 37,
+    "folder": "Props",
+    "output_folder": "model-source/HighPoly/37_Story",
+    "baseline": {
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "source_pack": null,
+      "triangles": 0,
+      "dimensions_studs": [
+        1.6,
+        2,
+        0.1
+      ],
+      "bounds_min_studs": [
+        -0.8,
+        0,
+        -0.05
+      ],
+      "bounds_max_studs": [
+        0.8,
+        2,
+        0.05
+      ]
+    },
+    "budget": [
+      1500,
+      6000
+    ]
+  },
+  {
+    "name": "BestYardTrophy",
+    "instruction": 37,
+    "folder": "Decorations",
+    "output_folder": "model-source/HighPoly/37_Story",
+    "baseline": {
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "source_pack": null,
+      "triangles": 0,
+      "dimensions_studs": [
+        2.6,
+        5.4,
+        2.6
+      ],
+      "bounds_min_studs": [
+        -1.3,
+        0,
+        -1.3
+      ],
+      "bounds_max_studs": [
+        1.3,
+        5.4,
+        1.3
+      ]
+    },
+    "budget": [
+      4000,
+      10000
+    ]
+  },
+  {
+    "name": "DebrisStick",
+    "instruction": 37,
+    "folder": "Props",
+    "output_folder": "model-source/HighPoly/37_Story",
+    "baseline": {
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "source_pack": null,
+      "triangles": 0,
+      "dimensions_studs": [
+        2.4,
+        0.36,
+        0.7
+      ],
+      "bounds_min_studs": [
+        -1.2,
+        0,
+        -0.35
+      ],
+      "bounds_max_studs": [
+        1.2,
+        0.36,
+        0.35
+      ]
+    },
+    "budget": [
+      300,
+      1500
+    ]
+  },
+  {
+    "name": "DebrisRock",
+    "instruction": 37,
+    "folder": "Props",
+    "output_folder": "model-source/HighPoly/37_Story",
+    "baseline": {
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "source_pack": null,
+      "triangles": 0,
+      "dimensions_studs": [
+        0.8,
+        0.5,
+        0.65
+      ],
+      "bounds_min_studs": [
+        -0.4,
+        0,
+        -0.325
+      ],
+      "bounds_max_studs": [
+        0.4,
+        0.5,
+        0.325
+      ]
+    },
+    "budget": [
+      300,
+      1500
+    ]
+  },
+  {
+    "name": "DebrisDogBall",
+    "instruction": 37,
+    "folder": "Props",
+    "output_folder": "model-source/HighPoly/37_Story",
+    "baseline": {
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "source_pack": null,
+      "triangles": 0,
+      "dimensions_studs": [
+        0.55,
+        0.55,
+        0.55
+      ],
+      "bounds_min_studs": [
+        -0.275,
+        0,
+        -0.275
+      ],
+      "bounds_max_studs": [
+        0.275,
+        0.55,
+        0.275
+      ]
+    },
+    "budget": [
+      300,
+      1500
+    ]
+  },
+  {
+    "name": "DebrisToyTruck",
+    "instruction": 37,
+    "folder": "Props",
+    "output_folder": "model-source/HighPoly/37_Story",
+    "baseline": {
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "source_pack": null,
+      "triangles": 0,
+      "dimensions_studs": [
+        0.65,
+        0.58,
+        1.1
+      ],
+      "bounds_min_studs": [
+        -0.325,
+        0,
+        -0.55
+      ],
+      "bounds_max_studs": [
+        0.325,
+        0.58,
+        0.55
+      ]
+    },
+    "budget": [
+      300,
+      1500
+    ]
+  },
+  {
+    "name": "DebrisFrisbee",
+    "instruction": 37,
+    "folder": "Props",
+    "output_folder": "model-source/HighPoly/37_Story",
+    "baseline": {
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "source_pack": null,
+      "triangles": 0,
+      "dimensions_studs": [
+        1,
+        0.16,
+        1
+      ],
+      "bounds_min_studs": [
+        -0.5,
+        0,
+        -0.5
+      ],
+      "bounds_max_studs": [
+        0.5,
+        0.16,
+        0.5
+      ]
+    },
+    "budget": [
+      300,
+      1500
+    ]
+  }
+]

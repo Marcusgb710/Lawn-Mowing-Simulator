@@ -1,0 +1,26 @@
+{
+  "Confetti": {
+    "file": "Moments/Confetti.png",
+    "columns": 4,
+    "rows": 4,
+    "frames": 16,
+    "frame_size_px": [
+      256,
+      256
+    ],
+    "fps": 16,
+    "loop": true
+  },
+  "Sparkle": {
+    "file": "Moments/Sparkle.png",
+    "columns": 2,
+    "rows": 2,
+    "frames": 4,
+    "frame_size_px": [
+      128,
+      128
+    ],
+    "fps": 12,
+    "loop": false
+  }
+}

@@ -1,0 +1,287 @@
+[
+  {
+    "id": "June_Neutral",
+    "source_sheet": "Source/PortraitSheets/June.png",
+    "source_crop_px": [
+      0,
+      0,
+      512,
+      512
+    ],
+    "size_px": [
+      512,
+      512
+    ],
+    "correction_source": null
+  },
+  {
+    "id": "June_Smug",
+    "source_sheet": "Source/PortraitSheets/June.png",
+    "source_crop_px": [
+      512,
+      0,
+      1024,
+      512
+    ],
+    "size_px": [
+      512,
+      512
+    ],
+    "correction_source": null
+  },
+  {
+    "id": "June_Annoyed",
+    "source_sheet": "Source/PortraitSheets/June.png",
+    "source_crop_px": [
+      1024,
+      0,
+      1536,
+      512
+    ],
+    "size_px": [
+      512,
+      512
+    ],
+    "correction_source": null
+  },
+  {
+    "id": "June_Proud",
+    "source_sheet": "Source/PortraitSheets/June.png",
+    "source_crop_px": [
+      0,
+      512,
+      512,
+      1024
+    ],
+    "size_px": [
+      512,
+      512
+    ],
+    "correction_source": null
+  },
+  {
+    "id": "June_Laughing",
+    "source_sheet": "Source/PortraitSheets/June.png",
+    "source_crop_px": [
+      512,
+      512,
+      1024,
+      1024
+    ],
+    "size_px": [
+      512,
+      512
+    ],
+    "correction_source": null
+  },
+  {
+    "id": "Gloria_Smug",
+    "source_sheet": "Source/PortraitSheets/GloriaChad.png",
+    "source_crop_px": [
+      0,
+      0,
+      512,
+      512
+    ],
+    "size_px": [
+      512,
+      512
+    ],
+    "correction_source": null
+  },
+  {
+    "id": "Gloria_FakeSmile",
+    "source_sheet": "Source/PortraitSheets/GloriaChad.png",
+    "source_crop_px": [
+      512,
+      0,
+      1024,
+      512
+    ],
+    "size_px": [
+      512,
+      512
+    ],
+    "correction_source": null
+  },
+  {
+    "id": "Gloria_Furious",
+    "source_sheet": "Source/PortraitSheets/GloriaChad.png",
+    "source_crop_px": [
+      1024,
+      0,
+      1536,
+      512
+    ],
+    "size_px": [
+      512,
+      512
+    ],
+    "correction_source": null
+  },
+  {
+    "id": "Gloria_Defeated",
+    "source_sheet": "Source/PortraitSheets/Corrections.png",
+    "source_crop_px": [
+      0,
+      0,
+      627,
+      627
+    ],
+    "size_px": [
+      512,
+      512
+    ],
+    "correction_source": null
+  },
+  {
+    "id": "Chad_Cocky",
+    "source_sheet": "Source/PortraitSheets/Corrections.png",
+    "source_crop_px": [
+      627,
+      0,
+      1254,
+      627
+    ],
+    "size_px": [
+      512,
+      512
+    ],
+    "correction_source": null
+  },
+  {
+    "id": "Chad_Panicked",
+    "source_sheet": "Source/PortraitSheets/Corrections.png",
+    "source_crop_px": [
+      0,
+      627,
+      627,
+      1254
+    ],
+    "size_px": [
+      512,
+      512
+    ],
+    "correction_source": "Source/PortraitEdits/Chad_Panicked.png"
+  },
+  {
+    "id": "Sam_FedUp",
+    "source_sheet": "Source/PortraitSheets/SamBridge.png",
+    "source_crop_px": [
+      0,
+      0,
+      512,
+      512
+    ],
+    "size_px": [
+      512,
+      512
+    ],
+    "correction_source": "Source/PortraitEdits/Sam_FedUp.png"
+  },
+  {
+    "id": "Sam_Happy",
+    "source_sheet": "Source/PortraitSheets/SamBridge.png",
+    "source_crop_px": [
+      512,
+      0,
+      1024,
+      512
+    ],
+    "size_px": [
+      512,
+      512
+    ],
+    "correction_source": null
+  },
+  {
+    "id": "Edna_Happy",
+    "source_sheet": "Source/PortraitSheets/SamBridge.png",
+    "source_crop_px": [
+      1024,
+      0,
+      1536,
+      512
+    ],
+    "size_px": [
+      512,
+      512
+    ],
+    "correction_source": null
+  },
+  {
+    "id": "Rossi_Gossip",
+    "source_sheet": "Source/PortraitSheets/SamBridge.png",
+    "source_crop_px": [
+      0,
+      512,
+      512,
+      1024
+    ],
+    "size_px": [
+      512,
+      512
+    ],
+    "correction_source": null
+  },
+  {
+    "id": "Nguyen_Picky",
+    "source_sheet": "Source/PortraitSheets/SamBridge.png",
+    "source_crop_px": [
+      512,
+      512,
+      1024,
+      1024
+    ],
+    "size_px": [
+      512,
+      512
+    ],
+    "correction_source": null
+  },
+  {
+    "id": "BridgeClub",
+    "source_sheet": "Source/PortraitSheets/SamBridge.png",
+    "source_crop_px": [
+      1024,
+      512,
+      1536,
+      1024
+    ],
+    "size_px": [
+      512,
+      512
+    ],
+    "correction_source": null
+  },
+  {
+    "id": "Judge1",
+    "source_sheet": "Source/PortraitSheets/Judges.png",
+    "source_crop_px": [
+      0,
+      0,
+      627,
+      627
+    ],
+    "size_px": [
+      512,
+      512
+    ],
+    "correction_source": null
+  },
+  {
+    "id": "Judge2",
+    "source_sheet": "Source/PortraitSheets/Judges.png",
+    "source_crop_px": [
+      627,
+      0,
+      1254,
+      627
+    ],
+    "size_px": [
+      512,
+      512
+    ],
+    "correction_source": "Source/PortraitEdits/Judge2.png"
+  }
+]

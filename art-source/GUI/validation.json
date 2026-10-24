@@ -1,0 +1,107 @@
+{
+  "status": "passed",
+  "checks": {
+    "required_counts": {
+      "items": 127,
+      "portraits": 19,
+      "glyphs": 60,
+      "kit_including_taskbar": 56,
+      "wordmarks": 14
+    },
+    "white_tintable_glyphs_and_vector_sources": true,
+    "nine_slice_bounds_transparency_and_periodic_progress_tiles": true,
+    "bitmap_fonts": [
+      {
+        "font": "Display_Numbers",
+        "glyph_count": 21,
+        "kerning_pairs": 0,
+        "matching_layers": true
+      },
+      {
+        "font": "Display_Headline",
+        "glyph_count": 81,
+        "kerning_pairs": 110,
+        "matching_layers": true
+      }
+    ],
+    "eleven_frames_and_matching_previews": true,
+    "fifty_percent_phone_review_files": true,
+    "actual_model_silhouette_framing": {
+      "passed": true,
+      "items": 127,
+      "longest_dimension_fraction": 0.8
+    },
+    "seven_distinct_pickup_finishes_with_body_panel_masks": true,
+    "computer_and_moment_assets": true,
+    "store_art": {
+      "game_icons": 1,
+      "thumbnails": 5,
+      "passes": 4,
+      "products": 13
+    },
+    "text_contrast": [
+      {
+        "foreground": "text",
+        "background": "panel",
+        "ratio": 10.137
+      },
+      {
+        "foreground": "text",
+        "background": "card",
+        "ratio": 7.403
+      },
+      {
+        "foreground": "subtext",
+        "background": "card",
+        "ratio": 5.828
+      },
+      {
+        "foreground": "text",
+        "background": "primary_face",
+        "ratio": 5.725
+      },
+      {
+        "foreground": "text",
+        "background": "danger_face",
+        "ratio": 6.091
+      },
+      {
+        "foreground": "text",
+        "background": "disabled",
+        "ratio": 5.051
+      },
+      {
+        "foreground": "subtext",
+        "background": "locked_card",
+        "ratio": 5.895
+      },
+      {
+        "foreground": "ink",
+        "background": "money",
+        "ratio": 9.871
+      },
+      {
+        "foreground": "ink",
+        "background": "grandma",
+        "ratio": 8.309
+      },
+      {
+        "foreground": "ink",
+        "background": "gold",
+        "ratio": 7.734
+      }
+    ],
+    "upload_png_size_cap": 1024,
+    "only_authorized_folders_changed": [
+      "art-source/GUI/",
+      "model-source/HighPoly/37_Story/"
+    ]
+  },
+  "manual_review": {
+    "no_text_in_kit_glyphs_or_item_pictures": true,
+    "all_19_portrait_identities_and_expressions_reviewed": true,
+    "all_11_screens_reviewed_at_full_and_half_size": true,
+    "no_robux_symbol_drawn": true,
+    "original_kit_and_existing_models_preserved": true
+  }
+}
