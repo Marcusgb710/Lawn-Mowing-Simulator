@@ -961,9 +961,18 @@ function UI.bar(props, kind: string?, track: string?): Bar
 	local fill: GuiObject = nil
 	local fraction = 0
 	local current = ""
+	-- The striped fill's tile size at its own height, while it has one.
+	local tile: { number }? = nil
 	local function size()
 		fill.Size = UDim2.new(fraction, -inset * 2 * fraction, 1, -inset * 2)
 	end
+	local function fitTiles()
+		local height = frame.AbsoluteSize.Y
+		if tile and fill:IsA("ImageLabel") then
+			fill.TileSize = UDim2.new(0, GuiLayout.tileWidth(tile, if height > 0 then height else tile[2]), 1, 0)
+		end
+	end
+	frame:GetPropertyChangedSignal("AbsoluteSize"):Connect(fitTiles)
 	local function setKind(name: string)
 		if name == current then
 			return
@@ -974,24 +983,17 @@ function UI.bar(props, kind: string?, track: string?): Bar
 		if fill then
 			fill:Destroy()
 		end
+		tile = if art then art.tile else nil
 		if art and art.tile then
-			local height = frame.AbsoluteSize.Y
-			local tile = art.tile :: { number }
-			local image = UI.new("ImageLabel", {
+			fill = UI.new("ImageLabel", {
 				Name = "Fill",
 				Image = art.image,
 				ImageColor3 = if look.tint then UI.Colors[look.tint] else Color3.new(1, 1, 1),
 				ScaleType = Enum.ScaleType.Tile,
-				TileSize = UDim2.new(0, GuiLayout.tileWidth(tile, if height > 0 then height else tile[2]), 1, 0),
 				BackgroundTransparency = 1,
 				Position = UDim2.fromOffset(inset, inset),
 			})
-			frame:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
-				if image.Parent and frame.AbsoluteSize.Y > 0 then
-					image.TileSize = UDim2.new(0, GuiLayout.tileWidth(tile, frame.AbsoluteSize.Y), 1, 0)
-				end
-			end)
-			fill = image
+			fitTiles()
 		else
 			fill = UI.new("Frame", {
 				Name = "Fill",
