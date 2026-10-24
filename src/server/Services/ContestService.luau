@@ -289,6 +289,26 @@ function ContestService:Init()
 	end)
 end
 
+-- For testing in Studio (StudioTestService): judging day is open now, whatever the wait, and any
+-- result waiting to be collected is dropped. `reset` starts the contest over from the first
+-- summer.
+function ContestService:OpenForTesting(player: Player, reset: boolean?): boolean
+	local data = DataService:Get(player)
+	if not data then
+		return false
+	end
+	if reset then
+		data.contest = nil
+	end
+	local contest = stateOf(data)
+	contest.pending = false
+	contest.nextAt = data.jobsCompleted or 0
+	contest.offered = -1
+	offer(player)
+	update(player)
+	return true
+end
+
 function ContestService:Start()
 	-- Act 4 starting, or the jobs that bring judging day round again.
 	StoryService.ActStarted:Connect(function(player)

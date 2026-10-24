@@ -34,6 +34,7 @@ local FUNCTIONS = {
 	"TalkToJune",
 	"GetContest",
 	"StartJudging",
+	"StudioTest",
 	"CollectContest",
 	"AcceptJob",
 	"BuyItem",
