@@ -735,8 +735,8 @@
     },
     {
       "path": "Icons/PickUp.png",
-      "bytes": 2740,
-      "sha256": "b3734d2697f11703b85022602401d055ca9de38369ec8b652164550ede1ea87f",
+      "bytes": 3410,
+      "sha256": "dced3fc25fd91823503d874a96fa5d230f90feab18848ae964c10956ff9eeb7f",
       "purpose": "White tintable 128px glyph, readable at 32px",
       "role": "upload",
       "size_px": [
