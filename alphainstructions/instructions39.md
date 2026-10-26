@@ -75,3 +75,66 @@ imports it into Studio as Big Dink Studios and replaces the old model.
       same look as before.
 - [ ] All five previews are in `Previews/`.
 - [ ] Nothing outside `39_Fixes/` changed.
+
+## Also: stop three models flickering (z-fighting)
+
+On phones some faces flicker between two colours as the camera moves. Two overlapping faces lie in
+the same plane (or within a few thousandths of a stud of it), facing the same way, so the GPU can't
+tell which is in front. Where the two faces were in different meshes, the game's copy has already
+been fixed by nudging one mesh. The cases below have both faces in the **same mesh**, so they need
+fixing in the source. Rule of thumb: two overlapping faces that face the same way and differ in
+colour must be **at least 0.03 studs apart**.
+
+`python3 scripts/check-coplanar.py <model.gltf or pack folder>` finds these: it lists each pair of
+overlapping faces with the meshes, the plane, the area and the two colours. Coordinates below are
+model-local studs, as that script prints them.
+
+1. **`DeliveryCrate`** (pack 33, folder `Props`), in `DeliveryCrate__Body`. On both sides of the
+   crate (X = ±2.594) the outer faces of the six horizontal side slats (light wood) and of the two
+   vertical corner posts (dark wood, at Z ≈ −3.4 and +3.5) are in one plane, so the 12 spots per
+   side where a slat crosses a post flicker. Set the slats 0.03 studs further in (outer faces at
+   X = ±2.564) so the posts stand proud. Keep the overall size.
+
+2. **`SmallOffice`** (pack 24, folder `Buildings`):
+   - In `SmallOffice__Body`, the white trim strip over the garage-door opening (X −12.17 to 0.17,
+     Y 10.85 to 11.02) is only 0.005 studs in front of the front wall's siding (Z −13.860 against
+     −13.865). Bring it out to Z −13.895 or further.
+   - In `SmallOffice__Body`, the dark ceiling beam at X = 7 (X 6.93 to 7.07, Y 16.86 to 17.14,
+     along Z) sits on the office partition, and the partition's siding (X 6.935 to 6.995) runs up
+     inside the beam. Their −X faces are 0.005 studs apart. Stop the siding at the underside of the
+     beam (Y 16.86).
+   - `SmallOffice__Glass_Door` (the door is modelled swung open against the front wall) had its
+     front face 0.0025 studs behind the wall's siding. The game's copy moves the glass 0.03 studs
+     out, to Z −13.880 at its centre, still inside the door frame. Do the same in the source.
+
+3. **`GloriaYard_Stage3`** (pack 37, folder `Story`):
+   - `GloriaYard_Stage3__Lawn` is three stacked layers in two greens, 0.010 to 0.013 studs apart
+     across the whole 44 × 30 lawn: the turf's top at Y 0.120, the checker stripes' tops at 0.133
+     and the intersection tiles' tops at 0.143. From across the street they shimmer. Space the
+     layers at least 0.03 apart, for example turf 0.06, stripes 0.09, tiles 0.12, or build the
+     pattern as one layer. Keep the lawn's top at Y 0.13 or lower, so the driveway (top 0.16) and
+     the walk (top 0.17) in `GloriaYard_Stage3__Body` stay at least 0.03 above it. Keep everything
+     in the Body standing on the lawn: the beds, hedges, planters, path lights and sign.
+   - The lawn's front and back edge faces (Z −48 and −18) are in line with the ends of the walk and
+     the driveway. The game's copy moves the whole lawn 0.03 studs toward the street. In the source,
+     keep those ends at least 0.03 apart, either by moving the lawn the same way or by stopping the
+     walk and driveway 0.03 short at each end.
+   - Stay inside the model's 14,000-triangle budget.
+
+Keep everything else about these three the same: ids, folders, mesh names and how the parts are
+split, origins and pivots, the `Root` at (0, 0.5, 0), every marker and attachment (SmallOffice's
+`Mount`, `FloorSpot`, `EquipmentBay`, `Desk`, `DeliverySpot`, `TruckParking` and `Light` with their
+attributes and LookVectors), the doors modelled open, collision roles and sizes. Keep each model's
+UVs on the atlas of its original pack (HP24, HP33, HP37).
+
+**Deliver them in the same `39_Fixes` pack** as June: `Models/<Id>/<Id>.gltf` with `.bin` and
+`.fbx` for each one. Add each as its own top-level node in `ALL/39_Fixes.gltf` (translation only,
+each in its own grid cell, June at the origin). Copy each entry into `model_manifest.json` from its
+original pack's manifest and update it. Put the textures each model uses in `Textures/`. Add one
+preview of each fixed area to `Previews/`: `DeliveryCrate_Side.png`, `SmallOffice_Front.png` and
+`GloriaYard_Stage3_Lawn.png`.
+
+- [ ] `python3 scripts/check-coplanar.py model-source/HighPoly/39_Fixes` reports nothing, and with
+      `--tol 0.03` it lists none of the faces named above.
+- [ ] DeliveryCrate, SmallOffice and GloriaYard_Stage3 are in `39_Fixes` with the same ids, mesh
+      names, origins and markers as before.
