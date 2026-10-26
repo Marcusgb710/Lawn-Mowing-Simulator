@@ -2,9 +2,10 @@
 -- at her and press E (or tap the button) to talk: StoryService picks what she says, and her
 -- speech bubble shows on your screen (DialogueController). WorldService puts her on each plot.
 --
--- The models are Props/PorchRockingChair and Props/GrandmaJune (block placeholders until the real
--- ones exist), both standing on the same spot. The scenes' markers are attachments on an
--- invisible Anchor part, worked out from June's size, so a real model needs none of its own:
+-- The models are Story/PorchRockingChair and Story/NPC_June_Sitting, falling back to the block
+-- placeholders Props/PorchRockingChair and Props/GrandmaJune, both standing on the same spot.
+-- The scenes' markers are attachments on an invisible Anchor part, worked out from June's size, so
+-- a real model needs none of its own:
 --   Bubble    over her head, where her speech bubble goes
 --   TalkView  where the camera looks at her from in the story's scenes
 
@@ -19,15 +20,24 @@ local VIEW_SIDE = 2.5
 
 local GrandmaJune = {}
 
+-- Each piece: the real model's id in Story/ (alphainstructions/instructions37.md), and the block
+-- placeholder used until it's in the game. June's model is made to sit with her origin on the
+-- rocker's, so both stand on the same spot.
+local PIECES = {
+	{ story = "PorchRockingChair", placeholder = "PorchRockingChair", name = "PorchRockingChair" },
+	{ story = "NPC_June_Sitting", placeholder = "GrandmaJune", name = "GrandmaJune" },
+}
+
 -- June in her rocker, on the ground at `ground`, facing its LookVector.
 function GrandmaJune.build(ground: CFrame): Model
 	local model = Instance.new("Model")
 	model.Name = "GrandmaJune"
-	for _, name in { "PorchRockingChair", "GrandmaJune" } do
-		local piece = Assets.prop(name)
-		Assets.anchor(piece)
-		Assets.placeAt(piece, ground)
-		piece.Parent = model
+	for _, piece in PIECES do
+		local part = Assets.storyModel(piece.story) or Assets.prop(piece.placeholder)
+		part.Name = piece.name
+		Assets.anchor(part)
+		Assets.placeAt(part, ground)
+		part.Parent = model
 	end
 
 	local june = model:FindFirstChild("GrandmaJune") :: Model
