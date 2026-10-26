@@ -1,0 +1,26 @@
+{
+  "status": "passed",
+  "name": "NPC_June_Sitting",
+  "triangles": 14052,
+  "mesh_objects": 2,
+  "bounds_error_studs": 4.76837158203125e-07,
+  "referenced_texture_files_resolve": true,
+  "textures": [
+    {
+      "name": "HP37_Color",
+      "file": "HP37_Color.png"
+    },
+    {
+      "name": "HP37_Metalness",
+      "file": "HP37_Metalness.png"
+    },
+    {
+      "name": "HP37_Normal",
+      "file": "HP37_Normal.png"
+    },
+    {
+      "name": "HP37_Roughness",
+      "file": "HP37_Roughness.png"
+    }
+  ]
+}

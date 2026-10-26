@@ -1,0 +1,31 @@
+{
+  "status": "passed",
+  "models": 1,
+  "triangles": 14052,
+  "mesh_objects": 2,
+  "bounds_min_studs": [
+    -1.1924604220049722,
+    0.0,
+    -1.591278293303081
+  ],
+  "bounds_max_studs": [
+    1.1150000350815907,
+    4.290220354284559,
+    0.7411575210945947
+  ],
+  "head_export_attribute_max_delta": {
+    "POSITION": 0.0,
+    "NORMAL": 0.0,
+    "TEXCOORD_0": 0.0
+  },
+  "head_native_geometry_and_uvs_identical": true,
+  "body_topology_and_uvs_identical": true,
+  "shared_textures_byte_identical": true,
+  "chair_surface_crossings": 0,
+  "feet_flat_and_within_runner_limit": true,
+  "combined_root_at_origin_translation_only": true,
+  "fbx_reimport_checked": true,
+  "preview_count": 5,
+  "only_39_fixes_changed": true,
+  "studio_import_tested": false
+}
