@@ -1,0 +1,74 @@
+[
+  {
+    "name": "DeliveryCrate",
+    "source_pack": "33_ShopDesksAndDeliveries",
+    "changes": [
+      {
+        "surface": "twelve horizontal side slats",
+        "count": 12,
+        "inset_studs": 0.031,
+        "end_inset_studs": 0.02,
+        "post_positions_unchanged": true
+      }
+    ],
+    "triangles": 5876,
+    "mesh_objects": 4,
+    "original_nodes_transforms_markers_and_pivots_preserved": true
+  },
+  {
+    "name": "SmallOffice",
+    "source_pack": "24_YardAndBuildings",
+    "changes": [
+      {
+        "surface": "garage lintel trim",
+        "outward_shift_studs": 0.04,
+        "upward_shift_studs": 0.04,
+        "new_front_z_studs": -13.900000882829936,
+        "dimensions_unchanged": true
+      },
+      {
+        "surface": "partition lap siding",
+        "new_top_y_studs": 16.85,
+        "beam_unchanged": true
+      },
+      {
+        "surface": "open door glazing",
+        "centre_z_studs": -13.884,
+        "minimum_front_wall_gap_studs": 0.0315,
+        "pivot_unchanged": true
+      }
+    ],
+    "triangles": 13468,
+    "mesh_objects": 32,
+    "original_nodes_transforms_markers_and_pivots_preserved": true
+  },
+  {
+    "name": "GloriaYard_Stage3",
+    "source_pack": "37_Story",
+    "changes": [
+      {
+        "surface": "walk and driveway end faces",
+        "front_z_studs": -47.96,
+        "back_z_studs": -18.04,
+        "lawn_edge_gap_studs": 0.04
+      },
+      {
+        "surface": "checkerboard lawn",
+        "method": "one non-overlapping top layer; original tile UVs",
+        "columns": 16,
+        "rows": 10,
+        "top_y_studs": 0.129,
+        "paving_gaps_studs": {
+          "driveway": 0.031,
+          "walk": 0.041
+        },
+        "triangles_before": 2124,
+        "triangles_after": 330,
+        "body_decorations_unchanged": true
+      }
+    ],
+    "triangles": 11366,
+    "mesh_objects": 2,
+    "original_nodes_transforms_markers_and_pivots_preserved": true
+  }
+]

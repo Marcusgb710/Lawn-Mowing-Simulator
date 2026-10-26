@@ -1,0 +1,355 @@
+{
+  "asset": {
+    "generator": "Khronos glTF Blender I/O v4.3.47",
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        2
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "extras": {
+        "role": "static",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 0,
+      "name": "GloriaYard_Stage3__Body"
+    },
+    {
+      "extras": {
+        "role": "lawn",
+        "animation_axis": "",
+        "stud_origin": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "can_collide": false,
+        "collision_fidelity": "Default",
+        "motion_mode": ""
+      },
+      "mesh": 1,
+      "name": "GloriaYard_Stage3__Lawn"
+    },
+    {
+      "children": [
+        0,
+        1
+      ],
+      "extras": {
+        "folder": "Story",
+        "stud_to_meter": 0.28,
+        "primary_part": "Root",
+        "primary_position_studs": [
+          0.0,
+          0.5,
+          0.0
+        ],
+        "markers_json": "[]",
+        "slots_json": "[]"
+      },
+      "name": "GloriaYard_Stage3"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "HP shared PBR 37",
+      "normalTexture": {
+        "index": 0,
+        "scale": 0.44999998807907104
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 1
+        },
+        "metallicRoughnessTexture": {
+          "index": 2
+        }
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "GloriaYard_Stage3__Body",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    },
+    {
+      "name": "GloriaYard_Stage3__Lawn",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 8,
+            "NORMAL": 9,
+            "TEXCOORD_0": 10
+          },
+          "indices": 11,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    }
+  ],
+  "images": [
+    {
+      "mimeType": "image/png",
+      "name": "HP37_Normal",
+      "uri": "../../Textures/HP37_Normal.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP37_Color",
+      "uri": "../../Textures/HP37_Color.png"
+    },
+    {
+      "mimeType": "image/png",
+      "name": "HP37_Metalness-HP37_Roughness",
+      "uri": "../../Textures/HP37_Metalness-HP37_Roughness.png"
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 6184,
+      "max": [
+        5.9639997482299805,
+        1.195879578590393,
+        -5.051199913024902
+      ],
+      "min": [
+        -5.813988208770752,
+        0.0,
+        -13.428799629211426
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 6184,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 6184,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "count": 33108,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 4,
+      "componentType": 5126,
+      "count": 4248,
+      "max": [
+        6.159999847412109,
+        0.040039997547864914,
+        -5.039999961853027
+      ],
+      "min": [
+        -6.159999847412109,
+        0.0,
+        -13.440000534057617
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 5,
+      "componentType": 5126,
+      "count": 4248,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 6,
+      "componentType": 5126,
+      "count": 4248,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 7,
+      "componentType": 5123,
+      "count": 6372,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 8,
+      "componentType": 5126,
+      "count": 660,
+      "type": "VEC3",
+      "min": [
+        -6.159999847412109,
+        0.0,
+        -13.440000534057617
+      ],
+      "max": [
+        6.159999847412109,
+        0.03612000122666359,
+        -5.039999961853027
+      ]
+    },
+    {
+      "bufferView": 9,
+      "componentType": 5126,
+      "count": 660,
+      "type": "VEC3",
+      "min": [
+        -1.0,
+        -1.0,
+        -1.0
+      ],
+      "max": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "bufferView": 10,
+      "componentType": 5126,
+      "count": 660,
+      "type": "VEC2",
+      "min": [
+        0.25390625,
+        0.6290234327316284
+      ],
+      "max": [
+        0.4959765672683716,
+        0.74609375
+      ]
+    },
+    {
+      "bufferView": 11,
+      "componentType": 5125,
+      "count": 990,
+      "type": "SCALAR"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 74208,
+      "byteOffset": 0,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 74208,
+      "byteOffset": 74208,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 49472,
+      "byteOffset": 148416,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 66216,
+      "byteOffset": 197888,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 50976,
+      "byteOffset": 264104,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 50976,
+      "byteOffset": 315080,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 33984,
+      "byteOffset": 366056,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 12744,
+      "byteOffset": 400040,
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 412784,
+      "byteLength": 7920,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 420704,
+      "byteLength": 7920,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 428624,
+      "byteLength": 5280,
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 433904,
+      "byteLength": 3960,
+      "target": 34963
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 437864,
+      "uri": "GloriaYard_Stage3.bin"
+    }
+  ]
+}

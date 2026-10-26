@@ -1,8 +1,8 @@
 {
   "status": "passed",
-  "models": 1,
-  "triangles": 14052,
-  "mesh_objects": 2,
+  "models": 4,
+  "june_triangles": 14052,
+  "june_mesh_objects": 2,
   "bounds_min_studs": [
     -1.1924604220049722,
     0.0,
@@ -23,9 +23,43 @@
   "shared_textures_byte_identical": true,
   "chair_surface_crossings": 0,
   "feet_flat_and_within_runner_limit": true,
-  "combined_root_at_origin_translation_only": true,
+  "combined_roots_translation_only": true,
+  "june_at_origin": true,
   "fbx_reimport_checked": true,
-  "preview_count": 5,
+  "surface_fixes": {
+    "assets": [
+      {
+        "name": "DeliveryCrate",
+        "triangles": 5876,
+        "mesh_objects": 4,
+        "original_markers_nodes_pivots_roles_and_sizes_preserved": true,
+        "original_texture_atlas_and_uvs_preserved": true,
+        "unrelated_geometry_preserved": true
+      },
+      {
+        "name": "SmallOffice",
+        "triangles": 13468,
+        "mesh_objects": 32,
+        "original_markers_nodes_pivots_roles_and_sizes_preserved": true,
+        "original_texture_atlas_and_uvs_preserved": true,
+        "unrelated_geometry_preserved": true
+      },
+      {
+        "name": "GloriaYard_Stage3",
+        "triangles": 11366,
+        "mesh_objects": 2,
+        "original_markers_nodes_pivots_roles_and_sizes_preserved": true,
+        "original_texture_atlas_and_uvs_preserved": true,
+        "unrelated_geometry_preserved": true
+      }
+    ],
+    "combined_mesh_data_materials_and_transforms_checked": true,
+    "grid_nonoverlapping": true,
+    "default_coplanar_checker_clean": true,
+    "specified_surfaces_clear_at_003_studs": true,
+    "other_original_wide_tolerance_pairs": 28
+  },
+  "preview_count": 8,
   "only_39_fixes_changed": true,
   "studio_import_tested": false
 }

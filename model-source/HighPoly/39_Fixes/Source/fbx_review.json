@@ -1,26 +1,85 @@
 {
   "status": "passed",
-  "name": "NPC_June_Sitting",
-  "triangles": 14052,
-  "mesh_objects": 2,
-  "bounds_error_studs": 4.76837158203125e-07,
-  "referenced_texture_files_resolve": true,
-  "textures": [
+  "assets": [
     {
-      "name": "HP37_Color",
-      "file": "HP37_Color.png"
+      "status": "passed",
+      "name": "NPC_June_Sitting",
+      "triangles": 14052,
+      "mesh_objects": 2,
+      "bounds_error_studs": 4.76837158203125e-07,
+      "referenced_texture_files_resolve": true,
+      "textures": [
+        {
+          "name": "HP37_Color",
+          "file": "HP37_Color.png"
+        },
+        {
+          "name": "HP37_Metalness",
+          "file": "HP37_Metalness.png"
+        },
+        {
+          "name": "HP37_Normal",
+          "file": "HP37_Normal.png"
+        },
+        {
+          "name": "HP37_Roughness",
+          "file": "HP37_Roughness.png"
+        }
+      ]
     },
     {
-      "name": "HP37_Metalness",
-      "file": "HP37_Metalness.png"
+      "status": "passed",
+      "name": "DeliveryCrate",
+      "triangles": 5876,
+      "mesh_objects": 4,
+      "bounds_error_studs": 5.655568315887649e-07,
+      "referenced_texture_files_resolve": true,
+      "textures": [
+        {
+          "name": "HP33_Color",
+          "file": "HP33_Color.png"
+        },
+        {
+          "name": "HP33_Normal",
+          "file": "HP33_Normal.png"
+        }
+      ]
     },
     {
-      "name": "HP37_Normal",
-      "file": "HP37_Normal.png"
+      "status": "passed",
+      "name": "SmallOffice",
+      "triangles": 13468,
+      "mesh_objects": 32,
+      "bounds_error_studs": 2.4152989226422505e-06,
+      "referenced_texture_files_resolve": true,
+      "textures": [
+        {
+          "name": "HP24_Color",
+          "file": "HP24_Color.png"
+        },
+        {
+          "name": "HP24_Normal",
+          "file": "HP24_Normal.png"
+        }
+      ]
     },
     {
-      "name": "HP37_Roughness",
-      "file": "HP37_Roughness.png"
+      "status": "passed",
+      "name": "GloriaYard_Stage3",
+      "triangles": 11366,
+      "mesh_objects": 2,
+      "bounds_error_studs": 7.820192877261434e-06,
+      "referenced_texture_files_resolve": true,
+      "textures": [
+        {
+          "name": "HP37_Color",
+          "file": "HP37_Color.png"
+        },
+        {
+          "name": "HP37_Normal",
+          "file": "HP37_Normal.png"
+        }
+      ]
     }
   ]
 }
