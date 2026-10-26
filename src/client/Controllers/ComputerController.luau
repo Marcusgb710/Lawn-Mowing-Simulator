@@ -38,7 +38,10 @@ local SCREEN_FOV = 50
 local TASKBAR = 48
 -- Your money shows at the taskbar's end on screens at least this wide (pixels), and how wide.
 local MONEY_FROM = 760
-local MONEY_WIDTH = 150
+local MONEY_WIDTH = 120
+-- The taskbar's buttons show their app's name beside its icon on screens at least this wide;
+-- narrower (a phone), just the icon, centred, so the words never run into each other.
+local NAMES_FROM = 1100
 local BACK_WIDTH = 104
 -- Walking this far from the desk (or starting to walk) puts the computer away.
 local WALK_AWAY = 3
@@ -292,9 +295,17 @@ local function updateMoney()
 end
 
 local function fitTaskbar(display: GuiObject)
-	local wide = display.AbsoluteSize.X >= MONEY_FROM
+	local width = display.AbsoluteSize.X
+	local wide = width >= MONEY_FROM
 	money.Frame.Visible = wide
 	taskbarButtons.Size = UDim2.new(1, -(BACK_WIDTH + 8 + (if wide then MONEY_WIDTH else 0)), 1, 0)
+	local named = width >= NAMES_FROM
+	for app, button in taskButtons do
+		local text = if named then app.name else ""
+		if button.Text ~= text then
+			button.Text = text
+		end
+	end
 end
 
 -- An app on the desktop: its icon from the art over its name and what it's for, or a plain
@@ -466,13 +477,12 @@ local function build()
 			Parent = taskbarButtons,
 		})
 		UI.new("UITextSizeConstraint", { MaxTextSize = 16, Parent = button })
-		UI.new("UIPadding", { PaddingLeft = UDim.new(0, 4), PaddingRight = UDim.new(0, 4), Parent = button })
 		taskButtons[app] = button
 		if app.badge then
 			addBadge(button, 2)
 		end
 	end
-	money = UI.display("Numbers", "", { TextSize = 34, Color = UI.Colors.Money, XAlignment = "Right", Fit = true }, {
+	money = UI.display("Numbers", "", { TextSize = 24, Color = UI.Colors.Money, XAlignment = "Right", Fit = true }, {
 		AnchorPoint = Vector2.new(1, 0),
 		Position = UDim2.new(1, -(BACK_WIDTH + 8), 0, 0),
 		Size = UDim2.new(0, MONEY_WIDTH - 12, 1, 0),

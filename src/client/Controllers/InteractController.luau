@@ -52,6 +52,8 @@ local player = Players.LocalPlayer
 
 -- How far from the camera you can use things.
 local REACH = 10
+-- When the ray finds nothing to use, how wide a look (stud radius) catches thin things.
+local LOOK_RADIUS = 0.4
 -- How close (across the ground) a ride-on has to be to a bay to park on it.
 local PARK_REACH = 6
 -- How many of your crewmates' delivery boxes you can look past to one of yours behind them.
@@ -524,6 +526,16 @@ local function resolve(): Target?
 		thing = result and interactableOf(result.Instance)
 	end
 	local target = thing and targetFor(thing, item, result and result.Instance)
+	-- Empty-handed, a thin thing (grass shears on the pegboard, a rake's shaft) is easy to miss
+	-- with a ray through its gaps: look again a little wider.
+	if not target and not item then
+		local wide = workspace:Spherecast(origin, LOOK_RADIUS, direction * REACH, rayParams)
+		local wideThing = wide and interactableOf(wide.Instance)
+		local wideTarget = wideThing and targetFor(wideThing, item, wide.Instance)
+		if wideTarget then
+			result, thing, target = wide, wideThing, wideTarget
+		end
+	end
 	local here = target and target.action
 	if here == "PutBack" or here == "PutInBucket" or here == "SetDown" or here == "Service" then
 		return target
