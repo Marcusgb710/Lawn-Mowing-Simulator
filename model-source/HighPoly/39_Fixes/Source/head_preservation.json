@@ -1,0 +1,22 @@
+[
+  {
+    "file": "Models/NPC_June_Sitting/NPC_June_Sitting.gltf",
+    "original_head_buffer_view_sha256": {
+      "4": "35ae90c7512627aeeed772984e4c606597bad502e8b0c064022d77266fc19f7d",
+      "5": "38bc6b040ab7f5248a52c05fbc76b4ce3a53580995fa95a7c760d2f05f04f7e4",
+      "6": "6f78da6d17de5506b929154a68ad9e4aed0cf758dd62be9224a90dc5e8ab14c4",
+      "7": "350ec2ad170073497f47d70f591ff4e737bbcd15c12b3f4b5439aab1a9a32ba8"
+    },
+    "original_head_attributes_and_indices_reused": true
+  },
+  {
+    "file": "ALL/39_Fixes.gltf",
+    "original_head_buffer_view_sha256": {
+      "4": "35ae90c7512627aeeed772984e4c606597bad502e8b0c064022d77266fc19f7d",
+      "5": "38bc6b040ab7f5248a52c05fbc76b4ce3a53580995fa95a7c760d2f05f04f7e4",
+      "6": "6f78da6d17de5506b929154a68ad9e4aed0cf758dd62be9224a90dc5e8ab14c4",
+      "7": "350ec2ad170073497f47d70f591ff4e737bbcd15c12b3f4b5439aab1a9a32ba8"
+    },
+    "original_head_attributes_and_indices_reused": true
+  }
+]

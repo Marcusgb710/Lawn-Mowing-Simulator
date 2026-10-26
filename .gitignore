@@ -13,3 +13,6 @@ roblox.toml
 
 .DS_Store
 Thumbs.db
+
+# Claude Code workspaces (worktrees, local settings)
+.claude/
