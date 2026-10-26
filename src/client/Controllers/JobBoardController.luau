@@ -180,7 +180,7 @@ local function render()
 		UI.display(
 			"Numbers",
 			Format.money(offer.payout),
-			{ TextSize = 40, Color = UI.Colors.Money, XAlignment = "Right", Fit = true },
+			{ TextSize = 30, Color = UI.Colors.Money, XAlignment = "Right", Fit = true },
 			{
 				AnchorPoint = Vector2.new(1, 0),
 				Position = UDim2.new(1, -12, 0, 8),

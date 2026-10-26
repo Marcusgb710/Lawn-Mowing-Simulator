@@ -224,8 +224,8 @@ local function buildStats()
 	money = UI.display(
 		"Numbers",
 		"$0",
-		{ TextSize = 40, Color = UI.Colors.Money, Fit = true },
-		{ Position = UDim2.fromOffset(moneyX, 0), Size = UDim2.new(1, -moneyX, 0, 38), Parent = frame }
+		{ TextSize = 30, Color = UI.Colors.Money, Fit = true },
+		{ Position = UDim2.fromOffset(moneyX, 2), Size = UDim2.new(1, -moneyX, 0, 34), Parent = frame }
 	)
 	local levelIcon =
 		UI.icon("Level", { Size = UDim2.fromOffset(16, 16), Position = UDim2.fromOffset(2, 44), Parent = frame })

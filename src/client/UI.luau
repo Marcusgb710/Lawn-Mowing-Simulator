@@ -192,6 +192,37 @@ local function fitSlice(image: ImageLabel)
 		math.min(GuiLayout.sliceScale(fixed.X, size.X, slice.scale), GuiLayout.sliceScale(fixed.Y, size.Y, slice.scale))
 end
 
+-- Calls `loaded` once `image` has downloaded (straight away if it already has). Phones fetch new
+-- art slowly the first time, so what the art replaces stays up until then. IsLoaded doesn't
+-- reliably say when it changes, so the images still waiting are looked at a few times a second.
+local waiting: { [ImageLabel]: () -> () } = setmetatable({} :: any, { __mode = "k" })
+local watching = false
+local LOAD_CHECK = 0.25
+local function whenLoaded(image: ImageLabel, loaded: () -> ())
+	if image.IsLoaded then
+		loaded()
+		return
+	end
+	waiting[image] = loaded
+	if watching then
+		return
+	end
+	watching = true
+	task.spawn(function()
+		while next(waiting) ~= nil do
+			task.wait(LOAD_CHECK)
+			for waitingImage, done in waiting do
+				if waitingImage.IsLoaded then
+					waiting[waitingImage] = nil
+					done()
+				end
+			end
+		end
+		watching = false
+	end)
+end
+UI.whenLoaded = whenLoaded
+
 -- Makes `image` show the kit piece `slice` (a 9-slice, or a piece that scales evenly), its corners
 -- kept in proportion as it changes size.
 local function applySlice(image: ImageLabel, slice: Art.Slice)
@@ -230,8 +261,20 @@ function UI.sliced(name: string, props, fallback: Fallback?): GuiObject
 	local plain = fallback or {}
 	local frame: GuiObject
 	if slice then
-		frame = UI.new("ImageLabel", {})
-		applySlice(frame :: ImageLabel, slice)
+		local image = UI.new("ImageLabel", {}) :: ImageLabel
+		applySlice(image, slice)
+		frame = image
+		-- Until the art has downloaded, the plain frame's look stands in for it.
+		if not image.IsLoaded then
+			image.BackgroundColor3 = plain.color or UI.Colors.Background
+			image.BackgroundTransparency = plain.transparency or 0
+			local corner = UI.corner(plain.radius or 8)
+			corner.Parent = image
+			whenLoaded(image, function()
+				image.BackgroundTransparency = 1
+				corner:Destroy()
+			end)
+		end
 	else
 		frame = UI.new("Frame", {
 			BackgroundColor3 = plain.color or UI.Colors.Background,
@@ -429,8 +472,11 @@ local function placeIcon(button: TextButton, info: ButtonInfo)
 	end
 	local drop = if info.pressed then 1 else 0
 	if button.Text == "" then
+		-- Centred on the whole button, whatever room the padding keeps for a glyph beside words.
+		local padding = info.padding
+		local shift = if padding then (padding.PaddingLeft.Offset - padding.PaddingRight.Offset) / 2 else 0
 		icon.AnchorPoint = Vector2.new(0.5, 0.5)
-		icon.Position = UDim2.new(0.5, 0, 0.5, drop)
+		icon.Position = UDim2.new(0.5, -shift, 0.5, drop)
 	else
 		icon.AnchorPoint = Vector2.new(0, 0.5)
 		icon.Position = UDim2.new(0, -(info.iconSize + ICON_GAP), 0.5, drop)
@@ -511,16 +557,19 @@ local function dress(button: TextButton, info: ButtonInfo, glyph: string)
 	local style = BUTTON_STYLES[info.style]
 	local art = Art.slice(style.art)
 	if art then
-		button.BackgroundTransparency = 1
 		button.AutoButtonColor = false
-		local corner = button:FindFirstChildOfClass("UICorner")
-		if corner then
-			corner:Destroy()
-		end
 		local skin = UI.new("ImageLabel", { Name = "Skin", ZIndex = 1 })
 		applySlice(skin, art)
 		skin.Parent = button
 		info.skin = skin
+		-- The plain face (its colour and round corners) shows until the art has downloaded.
+		whenLoaded(skin, function()
+			button.BackgroundTransparency = 1
+			local corner = button:FindFirstChildOfClass("UICorner")
+			if corner then
+				corner:Destroy()
+			end
+		end)
 	end
 	local label = UI.new("TextLabel", {
 		Name = "Label",
@@ -676,11 +725,15 @@ function UI.touchButton(text: string, icon: string?, props, small: boolean?): Te
 		end
 	end
 	if art and glyph ~= "" then
-		button.BackgroundTransparency = 1
 		button.AutoButtonColor = false
 		button.TextTransparency = 1
 		local skin = UI.new("ImageLabel", { Name = "Skin", Size = UDim2.fromScale(1, 1), Parent = button })
 		applySlice(skin, art)
+		-- Until the art has downloaded, the plain round green button shows behind the glyph, so
+		-- there's always something to tap.
+		whenLoaded(skin, function()
+			button.BackgroundTransparency = 1
+		end)
 		local image = UI.new("ImageLabel", {
 			Name = "Icon",
 			AnchorPoint = Vector2.new(0.5, 0.5),
@@ -1218,11 +1271,22 @@ end
 -- takes over the screen: the drive cutscene, or a dialogue. Each says why, so one ending doesn't
 -- bring them back while the other's still up.
 local hiders: { [string]: boolean } = {}
+-- Roblox's hotbar (the Backpack) is only for switching between your loaded tools on a job site.
+-- Everywhere else you carry one thing at a time, and its slot would just be a dark box.
+local hotbarWanted = false
+local function showHotbar()
+	pcall(StarterGui.SetCoreGuiEnabled, StarterGui, Enum.CoreGuiType.Backpack, hotbarWanted and next(hiders) == nil)
+end
 function UI.hideGame(reason: string, hidden: boolean)
 	hiders[reason] = if hidden then true else nil
-	local visible = next(hiders) == nil
-	UI.getScreen().Enabled = visible
-	pcall(StarterGui.SetCoreGuiEnabled, StarterGui, Enum.CoreGuiType.Backpack, visible)
+	UI.getScreen().Enabled = next(hiders) == nil
+	showHotbar()
+end
+
+-- Whether Roblox's hotbar shows (when nothing's hiding the game): on a job site, not elsewhere.
+function UI.setHotbar(wanted: boolean)
+	hotbarWanted = wanted
+	showHotbar()
 end
 
 -- A story line (Config/Story.luau) for a RichText label: its `*highlights*` in the highlight
@@ -1239,6 +1303,20 @@ end
 -- above the shop computer's monitor (so its replies show) but under the drive cutscene.
 local toastScreen: ScreenGui = nil
 local toastHolder: Frame = nil
+-- How far down the screen the toasts start, and what they stay below (see UI.keepToastsBelow).
+local TOAST_TOP = 60
+local toastsUnder: GuiObject? = nil
+local function placeToasts()
+	if not toastHolder then
+		return
+	end
+	local top = TOAST_TOP
+	local under = toastsUnder
+	if under and under.Visible then
+		top = math.max(top, under.AbsolutePosition.Y + under.AbsoluteSize.Y + 8)
+	end
+	toastHolder.Position = UDim2.new(0.5, 0, 0, top)
+end
 local function toastStack(): Frame
 	if not toastHolder then
 		toastScreen = UI.new("ScreenGui", {
@@ -1251,13 +1329,24 @@ local function toastStack(): Frame
 		toastHolder = UI.new("Frame", {
 			Name = "Toasts",
 			AnchorPoint = Vector2.new(0.5, 0),
-			Position = UDim2.new(0.5, 0, 0, 60),
+			Position = UDim2.new(0.5, 0, 0, TOAST_TOP),
 			Size = UDim2.new(1, -32, 0, 200),
 			BackgroundTransparency = 1,
 			Parent = toastScreen,
 		}, { UI.list(6), UI.new("UISizeConstraint", { MaxSize = Vector2.new(420, 200) }) })
+		placeToasts()
 	end
 	return toastHolder
+end
+
+-- Keeps the toasts just below `gui` while it shows (the first-job coach at the top of the
+-- screen), so they never sit on top of it.
+function UI.keepToastsBelow(gui: GuiObject)
+	toastsUnder = gui
+	for _, property in { "AbsoluteSize", "AbsolutePosition", "Visible" } do
+		gui:GetPropertyChangedSignal(property):Connect(placeToasts)
+	end
+	placeToasts()
 end
 
 -- Puts a toast of your own (a CanvasGroup, as wide as the stack) in the stack for `seconds`, then
