@@ -55,8 +55,8 @@ gh pr merge 32 --merge --repo Marcusgb710/Lawn-Mowing-Simulator
 
 Follow [README.md → Setup](README.md#setup-rojo):
 
-1. Run `rokit install`. It installs Rojo 7.7.1, Selene and StyLua, and Lune if you want the asset
-   scripts.
+1. Run `rokit install`. It installs Rojo 7.7.1, Selene, StyLua and Lune (for the asset and
+   publish scripts).
 2. Install the Rojo plugin. It must be **7.7.x** to talk to the 7.7.1 server.
 3. Start `rojo serve` and connect from Studio.
 
@@ -119,8 +119,19 @@ Each player's `premium` table is in their profile on the client.
 
 ### 4. Publish to Roblox
 
-Phones only get what's been published. With main pulled, Rojo connected and the place showing
-the latest code, use **File → Publish to Roblox**. Then test on a real phone:
+Phones only get what's been published. Publishing is one command and doesn't need Studio
+([README.md → Publishing](README.md#publishing) has the details):
+
+```sh
+git checkout main && git pull
+python3 scripts/publish.py --dry-run   # build, merge and check only
+python3 scripts/publish.py             # publish; prints the new version number
+```
+
+It needs an Open Cloud key with universe-places write access (`$ROBLOX_API_KEY` or
+`~/.roblox-opencloud-key`). Close Studio first: while it has the place open Roblox answers
+409 "Server is busy", and the script keeps retrying for about 6 minutes. Then test on a real
+phone:
 - the left HUD panel doesn't overlap;
 - the title card fits the screen;
 - the shop computer's apps are usable.
