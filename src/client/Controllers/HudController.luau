@@ -2,9 +2,10 @@
 --   * down the left: money and level (the money counter in the display face), the menu buttons
 --     with their glyphs (and on a keyboard their keys: T, G, C), and Grandma's sticky note with
 --     your story goal;
---   * down the right: your business's curb appeal, and the job tracker (to-dos, a timer against
---     par, damage);
---   * the condition of the tool in your hands ("Running low on fuel");
+--   * down the right: your business's curb appeal, and the job tracker on the art's GoalTracker
+--     card (to-dos, a timer against par, damage);
+--   * the condition of the tool in your hands, a glyph for each thing wrong ("Running low on
+--     fuel" by the fuel can), or what you're doing to one at the workbench;
 --   * the pay breakdown when a job's done, and the big moments: Level Up! and New Tool!
 -- On a keyboard V switches camera motion on and off.
 
@@ -75,7 +76,11 @@ local trackerButton: TextButton
 local taskRows = {}
 local shownJobId = nil
 local conditionPanel: GuiObject
-local conditionLabel: TextLabel
+-- The chips on it, one for each thing wrong (a glyph and its words), made as they're needed and
+-- then reused.
+local conditionChips: { { frame: Frame, glyph: ImageLabel?, label: TextLabel } } = {}
+-- The held tool's condition, read from its attributes into the same table each time.
+local heldCondition = {}
 
 local payPanel: GuiObject
 local payShownFor = nil
@@ -91,29 +96,94 @@ local function hudPanel(props): GuiObject
 	return UI.sliced("HudPanel", props, { color = UI.Colors.Background, transparency = 0.2, radius = 10 })
 end
 
--- Shows what's wrong with the tool you're holding, or how long until you finish working on one.
-local function updateCondition()
-	local untilTime = player:GetAttribute("MaintainingUntil")
-	if typeof(untilTime) == "number" then
-		local left = math.max(0, math.ceil(untilTime - workspace:GetServerTimeNow()))
-		conditionLabel.Text = `Working on it... {left}s`
-		conditionPanel.Visible = true
-		return
+-- The `index`th chip on the condition panel (made the first time, reused after), showing `image`
+-- (a glyph's id) and `text` in `color`.
+local function setConditionChip(index: number, image: string, text: string, color: Color3)
+	local chip = conditionChips[index]
+	if not chip then
+		local frame = UI.new("Frame", {
+			Size = UDim2.fromOffset(0, 24),
+			AutomaticSize = Enum.AutomaticSize.X,
+			BackgroundTransparency = 1,
+			LayoutOrder = index,
+			Parent = conditionPanel,
+		}, {
+			UI.new("UIListLayout", {
+				Padding = UDim.new(0, 6),
+				FillDirection = Enum.FillDirection.Horizontal,
+				VerticalAlignment = Enum.VerticalAlignment.Center,
+				SortOrder = Enum.SortOrder.LayoutOrder,
+			}),
+		})
+		chip = {
+			frame = frame,
+			-- No glyph art: the words alone.
+			glyph = UI.glyph(UI.actionGlyph(nil), { Size = UDim2.fromOffset(20, 20), LayoutOrder = 1, Parent = frame }),
+			label = UI.label("", {
+				Size = UDim2.fromOffset(0, 24),
+				AutomaticSize = Enum.AutomaticSize.X,
+				TextSize = 16,
+				LayoutOrder = 2,
+				Parent = frame,
+			}),
+		}
+		conditionChips[index] = chip
+	end
+	chip.frame.Visible = true
+	local glyph = chip.glyph
+	if glyph then
+		glyph.Visible = image ~= ""
+		glyph.Image = image
+		glyph.ImageColor3 = color
+	end
+	chip.label.Text = text
+	chip.label.TextColor3 = color
+end
+
+-- What's in your hands: carried at the business, or a tool out on a job.
+local function heldItemId(): string?
+	local carrying = player:GetAttribute("Carrying")
+	if typeof(carrying) == "string" then
+		return carrying
 	end
 	local character = player.Character
 	local tool = character and character:FindFirstChildOfClass("Tool")
-	local item = tool and Tools.get(tool:GetAttribute("ItemId"))
-	if not (tool and item) then
-		conditionPanel.Visible = false
-		return
+	local id = tool and tool:GetAttribute("ItemId")
+	return if typeof(id) == "string" then id else nil
+end
+
+-- Shows what's wrong with the tool you're holding (a chip for each thing, yellow when it's worth
+-- a look and red when it won't work), or how long until you finish working on one, with the
+-- glyph for what you're doing (filling the tank, a tire, sharpening, new line...).
+local function updateCondition()
+	local shown = 0
+	local untilTime = player:GetAttribute("MaintainingUntil")
+	if typeof(untilTime) == "number" then
+		local left = math.max(0, math.ceil(untilTime - workspace:GetServerTimeNow()))
+		local supply = Maintenance.Supplies[heldItemId() or ""]
+		setConditionChip(1, UI.actionGlyph(supply and supply.action), `Working on it... {left}s`, UI.Colors.Money)
+		shown = 1
+	else
+		local character = player.Character
+		local tool = character and character:FindFirstChildOfClass("Tool")
+		local item = tool and Tools.get(tool:GetAttribute("ItemId"))
+		if tool and item then
+			for key, attribute in CONDITION_ATTRIBUTES do
+				heldCondition[key] = tool:GetAttribute(attribute)
+			end
+			for _, part in Maintenance.parts(item, heldCondition) do
+				if part.state ~= "Good" then
+					shown += 1
+					local image, color = UI.partGlyph(part.part, part.state)
+					setConditionChip(shown, image, part.text, color)
+				end
+			end
+		end
 	end
-	local condition = {}
-	for key, attribute in CONDITION_ATTRIBUTES do
-		condition[key] = tool:GetAttribute(attribute)
+	conditionPanel.Visible = shown > 0
+	for index = shown + 1, #conditionChips do
+		conditionChips[index].frame.Visible = false
 	end
-	local warnings = Maintenance.warnings(item, condition)
-	conditionPanel.Visible = #warnings > 0
-	conditionLabel.Text = table.concat(warnings, "  ·  ")
 end
 
 local function buildCondition()
@@ -122,27 +192,28 @@ local function buildCondition()
 		AnchorPoint = Vector2.new(0.5, 1),
 		Position = UDim2.new(0.5, 0, 1, -130),
 		Size = UDim2.new(0.9, 0, 0, 36),
+		AutomaticSize = Enum.AutomaticSize.Y,
 		Visible = false,
 		Parent = UI.getScreen(),
 	}, { color = UI.Colors.Background, transparency = 0.25, radius = 8 })
 	UI.new("UISizeConstraint", { MaxSize = Vector2.new(440, math.huge), Parent = conditionPanel })
-	local icon = UI.icon("Wrench", {
-		AnchorPoint = Vector2.new(0, 0.5),
-		Position = UDim2.new(0, 12, 0.5, 0),
-		Size = UDim2.fromOffset(20, 20),
-		Parent = conditionPanel,
-	}, UI.Colors.Money)
-	local left = if icon then 38 else 10
-	conditionLabel = UI.label("", {
-		Position = UDim2.fromOffset(left, 0),
-		Size = UDim2.new(1, -(left + 10), 1, 0),
-		TextColor3 = UI.Colors.Money,
-		TextXAlignment = Enum.TextXAlignment.Center,
-		TextWrapped = true,
-		TextScaled = true,
+	UI.new("UIPadding", {
+		PaddingTop = UDim.new(0, 6),
+		PaddingBottom = UDim.new(0, 6),
+		PaddingLeft = UDim.new(0, 12),
+		PaddingRight = UDim.new(0, 12),
 		Parent = conditionPanel,
 	})
-	UI.new("UITextSizeConstraint", { MaxTextSize = 16, Parent = conditionLabel })
+	-- The chips side by side in the middle, onto a second line if they don't fit.
+	UI.new("UIListLayout", {
+		Padding = UDim.new(0, 14),
+		FillDirection = Enum.FillDirection.Horizontal,
+		HorizontalAlignment = Enum.HorizontalAlignment.Center,
+		VerticalAlignment = Enum.VerticalAlignment.Center,
+		SortOrder = Enum.SortOrder.LayoutOrder,
+		Wraps = true,
+		Parent = conditionPanel,
+	})
 end
 
 -- The columns down each side -------------------------------------------------------------------
@@ -444,15 +515,16 @@ end
 
 -- The job tracker --------------------------------------------------------------------------------
 
+-- The job tracker: the art's GoalTracker card, as in the HUD style frame, or a plain dark one.
 local function buildTracker()
-	tracker = hudPanel({
+	tracker = UI.sliced("GoalTracker", {
 		Name = "JobTracker",
 		Size = UDim2.fromOffset(TRACKER_WIDTH, 0),
 		AutomaticSize = Enum.AutomaticSize.Y,
 		LayoutOrder = 2,
 		Visible = false,
 		Parent = right,
-	})
+	}, { color = UI.Colors.Background, transparency = 0.2, radius = 10 })
 	UI.new("UIPadding", {
 		PaddingTop = UDim.new(0, 12),
 		PaddingBottom = UDim.new(0, 14),
@@ -655,7 +727,8 @@ local function showPay(job)
 	local layout = UI.list(6)
 	layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 	layout.Parent = payPanel
-	UI.wordmark("JobComplete", "Job Complete!", 64, { LayoutOrder = 1, Parent = payPanel })
+	local words = UI.wordmark("JobComplete", "Job Complete!", 64, { LayoutOrder = 1, Parent = payPanel })
+	UI.sparkle(words, 6, 30)
 	UI.heading(string.upper(job.name or "Job"), {
 		Size = UDim2.new(1, 0, 0, 30),
 		TextSize = 22,

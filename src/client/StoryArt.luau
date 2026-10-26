@@ -76,8 +76,10 @@ StoryArt.GoalCard = Art.slice("GoalCard")
 StoryArt.Unread = Art.kit("Badge_Unread")
 StoryArt.TextToast = Art.slice("Toast")
 -- TurfKing: its gold `Crown` glyph and the purple-and-gold "Taken by TurfKing" rubber stamp that
--- lands on a job card it takes.
+-- lands on a job card it takes. The crown also sits on the faces of TurfKing's people (by Cast
+-- key): in the Messages app, its toasts and the dialogue box.
 StoryArt.Crown = Art.icon("Crown")
+StoryArt.Crowned = { Chad = true }
 StoryArt.StampTakenByTurfKing = Art.wordmark("Stamp_TakenByTurfKing")
 -- The Best Yard results screen (ContestController).
 StoryArt.Contest = {

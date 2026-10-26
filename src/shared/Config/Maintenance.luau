@@ -188,35 +188,79 @@ function Maintenance.effects(condition): (number, number)
 	return speed, quality
 end
 
--- Things worth telling the player about a tool, without saying how to fix them.
-function Maintenance.warnings(_tool, condition): { string }
+export type Part = {
+	-- "Engine" (only once it's wrecked), "Fuel", "Tire", "Blade", "Line", or "Uses" for a supply.
+	part: string,
+	-- "Good", "Low" (worth a look) or "Out" (it won't work).
+	state: string,
+	-- What to tell the player, without saying how to fix it ("" when there's nothing to say).
+	text: string,
+}
+
+-- What shape each part of a tool is in, in the order they're told: the engine and its fuel, the
+-- tires, the blade, the line, and how many uses a supply has left. The HUD and the menus show a
+-- glyph for each part (see UI.conditionRow).
+function Maintenance.parts(tool, condition): { Part }
 	local list = {}
+	local function add(part: string, state: string, text: string)
+		table.insert(list, { part = part, state = state, text = text })
+	end
 	if condition.broken then
-		table.insert(list, "Engine is smoking and won't start")
+		add("Engine", "Out", "Engine is smoking and won't start")
 	elseif condition.fuel then
 		if condition.fuel <= 0 then
-			table.insert(list, "Out of fuel")
+			add("Fuel", "Out", "Out of fuel")
 		elseif condition.fuel < Maintenance.LowFuel then
-			table.insert(list, "Running low on fuel")
+			add("Fuel", "Low", "Running low on fuel")
+		else
+			add("Fuel", "Good", "")
 		end
 	end
 	if condition.flat then
-		table.insert(list, "Flat tire")
-	elseif condition.pressure and condition.pressure < Maintenance.LowPressure then
-		table.insert(list, "Tire looks soft")
+		add("Tire", "Out", "Flat tire")
+	elseif condition.pressure then
+		if condition.pressure < Maintenance.LowPressure then
+			add("Tire", "Low", "Tire looks soft")
+		else
+			add("Tire", "Good", "")
+		end
 	end
-	if condition.sharpness and condition.sharpness < Maintenance.DullBlade then
-		table.insert(list, "Cut is getting ragged")
+	if condition.sharpness then
+		if condition.sharpness < Maintenance.DullBlade then
+			add("Blade", "Low", "Cut is getting ragged")
+		else
+			add("Blade", "Good", "")
+		end
 	end
 	if condition.line then
 		if condition.line <= 0 then
-			table.insert(list, "Out of trimmer line")
+			add("Line", "Out", "Out of trimmer line")
 		elseif condition.line < Maintenance.LowLine then
-			table.insert(list, "Trimmer line is running short")
+			add("Line", "Low", "Trimmer line is running short")
+		else
+			add("Line", "Good", "")
 		end
 	end
-	if condition.uses and condition.uses <= 0 then
-		table.insert(list, "Used up")
+	if condition.uses then
+		local supply = tool and Maintenance.Supplies[tool.id]
+		if condition.uses <= 0 then
+			add("Uses", "Out", "Used up")
+		elseif supply and supply.uses then
+			add("Uses", "Good", `{condition.uses} of {supply.uses} left`)
+		else
+			add("Uses", "Good", `{condition.uses} left`)
+		end
+	end
+	return list
+end
+
+-- Things worth telling the player about a tool, without saying how to fix them.
+function Maintenance.warnings(tool, condition): { string }
+	local list = {}
+	for _, part in Maintenance.parts(tool, condition) do
+		if part.state ~= "Good" then
+			table.insert(list, part.text)
+		end
 	end
 	return list
 end

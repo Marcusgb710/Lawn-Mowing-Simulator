@@ -1,8 +1,9 @@
 -- The game's look ("Maple Grove Summer", alphainstructions/instructions38.md) and small helpers for
 -- building UI in code: colours from the art's palette, the fonts, and windows, cards, buttons,
--- tabs and bars drawn with the art's kit (Art.luau). Any piece of art that isn't uploaded yet is
--- drawn with plain rounded frames in the same colours instead, so the game looks finished either
--- way, and uploading the art (Config/GuiArt.luau) changes nothing else.
+-- tabs and bars drawn with the art's kit (Art.luau), plus price tags, tier badges, a tool's
+-- condition, rubber stamps and sparkles. Any piece of art that isn't uploaded yet is drawn with
+-- plain rounded frames in the same colours instead, so the game looks finished either way, and
+-- uploading the art (Config/GuiArt.luau) changes nothing else.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -268,12 +269,16 @@ end
 -- A white glyph (Icons/<name>.png) tinted `color`, or nil while it isn't uploaded (whoever asked
 -- leaves room for it only when there is one).
 function UI.icon(name: string, props, color: Color3?): ImageLabel?
-	local image = Art.icon(name)
+	return UI.glyph(Art.icon(name), props, color, name)
+end
+
+-- The same, by the glyph's image id (from Art.icon), for glyphs looked up from a table.
+function UI.glyph(image: string, props, color: Color3?, name: string?): ImageLabel?
 	if image == "" then
 		return nil
 	end
 	local icon = UI.new("ImageLabel", {
-		Name = name,
+		Name = name or "Icon",
 		Image = image,
 		ImageColor3 = color or UI.Colors.Text,
 		BackgroundTransparency = 1,
@@ -1324,11 +1329,13 @@ function UI.moment(name: string, text: string, subtitle: string?, seconds: numbe
 		Parent = toastScreen,
 	}, { UI.new("UISizeConstraint", { MaxSize = Vector2.new(720, 140) }) })
 	momentHolder = holder
-	UI.wordmark(name, text, 84, {
+	local words = UI.wordmark(name, text, 84, {
 		AnchorPoint = Vector2.new(0.5, 0),
 		Position = UDim2.fromScale(0.5, 0),
 		Parent = holder,
 	})
+	-- A little burst of sparkles over the words as they pop in.
+	UI.sparkle(words, 7, 34)
 	if subtitle then
 		UI.label(subtitle, {
 			AnchorPoint = Vector2.new(0.5, 0),
@@ -1358,6 +1365,362 @@ function UI.moment(name: string, text: string, subtitle: string?, seconds: numbe
 			momentHolder = nil
 		end
 	end)
+end
+
+-- Sparkles -------------------------------------------------------------------------------------
+
+-- The sparkle sheet (Moments/Sparkle), and where each of its frames is on it: they play once, left
+-- to right then top to bottom.
+local sparkleSheet, sparkleImage = Art.sheet("Sparkle")
+local sparkleFrame = Vector2.new(128, 128)
+local SPARKLE_FRAMES: { Vector2 } = {}
+if sparkleSheet then
+	sparkleFrame = Vector2.new(sparkleSheet.frameSize[1], sparkleSheet.frameSize[2])
+	for index = 0, sparkleSheet.frames - 1 do
+		local column, row = index % sparkleSheet.columns, index // sparkleSheet.columns
+		table.insert(SPARKLE_FRAMES, Vector2.new(column * sparkleFrame.X, row * sparkleFrame.Y))
+	end
+end
+local SPARKLE_STEP = 1 / (if sparkleSheet then sparkleSheet.fps else 12)
+-- Plain, a sparkle is a little cream diamond that winks in and out over four steps instead.
+local PLAIN_TWINKLE = { 0.5, 0, 0.25, 0.7 }
+-- Sparkles that are done, to use again, and ones destroyed along with what they were over.
+local sparklePool: { GuiObject } = {}
+local sparkleGone: { [GuiObject]: boolean } = setmetatable({} :: any, { __mode = "k" })
+
+local function newSparkle(): GuiObject
+	local sprite: GuiObject
+	if sparkleImage ~= "" then
+		sprite = UI.new("ImageLabel", {
+			Image = sparkleImage,
+			ImageRectSize = sparkleFrame,
+			BackgroundTransparency = 1,
+		})
+	else
+		sprite = UI.new("Frame", { BackgroundColor3 = UI.Colors.Text, BorderSizePixel = 0, Rotation = 45 })
+	end
+	sprite.Name = "Sparkle"
+	sprite.AnchorPoint = Vector2.new(0.5, 0.5)
+	sprite.ZIndex = 10
+	sprite.Destroying:Connect(function()
+		sparkleGone[sprite] = true
+	end)
+	return sprite
+end
+
+-- Plays one sparkle once after `delay` seconds, then puts it away to use again.
+local function twinkle(sprite: GuiObject, delay: number)
+	task.wait(delay)
+	local image = if sprite:IsA("ImageLabel") then sprite else nil
+	local steps = if image then #SPARKLE_FRAMES else #PLAIN_TWINKLE
+	for step = 1, steps do
+		if sparkleGone[sprite] then
+			return
+		end
+		if image then
+			image.ImageRectOffset = SPARKLE_FRAMES[step]
+		else
+			(sprite :: Frame).BackgroundTransparency = PLAIN_TWINKLE[step]
+		end
+		sprite.Visible = true
+		task.wait(SPARKLE_STEP)
+	end
+	if not sparkleGone[sprite] then
+		sprite.Visible = false
+		sprite.Parent = nil
+		table.insert(sparklePool, sprite)
+	end
+end
+
+-- A little burst of sparkles over `parent` (a big moment's words, a stamp, a new tool's card):
+-- `count` of them (5 by default) scattered over its box, about `size` pixels across, each playing
+-- once at its own moment. `parent` mustn't have a list or grid layout in it. With the art they're
+-- the sparkle sheet; plain, little cream diamonds that wink. The sparkles are kept and reused.
+function UI.sparkle(parent: GuiObject, count: number?, size: number?)
+	local across = size or 28
+	for index = 1, count or 5 do
+		local sprite = table.remove(sparklePool) or newSparkle()
+		local pixels = across * (0.6 + math.random() * 0.6)
+		if not sprite:IsA("ImageLabel") then
+			-- A diamond's corners reach past its frame.
+			pixels *= 0.45
+		end
+		pixels = math.floor(pixels + 0.5)
+		sprite.Size = UDim2.fromOffset(pixels, pixels)
+		sprite.Position = UDim2.fromScale(0.1 + math.random() * 0.8, 0.1 + math.random() * 0.8)
+		sprite.Visible = false
+		sprite.Parent = parent
+		task.spawn(twinkle, sprite, (index - 1) * 0.05 + math.random() * 0.12)
+	end
+end
+
+-- Rubber stamps ----------------------------------------------------------------------------------
+
+export type Stamp = {
+	frame: CanvasGroup,
+	flash: (name: string, at: Vector2?, sparkles: number?) -> (),
+}
+
+-- How long a stamp stays down before it fades, and how it lands: big, then thump.
+local STAMP_HOLD = 0.8
+local STAMP_LAND = TweenInfo.new(0.22, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+
+-- Rubber stamps that thump down over `parent` and fade away, like the shop's Bought and Sold.
+-- `stamps` maps each stamp's wordmark ("Stamp_Bought") to its words, drawn in the display face
+-- until it's uploaded; they're all `height` tall. They're made once and reused:
+-- stamp.flash(name, at, sparkles) lands one with its middle at `at` (fractions of `parent`'s size,
+-- its middle by default), with that many sparkles round it.
+function UI.stamp(parent: GuiObject, stamps: { [string]: string }, height: number): Stamp
+	local widest = 1
+	for name in stamps do
+		widest = math.max(widest, Art.aspect(`Wordmarks/{name}.png`))
+	end
+	-- Room round the stamp for its sparkles (a CanvasGroup cuts off what's outside it).
+	local holder = UI.new("CanvasGroup", {
+		Name = "Stamp",
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Size = UDim2.fromOffset(math.ceil(height * widest) + 40, height + 40),
+		BackgroundTransparency = 1,
+		GroupTransparency = 1,
+		Visible = false,
+		ZIndex = 20,
+		Parent = parent,
+	})
+	local scale = UI.new("UIScale", { Parent = holder })
+	local words: { [string]: GuiObject } = {}
+	for name, text in stamps do
+		words[name] = UI.wordmark(name, text, height, {
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Position = UDim2.fromScale(0.5, 0.5),
+			Visible = false,
+			Parent = holder,
+		})
+	end
+	local land = TweenService:Create(scale, STAMP_LAND, { Scale = 1 })
+	local show = TweenService:Create(holder, TweenInfo.new(0.1), { GroupTransparency = 0 })
+	local hide = TweenService:Create(holder, TweenInfo.new(0.35), { GroupTransparency = 1 })
+	hide.Completed:Connect(function(state)
+		if state == Enum.PlaybackState.Completed then
+			holder.Visible = false
+		end
+	end)
+	local flashes = 0
+	return {
+		frame = holder,
+		flash = function(name: string, at: Vector2?, sparkles: number?)
+			flashes += 1
+			local this = flashes
+			for other, frame in words do
+				frame.Visible = other == name
+			end
+			local spot = at or Vector2.new(0.5, 0.5)
+			holder.Position = UDim2.fromScale(math.clamp(spot.X, 0.15, 0.85), math.clamp(spot.Y, 0.12, 0.88))
+			holder.Rotation = math.random(-6, 3)
+			land:Cancel()
+			show:Cancel()
+			hide:Cancel()
+			scale.Scale = 1.8
+			holder.GroupTransparency = 1
+			holder.Visible = true
+			land:Play()
+			show:Play()
+			if sparkles then
+				UI.sparkle(holder, sparkles)
+			end
+			task.delay(STAMP_HOLD, function()
+				if flashes == this then
+					hide:Play()
+				end
+			end)
+		end,
+	}
+end
+
+-- Prices ----------------------------------------------------------------------------------------
+
+-- A price on a garden plant tag (the kit's PriceTag, with its hole on the left), like the tags in
+-- a nursery's pots; plain, a sunflower-yellow tag with round corners. It's as wide as the price,
+-- and `props` are its frame's (give it a height). `dim` shades it when the price is out of reach.
+function UI.priceTag(text: string, props, dim: boolean?): GuiObject
+	local art = Art.slice("PriceTag")
+	local tag = UI.sliced("PriceTag", props, { color = UI.Colors.Money, radius = 6 })
+	tag.Name = "PriceTag"
+	tag.AutomaticSize = Enum.AutomaticSize.X
+	UI.new("UIPadding", {
+		-- With the art, the price starts past the tag's hole.
+		PaddingLeft = UDim.new(0, if art then 22 else 10),
+		PaddingRight = UDim.new(0, 10),
+		Parent = tag,
+	})
+	local label = UI.label(text, {
+		Name = "Price",
+		Size = UDim2.fromScale(0, 1),
+		AutomaticSize = Enum.AutomaticSize.X,
+		FontFace = UI.Fonts.Heavy,
+		TextSize = 18,
+		TextColor3 = UI.Colors.Ink,
+		Parent = tag,
+	})
+	if dim and art then
+		(tag :: ImageLabel).ImageColor3 = Color3.fromRGB(170, 170, 170)
+	elseif dim then
+		tag.BackgroundColor3 = UI.Colors.Disabled
+		label.TextColor3 = UI.Colors.Text
+	end
+	return tag
+end
+
+-- Tiers -----------------------------------------------------------------------------------------
+
+-- Each tier's glyph (a shield with one, two or three chevrons) and colour.
+local TIERS = {
+	Homeowner = { glyph = Art.icon("Tier_Homeowner"), color = "SubText" },
+	Serious = { glyph = Art.icon("Tier_Serious"), color = "Info" },
+	Pro = { glyph = Art.icon("Tier_Pro"), color = "Money" },
+}
+
+-- A small badge with a tool's or a job's tier ("Homeowner", "Serious" or "Pro"): its glyph and
+-- name in the tier's colour on a dark pill (plain, just the name). `props` are its frame's.
+function UI.tierBadge(tier: string, props): Frame
+	local look = TIERS[tier]
+	local color = UI.Colors[if look then look.color else "SubText"]
+	local image = if look then look.glyph else ""
+	local badge = UI.new("Frame", {
+		Name = "Tier",
+		Size = UDim2.fromOffset(0, 24),
+		AutomaticSize = Enum.AutomaticSize.X,
+		BackgroundColor3 = UI.Colors.Ink,
+		BackgroundTransparency = 0.25,
+		BorderSizePixel = 0,
+	}, {
+		UI.corner(12),
+		UI.new("UIPadding", {
+			PaddingLeft = UDim.new(0, if image ~= "" then 5 else 10),
+			PaddingRight = UDim.new(0, 10),
+		}),
+		UI.new("UIListLayout", {
+			Padding = UDim.new(0, 4),
+			FillDirection = Enum.FillDirection.Horizontal,
+			VerticalAlignment = Enum.VerticalAlignment.Center,
+			SortOrder = Enum.SortOrder.LayoutOrder,
+		}),
+	})
+	UI.glyph(image, { Size = UDim2.fromOffset(18, 18), LayoutOrder = 1, Parent = badge }, color)
+	UI.label(tier, {
+		Size = UDim2.fromScale(0, 1),
+		AutomaticSize = Enum.AutomaticSize.X,
+		TextSize = 14,
+		TextColor3 = color,
+		LayoutOrder = 2,
+		Parent = badge,
+	})
+	for key, value in props or {} do
+		if key ~= "Parent" then
+			(badge :: any)[key] = value
+		end
+	end
+	if props and props.Parent then
+		badge.Parent = props.Parent
+	end
+	return badge
+end
+
+-- Tool condition --------------------------------------------------------------------------------
+
+-- The glyph for each part of a tool's condition (Maintenance.parts): a wrecked engine shows the
+-- wrench, a sharp blade the Sharp glyph and a dull one the plain blade. A supply's uses have none,
+-- so nothing hints at which supply fixes what.
+local PART_GLYPHS = {
+	Engine = Art.icon("Wrench"),
+	Fuel = Art.icon("Fuel"),
+	Tire = Art.icon("Tire"),
+	Blade = Art.icon("Blade"),
+	Line = Art.icon("Spool"),
+}
+local SHARP_GLYPH = Art.icon("Sharp")
+-- The glyph for working on a tool with a supply, by what it does (Maintenance.Supplies' actions).
+local ACTION_GLYPHS = {
+	Fuel = PART_GLYPHS.Fuel,
+	Inflate = PART_GLYPHS.Tire,
+	Patch = PART_GLYPHS.Tire,
+	SwapTire = PART_GLYPHS.Tire,
+	Sharpen = SHARP_GLYPH,
+	SwapBlade = PART_GLYPHS.Blade,
+	Reload = PART_GLYPHS.Line,
+	Repair = PART_GLYPHS.Engine,
+}
+-- Fine is green, worth a look yellow, and won't work red.
+local STATE_COLORS = { Good = "Accent", Low = "Money", Out = "Danger" }
+
+-- A condition part's glyph ("" for none, or while it isn't uploaded) and colour.
+function UI.partGlyph(part: string, state: string): (string, Color3)
+	local image = if part == "Blade" and state == "Good" then SHARP_GLYPH else PART_GLYPHS[part] or ""
+	return image, UI.Colors[STATE_COLORS[state] or "Money"]
+end
+
+-- The glyph for working on a tool with a supply that does `action` (the wrench for anything else).
+function UI.actionGlyph(action: string?): string
+	return if action and ACTION_GLYPHS[action] then ACTION_GLYPHS[action] else PART_GLYPHS.Engine
+end
+
+-- A tool's condition on a card (the Truck menu, the shop's): a glyph for each part
+-- (Maintenance.parts) in its colour, with the words for what's wrong after it, or "In good shape".
+-- Plain, just the words. `props` are its frame's (it's as tall as it wraps to).
+function UI.conditionRow(parts: { any }, props): Frame
+	local row = UI.new("Frame", {
+		Name = "Condition",
+		Size = UDim2.fromScale(1, 0),
+		AutomaticSize = Enum.AutomaticSize.Y,
+		BackgroundTransparency = 1,
+	}, {
+		UI.new("UIListLayout", {
+			Padding = UDim.new(0, 8),
+			FillDirection = Enum.FillDirection.Horizontal,
+			VerticalAlignment = Enum.VerticalAlignment.Center,
+			SortOrder = Enum.SortOrder.LayoutOrder,
+			Wraps = true,
+		}),
+	})
+	local function words(text: string, color: Color3, order: number, parent: Instance)
+		UI.label(text, {
+			Size = UDim2.fromOffset(0, 18),
+			AutomaticSize = Enum.AutomaticSize.X,
+			TextSize = 14,
+			TextColor3 = color,
+			LayoutOrder = order,
+			Parent = parent,
+		})
+	end
+	local said = false
+	for index, part in parts do
+		local image, color = UI.partGlyph(part.part, part.state)
+		if image ~= "" or part.text ~= "" then
+			local chip = UI.new("Frame", {
+				Size = UDim2.fromOffset(0, 18),
+				AutomaticSize = Enum.AutomaticSize.X,
+				BackgroundTransparency = 1,
+				LayoutOrder = index,
+				Parent = row,
+			}, { UI.list(4, Enum.FillDirection.Horizontal) })
+			UI.glyph(image, { Size = UDim2.fromOffset(18, 18), LayoutOrder = 1, Parent = chip }, color)
+			if part.text ~= "" then
+				words(part.text, color, 2, chip)
+				said = true
+			end
+		end
+	end
+	if not said then
+		words("In good shape", UI.Colors.Accent, #parts + 1, row)
+	end
+	for key, value in props or {} do
+		if key ~= "Parent" then
+			(row :: any)[key] = value
+		end
+	end
+	if props and props.Parent then
+		row.Parent = props.Parent
+	end
+	return row
 end
 
 return UI
