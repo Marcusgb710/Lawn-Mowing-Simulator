@@ -198,7 +198,8 @@ local function chevron(image: string, pointing: string, color: Color3, size: num
 end
 
 -- A round face for someone in Config/Story.luau's Cast: their portrait in the art's portrait ring,
--- or their initials on their color until it's uploaded. Also used by the Messages app.
+-- or their initials on their color until it's uploaded, and TurfKing's people wear its crown.
+-- Also used by the Messages app.
 function DialogueController.face(castKey: string, size: number, mood: string?): Frame
 	local frame = UI.new("Frame", {
 		Name = "Face",
@@ -212,9 +213,29 @@ end
 -- Changes who a face shows, and wearing which `mood` (their usual one if it's nil).
 function DialogueController.setFace(frame: Frame, castKey: string, mood: string?)
 	for _, child in frame:GetChildren() do
-		if child.Name == "Picture" or child.Name == "Ring" then
+		if child.Name == "Picture" or child.Name == "Ring" or child.Name == "Crown" then
 			child:Destroy()
 		end
+	end
+	-- TurfKing's people (Chad) wear its gold crown on a purple badge, poking out at the top right.
+	if StoryArt.Crowned[castKey] and StoryArt.Crown ~= "" then
+		local badge = UI.new("Frame", {
+			Name = "Crown",
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Position = UDim2.fromScale(0.86, 0.14),
+			Size = UDim2.fromScale(0.42, 0.42),
+			Rotation = 14,
+			BackgroundColor3 = UI.Colors.TurfKing,
+			ZIndex = frame.ZIndex + 2,
+			Parent = frame,
+		}, { round(), UI.new("UIStroke", { Color = UI.Colors.Gold, Thickness = 2 }) })
+		UI.glyph(StoryArt.Crown, {
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Position = UDim2.fromScale(0.5, 0.5),
+			Size = UDim2.fromScale(0.66, 0.66),
+			ZIndex = frame.ZIndex + 3,
+			Parent = badge,
+		}, UI.Colors.Gold)
 	end
 	local image = StoryArt.portrait(castKey, mood)
 	local cast = Story.Cast[castKey]
@@ -566,6 +587,8 @@ local function showCard(info)
 	if not info then
 		return
 	end
+	-- A new tool's a big moment: a few sparkles over its card.
+	UI.sparkle(card, 5, 26)
 	cardLabel.Text = string.upper(info.label or "")
 	cardIcon.BackgroundTransparency = if info.icon and StoryArt.CardIcons[info.icon] ~= "" then 1 else 0
 	cardName.Text = info.name or ""
@@ -678,11 +701,12 @@ local function actTitle(act: number)
 		Parent = screen,
 	}, { UI.new("UISizeConstraint", { MaxSize = Vector2.new(760, 110) }) })
 	titleCard = holder
-	UI.wordmark(`Act{act}`, `Act {act}: {if info then info.name else ""}`, 96, {
+	local words = UI.wordmark(`Act{act}`, `Act {act}: {if info then info.name else ""}`, 96, {
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.fromScale(0.5, 0.5),
 		Parent = holder,
 	})
+	UI.sparkle(words, 8, 36)
 	local scale = UI.new("UIScale", { Scale = 0.7, Parent = holder })
 	TweenService:Create(scale, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = 1 })
 		:Play()

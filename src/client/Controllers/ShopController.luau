@@ -5,6 +5,9 @@
 --   Business  building upgrades, trucks and trailers
 -- Every tool says what it's for: that's how players learn which tool fits which job. Each tab has
 -- its category's glyph and each card its item's picture, from the GUI art (plain until uploaded).
+-- A card's price hangs on a garden plant tag over its button, tools wear a badge with their tier
+-- and owned tools show their condition. Buying stamps the card "Bought" (with a few sparkles) and
+-- selling stamps it "Sold".
 
 local MarketplaceService = game:GetService("MarketplaceService")
 local Players = game:GetService("Players")
@@ -30,6 +33,9 @@ local SELL_CONFIRM_TIME = 3
 -- After something's bought, its button rests this many seconds, so tapping Buy a few times
 -- doesn't start selling it straight back (or restock it twice).
 local BUY_REST = 1.5
+-- How tall the Bought and Sold stamps are, and how many sparkles a purchase gets.
+local STAMP_HEIGHT = 64
+local SPARKLES = 6
 
 local ShopController = {}
 
@@ -49,8 +55,9 @@ local TAB_ICONS = {
 	[PREMIUM_TAB] = "Premium",
 	[SELL_TAB] = "Sell",
 }
--- How big an item's picture is on its card.
+-- How big an item's picture is on its card, and how wide its button.
 local PICTURE = 84
+local BUTTON_WIDTH = 124
 -- Which tabs each app shows.
 local APPS = {
 	Orders = { title = "Orders", tabs = table.clone(Items.ToolCategories) },
@@ -61,6 +68,9 @@ table.insert(APPS.Orders.tabs, PREMIUM_TAB)
 table.insert(APPS.Orders.tabs, SELL_TAB)
 
 local window: GuiObject
+local stamp: UI.Stamp
+-- Where the last Robux button tapped was, for the stamp once Roblox's prompt says it's bought.
+local premiumSpot: Vector2? = nil
 local selectedCategory = Items.Categories[1]
 local tabButtons = {}
 local list: ScrollingFrame
@@ -113,7 +123,8 @@ local function statsText(item): string
 		then "needs a trailer bay"
 		elseif item.id == Storage.BucketId then `1 space, holds {Storage.BucketHolds} hand tools`
 		else `{size.space} truck space`
-	local parts = { item.tier, `{size.label}, {string.lower(Storage.Spots[size.spot].name)}, {truck}` }
+	-- The tier is on the card's badge.
+	local parts = { `{size.label}, {string.lower(Storage.Spots[size.spot].name)}, {truck}` }
 	if item.power then
 		table.insert(parts, `Power {item.power}  ·  Reach {item.radius}`)
 	end
@@ -151,7 +162,19 @@ end
 
 local render
 
-local function act(action: string, item, category: string)
+-- Where the middle of `target` is in the window, as fractions of its size (for the stamp: they
+-- stay right whatever scales the window).
+local function spotIn(target: GuiObject): Vector2?
+	local size = window.AbsoluteSize
+	if size.X <= 0 or size.Y <= 0 then
+		return nil
+	end
+	local middle = target.AbsolutePosition + target.AbsoluteSize / 2 - window.AbsolutePosition
+	return Vector2.new(middle.X / size.X, middle.Y / size.Y)
+end
+
+-- `source` is the card's button, where the stamp lands.
+local function act(action: string, item, category: string, source: GuiObject?)
 	if resting(item) then
 		return
 	end
@@ -168,11 +191,18 @@ local function act(action: string, item, category: string)
 		return
 	end
 	confirmingSell = nil
+	-- Before asking: the card's drawn again (and its button gone) when the new profile arrives.
+	local at = if source then spotIn(source) else nil
 	if action == "BuyItem" then
 		-- Before asking, since the new profile (and its Sell button) can arrive first.
 		boughtAt[item.id] = os.clock()
 	end
 	local ok, message = Net.func(action):InvokeServer(category, item.id)
+	if ok and action == "BuyItem" then
+		stamp.flash("Stamp_Bought", at, SPARKLES)
+	elseif ok and action == "SellItem" then
+		stamp.flash("Stamp_Sold", at)
+	end
 	if action == "BuyItem" then
 		if ok then
 			task.delay(BUY_REST, render)
@@ -183,39 +213,40 @@ local function act(action: string, item, category: string)
 	UI.notify(message)
 end
 
--- What the button on an item's card says and does (its style, see UI.setStyle), plus a note
--- under it: why it's locked (if it is), or the Best Yard prize's discount.
-local function buttonFor(profile, item, category: string): (string, string, string?, string?)
+-- What the button on an item's card says and does (its style, see UI.setStyle), a note under it
+-- (why it's locked, if it is, or the Best Yard prize's discount) and, while it's for sale, its
+-- price for the plant tag over the button.
+local function buttonFor(profile, item, category: string): (string, string, string?, string?, number?)
 	if category == DECOR_TAB then
 		if resting(item) then
-			return "Bought", "Disabled", nil, nil
+			return "Bought", "Disabled", nil, nil, nil
 		end
 		local affordable = profile.money >= item.price
-		return Format.money(item.price), if affordable then "Money" else "Disabled", "BuyItem", nil
+		return "Buy", if affordable then "Primary" else "Disabled", "BuyItem", nil, item.price
 	end
 	local owned = profile.owned[category] and profile.owned[category][item.id]
 	if Items.isToolCategory(category) then
 		if owned and resting(item) then
-			return "Bought", "Disabled", nil, nil
+			return "Bought", "Disabled", nil, nil, nil
 		elseif owned then
 			if Shop.canRestock(profile, item.id) then
 				local affordable = profile.money >= item.price
-				return `Restock {Format.money(item.price)}`, if affordable then "Money" else "Disabled", "BuyItem", nil
+				return "Restock", if affordable then "Primary" else "Disabled", "BuyItem", nil, item.price
 			elseif not Shop.canSell(item) then
-				return "Starter", "Disabled", nil, nil
+				return "Starter", "Disabled", nil, nil, nil
 			elseif confirmingSell == item.id then
-				return "Tap to sell", "Danger", "SellItem", nil
+				return "Tap to sell", "Danger", "SellItem", nil, nil
 			end
 			local sellPrice = Shop.sellPrice(item, profile.condition and profile.condition[item.id])
-			return `Sell {Format.money(sellPrice)}`, "Danger", "SellItem", nil
+			return `Sell {Format.money(sellPrice)}`, "Danger", "SellItem", nil, nil
 		end
 	elseif profile.equipped[category] == item.id then
-		return if category == "Business" then "Current" else "Equipped", "Disabled", nil, nil
+		return if category == "Business" then "Current" else "Equipped", "Disabled", nil, nil, nil
 	elseif owned then
 		if category == "Business" then
-			return "Owned", "Disabled", nil, nil
+			return "Owned", "Disabled", nil, nil, nil
 		end
-		return "Equip", "Primary", "EquipItem", nil
+		return "Equip", "Primary", "EquipItem", nil, nil
 	end
 
 	local allowed, reason = Shop.canBuy(profile, category, item.id)
@@ -224,10 +255,10 @@ local function buttonFor(profile, item, category: string): (string, string, stri
 		then `Best Yard prize: half off, {Format.money(price)} instead of {Format.money(item.price)}.`
 		else nil
 	if not allowed then
-		return "Locked", "Disabled", nil, if prize then `{reason}\n{prize}` else reason
+		return "Locked", "Disabled", nil, if prize then `{reason}\n{prize}` else reason, price
 	end
 	local affordable = profile.money >= price
-	return Format.money(price), if affordable then "Money" else "Disabled", "BuyItem", prize
+	return "Buy", if affordable then "Primary" else "Disabled", "BuyItem", prize, price
 end
 
 -- An item card: the art's card (greyed when it's locked), with the item's picture on the left
@@ -268,20 +299,43 @@ local function itemCard(order: number, image: string, locked: boolean, round: bo
 	return card, details
 end
 
--- The button on the right of a card.
-local function cardButton(card: GuiObject, text: string, style: string, onClick: () -> ())
-	local button = UI.button(text, onClick, {
+-- The button on the right of a card, and while it's for sale its `price` on a plant tag over it
+-- (shaded when it's out of reach). Returns the button.
+local function cardButton(
+	card: GuiObject,
+	text: string,
+	style: string,
+	onClick: (button: TextButton) -> (),
+	price: number?
+): TextButton
+	-- The tag and the button, 34 + 6 + 40 tall, sit together in the middle of the card's right.
+	local button: TextButton
+	button = UI.button(text, function()
+		onClick(button)
+	end, {
 		Style = style,
 		Icon = if text == "Locked" then "Lock" else nil,
 		IconSize = 16,
 		AnchorPoint = Vector2.new(1, 0.5),
-		Position = UDim2.new(1, -12, 0.5, 0),
-		Size = UDim2.fromOffset(124, 40),
+		Position = UDim2.new(1, -12, 0.5, if price then 20 else 0),
+		Size = UDim2.fromOffset(BUTTON_WIDTH, 40),
 		TextScaled = true,
 		Parent = card,
 	})
 	UI.new("UITextSizeConstraint", { MaxTextSize = 18, Parent = button })
 	UI.new("UIPadding", { PaddingLeft = UDim.new(0, 8), PaddingRight = UDim.new(0, 8), Parent = button })
+	if price then
+		UI.priceTag(Format.money(price), {
+			AnchorPoint = Vector2.new(0.5, 1),
+			Position = UDim2.new(1, -12 - BUTTON_WIDTH / 2, 0.5, -6),
+			Size = UDim2.fromOffset(0, 34),
+			Rotation = -3,
+			Parent = card,
+		}, style == "Disabled")
+		-- The card's at least as tall as the tag and the button.
+		UI.new("Frame", { Size = UDim2.fromOffset(1, 96), BackgroundTransparency = 1, Parent = card })
+	end
+	return button
 end
 
 -- One card on the Premium tab: its picture (a pass's circle, a tool or a truck), name,
@@ -316,8 +370,9 @@ local function premiumCard(
 			})
 		end
 	end
-	cardButton(card, buttonText, style, function()
+	cardButton(card, buttonText, style, function(button)
 		if onClick then
+			premiumSpot = spotIn(button)
 			onClick()
 		end
 	end)
@@ -540,11 +595,14 @@ function render()
 
 	for index, item in items do
 		local category = item.category or selectedCategory
-		local text, style, action, lockedBecause = buttonFor(profile, item, category)
+		local text, style, action, lockedBecause, price = buttonFor(profile, item, category)
 		-- Text down the left (it wraps, so long descriptions grow the card); button on the right.
 		local card, details = itemCard(index, Art.item(item.id), text == "Locked")
 
 		UI.heading(item.name, { TextSize = 20, LayoutOrder = 1, Parent = details })
+		if item.tier then
+			UI.tierBadge(item.tier, { LayoutOrder = 2, Parent = details })
+		end
 		UI.label(item.description, {
 			Size = UDim2.fromScale(1, 0),
 			AutomaticSize = Enum.AutomaticSize.Y,
@@ -552,7 +610,7 @@ function render()
 			TextSize = 14,
 			FontFace = UI.Fonts.Body,
 			TextColor3 = UI.Colors.Text,
-			LayoutOrder = 2,
+			LayoutOrder = 3,
 			Parent = details,
 		})
 		UI.label(statsText(item), {
@@ -562,9 +620,17 @@ function render()
 			TextSize = 14,
 			FontFace = UI.Fonts.Medium,
 			TextColor3 = UI.Colors.SubText,
-			LayoutOrder = 3,
+			LayoutOrder = 4,
 			Parent = details,
 		})
+		-- A tool you own: what shape it's in (wear takes off what it sells for).
+		local owned = profile.owned[category] and profile.owned[category][item.id]
+		if owned and Items.isToolCategory(category) then
+			local parts = Maintenance.parts(item, profile.condition and profile.condition[item.id] or {})
+			if #parts > 0 then
+				UI.conditionRow(parts, { LayoutOrder = 5, Parent = details })
+			end
+		end
 		if lockedBecause then
 			UI.label(lockedBecause, {
 				Size = UDim2.fromScale(1, 0),
@@ -572,15 +638,15 @@ function render()
 				TextWrapped = true,
 				TextSize = 14,
 				TextColor3 = UI.Colors.Money,
-				LayoutOrder = 4,
+				LayoutOrder = 6,
 				Parent = details,
 			})
 		end
-		cardButton(card, text, style, function()
+		cardButton(card, text, style, function(button)
 			if action then
-				act(action, item, category)
+				act(action, item, category, button)
 			end
-		end)
+		end, price)
 	end
 end
 
@@ -634,6 +700,21 @@ function ShopController:Start()
 		Position = UDim2.fromOffset(0, 52),
 		Size = UDim2.new(1, 0, 1, -52),
 	})
+	-- Over the window, not the list, so a card drawn again doesn't take its stamp with it.
+	stamp = UI.stamp(window, { Stamp_Bought = "Bought!", Stamp_Sold = "Sold!" }, STAMP_HEIGHT)
+
+	-- A Robux purchase that went through is stamped too (the server grants it, see PremiumService).
+	local player = Players.LocalPlayer
+	MarketplaceService.PromptProductPurchaseFinished:Connect(function(userId, _, purchased)
+		if purchased and userId == player.UserId and window.Visible then
+			stamp.flash("Stamp_Bought", premiumSpot, SPARKLES)
+		end
+	end)
+	MarketplaceService.PromptGamePassPurchaseFinished:Connect(function(buyer, _, purchased)
+		if purchased and buyer == player and window.Visible then
+			stamp.flash("Stamp_Bought", premiumSpot, SPARKLES)
+		end
+	end)
 
 	ClientState.Changed:Connect(function(key)
 		if key == "profile" and window.Visible then

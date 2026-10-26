@@ -220,7 +220,7 @@ local function scoreBar(parent: Instance, value: number, fill: string, props): G
 end
 
 -- A yard's card: who it is, a line under, and the big score. The winner's stands out (the art's
--- selected card, or a colored outline).
+-- selected card, or a colored outline), and the yard TurfKing did (`crown`) wears its gold crown.
 local function yardCard(parent: Instance, x: number, info)
 	local card = UI.sliced(if info.winner then "Card_Selected" else "Card", {
 		Position = UDim2.fromOffset(x, 0),
@@ -239,6 +239,15 @@ local function yardCard(parent: Instance, x: number, info)
 		Parent = card,
 	})
 	UI.heading(info.tag, { Size = UDim2.new(1, 0, 0, 18), TextSize = 16, TextColor3 = info.color, Parent = card })
+	if info.crown then
+		UI.icon("Crown", {
+			AnchorPoint = Vector2.new(1, 0),
+			Position = UDim2.new(1, 4, 0, -6),
+			Size = UDim2.fromOffset(30, 30),
+			Rotation = 12,
+			Parent = card,
+		}, UI.Colors.Gold)
+	end
 	UI.heading(
 		info.name,
 		{ Position = UDim2.fromOffset(0, 22), Size = UDim2.new(1, 0, 0, 30), TextSize = 26, Parent = card }
@@ -263,8 +272,8 @@ local function yardCard(parent: Instance, x: number, info)
 	})
 end
 
--- The trophy in the middle: its art, or a plain gold cup on a green base.
-local function trophy(parent: Instance, won: boolean)
+-- The trophy in the middle: its art, or a plain gold cup on a green base. Returns its frame.
+local function trophy(parent: Instance, won: boolean): Frame
 	local holder = UI.new("Frame", {
 		Position = UDim2.fromOffset(355, 0),
 		Size = UDim2.fromOffset(310, 190),
@@ -336,6 +345,7 @@ local function trophy(parent: Instance, won: boolean)
 			Parent = holder,
 		})
 	end
+	return holder
 end
 
 -- One row of the category table: its icon and name, your bar and score, then hers.
@@ -579,11 +589,12 @@ local function show(result)
 		color = UI.Colors.Accent,
 		winner = won,
 	})
-	trophy(cards, won)
+	local cup = trophy(cards, won)
 	yardCard(cards, 690, {
 		tag = if won then "NEXT DOOR · RUNNER-UP" else "NEXT DOOR · WINNER",
 		name = "Gloria Pemberton's",
 		line = "Done by TurfKing",
+		crown = true,
 		score = hers.total or 0,
 		color = UI.Colors.Rival,
 		winner = not won,
@@ -664,6 +675,8 @@ local function show(result)
 	screen.Enabled = true
 	if won then
 		confetti()
+		-- And the trophy sparkles.
+		UI.sparkle(cup, 8, 34)
 	end
 end
 

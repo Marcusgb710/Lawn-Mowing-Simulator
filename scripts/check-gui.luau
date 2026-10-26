@@ -3,9 +3,11 @@
 -- It checks src/shared/Config/GuiArt.luau (written by scripts/gui-art-ids.py) fits together: ids
 -- look like ids, every slice and font atlas is an image in the list, every glyph sits inside its
 -- atlas, the numbers font's digits are all the same width and kerning only names glyphs that are
--- there. Every image the client asks for by name (Art.icon("Money"), Art.kit("Panel")...) has to
--- be in it too. Then the maths: setting text in the bitmap fonts (src/shared/GuiLayout.luau), the
--- hold ring and the striped fills, and the pay breakdown's lines adding up to what a job paid
+-- there. Every image the client asks for by name (Art.icon("Money"), Art.kit("Panel"),
+-- UI.icon("Goal"), a button's Icon = "Lock", UI.wordmark, UI.stamp, Art.sheet...) has to be in it
+-- too, and UI.luau's tables have a glyph for every tool tier, condition part and supply action.
+-- Then the maths: setting text in the bitmap fonts (src/shared/GuiLayout.luau), the hold ring and
+-- the striped fills, and the pay breakdown's lines adding up to what a job paid
 -- (src/shared/PayBreakdown.luau).
 -- Given the art's GUI folder (or with art-source/GUI in this repo), it also reads the manifest
 -- and the .fnt files again and checks GuiArt matches them exactly. Exits with an error if
@@ -128,10 +130,82 @@ local function scan(folder: string)
 					check(GuiArt.Slices[name] ~= nil, `{path} asks for the slice {name}, which isn't in GuiArt`)
 				end
 			end
+			-- Glyphs asked for through UI: UI.icon("Goal"), a button's Icon = "Lock", a phone
+			-- button's glyph.
+			for _, pattern in
+				{
+					'UI%.icon%(%s*"([%w_]+)"',
+					'%f[%w]Icon%s*=%s*"([%w_]+)"',
+					'UI%.touchButton%(%s*"[^"]*"%s*,%s*"([%w_]+)"',
+					'UI%.setTouchIcon%([^,]+,%s*"([%w_]+)"',
+				}
+			do
+				for name in string.gmatch(source, pattern) do
+					local image = `Icons/{name}.png`
+					check(GuiArt.Images[image] ~= nil, `{path} asks for {image}, which isn't in GuiArt`)
+				end
+			end
+			-- Wordmarks: UI.wordmark("JobComplete", ...), and the stamps in UI.stamp(parent, { ... }).
+			local wordmarks = {}
+			for name in string.gmatch(source, 'UI%.wordmark%(%s*"([%w_]+)"') do
+				table.insert(wordmarks, name)
+			end
+			for stamps in string.gmatch(source, "UI%.stamp%([^{]*(%b{})") do
+				for name in string.gmatch(stamps, '([%w_]+)%s*=%s*"') do
+					table.insert(wordmarks, name)
+				end
+			end
+			for _, name in wordmarks do
+				local image = `Wordmarks/{name}.png`
+				check(GuiArt.Images[image] ~= nil, `{path} asks for {image}, which isn't in GuiArt`)
+			end
+			for name in string.gmatch(source, 'Art%.sheet%("([%w_]+)"%)') do
+				check(
+					GuiArt.SpriteSheets[name] ~= nil,
+					`{path} asks for the sprite sheet {name}, which isn't in GuiArt`
+				)
+			end
 		end
 	end
 end
 scan("src/client")
+
+-- Glyphs the client picks from a table: a badge for every tool tier (Config/Tools.luau's Tiers),
+-- a glyph for every part of a tool's condition (Maintenance.parts, but a supply's uses) and for
+-- every supply's action (Maintenance.Supplies), in UI.luau's tables.
+local uiSource = fs.readFile("src/client/UI.luau")
+local function tableKeys(name: string): { [string]: boolean }
+	local keys = {}
+	local body = string.match(uiSource, `local {name} = (%b\{\})`)
+	check(body ~= nil, `UI.luau has no {name} table`)
+	for key in string.gmatch(body or "", "([%w_]+)%s*=") do
+		keys[key] = true
+	end
+	return keys
+end
+local tiers = string.match(fs.readFile("src/shared/Config/Tools.luau"), "Tools%.Tiers%s*=%s*(%b{})")
+check(tiers ~= nil, "Config/Tools.luau has no Tiers")
+local tierGlyphs = tableKeys("TIERS")
+for tier in string.gmatch(tiers or "", '"(%w+)"') do
+	check(tierGlyphs[tier] == true, `UI.luau's TIERS has no badge for the {tier} tier`)
+	check(GuiArt.Images[`Icons/Tier_{tier}.png`] ~= nil, `there's no Icons/Tier_{tier}.png for the {tier} tier`)
+end
+local maintenance = fs.readFile("src/shared/Config/Maintenance.luau")
+local function each(pattern: string): { [string]: boolean }
+	local found = {}
+	for name in string.gmatch(maintenance, pattern) do
+		found[name] = true
+	end
+	return found
+end
+local partGlyphs = tableKeys("PART_GLYPHS")
+for part in each('add%("(%w+)"') do
+	check(part == "Uses" or partGlyphs[part] == true, `UI.luau's PART_GLYPHS has no glyph for {part}`)
+end
+local actionGlyphs = tableKeys("ACTION_GLYPHS")
+for action in each('action%s*=%s*"(%w+)"') do
+	check(actionGlyphs[action] == true, `UI.luau's ACTION_GLYPHS has no glyph for {action}`)
+end
 
 -- Setting text in the bitmap fonts ---------------------------------------------------------------
 

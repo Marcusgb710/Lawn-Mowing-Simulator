@@ -353,8 +353,9 @@ new palette and fonts (DenkOne headings, Nunito text). To switch the art on, see
       - the look-at prompt under the dot ("[E] Take  Reel Push Mower", red when it won't fit), the
         dot going green on something usable and red when blocked, and the decoration placing
         prompt;
-      - buttons in every menu: green, yellow (prices), red (sell, cancel), grey (locked, owned),
-        gold for Robux; the shop and Guide tabs, the selected one green; the Back and X buttons;
+      - buttons in every menu: green (Buy, Take job), red (sell, cancel), grey (locked, owned),
+        gold for Robux, with shop prices on yellow plant tags; the shop and Guide tabs, the selected
+        one green; the Back and X buttons;
       - toasts, including "New text from Grandma June";
       - the shop computer: the taskbar's money on a wide screen (hidden on a phone), all five
         taskbar buttons fitting on a phone, the open app's button green;
@@ -385,10 +386,30 @@ new palette and fonts (DenkOne headings, Nunito text). To switch the art on, see
       - **big moments:** the Job Complete, Level Up, New Tool, Payday and act wordmarks at their
         size; the contest's ribbon, title, trophy, Winner / So Close, striped bars and confetti;
       - **performance:** frame rate with the HUD up on a phone (the timer reuses its glyphs).
-- [ ] Not used yet: `PriceTag`, `GoalTracker` (the HUD goal uses `StickyNote`), `Stamp_Sold`,
-      `Stamp_Bought`, `Sparkle`, the tier and most tool-condition glyphs, `Crown`. The shop cards
-      stay rows (picture on the left) instead of the style frames' 4-across grid, so long stats
-      and phones still fit.
+- [ ] **The last pieces (price tags, stamps, tiers, condition, crown, sparkles): to check in
+      Studio**, PC and a phone held sideways:
+      - **shop cards:** the price on its plant tag (`PriceTag`, tilted a little) over a green Buy or
+        Restock button, shaded when you can't afford it or it's locked; tag and button fitting the
+        card's right side on a phone; the tier badge (one, two or three chevrons) under each
+        tool's name in Orders, the Guide and the Jobs app;
+      - **stamps:** buying stamps `Stamp_Bought` over the card's button with a few sparkles,
+        selling stamps `Stamp_Sold`, each gone in about a second and not taken away when the list
+        redraws; a Robux purchase stamped once Roblox's prompt closes;
+      - **tool condition:** the Truck menu, and owned tools in the shop, show a glyph per part
+        (fuel can, tire, sharp or dull blade, spool; the wrench for a wrecked engine) in green,
+        yellow or red with the words for what's wrong; the HUD's ToolCondition shows a chip per
+        problem (onto a second line on a phone) and, while you hold E at the workbench, the glyph
+        for what you're doing;
+      - **job tracker:** on the `GoalTracker` card during a job (the goal stays Grandma's sticky
+        note);
+      - **TurfKing's crown:** a gold crown on a purple badge on Chad's face (Messages threads, his
+        text toasts, the dialogue box), on a job card TurfKing took (its title and Taken button),
+        and on Gloria's yard card in the Best Yard results;
+      - **sparkles:** on Level Up!, New Tool!, Payday!, Job Complete!, the act titles, the
+        dialogue's new-tool card and the trophy on a win; the 2 x 2 sheet plays once, not
+        looping, and the frame rate holds on a phone.
+      The shop cards stay rows (picture on the left) instead of the style frames' 4-across grid,
+      so long stats and phones still fit.
 
 ## Before release
 
