@@ -37,7 +37,9 @@ Review the five requested views:
 
 Import `ALL/39_Fixes.gltf` with `39_Fixes.bin` and the relative `Textures/` folder intact. It contains **four** top-level model nodes, each with translation only. June is at the origin; crate, office and lawn occupy separate grid cells. Individual glTF/bin and binary FBX alternatives are in `Models/<Id>/`.
 
-Remove each combined-library grid offset when creating its model-local definition; `library_translation_meters` records the offsets. Keep each model's original logical `Root` at `(0, 0.5, 0)` in local studs. All SmallOffice markers, including repeated `Mount`/`FloorSpot` names and their attributes and orientations, are preserved. Retain the existing game's between-MeshPart offsets when replacing its SmallOffice meshes; this source delivery preserves the original collision-part transforms, while baking in the named glazing fix.
+Remove each combined-library grid offset when creating its model-local definition; `library_translation_meters` records the offsets. Keep each model's original logical `Root` at `(0, 0.5, 0)` in local studs. All SmallOffice markers, including repeated `Mount`/`FloorSpot` names and their attributes and orientations, are preserved.
+
+Use the new source bounds/transforms when replacing meshes, then retain only the game's **unrelated collision-MeshPart offsets** on SmallOffice. Do not apply the old glazing nudge again: that separation is now baked into its vertices. Likewise, keep the new `GloriaYard_Stage3__Lawn` at its source origin and remove its legacy Z −0.03 nudge. The shortened paving now provides separation at both lawn edges; retaining that old lawn offset would reduce clearance at the back edge.
 
 Use the existing pack 37 import convention: +Y up, front facing −Z, authored in metres with **1 stud = 0.28 m**. The manifest's dimensions and marker positions are in studs.
 
