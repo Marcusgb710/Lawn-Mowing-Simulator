@@ -64,12 +64,14 @@ local TAILGATE_TIME = 0.6
 local COMPUTER_REACH = 8
 -- The building's own machines, for its Compressor and Grinder mounts.
 local SHOP_MACHINES = { Compressor = "AirCompressor", Grinder = "BenchGrinder" }
--- Grandma June's porch rocker (see GrandmaJune) stands this far to the right of the building and
--- this far in front of it, turned this much toward the driveway. Beside an older building, whose
--- delivery boxes stand out front on the right, she sits at least JUNE_PAST_BOXES across, clear of
--- them, and never closer than JUNE_EDGE to the plot's side.
-local JUNE_GAP, JUNE_AHEAD, JUNE_TURN = 5, 2.5, math.rad(30)
-local JUNE_PAST_BOXES, JUNE_EDGE = 25, 7
+-- Grandma June's porch (or just her rocker, see GrandmaJune) stands to the right of the building,
+-- leaving JUNE_GAP of ground between them, its middle JUNE_AHEAD in front of the building's
+-- front, turned JUNE_TURN toward the driveway. Beside an older building, whose delivery boxes
+-- stand out front on the right, its near edge is at least JUNE_PAST_BOXES across, and its far edge
+-- never closer than JUNE_EDGE to the plot's side. Where her porch won't fit, she gets just the
+-- rocker.
+local JUNE_GAP, JUNE_AHEAD, JUNE_TURN = 3, 2.5, math.rad(30)
+local JUNE_PAST_BOXES, JUNE_EDGE = 23, 5
 -- Walls put up for a walk-in building whose walls don't collide properly (see makeWalkable).
 local FALLBACK_WALL = 0.8
 -- A wall mesh no thicker than this (studs) is a flat piece that collides fine as it is, and one
@@ -531,14 +533,54 @@ local function buildPlot(plot)
 
 	-- Grandma June on her porch rocker beside the shop, looking out over the driveway.
 	local buildingRight = origin:PointToObjectSpace(buildingBox.Position).X + buildingSize.X / 2
-	local juneX = buildingRight + JUNE_GAP
-	if not markers.delivery then
-		juneX = math.max(juneX, JUNE_PAST_BOXES)
+	local juneZ = frontZ - JUNE_AHEAD
+	-- The delivery boxes' patch, in plot space, which her porch keeps clear of.
+	local patchLow, patchHigh = nil, nil
+	if plot.deliveryFrame then
+		local patch = plot.deliveryFrame * CFrame.new(DELIVERY_PATCH.x, 0, DELIVERY_PATCH.z)
+		for _, corner in { Vector3.new(-1, 0, -1), Vector3.new(1, 0, -1), Vector3.new(-1, 0, 1), Vector3.new(1, 0, 1) } do
+			local point = origin:PointToObjectSpace(
+				patch * Vector3.new(corner.X * DELIVERY_PATCH.width / 2, 0, corner.Z * DELIVERY_PATCH.depth / 2)
+			)
+			patchLow = if patchLow then patchLow:Min(point) else point
+			patchHigh = if patchHigh then patchHigh:Max(point) else point
+		end
 	end
-	juneX = math.min(juneX, plot.width / 2 - JUNE_EDGE)
-	local june = GrandmaJune.build(at(juneX, 0, frontZ - JUNE_AHEAD) * CFrame.Angles(0, JUNE_TURN, 0))
+	-- Where her porch (or rocker) goes across the plot, and whether it fits there.
+	local function juneSpot(withPorch: boolean): (number, boolean)
+		local foot = GrandmaJune.footprint(withPorch)
+		local cos, sin = math.abs(math.cos(JUNE_TURN)), math.abs(math.sin(JUNE_TURN))
+		local half = Vector2.new(foot.X * cos + foot.Y * sin, foot.X * sin + foot.Y * cos) / 2
+		local x = buildingRight + JUNE_GAP + half.X
+		if not markers.delivery then
+			x = math.max(x, JUNE_PAST_BOXES + half.X)
+		end
+		-- Past the delivery patch, if it would stand on it.
+		if
+			patchLow
+			and patchHigh
+			and x - half.X < patchHigh.X
+			and x + half.X > patchLow.X
+			and juneZ - half.Y < patchHigh.Z
+			and juneZ + half.Y > patchLow.Z
+		then
+			x = patchHigh.X + 1 + half.X
+		end
+		local fits = x + half.X <= plot.width / 2 - JUNE_EDGE
+		return math.min(x, plot.width / 2 - JUNE_EDGE - half.X), fits
+	end
+	local withPorch = GrandmaJune.hasPorch()
+	local juneX, fits = juneSpot(withPorch)
+	if withPorch and not fits then
+		withPorch = false
+		juneX = juneSpot(false)
+	end
+	local june, porch = GrandmaJune.build(at(juneX, 0, juneZ) * CFrame.Angles(0, JUNE_TURN, 0), withPorch)
 	june:SetAttribute("OwnerUserId", owner.UserId)
 	june.Parent = model
+	if porch then
+		porch.Parent = model
+	end
 
 	local truck = Assets.truck(data.equipped.Truck or Items.Catalog.Truck[1].id, data.equipped.Trailer)
 	-- Their Robux paint job, if they've put one on (see Premium.luau).
