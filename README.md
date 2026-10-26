@@ -58,6 +58,35 @@ Services*. Without it the game still runs, it just doesn't save progress.
 
 **Testing crews:** Test tab → Clients and Servers → pick 2–4 players → Start.
 
+## Publishing
+
+Players (and phones) only get what's been published. To publish the latest `main`, no Studio
+needed:
+
+```sh
+git checkout main && git pull
+python3 scripts/publish.py --dry-run   # build, merge and check, but don't publish
+python3 scripts/publish.py             # the same, then publish; prints the new version number
+```
+
+- It refuses unless the working tree is clean and level with `origin/main` (`--force` skips that).
+- It builds the code with `rojo build`, then `scripts/publish-place.luau` (Lune) swaps it into a
+  **base place** that has what Studio made and Rojo doesn't manage: Terrain, Baseplate,
+  SpawnLocation, the Sky and Lighting effects, `StreamingEnabled` and every service's settings.
+  It prints a short check (what was kept, Assets.Story models, GuiArt ids filled) before
+  publishing.
+- **The base place** is Studio's newest AutoRecovery copy of the place, or
+  [`place/base.rbxl`](place/base.rbxl) when there isn't one. `--base FILE` picks another. After
+  changing something in Studio outside the Rojo trees (lighting, terrain, the spawn), remake the
+  committed one from the autosave and commit it:
+  `lune run scripts/publish-place --make-base <autosave.rbxl> place/base.rbxl`.
+- It refuses a base with `ServerStorage.ModelImport` or `Workspace.Scene` in it (left over from
+  a 3D import). Delete them in Studio, or pass `--base place/base.rbxl`.
+- **API key:** `$ROBLOX_API_KEY` or `~/.roblox-opencloud-key`, an Open Cloud key made under Big
+  Dink Studios with **universe-places** write access on this experience. Never commit it.
+- **Close Studio first.** While Studio has the place open, Roblox answers 409 "Server is busy".
+  The script waits 45 s and tries again, up to 8 times.
+
 ## How the game plays
 
 1. **Your business.** Everyone gets a business plot in town: the shop is your hub. Inside are
@@ -160,7 +189,8 @@ truck. Only the leader accepts jobs and drives. Leaving the crew in the middle o
 
 ```
 default.project.json         Rojo project: maps the folders below into the game
-rokit.toml                   Tool versions (Rojo, Selene, StyLua)
+rokit.toml                   Tool versions (Rojo, Selene, StyLua, Lune)
+place/base.rbxl              the Studio-made parts scripts/publish.py publishes the code into
 assets/                      -> ReplicatedStorage.Assets   real models go here (see below)
 src/shared/                  -> ReplicatedStorage.Shared   code used by both server and client
   Config/GameConfig.luau        balance numbers: travel time, pay formula, penalties, leveling...

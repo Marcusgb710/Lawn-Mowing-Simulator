@@ -66,6 +66,7 @@ function TutorialController:Start()
 	UI.corner(10).Parent = banner
 	UI.padding(10).Parent = banner
 	UI.new("UISizeConstraint", { MaxSize = Vector2.new(520, math.huge), Parent = banner })
+	UI.keepToastsBelow(banner)
 
 	ClientState.Changed:Connect(function(key)
 		if key == "profile" or key == "job" or key == "story" then

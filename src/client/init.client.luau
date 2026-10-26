@@ -1,5 +1,6 @@
 -- Client entry point. Hooks remotes up to ClientState, then starts every controller.
 
+local ContentProvider = game:GetService("ContentProvider")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Net = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Net"))
@@ -35,8 +36,14 @@ local CONTROLLERS = {
 Net.event("ProfileUpdated").OnClientEvent:Connect(function(profile)
 	ClientState.set("profile", profile)
 end)
+-- Roblox's hotbar is how you switch between your loaded tools on a job site, and only there.
+local function updateHotbar(job)
+	UI.setHotbar(job ~= nil and (job.state == "Working" or job.state == "Complete"))
+end
+updateHotbar(nil)
 Net.event("JobUpdated").OnClientEvent:Connect(function(job)
 	ClientState.set("job", job)
+	updateHotbar(job)
 end)
 Net.event("JobBoardUpdated").OnClientEvent:Connect(function(board)
 	ClientState.set("board", board)
@@ -58,6 +65,20 @@ for _, name in CONTROLLERS do
 	local controller = require(Controllers:WaitForChild(name))
 	controller:Start()
 end
+
+-- Fetch the GUI's frames and glyphs now, so buttons that only show up later (the phone buttons,
+-- prompts, menus) have their art ready instead of downloading it as they appear.
+task.spawn(function()
+	local GuiArt = require(ReplicatedStorage.Shared.Config.GuiArt)
+	local ids = {}
+	for path, id in GuiArt.Images do
+		local folder = string.match(path, "^(%a+)/")
+		if id ~= "" and (folder == "Kit" or folder == "Icons" or folder == "Computer") then
+			table.insert(ids, id)
+		end
+	end
+	pcall(ContentProvider.PreloadAsync, ContentProvider, ids)
+end)
 
 ClientState.set("board", Net.func("GetJobBoard"):InvokeServer())
 local profile = Net.func("GetProfile"):InvokeServer()

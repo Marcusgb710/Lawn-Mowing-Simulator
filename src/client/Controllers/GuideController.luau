@@ -92,25 +92,28 @@ local function render()
 			if owned then `{item.name}  (yours)` else item.name,
 			{ TextSize = 19, LayoutOrder = 1, Parent = words }
 		)
+		if item.tier then
+			UI.tierBadge(item.tier, { LayoutOrder = 2, Parent = words })
+		end
 		UI.label(item.description, {
 			Size = UDim2.fromScale(1, 0),
 			AutomaticSize = Enum.AutomaticSize.Y,
 			TextWrapped = true,
 			TextSize = 14,
 			FontFace = UI.Fonts.Body,
-			LayoutOrder = 2,
+			LayoutOrder = 3,
 			Parent = words,
 		})
 		local size = Tools.SizeClasses[item.sizeClass]
 		local spot = string.lower(Storage.Spots[size.spot].name)
-		UI.label(`{item.tier}  ·  {size.label}, stored on a {spot}`, {
+		UI.label(`{size.label}, stored on a {spot}`, {
 			Size = UDim2.fromScale(1, 0),
 			AutomaticSize = Enum.AutomaticSize.Y,
 			TextWrapped = true,
 			TextSize = 14,
 			FontFace = UI.Fonts.Medium,
 			TextColor3 = UI.Colors.SubText,
-			LayoutOrder = 3,
+			LayoutOrder = 4,
 			Parent = words,
 		})
 	end

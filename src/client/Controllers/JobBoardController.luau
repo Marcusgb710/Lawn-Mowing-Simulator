@@ -1,7 +1,8 @@
 -- The Jobs app on the shop computer: lists open jobs and lets the crew leader accept one.
 -- Each job shows what the customer says and wants done, never which tools to use. From act 2,
 -- TurfKing now and then takes a job off your board (TurfKingService): its card gets the "Taken by
--- TurfKing" stamp (landing with a thump if you're looking) and can't be accepted.
+-- TurfKing" stamp (landing with a thump if you're looking) and TurfKing's gold crown, and can't be
+-- accepted. Each card has a badge with the job's tier.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -131,7 +132,8 @@ local function render()
 			return UI.label(content, props)
 		end
 
-		-- The job and where, with the Jobs glyph (a clipboard) before it.
+		-- The job and where, with the Jobs glyph (a clipboard) before it, or TurfKing's gold crown
+		-- once it's taken the job.
 		local title = UI.new("Frame", {
 			Size = UDim2.fromScale(1, 0),
 			AutomaticSize = Enum.AutomaticSize.Y,
@@ -139,8 +141,10 @@ local function render()
 			LayoutOrder = 1,
 			Parent = text,
 		})
-		local clipboard = UI.icon("Jobs", { Size = UDim2.fromOffset(24, 24), Parent = title })
-		local titleX = if clipboard then 32 else 0
+		local glyph = if taken
+			then UI.icon("Crown", { Size = UDim2.fromOffset(24, 24), Parent = title }, UI.Colors.Gold)
+			else UI.icon("Jobs", { Size = UDim2.fromOffset(24, 24), Parent = title })
+		local titleX = if glyph then 32 else 0
 		UI.heading(`{offer.name}  ·  {offer.address}`, {
 			Position = UDim2.fromOffset(titleX, 0),
 			Size = UDim2.new(1, -titleX, 0, 0),
@@ -170,17 +174,39 @@ local function render()
 			TextColor3 = UI.Colors.SubText,
 			LayoutOrder = 3,
 		})
-		local details = `{offer.tier} job  ·  Par time {Format.time(offer.parTime)}  ·  +{offer.xp} xp`
-		line(if locked then `Needs level {offer.minLevel}` else details, {
-			TextSize = 14,
-			TextColor3 = if locked then UI.Colors.Danger else UI.Colors.SubText,
+		-- The job's tier on its badge, then par time and xp (or the level it needs).
+		local details = UI.new("Frame", {
+			Size = UDim2.new(1, 0, 0, 24),
+			BackgroundTransparency = 1,
 			LayoutOrder = 4,
+			Parent = text,
+		}, {
+			UI.new("UIListLayout", {
+				Padding = UDim.new(0, 8),
+				FillDirection = Enum.FillDirection.Horizontal,
+				VerticalAlignment = Enum.VerticalAlignment.Center,
+				SortOrder = Enum.SortOrder.LayoutOrder,
+			}),
 		})
+		UI.tierBadge(offer.tier, { LayoutOrder = 1, Parent = details })
+		UI.label(
+			if locked
+				then `Needs level {offer.minLevel}`
+				else `Par time {Format.time(offer.parTime)}  ·  +{offer.xp} xp`,
+			{
+				Size = UDim2.fromOffset(0, 24),
+				AutomaticSize = Enum.AutomaticSize.X,
+				TextSize = 14,
+				TextColor3 = if locked then UI.Colors.Danger else UI.Colors.SubText,
+				LayoutOrder = 2,
+				Parent = details,
+			}
+		)
 
 		UI.display(
 			"Numbers",
 			Format.money(offer.payout),
-			{ TextSize = 40, Color = UI.Colors.Money, XAlignment = "Right", Fit = true },
+			{ TextSize = 30, Color = UI.Colors.Money, XAlignment = "Right", Fit = true },
 			{
 				AnchorPoint = Vector2.new(1, 0),
 				Position = UDim2.new(1, -12, 0, 8),
@@ -190,7 +216,7 @@ local function render()
 		)
 
 		local canAccept = leader and not locked and not taken and ClientState.job == nil
-		UI.button(if taken then "Taken" elseif locked then "Locked" else "Take job", function()
+		local button = UI.button(if taken then "Taken" elseif locked then "Locked" else "Take job", function()
 			if canAccept then
 				accept(offer.id)
 			end
@@ -199,11 +225,16 @@ local function render()
 			Position = UDim2.new(1, -12, 0, 54),
 			Size = UDim2.fromOffset(126, 40),
 			Style = if canAccept then "Primary" else "Disabled",
-			Icon = if locked and not taken then "Lock" else nil,
+			Icon = if taken then "Crown" elseif locked then "Lock" else nil,
 			IconSize = 16,
 			AutoButtonColor = canAccept,
 			Parent = card,
 		})
+		-- TurfKing's crown is gold.
+		local crown = if taken then button:FindFirstChild("Icon") else nil
+		if crown and crown:IsA("ImageLabel") then
+			crown.ImageColor3 = UI.Colors.Gold
+		end
 		-- The card's at least as tall as the pay and the button.
 		UI.new("Frame", { Size = UDim2.fromOffset(1, 106), BackgroundTransparency = 1, Parent = card })
 		if taken then
