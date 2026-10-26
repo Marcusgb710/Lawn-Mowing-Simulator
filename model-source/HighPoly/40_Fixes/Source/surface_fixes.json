@@ -1,0 +1,333 @@
+[
+  {
+    "name": "DeliveryCrate",
+    "source_pack": "33_ShopDesksAndDeliveries",
+    "source_sha256": {
+      "DeliveryCrate.gltf": "c353cac5b339cbcc43729db6a5f81298d07306ebdf203dd4334a67a8c44a3149",
+      "DeliveryCrate.bin": "7a971da4ada604352a79e52e74c6a828754e600fef67996642df2cffd09afdda"
+    },
+    "changes": [
+      {
+        "surface": "twelve horizontal side slats",
+        "count": 12,
+        "inset_studs": 0.031,
+        "end_inset_studs": 0.02,
+        "post_positions_unchanged": true
+      }
+    ],
+    "triangles": 5876,
+    "mesh_objects": 4,
+    "original_nodes_transforms_markers_and_pivots_preserved": true
+  },
+  {
+    "name": "SmallOffice",
+    "source_pack": "24_YardAndBuildings",
+    "source_sha256": {
+      "SmallOffice.gltf": "ad33aca789f36334b7b51a7d198ff76f9ca6915198736500ce67354bc2456049",
+      "SmallOffice.bin": "bda019e6122c9498d2a90580ba08a9a16c2b3c91e982d16337031a41aab84b6e"
+    },
+    "changes": [
+      {
+        "surface": "garage lintel trim",
+        "outward_shift_studs": 0.04,
+        "upward_shift_studs": 0.04,
+        "new_front_z_studs": -13.900000882829936,
+        "dimensions_unchanged": true
+      },
+      {
+        "surface": "partition lap siding",
+        "new_top_y_studs": 16.85,
+        "beam_unchanged": true
+      },
+      {
+        "surface": "open door glazing",
+        "centre_z_studs": -13.884,
+        "minimum_front_wall_gap_studs": 0.0315,
+        "pivot_unchanged": true
+      },
+      {
+        "surface": "green front sign wholly outside wall siding",
+        "component": 290,
+        "translation_studs": [
+          0,
+          0,
+          -0.11
+        ]
+      },
+      {
+        "surface": "front interior corner trim",
+        "component": 87,
+        "translation_studs": [
+          0,
+          0,
+          0.025
+        ]
+      },
+      {
+        "surface": "front interior corner trim",
+        "component": 88,
+        "translation_studs": [
+          0,
+          0,
+          0.025
+        ]
+      },
+      {
+        "surface": "back interior corner trim",
+        "component": 122,
+        "translation_studs": [
+          0,
+          0,
+          -0.025
+        ]
+      },
+      {
+        "surface": "back interior corner trim",
+        "component": 123,
+        "translation_studs": [
+          0,
+          0,
+          -0.025
+        ]
+      },
+      {
+        "surface": "left interior corner trim",
+        "component": 157,
+        "translation_studs": [
+          0.025,
+          0,
+          0
+        ]
+      },
+      {
+        "surface": "left interior corner trim",
+        "component": 158,
+        "translation_studs": [
+          0.025,
+          0,
+          0
+        ]
+      },
+      {
+        "surface": "right interior corner trim",
+        "component": 202,
+        "translation_studs": [
+          -0.025,
+          0,
+          0
+        ]
+      },
+      {
+        "surface": "right interior corner trim",
+        "component": 203,
+        "translation_studs": [
+          -0.025,
+          0,
+          0
+        ]
+      },
+      {
+        "surface": "partition corner trim",
+        "component": 252,
+        "translation_studs": [
+          0.025,
+          0,
+          0
+        ]
+      },
+      {
+        "surface": "partition corner trim",
+        "component": 253,
+        "translation_studs": [
+          0.025,
+          0,
+          0
+        ]
+      },
+      {
+        "surface": "window sill above collision wall",
+        "component": 258,
+        "translation_studs": [
+          0,
+          0.025,
+          0
+        ]
+      },
+      {
+        "surface": "window sill above collision wall",
+        "component": 264,
+        "translation_studs": [
+          0,
+          0.025,
+          0
+        ]
+      },
+      {
+        "surface": "window sill above collision wall",
+        "component": 270,
+        "translation_studs": [
+          0,
+          0.025,
+          0
+        ]
+      },
+      {
+        "surface": "left garage jamb clear of wall ends and siding",
+        "component": 273,
+        "translation_studs": [
+          0.025,
+          0,
+          -0.08
+        ]
+      },
+      {
+        "surface": "right garage jamb clear of wall ends and siding",
+        "component": 275,
+        "translation_studs": [
+          -0.025,
+          0,
+          -0.08
+        ]
+      },
+      {
+        "surface": "floor joint trim above floor",
+        "component": 0,
+        "translation_studs": [
+          0,
+          0.03,
+          0
+        ]
+      },
+      {
+        "surface": "floor joint trim above floor",
+        "component": 1,
+        "translation_studs": [
+          0,
+          0.03,
+          0
+        ]
+      },
+      {
+        "surface": "decorative roof fascia",
+        "component": 279,
+        "scale": [
+          1.001106500691563,
+          1.0,
+          1.0049122807017543
+        ],
+        "collision_roof_and_walls_unchanged": true
+      }
+    ],
+    "triangles": 13468,
+    "mesh_objects": 32,
+    "original_nodes_transforms_markers_and_pivots_preserved": true
+  },
+  {
+    "name": "GloriaYard_Stage1",
+    "source_pack": "37_Story",
+    "source_sha256": {
+      "GloriaYard_Stage1.gltf": "3a7eadff6c99ec8c96a6c3a82ebd163ffab4b752f92c7c0de3a8ca4e044c31bc",
+      "GloriaYard_Stage1.bin": "671d5e9f7feee07ceb40653a64c51314eda1a029f22720122a1f64618497b69e"
+    },
+    "changes": [
+      {
+        "surface": "walk and driveway end faces",
+        "front_z_studs": -47.96,
+        "back_z_studs": -18.04,
+        "lawn_edge_gap_studs": 0.04
+      },
+      {
+        "surface": "buried vegetation undersides",
+        "method": "remove downward faces at Y 0.1 under opaque lawn",
+        "triangles_removed": 8,
+        "visible_faces_unchanged": true
+      },
+      {
+        "surface": "single-layer lawn",
+        "method": "one non-overlapping top layer; original UVs and colours",
+        "pattern": "original lawn",
+        "top_y_studs": 0.129,
+        "paving_gaps_studs": {
+          "driveway": 0.031,
+          "walk": 0.041
+        },
+        "triangles_before": 180,
+        "triangles_after": 38,
+        "body_decorations_unchanged": true
+      }
+    ],
+    "triangles": 9278,
+    "mesh_objects": 2,
+    "original_nodes_transforms_markers_and_pivots_preserved": true
+  },
+  {
+    "name": "GloriaYard_Stage2",
+    "source_pack": "37_Story",
+    "source_sha256": {
+      "GloriaYard_Stage2.gltf": "a6fa9c566728671ca213fdc2c54cfb0083ca53f198f1c92eec990651f02d3466",
+      "GloriaYard_Stage2.bin": "42d62903f958b1343abd26d8678bed30a0ba2e8b0ea1b077f51dcd3f9883ddb9"
+    },
+    "changes": [
+      {
+        "surface": "walk and driveway end faces",
+        "front_z_studs": -47.96,
+        "back_z_studs": -18.04,
+        "lawn_edge_gap_studs": 0.04
+      },
+      {
+        "surface": "buried vegetation undersides",
+        "method": "remove downward faces at Y 0.1 under opaque lawn",
+        "triangles_removed": 4,
+        "visible_faces_unchanged": true
+      },
+      {
+        "surface": "single-layer lawn",
+        "method": "one non-overlapping top layer; original UVs and colours",
+        "pattern": "original diagonal stripes",
+        "top_y_studs": 0.129,
+        "paving_gaps_studs": {
+          "driveway": 0.031,
+          "walk": 0.041
+        },
+        "triangles_before": 71,
+        "triangles_after": 69,
+        "body_decorations_unchanged": true
+      }
+    ],
+    "triangles": 9685,
+    "mesh_objects": 2,
+    "original_nodes_transforms_markers_and_pivots_preserved": true
+  },
+  {
+    "name": "GloriaYard_Stage3",
+    "source_pack": "37_Story",
+    "source_sha256": {
+      "GloriaYard_Stage3.gltf": "47b608548b00cce018ea6773a8031365649d0ae758ae550e469c5d51110817a7",
+      "GloriaYard_Stage3.bin": "8bd3ecc67eb8ae634ee77ccf6364371ddbba7326b9d0458d18b9e9f833fb90ed"
+    },
+    "changes": [
+      {
+        "surface": "walk and driveway end faces",
+        "front_z_studs": -47.96,
+        "back_z_studs": -18.04,
+        "lawn_edge_gap_studs": 0.04
+      },
+      {
+        "surface": "single-layer lawn",
+        "method": "one non-overlapping top layer; original UVs and colours",
+        "pattern": "original 16 by 10 checkerboard",
+        "top_y_studs": 0.129,
+        "paving_gaps_studs": {
+          "driveway": 0.031,
+          "walk": 0.041
+        },
+        "triangles_before": 2124,
+        "triangles_after": 330,
+        "body_decorations_unchanged": true
+      }
+    ],
+    "triangles": 11366,
+    "mesh_objects": 2,
+    "original_nodes_transforms_markers_and_pivots_preserved": true
+  }
+]

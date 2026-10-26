@@ -1,0 +1,1927 @@
+{
+  "instruction": 40,
+  "source_main_commit": "7b33629",
+  "meters_per_stud": 0.28,
+  "original_packs_preserved": true,
+  "studio_import_tested": false,
+  "assets": [
+    {
+      "name": "DeliveryCrate",
+      "folder": "Props",
+      "instruction": 40,
+      "triangle_budget": 6000,
+      "detail_guidance_min": 3000,
+      "dimensions_studs": [
+        5.400000299726213,
+        4.400000145791896,
+        7.199999670098935
+      ],
+      "bounds_min_studs": [
+        -2.7000001498631065,
+        0.0,
+        -3.5999999115509644
+      ],
+      "bounds_max_studs": [
+        2.7000001498631065,
+        4.400000145791896,
+        3.5999997585479697
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [
+        {
+          "name": "Contents",
+          "instance_type": "Attachment",
+          "parent_mesh": "DeliveryCrate__Body",
+          "position_studs": [
+            0.0,
+            0.4429864287376404,
+            0.03902435302734375
+          ],
+          "orientation_degrees": [
+            0.0,
+            -0.0,
+            -0.0
+          ],
+          "attributes": {},
+          "look_vector": [
+            0.0,
+            0.0,
+            -1.0
+          ]
+        }
+      ],
+      "slots": [],
+      "triangles": 5876,
+      "mesh_objects": 4,
+      "parts": [
+        {
+          "name": "DeliveryCrate__Body",
+          "triangles": 2632,
+          "origin_studs": [
+            0.0,
+            -0.02488686889410019,
+            0.03902435302734375
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "DeliveryCrate__FrontPanel",
+          "triangles": 1028,
+          "origin_studs": [
+            0.0,
+            0.43303167819976807,
+            -3.473170518875122
+          ],
+          "role": "opening_panel",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "DeliveryCrate__BackPanel",
+          "triangles": 1028,
+          "origin_studs": [
+            0.0,
+            -0.02488686889410019,
+            0.03902435302734375
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "DeliveryCrate__Lid",
+          "triangles": 1188,
+          "origin_studs": [
+            0.0,
+            4.355203628540039,
+            3.5512192249298096
+          ],
+          "role": "opening_panel",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "X",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "pallet_fork_openings_and_drop_front_ramp": 1,
+        "surface_fixes": [
+          {
+            "surface": "twelve horizontal side slats",
+            "count": 12,
+            "inset_studs": 0.031,
+            "end_inset_studs": 0.02,
+            "post_positions_unchanged": true
+          }
+        ]
+      },
+      "baseline_source_pack": "33_ShopDesksAndDeliveries",
+      "baseline_triangles": 5876,
+      "authoring_fit": {
+        "scale": [
+          0.9608541131019592,
+          0.9954751133918762,
+          0.9756097197532654
+        ],
+        "offset": [
+          0.0,
+          -0.02488686889410019,
+          0.03902435302734375
+        ]
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "name": "SmallOffice",
+      "folder": "Buildings",
+      "instruction": 40,
+      "triangle_budget": 25000,
+      "detail_guidance_min": 12000,
+      "dimensions_studs": [
+        37.70000253404889,
+        17.550000122615266,
+        29.725757666996543
+      ],
+      "bounds_min_studs": [
+        -18.850001267024446,
+        0.0,
+        -14.875757694244383
+      ],
+      "bounds_max_studs": [
+        18.850001267024446,
+        17.550000122615266,
+        14.84999997275216
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [
+        {
+          "name": "Mount",
+          "instance_type": "Attachment",
+          "parent_mesh": "SmallOffice__Floor",
+          "position_studs": [
+            -14.7,
+            2.28,
+            13.4
+          ],
+          "orientation_degrees": [
+            0,
+            0,
+            0
+          ],
+          "attributes": {
+            "Kind": "Pegboard",
+            "Index": 1
+          },
+          "look_vector": [
+            0.0,
+            0.0,
+            -1.0
+          ]
+        },
+        {
+          "name": "Mount",
+          "instance_type": "Attachment",
+          "parent_mesh": "SmallOffice__Floor",
+          "position_studs": [
+            -9.2,
+            2.28,
+            13.4
+          ],
+          "orientation_degrees": [
+            0,
+            0,
+            0
+          ],
+          "attributes": {
+            "Kind": "Pegboard",
+            "Index": 2
+          },
+          "look_vector": [
+            0.0,
+            0.0,
+            -1.0
+          ]
+        },
+        {
+          "name": "Mount",
+          "instance_type": "Attachment",
+          "parent_mesh": "SmallOffice__Floor",
+          "position_studs": [
+            -3.7,
+            2.28,
+            13.4
+          ],
+          "orientation_degrees": [
+            0,
+            0,
+            0
+          ],
+          "attributes": {
+            "Kind": "Pegboard",
+            "Index": 3
+          },
+          "look_vector": [
+            0.0,
+            0.0,
+            -1.0
+          ]
+        },
+        {
+          "name": "Mount",
+          "instance_type": "Attachment",
+          "parent_mesh": "SmallOffice__Floor",
+          "position_studs": [
+            1.8,
+            2.28,
+            13.4
+          ],
+          "orientation_degrees": [
+            0,
+            0,
+            0
+          ],
+          "attributes": {
+            "Kind": "Pegboard",
+            "Index": 4
+          },
+          "look_vector": [
+            0.0,
+            0.0,
+            -1.0
+          ]
+        },
+        {
+          "name": "Mount",
+          "instance_type": "Attachment",
+          "parent_mesh": "SmallOffice__Floor",
+          "position_studs": [
+            7.0,
+            3.28,
+            -5.0
+          ],
+          "orientation_degrees": [
+            0,
+            90,
+            0
+          ],
+          "attributes": {
+            "Kind": "WallRack",
+            "Index": 1
+          },
+          "look_vector": [
+            -1.0,
+            0.0,
+            -7.549790126404332e-08
+          ]
+        },
+        {
+          "name": "Mount",
+          "instance_type": "Attachment",
+          "parent_mesh": "SmallOffice__Floor",
+          "position_studs": [
+            7.0,
+            3.28,
+            2.0
+          ],
+          "orientation_degrees": [
+            0,
+            90,
+            0
+          ],
+          "attributes": {
+            "Kind": "WallRack",
+            "Index": 2
+          },
+          "look_vector": [
+            -1.0,
+            0.0,
+            -7.549790126404332e-08
+          ]
+        },
+        {
+          "name": "Mount",
+          "instance_type": "Attachment",
+          "parent_mesh": "SmallOffice__Floor",
+          "position_studs": [
+            7.0,
+            3.28,
+            9.0
+          ],
+          "orientation_degrees": [
+            0,
+            90,
+            0
+          ],
+          "attributes": {
+            "Kind": "WallRack",
+            "Index": 3
+          },
+          "look_vector": [
+            -1.0,
+            0.0,
+            -7.549790126404332e-08
+          ]
+        },
+        {
+          "name": "Mount",
+          "instance_type": "Attachment",
+          "parent_mesh": "SmallOffice__Floor",
+          "position_studs": [
+            -18.05,
+            4.78,
+            -9.0
+          ],
+          "orientation_degrees": [
+            0,
+            -90,
+            0
+          ],
+          "attributes": {
+            "Kind": "WallHooks",
+            "Index": 1
+          },
+          "look_vector": [
+            1.0,
+            0.0,
+            4.371138828673793e-08
+          ]
+        },
+        {
+          "name": "Mount",
+          "instance_type": "Attachment",
+          "parent_mesh": "SmallOffice__Floor",
+          "position_studs": [
+            -18.05,
+            4.78,
+            -4.5
+          ],
+          "orientation_degrees": [
+            0,
+            -90,
+            0
+          ],
+          "attributes": {
+            "Kind": "WallHooks",
+            "Index": 2
+          },
+          "look_vector": [
+            1.0,
+            0.0,
+            4.371138828673793e-08
+          ]
+        },
+        {
+          "name": "Mount",
+          "instance_type": "Attachment",
+          "parent_mesh": "SmallOffice__Floor",
+          "position_studs": [
+            -18.05,
+            4.78,
+            0.0
+          ],
+          "orientation_degrees": [
+            0,
+            -90,
+            0
+          ],
+          "attributes": {
+            "Kind": "WallHooks",
+            "Index": 3
+          },
+          "look_vector": [
+            1.0,
+            0.0,
+            4.371138828673793e-08
+          ]
+        },
+        {
+          "name": "Mount",
+          "instance_type": "Attachment",
+          "parent_mesh": "SmallOffice__Floor",
+          "position_studs": [
+            -15.8,
+            0.28,
+            -13.4
+          ],
+          "orientation_degrees": [
+            0,
+            180,
+            0
+          ],
+          "attributes": {
+            "Kind": "Shelf",
+            "Index": 1
+          },
+          "look_vector": [
+            -8.742277657347586e-08,
+            0.0,
+            1.0
+          ]
+        },
+        {
+          "name": "Mount",
+          "instance_type": "Attachment",
+          "parent_mesh": "SmallOffice__Floor",
+          "position_studs": [
+            3.8,
+            0.28,
+            -13.4
+          ],
+          "orientation_degrees": [
+            0,
+            180,
+            0
+          ],
+          "attributes": {
+            "Kind": "Shelf",
+            "Index": 2
+          },
+          "look_vector": [
+            -8.742277657347586e-08,
+            0.0,
+            1.0
+          ]
+        },
+        {
+          "name": "Mount",
+          "instance_type": "Attachment",
+          "parent_mesh": "SmallOffice__Floor",
+          "position_studs": [
+            -18.05,
+            0.28,
+            9.5
+          ],
+          "orientation_degrees": [
+            0,
+            -90,
+            0
+          ],
+          "attributes": {
+            "Kind": "Workbench",
+            "Index": 1
+          },
+          "look_vector": [
+            1.0,
+            0.0,
+            4.371138828673793e-08
+          ]
+        },
+        {
+          "name": "Mount",
+          "instance_type": "Attachment",
+          "parent_mesh": "SmallOffice__Floor",
+          "position_studs": [
+            -18.05,
+            0.28,
+            4.8
+          ],
+          "orientation_degrees": [
+            0,
+            -90,
+            0
+          ],
+          "attributes": {
+            "Kind": "Compressor",
+            "Index": 1
+          },
+          "look_vector": [
+            1.0,
+            0.0,
+            4.371138828673793e-08
+          ]
+        },
+        {
+          "name": "FloorSpot",
+          "instance_type": "Attachment",
+          "parent_mesh": "SmallOffice__Floor",
+          "position_studs": [
+            -14.0,
+            0.28,
+            -8.0
+          ],
+          "orientation_degrees": [
+            0,
+            0,
+            0
+          ],
+          "attributes": {
+            "Index": 1
+          },
+          "clearance_studs": [
+            3,
+            6
+          ],
+          "look_vector": [
+            0.0,
+            0.0,
+            -1.0
+          ]
+        },
+        {
+          "name": "FloorSpot",
+          "instance_type": "Attachment",
+          "parent_mesh": "SmallOffice__Floor",
+          "position_studs": [
+            2.8,
+            0.28,
+            -8.0
+          ],
+          "orientation_degrees": [
+            0,
+            0,
+            0
+          ],
+          "attributes": {
+            "Index": 2
+          },
+          "clearance_studs": [
+            3,
+            6
+          ],
+          "look_vector": [
+            0.0,
+            0.0,
+            -1.0
+          ]
+        },
+        {
+          "name": "FloorSpot",
+          "instance_type": "Attachment",
+          "parent_mesh": "SmallOffice__Floor",
+          "position_studs": [
+            -14.0,
+            0.28,
+            0.0
+          ],
+          "orientation_degrees": [
+            0,
+            0,
+            0
+          ],
+          "attributes": {
+            "Index": 3
+          },
+          "clearance_studs": [
+            3,
+            6
+          ],
+          "look_vector": [
+            0.0,
+            0.0,
+            -1.0
+          ]
+        },
+        {
+          "name": "FloorSpot",
+          "instance_type": "Attachment",
+          "parent_mesh": "SmallOffice__Floor",
+          "position_studs": [
+            2.8,
+            0.28,
+            0.0
+          ],
+          "orientation_degrees": [
+            0,
+            0,
+            0
+          ],
+          "attributes": {
+            "Index": 4
+          },
+          "clearance_studs": [
+            3,
+            6
+          ],
+          "look_vector": [
+            0.0,
+            0.0,
+            -1.0
+          ]
+        },
+        {
+          "name": "EquipmentBay",
+          "instance_type": "Attachment",
+          "parent_mesh": "SmallOffice__Floor",
+          "position_studs": [
+            -11.6,
+            0.28,
+            8.5
+          ],
+          "orientation_degrees": [
+            0,
+            0,
+            0
+          ],
+          "attributes": {
+            "Index": 1
+          },
+          "clearance_studs": [
+            7,
+            9
+          ],
+          "look_vector": [
+            0.0,
+            0.0,
+            -1.0
+          ]
+        },
+        {
+          "name": "EquipmentBay",
+          "instance_type": "Attachment",
+          "parent_mesh": "SmallOffice__Floor",
+          "position_studs": [
+            -2.0,
+            0.28,
+            8.5
+          ],
+          "orientation_degrees": [
+            0,
+            0,
+            0
+          ],
+          "attributes": {
+            "Index": 2
+          },
+          "clearance_studs": [
+            7,
+            9
+          ],
+          "look_vector": [
+            0.0,
+            0.0,
+            -1.0
+          ]
+        },
+        {
+          "name": "Desk",
+          "instance_type": "Attachment",
+          "parent_mesh": "SmallOffice__Floor",
+          "position_studs": [
+            12.8,
+            0.28,
+            -5.0
+          ],
+          "orientation_degrees": [
+            0,
+            0,
+            0
+          ],
+          "attributes": {},
+          "clearance_studs": [
+            6,
+            5.5
+          ],
+          "look_vector": [
+            0.0,
+            0.0,
+            -1.0
+          ]
+        },
+        {
+          "name": "DeliverySpot",
+          "instance_type": "Attachment",
+          "parent_mesh": "SmallOffice__Floor",
+          "position_studs": [
+            -6.0,
+            0.28,
+            -8.8
+          ],
+          "orientation_degrees": [
+            0,
+            180,
+            0
+          ],
+          "attributes": {},
+          "clearance_studs": [
+            8,
+            8
+          ],
+          "look_vector": [
+            -8.742277657347586e-08,
+            0.0,
+            1.0
+          ]
+        },
+        {
+          "name": "TruckParking",
+          "instance_type": "Attachment",
+          "parent_mesh": "SmallOffice__Floor",
+          "position_studs": [
+            -6.0,
+            0.0,
+            -24.1
+          ],
+          "orientation_degrees": [
+            0,
+            0,
+            0
+          ],
+          "attributes": {},
+          "look_vector": [
+            0.0,
+            0.0,
+            -1.0
+          ]
+        },
+        {
+          "name": "Light",
+          "instance_type": "Attachment",
+          "parent_mesh": "SmallOffice__Floor",
+          "position_studs": [
+            -6.0,
+            16.6,
+            3.0
+          ],
+          "orientation_degrees": [
+            -90,
+            0,
+            0
+          ],
+          "attributes": {
+            "Index": 1
+          },
+          "look_vector": [
+            0,
+            -1,
+            0
+          ]
+        },
+        {
+          "name": "Light",
+          "instance_type": "Attachment",
+          "parent_mesh": "SmallOffice__Floor",
+          "position_studs": [
+            12.0,
+            16.6,
+            0.0
+          ],
+          "orientation_degrees": [
+            -90,
+            0,
+            0
+          ],
+          "attributes": {
+            "Index": 2
+          },
+          "look_vector": [
+            0,
+            -1,
+            0
+          ]
+        }
+      ],
+      "slots": [],
+      "triangles": 13468,
+      "mesh_objects": 32,
+      "parts": [
+        {
+          "name": "SmallOffice__Body",
+          "triangles": 10508,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "SmallOffice__Floor",
+          "triangles": 108,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "collision_floor",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "SmallOffice__Walls_Front_1",
+          "triangles": 12,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "collision_wall",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "SmallOffice__Walls_Front_2",
+          "triangles": 12,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "collision_wall",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "SmallOffice__Walls_Front_3",
+          "triangles": 12,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "collision_wall",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "SmallOffice__Walls_Front_4",
+          "triangles": 12,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "collision_wall",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "SmallOffice__Walls_Front_5",
+          "triangles": 12,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "collision_wall",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "SmallOffice__Walls_Front_6",
+          "triangles": 12,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "collision_wall",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "SmallOffice__Walls_Front_7",
+          "triangles": 12,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "collision_wall",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "SmallOffice__Walls_Front_8",
+          "triangles": 12,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "collision_wall",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "SmallOffice__Walls_Front_9",
+          "triangles": 12,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "collision_wall",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "SmallOffice__Walls_Front_10",
+          "triangles": 12,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "collision_wall",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "SmallOffice__Walls_Front_11",
+          "triangles": 12,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "collision_wall",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "SmallOffice__Walls_Front_12",
+          "triangles": 12,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "collision_wall",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "SmallOffice__Walls_Front_13",
+          "triangles": 12,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "collision_wall",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "SmallOffice__Walls_Front_14",
+          "triangles": 12,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "collision_wall",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "SmallOffice__Walls",
+          "triangles": 12,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "collision_wall",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "SmallOffice__Walls_Left_1",
+          "triangles": 12,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "collision_wall",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "SmallOffice__Walls_Right_1",
+          "triangles": 12,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "collision_wall",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "SmallOffice__Walls_Right_2",
+          "triangles": 12,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "collision_wall",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "SmallOffice__Walls_Right_3",
+          "triangles": 12,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "collision_wall",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "SmallOffice__Walls_Right_4",
+          "triangles": 12,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "collision_wall",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "SmallOffice__Walls_OfficePartition_1",
+          "triangles": 12,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "collision_wall",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "SmallOffice__Walls_OfficePartition_2",
+          "triangles": 12,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "collision_wall",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "SmallOffice__Walls_OfficePartition_3",
+          "triangles": 12,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "collision_wall",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "SmallOffice__Glass_OfficeFront1",
+          "triangles": 108,
+          "origin_studs": [
+            8.850000381469727,
+            5.380000114440918,
+            -13.600000381469727
+          ],
+          "role": "glass",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "SmallOffice__Glass_OfficeFront2",
+          "triangles": 108,
+          "origin_studs": [
+            16.75,
+            5.380000114440918,
+            -13.600000381469727
+          ],
+          "role": "glass",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "SmallOffice__Glass_OfficeSide",
+          "triangles": 108,
+          "origin_studs": [
+            18.25,
+            5.78000020980835,
+            0.0
+          ],
+          "role": "glass",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "SmallOffice__GarageDoor",
+          "triangles": 1512,
+          "origin_studs": [
+            -6.0,
+            10.779999732971191,
+            -13.65999984741211
+          ],
+          "role": "garage_door",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "TranslateY",
+          "moves_with": null
+        },
+        {
+          "name": "SmallOffice__Door",
+          "triangles": 524,
+          "origin_studs": [
+            10.800000190734863,
+            0.2800000011920929,
+            -13.84000015258789
+          ],
+          "role": "hinged_door",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "Y",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "SmallOffice__Glass_Door",
+          "triangles": 108,
+          "origin_studs": [
+            10.800000190734863,
+            0.2800000011920929,
+            -13.84000015258789
+          ],
+          "role": "hinged_door_glass",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "Y",
+          "motion_mode": "Rotate",
+          "moves_with": null
+        },
+        {
+          "name": "SmallOffice__Roof",
+          "triangles": 108,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "collision_roof",
+          "can_collide": true,
+          "collision_fidelity": "Hull",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "wall_thickness_studs": 0.4,
+        "clear_rollup_width_studs": 12,
+        "clear_rollup_height_studs": 10.5,
+        "clear_open_door_width": 4.4,
+        "separate_front_office_and_open_shop": 1,
+        "walk_in_clear_rollup": [
+          12,
+          10.5
+        ],
+        "fixture_mounts": 14,
+        "surface_fixes": [
+          {
+            "surface": "garage lintel trim",
+            "outward_shift_studs": 0.04,
+            "upward_shift_studs": 0.04,
+            "new_front_z_studs": -13.900000882829936,
+            "dimensions_unchanged": true
+          },
+          {
+            "surface": "partition lap siding",
+            "new_top_y_studs": 16.85,
+            "beam_unchanged": true
+          },
+          {
+            "surface": "open door glazing",
+            "centre_z_studs": -13.884,
+            "minimum_front_wall_gap_studs": 0.0315,
+            "pivot_unchanged": true
+          },
+          {
+            "surface": "green front sign wholly outside wall siding",
+            "component": 290,
+            "translation_studs": [
+              0,
+              0,
+              -0.11
+            ]
+          },
+          {
+            "surface": "front interior corner trim",
+            "component": 87,
+            "translation_studs": [
+              0,
+              0,
+              0.025
+            ]
+          },
+          {
+            "surface": "front interior corner trim",
+            "component": 88,
+            "translation_studs": [
+              0,
+              0,
+              0.025
+            ]
+          },
+          {
+            "surface": "back interior corner trim",
+            "component": 122,
+            "translation_studs": [
+              0,
+              0,
+              -0.025
+            ]
+          },
+          {
+            "surface": "back interior corner trim",
+            "component": 123,
+            "translation_studs": [
+              0,
+              0,
+              -0.025
+            ]
+          },
+          {
+            "surface": "left interior corner trim",
+            "component": 157,
+            "translation_studs": [
+              0.025,
+              0,
+              0
+            ]
+          },
+          {
+            "surface": "left interior corner trim",
+            "component": 158,
+            "translation_studs": [
+              0.025,
+              0,
+              0
+            ]
+          },
+          {
+            "surface": "right interior corner trim",
+            "component": 202,
+            "translation_studs": [
+              -0.025,
+              0,
+              0
+            ]
+          },
+          {
+            "surface": "right interior corner trim",
+            "component": 203,
+            "translation_studs": [
+              -0.025,
+              0,
+              0
+            ]
+          },
+          {
+            "surface": "partition corner trim",
+            "component": 252,
+            "translation_studs": [
+              0.025,
+              0,
+              0
+            ]
+          },
+          {
+            "surface": "partition corner trim",
+            "component": 253,
+            "translation_studs": [
+              0.025,
+              0,
+              0
+            ]
+          },
+          {
+            "surface": "window sill above collision wall",
+            "component": 258,
+            "translation_studs": [
+              0,
+              0.025,
+              0
+            ]
+          },
+          {
+            "surface": "window sill above collision wall",
+            "component": 264,
+            "translation_studs": [
+              0,
+              0.025,
+              0
+            ]
+          },
+          {
+            "surface": "window sill above collision wall",
+            "component": 270,
+            "translation_studs": [
+              0,
+              0.025,
+              0
+            ]
+          },
+          {
+            "surface": "left garage jamb clear of wall ends and siding",
+            "component": 273,
+            "translation_studs": [
+              0.025,
+              0,
+              -0.08
+            ]
+          },
+          {
+            "surface": "right garage jamb clear of wall ends and siding",
+            "component": 275,
+            "translation_studs": [
+              -0.025,
+              0,
+              -0.08
+            ]
+          },
+          {
+            "surface": "floor joint trim above floor",
+            "component": 0,
+            "translation_studs": [
+              0,
+              0.03,
+              0
+            ]
+          },
+          {
+            "surface": "floor joint trim above floor",
+            "component": 1,
+            "translation_studs": [
+              0,
+              0.03,
+              0
+            ]
+          },
+          {
+            "surface": "decorative roof fascia",
+            "component": 279,
+            "scale": [
+              1.001106500691563,
+              1.0,
+              1.0049122807017543
+            ],
+            "collision_roof_and_walls_unchanged": true
+          }
+        ]
+      },
+      "baseline_source_pack": "24_YardAndBuildings",
+      "baseline_triangles": 13468,
+      "authoring_fit": {
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "offset": [
+          0.0,
+          -0.0,
+          0.0
+        ],
+        "first_person_size_exception": true
+      },
+      "size_exception_limits_studs": [
+        38,
+        18,
+        30
+      ],
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        28.000000000000004,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "name": "GloriaYard_Stage1",
+      "folder": "Story",
+      "instruction": 40,
+      "triangle_budget": 14000,
+      "detail_guidance_min": 6000,
+      "dimensions_studs": [
+        43.99999891008649,
+        1.9000000187328883,
+        30.000002043587816
+      ],
+      "bounds_min_studs": [
+        -21.999999455043245,
+        0.0,
+        -48.000001907348626
+      ],
+      "bounds_max_studs": [
+        21.999999455043245,
+        1.9000000187328883,
+        -17.99999986376081
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 9278,
+      "mesh_objects": 2,
+      "parts": [
+        {
+          "name": "GloriaYard_Stage1__Body",
+          "triangles": 9240,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "GloriaYard_Stage1__Lawn",
+          "triangles": 38,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "lawn",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "shared_footprint_origin": "GloriaHouse ground origin; yard occupies Z -48 to -18",
+        "layout": {
+          "walk_x": 7.090767226720327,
+          "walk_width": 3,
+          "drive_x": -13.167422323658531,
+          "drive_width": 15.193642162784144,
+          "drive_z": [
+            -48,
+            -8
+          ],
+          "beds": [
+            [
+              -5.170601242266459,
+              5.090767226720327
+            ],
+            [
+              9.090767226720327,
+              21.3
+            ]
+          ]
+        },
+        "surface_fixes": [
+          {
+            "surface": "walk and driveway end faces",
+            "front_z_studs": -47.96,
+            "back_z_studs": -18.04,
+            "lawn_edge_gap_studs": 0.04
+          },
+          {
+            "surface": "buried vegetation undersides",
+            "method": "remove downward faces at Y 0.1 under opaque lawn",
+            "triangles_removed": 8,
+            "visible_faces_unchanged": true
+          },
+          {
+            "surface": "single-layer lawn",
+            "method": "one non-overlapping top layer; original UVs and colours",
+            "pattern": "original lawn",
+            "top_y_studs": 0.129,
+            "paving_gaps_studs": {
+              "driveway": 0.031,
+              "walk": 0.041
+            },
+            "triangles_before": 180,
+            "triangles_after": 38,
+            "body_decorations_unchanged": true
+          }
+        ]
+      },
+      "baseline_source_pack": "37_Story",
+      "baseline_triangles": 9428,
+      "authoring_fit": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "offset": [
+          0,
+          0,
+          0
+        ],
+        "authored_at_nominal_size": true
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        0.0,
+        0.0,
+        28.000000000000004
+      ]
+    },
+    {
+      "name": "GloriaYard_Stage2",
+      "folder": "Story",
+      "instruction": 40,
+      "triangle_budget": 14000,
+      "detail_guidance_min": 6000,
+      "dimensions_studs": [
+        43.99999891008649,
+        1.9580000213214328,
+        30.000002043587816
+      ],
+      "bounds_min_studs": [
+        -21.999999455043245,
+        0.0,
+        -48.000001907348626
+      ],
+      "bounds_max_studs": [
+        21.999999455043245,
+        1.9580000213214328,
+        -17.99999986376081
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 9685,
+      "mesh_objects": 2,
+      "parts": [
+        {
+          "name": "GloriaYard_Stage2__Body",
+          "triangles": 9616,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "GloriaYard_Stage2__Lawn",
+          "triangles": 69,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "lawn",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "shared_footprint_origin": "GloriaHouse ground origin; yard occupies Z -48 to -18",
+        "layout": {
+          "walk_x": 7.090767226720327,
+          "walk_width": 3,
+          "drive_x": -13.167422323658531,
+          "drive_width": 15.193642162784144,
+          "drive_z": [
+            -48,
+            -8
+          ],
+          "beds": [
+            [
+              -5.170601242266459,
+              5.090767226720327
+            ],
+            [
+              9.090767226720327,
+              21.3
+            ]
+          ]
+        },
+        "surface_fixes": [
+          {
+            "surface": "walk and driveway end faces",
+            "front_z_studs": -47.96,
+            "back_z_studs": -18.04,
+            "lawn_edge_gap_studs": 0.04
+          },
+          {
+            "surface": "buried vegetation undersides",
+            "method": "remove downward faces at Y 0.1 under opaque lawn",
+            "triangles_removed": 4,
+            "visible_faces_unchanged": true
+          },
+          {
+            "surface": "single-layer lawn",
+            "method": "one non-overlapping top layer; original UVs and colours",
+            "pattern": "original diagonal stripes",
+            "top_y_studs": 0.129,
+            "paving_gaps_studs": {
+              "driveway": 0.031,
+              "walk": 0.041
+            },
+            "triangles_before": 71,
+            "triangles_after": 69,
+            "body_decorations_unchanged": true
+          }
+        ]
+      },
+      "baseline_source_pack": "37_Story",
+      "baseline_triangles": 9691,
+      "authoring_fit": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "offset": [
+          0,
+          0,
+          0
+        ],
+        "authored_at_nominal_size": true
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        28.000000000000004,
+        0.0,
+        28.000000000000004
+      ]
+    },
+    {
+      "name": "GloriaYard_Stage3",
+      "folder": "Story",
+      "instruction": 40,
+      "triangle_budget": 14000,
+      "detail_guidance_min": 6000,
+      "dimensions_studs": [
+        43.99999891008649,
+        4.270998494965689,
+        30.000002043587816
+      ],
+      "bounds_min_studs": [
+        -21.999999455043245,
+        0.0,
+        -48.000001907348626
+      ],
+      "bounds_max_studs": [
+        21.999999455043245,
+        4.270998494965689,
+        -17.99999986376081
+      ],
+      "primary_part": "Root",
+      "primary_position_studs": [
+        0,
+        0.5,
+        0
+      ],
+      "markers": [],
+      "slots": [],
+      "triangles": 11366,
+      "mesh_objects": 2,
+      "parts": [
+        {
+          "name": "GloriaYard_Stage3__Body",
+          "triangles": 11036,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "static",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        },
+        {
+          "name": "GloriaYard_Stage3__Lawn",
+          "triangles": 330,
+          "origin_studs": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "role": "lawn",
+          "can_collide": false,
+          "collision_fidelity": "Default",
+          "animation_axis": "",
+          "motion_mode": "",
+          "moves_with": null
+        }
+      ],
+      "features": {
+        "shared_footprint_origin": "GloriaHouse ground origin; yard occupies Z -48 to -18",
+        "layout": {
+          "walk_x": 7.090767226720327,
+          "walk_width": 3,
+          "drive_x": -13.167422323658531,
+          "drive_width": 15.193642162784144,
+          "drive_z": [
+            -48,
+            -8
+          ],
+          "beds": [
+            [
+              -5.170601242266459,
+              5.090767226720327
+            ],
+            [
+              9.090767226720327,
+              21.3
+            ]
+          ]
+        },
+        "surface_fixes": [
+          {
+            "surface": "walk and driveway end faces",
+            "front_z_studs": -47.96,
+            "back_z_studs": -18.04,
+            "lawn_edge_gap_studs": 0.04
+          },
+          {
+            "surface": "single-layer lawn",
+            "method": "one non-overlapping top layer; original UVs and colours",
+            "pattern": "original 16 by 10 checkerboard",
+            "top_y_studs": 0.129,
+            "paving_gaps_studs": {
+              "driveway": 0.031,
+              "walk": 0.041
+            },
+            "triangles_before": 2124,
+            "triangles_after": 330,
+            "body_decorations_unchanged": true
+          }
+        ]
+      },
+      "baseline_source_pack": "37_Story",
+      "baseline_triangles": 13160,
+      "authoring_fit": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "offset": [
+          0,
+          0,
+          0
+        ],
+        "authored_at_nominal_size": true
+      },
+      "size_exception_limits_studs": null,
+      "studio_import_tested": false,
+      "library_translation_meters": [
+        56.00000000000001,
+        0.0,
+        28.000000000000004
+      ]
+    }
+  ],
+  "validation": {
+    "status": "passed",
+    "report": "validation.json",
+    "coplanar_default": 0,
+    "coplanar_tol_0029": 0,
+    "studio_import_tested": false
+  }
+}

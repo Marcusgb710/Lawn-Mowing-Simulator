@@ -1,0 +1,115 @@
+{
+  "status": "passed",
+  "assets": [
+    {
+      "status": "passed",
+      "name": "DeliveryCrate",
+      "triangles": 5876,
+      "mesh_objects": 4,
+      "bounds_error_studs": 5.655568315887649e-07,
+      "mesh_pivot_max_error_studs": 7.675271538648884e-07,
+      "marker_position_max_error_studs": 7.43750209222433e-08,
+      "marker_orientation_max_matrix_error": 1.6292067073209182e-07,
+      "marker_attributes_preserved": true,
+      "referenced_texture_files_resolve_within_pack": true,
+      "textures": [
+        {
+          "name": "HP33_Color",
+          "file": "HP33_Color.png"
+        },
+        {
+          "name": "HP33_Normal",
+          "file": "HP33_Normal.png"
+        }
+      ]
+    },
+    {
+      "status": "passed",
+      "name": "SmallOffice",
+      "triangles": 13468,
+      "mesh_objects": 32,
+      "bounds_error_studs": 2.4152989226422505e-06,
+      "mesh_pivot_max_error_studs": 3.070108614474208e-06,
+      "marker_position_max_error_studs": 3.926388103536738e-06,
+      "marker_orientation_max_matrix_error": 3.106918313733331e-07,
+      "marker_attributes_preserved": true,
+      "referenced_texture_files_resolve_within_pack": true,
+      "textures": [
+        {
+          "name": "HP24_Color",
+          "file": "HP24_Color.png"
+        },
+        {
+          "name": "HP24_Normal",
+          "file": "HP24_Normal.png"
+        }
+      ]
+    },
+    {
+      "status": "passed",
+      "name": "GloriaYard_Stage1",
+      "triangles": 9278,
+      "mesh_objects": 2,
+      "bounds_error_studs": 7.820192877261434e-06,
+      "mesh_pivot_max_error_studs": 0.0,
+      "marker_position_max_error_studs": 0.0,
+      "marker_orientation_max_matrix_error": 1.6292067073209182e-07,
+      "marker_attributes_preserved": true,
+      "referenced_texture_files_resolve_within_pack": true,
+      "textures": [
+        {
+          "name": "HP37_Color",
+          "file": "HP37_Color.png"
+        },
+        {
+          "name": "HP37_Normal",
+          "file": "HP37_Normal.png"
+        }
+      ]
+    },
+    {
+      "status": "passed",
+      "name": "GloriaYard_Stage2",
+      "triangles": 9685,
+      "mesh_objects": 2,
+      "bounds_error_studs": 7.820192877261434e-06,
+      "mesh_pivot_max_error_studs": 0.0,
+      "marker_position_max_error_studs": 0.0,
+      "marker_orientation_max_matrix_error": 1.6292067073209182e-07,
+      "marker_attributes_preserved": true,
+      "referenced_texture_files_resolve_within_pack": true,
+      "textures": [
+        {
+          "name": "HP37_Color",
+          "file": "HP37_Color.png"
+        },
+        {
+          "name": "HP37_Normal",
+          "file": "HP37_Normal.png"
+        }
+      ]
+    },
+    {
+      "status": "passed",
+      "name": "GloriaYard_Stage3",
+      "triangles": 11366,
+      "mesh_objects": 2,
+      "bounds_error_studs": 7.820192877261434e-06,
+      "mesh_pivot_max_error_studs": 0.0,
+      "marker_position_max_error_studs": 0.0,
+      "marker_orientation_max_matrix_error": 1.6292067073209182e-07,
+      "marker_attributes_preserved": true,
+      "referenced_texture_files_resolve_within_pack": true,
+      "textures": [
+        {
+          "name": "HP37_Color",
+          "file": "HP37_Color.png"
+        },
+        {
+          "name": "HP37_Normal",
+          "file": "HP37_Normal.png"
+        }
+      ]
+    }
+  ]
+}

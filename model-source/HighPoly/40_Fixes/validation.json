@@ -1,0 +1,322 @@
+{
+  "status": "passed",
+  "instruction": 40,
+  "assets": [
+    {
+      "name": "DeliveryCrate",
+      "status": "passed",
+      "triangles": 5876,
+      "budget": 6000,
+      "meshes": 4,
+      "original_node_hierarchy_markers_pivots_and_roles_preserved": true,
+      "original_UVs_and_colours_preserved": true,
+      "unrelated_geometry_unchanged": true,
+      "byte_identical_unchanged_parts": [
+        "DeliveryCrate__BackPanel",
+        "DeliveryCrate__FrontPanel",
+        "DeliveryCrate__Lid"
+      ],
+      "texture_sha256": {
+        "HP33_Metalness-HP33_Roughness.png": "b0d7f60553afb80f10e8a8af69800a2f5926ccbfd23d3e87adc55e51cdf15da0",
+        "HP33_Metalness.png": "3a7a2060f85b1ee67772356c9793882494a802acd0f9c611b50e9d0da3a148dd",
+        "HP33_Color.png": "2e12b5e8d0f63e9dcc5bb00ecd18ebc6e0fac06b9d432d6d40ee7e241e7aaf2d",
+        "HP33_Roughness.png": "502bc4ce27d2b7b8cce5da4cbeabcab52bf8a5ec6af8bffa96b5b8d65a3619cd",
+        "HP33_Normal.png": "e00fedc0f1d162c57643f95bb1e70a56cf8b7a8d3f3d828a692ccafdc0db7d12"
+      }
+    },
+    {
+      "name": "SmallOffice",
+      "status": "passed",
+      "triangles": 13468,
+      "budget": 25000,
+      "meshes": 32,
+      "original_node_hierarchy_markers_pivots_and_roles_preserved": true,
+      "original_UVs_and_colours_preserved": true,
+      "unrelated_geometry_unchanged": true,
+      "byte_identical_unchanged_parts": [
+        "SmallOffice__Door",
+        "SmallOffice__Floor",
+        "SmallOffice__GarageDoor",
+        "SmallOffice__Glass_OfficeFront1",
+        "SmallOffice__Glass_OfficeFront2",
+        "SmallOffice__Glass_OfficeSide",
+        "SmallOffice__Roof",
+        "SmallOffice__Walls",
+        "SmallOffice__Walls_Front_1",
+        "SmallOffice__Walls_Front_10",
+        "SmallOffice__Walls_Front_11",
+        "SmallOffice__Walls_Front_12",
+        "SmallOffice__Walls_Front_13",
+        "SmallOffice__Walls_Front_14",
+        "SmallOffice__Walls_Front_2",
+        "SmallOffice__Walls_Front_3",
+        "SmallOffice__Walls_Front_4",
+        "SmallOffice__Walls_Front_5",
+        "SmallOffice__Walls_Front_6",
+        "SmallOffice__Walls_Front_7",
+        "SmallOffice__Walls_Front_8",
+        "SmallOffice__Walls_Front_9",
+        "SmallOffice__Walls_Left_1",
+        "SmallOffice__Walls_OfficePartition_1",
+        "SmallOffice__Walls_OfficePartition_2",
+        "SmallOffice__Walls_OfficePartition_3",
+        "SmallOffice__Walls_Right_1",
+        "SmallOffice__Walls_Right_2",
+        "SmallOffice__Walls_Right_3",
+        "SmallOffice__Walls_Right_4"
+      ],
+      "texture_sha256": {
+        "HP24_Roughness.png": "8254907b0a69c32530ab530264611a276b32c4cb182b8d7715d5a5c31ce91b11",
+        "HP24_Metalness.png": "e265976de4add28ef0c915436b8a5e2ded53b02d0a86c7966d19c23f6ae3f21e",
+        "HP24_Metalness-HP24_Roughness.png": "d5649e8e07381479c6af87c3dbabf58d9941b883f33badda0ffce7a4e8c55dca",
+        "HP24_Normal.png": "b643288ba64e0ce07fc6f26f76b7a2702801fa8bbc775df09eb3ec9871996c85",
+        "HP24_Color.png": "4b9d635b2542b450e940dc0abfd31a707c4c60559d7ceb88ee1a1032cafafa18"
+      }
+    },
+    {
+      "name": "GloriaYard_Stage1",
+      "status": "passed",
+      "triangles": 9278,
+      "budget": 14000,
+      "meshes": 2,
+      "original_node_hierarchy_markers_pivots_and_roles_preserved": true,
+      "original_UVs_and_colours_preserved": true,
+      "unrelated_geometry_unchanged": true,
+      "byte_identical_unchanged_parts": [],
+      "texture_sha256": {
+        "HP37_Roughness.png": "502a692c48737e6b75054f041cb13b5822f047dab5d93fc3b3a34e67ff2c176a",
+        "HP37_Metalness.png": "c5f385c0d5db2b3e1a91a125fc93c9bd44d1fcf690ef5ebe0a9fa1b71e041214",
+        "HP37_Metalness-HP37_Roughness.png": "9b4a138552caf4288c69a634012f9f2231ee501625fca1bf5ed3af807ff06d30",
+        "HP37_Normal.png": "d8caaf8f24772477b8ce9abfaabaa0ed36f26b8026d1bfb839764644749e099e",
+        "HP37_Color.png": "43580a7f30075f7e07d56303c86eb880b9ed03938696e0dc91d6a4b72a84e0af"
+      }
+    },
+    {
+      "name": "GloriaYard_Stage2",
+      "status": "passed",
+      "triangles": 9685,
+      "budget": 14000,
+      "meshes": 2,
+      "original_node_hierarchy_markers_pivots_and_roles_preserved": true,
+      "original_UVs_and_colours_preserved": true,
+      "unrelated_geometry_unchanged": true,
+      "byte_identical_unchanged_parts": [],
+      "texture_sha256": {
+        "HP37_Roughness.png": "502a692c48737e6b75054f041cb13b5822f047dab5d93fc3b3a34e67ff2c176a",
+        "HP37_Metalness.png": "c5f385c0d5db2b3e1a91a125fc93c9bd44d1fcf690ef5ebe0a9fa1b71e041214",
+        "HP37_Metalness-HP37_Roughness.png": "9b4a138552caf4288c69a634012f9f2231ee501625fca1bf5ed3af807ff06d30",
+        "HP37_Normal.png": "d8caaf8f24772477b8ce9abfaabaa0ed36f26b8026d1bfb839764644749e099e",
+        "HP37_Color.png": "43580a7f30075f7e07d56303c86eb880b9ed03938696e0dc91d6a4b72a84e0af"
+      }
+    },
+    {
+      "name": "GloriaYard_Stage3",
+      "status": "passed",
+      "triangles": 11366,
+      "budget": 14000,
+      "meshes": 2,
+      "original_node_hierarchy_markers_pivots_and_roles_preserved": true,
+      "original_UVs_and_colours_preserved": true,
+      "unrelated_geometry_unchanged": true,
+      "byte_identical_unchanged_parts": [],
+      "texture_sha256": {
+        "HP37_Roughness.png": "502a692c48737e6b75054f041cb13b5822f047dab5d93fc3b3a34e67ff2c176a",
+        "HP37_Metalness.png": "c5f385c0d5db2b3e1a91a125fc93c9bd44d1fcf690ef5ebe0a9fa1b71e041214",
+        "HP37_Metalness-HP37_Roughness.png": "9b4a138552caf4288c69a634012f9f2231ee501625fca1bf5ed3af807ff06d30",
+        "HP37_Normal.png": "d8caaf8f24772477b8ce9abfaabaa0ed36f26b8026d1bfb839764644749e099e",
+        "HP37_Color.png": "43580a7f30075f7e07d56303c86eb880b9ed03938696e0dc91d6a4b72a84e0af"
+      }
+    }
+  ],
+  "coplanar_checks": [
+    {
+      "tolerance": "default",
+      "returncode": 0,
+      "overlaps": 0,
+      "underside_exception_used": false
+    },
+    {
+      "tolerance": "0.029",
+      "returncode": 0,
+      "overlaps": 0,
+      "underside_exception_used": false
+    }
+  ],
+  "fbx_roundtrip": {
+    "status": "passed",
+    "assets": [
+      {
+        "status": "passed",
+        "name": "DeliveryCrate",
+        "triangles": 5876,
+        "mesh_objects": 4,
+        "bounds_error_studs": 5.655568315887649e-07,
+        "mesh_pivot_max_error_studs": 7.675271538648884e-07,
+        "marker_position_max_error_studs": 7.43750209222433e-08,
+        "marker_orientation_max_matrix_error": 1.6292067073209182e-07,
+        "marker_attributes_preserved": true,
+        "referenced_texture_files_resolve_within_pack": true,
+        "textures": [
+          {
+            "name": "HP33_Color",
+            "file": "HP33_Color.png"
+          },
+          {
+            "name": "HP33_Normal",
+            "file": "HP33_Normal.png"
+          }
+        ]
+      },
+      {
+        "status": "passed",
+        "name": "SmallOffice",
+        "triangles": 13468,
+        "mesh_objects": 32,
+        "bounds_error_studs": 2.4152989226422505e-06,
+        "mesh_pivot_max_error_studs": 3.070108614474208e-06,
+        "marker_position_max_error_studs": 3.926388103536738e-06,
+        "marker_orientation_max_matrix_error": 3.106918313733331e-07,
+        "marker_attributes_preserved": true,
+        "referenced_texture_files_resolve_within_pack": true,
+        "textures": [
+          {
+            "name": "HP24_Color",
+            "file": "HP24_Color.png"
+          },
+          {
+            "name": "HP24_Normal",
+            "file": "HP24_Normal.png"
+          }
+        ]
+      },
+      {
+        "status": "passed",
+        "name": "GloriaYard_Stage1",
+        "triangles": 9278,
+        "mesh_objects": 2,
+        "bounds_error_studs": 7.820192877261434e-06,
+        "mesh_pivot_max_error_studs": 0.0,
+        "marker_position_max_error_studs": 0.0,
+        "marker_orientation_max_matrix_error": 1.6292067073209182e-07,
+        "marker_attributes_preserved": true,
+        "referenced_texture_files_resolve_within_pack": true,
+        "textures": [
+          {
+            "name": "HP37_Color",
+            "file": "HP37_Color.png"
+          },
+          {
+            "name": "HP37_Normal",
+            "file": "HP37_Normal.png"
+          }
+        ]
+      },
+      {
+        "status": "passed",
+        "name": "GloriaYard_Stage2",
+        "triangles": 9685,
+        "mesh_objects": 2,
+        "bounds_error_studs": 7.820192877261434e-06,
+        "mesh_pivot_max_error_studs": 0.0,
+        "marker_position_max_error_studs": 0.0,
+        "marker_orientation_max_matrix_error": 1.6292067073209182e-07,
+        "marker_attributes_preserved": true,
+        "referenced_texture_files_resolve_within_pack": true,
+        "textures": [
+          {
+            "name": "HP37_Color",
+            "file": "HP37_Color.png"
+          },
+          {
+            "name": "HP37_Normal",
+            "file": "HP37_Normal.png"
+          }
+        ]
+      },
+      {
+        "status": "passed",
+        "name": "GloriaYard_Stage3",
+        "triangles": 11366,
+        "mesh_objects": 2,
+        "bounds_error_studs": 7.820192877261434e-06,
+        "mesh_pivot_max_error_studs": 0.0,
+        "marker_position_max_error_studs": 0.0,
+        "marker_orientation_max_matrix_error": 1.6292067073209182e-07,
+        "marker_attributes_preserved": true,
+        "referenced_texture_files_resolve_within_pack": true,
+        "textures": [
+          {
+            "name": "HP37_Color",
+            "file": "HP37_Color.png"
+          },
+          {
+            "name": "HP37_Normal",
+            "file": "HP37_Normal.png"
+          }
+        ]
+      }
+    ]
+  },
+  "library_bounds_separated_by_at_least_5_metres": true,
+  "library_gaps": [
+    {
+      "a": "DeliveryCrate",
+      "b": "SmallOffice",
+      "metres": 21.965999603271488
+    },
+    {
+      "a": "DeliveryCrate",
+      "b": "GloriaYard_Stage1",
+      "metres": 13.551999533548955
+    },
+    {
+      "a": "DeliveryCrate",
+      "b": "GloriaYard_Stage2",
+      "metres": 25.063753749632113
+    },
+    {
+      "a": "DeliveryCrate",
+      "b": "GloriaYard_Stage3",
+      "metres": 50.92048466204212
+    },
+    {
+      "a": "SmallOffice",
+      "b": "GloriaYard_Stage1",
+      "metres": 19.55764378321714
+    },
+    {
+      "a": "SmallOffice",
+      "b": "GloriaYard_Stage2",
+      "metres": 10.401999473571781
+    },
+    {
+      "a": "SmallOffice",
+      "b": "GloriaYard_Stage3",
+      "metres": 19.55764378321714
+    },
+    {
+      "a": "GloriaYard_Stage1",
+      "b": "GloriaYard_Stage2",
+      "metres": 15.680000305175785
+    },
+    {
+      "a": "GloriaYard_Stage1",
+      "b": "GloriaYard_Stage3",
+      "metres": 43.68000030517579
+    },
+    {
+      "a": "GloriaYard_Stage2",
+      "b": "GloriaYard_Stage3",
+      "metres": 15.680000305175788
+    }
+  ],
+  "all_individual_mesh_arrays_and_materials_match_library": true,
+  "preview_count": 6,
+  "preview_resolution": [
+    1280,
+    1280
+  ],
+  "original_packs_and_39_Fixes_unchanged": true,
+  "only_40_Fixes_changed": true,
+  "studio_import_tested": false
+}
