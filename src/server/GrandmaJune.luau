@@ -4,6 +4,8 @@
 --
 -- The models are Story/PorchRockingChair and Story/NPC_June_Sitting, falling back to the block
 -- placeholders Props/PorchRockingChair and Props/GrandmaJune, both standing on the same spot.
+-- Where there's room, they stand on her porch, Story/PorchDeck, at its ChairSpot marker. The deck
+-- is a model of its own, so looking at it doesn't offer to talk to her.
 -- The scenes' markers are attachments on an invisible Anchor part, worked out from June's size, so
 -- a real model needs none of its own:
 --   Bubble    over her head, where her speech bubble goes
@@ -28,15 +30,50 @@ local PIECES = {
 	{ story = "NPC_June_Sitting", placeholder = "GrandmaJune", name = "GrandmaJune" },
 }
 
--- June in her rocker, on the ground at `ground`, facing its LookVector.
-function GrandmaJune.build(ground: CFrame): Model
+-- The rocker's footprint (studs, across and deep), for when there's no porch.
+local ROCKER_FOOTPRINT = Vector2.new(2.4, 3)
+
+-- Whether her porch model is in the game.
+function GrandmaJune.hasPorch(): boolean
+	return Assets.storyModel("PorchDeck") ~= nil
+end
+
+-- How much ground she takes (studs, across and deep): her porch, or just her rocker.
+function GrandmaJune.footprint(withPorch: boolean): Vector2
+	if withPorch then
+		local deck = Assets.storyModel("PorchDeck")
+		if deck then
+			local _, size = deck:GetBoundingBox()
+			deck:Destroy()
+			return Vector2.new(size.X, size.Z)
+		end
+	end
+	return ROCKER_FOOTPRINT
+end
+
+-- June in her rocker at `ground` (the middle of her porch, or of her rocker without one), facing
+-- its LookVector. Returns her model, and her porch when `withPorch` and it's in the game.
+function GrandmaJune.build(ground: CFrame, withPorch: boolean?): (Model, Model?)
 	local model = Instance.new("Model")
 	model.Name = "GrandmaJune"
+
+	local porch = if withPorch then Assets.storyModel("PorchDeck") else nil
+	local seat = ground
+	if porch then
+		porch.Name = "JunePorch"
+		Assets.anchor(porch)
+		Assets.placeAt(porch, ground)
+		-- The rocker stands on the porch's ChairSpot, facing the way it says (the porch's front
+		-- without one).
+		local spot = porch:FindFirstChild("ChairSpot", true)
+		seat = if spot and spot:IsA("Attachment") then spot.WorldCFrame else ground * CFrame.new(0, 1.6, 0)
+	end
+
 	for _, piece in PIECES do
 		local part = Assets.storyModel(piece.story) or Assets.prop(piece.placeholder)
 		part.Name = piece.name
 		Assets.anchor(part)
-		Assets.placeAt(part, ground)
+		Assets.placeAt(part, seat)
 		part.Parent = model
 	end
 
@@ -47,7 +84,7 @@ function GrandmaJune.build(ground: CFrame): Model
 	local anchor = Instance.new("Part")
 	anchor.Name = "Anchor"
 	anchor.Size = Vector3.one
-	anchor.CFrame = ground
+	anchor.CFrame = seat
 	anchor.Anchored = true
 	anchor.CanCollide = false
 	anchor.CanQuery = false
@@ -61,13 +98,13 @@ function GrandmaJune.build(ground: CFrame): Model
 	local view = Instance.new("Attachment")
 	view.Name = "TalkView"
 	view.Parent = anchor
-	local from = face + ground.LookVector * VIEW_DISTANCE + ground.RightVector * VIEW_SIDE + Vector3.new(0, 0.6, 0)
+	local from = face + seat.LookVector * VIEW_DISTANCE + seat.RightVector * VIEW_SIDE + Vector3.new(0, 0.6, 0)
 	view.WorldCFrame = CFrame.lookAt(from, face)
 
 	model:SetAttribute("Interact", "Talk")
 	model:SetAttribute("InteractText", "Talk")
 	model:SetAttribute("InteractName", "Grandma June")
-	return model
+	return model, porch
 end
 
 return GrandmaJune
