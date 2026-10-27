@@ -801,10 +801,10 @@ function InteractController:Start()
 	})
 	-- Under the dot.
 	prompt = UI.prompt({ Visible = false, Parent = screen })
-	UI.place(prompt.frame, "InteractPrompt")
+	UI.keepPlaced(prompt.frame, "InteractPrompt")
 	-- On a phone: the big round button that does what E does, with its glyph and words.
 	button = UI.touchButton("", "PickUp", { Visible = false, Parent = screen })
-	UI.place(button, "InteractButton")
+	UI.keepPlaced(button, "InteractButton")
 	button.Activated:Connect(function()
 		if current and not heldByButton and not isHold(current, false) then
 			perform(current, false)
@@ -820,7 +820,7 @@ function InteractController:Start()
 		Visible = false,
 		Parent = screen,
 	})
-	UI.place(secondButton, "InteractSecondButton")
+	UI.keepPlaced(secondButton, "InteractSecondButton")
 
 	highlight = Instance.new("Highlight")
 	highlight.FillTransparency = 0.55

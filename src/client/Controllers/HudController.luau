@@ -3,11 +3,12 @@
 --     with their glyphs (and on a keyboard their keys: T, G, C), and Grandma's sticky note with
 --     your story goal;
 --   * down the right: your business's curb appeal, and the job tracker on the art's GoalTracker
---     card (to-dos, a timer against par, damage);
+--     card (to-dos, a timer against par, damage), smaller on a phone;
 --   * the condition of the tool in your hands, a glyph for each thing wrong ("Running low on
 --     fuel" by the fuel can), or what you're doing to one at the workbench;
 --   * the pay breakdown when a job's done, and the big moments: Level Up! and New Tool!
--- On a keyboard V switches camera motion on and off. Where each piece goes is in UiLayout.luau.
+-- On a keyboard V switches camera motion on and off. Where each piece goes is in UiLayout.luau,
+-- which can also take any of the columns' pieces out of its column to go anywhere on the screen.
 
 local Players = game:GetService("Players")
 local ProximityPromptService = game:GetService("ProximityPromptService")
@@ -43,10 +44,13 @@ local MENUS = {
 local MOTION_KEY = Enum.KeyCode.V
 -- The columns down each side are full size on screens at least `fullHeight` tall (in pixels), and
 -- shrink on shorter ones (phones held sideways), down to `minScale`, or further (to `tightScale`)
--- if that's what it takes to fit everything in a column on the screen.
+-- if that's what it takes to fit everything in a column on the screen. A piece taken out of its
+-- column shrinks the same way on its own.
 local COLUMNS = UI.Layout.__screen.scaling.Columns
 -- Room for the key badge at the left of a menu button.
 local KEY_ROOM = 46
+-- On a short screen the job tracker's timer goes beside the job's name, in a box this wide.
+local COMPACT_TIMER = 112
 
 local HudController = {}
 
@@ -63,15 +67,32 @@ local goalValue: TextLabel
 local goalBar: UI.Bar
 
 local tracker: GuiObject
+local trackerPadding: UIPadding
+local trackerLayout: UIListLayout
+local trackerHeader: Frame
 local trackerTitle: TextLabel
 local trackerHint: TextLabel
 local timerRow: Frame
 local timer
+local damageRow: Frame
 local damageLabel: TextLabel
 local taskList: Frame
+local taskLayout: UIListLayout
 local trackerButton: TextButton
 local taskRows = {}
 local shownJobId = nil
+-- The tracker on a short screen (layoutTracker): the timer beside the job's name, and the damage
+-- and a small call-off button sharing a row at the bottom.
+local trackerCompact = false
+local compactTimer
+local compactFooter: Frame
+local compactDamage: TextLabel
+local compactButton: TextButton
+-- What the tracker shows for the job, whichever way it's laid out: the timer and damage (while
+-- you work), the damage so far, and whether there's a button to call the job off.
+local trackerTimed = false
+local trackerPenalty = 0
+local callOffShown = false
 local conditionPanel: GuiObject
 -- The chips on it, one for each thing wrong (a glyph and its words), made as they're needed and
 -- then reused.
@@ -189,7 +210,7 @@ local function buildCondition()
 		Visible = false,
 		Parent = UI.getScreen(),
 	}, { color = UI.Colors.Background, transparency = 0.25, radius = 8 })
-	UI.place(conditionPanel, "ToolCondition")
+	UI.keepPlaced(conditionPanel, "ToolCondition")
 	UI.new("UIPadding", {
 		PaddingTop = UDim.new(0, 6),
 		PaddingBottom = UDim.new(0, 6),
@@ -211,50 +232,82 @@ end
 
 -- The columns down each side -------------------------------------------------------------------
 
--- Scales a column to fit: full size on a tall screen, smaller on a short one, and smaller still if
--- everything in it wouldn't otherwise fit on the screen.
-local function fitColumn(column: Frame, scale: UIScale)
+-- How tall the game's own screen is (the camera's view, until the screen has a size).
+local function screenHeight(): number
+	local height = UI.getScreen().AbsoluteSize.Y
+	if height <= 0 then
+		local camera = workspace.CurrentCamera
+		height = if camera then camera.ViewportSize.Y else COLUMNS.fullHeight
+	end
+	return height
+end
+
+-- A screen too short for the HUD at full size, like a phone held sideways: curb appeal hides there
+-- during a job, and the job tracker is laid out small, so the tracker and the phone buttons fit.
+local function shortScreen(): boolean
+	return screenHeight() < COLUMNS.fullHeight
+end
+
+-- Scales a column, or a piece taken out of one, to fit (UiLayout's __screen.scaling.Columns): full
+-- size on a tall screen, smaller on a short one, and smaller still if it wouldn't otherwise fit in
+-- the screen's height less a margin, a bigger one on a touch screen so it ends above Roblox's move
+-- stick and jump button. Its own scale (UiLayout's `scale`) multiplies into that.
+local function fitColumn(gui: GuiObject, id: string)
+	local scale = UI.scaler(gui)
+	local margin = if UI.isTouch() then COLUMNS.touchMargin else COLUMNS.margin
 	local function fit()
-		local height = UI.getScreen().AbsoluteSize.Y
-		if height <= 0 then
-			local camera = workspace.CurrentCamera
-			height = if camera then camera.ViewportSize.Y else COLUMNS.fullHeight
-		end
+		local height = screenHeight()
 		local wanted = math.clamp(height / COLUMNS.fullHeight, COLUMNS.minScale, 1)
-		-- The column's own height, before scaling.
-		local content = column.AbsoluteSize.Y / math.max(scale.Scale, 0.01)
+		-- Its own height, before scaling.
+		local content = gui.AbsoluteSize.Y / math.max(scale.Scale, 0.01)
 		if content > 0 then
-			wanted = math.min(wanted, math.max(COLUMNS.tightScale, (height - COLUMNS.margin) / content))
+			wanted = math.min(wanted, math.max(COLUMNS.tightScale, (height - margin) / content))
 		end
+		wanted *= UI.layout(id).scale
 		if math.abs(scale.Scale - wanted) > 0.005 then
 			scale.Scale = wanted
 		end
 	end
 	UI.getScreen():GetPropertyChangedSignal("AbsoluteSize"):Connect(fit)
-	column:GetPropertyChangedSignal("AbsoluteSize"):Connect(fit)
+	gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(fit)
 	fit()
 end
 
+-- The two columns, by their names in UiLayout.
+local columns: { [string]: Frame } = {}
+
 -- The money and level panel, the menu buttons and the goal stack in one column down the left, so
 -- they can't run into each other on a short screen (a phone held sideways), and it shrinks to fit.
-local side: Frame
-local right: Frame
 local function buildColumns()
-	side = UI.new("Frame", { Name = "Side", BackgroundTransparency = 1, Parent = UI.getScreen() })
-	UI.place(side, "LeftColumn")
-	fitColumn(side, UI.new("UIScale", { Parent = side }))
+	local side = UI.new("Frame", { Name = "Side", BackgroundTransparency = 1, Parent = UI.getScreen() })
+	UI.keepPlaced(side, "LeftColumn")
+	fitColumn(side, "LeftColumn")
+	columns.LeftColumn = side
 
-	-- Curb appeal and the job tracker down the right.
-	right = UI.new("Frame", { Name = "Right", BackgroundTransparency = 1, Parent = UI.getScreen() })
-	UI.place(right, "RightColumn")
-	local rightScale = UI.new("UIScale", { Parent = right })
-	-- It scales from its top right corner, so it stays in the corner.
-	fitColumn(right, rightScale)
+	-- Curb appeal and the job tracker down the right. It scales from its top right corner, so it
+	-- stays in the corner.
+	local right = UI.new("Frame", { Name = "Right", BackgroundTransparency = 1, Parent = UI.getScreen() })
+	UI.keepPlaced(right, "RightColumn")
+	fitColumn(right, "RightColumn")
+	columns.RightColumn = right
+end
+
+-- Puts one of the columns' pieces (its UiLayout entry's `detach` says which column it belongs in)
+-- where its entry says: in that column while the entry has it as its `parent`, or otherwise on
+-- the game's own screen on its own, where it shrinks to fit by the columns' rule, so on a phone it's
+-- the size it would be in the column.
+local function placeInColumn(gui: GuiObject, id: string)
+	local column = columns[UI.Layout[id].parent or ""]
+	gui.Parent = column or UI.getScreen()
+	UI.keepPlaced(gui, id)
+	if not column then
+		fitColumn(gui, id)
+	end
 end
 
 local function buildStats()
-	local frame = hudPanel({ Name = "Stats", Parent = side })
-	UI.place(frame, "MoneyPanel")
+	local frame = hudPanel({ Name = "Stats" })
+	placeInColumn(frame, "MoneyPanel")
 	UI.padding(10).Parent = frame
 	local moneyIcon = UI.icon(
 		"Money",
@@ -288,8 +341,8 @@ end
 
 -- Your crew's business's curb appeal (see HomeLawnService), which pays a bonus on jobs.
 local function buildCurbAppeal()
-	curbPanel = hudPanel({ Name = "CurbAppeal", Visible = false, Parent = right })
-	UI.place(curbPanel, "CurbAppeal")
+	curbPanel = hudPanel({ Name = "CurbAppeal", Visible = false })
+	placeInColumn(curbPanel, "CurbAppeal")
 	UI.padding(10).Parent = curbPanel
 	local icon = UI.icon(
 		"CurbAppeal",
@@ -318,9 +371,9 @@ local function updateCurbAppeal()
 	local party = ClientState.party
 	local owner = if party then party.leader else player
 	local value = owner and owner:GetAttribute("CurbAppeal")
-	-- On a short screen (a phone) the job tracker needs the room while a job's on.
-	local short = UI.getScreen().AbsoluteSize.Y < COLUMNS.fullHeight
-	curbPanel.Visible = typeof(value) == "number" and not (short and tracker.Visible)
+	-- On a short screen (a phone) the job tracker needs the room while a job's on, wherever the two
+	-- are placed.
+	curbPanel.Visible = typeof(value) == "number" and not (shortScreen() and tracker.Visible)
 	if typeof(value) == "number" then
 		curbValue.Text = `{value} / 100`
 		curbBar.set(value / 100)
@@ -328,8 +381,8 @@ local function updateCurbAppeal()
 end
 
 local function buildMenuButtons()
-	local frame = UI.new("Frame", { Name = "Menu", BackgroundTransparency = 1, Parent = side })
-	UI.place(frame, "MenuButtons")
+	local frame = UI.new("Frame", { Name = "Menu", BackgroundTransparency = 1 })
+	placeInColumn(frame, "MenuButtons")
 
 	local keyboard = UserInputService.KeyboardEnabled
 	for _, menu in MENUS do
@@ -341,7 +394,7 @@ local function buildMenuButtons()
 			TextXAlignment = Enum.TextXAlignment.Left,
 			Parent = frame,
 		})
-		UI.place(button, menu.layout)
+		UI.keepPlaced(button, menu.layout)
 		-- Room for the key badge on the left (the glyph goes after it).
 		local iconRoom = if button:FindFirstChild("Icon") then 26 else 0
 		local left = if keyboard then KEY_ROOM else 10
@@ -372,7 +425,7 @@ local function buildMenuButtons()
 			TextStrokeTransparency = 0.6,
 			Parent = frame,
 		})
-		UI.place(hint, "MouseHint")
+		UI.keepPlaced(hint, "MouseHint")
 	end
 end
 
@@ -381,9 +434,8 @@ local function buildGoal()
 	goalNote = UI.sliced("StickyNote", {
 		Name = "Goal",
 		Visible = false,
-		Parent = side,
 	}, { color = UI.Colors.Grandma, radius = 6 })
-	UI.place(goalNote, "GrandmaGoal")
+	placeInColumn(goalNote, "GrandmaGoal")
 	UI.new("UIPadding", {
 		PaddingTop = UDim.new(0, 10),
 		PaddingBottom = UDim.new(0, 12),
@@ -470,30 +522,92 @@ end
 
 -- The job tracker --------------------------------------------------------------------------------
 
+local function callOffJob()
+	Net.event("AbandonJob"):FireServer()
+end
+
+-- A to-do's row: its words over a bar of how far along it is, or on a short screen just the words,
+-- on one line.
+local function layoutTaskRow(row)
+	row.frame.Size = UDim2.new(1, 0, 0, if trackerCompact then 18 else 38)
+	row.bar.frame.Visible = not trackerCompact
+end
+
+-- Lays the tracker out for the screen and for what it's showing. On a short screen (a phone held
+-- sideways) it's small, so the look-at and Snip buttons fit under it: no hint, the timer beside the
+-- job's name, each to-do on one line, and the damage (once there is some) and the call-off button
+-- sharing a slim row at the bottom. It's the full card on a taller screen.
+local function layoutTracker()
+	local compact = shortScreen()
+	if compact ~= trackerCompact then
+		trackerCompact = compact
+		trackerPadding.PaddingTop = UDim.new(0, if compact then 10 else 12)
+		trackerPadding.PaddingBottom = UDim.new(0, if compact then 12 else 14)
+		trackerLayout.Padding = UDim.new(0, if compact then 4 else 6)
+		taskLayout.Padding = UDim.new(0, if compact then 4 else 6)
+		trackerHeader.Size = UDim2.new(1, 0, 0, if compact then 26 else 28)
+		trackerTitle.TextSize = if compact then 20 else 24
+		for _, row in taskRows do
+			layoutTaskRow(row)
+		end
+	end
+	trackerHint.Visible = not compact
+	timerRow.Visible = trackerTimed and not compact
+	damageRow.Visible = trackerTimed and not compact
+	trackerButton.Visible = callOffShown and not compact
+	compactTimer.Frame.Visible = trackerTimed and compact
+	-- The name leaves room for the timer beside it.
+	trackerTitle.Size = if trackerTimed and compact
+		then UDim2.new(1, -(COMPACT_TIMER + 6), 1, 0)
+		else UDim2.fromScale(1, 1)
+	compactDamage.Visible = trackerTimed and trackerPenalty > 0
+	compactButton.Visible = callOffShown
+	compactFooter.Visible = compact and (compactDamage.Visible or callOffShown)
+end
+
 -- The job tracker: the art's GoalTracker card, as in the HUD style frame, or a plain dark one.
 local function buildTracker()
 	tracker = UI.sliced("GoalTracker", {
 		Name = "JobTracker",
 		Visible = false,
-		Parent = right,
 	}, { color = UI.Colors.Background, transparency = 0.2, radius = 10 })
-	UI.place(tracker, "JobTracker")
-	UI.new("UIPadding", {
+	placeInColumn(tracker, "JobTracker")
+	trackerPadding = UI.new("UIPadding", {
 		PaddingTop = UDim.new(0, 12),
 		PaddingBottom = UDim.new(0, 14),
 		PaddingLeft = UDim.new(0, 14),
 		PaddingRight = UDim.new(0, 14),
 		Parent = tracker,
 	})
-	UI.list(6).Parent = tracker
+	trackerLayout = UI.list(6)
+	trackerLayout.Parent = tracker
 
-	trackerTitle = UI.heading("", {
+	-- The job's name, and on a short screen the timer beside it.
+	trackerHeader = UI.new("Frame", {
+		Name = "Header",
 		Size = UDim2.new(1, 0, 0, 28),
-		TextSize = 24,
-		TextTruncate = Enum.TextTruncate.AtEnd,
+		BackgroundTransparency = 1,
 		LayoutOrder = 1,
 		Parent = tracker,
 	})
+	trackerTitle = UI.heading("", {
+		Size = UDim2.fromScale(1, 1),
+		TextSize = 24,
+		TextTruncate = Enum.TextTruncate.AtEnd,
+		Parent = trackerHeader,
+	})
+	compactTimer = UI.display(
+		"Numbers",
+		"",
+		{ TextSize = 20, Color = UI.Colors.Money, XAlignment = "Right", Fit = true },
+		{
+			AnchorPoint = Vector2.new(1, 0),
+			Position = UDim2.fromScale(1, 0),
+			Size = UDim2.new(0, COMPACT_TIMER, 1, 0),
+			Visible = false,
+			Parent = trackerHeader,
+		}
+	)
 	trackerHint = UI.label("", {
 		TextSize = 15,
 		FontFace = UI.Fonts.Medium,
@@ -503,13 +617,14 @@ local function buildTracker()
 		LayoutOrder = 2,
 		Parent = tracker,
 	})
+	taskLayout = UI.list(6)
 	taskList = UI.new("Frame", {
 		Size = UDim2.fromScale(1, 0),
 		AutomaticSize = Enum.AutomaticSize.Y,
 		BackgroundTransparency = 1,
 		LayoutOrder = 3,
 		Parent = tracker,
-	}, { UI.list(6) })
+	}, { taskLayout })
 	-- "03:24 / 05:00" against par, in the display face.
 	timerRow = UI.new("Frame", {
 		Name = "Timer",
@@ -528,7 +643,7 @@ local function buildTracker()
 		{ TextSize = 30, Color = UI.Colors.Money, Fit = true },
 		{ Position = UDim2.fromOffset(x, 0), Size = UDim2.new(1, -x, 1, 0), Parent = timerRow }
 	)
-	local damageRow = UI.new("Frame", {
+	damageRow = UI.new("Frame", {
 		Name = "Damage",
 		Size = UDim2.new(1, 0, 0, 22),
 		BackgroundTransparency = 1,
@@ -548,33 +663,73 @@ local function buildTracker()
 		TextSize = 16,
 		Parent = damageRow,
 	})
-	trackerButton = UI.button("", function()
-		Net.event("AbandonJob"):FireServer()
-	end, {
+	trackerButton = UI.button("", callOffJob, {
 		Size = UDim2.new(1, 0, 0, 36),
 		Style = "Danger",
 		TextSize = 16,
 		LayoutOrder = 6,
 		Parent = tracker,
 	})
+
+	-- On a short screen the damage (once there is some) and a small call-off button share a row at
+	-- the bottom instead.
+	compactFooter = UI.new("Frame", {
+		Name = "Footer",
+		Size = UDim2.new(1, 0, 0, 26),
+		BackgroundTransparency = 1,
+		LayoutOrder = 7,
+		Visible = false,
+		Parent = tracker,
+	})
+	compactDamage = UI.label("", {
+		AnchorPoint = Vector2.new(0, 0.5),
+		Position = UDim2.fromScale(0, 0.5),
+		Size = UDim2.new(1, -124, 0, 18),
+		TextSize = 15,
+		TextColor3 = UI.Colors.Danger,
+		TextTruncate = Enum.TextTruncate.AtEnd,
+		Parent = compactFooter,
+	})
+	compactButton = UI.button("", callOffJob, {
+		AnchorPoint = Vector2.new(1, 0.5),
+		Position = UDim2.fromScale(1, 0.5),
+		Size = UDim2.fromOffset(0, 26),
+		AutomaticSize = Enum.AutomaticSize.X,
+		Style = "Danger",
+		TextSize = 14,
+		Parent = compactFooter,
+	})
+	UI.new("UIPadding", { PaddingLeft = UDim.new(0, 10), PaddingRight = UDim.new(0, 10), Parent = compactButton })
+
+	-- Small or full size as the screen changes, like curb appeal's rule.
+	UI.getScreen():GetPropertyChangedSignal("AbsoluteSize"):Connect(layoutTracker)
+	layoutTracker()
+end
+
+-- The call-off button's words, on both of the tracker's layouts.
+local function setCallOffText(text: string)
+	trackerButton.Text = text
+	compactButton.Text = text
 end
 
 -- "0:42 / 1:30" against par, and the damage so far.
 local function updateTimer()
 	local job = ClientState.job
-	local damageRow = damageLabel.Parent :: Frame
-	if not (job and job.state == "Working" and job.startedAt) then
-		timerRow.Visible = false
-		damageRow.Visible = false
-		return
+	trackerTimed = job ~= nil and job.state == "Working" and job.startedAt ~= nil
+	if job and trackerTimed then
+		local elapsed = workspace:GetServerTimeNow() - job.startedAt
+		local text = `{Format.time(elapsed)} / {Format.time(job.parTime)}`
+		local color = if elapsed <= job.parTime then UI.Colors.Money else UI.Colors.Danger
+		timer:SetText(text)
+		timer:SetColor(color)
+		compactTimer:SetText(text)
+		compactTimer:SetColor(color)
+		trackerPenalty = job.penalty
+		damageLabel.Text = `Damage  -{Format.money(job.penalty)}`
+		damageLabel.TextColor3 = if job.penalty > 0 then UI.Colors.Danger else UI.Colors.SubText
+		compactDamage.Text = damageLabel.Text
 	end
-	local elapsed = workspace:GetServerTimeNow() - job.startedAt
-	timer:SetText(`{Format.time(elapsed)} / {Format.time(job.parTime)}`)
-	timer:SetColor(if elapsed <= job.parTime then UI.Colors.Money else UI.Colors.Danger)
-	timerRow.Visible = true
-	damageRow.Visible = true
-	damageLabel.Text = `Damage  -{Format.money(job.penalty)}`
-	damageLabel.TextColor3 = if job.penalty > 0 then UI.Colors.Danger else UI.Colors.SubText
+	layoutTracker()
 end
 
 local function getTaskRow(taskName: string, order: number)
@@ -605,6 +760,7 @@ local function getTaskRow(taskName: string, order: number)
 
 	row = { frame = frame, label = label, bar = bar, flag = flag }
 	taskRows[taskName] = row
+	layoutTaskRow(row)
 	return row
 end
 
@@ -656,9 +812,9 @@ local function showPay(job)
 		ZIndex = 5,
 		Parent = UI.getScreen(),
 	}, { color = UI.Colors.Background, radius = 14 })
-	UI.place(payPanel, "PayBreakdown")
-	-- Scaled down to fit a short screen, keeping `margin` clear (UiLayout.luau).
-	local scale = UI.new("UIScale", { Parent = payPanel })
+	UI.keepPlaced(payPanel, "PayBreakdown")
+	-- Scaled down to fit a short screen, keeping `margin` clear (UiLayout.luau), times its own scale.
+	local scale = UI.scaler(payPanel)
 	local margin = UI.Layout.__screen.scaling.PayBreakdown.margin
 	local width = payPanel.Size.X.Offset
 	local function fit()
@@ -666,6 +822,7 @@ local function showPay(job)
 		local height = payPanel.AbsoluteSize.Y / math.max(scale.Scale, 0.01)
 		if height > 0 and screen.Y > 0 then
 			scale.Scale = math.min(1, (screen.Y - margin) / height, (screen.X - margin) / width)
+				* UI.layout("PayBreakdown").scale
 		end
 	end
 	payPanel:GetPropertyChangedSignal("AbsoluteSize"):Connect(fit)
@@ -822,28 +979,29 @@ local function updateJob()
 	tracker.Visible = true
 	trackerTitle.Text = string.upper(job.name)
 	local isLeader = job.leader == player
-	trackerButton.Visible = true
+	-- Whether there's a button to call the job off: updateTimer lays the tracker out with it.
+	callOffShown = true
 
 	if job.state == "Ready" then
 		trackerHint.Text = if isLeader
 			then `{job.address} · {Format.money(job.payout)}\nLoad the tools you think you'll need, then hop in!`
 			else `{job.address} · {Format.money(job.payout)}\nWaiting for {job.leader.DisplayName} to start the truck.`
-		trackerButton.Text = "Cancel job"
-		trackerButton.Visible = isLeader
+		setCallOffText("Cancel job")
+		callOffShown = isLeader
 	elseif job.state == "Traveling" then
 		trackerHint.Text = `Driving to {job.address}...`
-		trackerButton.Visible = false
+		callOffShown = false
 	elseif job.state == "Working" then
 		trackerHint.Text = if job.story then `"{job.story}"  - {job.customer}` else "Don't hit the flowers or gnomes!"
 		if job.soil then
 			trackerHint.Text ..= `\nSoil probe: {job.soil}`
 		end
-		trackerButton.Text = if isLeader then "Call off job" else "Leave job"
+		setCallOffText(if isLeader then "Call off job" else "Leave job")
 	elseif job.state == "Complete" then
 		trackerHint.Text = if job.result
 			then `You earned {Format.money(job.result.share)}! Heading back soon...`
 			else "Job done!"
-		trackerButton.Visible = false
+		callOffShown = false
 		if job.result and payShownFor ~= job.id then
 			payShownFor = job.id
 			showPay(job)

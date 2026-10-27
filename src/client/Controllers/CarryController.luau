@@ -322,7 +322,7 @@ function CarryController:Start()
 		Visible = false,
 		Parent = UI.getScreen(),
 	})
-	UI.place(carryLabel, "CarryHint")
+	UI.keepPlaced(carryLabel, "CarryHint")
 	UI.corner(8).Parent = carryLabel
 	UI.padding(6).Parent = carryLabel
 

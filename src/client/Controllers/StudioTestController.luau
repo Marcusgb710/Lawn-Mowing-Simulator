@@ -88,14 +88,14 @@ local function build()
 		TextXAlignment = Enum.TextXAlignment.Right,
 		Parent = screen,
 	})
-	UI.place(hint, "StudioTestHint")
+	UI.keepPlaced(hint, "StudioTestHint")
 
 	panel = UI.new("Frame", {
 		BackgroundColor3 = UI.Colors.Panel,
 		Visible = false,
 		Parent = screen,
 	}, { UI.corner(10), UI.padding(10), UI.list(6) })
-	UI.place(panel, "StudioTestPanel")
+	UI.keepPlaced(panel, "StudioTestPanel")
 
 	UI.label("Studio test", {
 		Size = UDim2.new(1, 0, 0, 22),

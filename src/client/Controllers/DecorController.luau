@@ -422,11 +422,11 @@ function DecorController:Start()
 		Parent = player:WaitForChild("PlayerGui"),
 	})
 	prompt = UI.prompt({ Visible = false, Parent = screen })
-	UI.place(prompt.frame, "DecorPrompt")
+	UI.keepPlaced(prompt.frame, "DecorPrompt")
 	-- Phone buttons, on the right where the look-at button usually is, clear of the jump button:
 	-- each one's words, what it does, its glyph and its place in UiLayout.luau.
 	buttons = UI.new("Frame", { BackgroundTransparency = 1, Visible = false, Parent = screen })
-	UI.place(buttons, "DecorButtons")
+	UI.keepPlaced(buttons, "DecorButtons")
 	for index, entry in
 		{
 			{ "Place", place, "Place", "DecorPlaceButton" },
@@ -449,7 +449,7 @@ function DecorController:Start()
 			IconSize = if index == 1 then 26 else 18,
 			Parent = buttons,
 		})
-		UI.place(made, entry[4])
+		UI.keepPlaced(made, entry[4])
 		if index == 4 then
 			returnButton = made
 		end

@@ -9,8 +9,11 @@
 -- Then the maths: setting text in the bitmap fonts (src/shared/GuiLayout.luau), the hold ring and
 -- the striped fills, and the pay breakdown's lines adding up to what a job paid
 -- (src/shared/PayBreakdown.luau). And src/client/UiLayout.luau, where everything on the play
--- screen goes (the layout editor rewrites it): every entry is the right shape, every element the
--- client places by name is in it, and every one in it is placed somewhere.
+-- screen goes (the layout editor rewrites it): every entry is the right shape (its scales sensible,
+-- its touch and compact places only places), only the pieces HudController builds straight into a
+-- HUD column can leave it, and those are in their column or have a place of their own on the
+-- screen, every element the client places by name is in it, and every one in it is placed
+-- somewhere.
 -- Given the art's GUI folder (or with art-source/GUI in this repo), it also reads the manifest
 -- and the .fnt files again and checks GuiArt matches them exactly. Exits with an error if
 -- anything's off.
@@ -218,6 +221,7 @@ local LAYOUT_FIELDS = {
 	group = "string",
 	screen = "string",
 	parent = "string",
+	detach = "string",
 	order = "number",
 	list = "table",
 	anchor = "table",
@@ -226,6 +230,7 @@ local LAYOUT_FIELDS = {
 	autoSize = "string",
 	min = "table",
 	max = "table",
+	scale = "number",
 	typical = "table",
 	touch = "table",
 	compact = "table",
@@ -233,6 +238,18 @@ local LAYOUT_FIELDS = {
 	fixed = "boolean",
 	note = "string",
 }
+-- The pieces HudController builds straight into one of the HUD columns (placeInColumn), and the
+-- column each one belongs in: only these can be taken out of a column (their `detach`). The menu
+-- buttons and the rest are built inside these, so they stay where they are.
+local COLUMN_PIECES = {
+	MoneyPanel = "LeftColumn",
+	MenuButtons = "LeftColumn",
+	GrandmaGoal = "LeftColumn",
+	CurbAppeal = "RightColumn",
+	JobTracker = "RightColumn",
+}
+-- How big or small a `scale` can be.
+local SMALLEST_SCALE, BIGGEST_SCALE = 0.25, 3
 -- Whether `value` is a list of `count` numbers.
 local function isNumbers(value: any, count: number): boolean
 	if typeof(value) ~= "table" or #value ~= count then
@@ -245,15 +262,23 @@ local function isNumbers(value: any, count: number): boolean
 	end
 	return true
 end
--- An anchor, a position and a size, any of them left out.
-local function checkPlaces(where: string, places: { [string]: any })
+-- An anchor, a position, a size and a scale, any of them left out, and (for the editor) a typical
+-- size in a piece's touch and compact places.
+local function checkPlaces(where: string, places: { [string]: any }, typical: boolean?)
 	for key, place in places do
 		if key == "anchor" then
 			check(isNumbers(place, 2), `{where}: its anchor isn't two numbers`)
 		elseif key == "position" or key == "size" then
 			check(isNumbers(place, 4), `{where}: its {key} isn't a UDim2's four numbers`)
+		elseif key == "scale" then
+			check(
+				typeof(place) == "number" and place >= SMALLEST_SCALE and place <= BIGGEST_SCALE,
+				`{where}: its scale isn't a number from {SMALLEST_SCALE} to {BIGGEST_SCALE}`
+			)
+		elseif key == "typical" and typical then
+			check(isNumbers(place, 2), `{where}: its typical isn't a width and a height`)
 		else
-			check(false, `{where} has {key}, which isn't an anchor, position or size`)
+			check(false, `{where} has {key}, which isn't an anchor, position, size or scale`)
 		end
 	end
 end
@@ -272,9 +297,9 @@ for id, entry in UiLayout do
 		check(entry[field] ~= nil and entry[field] ~= "", `{where} has no {field}`)
 	end
 	check(entry.size ~= nil, `{where} has no size`)
-	checkPlaces(where, { anchor = entry.anchor, position = entry.position, size = entry.size })
-	checkPlaces(`{where}'s touch places`, entry.touch or {})
-	checkPlaces(`{where}'s compact places`, entry.compact or {})
+	checkPlaces(where, { anchor = entry.anchor, position = entry.position, size = entry.size, scale = entry.scale })
+	checkPlaces(`{where}'s touch places`, if typeof(entry.touch) == "table" then entry.touch else {}, true)
+	checkPlaces(`{where}'s compact places`, if typeof(entry.compact) == "table" then entry.compact else {}, true)
 	local parent = entry.parent and UiLayout[entry.parent]
 	if entry.parent then
 		check(parent ~= nil, `{where} is in {entry.parent}, which isn't in UiLayout`)
@@ -285,6 +310,36 @@ for id, entry in UiLayout do
 		end
 	else
 		check(screens[entry.screen or ""] ~= nil, `{where} isn't on one of __screen.screens`)
+	end
+	-- A piece that can leave its column: it's one HudController builds into that column, and it's
+	-- either in it or out on the game's own screen with a place of its own there.
+	local home = COLUMN_PIECES[id]
+	if entry.detach ~= nil then
+		check(
+			entry.detach == "LeftColumn" or entry.detach == "RightColumn",
+			`{where}: its detach is {entry.detach}, not LeftColumn or RightColumn`
+		)
+		check(home ~= nil, `{where} has a detach, but HudController doesn't build it straight into a HUD column`)
+		check(home == nil or entry.detach == home, `{where}: its detach is {entry.detach}, but it's built into {home}`)
+		check(entry.order ~= nil, `{where} has no order to go back into {entry.detach} at`)
+		if entry.parent then
+			check(entry.parent == entry.detach, `{where} is in {entry.parent}, but its column is {entry.detach}`)
+		else
+			check(entry.screen == "LawnUI", `{where} is out of its column, so it goes on LawnUI, the game's own screen`)
+			check(
+				entry.anchor ~= nil and entry.position ~= nil,
+				`{where} is out of its column, so it needs an anchor and a position on the screen`
+			)
+		end
+	elseif home then
+		check(false, `{where} has no detach: the editor needs to know it belongs in {home}`)
+	end
+	-- A BillboardGui in the world only has its size placed, so it can't be scaled.
+	if entry.screen == "World" then
+		local scaled = entry.scale ~= nil
+			or (typeof(entry.touch) == "table" and entry.touch.scale ~= nil)
+			or (typeof(entry.compact) == "table" and entry.compact.scale ~= nil)
+		check(not scaled, `{where} is in the world, where only its size is placed: it can't have a scale`)
 	end
 	check(entry.autoSize == nil or table.find({ "X", "Y", "XY" }, entry.autoSize) ~= nil, `{where}: odd autoSize`)
 	check(entry.device == nil or entry.device == "touch" or entry.device == "keyboard", `{where}: odd device`)
@@ -309,9 +364,26 @@ for name, rule in UiLayout.__screen.scaling do
 		check(UiLayout[id] ~= nil, `__screen.scaling.{name} scales {id}, which isn't in UiLayout`)
 	end
 end
+for _, key in { "fullHeight", "minScale", "tightScale", "margin", "touchMargin" } do
+	local value = UiLayout.__screen.scaling.Columns[key]
+	check(typeof(value) == "number" and value >= 0, `__screen.scaling.Columns has no {key}`)
+end
+check(typeof(UiLayout.__screen.compactHeight) == "number", "__screen has no compactHeight")
 
--- Every element the client places by name (UI.place, UI.layout) is in UiLayout, and every one in
--- it is named somewhere in the client, so none are left over.
+-- COLUMN_PIECES is what HudController builds into a column: every piece it puts in one with
+-- placeInColumn, and nothing else.
+local hudSource = fs.readFile("src/client/Controllers/HudController.luau")
+local inColumns: { [string]: boolean } = {}
+for id in string.gmatch(hudSource, 'placeInColumn%(%s*[%w_]+%s*,%s*"([%w_]+)"%s*%)') do
+	inColumns[id] = true
+	check(COLUMN_PIECES[id] ~= nil, `HudController puts {id} in a column, but check-gui's COLUMN_PIECES hasn't got it`)
+end
+for id in COLUMN_PIECES do
+	check(inColumns[id] == true, `HudController doesn't build {id} into a column (with placeInColumn)`)
+end
+
+-- Every element the client places by name (UI.place, UI.keepPlaced, UI.layout) is in UiLayout,
+-- and every one in it is named somewhere in the client, so none are left over.
 local named: { [string]: boolean } = {}
 local function scanPlaces(folder: string)
 	for _, name in fs.readDir(folder) do
@@ -320,7 +392,14 @@ local function scanPlaces(folder: string)
 			scanPlaces(path)
 		elseif string.match(name, "%.luau$") and name ~= "UiLayout.luau" then
 			local source = fs.readFile(path)
-			for _, pattern in { 'UI%.place%([^,]+,%s*"([%w_]+)"', 'UI%.layout%(%s*"([%w_]+)"' } do
+			for _, pattern in
+				{
+					'UI%.place%([^,]+,%s*"([%w_]+)"',
+					'UI%.keepPlaced%([^,]+,%s*"([%w_]+)"',
+					'placeInColumn%([^,]+,%s*"([%w_]+)"',
+					'UI%.layout%(%s*"([%w_]+)"',
+				}
+			do
 				for id in string.gmatch(source, pattern) do
 					check(UiLayout[id] ~= nil, `{path} places {id}, which isn't in UiLayout`)
 				end

@@ -59,7 +59,7 @@ function TutorialController:Start()
 		Visible = false,
 		Parent = UI.getScreen(),
 	})
-	UI.place(banner, "TutorialBanner")
+	UI.keepPlaced(banner, "TutorialBanner")
 	UI.corner(10).Parent = banner
 	UI.padding(10).Parent = banner
 	UI.keepToastsBelow(banner)

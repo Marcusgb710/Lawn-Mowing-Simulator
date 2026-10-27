@@ -108,7 +108,7 @@ function SnipController:Start()
 		Visible = false,
 		Parent = UI.getScreen(),
 	})
-	UI.place(button, "SnipButton")
+	UI.keepPlaced(button, "SnipButton")
 	-- Held down for a steady snip, snip, snip, until that touch ends wherever the finger slid to.
 	button.InputBegan:Connect(function(input)
 		local pressing = input.UserInputType == Enum.UserInputType.Touch

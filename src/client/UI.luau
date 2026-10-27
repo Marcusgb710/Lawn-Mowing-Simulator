@@ -187,6 +187,15 @@ function UI.isTouch(): boolean
 	return UserInputService.TouchEnabled
 end
 
+-- Whether this is a short screen, like a phone held sideways: the whole screen (the camera's view,
+-- as the layout editor counts it) is less than UiLayout's __screen.compactHeight tall, and
+-- UiLayout's `compact` places are used.
+function UI.isCompact(): boolean
+	local camera = workspace.CurrentCamera
+	local height = if camera then camera.ViewportSize.Y else 0
+	return height > 1 and height < UiLayout.__screen.compactHeight
+end
+
 export type Placement = {
 	anchor: Vector2?,
 	position: UDim2?,
@@ -195,26 +204,32 @@ export type Placement = {
 	min: Vector2?,
 	max: Vector2?,
 	order: number?,
+	-- How much bigger or smaller it's drawn: 1 unless its entry says.
+	scale: number,
 }
 
 local function udim2(value: { number }?): UDim2?
 	return if value then UDim2.new(value[1], value[2], value[3], value[4]) else nil
 end
 
--- Element `id`'s place on this screen (UiLayout.luau): its own anchor, position and size, with its
--- `touch` ones over them on a touch screen, and its `compact` ones over those when `compact` (a
--- short screen, which the caller decides).
+-- Element `id`'s place on this screen (UiLayout.luau): its own anchor, position, size and scale,
+-- with its `touch` ones over them on a touch screen, and its `compact` ones over those on a short
+-- screen. `compact` says whether to use the short screen's, for a caller that works it out itself
+-- (the dialogue); without it, it's UI.isCompact().
 function UI.layout(id: string, compact: boolean?): Placement
 	local entry = UiLayout[id]
 	if not entry then
 		error(`UiLayout.luau has no {id}`, 2)
+	end
+	if compact == nil then
+		compact = UI.isCompact()
 	end
 	local touch = if UI.isTouch() then entry.touch else nil
 	local short = if compact then entry.compact else nil
 	local function pick(key: string): any
 		return (short and short[key]) or (touch and touch[key]) or entry[key]
 	end
-	local anchor, min, max = pick("anchor"), entry.min, entry.max
+	local anchor, min, max, scale = pick("anchor"), entry.min, entry.max, pick("scale")
 	return {
 		anchor = if anchor then Vector2.new(anchor[1], anchor[2]) else nil,
 		position = udim2(pick("position")),
@@ -224,12 +239,27 @@ function UI.layout(id: string, compact: boolean?): Placement
 		min = if min then Vector2.new(min.width or 0, min.height or 0) else nil,
 		max = if max then Vector2.new(max.width or math.huge, max.height or math.huge) else nil,
 		order = entry.order,
+		scale = if typeof(scale) == "number" then scale else 1,
 	}
+end
+
+-- The UIScale UI.place gives an element whose `scale` isn't 1, by its name.
+local LAYOUT_SCALE = "LayoutScale"
+
+-- The UIScale on `gui` that its own code drives (UI.scaler), if it has one.
+local function codeScale(gui: Instance): Instance?
+	for _, child in gui:GetChildren() do
+		if child:IsA("UIScale") and child.Name ~= LAYOUT_SCALE then
+			return child
+		end
+	end
+	return nil
 end
 
 -- Puts `gui` where UiLayout.luau says element `id` goes (see UI.layout): its AnchorPoint,
 -- Position, Size and AutomaticSize, its limits (a UISizeConstraint), its place in its parent's
--- list, and the gaps in its own list. What the entry leaves out stays as it is. Returns `gui`.
+-- list, the gaps in its own list, and its scale. What the entry leaves out stays as it is. Returns
+-- `gui`. It's placed once: UI.keepPlaced places it again when the screen turns short or tall.
 function UI.place<T>(gui: T, id: string, compact: boolean?): T
 	local object = gui :: any
 	local placement = UI.layout(id, compact)
@@ -261,6 +291,86 @@ function UI.place<T>(gui: T, id: string, compact: boolean?): T
 		layout.Padding = UDim.new(0, list.padding or 0)
 		layout.HorizontalAlignment = (Enum.HorizontalAlignment :: any)[list.align or "Left"]
 		layout.Parent = object
+	end
+	-- Its scale, as a UIScale of its own: Roblox draws it and what's in it that much bigger or
+	-- smaller about its AnchorPoint, and a list it's in makes room for it at that size. One whose
+	-- code scales it already (UI.scaler) multiplies its scale into that instead, since Roblox only
+	-- honours one UIScale on an element.
+	local layoutScale = object:FindFirstChild(LAYOUT_SCALE)
+	if placement.scale ~= 1 and not codeScale(object) then
+		if not layoutScale then
+			layoutScale = UI.new("UIScale", { Name = LAYOUT_SCALE, Parent = object })
+		end
+		layoutScale.Scale = placement.scale
+	elseif layoutScale then
+		layoutScale:Destroy()
+	end
+	return gui
+end
+
+-- A UIScale for `gui` that its own code drives, to fit it to the screen or to pop it in, starting
+-- at `scale` (1 by default). It takes the place of the LayoutScale UI.place gives an element with a
+-- `scale`, so the code multiplies its element's scale (UI.layout(id).scale) into what it sets, and
+-- UI.place leaves this one alone.
+function UI.scaler(gui: GuiObject, scale: number?): UIScale
+	local layoutScale = gui:FindFirstChild(LAYOUT_SCALE)
+	if layoutScale then
+		layoutScale:Destroy()
+	end
+	return UI.new("UIScale", { Scale = scale or 1, Parent = gui })
+end
+
+-- Takes away the scale UI.place gave `gui`, for while it's drawn at a size it doesn't decide (a
+-- menu filling the shop computer's screen). Placing it again gives it back.
+function UI.unscale(gui: GuiObject)
+	local layoutScale = gui:FindFirstChild(LAYOUT_SCALE)
+	if layoutScale then
+		layoutScale:Destroy()
+	end
+end
+
+-- Fired with UI.isCompact() when the screen turns short or tall, once what's placed with
+-- UI.keepPlaced has been placed again: anything that places itself listens, to do it again.
+UI.CompactChanged = Signal.new()
+
+-- What's placed with UI.keepPlaced and has compact places, by its element: placed again when the
+-- screen turns short or tall.
+local kept: { [Instance]: string } = {}
+local wasCompact: boolean? = nil
+local function followScreen()
+	if wasCompact ~= nil then
+		return
+	end
+	wasCompact = UI.isCompact()
+	local camera = workspace.CurrentCamera
+	if not camera then
+		return
+	end
+	camera:GetPropertyChangedSignal("ViewportSize"):Connect(function()
+		local compact = UI.isCompact()
+		if compact == wasCompact then
+			return
+		end
+		wasCompact = compact
+		for gui, id in kept do
+			UI.place(gui, id)
+		end
+		UI.CompactChanged:Fire(compact)
+	end)
+end
+
+-- Puts `gui` where element `id` goes, like UI.place, and again whenever the screen turns short or
+-- tall (a window resized), so its `compact` places follow the screen. For anything that isn't
+-- moved again once it's placed; what moves itself listens to UI.CompactChanged instead.
+function UI.keepPlaced<T>(gui: T, id: string): T
+	local object = gui :: any
+	UI.place(object, id)
+	followScreen()
+	if UiLayout[id].compact and not kept[object] then
+		kept[object] = id
+		object.Destroying:Connect(function()
+			kept[object] = nil
+		end)
 	end
 	return gui
 end
@@ -1196,6 +1306,7 @@ function UI.panel(name: string, title: string)
 		Parent = host or UI.getScreen(),
 	}, { color = UI.Colors.Background, radius = 12 })
 	UI.place(window, "MenuWindow")
+	followScreen()
 	UI.heading(title, {
 		Name = "Title",
 		Position = UDim2.fromOffset(16, 10),
@@ -1266,7 +1377,7 @@ local function dock(panel: GuiObject)
 	local docked = host ~= nil
 	panel.Parent = host or UI.getScreen()
 	if docked then
-		-- The whole of the computer's screen, however big that is.
+		-- The whole of the computer's screen, however big that is, so not at its own scale.
 		panel.AnchorPoint = Vector2.new(0.5, 0.5)
 		panel.Position = UDim2.fromScale(0.5, 0.5)
 		panel.Size = UDim2.fromScale(1, 1)
@@ -1274,6 +1385,7 @@ local function dock(panel: GuiObject)
 		if constraint then
 			constraint.MaxSize = Vector2.new(math.huge, math.huge)
 		end
+		UI.unscale(panel)
 	else
 		UI.place(panel, "MenuWindow")
 	end
@@ -1309,6 +1421,16 @@ function UI.setHost(frame: Frame?)
 	end
 	UI.CursorChanged:Fire()
 end
+
+-- On their own, the menus' windows follow the screen turning short or tall, like what's placed
+-- with UI.keepPlaced. Docked, they fill the computer's screen whatever the screen is.
+UI.CompactChanged:Connect(function()
+	if not host then
+		for _, panel in panels do
+			UI.place(panel, "MenuWindow")
+		end
+	end
+end)
 
 -- Only one panel is open at a time.
 function UI.open(name: string)
@@ -1439,8 +1561,10 @@ local function toastStack(): Frame
 			BackgroundTransparency = 1,
 			Parent = toastScreen,
 		})
-		UI.place(toastHolder, "Toasts")
+		UI.keepPlaced(toastHolder, "Toasts")
 		placeToasts()
+		-- Placed again when the screen turns short or tall, then under the coach again.
+		UI.CompactChanged:Connect(placeToasts)
 	end
 	return toastHolder
 end
@@ -1479,9 +1603,11 @@ end
 
 local TOAST_TEXT = 17
 function UI.notify(message: string)
-	-- As tall as the message wraps to (the stack is at most its max width, less the padding).
-	local stack = toastStack().AbsoluteSize.X
-	local max = UI.layout("Toasts").max
+	-- As tall as the message wraps to (the stack is at most its max width, less the padding), in
+	-- the stack's own pixels, before its scale.
+	local placement = UI.layout("Toasts")
+	local stack = toastStack().AbsoluteSize.X / placement.scale
+	local max = placement.max
 	local widest = if max then max.X else stack
 	local width = (if stack > 100 then math.min(widest, stack) else widest) - 32
 	local lines = TextService:GetTextSize(message, TOAST_TEXT, UI.Font, Vector2.new(math.max(100, width - 12), 1000))
@@ -1539,9 +1665,11 @@ function UI.moment(name: string, text: string, subtitle: string?, seconds: numbe
 			Parent = holder,
 		})
 	end
-	local scale = UI.new("UIScale", { Scale = 0.6, Parent = holder })
+	-- It pops in from a little smaller, to its own scale (UiLayout's Moment).
+	local size = UI.layout("Moment").scale
+	local scale = UI.scaler(holder, 0.6 * size)
 	local pop = TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-	TweenService:Create(scale, pop, { Scale = 1 }):Play()
+	TweenService:Create(scale, pop, { Scale = size }):Play()
 	TweenService:Create(holder, TweenInfo.new(0.2), { GroupTransparency = 0 }):Play()
 	task.delay(seconds or 2.4, function()
 		if momentHolder ~= holder then

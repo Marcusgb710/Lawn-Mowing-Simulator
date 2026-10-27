@@ -110,7 +110,7 @@ local function showInvite(from: Player, timeout: number)
 		BackgroundColor3 = UI.Colors.Background,
 		Parent = UI.getScreen(),
 	}, { UI.corner(10), UI.padding(10) })
-	UI.place(popup, "CrewInvite")
+	UI.keepPlaced(popup, "CrewInvite")
 	invitePopups[from] = popup
 	popup.Destroying:Connect(function()
 		if invitePopups[from] == popup then

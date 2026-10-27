@@ -6,8 +6,9 @@
 -- So that Lune can read it, it's only numbers, strings, booleans and tables of them: no game, no
 -- services, no requires.
 --
--- In the game, UI.place(gui, name) puts an element where its entry says as it's made (UI.luau).
--- The few that move later still do it in their controllers, starting from the values here.
+-- In the game, UI.place(gui, name) puts an element where its entry says as it's made (UI.luau),
+-- and UI.keepPlaced does that and does it again when the screen turns short or tall. The few that
+-- move later still do it in their controllers, starting from the values here.
 --
 -- Each entry:
 --   label     what the editor calls it
@@ -16,6 +17,13 @@
 --   screen    the ScreenGui it's on (one of __screen.screens), for anything placed on the screen
 --   parent    the element it's inside, for anything placed in another one: its position and size
 --             are then in its parent's box, as Roblox does it
+--   detach    for a piece of a HUD column that can be taken out of it: the column it belongs in,
+--             and goes back into ("LeftColumn" or "RightColumn"). With that column as its `parent`
+--             it's in the column, at its `order`. With no `parent` it's out on the game's own
+--             screen (`screen` is "LawnUI", and it has an `anchor` and a `position` like anything
+--             else there), it keeps its `order` for when it goes back, and a UIScale of its own
+--             shrinks it by the columns' rule (__screen.scaling.Columns), so it's the size it was
+--             in the column on a phone too
 --   order     where it comes in its parent's list (its LayoutOrder)
 --   list      for an element that stacks what's in it (a UIListLayout): which way ("Vertical" or
 --             "Horizontal"), the gap between them in pixels, and which side they line up on
@@ -27,10 +35,18 @@
 --   autoSize  "X", "Y" or "XY": which way it grows to fit what's in it (its AutomaticSize)
 --   min, max  { width = , height = } in pixels: the smallest and biggest it can be (a
 --             UISizeConstraint). A side that isn't there has no limit
+--   scale     how much bigger or smaller it's drawn, everything in it too: 1 when it isn't there,
+--             and 0.5 to 2 is sensible. It's a UIScale, so it grows or shrinks about its
+--             AnchorPoint, and in a list it takes up its scaled size. Its size, position and the
+--             rest stay in its own pixels, before the scale. See Scaling for how it goes with the
+--             UIScales that fit things to the screen. Not for World pieces: only their size is
+--             placed
 --   typical   { width, height } in pixels: about how big it shows on a phone held sideways
 --             (__screen.phone), before any UIScale, for anything whose size isn't all in `size`
---   touch     an anchor, position or size to use instead on a touch screen
---   compact   the same on a short screen (shorter than __screen.compactHeight)
+--   touch     an anchor, position, size or scale to use instead on a touch screen
+--   compact   the same on a short screen (shorter than __screen.compactHeight), over the touch ones
+--             (see Touch and short screens). Touch and compact can also have a `typical`, for the
+--             editor to draw the piece at on those screens; the game never reads typical
 --   device    "touch": it only ever shows on a touch screen; "keyboard": only with a keyboard
 --   fixed     true for something drawn only so the rest can be placed around it: the game decides
 --             where it goes (the dot is where the camera aims), so the editor shouldn't move it
@@ -58,21 +74,36 @@
 -- numbers and each rule, and the controllers read them from there:
 --   * the two HUD columns (LeftColumn and RightColumn): full size on a screen at least 560 px
 --     tall, smaller on shorter ones down to 0.7 (a phone held sideways), and smaller still, down
---     to 0.5, if a column wouldn't fit the screen's height otherwise. A UIScale shrinks toward
---     the element's AnchorPoint, so the left column stays in the top left corner and the right
---     one in the top right;
+--     to 0.5, if a column wouldn't fit the screen's height less 24 px otherwise. On a touch screen
+--     that's less 110 px (touchMargin), so the columns end above Roblox's move stick and jump
+--     button. A UIScale shrinks toward the element's AnchorPoint, so the left column stays in the
+--     top left corner and the right one in the top right. A piece taken out of its column (see
+--     `detach`) shrinks by the same rule on its own;
 --   * the pay breakdown, to fit the screen;
 --   * the contest results, laid out at 1100 x 640 and scaled to fit (a little bigger on a big
 --     screen).
 -- The big moments and act titles also have one, only to pop in.
+-- An entry's `scale` goes with these: the UIScale is what the rule works out times the scale (a
+-- column the rule puts at 0.7 on a phone, with a scale of 1.2, is drawn at 0.84), and a pop-in
+-- grows to its scale instead of to 1. Everything else with a `scale` that isn't 1 gets a UIScale
+-- of its own for it, named LayoutScale. Roblox only honours one UIScale on an element, so nothing
+-- gets two.
 --
--- Touch. A touch screen is one where UserInputService.TouchEnabled is true (UI.isTouch). That's
--- the check that shows the phone buttons, and `touch` places are used there; a laptop with a
--- touchscreen counts. The dialogue words its buttons for a phone ("Tap to continue") only when
--- there's no keyboard as well, but that changes words, not places.
+-- Touch and short screens. A touch screen is one where UserInputService.TouchEnabled is true
+-- (UI.isTouch). That's the check that shows the phone buttons, and `touch` places are used there;
+-- a laptop with a touchscreen counts. The dialogue words its buttons for a phone ("Tap to
+-- continue") only when there's no keyboard as well, but that changes words, not places. A short
+-- screen is one whose whole height (the camera's view) is less than __screen.compactHeight
+-- (UI.isCompact), and `compact` places are used there. A piece's place is its own values, with its
+-- touch ones over them on a touch screen and then its compact ones over those on a short screen,
+-- one field at a time, the same way the editor does it. When the screen turns short or tall (a
+-- window resized), what's placed with UI.keepPlaced is placed again, and the dialogue lays itself
+-- out again; the rest is placed once, as it's made.
 --
 -- Worked out while playing, from the values here (each one's note has the rule):
 --   * the columns' scale (above), and curb appeal hiding on a short screen during a job;
+--   * the job tracker's smaller layout on a short screen, which leaves room for the phone
+--     buttons under it;
 --   * the toasts move down to stay just under the first-job coach while it shows;
 --   * the dialogue box's width and height, for each line and the screen it's on, and the
 --     dialogue's compact places when the screen turns;
@@ -90,8 +121,8 @@ return {
 	__screen = {
 		-- A touch screen is one where this is true (UI.isTouch).
 		touch = "UserInputService.TouchEnabled",
-		-- Screens shorter than this (pixels) are short ones, like a phone held sideways: `compact`
-		-- places are used there. Only the dialogue has them; it checks again when the screen turns.
+		-- Screens shorter than this (pixels, the whole screen) are short ones, like a phone held
+		-- sideways: `compact` places are used there, for any piece that has them (UI.isCompact).
 		compactHeight = 500,
 		-- The phone the `typical` sizes are guessed for, held sideways (an iPhone 13's points).
 		phone = { width = 844, height = 390 },
@@ -171,6 +202,7 @@ return {
 			},
 		},
 		-- What scales to fit the screen (a UIScale on each of `elements`), with the rule for how much.
+		-- Each element's own `scale` multiplies what the rule works out.
 		scaling = {
 			Columns = {
 				elements = { "LeftColumn", "RightColumn" },
@@ -178,9 +210,13 @@ return {
 				minScale = 0.7,
 				tightScale = 0.5,
 				margin = 24,
+				touchMargin = 110,
 				note = "The screen's height over fullHeight, but at least minScale and at most 1. If the "
 					.. "column at full size is taller than the screen's height less margin, then small enough to "
-					.. "fit in that, but never below tightScale.",
+					.. "fit in that, but never below tightScale. On a touch screen it's touchMargin instead of "
+					.. "margin, so the columns end above Roblox's move stick and jump button. A piece taken out "
+					.. "of its column (its detach, with no parent) has a UIScale of its own by the same rule, "
+					.. "from its own height.",
 			},
 			PayBreakdown = {
 				elements = { "PayBreakdown" },
@@ -212,12 +248,14 @@ return {
 		list = { direction = "Vertical", padding = 10, align = "Left" },
 		typical = { 220, 400 },
 		note = "The money panel, the menu buttons and Grandma's goal stacked down the left, so they can't "
-			.. "run into each other on a short screen. Its UIScale shrinks it to fit (__screen.scaling.Columns).",
+			.. "run into each other on a short screen. Its UIScale shrinks it to fit (__screen.scaling.Columns). "
+			.. "Each of them can be taken out of it (their detach) and put anywhere on the screen.",
 	},
 	MoneyPanel = {
 		label = "Money and level panel",
 		group = "HUD",
 		parent = "LeftColumn",
+		detach = "LeftColumn",
 		order = 1,
 		size = { 0, 220, 0, 104 },
 		note = "Always shown during play: your money, your level and jobs done, and the XP bar.",
@@ -226,6 +264,7 @@ return {
 		label = "Menu buttons",
 		group = "HUD",
 		parent = "LeftColumn",
+		detach = "LeftColumn",
 		order = 2,
 		size = { 0, 150, 0, 0 },
 		autoSize = "Y",
@@ -272,6 +311,7 @@ return {
 		label = "Grandma's goal",
 		group = "Trackers",
 		parent = "LeftColumn",
+		detach = "LeftColumn",
 		order = 3,
 		size = { 0, 220, 0, 0 },
 		autoSize = "Y",
@@ -291,12 +331,13 @@ return {
 		typical = { 280, 330 },
 		note = "Curb appeal over the job tracker, down the right. Its UIScale shrinks it to fit like the left "
 			.. "column's, toward its top right corner. Typical is during a job on a phone, where curb appeal "
-			.. "hides.",
+			.. "hides. Each of the two can be taken out of it (their detach) and put anywhere on the screen.",
 	},
 	CurbAppeal = {
 		label = "Curb appeal panel",
 		group = "HUD",
 		parent = "RightColumn",
+		detach = "RightColumn",
 		order = 1,
 		size = { 0, 220, 0, 78 },
 		note = "Your crew's curb appeal out of 100, once there is one. Hidden during a job on a screen "
@@ -306,12 +347,19 @@ return {
 		label = "Job tracker",
 		group = "Trackers",
 		parent = "RightColumn",
+		detach = "RightColumn",
 		order = 2,
 		size = { 0, 280, 0, 0 },
 		autoSize = "Y",
 		typical = { 280, 330 },
+		compact = { typical = { 280, 144 } },
 		note = "On the art's GoalTracker card, while you have a job: its name, a hint, its to-dos, the timer "
-			.. "against par and damage while you work, and a button to call it off. As tall as what's in it.",
+			.. "against par and damage while you work, and a button to call it off. As tall as what's in it. "
+			.. "On a screen shorter than __screen.scaling.Columns.fullHeight (a phone) it's laid out small, "
+			.. "so the look-at and Snip buttons fit under it: no hint, the timer beside the job's name, each "
+			.. "to-do on one line without its bar, and the damage (once there is some) and a small call-off "
+			.. "button sharing a row at the bottom. Typical is during a job with two to-dos and the junk; "
+			.. "compact's is that on a short screen.",
 	},
 	ToolCondition = {
 		label = "Tool condition",

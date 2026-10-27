@@ -302,7 +302,7 @@ function CutsceneController:Start()
 			BorderSizePixel = 0,
 			Parent = overlay,
 		})
-		UI.place(bar, id)
+		UI.keepPlaced(bar, id)
 	end
 	title = UI.heading("", {
 		TextSize = 36,
@@ -311,7 +311,7 @@ function CutsceneController:Start()
 		ZIndex = 3,
 		Parent = overlay,
 	})
-	UI.place(title, "CutsceneTitle")
+	UI.keepPlaced(title, "CutsceneTitle")
 	subtitle = UI.label("", {
 		TextSize = 22,
 		TextColor3 = UI.Colors.SubText,
@@ -320,7 +320,7 @@ function CutsceneController:Start()
 		ZIndex = 3,
 		Parent = overlay,
 	})
-	UI.place(subtitle, "CutsceneSubtitle")
+	UI.keepPlaced(subtitle, "CutsceneSubtitle")
 
 	Net.event("TravelStarted").OnClientEvent:Connect(function(info)
 		task.spawn(play, info)
