@@ -206,6 +206,12 @@ export type Placement = {
 	order: number?,
 	-- How much bigger or smaller it's drawn: 1 unless its entry says.
 	scale: number,
+	-- For one of the HUD columns' pieces (its entry has a `detach`): the column it's in, or nil
+	-- when it's out on the game's own screen. A touch screen can have its own (its `touch` parent,
+	-- false for out of its column).
+	parent: string?,
+	-- The pieces it gives way to: while one of them shows, it hides (UI.givesWay).
+	hideWhile: { string }?,
 }
 
 local function udim2(value: { number }?): UDim2?
@@ -230,6 +236,11 @@ function UI.layout(id: string, compact: boolean?): Placement
 		return (short and short[key]) or (touch and touch[key]) or entry[key]
 	end
 	local anchor, min, max, scale = pick("anchor"), entry.min, entry.max, pick("scale")
+	-- A touch screen's parent can be false: out of its column there.
+	local parent = entry.parent
+	if touch and touch.parent ~= nil then
+		parent = touch.parent or nil
+	end
 	return {
 		anchor = if anchor then Vector2.new(anchor[1], anchor[2]) else nil,
 		position = udim2(pick("position")),
@@ -240,7 +251,69 @@ function UI.layout(id: string, compact: boolean?): Placement
 		max = if max then Vector2.new(max.width or math.huge, max.height or math.huge) else nil,
 		order = entry.order,
 		scale = if typeof(scale) == "number" then scale else 1,
+		parent = parent,
+		hideWhile = pick("hideWhile"),
 	}
+end
+
+-- Fired with an element's name (its UiLayout entry's) when one placed by that name shows, hides or
+-- goes away, for what gives way to it (UI.onGiveWay).
+UI.ShowingChanged = Signal.new()
+
+-- Everything placed by name (UI.place), so a piece can give way to another: [name] = its elements.
+local placedAs: { [string]: { [GuiObject]: boolean } } = {}
+local function remember(object: Instance, id: string)
+	if not object:IsA("GuiObject") then
+		return
+	end
+	local known = placedAs[id]
+	if not known then
+		known = setmetatable({}, { __mode = "k" }) :: any
+		placedAs[id] = known
+	end
+	if known[object] then
+		return
+	end
+	known[object] = true
+	local function changed()
+		UI.ShowingChanged:Fire(id)
+	end
+	object:GetPropertyChangedSignal("Visible"):Connect(changed)
+	object.AncestryChanged:Connect(changed)
+end
+
+-- Whether an element placed as `id` is showing: it's in the game and visible itself (what it's in
+-- isn't asked).
+function UI.showing(id: string): boolean
+	for gui in placedAs[id] or {} do
+		if gui.Visible and gui:IsDescendantOf(game) then
+			return true
+		end
+	end
+	return false
+end
+
+-- Whether element `id` gives way right now: one of the pieces its UiLayout entry hides for (its
+-- hideWhile, which take its spot) is showing.
+function UI.givesWay(id: string): boolean
+	for _, other in UI.layout(id).hideWhile or {} do
+		if UI.showing(other) then
+			return true
+		end
+	end
+	return false
+end
+
+-- Calls `callback` whenever what element `id` gives way to shows or hides, and when the screen
+-- turns short or tall (a short screen can have its own hideWhile), so it can show or hide again.
+function UI.onGiveWay(id: string, callback: () -> ())
+	UI.ShowingChanged:Connect(function(changed: string)
+		local others = UI.layout(id).hideWhile
+		if others and table.find(others, changed) then
+			callback()
+		end
+	end)
+	UI.CompactChanged:Connect(callback)
 end
 
 -- The UIScale UI.place gives an element whose `scale` isn't 1, by its name.
@@ -305,6 +378,7 @@ function UI.place<T>(gui: T, id: string, compact: boolean?): T
 	elseif layoutScale then
 		layoutScale:Destroy()
 	end
+	remember(object, id)
 	return gui
 end
 
@@ -1528,24 +1602,26 @@ end
 local toastScreen: ScreenGui = nil
 local toastHolder: Frame = nil
 -- What the toasts stay below (see UI.keepToastsBelow), and how far below it they start.
-local toastsUnder: GuiObject? = nil
+local toastsUnder: { [GuiObject]: boolean } = setmetatable({}, { __mode = "k" }) :: any
 local TOAST_GAP = 8
 local function placeToasts()
 	if not toastHolder then
 		return
 	end
 	local base = UI.layout("Toasts").position :: UDim2
-	local under = toastsUnder
-	if under and under.Visible then
-		-- In pixels down the screen: where the stack would start, and just under `under`.
-		local top = base.Y.Scale * toastScreen.AbsoluteSize.Y + base.Y.Offset
-		local below = under.AbsolutePosition.Y + under.AbsoluteSize.Y + TOAST_GAP
-		if below > top then
-			toastHolder.Position = base + UDim2.fromOffset(0, below - top)
-			return
+	-- In pixels down the screen: where the stack would start, and then just under the lowest of
+	-- what's showing above that, in the stack's way.
+	local top = base.Y.Scale * toastScreen.AbsoluteSize.Y + base.Y.Offset
+	local left = toastHolder.AbsolutePosition.X
+	local right = left + toastHolder.AbsoluteSize.X
+	local start = top
+	for gui in toastsUnder do
+		local at, size = gui.AbsolutePosition, gui.AbsoluteSize
+		if gui.Visible and gui:IsDescendantOf(game) and at.Y < top and at.X < right and at.X + size.X > left then
+			start = math.max(start, at.Y + size.Y + TOAST_GAP)
 		end
 	end
-	toastHolder.Position = base
+	toastHolder.Position = base + UDim2.fromOffset(0, start - top)
 end
 local function toastStack(): Frame
 	if not toastHolder then
@@ -1563,19 +1639,24 @@ local function toastStack(): Frame
 		})
 		UI.keepPlaced(toastHolder, "Toasts")
 		placeToasts()
-		-- Placed again when the screen turns short or tall, then under the coach again.
+		-- Placed again when the screen turns short or tall, then under the coach again, and once
+		-- the stack has a width, to see what's in its way.
 		UI.CompactChanged:Connect(placeToasts)
+		toastHolder:GetPropertyChangedSignal("AbsoluteSize"):Connect(placeToasts)
 	end
 	return toastHolder
 end
 
--- Keeps the toasts just below `gui` while it shows (the first-job coach at the top of the
--- screen), so they never sit on top of it.
+-- Keeps the toasts just below `gui` while it shows at the top of the screen in their way (the
+-- first-job coach, and on a touch screen Grandma's goal and a crew invite), so they never sit on
+-- top of it. Anything else is left alone: Grandma's goal down the HUD's left column, an invite
+-- along the bottom.
 function UI.keepToastsBelow(gui: GuiObject)
-	toastsUnder = gui
+	toastsUnder[gui] = true
 	for _, property in { "AbsoluteSize", "AbsolutePosition", "Visible" } do
 		gui:GetPropertyChangedSignal(property):Connect(placeToasts)
 	end
+	gui.AncestryChanged:Connect(placeToasts)
 	placeToasts()
 end
 

@@ -287,7 +287,9 @@ end
 local function updateCarryLabel()
 	local held = carrying()
 	local tool = held and Tools.get(held)
-	carryLabel.Visible = tool ~= nil
+	-- It gives way to what takes its spot (the condition of the tool in your hands, which matters
+	-- more while it shows).
+	carryLabel.Visible = tool ~= nil and not UI.givesWay("CarryHint")
 	if tool then
 		carryLabel.Text = if tool.ride
 			then `Driving your {tool.name}. Park it on a trailer bay, or back in its bay.`
@@ -325,6 +327,7 @@ function CarryController:Start()
 	UI.keepPlaced(carryLabel, "CarryHint")
 	UI.corner(8).Parent = carryLabel
 	UI.padding(6).Parent = carryLabel
+	UI.onGiveWay("CarryHint", updateCarryLabel)
 
 	-- Several changes come together (a load changes what you carry and your profile), so they
 	-- redraw storage once.

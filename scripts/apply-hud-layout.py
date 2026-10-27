@@ -17,7 +17,10 @@ Each saved piece says what to change in its entry, the way a JSON merge patch do
 touch, compact and list are tables, and what's in them goes the same way: a key left out stays, one
 that's null comes out, and one that's left empty comes out altogether. So `"touch": null` drops a
 piece's phone places, `"touch": {"scale": null}` drops only its phone scale, and touch's and
-compact's `typical` (the editor's guess at the size there) stays unless the save names it.
+compact's `typical` (the editor's guess at the size there) stays unless the save names it. A HUD
+column's piece can be out of its column on a touch screen only (`"touch": {"parent": false}`), or in
+it there (the column's name), and touch's and compact's `hideWhile` (what a piece gives way to)
+stays as the save has it.
 
 It prints what changed in each piece, runs stylua on the file, and reads it back (lune run
 scripts/ui-layout-json): every piece has to come out as the file was with the save's changes, and
@@ -61,9 +64,9 @@ ORDER = (
     "note",
 )
 # What can be in touch and compact, and in a list, in the order they're written.
-PLACES = ("anchor", "position", "size", "scale", "typical")
+PLACES = ("anchor", "position", "size", "scale", "typical", "hideWhile")
 LIST_KEYS = ("direction", "padding", "align")
-TABLES = {"touch": PLACES, "compact": PLACES, "list": LIST_KEYS}
+TABLES = {"touch": ("parent",) + PLACES, "compact": PLACES, "list": LIST_KEYS}
 # How many numbers each kind of place is.
 COUNTS = {"anchor": 2, "position": 4, "size": 4, "typical": 2}
 # How big or small a scale can be (as scripts/check-gui.luau checks).
@@ -118,9 +121,16 @@ def checked(where, key, value):
             fail(f"{where} should be a number, not {value!r}")
         if key == "scale" and not SMALLEST_SCALE <= value <= BIGGEST_SCALE:
             fail(f"{where} is {value}: a scale goes from {SMALLEST_SCALE} to {BIGGEST_SCALE}")
+    elif key == "parent" and where.endswith(".touch.parent"):
+        # on a touch screen: false is out of its column
+        if value is not False and not (isinstance(value, str) and value):
+            fail(f"{where} should be false or a column's name, not {value!r}")
     elif key in ("screen", "parent", "direction", "align"):
         if not isinstance(value, str) or not value:
             fail(f"{where} should be a name, not {value!r}")
+    elif key == "hideWhile":
+        if not (isinstance(value, list) and value and all(isinstance(v, str) and v for v in value)):
+            fail(f"{where} should be a list of pieces' names, not {value!r}")
     return value
 
 
@@ -275,6 +285,10 @@ def luau_string(value):
 def luau_value(key, value):
     if key in COUNTS:
         return "{ " + ", ".join(number(v) for v in value) + " }"
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, list):
+        return "{ " + ", ".join(luau_string(v) for v in value) + " }"
     if is_number(value):
         return number(value)
     if isinstance(value, str):

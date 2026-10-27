@@ -43,10 +43,17 @@
 --             placed
 --   typical   { width, height } in pixels: about how big it shows on a phone held sideways
 --             (__screen.phone), before any UIScale, for anything whose size isn't all in `size`
---   touch     an anchor, position, size or scale to use instead on a touch screen
+--   touch     an anchor, position, size or scale to use instead on a touch screen. For a piece of a
+--             HUD column (one with a `detach`), it can have a `parent` too: false takes it out of its
+--             column on a touch screen (with an anchor and position there), and the column's name
+--             puts it back in
 --   compact   the same on a short screen (shorter than __screen.compactHeight), over the touch ones
---             (see Touch and short screens). Touch and compact can also have a `typical`, for the
---             editor to draw the piece at on those screens; the game never reads typical
+--             (see Touch and short screens), but not a `parent`. Touch and compact can also have a
+--             `typical`, for the editor to draw the piece at on those screens; the game never reads
+--             typical
+--   hideWhile the pieces that take its spot: while any of them shows, it hides, and shows again when
+--             they've gone (UI.givesWay). It can be in `touch` or `compact` instead, for a piece that
+--             only gives way there
 --   device    "touch": it only ever shows on a touch screen; "keyboard": only with a keyboard
 --   fixed     true for something drawn only so the rest can be placed around it: the game decides
 --             where it goes (the dot is where the camera aims), so the editor shouldn't move it
@@ -101,10 +108,15 @@
 -- out again; the rest is placed once, as it's made.
 --
 -- Worked out while playing, from the values here (each one's note has the rule):
---   * the columns' scale (above), and curb appeal hiding on a short screen during a job;
+--   * the columns' scale (above), and curb appeal hiding on a short screen while the job tracker
+--     shows;
+--   * what gives way to what (each piece's hideWhile): on a touch screen Grandma's goal, the
+--     first-job coach and a crew invite share the top of the screen, one at a time, and the job
+--     tracker steps aside for the decorating buttons;
 --   * the job tracker's smaller layout on a short screen, which leaves room for the phone
 --     buttons under it;
---   * the toasts move down to stay just under the first-job coach while it shows;
+--   * the toasts move down to stay just under what's showing at the top of the screen in their
+--     way: the first-job coach, and on a touch screen Grandma's goal or a crew invite;
 --   * the dialogue box's width and height, for each line and the screen it's on, and the
 --     dialogue's compact places when the screen turns;
 --   * a menu's window fills the computer's screen while you're at the computer;
@@ -243,13 +255,15 @@ return {
 		screen = "LawnUI",
 		anchor = { 0, 0 },
 		position = { 0, 12, 0, 12 },
-		size = { 0, 220, 0, 0 },
+		size = { 0, 250, 0, 0 },
 		autoSize = "Y",
-		list = { direction = "Vertical", padding = 10, align = "Left" },
-		typical = { 220, 400 },
+		list = { direction = "Vertical", padding = 18, align = "Left" },
+		typical = { 250, 370 },
 		note = "The money panel, the menu buttons and Grandma's goal stacked down the left, so they can't "
-			.. "run into each other on a short screen. Its UIScale shrinks it to fit (__screen.scaling.Columns). "
-			.. "Each of them can be taken out of it (their detach) and put anywhere on the screen.",
+			.. "run into each other on a short screen, far enough apart that the panels are clear of the menu "
+			.. "buttons on a phone. Its UIScale shrinks it to fit (__screen.scaling.Columns). Each of them can "
+			.. "be taken out of it (their detach) and put anywhere on the screen: on a touch screen Grandma's "
+			.. "goal is, away from your thumb on the move stick.",
 	},
 	MoneyPanel = {
 		label = "Money and level panel",
@@ -257,8 +271,9 @@ return {
 		parent = "LeftColumn",
 		detach = "LeftColumn",
 		order = 1,
-		size = { 0, 220, 0, 104 },
-		note = "Always shown during play: your money, your level and jobs done, and the XP bar.",
+		size = { 0, 250, 0, 72 },
+		note = "Always shown during play: your money, then your level and jobs done, then the XP bar. Low and "
+			.. "wide, so it takes little of a short screen's height.",
 	},
 	MenuButtons = {
 		label = "Menu buttons",
@@ -268,10 +283,11 @@ return {
 		order = 2,
 		size = { 0, 150, 0, 0 },
 		autoSize = "Y",
-		list = { direction = "Vertical", padding = 8, align = "Left" },
-		typical = { 150, 148 },
-		note = "The Truck, Guide and Crew buttons. With a keyboard each one has its key (T, G, C) and the "
-			.. "mouse hint goes under them, which makes it 172 px tall.",
+		list = { direction = "Vertical", padding = 12, align = "Left" },
+		typical = { 150, 156 },
+		note = "The Truck, Guide and Crew buttons, far enough apart to tap one at a time on a phone. With a "
+			.. "keyboard each one has its key (T, G, C) and the mouse hint goes under them, which makes it "
+			.. "184 px tall.",
 	},
 	TruckButton = {
 		label = "Truck button",
@@ -316,8 +332,16 @@ return {
 		size = { 0, 220, 0, 0 },
 		autoSize = "Y",
 		typical = { 220, 86 },
+		touch = {
+			parent = false,
+			anchor = { 0.5, 0 },
+			position = { 0.5, 0, 0, 12 },
+			hideWhile = { "TutorialBanner", "CrewInvite" },
+		},
 		note = "Grandma's sticky note with your story goal and how close you are, while you have one. As "
-			.. "tall as its words.",
+			.. "tall as its words. On a touch screen it's out of the column, at the top in the middle between "
+			.. "the HUD's columns, away from your thumb on the move stick, and the toasts start under it. The "
+			.. "first-job coach and a crew invite go there too, and it waits while either shows.",
 	},
 	RightColumn = {
 		label = "Right HUD column",
@@ -353,13 +377,15 @@ return {
 		autoSize = "Y",
 		typical = { 280, 330 },
 		compact = { typical = { 280, 144 } },
+		hideWhile = { "DecorButtons" },
 		note = "On the art's GoalTracker card, while you have a job: its name, a hint, its to-dos, the timer "
 			.. "against par and damage while you work, and a button to call it off. As tall as what's in it. "
 			.. "On a screen shorter than __screen.scaling.Columns.fullHeight (a phone) it's laid out small, "
 			.. "so the look-at and Snip buttons fit under it: no hint, the timer beside the job's name, each "
 			.. "to-do on one line without its bar, and the damage (once there is some) and a small call-off "
 			.. "button sharing a row at the bottom. Typical is during a job with two to-dos and the junk; "
-			.. "compact's is that on a short screen.",
+			.. "compact's is that on a short screen. It steps aside while you're putting a decoration down on a "
+			.. "phone, for the decorating buttons (and curb appeal shows again).",
 	},
 	ToolCondition = {
 		label = "Tool condition",
@@ -371,10 +397,12 @@ return {
 		autoSize = "Y",
 		max = { width = 440 },
 		typical = { 440, 36 },
-		compact = { position = { 0.5, 0, 1, -56 } },
+		touch = { position = { 0.5, 0, 1, -78 } },
+		compact = { position = { 0.5, 0, 1, -66 }, scale = 0.85 },
 		note = "What's wrong with the tool in your hands (a chip for each thing), or 'Working on it... 3s' "
-			.. "while you work on one. The chips go onto a second line when they don't fit. Just above Roblox's "
-			.. "hotbar (60 px slots, 48 on a phone), and below the look-at prompt.",
+			.. "while you work on one. The chips go onto a second line when they don't fit. Above Roblox's "
+			.. "hotbar (60 px slots, 48 on a phone), and on a touch screen far enough above it to keep clear of "
+			.. "tapping a slot; under the look-at prompt, and a little smaller on a phone to fit between them.",
 	},
 
 	-- Prompts ------------------------------------------------------------------------------------
@@ -388,11 +416,15 @@ return {
 		size = { 0.6, 0, 0, 0 },
 		autoSize = "Y",
 		max = { width = 520 },
-		typical = { 450, 86 },
-		touch = { size = { 1, -300, 0, 0 }, scale = 0.85 },
+		typical = { 450, 130 },
+		touch = { size = { 1, -400, 0, 0 }, scale = 0.85, typical = { 450, 96 }, hideWhile = { "CrewInvite" } },
+		compact = { size = { 1, -320, 0, 0 }, scale = 0.7, hideWhile = { "CrewInvite", "HoldRing" } },
 		note = "Coaches a new player through their first job, a step at a time, once the intro scene's over "
-			.. "and until the job's paid. As tall as its words. The toasts keep below it. On a touch screen "
-			.. "it's narrower, to fit between the HUD's columns, and a little smaller, so it stays above the dot.",
+			.. "and until the job's paid: at the shop, on the way and on the lawn. As tall as its words. The "
+			.. "toasts keep below it. On a touch screen its words are shorter and it's narrower, to fit between "
+			.. "the HUD's columns (the job tracker's on the right), and smaller, so it stays above the dot. A "
+			.. "crew invite goes there too on a touch screen, and it waits while that shows, and on a short "
+			.. "screen while you hold to work on a tool (the hold ring would be under it).",
 	},
 	CarryHint = {
 		label = "Carry hint",
@@ -405,10 +437,15 @@ return {
 		min = { width = 240 },
 		max = { width = 460 },
 		touch = { size = { 1, -360, 0, 0 } },
+		compact = { size = { 1, -372, 0, 0 }, scale = 0.85 },
 		typical = { 304, 78 },
+		hideWhile = { "ToolCondition" },
 		note = "What to do with the tool you're carrying or driving at your business, along the bottom under "
 			.. "the look-at prompt. On a touch screen it's 360 px narrower than the screen, to stay between "
-			.. "Roblox's move stick and jump button. As tall as its words.",
+			.. "Roblox's move stick and jump button, and on a short screen a little smaller, under the look-at prompt "
+			.. "and clear of the Snip button. As tall as its words. A tool you can use comes out of "
+			.. "storage in your hands, for your own lawn, so it can have something wrong with it, or be worked "
+			.. "on: the tool condition goes in the same spot then, and this waits while it shows.",
 	},
 	InteractPrompt = {
 		label = "Look-at prompt",
@@ -419,10 +456,12 @@ return {
 		size = { 0, 440, 0, 0 },
 		autoSize = "Y",
 		typical = { 440, 46 },
+		touch = { scale = 0.85 },
 		note = "Under the dot, clear of the hold ring, while it's on something you can use: a 46 px pill "
 			.. "for each thing you can do (6 px apart), red with the reason when it won't work. With a "
 			.. "keyboard there's a second pill for R when there's a second thing to do. On a touch screen it "
-			.. "only shows when the thing has a name, since the button says what it does.",
+			.. "only shows when the thing has a name, since the button says what it does, and it's a little "
+			.. "smaller, so the tool condition fits under it.",
 	},
 	DecorPrompt = {
 		label = "Decorating prompt",
@@ -433,9 +472,10 @@ return {
 		size = { 0, 440, 0, 0 },
 		autoSize = "Y",
 		typical = { 440, 46 },
+		touch = { scale = 0.85 },
 		note = "Under the dot, like the look-at prompt, while you're putting a decoration down: its name, "
 			.. "red with why it can't go there, and with a keyboard or gamepad a second pill with the keys "
-			.. "(98 px tall then).",
+			.. "(98 px tall then). A little smaller on a touch screen, like the look-at prompt.",
 	},
 
 	-- Phone buttons --------------------------------------------------------------------------------
@@ -447,12 +487,14 @@ return {
 		anchor = { 1, 0.5 },
 		position = { 1, -24, 0.55, 0 },
 		size = { 0, 110, 0, 110 },
-		touch = { anchor = { 1, 1 }, position = { 1, -75, 0.69, 0 }, scale = 0.7 },
+		touch = { anchor = { 1, 1 }, position = { 1, -75, 0.715, 0 }, scale = 0.7 },
+		compact = { position = { 1, -75, 0.7, 0 }, scale = 0.6 },
 		device = "touch",
 		note = "The big round button that does what E does, while the dot's on something you can use, greyed "
 			.. "out when it won't work. Its glyph is inside and its words go under it (28 px more, 20 px past "
-			.. "each side). On a touch screen it's smaller and low on the right, above Roblox's jump button "
-			.. "and under the HUD's right column, clear of a phone's notch.",
+			.. "each side). On a touch screen it's smaller and low on the right, its words just above Roblox's "
+			.. "jump button, clear of a phone's notch, and far enough under the HUD's right column (the job "
+			.. "tracker's call-off button) not to be tapped by mistake; smaller still on a short screen.",
 	},
 	InteractSecondButton = {
 		label = "Look-at second button",
@@ -461,11 +503,12 @@ return {
 		anchor = { 1, 1 },
 		position = { 1, -24, 0.55, -66 },
 		size = { 0, 110, 0, 44 },
-		touch = { anchor = { 1, 1 }, position = { 1, -170, 0.69, 0 }, scale = 0.6 },
+		touch = { anchor = { 1, 1 }, position = { 1, -170, 0.715, 0 }, scale = 0.6 },
+		compact = { position = { 1, -160, 0.7, 0 }, scale = 0.55 },
 		device = "touch",
 		note = "What R does, when the thing you're looking at has a second thing to do (take one tool out of "
 			.. "the bucket, the building's machines, the mailbox). Over the round button, or on a touch "
-			.. "screen just left of it, where the Snip button goes (they never show together).",
+			.. "screen just left of it, where the Snip button goes (which waits while this shows).",
 	},
 	SnipButton = {
 		label = "Snip button",
@@ -474,59 +517,83 @@ return {
 		anchor = { 1, 0.5 },
 		position = { 1, -146, 0.55, 0 },
 		size = { 0, 96, 0, 96 },
-		touch = { anchor = { 1, 1 }, position = { 1, -170, 0.69, -18 }, scale = 0.7 },
+		touch = { anchor = { 1, 1 }, position = { 1, -170, 0.715, -17 }, scale = 0.7 },
+		compact = { position = { 1, -155, 0.7, -17 }, scale = 0.6 },
+		hideWhile = { "InteractSecondButton" },
 		device = "touch",
 		note = "While you hold grass shears in first person: tap to snip, hold to keep snipping. Its words go "
 			.. "under it (28 px more). Left of the look-at button, level with it. It's on the game's own "
 			.. "screen, which starts under Roblox's top bar, so its y is worked out to land where the look-at "
-			.. "button's 0.69 of the whole screen does.",
+			.. "button's 0.715 (0.7 on a short screen) of the whole screen does. The look-at second button goes "
+			.. "in the same spot: holding shears at your business (they work on your own lawn), the dot can be "
+			.. "on something with a second thing to do, like your mailbox, and this waits while that shows.",
 	},
 	DecorButtons = {
 		label = "Decorating buttons",
 		group = "Phone buttons",
 		screen = "Decorating",
-		anchor = { 1, 0.5 },
-		position = { 1, -24, 0.4, 0 },
-		size = { 0, 110, 0, 240 },
-		touch = { anchor = { 1, 0 }, position = { 1, -59, 0, 150 }, scale = 0.6 },
-		compact = { anchor = { 1, 0 }, position = { 1, -59, 0, 127 }, scale = 0.55 },
-		list = { direction = "Vertical", padding = 8, align = "Left" },
+		anchor = { 1, 1 },
+		position = { 1, -75, 0.69, 0 },
+		size = { 0, 232, 0, 116 },
+		scale = 0.9,
+		compact = { position = { 1, -75, 0.725, 0 }, scale = 0.7 },
+		list = { direction = "Vertical", padding = 12, align = "Right" },
 		device = "touch",
-		note = "While you're putting a decoration down, on the right where the look-at button usually is, "
-			.. "under the HUD's right column and clear of the jump button. On a short screen they're smaller "
-			.. "to fit between the two.",
+		note = "While you're putting a decoration down: two rows of two where the look-at button usually is "
+			.. "(it's hidden then), above the jump button. The job tracker steps aside meanwhile, so they have "
+			.. "the room (its hideWhile). Smaller and a little lower on a short screen, to stay clear of the "
+			.. "decorating prompt and the toasts.",
+	},
+	DecorTopRow = {
+		label = "Decorating buttons, top row",
+		group = "Phone buttons",
+		parent = "DecorButtons",
+		order = 1,
+		size = { 0, 232, 0, 52 },
+		list = { direction = "Horizontal", padding = 12, align = "Right" },
+		note = "Send back (for the business's owner) and Put back, over the bottom row.",
+	},
+	DecorBottomRow = {
+		label = "Decorating buttons, bottom row",
+		group = "Phone buttons",
+		parent = "DecorButtons",
+		order = 2,
+		size = { 0, 232, 0, 52 },
+		list = { direction = "Horizontal", padding = 12, align = "Right" },
+		note = "Turn and Place, with Place nearest your thumb.",
 	},
 	DecorPlaceButton = {
 		label = "Place button",
 		group = "Phone buttons",
-		parent = "DecorButtons",
-		order = 1,
-		size = { 0, 110, 0, 80 },
+		parent = "DecorBottomRow",
+		order = 2,
+		size = { 0, 110, 0, 52 },
 		note = "Puts the decoration down where it is (E).",
 	},
 	DecorTurnButton = {
 		label = "Turn button",
 		group = "Phone buttons",
-		parent = "DecorButtons",
-		order = 2,
-		size = { 0, 110, 0, 44 },
+		parent = "DecorBottomRow",
+		order = 1,
+		size = { 0, 110, 0, 52 },
 		note = "Turns it 15 degrees (R).",
 	},
 	DecorPutBackButton = {
 		label = "Put back button",
 		group = "Phone buttons",
-		parent = "DecorButtons",
-		order = 3,
-		size = { 0, 110, 0, 44 },
+		parent = "DecorTopRow",
+		order = 2,
+		size = { 0, 110, 0, 52 },
 		note = "Stops placing it and puts it back (Q).",
 	},
 	DecorSendBackButton = {
 		label = "Send back button",
 		group = "Phone buttons",
-		parent = "DecorButtons",
-		order = 4,
-		size = { 0, 110, 0, 44 },
-		note = "Sends it back for part of its price (F). Only for the business's owner: hidden otherwise.",
+		parent = "DecorTopRow",
+		order = 1,
+		size = { 0, 110, 0, 52 },
+		note = "Sends it back for part of its price (F). Only for the business's owner: hidden otherwise, "
+			.. "and Put back moves over to the right.",
 	},
 
 	-- Popups ---------------------------------------------------------------------------------------
@@ -575,9 +642,12 @@ return {
 		anchor = { 0.5, 1 },
 		position = { 0.5, 0, 1, -110 },
 		size = { 0, 360, 0, 90 },
-		touch = { position = { 0.5, 0, 1, -20 }, scale = 0.8 },
+		touch = { anchor = { 0.5, 0 }, position = { 0.5, 0, 0, 12 }, size = { 0, 300, 0, 90 }, scale = 0.8 },
 		note = "When someone invites you to their crew, until you answer or it runs out: Join or No thanks. "
-			.. "On a touch screen it's smaller and along the bottom, under the look-at prompt.",
+			.. "It can come at any time, so it may pass over the HUD for a moment, but not over a button. On a "
+			.. "touch screen it's at the top in the middle, clear of the hotbar and the carry hint along the "
+			.. "bottom; Grandma's goal and the first-job coach wait while it shows there, and the toasts start "
+			.. "under it.",
 	},
 
 	-- Menus ----------------------------------------------------------------------------------------
@@ -671,8 +741,9 @@ return {
 		anchor = { 0.5, 0 },
 		position = { 0.5, 0, 0, 6 },
 		size = { 0.4, 0, 0, 44 },
+		compact = { size = { 0.36, 0, 0, 44 } },
 		note = "Where and when the scene is ('Maple Grove · First day of summer'), up top in the middle, "
-			.. "clear of Roblox's own buttons.",
+			.. "clear of Roblox's own buttons: a little narrower on a short screen, where they're closer.",
 	},
 	DialogueSkip = {
 		label = "Skip button",

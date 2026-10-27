@@ -297,7 +297,7 @@ end
 -- the game's own screen on its own, where it shrinks to fit by the columns' rule, so on a phone it's
 -- the size it would be in the column.
 local function placeInColumn(gui: GuiObject, id: string)
-	local column = columns[UI.Layout[id].parent or ""]
+	local column = columns[UI.layout(id).parent or ""]
 	gui.Parent = column or UI.getScreen()
 	UI.keepPlaced(gui, id)
 	if not column then
@@ -305,36 +305,44 @@ local function placeInColumn(gui: GuiObject, id: string)
 	end
 end
 
+-- Low and wide, so it takes little of a short screen's height: the money, then your level and jobs
+-- done, then the XP bar, close together.
 local function buildStats()
 	local frame = hudPanel({ Name = "Stats" })
 	placeInColumn(frame, "MoneyPanel")
-	UI.padding(10).Parent = frame
+	UI.new("UIPadding", {
+		PaddingTop = UDim.new(0, 6),
+		PaddingBottom = UDim.new(0, 7),
+		PaddingLeft = UDim.new(0, 10),
+		PaddingRight = UDim.new(0, 10),
+		Parent = frame,
+	})
 	local moneyIcon = UI.icon(
 		"Money",
-		{ Size = UDim2.fromOffset(28, 28), Position = UDim2.fromOffset(0, 5), Parent = frame },
+		{ Size = UDim2.fromOffset(24, 24), Position = UDim2.fromOffset(0, 2), Parent = frame },
 		UI.Colors.Money
 	)
-	local moneyX = if moneyIcon then 36 else 0
+	local moneyX = if moneyIcon then 32 else 0
 	money = UI.display(
 		"Numbers",
 		"$0",
-		{ TextSize = 30, Color = UI.Colors.Money, Fit = true },
-		{ Position = UDim2.fromOffset(moneyX, 2), Size = UDim2.new(1, -moneyX, 0, 34), Parent = frame }
+		{ TextSize = 26, Color = UI.Colors.Money, Fit = true },
+		{ Position = UDim2.fromOffset(moneyX, 0), Size = UDim2.new(1, -moneyX, 0, 28), Parent = frame }
 	)
 	local levelIcon =
-		UI.icon("Level", { Size = UDim2.fromOffset(16, 16), Position = UDim2.fromOffset(2, 44), Parent = frame })
-	local levelX = if levelIcon then 24 else 0
+		UI.icon("Level", { Size = UDim2.fromOffset(14, 14), Position = UDim2.fromOffset(2, 32), Parent = frame })
+	local levelX = if levelIcon then 22 else 0
 	levelLabel = UI.label("Level 1", {
-		Position = UDim2.fromOffset(levelX, 42),
-		Size = UDim2.new(1, -levelX, 0, 20),
+		Position = UDim2.fromOffset(levelX, 30),
+		Size = UDim2.new(1, -levelX, 0, 18),
 		TextScaled = true,
 		TextColor3 = UI.Colors.Text,
 		Parent = frame,
 	})
-	UI.new("UITextSizeConstraint", { MaxTextSize = 16, Parent = levelLabel })
+	UI.new("UITextSizeConstraint", { MaxTextSize = 15, Parent = levelLabel })
 	xpBar = UI.bar({
-		Position = UDim2.fromOffset(levelX, 68),
-		Size = UDim2.new(1, -levelX, 0, 10),
+		Position = UDim2.fromOffset(levelX, 51),
+		Size = UDim2.new(1, -levelX, 0, 8),
 		Parent = frame,
 	})
 end
@@ -478,11 +486,15 @@ local function buildGoal()
 		Parent = goalNote,
 	})
 	goalBar = UI.bar({ Size = UDim2.new(1, 0, 0, 10), LayoutOrder = 4, Parent = goalNote })
+	-- Out of its column at the top of the screen (on a touch screen), the toasts keep below it.
+	UI.keepToastsBelow(goalNote)
 end
 
 local function updateGoal()
 	local goal = Goal.current()
-	goalNote.Visible = goal ~= nil
+	-- Where it gives way to something else that takes its spot (on a touch screen, the first-job
+	-- coach and a crew invite at the top of the screen), it hides while that shows.
+	goalNote.Visible = goal ~= nil and not UI.givesWay("GrandmaGoal")
 	if not goal then
 		return
 	end
@@ -976,7 +988,8 @@ local function updateJob()
 			hidePay()
 		end
 	end
-	tracker.Visible = true
+	-- It steps aside for what takes its spot (the decorating buttons, on a touch screen).
+	tracker.Visible = not UI.givesWay("JobTracker")
 	trackerTitle.Text = string.upper(job.name)
 	local isLeader = job.leader == player
 	-- Whether there's a button to call the job off: updateTimer lays the tracker out with it.
@@ -1053,6 +1066,8 @@ function HudController:Start()
 		end
 	end)
 	player:GetAttributeChangedSignal("CurbAppeal"):Connect(updateGoal)
+	UI.onGiveWay("GrandmaGoal", updateGoal)
+	UI.onGiveWay("JobTracker", updateJob)
 	updateGoal()
 
 	task.spawn(function()

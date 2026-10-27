@@ -109,6 +109,12 @@ function SnipController:Start()
 		Parent = UI.getScreen(),
 	})
 	UI.keepPlaced(button, "SnipButton")
+	-- It gives way to what takes its spot (the look-at second button, when the dot's on something
+	-- with a second thing to do rather than on grass).
+	local givingWay = false
+	UI.onGiveWay("SnipButton", function()
+		givingWay = UI.givesWay("SnipButton")
+	end)
 	-- Held down for a steady snip, snip, snip, until that touch ends wherever the finger slid to.
 	button.InputBegan:Connect(function(input)
 		local pressing = input.UserInputType == Enum.UserInputType.Touch
@@ -136,7 +142,7 @@ function SnipController:Start()
 	end
 
 	RunService.Heartbeat:Connect(function()
-		local show = heldItem ~= nil and UI.isTouch() and canSnip()
+		local show = heldItem ~= nil and UI.isTouch() and canSnip() and not givingWay
 		if button.Visible ~= show then
 			button.Visible = show
 			buttonDown = false

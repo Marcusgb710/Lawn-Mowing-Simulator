@@ -10,10 +10,10 @@
 -- the striped fills, and the pay breakdown's lines adding up to what a job paid
 -- (src/shared/PayBreakdown.luau). And src/client/UiLayout.luau, where everything on the play
 -- screen goes (the layout editor rewrites it): every entry is the right shape (its scales sensible,
--- its touch and compact places only places), only the pieces HudController builds straight into a
--- HUD column can leave it, and those are in their column or have a place of their own on the
--- screen, every element the client places by name is in it, and every one in it is placed
--- somewhere.
+-- its touch and compact places only places, and nothing giving way to what gives way to it), only
+-- the pieces HudController builds straight into a HUD column can leave it, and those are in their
+-- column or have a place of their own on the screen (a touch screen's too), every element the
+-- client places by name is in it, and every one in it is placed somewhere.
 -- Given the art's GUI folder (or with art-source/GUI in this repo), it also reads the manifest
 -- and the .fnt files again and checks GuiArt matches them exactly. Exits with an error if
 -- anything's off.
@@ -234,6 +234,7 @@ local LAYOUT_FIELDS = {
 	typical = "table",
 	touch = "table",
 	compact = "table",
+	hideWhile = "table",
 	device = "string",
 	fixed = "boolean",
 	note = "string",
@@ -262,11 +263,28 @@ local function isNumbers(value: any, count: number): boolean
 	end
 	return true
 end
+-- Whether `value` names other pieces in UiLayout, for a hideWhile.
+local function isPieces(value: any, own: string): boolean
+	if typeof(value) ~= "table" or #value == 0 then
+		return false
+	end
+	for _, id in value do
+		if typeof(id) ~= "string" or UiLayout[id] == nil or id == own or id == "__screen" then
+			return false
+		end
+	end
+	return true
+end
 -- An anchor, a position, a size and a scale, any of them left out, and (for the editor) a typical
--- size in a piece's touch and compact places.
-local function checkPlaces(where: string, places: { [string]: any }, typical: boolean?)
+-- size in a piece's touch and compact places, and what it gives way to there. A touch place can
+-- also take a HUD column's piece out of its column or put it in (its parent).
+local function checkPlaces(where: string, places: { [string]: any }, typical: boolean?, id: string?, touch: boolean?)
 	for key, place in places do
-		if key == "anchor" then
+		if key == "hideWhile" and id then
+			check(isPieces(place, id), `{where}: its hideWhile isn't a list of other pieces in UiLayout`)
+		elseif key == "parent" and touch then
+			check(place == false or typeof(place) == "string", `{where}: its parent isn't false or a column`)
+		elseif key == "anchor" then
 			check(isNumbers(place, 2), `{where}: its anchor isn't two numbers`)
 		elseif key == "position" or key == "size" then
 			check(isNumbers(place, 4), `{where}: its {key} isn't a UDim2's four numbers`)
@@ -298,8 +316,12 @@ for id, entry in UiLayout do
 	end
 	check(entry.size ~= nil, `{where} has no size`)
 	checkPlaces(where, { anchor = entry.anchor, position = entry.position, size = entry.size, scale = entry.scale })
-	checkPlaces(`{where}'s touch places`, if typeof(entry.touch) == "table" then entry.touch else {}, true)
-	checkPlaces(`{where}'s compact places`, if typeof(entry.compact) == "table" then entry.compact else {}, true)
+	local touch = if typeof(entry.touch) == "table" then entry.touch else {}
+	checkPlaces(`{where}'s touch places`, touch, true, id, true)
+	checkPlaces(`{where}'s compact places`, if typeof(entry.compact) == "table" then entry.compact else {}, true, id)
+	if entry.hideWhile ~= nil then
+		check(isPieces(entry.hideWhile, id), `{where}: its hideWhile isn't a list of other pieces in UiLayout`)
+	end
 	local parent = entry.parent and UiLayout[entry.parent]
 	if entry.parent then
 		check(parent ~= nil, `{where} is in {entry.parent}, which isn't in UiLayout`)
@@ -334,6 +356,20 @@ for id, entry in UiLayout do
 	elseif home then
 		check(false, `{where} has no detach: the editor needs to know it belongs in {home}`)
 	end
+	-- Its own place on a touch screen: in its column or out of it, with a place on the screen then.
+	if touch.parent ~= nil then
+		check(entry.detach ~= nil, `{where} has a touch parent, but it isn't a HUD column's piece (no detach)`)
+		check(
+			touch.parent == false or touch.parent == entry.detach,
+			`{where}: its touch parent is {touch.parent}, not false or its column {entry.detach}`
+		)
+		if touch.parent == false and entry.parent then
+			check(
+				touch.anchor ~= nil and touch.position ~= nil,
+				`{where} is out of its column on a touch screen, so it needs a touch anchor and position`
+			)
+		end
+	end
 	-- A BillboardGui in the world only has its size placed, so it can't be scaled.
 	if entry.screen == "World" then
 		local scaled = entry.scale ~= nil
@@ -359,6 +395,28 @@ for id, entry in UiLayout do
 		check(table.find({ "Left", "Center", "Right" }, list.align) ~= nil, `{where}: odd list align`)
 	end
 end
+-- Nothing gives way to something that gives way to it (one of them would never show).
+local function givesWayTo(id: string): { [string]: boolean }
+	local entry = UiLayout[id]
+	local out = {}
+	for _, places in { entry, entry.touch or {}, entry.compact or {} } do
+		for _, other in (places :: any).hideWhile or {} do
+			out[other] = true
+		end
+	end
+	return out
+end
+for id in UiLayout do
+	if id ~= "__screen" then
+		for other in givesWayTo(id) do
+			check(
+				UiLayout[other] == nil or not givesWayTo(other)[id],
+				`UiLayout's {id} and {other} each give way to the other (hideWhile)`
+			)
+		end
+	end
+end
+
 for name, rule in UiLayout.__screen.scaling do
 	for _, id in rule.elements do
 		check(UiLayout[id] ~= nil, `__screen.scaling.{name} scales {id}, which isn't in UiLayout`)
