@@ -323,6 +323,17 @@ local function setFrozen(player: Player, frozen: boolean)
 	end
 end
 
+-- Call right after moving someone's character to `target`. First person keeps the camera looking
+-- the way it was, and turns the character to match, so this says which way they should face now:
+-- ArrivedFacing, and Arrivals counts the moves. The count is what the client watches, because
+-- setting ArrivedFacing to the same value as last time wouldn't show up there as a change. The
+-- title card turns the camera for the move at join, and CameraController for every move after it.
+local function setArrivedFacing(player: Player, target: CFrame)
+	player:SetAttribute("ArrivedFacing", target.LookVector)
+	local arrivals = player:GetAttribute("Arrivals")
+	player:SetAttribute("Arrivals", (if typeof(arrivals) == "number" then arrivals else 0) + 1)
+end
+
 -- Plays the truck cutscene for `players`, then moves each to destination(index, player).
 -- If destination returns nil the player just stays where they are.
 local function travel(players: { Player }, info, destination: (number, Player) -> CFrame?, onArrive: (() -> ())?)
@@ -354,6 +365,7 @@ local function travel(players: { Player }, info, destination: (number, Player) -
 					local target = destination(index, player)
 					if target and player.Character then
 						player.Character:PivotTo(target)
+						setArrivedFacing(player, target)
 					end
 					setFrozen(player, false)
 				end
@@ -1020,6 +1032,7 @@ function JobService:Start()
 			pcall(player.RequestStreamAroundAsync, player, home.Position, 5)
 			if player.Parent == Players and player.Character and not self:IsBusy(player) then
 				player.Character:PivotTo(home)
+				setArrivedFacing(player, home)
 			end
 		end
 		local joined = joinedAt[player]
@@ -1035,8 +1048,7 @@ function JobService:Start()
 				)
 			)
 		end
-		-- The title card waits for this, and turns their camera this way (see ReplicatedFirst).
-		player:SetAttribute("ArrivedFacing", WorldService:GetHomeCFrame(player).LookVector)
+		-- The title card waits for this (see ReplicatedFirst).
 		player:SetAttribute("ArrivedAtBusiness", true)
 	end
 
@@ -1085,6 +1097,7 @@ function JobService:Start()
 				task.wait()
 				if playerJobs[player] == job then
 					character:PivotTo(job.lawn.spawnCFrame)
+					setArrivedFacing(player, job.lawn.spawnCFrame)
 				end
 			else
 				-- Everyone else spawns at their crew's business, as soon as it's been built (and a

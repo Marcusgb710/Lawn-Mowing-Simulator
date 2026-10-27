@@ -9,6 +9,9 @@
 --   * bobs the camera a little as you walk and shakes it slightly while a gas engine you're using
 --     is running, unless camera motion is switched off (GameConfig.Camera, or the player's
 --     "Camera motion" switch in the Guide, or V)
+--   * turns the camera the way the server says to face after it moves you (back at the shop after
+--     a respawn or a job, at the house on a job, at a new crew's shop): first person would keep
+--     looking wherever it was, and turn your character back to match
 -- Your arms are drawn by ArmsController.
 
 local Players = game:GetService("Players")
@@ -217,6 +220,51 @@ local function updateMotion(deltaTime: number)
 	end
 end
 
+-- Whether the title card is still up. It turns the camera for the move at join itself.
+local function titleCardUp(): boolean
+	if player:GetAttribute("TitleCardDone") == true then
+		return false
+	end
+	local playerGui = player:FindFirstChildOfClass("PlayerGui")
+	return playerGui ~= nil and playerGui:FindFirstChild("TitleCard") ~= nil
+end
+
+-- Each time the server moves you, it says which way you should face (ArrivedFacing) and counts the
+-- move (Arrivals; see setArrivedFacing in JobService). FacedArrival, on this screen only, is the
+-- move the camera was last turned for, here or by the title card. The camera turns to face that
+-- way, looking level, once it's back in first person on your character with the game's screen
+-- showing. So not while the title card is up, or while the drive cutscene or a dialogue scene has
+-- the camera (it turns as they hand it back), or before your new character's in.
+-- This runs just after the default camera's update, which carries on next frame from wherever the
+-- camera looks. On the frame a new character arrives, that update turns the camera the way the
+-- character faces, so turning before it wouldn't stick.
+local function faceArrival()
+	local arrivals = player:GetAttribute("Arrivals")
+	local faced = player:GetAttribute("FacedArrival")
+	if typeof(arrivals) ~= "number" or (typeof(faced) == "number" and faced >= arrivals) then
+		return
+	end
+	local camera = workspace.CurrentCamera
+	local character = player.Character
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	local facing = player:GetAttribute("ArrivedFacing")
+	if
+		not (camera and humanoid and typeof(facing) == "Vector3")
+		or camera.CameraSubject ~= humanoid
+		or not CameraController.isFirstPerson()
+		or not UI.getScreen().Enabled
+		or titleCardUp()
+	then
+		return
+	end
+	local level = Vector3.new(facing.X, 0, facing.Z)
+	if level.Magnitude > 0.01 then
+		local from = camera.CFrame.Position
+		camera.CFrame = CFrame.lookAt(from, from + level)
+	end
+	player:SetAttribute("FacedArrival", arrivals)
+end
+
 local function setUpCamera()
 	local camera = workspace.CurrentCamera
 	if camera then
@@ -291,6 +339,8 @@ function CameraController:Start()
 
 	-- Before the camera moves, so it picks up this frame's offset.
 	RunService:BindToRenderStep("CameraMotion", Enum.RenderPriority.Camera.Value - 1, updateMotion)
+	-- Just after it moves (see faceArrival).
+	RunService:BindToRenderStep("FaceArrival", Enum.RenderPriority.Camera.Value + 1, faceArrival)
 	RunService.RenderStepped:Connect(function()
 		-- The game's own screen is switched off during the cutscene, and the dot goes with it.
 		crosshair.Enabled = UI.getScreen().Enabled and not cursorButton.Visible and CameraController.isFirstPerson()

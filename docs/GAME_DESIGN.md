@@ -565,6 +565,11 @@ The game is played in first person (`StarterPlayer.CameraMode = LockFirstPerson`
 - **The drive cutscene** keeps its own scripted camera and hands back to first person when you
   arrive. Riding and standing on ride-on machines stays first person, from the seat or the
   platform: you see the hood or deck ahead and your hands on the controls.
+- **Facing where you're put.** First person keeps looking wherever the camera was. So whenever the
+  server moves you (back to the shop after a respawn or a job, out to a job's house, to a new
+  crew's shop), it says which way to face. The camera turns that way, level, as soon as it's back
+  in first person: when the title card goes at join, and when the drive cutscene or a dialogue
+  scene hands the camera back.
 - **Your arms.** Roblox hides your whole character in first person, so a pair of simple arms is
   drawn on your screen only (other players see your avatar as normal). Whenever you hold or use
   anything (a tool, something you're carrying around the business, a pushed machine, a barrow, a
