@@ -130,12 +130,12 @@ end
 -- How each kind of yard target looks as it gets worked on. `fraction` goes from 0 (untouched)
 -- to 1 (done). The kinds match TaskTypes' `target` field.
 local VISUALS = {
-	-- A dull blade leaves it torn and ragged (see GrassController). Cut by hand, a snip at a time,
-	-- it gets shorter on the way.
+	-- A dull blade leaves it torn and ragged (see GrassController). On the way it gets shorter a
+	-- quarter at a time, under a mower or snip by snip with shears, so the grass sinks as it's cut.
 	Grass = function(target, fraction: number)
 		if fraction >= 1 then
 			target.lawn:_setGrass(target.index, if target.raggedCut then LawnGrid.RAGGED else LawnGrid.MOWED)
-		elseif target.handCut then
+		else
 			local state = LawnGrid.partlyCut(fraction)
 			if target.lawn.grassState[target.index] ~= state then
 				target.lawn:_setGrass(target.index, state)
@@ -2185,7 +2185,6 @@ function Lawn:_work(task, target, fit, toolId: string, amount: number, context: 
 	local applied = math.min(target.work, amount * fit.speed * hit)
 	target.work -= applied
 	target.raggedCut = context ~= nil and context.ragged == true
-	target.handCut = context ~= nil and context.closest == true
 	VISUALS[target.kind](target, 1 - target.work / target.maxWork)
 	if target.work <= 0 then
 		target.work = 0

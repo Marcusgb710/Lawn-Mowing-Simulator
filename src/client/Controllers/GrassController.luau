@@ -7,9 +7,12 @@
 -- RenderFidelity, so Roblox lowers their detail with distance itself, smoothly, and swapping in
 -- the kit's thin _LOD clumps made the grass pop as you walked.
 -- Grass cut with a dull blade is ragged: short, but duller, with torn tufts sticking up.
--- Grass being cut by hand with shears gets shorter with every few snips (LawnGrid.PARTLY_CUT).
+-- Grass being cut gets shorter a quarter at a time (LawnGrid.PARTLY_CUT), under a mower or with
+-- every few snips of the shears. Each step sinks smoothly to the new height, and the last one
+-- sinks the tall grass down into the short, so mowing a square looks like cutting it down.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Assets = require(Shared.Assets)
@@ -36,6 +39,9 @@ local BLOCK_TALL_COLOR = Color3.fromRGB(70, 125, 45)
 -- How tall partly cut grass stands, next to uncut: this much at least, plus the rest by how much
 -- of it is still standing.
 local PARTLY_CUT_MIN = 0.3
+-- How long grass takes to sink to its new height as it's cut (or grow back up as it regrows),
+-- instead of popping.
+local SINK = TweenInfo.new(0.45, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 
 local GrassController = {}
 
@@ -65,13 +71,39 @@ local function ghost(part: BasePart)
 	part.CastShadow = false
 end
 
--- Builds the part(s) for one tile in a given state. `standing` (0-1) is how much of tall grass
--- is still standing (see LawnGrid.standing).
-local function buildTile(lawn, index: number, kind: string, standing: number): { BasePart }
+-- Where a tile's grass stands: its centre on the ground, turned a random quarter.
+local function tileGround(lawn, index: number): CFrame
 	local column, row = LawnGrid.cell(index, lawn.rows)
-	local tileSize = lawn.tileSize
 	local turn = math.floor(noise(index, 1) * 4) * (math.pi / 2)
-	local ground = CFrame.new(LawnGrid.center(lawn.origin, tileSize, column, row)) * CFrame.Angles(0, turn, 0)
+	return CFrame.new(LawnGrid.center(lawn.origin, lawn.tileSize, column, row)) * CFrame.Angles(0, turn, 0)
+end
+
+-- How tall a tile's tall grass stands with `standing` (0-1) of it left: partly cut grass is
+-- shorter.
+local function tallHeight(lawn, index: number, standing: number): number
+	local source = template(CLUMPS.Tall[if noise(index, 2) < 0.5 then 1 else 2])
+	local cut = PARTLY_CUT_MIN + (1 - PARTLY_CUT_MIN) * standing
+	local full = if source then source.Size.Y else GameConfig.TallGrassHeight
+	return full * (0.85 + noise(index, 3) * 0.3) * lawn.tallScale * cut
+end
+
+-- Sinks (or grows) a part to `height`, still standing on `ground`. A newer sink of the same part
+-- takes over from this one.
+local function sink(part: BasePart, ground: CFrame, height: number): Tween
+	local tween = TweenService:Create(part, SINK, {
+		Size = Vector3.new(part.Size.X, height, part.Size.Z),
+		CFrame = ground * CFrame.new(0, height / 2, 0),
+	})
+	tween:Play()
+	return tween
+end
+
+-- Builds the part(s) for one tile in a given state. `standing` (0-1) is how much of tall grass
+-- is still standing (see LawnGrid.standing). For tall grass, the first part is the grass itself.
+local function buildTile(lawn, index: number, kind: string, standing: number): { BasePart }
+	local column = LawnGrid.cell(index, lawn.rows)
+	local tileSize = lawn.tileSize
+	local ground = tileGround(lawn, index)
 	local stripe = STRIPES[column % 2 + 1]
 	local parts = {}
 
@@ -82,13 +114,11 @@ local function buildTile(lawn, index: number, kind: string, standing: number): {
 	end
 	local clumps = CLUMPS[kind]
 	local source = template(clumps[if noise(index, 2) < 0.5 then 1 else 2])
-	-- Partly cut by hand: shorter tall grass.
-	local cut = PARTLY_CUT_MIN + (1 - PARTLY_CUT_MIN) * standing
 	if source then
 		local clump = source:Clone()
-		local height = source.Size.Y
-			* (0.85 + noise(index, 3) * 0.3)
-			* (if kind == "Tall" then lawn.tallScale * cut else 1)
+		local height = if kind == "Tall"
+			then tallHeight(lawn, index, standing)
+			else source.Size.Y * (0.85 + noise(index, 3) * 0.3)
 		Assets.standOn(clump, ground, Vector3.new(tileSize * 0.95, height, tileSize * 0.95))
 		table.insert(parts, clump)
 		if kind == "Short" then
@@ -105,9 +135,7 @@ local function buildTile(lawn, index: number, kind: string, standing: number): {
 		block.Material = Enum.Material.Grass
 		local tall = kind == "Tall"
 		block.Color = if tall then BLOCK_TALL_COLOR else stripe
-		local height = if tall
-			then GameConfig.TallGrassHeight * (0.85 + noise(index, 3) * 0.3) * lawn.tallScale * cut
-			else GameConfig.MowedGrassHeight
+		local height = if tall then tallHeight(lawn, index, standing) else GameConfig.MowedGrassHeight
 		Assets.standOn(block, ground, Vector3.new(tileSize, height, tileSize))
 		table.insert(parts, block)
 	end
@@ -149,8 +177,9 @@ local function clearTile(lawn, index: number)
 	end
 end
 
--- Makes one tile match the lawn's state.
-local function updateTile(lawn, index: number)
+-- Makes one tile match the lawn's state. `animate` (grass being cut or growing back in front of
+-- you) sinks or grows the tall grass to its new height instead of swapping it.
+local function updateTile(lawn, index: number, animate: boolean?)
 	local state = string.sub(lawn.state, index, index)
 	local standing = LawnGrid.standing(state)
 	local kind = if standing
@@ -164,12 +193,34 @@ local function updateTile(lawn, index: number)
 		return
 	end
 
-	-- Partly cut tall grass is rebuilt shorter.
 	if tile and tile.kind == kind and tile.standing == standing then
 		return
 	end
+	local wasTall = tile ~= nil and tile.kind == "Tall"
+	if animate and wasTall and standing then
+		-- Cut a bit further: the same grass sinks lower.
+		tile.standing = standing
+		sink(tile.parts[1], tileGround(lawn, index), tallHeight(lawn, index, standing))
+		return
+	end
+
+	-- Cut all the way: the short grass appears under the tall grass, which sinks into it.
+	local cutDown = if animate and wasTall then table.remove(tile.parts, 1) else nil
 	clearTile(lawn, index)
-	lawn.tiles[index] = { kind = kind, standing = standing, parts = buildTile(lawn, index, kind, standing or 1) }
+	local parts = buildTile(lawn, index, kind, standing or 1)
+	lawn.tiles[index] = { kind = kind, standing = standing, parts = parts }
+	if cutDown then
+		sink(cutDown, tileGround(lawn, index), GameConfig.MowedGrassHeight).Completed:Connect(function()
+			cutDown:Destroy()
+		end)
+	elseif animate and tile and standing then
+		-- Grown back: it rises out of the short grass.
+		local grass = parts[1]
+		local ground = tileGround(lawn, index)
+		local height = grass.Size.Y
+		Assets.standOn(grass, ground, Vector3.new(grass.Size.X, GameConfig.MowedGrassHeight, grass.Size.Z))
+		sink(grass, ground, height)
+	end
 end
 
 local function show(lawn)
@@ -250,7 +301,7 @@ local function track(folder: Instance)
 		if lawn.container then
 			for index = 1, #newState do
 				if string.sub(newState, index, index) ~= string.sub(oldState, index, index) then
-					updateTile(lawn, index)
+					updateTile(lawn, index, true)
 				end
 			end
 		end
