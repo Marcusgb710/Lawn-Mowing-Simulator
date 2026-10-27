@@ -221,6 +221,9 @@ button { cursor: pointer; }
   border-radius: 8px; padding: 7px 9px; margin-top: 5px; font-size: 12.5px; font-weight: 600; line-height: 1.35;
 }
 .warn-item b { font-weight: 900; }
+.warn-item.note { background: var(--raised); color: var(--muted); }
+.warn-item .where { color: var(--muted); font-weight: 600; }
+.warn-item .where::before { content: "· "; }
 .warns p { margin: 0; color: var(--muted); font-size: 12.5px; }
 
 /* Stage */
@@ -634,7 +637,8 @@ button { cursor: pointer; }
           <ol>
             <li>Choose a screen at the top (a phone, a tablet or a PC) and a scene, like <b>Mowing a job</b>.</li>
             <li>Drag pieces into place. Pink lines show when edges line up. Pieces in a column swap places; drag a column by its name tab.</li>
-            <li>Red stripes mean two pieces overlap, or a piece sits under Roblox's buttons.</li>
+            <li>Red stripes mean two pieces overlap, a piece sits under Roblox's buttons, or on a phone it's too close to something you tap. Each scene is checked every way it can be, with the pieces that come and go (the first-job coach, a crew invite) there and not.</li>
+            <li><b>Everything at once</b> shows every piece, and lists which ones share a spot but take turns.</li>
             <li>Press <b>Save layout</b>, then tell Claude to apply your HUD layout.</li>
           </ol>
         </div>
@@ -779,14 +783,23 @@ const DEVICES = [
 const LEFT = ["LeftColumn", "MoneyPanel", "MenuButtons", "TruckButton", "GuideButton", "CrewButton", "MouseHint", "GrandmaGoal"];
 const RIGHT = ["RightColumn", "CurbAppeal"];
 const LOOKING = ["Reticle", "InteractPrompt", "InteractButton"];
+const DECOR = ["DecorButtons", "DecorTopRow", "DecorBottomRow", "DecorPlaceButton", "DecorTurnButton", "DecorPutBackButton", "DecorSendBackButton"];
+// Each scene has what shows at that moment (`ids`, drawn), and what can come and go while it's on
+// (`also`, drawn when you show it with the eye): the first-job coach is up from the end of the
+// intro until the first job's paid, a tool can be worked on (the hold ring) at the shop's
+// workbench or the truck's tailgate, and a crew invite can come at any time. A job you've taken
+// stays on the tracker while you load the truck or decorate. What gives way to what (a piece's
+// hideWhile) and curb appeal hiding on a short screen while the job tracker shows are worked out
+// as the game does, and every scene is checked each way it can be (see waysOf).
 const SCENES = [
-  { id: "shop", name: "At the shop", ids: [...LEFT, ...RIGHT, ...LOOKING, "TutorialBanner", "Toasts"] },
-  { id: "job", name: "Mowing a job", job: true, hotbar: true, ids: [...LEFT, ...RIGHT, "JobTracker", "ToolCondition", ...LOOKING, "HoldRing", "Toasts"] },
-  { id: "shears", name: "Cutting with shears", job: true, hotbar: true, ids: [...LEFT, ...RIGHT, "JobTracker", "ToolCondition", ...LOOKING, "SnipButton", "Toasts"] },
-  { id: "carry", name: "Carrying a tool", ids: [...LEFT, ...RIGHT, ...LOOKING, "InteractSecondButton", "CarryHint", "Toasts"] },
-  { id: "decor", name: "Decorating", ids: [...LEFT, ...RIGHT, "Reticle", "DecorPrompt", "DecorButtons", "DecorPlaceButton", "DecorTurnButton", "DecorPutBackButton", "DecorSendBackButton", "Toasts"] },
-  { id: "payday", name: "Payday", ids: [...LEFT, ...RIGHT, "Moment", "PayBreakdown", "Toasts"] },
-  { id: "invite", name: "A crew invite", ids: [...LEFT, ...RIGHT, ...LOOKING, "CrewInvite", "Toasts"] },
+  { id: "shop", name: "At the shop", ids: [...LEFT, ...RIGHT, ...LOOKING, "TutorialBanner", "Toasts"], also: ["HoldRing", "CrewInvite"] },
+  // a tool you can use comes out of storage in your hands, for your own lawn: shears snip there
+  { id: "ready", name: "Job taken, loading the truck", ids: [...LEFT, ...RIGHT, "JobTracker", ...LOOKING, "InteractSecondButton", "CarryHint", "Toasts"], also: ["SnipButton", "ToolCondition", "TutorialBanner", "HoldRing", "CrewInvite"] },
+  { id: "job", name: "Mowing a job", hotbar: true, ids: [...LEFT, ...RIGHT, "JobTracker", "ToolCondition", ...LOOKING, "HoldRing", "Toasts"], also: ["TutorialBanner", "CrewInvite"] },
+  { id: "shears", name: "Cutting with shears", hotbar: true, ids: [...LEFT, ...RIGHT, "JobTracker", "ToolCondition", ...LOOKING, "SnipButton", "Toasts"], also: ["TutorialBanner", "CrewInvite"] },
+  { id: "decor", name: "Decorating", ids: [...LEFT, ...RIGHT, "JobTracker", "Reticle", "DecorPrompt", ...DECOR, "Toasts"], also: ["CrewInvite"] },
+  { id: "payday", name: "Payday", ids: [...LEFT, ...RIGHT, "JobTracker", "Moment", "PayBreakdown", "Toasts"], also: ["TutorialBanner", "CrewInvite"] },
+  { id: "invite", name: "A crew invite on a job", hotbar: true, ids: [...LEFT, ...RIGHT, "JobTracker", "ToolCondition", ...LOOKING, "SnipButton", "CrewInvite", "Toasts"], also: ["TutorialBanner"] },
   { id: "menu", name: "A menu open", ids: [...LEFT, ...RIGHT, "MenuWindow", "Toasts"] },
   { id: "computer", name: "At the shop computer", ids: ["ComputerMonitor", "Toasts"] },
   { id: "dialogue", name: "In a story scene", ids: ["DialogueTopBar", "DialogueBottomBar", "DialogueCaption", "DialogueSkip", "DialogueBox", "DialogueToolCard", "SpeechBubble"] },
@@ -795,16 +808,43 @@ const SCENES = [
   { id: "contest", name: "Best Yard results", ids: ["ContestResults"] },
   // Studio's test panel only ever shows in a playtest, over whatever's there: not checked.
   { id: "studio", name: "Studio playtest (not checked)", checks: false, ids: [...LEFT, ...RIGHT, ...LOOKING, "StudioTestHint", "StudioTestPanel"] },
-  { id: "all", name: "Everything at once (not checked)", checks: false, ids: null },
+  // Every piece drawn at once, so some share a spot: it says which of those ever show together.
+  { id: "all", name: "Everything at once", checks: false, ids: null },
 ];
-// Pieces that only show for a moment (a toast, a big "Level up!"): they may pass over the HUD, but
-// not over what you're playing with.
-const PASSING = new Set(["Toasts", "Moment"]);
-const MUST_STAY_CLEAR = new Set(["InteractPrompt", "DecorPrompt", "InteractButton", "InteractSecondButton", "SnipButton"]);
+// What comes and goes within a scene, and that others give way to (anything named in a hideWhile):
+// each scene is checked with every mix of them there and not, so what gives way is checked too.
+const SOMETIMES = [...new Set(IDS.flatMap((id) => {
+  const d = DEFAULTS[id];
+  return [d.hideWhile, d.touch && d.touch.hideWhile, d.compact && d.compact.hideWhile].flat().filter((o) => o && DEFAULTS[o]);
+}))];
+// Each way a scene can be: everything it has, with and without each piece that comes and goes.
+function waysOf(scene) {
+  const all = [...new Set([...(scene.ids || []), ...(scene.also || [])])];
+  const coming = SOMETIMES.filter((id) => all.includes(id));
+  const stays = all.filter((id) => !coming.includes(id));
+  const ways = [];
+  for (let mask = 0; mask < 1 << coming.length; mask++) {
+    const on = coming.filter((_, i) => mask & (1 << i));
+    ways.push(Object.assign({}, scene, { ids: [...stays, ...on], also: [], with: on, without: coming.filter((id) => !on.includes(id)), way: true }));
+  }
+  return ways;
+}
+// Pieces that only show for a moment (a toast, a big "Level up!", a crew invite): they may pass over
+// the HUD and each other, but not over what you're playing with.
+const PASSING = new Set(["Toasts", "Moment", "CrewInvite"]);
+// What you tap on a phone: the game's own buttons (Roblox's are in coreControls).
+const TAPPABLE = new Set(["TruckButton", "GuideButton", "CrewButton", "InteractButton", "InteractSecondButton", "SnipButton", "DecorPlaceButton", "DecorTurnButton", "DecorPutBackButton", "DecorSendBackButton", "CrewInvite", "DialogueSkip"]);
+const MUST_STAY_CLEAR = new Set(["InteractPrompt", "DecorPrompt", ...TAPPABLE]);
+// On a touch screen, how far apart things stay, in the screen's pixels: what you read keeps this far
+// from anything you tap (so a thumb on a button doesn't cover it, and a tap meant for the button
+// doesn't miss), two buttons a little less, and everything well clear of the move stick, where
+// your thumb sits.
+const CLEAR = { reading: 12, tapping: 8, thumb: 24 };
 
 // How each piece is drawn: the game's look, with sample words.
 const LOOKS = {
   LeftColumn: { kind: "group" }, RightColumn: { kind: "group" }, MenuButtons: { kind: "group" }, DecorButtons: { kind: "group" },
+  DecorTopRow: { kind: "group" }, DecorBottomRow: { kind: "group" },
   MoneyPanel: { kind: "money" },
   TruckButton: { kind: "button", icon: "truck", text: "Truck", key: "T" },
   GuideButton: { kind: "button", icon: "book", text: "Guide", key: "G" },
@@ -826,7 +866,7 @@ const LOOKS = {
   DecorPutBackButton: { kind: "button", text: "Put back" },
   DecorSendBackButton: { kind: "button", text: "Send back" },
   Toasts: { kind: "toasts", sample: "Job board: 3 new jobs nearby." },
-  Moment: { kind: "moment", text: "LEVEL UP!" },
+  Moment: { kind: "moment", text: "LEVEL UP!", wide: 340 },
   PayBreakdown: { kind: "receipt", text: "Payday" },
   CrewInvite: { kind: "panel", icon: "crew", text: "Sam invited you", sample: "Join · No thanks" },
   MenuWindow: { kind: "window", text: "Truck" },
@@ -890,12 +930,27 @@ function savePrefs() {
 }
 
 // ================================================================ who's where
+// The screen being laid out or checked right now (what's where can depend on it: a column's piece
+// can have its own column on a touch screen), and otherwise the one being edited.
+let viewDev = null;
+function withDev(dev, fn) {
+  const was = viewDev;
+  viewDev = dev;
+  try { return fn(); } finally { viewDev = was; }
+}
 // A piece can leave its column in the editor, so the tree comes from the layout being edited.
-// `null` in the layout means "taken away": the field is removed from the game's file on apply.
-function parentOf(id) {
+// `null` in the layout means "taken away": the field is removed from the game's file on apply. On a
+// touch screen a column's piece can have its own (its touch parent): false is out of its column.
+function sharedParent(id) {
   const L = state.layout[id];
   if (L && "parent" in L) return L.parent || null;
   return DEFAULTS[id].parent || null;
+}
+function parentOf(id, dev) {
+  dev = dev || viewDev || state.device;
+  const t = state.layout[id] && state.layout[id].touch;
+  if (dev && dev.touch && t && t.parent !== undefined && t.parent !== null) return t.parent || null;
+  return sharedParent(id);
 }
 function ancestors(id) {
   const out = [];
@@ -945,14 +1000,32 @@ function sceneHas(id) {
   const base = !ids || ids.includes(id);
   return state.toggled.has(id) ? !base : base;
 }
-// Whether a piece shows on `dev` in this scene (and everything it's inside does).
-function shows(id, dev) {
+// The pieces `id` gives way to on `dev` (its hideWhile, a short screen's or a touch screen's over
+// its own): while one of them shows, it hides.
+function hideWhileOf(id, dev) {
+  const d = DEFAULTS[id];
+  if (isCompact(dev) && d.compact && d.compact.hideWhile) return d.compact.hideWhile;
+  if (dev.touch && d.touch && d.touch.hideWhile) return d.touch.hideWhile;
+  return d.hideWhile || null;
+}
+// Whether a piece shows on `dev` in this scene (and everything it's inside does), and nothing it
+// gives way to is showing. `path` is what's being asked about already, so it never goes round in
+// a circle.
+function shows(id, dev, path) {
   for (const a of [id, ...ancestors(id)]) {
     if (!sceneHas(a) || !deviceAllows(a, dev)) return false;
   }
-  if (id === "CurbAppeal" && state.scene.job) {
+  // everything at once draws every piece, so nothing gives way there
+  if (!state.scene.ids) return true;
+  for (const other of hideWhileOf(id, dev) || []) {
+    const seen = path || new Set([id]);
+    if (!DEFAULTS[other] || seen.has(other)) continue;
+    if (shows(other, dev, new Set([...seen, other]))) return false;
+  }
+  // curb appeal hides on a short screen while the job tracker shows (HudController)
+  if (id === "CurbAppeal") {
     const fullHeight = (SCALING.Columns && SCALING.Columns.fullHeight) || 560;
-    if (rootRect(dev, "LawnUI").h < fullHeight) return false;
+    if (rootRect(dev, "LawnUI").h < fullHeight && shows("JobTracker", dev, new Set([...(path || []), id]))) return false;
   }
   return true;
 }
@@ -1074,6 +1147,9 @@ function fitOf(id, dev, raw) {
 // (`s`), its own UIScale (`scale`: fit times its `scale`), and for a piece in a list, the `scale`
 // already in its box (`k`). Dragging uses these to turn screen pixels back into layout values.
 function computeRects(dev) {
+  return withDev(dev, () => layoutAll(dev));
+}
+function layoutAll(dev) {
   const memo = {};
   const rects = {};
   const xf = (t, x, y) => ({ x: t.ox + (x - t.ox) * t.s, y: t.oy + (y - t.oy) * t.s });
@@ -1119,20 +1195,25 @@ function computeRects(dev) {
     if (!kids.length) return;
     const list = listOf(id);
     if (list) {
-      let cursor = 0;
       const gap = list.padding || 0;
+      const align = list.align || "Left";
+      const items = [];
       for (const c of orderedChildren(id)) {
         if (!shows(c, dev)) { placeHidden(c, raw); continue; }
         const ck = placementOf(c, dev).scale;
         const z0 = measure(c, raw.w, raw.h, dev, memo);
-        const z = { w: z0.w * ck, h: z0.h * ck };
+        items.push({ c, ck, z: { w: z0.w * ck, h: z0.h * ck } });
+      }
+      // a row lines up along its width as a whole, as Roblox's HorizontalAlignment does
+      const across = items.reduce((t, it) => t + it.z.w, 0) + gap * Math.max(0, items.length - 1);
+      let cursor = list.direction !== "Horizontal" ? 0 : align === "Right" ? raw.w - across : align === "Center" ? (raw.w - across) / 2 : 0;
+      for (const { c, ck, z } of items) {
         let cx, cy;
         if (list.direction === "Horizontal") {
           cx = raw.x + cursor;
           cy = raw.y;
           cursor += z.w + gap;
         } else {
-          const align = list.align || "Left";
           cx = align === "Right" ? raw.x + raw.w - z.w : align === "Center" ? raw.x + (raw.w - z.w) / 2 : raw.x;
           cy = raw.y + cursor;
           cursor += z.h + gap;
@@ -1166,12 +1247,20 @@ function computeRects(dev) {
     if (p && DEFAULTS[p]) continue;
     placeBox(id, rootRect(dev, screenOf(id)), identity);
   }
-  // Toasts start just under the first-job coach while it shows.
-  const coach = rects.TutorialBanner, toasts = rects.Toasts;
-  if (coach && toasts && shows("TutorialBanner", dev) && shows("Toasts", dev) && toasts.y < coach.y + coach.h + 8) {
-    const dy = coach.y + coach.h + 8 - toasts.y;
-    toasts.y += dy;
-    toasts.pushed = dy;
+  // Toasts start just under what's showing at the top of the screen in their way: the first-job
+  // coach, and on a touch screen Grandma's goal or a crew invite (UI.keepToastsBelow).
+  const toasts = rects.Toasts;
+  if (toasts && shows("Toasts", dev)) {
+    let start = toasts.y;
+    for (const id of ["TutorialBanner", "GrandmaGoal", "CrewInvite"]) {
+      const r = rects[id];
+      if (!r || r.hidden || !shows(id, dev)) continue;
+      if (r.y < toasts.y && r.x < toasts.x + toasts.w && r.x + r.w > toasts.x) start = Math.max(start, r.y + r.h + 8);
+    }
+    if (start > toasts.y) {
+      toasts.pushed = start - toasts.y;
+      toasts.y = start;
+    }
   }
   for (const id of IDS) if (!rects[id]) rects[id] = { x: 0, y: 0, w: 0, h: 0, raw: { x: 0, y: 0, w: 0, h: 0 }, parent: rootRect(dev, "LawnUI"), s: 1, scale: 1, k: 1, hidden: true, toScreen: (x, y) => ({ x, y }) };
   return rects;
@@ -1204,23 +1293,78 @@ const overlapArea = (a, b) => Math.max(0, Math.min(a.x + a.w, b.x + b.w) - Math.
 // What a piece really covers on screen, which isn't always its box: the round phone buttons write
 // their words under it, a prompt and the tool chips are pills in the middle of a wider box (on a
 // touch screen the look-at prompt is only the thing's name, since the button says what it does),
-// and the toasts' box is where they stack, usually one at a time.
+// a big moment's wordmark is in the middle of its (at most 340 px wide: New Tool!), and the toasts'
+// box is where they stack, usually one at a time.
 function coverOf(id, r, dev) {
   const look = LOOKS[id] || {};
   const middle = (w) => ({ x: r.x + (r.w - Math.min(r.w, w)) / 2, y: r.y, w: Math.min(r.w, w), h: r.h });
   if (look.kind === "toasts") return { x: r.x, y: r.y, w: r.w, h: Math.min(r.h, 40 * r.s) };
   if (look.kind === "prompt") return middle((dev && dev.touch ? 190 : 250) * r.s);
   if (look.kind === "chips") return middle(260 * r.s);
+  if (look.wide) return middle(look.wide * r.s);
   if (!look.below) return r;
   const side = (look.side || 0) * r.s;
   return { x: r.x - side, y: r.y, w: r.w + side * 2, h: r.h + look.below * r.s };
 }
 const nameOf = (id) => (DEFAULTS[id] && DEFAULTS[id].label) || id;
 
-function warningsFor(dev, rects) {
+// `quick` checks only the scene as it's drawn (while dragging), not every way it can be.
+function warningsFor(dev, rects, quick) {
+  return withDev(dev, () => (quick && state.scene.checks !== false ? checkOne(dev, rects) : checkScreen(dev, rects)));
+}
+// The gap between two boxes, corner to corner when they're off to one side of each other.
+function gapBetween(a, b) {
+  const dx = Math.max(0, b.x - (a.x + a.w), a.x - (b.x + b.w));
+  const dy = Math.max(0, b.y - (a.y + a.h), a.y - (b.y + b.h));
+  return Math.hypot(dx, dy);
+}
+// The checked scenes where `a` and `b` both show on `dev`, as the game has them (the pieces you've
+// hidden or shown by hand aside).
+function scenesWithBoth(a, b, dev) {
+  const was = { scene: state.scene, toggled: state.toggled };
+  state.toggled = new Set();
+  try {
+    return SCENES.filter((s) => {
+      if (s.checks === false) return false;
+      return waysOf(s).some((way) => {
+        state.scene = way;
+        return shows(a, dev) && shows(b, dev);
+      });
+    });
+  } finally {
+    state.scene = was.scene;
+    state.toggled = was.toggled;
+  }
+}
+function checkScreen(dev, rects) {
+  if (state.scene.checks === false) return state.scene.ids ? { list: [], flagged: new Set(), notes: [] } : everythingAtOnce(dev, rects);
+  const found = checkOne(dev, rects);
+  if (state.scene.way) return found;
+  // and every other way this scene can be, with what comes and goes there or not
+  const seen = new Set(found.list.map((item) => item.text));
+  const was = { scene: state.scene, toggled: state.toggled };
+  state.toggled = new Set();
+  try {
+    for (const way of waysOf(was.scene)) {
+      state.scene = way;
+      for (const item of checkOne(dev, layoutAll(dev)).list) {
+        if (seen.has(item.text)) continue;
+        seen.add(item.text);
+        const label = way.with.length ? `with the ${way.with.map(nameOf).join(" and the ")}` : `without the ${way.without.map(nameOf).join(" or the ")}`;
+        found.list.push({ ids: item.ids, text: `${item.text} <span class="where">${esc(label)}</span>` });
+        for (const id of item.ids) found.flagged.add(id);
+      }
+    }
+  } finally {
+    state.scene = was.scene;
+    state.toggled = was.toggled;
+  }
+  return found;
+}
+function checkOne(dev, rects) {
   const list = [];
   const flagged = new Set();
-  if (state.scene.checks === false) return { list, flagged };
+  const notes = [];
   const ids = IDS.filter((id) => shows(id, dev) && !isWorld(id) && !rects[id].hidden);
   const leaves = ids.filter((id) => (LOOKS[id] || {}).kind !== "group" || !childrenOf(id).some((c) => shows(c, dev)));
   const screenArea = dev.w * dev.h;
@@ -1257,6 +1401,7 @@ function warningsFor(dev, rects) {
       if (ancestors(a).includes(b) || ancestors(b).includes(a)) continue;
       if ((isFixed(a) && isFixed(b)) || bars(a) || bars(b)) continue;
       if ((PASSING.has(a) && !MUST_STAY_CLEAR.has(b)) || (PASSING.has(b) && !MUST_STAY_CLEAR.has(a))) continue;
+      if (PASSING.has(a) && PASSING.has(b)) continue;
       const ra = coverOf(a, rects[a], dev), rb = coverOf(b, rects[b], dev);
       if (big(ra) || big(rb)) continue;
       if (overlapArea(ra, rb) > 16) {
@@ -1266,7 +1411,96 @@ function warningsFor(dev, rects) {
       }
     }
   }
-  return { list, flagged };
+  if (dev.touch) tooClose(dev, rects, leaves, core, list, flagged, { big, bars });
+  return { list, flagged, notes };
+}
+
+// Everything at once draws every piece, so some share a spot. Its problems are every scene's, where
+// things really meet; the pieces drawn over each other that never show at the same time are notes
+// (the story's scenes and the drive, which have the screen to themselves, and Studio's test panel
+// left out).
+function everythingAtOnce(dev, rects) {
+  const list = [], flagged = new Set(), notes = [];
+  const was = { scene: state.scene, toggled: state.toggled };
+  state.toggled = new Set();
+  try {
+    for (const scene of SCENES) {
+      if (scene.checks === false) continue;
+      state.scene = scene;
+      for (const item of checkScreen(dev, layoutAll(dev)).list) {
+        list.push({ ids: item.ids, text: `${item.text} <span class="where">${esc(scene.name)}</span>` });
+        for (const id of item.ids) flagged.add(id);
+      }
+    }
+  } finally {
+    state.scene = was.scene;
+    state.toggled = was.toggled;
+  }
+  const playing = (id) => !["Dialogue", "Cutscene", "Studio"].includes(DEFAULTS[id].group);
+  const ids = IDS.filter((id) => playing(id) && deviceAllows(id, dev) && !isWorld(id) && !rects[id].hidden);
+  const leaves = ids.filter((id) => (LOOKS[id] || {}).kind !== "group" || !childrenOf(id).length);
+  const big = (r) => r.w * r.h > dev.w * dev.h * 0.3;
+  const bars = (id) => (LOOKS[id] || {}).kind === "bar";
+  // what `a` gives way to that's `b` or holds it, if anything
+  const yieldsTo = (a, b) => (hideWhileOf(a, dev) || []).find((o) => o === b || ancestors(b).includes(o)) || null;
+  for (let i = 0; i < leaves.length; i++) {
+    for (let j = i + 1; j < leaves.length; j++) {
+      const a = leaves[i], b = leaves[j];
+      if (ancestors(a).includes(b) || ancestors(b).includes(a) || (isFixed(a) && isFixed(b)) || bars(a) || bars(b)) continue;
+      const ra = coverOf(a, rects[a], dev), rb = coverOf(b, rects[b], dev);
+      if (big(ra) || big(rb) || overlapArea(ra, rb) <= 16 || scenesWithBoth(a, b, dev).length) continue;
+      const ab = yieldsTo(a, b), ba = !ab && yieldsTo(b, a);
+      // what only passes over for a moment can come at any time: nothing to say, unless the other
+      // gives way to it
+      if (!ab && !ba && (PASSING.has(a) || PASSING.has(b))) continue;
+      const text = ab
+        ? `<b>${esc(nameOf(a))}</b> hides while the <b>${esc(nameOf(ab))}</b> show${ab === b ? "s" : ""}: they share a spot.`
+        : ba
+          ? `<b>${esc(nameOf(b))}</b> hides while the <b>${esc(nameOf(ba))}</b> show${ba === a ? "s" : ""}: they share a spot.`
+          : `<b>${esc(nameOf(a))}</b> and <b>${esc(nameOf(b))}</b> share a spot, but never show at the same time.`;
+      notes.push({ ids: [a, b], text });
+    }
+  }
+  return { list, flagged, notes };
+}
+
+// On a touch screen: what you read stays CLEAR.reading px from anything you tap, two buttons stay
+// CLEAR.tapping px apart, and everything stays CLEAR.thumb px from the move stick. A round button's
+// words aren't part of what you tap. Something passing over for a moment (a toast) may come close
+// to a button, as long as it doesn't cover it. Overlaps are their own problem.
+function tooClose(dev, rects, leaves, core, list, flagged, { big, bars }) {
+  const box = (id) => (TAPPABLE.has(id) ? rects[id] : coverOf(id, rects[id], dev));
+  const say = (ids, gap, need, other) => {
+    const them = other ? `Roblox's ${esc(other)}` : `<b>${esc(nameOf(ids[1]))}</b>`;
+    list.push({ ids, text: `<b>${esc(nameOf(ids[0]))}</b> is ${Math.max(0, Math.round(gap))} px from ${them}: keep ${need} px between them on a touch screen.` });
+    for (const id of ids) flagged.add(id);
+  };
+  const skip = (id) => isFixed(id) || bars(id);
+  for (let i = 0; i < leaves.length; i++) {
+    for (let j = i + 1; j < leaves.length; j++) {
+      const a = leaves[i], b = leaves[j];
+      const tapA = TAPPABLE.has(a), tapB = TAPPABLE.has(b);
+      if (!tapA && !tapB) continue;
+      if (skip(a) || skip(b) || ancestors(a).includes(b) || ancestors(b).includes(a)) continue;
+      if (!(tapA && tapB) && (PASSING.has(a) || PASSING.has(b))) continue;
+      const ra = box(a), rb = box(b);
+      if (big(ra) || big(rb) || overlapArea(ra, rb) > 16) continue;
+      const need = tapA && tapB ? CLEAR.tapping : CLEAR.reading;
+      const gap = gapBetween(ra, rb);
+      if (gap < need - 0.5) say([a, b], gap, need);
+    }
+  }
+  for (const id of leaves) {
+    if (skip(id) || (PASSING.has(id) && !TAPPABLE.has(id))) continue;
+    const r = box(id);
+    if (big(r)) continue;
+    for (const c of core) {
+      if (overlapArea(r, c) > 12) continue;
+      const need = c.kind === "stick" ? CLEAR.thumb : TAPPABLE.has(id) ? CLEAR.tapping : CLEAR.reading;
+      const gap = gapBetween(r, c);
+      if (gap < need - 0.5) say([id], gap, need, c.label);
+    }
+  }
 }
 
 // ================================================================ drawing the game's pieces
@@ -1732,7 +1966,7 @@ function renderPieces(guides, dragging) {
   if (!main) return;
   const rects = computeRects(state.device);
   lastRects = rects;
-  lastWarnings = warningsFor(state.device, rects);
+  lastWarnings = warningsFor(state.device, rects, !!dragging);
   drawUnder(main);
   drawPieces(main, rects, lastWarnings.flagged);
   drawSelection(main, rects, guides);
@@ -1831,22 +2065,31 @@ function renderSide() {
 
   const warns = $("warns");
   const w = lastWarnings.list;
+  const notes = lastWarnings.notes || [];
+  const everything = !state.scene.ids;
   warns.className = "warns" + (w.length ? "" : " clear");
-  if (!prefs.show.warn) {
-    warns.innerHTML = `<h3>Problems</h3><p>Problem checks are off.</p>`;
-  } else if (!w.length) {
-    warns.innerHTML = `<h3>No problems</h3><p>${esc(state.scene.name)} on ${esc(dev.short)}: nothing overlaps, and everything stays clear of Roblox's buttons.</p>`;
-  } else {
-    warns.innerHTML = `<h3>${w.length} problem${w.length === 1 ? "" : "s"} · ${esc(state.scene.name)} on ${esc(dev.short)}</h3>`;
-    for (const item of w.slice(0, 40)) {
+  const items = (list, className) => {
+    for (const item of list.slice(0, 40)) {
       const b = document.createElement("button");
       b.type = "button";
-      b.className = "warn-item";
+      b.className = className;
       b.innerHTML = item.text;
       b.addEventListener("click", () => select(item.ids[0], true));
       warns.appendChild(b);
     }
+  };
+  if (!prefs.show.warn) {
+    warns.innerHTML = `<h3>Problems</h3><p>Problem checks are off.</p>`;
+  } else if (!w.length) {
+    warns.innerHTML = everything
+      ? `<h3>No problems</h3><p>Everything at once on ${esc(dev.short)}: every piece is drawn, so some share a spot.${notes.length ? " None of these ever show at the same time:" : ""}</p>`
+      : `<h3>No problems</h3><p>${esc(state.scene.name)} on ${esc(dev.short)}: nothing overlaps${dev.touch ? ", nothing crowds a button" : ""}, and everything stays clear of Roblox's buttons.</p>`;
+  } else {
+    warns.innerHTML = `<h3>${w.length} problem${w.length === 1 ? "" : "s"} · ${esc(state.scene.name)} on ${esc(dev.short)}</h3>`;
+    items(w, "warn-item");
+    if (notes.length) warns.insertAdjacentHTML("beforeend", `<p>These share a spot too, but never show at the same time:</p>`);
   }
+  if (prefs.show.warn) items(notes, "warn-item note");
 }
 
 // ================================================================ the selected piece's settings
@@ -1896,7 +2139,11 @@ function renderInspector() {
   const flags = [];
   if (d.device === "touch") flags.push("Only on touch screens.");
   if (d.device === "keyboard") flags.push("Only with a keyboard.");
-  if (!visible && deviceAllows(id, dev)) flags.push("Hidden in this scene: show it with the eye in the list.");
+  const takers = (hideWhileOf(id, dev) || []).filter((o) => DEFAULTS[o] && state.scene.ids && shows(o, dev));
+  const inScene = [id, ...ancestors(id)].every((a) => sceneHas(a));
+  if (!visible && takers.length) flags.push(`Hidden here while ${takers.map(nameOf).join(" and ")} ${takers.length === 1 ? "shows" : "show"}: ${takers.length === 1 ? "it takes" : "they take"} its spot, so it gives way (its hideWhile).`);
+  else if (!visible && inScene && id === "CurbAppeal" && deviceAllows(id, dev)) flags.push("Hidden on a short screen while the job tracker shows, which needs the room.");
+  else if (!visible && deviceAllows(id, dev)) flags.push("Hidden in this scene: show it with the eye in the list.");
   if (isFixed(id)) flags.push("The game puts this where the camera aims, so it can't be moved. It's here so you can place things around it.");
   const fit = r && !r.hidden ? fitOf(id, dev, r.raw) : 1;
   if (fit !== 1) flags.push(`Fits this screen: drawn at ${Math.round(fit * 100)}%${p.scale !== 1 ? `, then your ${Math.round(p.scale * 100)}%` : ""}.`);
@@ -1917,9 +2164,10 @@ function renderInspector() {
   show("columnField", editable && !!home);
   if (home) {
     const out = isDetached(id);
+    const phones = L.touch && dev.touch ? " on phones and tablets" : "";
     $("columnHint").textContent = out
-      ? `On its own on the screen. Drag it over the ${nameOf(home)} to stack it there again, or:`
-      : `Stacked in the ${nameOf(home)}. Drag it out of the column to put it anywhere, or:`;
+      ? `On its own on the screen${phones}. Drag it over the ${nameOf(home)} to stack it there again, or:`
+      : `Stacked in the ${nameOf(home)}${phones}. Drag it out of the column to put it anywhere, or:`;
     show("detachBtn", !out);
     show("attachBtn", out);
   }
@@ -2136,6 +2384,11 @@ function setLinked(linked) {
   if (linked && L.touch) {
     if (dev.touch) {
       for (const k of ["anchor", "position", "size", "scale"]) if (L.touch[k] !== undefined && L.touch[k] !== null) L[k] = clone(L.touch[k]);
+      // in or out of its column everywhere, as it is on a phone
+      if (homeColumn(id) && L.touch.parent !== undefined && L.touch.parent !== null) {
+        setField(id, "parent", L.touch.parent || null);
+        setField(id, "screen", L.touch.parent ? null : "LawnUI");
+      }
     }
     setField(id, "touch", null);
   } else if (!linked && !L.touch) {
@@ -2251,29 +2504,50 @@ numberInput("scalePct", (v) => setScale(v));
 })();
 
 // Taking a piece out of its column puts it on the game's screen, pinned to whichever corner of the
-// screen it's nearest, where it was dropped; putting it back stacks it at `index`.
+// screen it's nearest, where it was dropped; putting it back stacks it at `index`. On a touch
+// screen, a piece with its own place there (touch) goes out of or into its column there only.
+const phoneOnly = (id, dev) => !!(dev && dev.touch && state.layout[id].touch);
+function setTouchField(id, key, value) {
+  const L = state.layout[id];
+  L.touch = Object.assign({}, L.touch);
+  if (value === null || value === undefined) delete L.touch[key];
+  else L.touch[key] = value;
+}
 function detachTo(id, dev, left, top) {
-  setField(id, "parent", null);
-  setField(id, "screen", "LawnUI");
+  const own = phoneOnly(id, dev);
+  const set = own ? (k, v) => setTouchField(id, k, v) : (k, v) => setField(id, k, v);
+  if (own) {
+    setTouchField(id, "parent", false);
+  } else {
+    setField(id, "parent", null);
+    setField(id, "screen", "LawnUI");
+  }
   const root = rootRect(dev, "LawnUI");
   // first pinned top-left, which puts its drawn top-left exactly here...
-  setField(id, "anchor", [0, 0]);
-  setField(id, "position", [0, Math.round(left - root.x), 0, Math.round(top - root.y)]);
+  set("anchor", [0, 0]);
+  set("position", [0, Math.round(left - root.x), 0, Math.round(top - root.y)]);
   const r = computeRects(dev)[id];
   // ...then pinned to the nearest corner, keeping it where it is
   const ax = r.x + r.w / 2 < root.x + root.w / 2 ? 0 : 1;
   const ay = r.y + r.h / 2 < root.y + root.h / 2 ? 0 : 1;
   const px = r.x + ax * r.w, py = r.y + ay * r.h;
-  setField(id, "anchor", [ax, ay]);
-  setField(id, "position", [ax, Math.round(px - root.x - ax * root.w), ay, Math.round(py - root.y - ay * root.h)]);
+  set("anchor", [ax, ay]);
+  set("position", [ax, Math.round(px - root.x - ax * root.w), ay, Math.round(py - root.y - ay * root.h)]);
   const L = state.layout[id];
-  if (L.touch) { L.touch = Object.assign({}, L.touch); delete L.touch.anchor; delete L.touch.position; }
+  if (!own && L.touch) { L.touch = Object.assign({}, L.touch); delete L.touch.anchor; delete L.touch.position; }
 }
-function attachAt(id, column, index) {
-  setField(id, "parent", column);
-  setField(id, "screen", null);
-  setField(id, "anchor", null);
-  setField(id, "position", null);
+function attachAt(id, column, index, dev) {
+  if (phoneOnly(id, dev)) {
+    setTouchField(id, "anchor", null);
+    setTouchField(id, "position", null);
+    // in its column on a touch screen: the same as everywhere else, or its own
+    setTouchField(id, "parent", sharedParent(id) === column ? null : column);
+  } else {
+    setField(id, "parent", column);
+    setField(id, "screen", null);
+    setField(id, "anchor", null);
+    setField(id, "position", null);
+  }
   const sibs = orderedChildren(column).filter((c) => c !== id);
   sibs.splice(Math.max(0, Math.min(sibs.length, index)), 0, id);
   sibs.forEach((c, i) => (state.layout[c].order = i + 1));
@@ -2303,7 +2577,7 @@ $("attachBtn").addEventListener("click", () => {
   const home = id && homeColumn(id);
   if (!home || !isDetached(id)) return;
   const before = snapshot();
-  attachAt(id, home, typeof DEFAULTS[id].order === "number" ? DEFAULTS[id].order - 1 : 99);
+  attachAt(id, home, typeof DEFAULTS[id].order === "number" ? DEFAULTS[id].order - 1 : 99, state.device);
   pushUndo(before);
   renderPieces();
   toast(`${nameOf(id)} is back in the ${nameOf(home)}.`);
@@ -2390,7 +2664,7 @@ function onDrag(e) {
     const pad = 14;
     const over = col && !col.hidden && pt.x > col.x - pad && pt.x < col.x + col.w + pad && pt.y > col.y - pad && pt.y < col.y + col.h + pad;
     if (over) {
-      attachAt(id, home, indexIn(home, pt.y, rects, id));
+      attachAt(id, home, indexIn(home, pt.y, rects, id), dev);
       drag.attach = home;
       schedule();
       return;
