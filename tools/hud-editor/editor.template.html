@@ -2533,8 +2533,10 @@ function detachTo(id, dev, left, top) {
   const px = r.x + ax * r.w, py = r.y + ay * r.h;
   set("anchor", [ax, ay]);
   set("position", [ax, Math.round(px - root.x - ax * root.w), ay, Math.round(py - root.y - ay * root.h)]);
+  // a phone place left over from the column goes too, unless phones have their own column there
   const L = state.layout[id];
-  if (!own && L.touch) { L.touch = Object.assign({}, L.touch); delete L.touch.anchor; delete L.touch.position; }
+  const phonesOwn = L.touch && L.touch.parent !== undefined && L.touch.parent !== null;
+  if (!own && L.touch && !phonesOwn) { L.touch = Object.assign({}, L.touch); delete L.touch.anchor; delete L.touch.position; }
 }
 function attachAt(id, column, index, dev) {
   if (phoneOnly(id, dev)) {
