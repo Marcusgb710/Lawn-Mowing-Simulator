@@ -422,14 +422,20 @@ function DecorController:Start()
 		Parent = player:WaitForChild("PlayerGui"),
 	})
 	prompt = UI.prompt({ Visible = false, Parent = screen })
-	UI.place(prompt.frame, "DecorPrompt")
-	-- Phone buttons, on the right where the look-at button usually is, clear of the jump button:
-	-- each one's words, what it does, its glyph and its place in UiLayout.luau.
+	UI.keepPlaced(prompt.frame, "DecorPrompt")
+	-- Phone buttons, on the right where the look-at button usually is, clear of the jump button: two
+	-- rows of two, putting it down nearest your thumb with turning it beside that, and putting it
+	-- back (and sending it back, for the owner) over them. Each one's words, what it does, its
+	-- glyph, its place in UiLayout.luau and its row.
 	buttons = UI.new("Frame", { BackgroundTransparency = 1, Visible = false, Parent = screen })
-	UI.place(buttons, "DecorButtons")
+	UI.keepPlaced(buttons, "DecorButtons")
+	local rows = {}
+	for _, row in { "DecorTopRow", "DecorBottomRow" } do
+		rows[row] = UI.keepPlaced(UI.new("Frame", { BackgroundTransparency = 1, Parent = buttons }), row)
+	end
 	for index, entry in
 		{
-			{ "Place", place, "Place", "DecorPlaceButton" },
+			{ "Place", place, "Place", "DecorPlaceButton", "DecorBottomRow" },
 			{
 				"Turn",
 				function()
@@ -437,19 +443,20 @@ function DecorController:Start()
 				end,
 				"Turn",
 				"DecorTurnButton",
+				"DecorBottomRow",
 			},
-			{ "Put back", putBack, "PutBack", "DecorPutBackButton" },
-			{ "Send back", sendBack, "Back", "DecorSendBackButton" },
+			{ "Put back", putBack, "PutBack", "DecorPutBackButton", "DecorTopRow" },
+			{ "Send back", sendBack, "Back", "DecorSendBackButton", "DecorTopRow" },
 		}
 	do
 		local made = UI.button(entry[1], entry[2], {
-			TextSize = if index == 1 then 22 else 16,
+			TextSize = if index == 1 then 20 else 16,
 			Style = if index == 1 then "Primary" else "Neutral",
 			Icon = entry[3],
-			IconSize = if index == 1 then 26 else 18,
-			Parent = buttons,
+			IconSize = if index == 1 then 22 else 18,
+			Parent = rows[entry[5]],
 		})
-		UI.place(made, entry[4])
+		UI.keepPlaced(made, entry[4])
 		if index == 4 then
 			returnButton = made
 		end

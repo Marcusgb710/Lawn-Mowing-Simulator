@@ -140,6 +140,21 @@ function BitmapText._glyph(self: BitmapText, index: number)
 	return pair
 end
 
+-- How much the UIScales on `gui` and everything it's in scale it on the screen: its AbsoluteSize
+-- over this is its size in its own pixels, the ones its children's offsets are in.
+function BitmapText.scaleOf(gui: Instance): number
+	local scale = 1
+	local current: Instance? = gui
+	while current and not current:IsA("LayerCollector") do
+		local uiScale = current:FindFirstChildOfClass("UIScale")
+		if uiScale then
+			scale *= uiScale.Scale
+		end
+		current = current.Parent
+	end
+	return scale
+end
+
 function BitmapText._layout(self: BitmapText)
 	local options = self.options
 	local prepared = if self.ready then GuiLayout.prepare(self.font, self.text) else nil
@@ -157,7 +172,9 @@ function BitmapText._layout(self: BitmapText)
 	if self.fallback then
 		self.fallback.Visible = false
 	end
-	local box = self.Frame.AbsoluteSize
+	-- Set out in the frame's own pixels: a UIScale over it (a HUD column fitting a phone, a piece's
+	-- scale) scales the glyphs along with everything else.
+	local box = self.Frame.AbsoluteSize / math.max(BitmapText.scaleOf(self.Frame), 0.01)
 	local scale = GuiLayout.scaleFor(self.font, options.TextSize or 32)
 	local line = GuiLayout.text(self.font, prepared, scale)
 	if options.Fit and box.X > 0 and line.width > box.X then

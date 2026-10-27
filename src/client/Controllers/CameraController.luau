@@ -120,7 +120,7 @@ local function buildHoldRing()
 		Visible = false,
 		Parent = crosshair,
 	})
-	UI.place(ring, "HoldRing")
+	UI.keepPlaced(ring, "HoldRing")
 	UI.new("ImageLabel", { Image = track, Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Parent = ring })
 	-- Each half shows the fill through a gradient that's opaque on one side of a line through the
 	-- middle: turning the line sweeps the fill round (GuiLayout.ring).

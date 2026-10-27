@@ -402,7 +402,7 @@ local function build()
 		Active = true,
 		Parent = screen,
 	}, { UI.corner(14) })
-	UI.place(bezel, "ComputerMonitor")
+	UI.keepPlaced(bezel, "ComputerMonitor")
 	local display = UI.new("Frame", {
 		Position = UDim2.fromOffset(6, 6),
 		Size = UDim2.new(1, -12, 1, -12),

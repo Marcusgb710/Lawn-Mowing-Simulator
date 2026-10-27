@@ -118,11 +118,13 @@ local function metrics()
 		elseif camera then camera.ViewportSize
 		else Vector2.new(1280, 720)
 	local compact = viewport.Y < COMPACT_HEIGHT
-	local boxSize = UI.layout("DialogueBox", compact).size :: UDim2
+	local boxPlace = UI.layout("DialogueBox", compact)
+	local boxSize = boxPlace.size :: UDim2
 	return {
 		compact = compact,
-		-- As wide as the screen less 16 px each side, but at least 200 and at most the box's own.
-		boxWidth = math.max(200, math.min(viewport.X - 32, boxSize.X.Offset)),
+		-- As wide as the screen less 16 px each side, but at least 200 and at most the box's own: in
+		-- the box's own pixels, which its scale (UiLayout's) draws bigger or smaller.
+		boxWidth = math.max(200, math.min((viewport.X - 32) / boxPlace.scale, boxSize.X.Offset)),
 		portrait = if compact then 84 else 116,
 		-- How far above the text the portrait's top is (it pokes up out of the box).
 		portraitRise = if compact then 36 else 48,
@@ -704,8 +706,10 @@ local function actTitle(act: number)
 		Parent = holder,
 	})
 	UI.sparkle(words, 8, 36)
-	local scale = UI.new("UIScale", { Scale = 0.7, Parent = holder })
-	TweenService:Create(scale, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = 1 })
+	-- It pops in from a little smaller, to its own scale (UiLayout's ActTitle).
+	local size = UI.layout("ActTitle").scale
+	local scale = UI.scaler(holder, 0.7 * size)
+	TweenService:Create(scale, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = size })
 		:Play()
 	TweenService:Create(holder, TweenInfo.new(0.25), { GroupTransparency = 0 }):Play()
 	task.delay(2.6, function()
@@ -980,7 +984,7 @@ local function build()
 		TextTruncate = Enum.TextTruncate.AtEnd,
 		Parent = screen,
 	})
-	UI.place(caption, "DialogueCaption")
+	UI.keepPlaced(caption, "DialogueCaption")
 	skipButton = UI.button("Skip", skip, {
 		Name = "Skip",
 		Style = "Neutral",
@@ -990,7 +994,7 @@ local function build()
 		FontFace = UI.Fonts.Heavy,
 		Parent = screen,
 	})
-	UI.place(skipButton, "DialogueSkip")
+	UI.keepPlaced(skipButton, "DialogueSkip")
 	UI.new("UIPadding", { PaddingLeft = UDim.new(0, 16), PaddingRight = UDim.new(0, 16), Parent = skipButton })
 
 	-- The box along the bottom.

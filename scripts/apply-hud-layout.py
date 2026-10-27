@@ -5,11 +5,29 @@
 
 <saved.json> is what the editor saved: its `layouts/current` document (Claude reads it from the
 artifact's database), or what its "Copy layout for Claude" button copied. Only the placement fields
-change (anchor, position, size, touch, compact, order and list); labels, notes, comments and
-everything else in the file stay as they are. Pieces the file doesn't have are skipped. It prints every piece that moved, runs
-stylua on the file, and checks the result reads back as what was saved.
+change: screen, parent, order, list, anchor, position, size, scale, touch and compact. Labels,
+notes, comments and everything else in the file stay as they are. Pieces the file doesn't have are
+skipped.
+
+Each saved piece says what to change in its entry, the way a JSON merge patch does (RFC 7396):
+  * a field the save leaves out stays as it is in the file;
+  * a field that's null comes out of the entry;
+  * any other value replaces the field's, so a field the entry hasn't got yet goes in, next to the
+    placement fields around it (screen and parent by group).
+touch, compact and list are tables, and what's in them goes the same way: a key left out stays, one
+that's null comes out, and one that's left empty comes out altogether. So `"touch": null` drops a
+piece's phone places, `"touch": {"scale": null}` drops only its phone scale, and touch's and
+compact's `typical` (the editor's guess at the size there) stays unless the save names it. A HUD
+column's piece can be out of its column on a touch screen only (`"touch": {"parent": false}`), or in
+it there (the column's name), and touch's and compact's `hideWhile` (what a piece gives way to)
+stays as the save has it.
+
+It prints what changed in each piece, runs stylua on the file, and reads it back (lune run
+scripts/ui-layout-json): every piece has to come out as the file was with the save's changes, and
+nothing else may have changed.
 """
 
+import copy
 import json
 import os
 import re
@@ -19,14 +37,67 @@ import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LAYOUT = os.path.join(ROOT, "src", "client", "UiLayout.luau")
-FIELDS = ("anchor", "position", "size", "touch", "compact", "order", "list")
-# The only field the editor can take away: a piece whose phones go back to the shared spot.
-REMOVABLE = ("touch",)
+# The fields a save can change.
+FIELDS = ("screen", "parent", "order", "list", "anchor", "position", "size", "scale", "touch", "compact")
+# Every field an entry can have, in the order the file writes them: a field that's new to an entry
+# goes after the nearest one before it here that the entry has.
+ORDER = (
+    "label",
+    "group",
+    "screen",
+    "parent",
+    "detach",
+    "order",
+    "list",
+    "anchor",
+    "position",
+    "size",
+    "autoSize",
+    "min",
+    "max",
+    "scale",
+    "typical",
+    "touch",
+    "compact",
+    "device",
+    "fixed",
+    "note",
+)
+# What can be in touch and compact, and in a list, in the order they're written.
+PLACES = ("anchor", "position", "size", "scale", "typical", "hideWhile")
+LIST_KEYS = ("direction", "padding", "align")
+TABLES = {"touch": ("parent",) + PLACES, "compact": PLACES, "list": LIST_KEYS}
+# How many numbers each kind of place is.
+COUNTS = {"anchor": 2, "position": 4, "size": 4, "typical": 2}
+# How big or small a scale can be (as scripts/check-gui.luau checks).
+SMALLEST_SCALE, BIGGEST_SCALE = 0.25, 3
 
 
 def fail(message):
     print(f"apply-hud-layout: {message}", file=sys.stderr)
     sys.exit(1)
+
+
+def tool(name):
+    found = shutil.which(name)
+    if found:
+        return found
+    rokit = os.path.expanduser(f"~/.rokit/bin/{name}" + (".exe" if os.name == "nt" else ""))
+    return rokit if os.path.exists(rokit) else None
+
+
+def read_layout():
+    """UiLayout.luau as the game reads it: every entry, by its name."""
+    lune = tool("lune")
+    if not lune:
+        fail("can't find lune (rokit install puts it in ~/.rokit/bin)")
+    result = subprocess.run([lune, "run", "scripts/ui-layout-json"], cwd=ROOT, capture_output=True, text=True)
+    if result.returncode != 0:
+        fail("UiLayout.luau doesn't read:\n" + result.stderr.strip())
+    try:
+        return json.loads(result.stdout)
+    except json.JSONDecodeError as error:
+        fail(f"scripts/ui-layout-json didn't print JSON ({error})")
 
 
 def elements_of(saved):
@@ -36,6 +107,64 @@ def elements_of(saved):
     if isinstance(saved.get("data"), dict):
         return elements_of(saved["data"])
     fail("that file has no saved layout in it (expected an `elements` table)")
+
+
+# ---------------------------------------------------------------- what the save says
+def checked(where, key, value):
+    """`value` for `key` if it's the right shape for it (failing if not)."""
+    if key in COUNTS:
+        count = COUNTS[key]
+        if not (isinstance(value, list) and len(value) == count and all(is_number(v) for v in value)):
+            fail(f"{where} should be {count} numbers, not {value!r}")
+    elif key in ("scale", "order", "padding"):
+        if not is_number(value):
+            fail(f"{where} should be a number, not {value!r}")
+        if key == "scale" and not SMALLEST_SCALE <= value <= BIGGEST_SCALE:
+            fail(f"{where} is {value}: a scale goes from {SMALLEST_SCALE} to {BIGGEST_SCALE}")
+    elif key == "parent" and where.endswith(".touch.parent"):
+        # on a touch screen: false is out of its column
+        if value is not False and not (isinstance(value, str) and value):
+            fail(f"{where} should be false or a column's name, not {value!r}")
+    elif key in ("screen", "parent", "direction", "align"):
+        if not isinstance(value, str) or not value:
+            fail(f"{where} should be a name, not {value!r}")
+    elif key == "hideWhile":
+        if not (isinstance(value, list) and value and all(isinstance(v, str) and v for v in value)):
+            fail(f"{where} should be a list of pieces' names, not {value!r}")
+    return value
+
+
+def is_number(value):
+    return isinstance(value, (int, float)) and not isinstance(value, bool)
+
+
+def patched(piece, entry, patch, notes):
+    """The entry's placement fields once `patch` (what was saved for it) is applied."""
+    after = {name: copy.deepcopy(entry[name]) for name in FIELDS if name in entry}
+    for name in FIELDS:
+        if name not in patch:
+            continue
+        value = patch[name]
+        if value is None:
+            after.pop(name, None)
+        elif name in TABLES:
+            if not isinstance(value, dict):
+                fail(f"{piece}.{name} should be a table, not {value!r}")
+            table = after.get(name) if isinstance(after.get(name), dict) else {}
+            for key, inner in value.items():
+                if key not in TABLES[name]:
+                    notes.append(f"left out {piece}.{name}.{key}: the game doesn't read it")
+                elif inner is None:
+                    table.pop(key, None)
+                else:
+                    table[key] = checked(f"{piece}.{name}.{key}", key, inner)
+            if table:
+                after[name] = table
+            else:
+                after.pop(name, None)
+        else:
+            after[name] = checked(f"{piece}.{name}", name, value)
+    return after
 
 
 # ---------------------------------------------------------------- reading Luau, just enough
@@ -130,6 +259,8 @@ def field_span(text, start, end, name):
             value_start = m.end()
             if text[value_start] == "{":
                 value_end = matching(text, value_start)
+            elif text[value_start] in "\"'":
+                value_end = skip_string(text, value_start)
             else:
                 value_end = value_start
                 while value_end < end and text[value_end] not in ",\n":
@@ -142,100 +273,86 @@ def field_span(text, start, end, name):
 
 # ---------------------------------------------------------------- writing Luau values
 def number(v):
-    if isinstance(v, bool) or not isinstance(v, (int, float)):
-        fail(f"expected a number, got {v!r}")
     if float(v).is_integer():
         return str(int(v))
     return f"{v:.4f}".rstrip("0").rstrip(".")
 
 
-def array(values, count):
-    if not isinstance(values, list) or len(values) != count:
-        fail(f"expected {count} numbers, got {values!r}")
-    return "{ " + ", ".join(number(v) for v in values) + " }"
+def luau_string(value):
+    return '"' + value.replace("\\", "\\\\").replace('"', '\\"') + '"'
 
 
-def override_value(values):
-    # touch = { ... } and compact = { ... }: any of anchor, position and size
-    parts = []
-    for key, count in (("anchor", 2), ("position", 4), ("size", 4)):
-        if key in values and values[key] is not None:
-            parts.append(f"{key} = {array(values[key], count)}")
-    one = "{ " + ", ".join(parts) + " }"
-    if len(one) <= 96:
-        return one
-    return "{\n" + "".join(f"\t\t\t{p},\n" for p in parts) + "\t\t}"
+def luau_value(key, value):
+    if key in COUNTS:
+        return "{ " + ", ".join(number(v) for v in value) + " }"
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, list):
+        return "{ " + ", ".join(luau_string(v) for v in value) + " }"
+    if is_number(value):
+        return number(value)
+    if isinstance(value, str):
+        return luau_string(value)
+    if isinstance(value, dict):
+        # touch, compact and list: their keys in a steady order, on one line if it's short
+        parts = [f"{k} = {luau_value(k, value[k])}" for k in TABLES[key] if k in value]
+        one = "{ " + ", ".join(parts) + " }"
+        if len(one) <= 96:
+            return one
+        return "{\n" + "".join(f"\t\t\t{p},\n" for p in parts) + "\t\t}"
+    fail(f"can't write {value!r} as Luau")
 
 
-def list_value(values):
-    parts = []
-    for key in ("direction", "padding", "align"):
-        if key in values and values[key] is not None:
-            value = values[key]
-            parts.append(f"{key} = " + (number(value) if isinstance(value, (int, float)) else json.dumps(str(value))))
-    return "{ " + ", ".join(parts) + " }"
+def set_field(text, piece, name, value):
+    """`text` with the entry's `name` set to `value` (None takes it out)."""
+    start, end = entry_span(text, piece)
+    found = field_span(text, start, end, name)
+    if value is None:
+        return text[: found[0]] + text[found[3] :] if found else text
+    written = luau_value(name, value)
+    if found:
+        return text[: found[1]] + written + text[found[2] :]
+    # Goes after the nearest field before it in ORDER that the entry has, else at the top.
+    insert_at = None
+    for other in reversed(ORDER[: ORDER.index(name)]):
+        spot = field_span(text, start, end, other)
+        if spot:
+            insert_at = spot[3]
+            break
+    if insert_at is None:
+        insert_at = text.find("\n", start) + 1
+    return text[:insert_at] + f"\t\t{name} = {written},\n" + text[insert_at:]
 
 
-def value_for(name, placement):
-    if name == "anchor":
-        return array(placement["anchor"], 2)
-    if name in ("position", "size"):
-        return array(placement[name], 4)
-    if name == "order":
-        return number(placement["order"])
-    if name == "list":
-        return list_value(placement["list"])
-    return override_value(placement[name])
-
-
-def apply_piece(text, piece, placement):
-    span = entry_span(text, piece)
-    if not span:
-        return text, False
-    changed = False
-    for name in FIELDS:
-        start, end = entry_span(text, piece)
-        found = field_span(text, start, end, name)
-        wanted = placement.get(name)
-        if name in ("touch", "compact", "list") and not wanted:
-            wanted = None
-        if wanted is None:
-            if found and name in REMOVABLE:
-                text = text[: found[0]] + text[found[3] :]
-                changed = True
-            continue
-        new_value = value_for(name, placement)
-        if found:
-            if re.sub(r"\s+", "", text[found[1] : found[2]]) != re.sub(r"\s+", "", new_value):
-                text = text[: found[1]] + new_value + text[found[2] :]
-                changed = True
-        else:
-            # A new field goes after the last placement field the entry has, else before "}".
-            insert_at = None
-            for other in FIELDS:
-                s, e = entry_span(text, piece)
-                f = field_span(text, s, e, other)
-                if f:
-                    insert_at = f[3]
-            if insert_at is None:
-                s, e = entry_span(text, piece)
-                insert_at = text.rfind("\n", s, e - 1) + 1
-            text = text[:insert_at] + f"\t\t{name} = {new_value},\n" + text[insert_at:]
-            changed = True
-    return text, changed
-
-
+# ---------------------------------------------------------------- comparing
 def norm(value):
-    # Numbers compare by value (JSON may write 12 as 12.0), to 4 decimal places.
+    # Numbers compare by value (JSON may write 12 as 12.0), to 4 decimal places; nulls and empty
+    # tables are the same as not being there.
     if isinstance(value, bool) or value is None:
         return value
-    if isinstance(value, (int, float)):
+    if is_number(value):
         return round(float(value), 4)
     if isinstance(value, list):
-        return [norm(v) for v in value]
+        return [norm(v) for v in value] if value else None
     if isinstance(value, dict):
-        return {k: norm(v) for k, v in sorted(value.items()) if v is not None}
+        kept = {k: norm(v) for k, v in sorted(value.items())}
+        kept = {k: v for k, v in kept.items() if v is not None}
+        return kept or None
     return value
+
+
+def describe(before, after):
+    added = [n for n in FIELDS if n in after and n not in before]
+    removed = [n for n in FIELDS if n in before and n not in after]
+    changed = [n for n in FIELDS if n in after and n in before and norm(after[n]) != norm(before[n])]
+    parts = []
+    if changed:
+        parts.append("changed " + ", ".join(changed))
+    if added:
+        parts.append("added " + ", ".join(added))
+    if removed:
+        parts.append("took out " + ", ".join(removed))
+    return "; ".join(parts)
 
 
 def main():
@@ -244,43 +361,56 @@ def main():
         fail("usage: python3 scripts/apply-hud-layout.py <saved.json> [--dry-run]")
     saved = json.load(open(args[0], encoding="utf-8"))
     elements = elements_of(saved)
+    current = read_layout()
     text = open(LAYOUT, encoding="utf-8").read()
-    moved, skipped = [], []
-    for piece, placement in elements.items():
-        if not isinstance(placement, dict):
+
+    # Work out every piece's new fields first, so a bad value stops it before anything's written.
+    plans, skipped, notes = [], [], []
+    for piece, patch in elements.items():
+        if piece == "__screen" or not isinstance(patch, dict) or piece not in current or not entry_span(text, piece):
             skipped.append(piece)
             continue
-        text, changed = apply_piece(text, piece, placement)
-        if changed:
-            moved.append(piece)
-        elif not entry_span(text, piece):
-            skipped.append(piece)
+        before = {name: current[piece][name] for name in FIELDS if name in current[piece]}
+        after = patched(piece, current[piece], patch, notes)
+        if any(norm(before.get(name)) != norm(after.get(name)) for name in FIELDS):
+            plans.append((piece, before, after))
+
+    for piece, before, after in plans:
+        for name in FIELDS:
+            if norm(before.get(name)) != norm(after.get(name)):
+                text = set_field(text, piece, name, after.get(name))
+
+    for note in notes:
+        print(f"Note: {note}")
     if "--dry-run" in sys.argv:
-        print(f"Would move {len(moved)}: {', '.join(moved) or 'nothing'}")
+        print(f"Would change {len(plans)}: {', '.join(piece for piece, _, _ in plans) or 'nothing'}")
+        for piece, before, after in plans:
+            print(f"  {piece}: {describe(before, after)}")
         return
     with open(LAYOUT, "w", encoding="utf-8") as file:
         file.write(text)
-    stylua = shutil.which("stylua") or os.path.expanduser("~/.rokit/bin/stylua" + (".exe" if os.name == "nt" else ""))
-    if os.path.exists(stylua) or shutil.which("stylua"):
+    stylua = tool("stylua")
+    if stylua:
         subprocess.run([stylua, LAYOUT], cwd=ROOT)
-    # Read it back and make sure every saved value landed.
-    result = subprocess.run(["lune", "run", "scripts/ui-layout-json"], cwd=ROOT, capture_output=True, text=True)
-    if result.returncode != 0:
-        fail("UiLayout.luau no longer reads back:\n" + result.stderr.strip())
-    after = json.loads(result.stdout)
-    wrong = []
-    for piece in moved:
+
+    # Read it back: each changed piece is what was planned, and nothing else moved.
+    expected = copy.deepcopy(current)
+    for piece, _, after in plans:
         for name in FIELDS:
-            saved_value = elements[piece].get(name)
-            if saved_value is None and name not in REMOVABLE:
-                continue
-            want = norm(saved_value or None)
-            got = norm(after.get(piece, {}).get(name) or None)
-            if want != got:
+            expected[piece].pop(name, None)
+        expected[piece].update(copy.deepcopy(after))
+    got = read_layout()
+    wrong = []
+    for piece in sorted(set(expected) | set(got)):
+        want, have = expected.get(piece, {}), got.get(piece, {})
+        for name in sorted(set(want) | set(have)):
+            if norm(want.get(name)) != norm(have.get(name)):
                 wrong.append(f"{piece}.{name}")
     if wrong:
-        fail("these didn't read back as saved: " + ", ".join(wrong))
-    print(f"Moved {len(moved)} piece{'s' if len(moved) != 1 else ''}: {', '.join(moved) or 'nothing'}")
+        fail("these didn't read back as they should: " + ", ".join(wrong))
+    print(f"Changed {len(plans)} piece{'s' if len(plans) != 1 else ''}: {', '.join(p for p, _, _ in plans) or 'nothing'}")
+    for piece, before, after in plans:
+        print(f"  {piece}: {describe(before, after)}")
     if skipped:
         print(f"Skipped (not in UiLayout.luau): {', '.join(skipped)}")
 

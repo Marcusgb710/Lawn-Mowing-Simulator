@@ -486,10 +486,12 @@ local function confetti()
 	end
 end
 
+-- Its UIScale: what fits the screen, times its own scale (UiLayout's ContestResults).
 local function fit()
 	local size = screen.AbsoluteSize
 	if size.X > 0 and size.Y > 0 then
 		scale.Scale = math.min(size.X / (LAYOUT.X + FIT.marginX), size.Y / (LAYOUT.Y + FIT.marginY), FIT.maxScale)
+			* UI.layout("ContestResults").scale
 	end
 end
 
@@ -727,9 +729,9 @@ local function build()
 		ClipsDescendants = true,
 		Parent = screen,
 	}, { color = UI.Colors.Background, radius = 24 }) :: Frame
-	UI.place(panel, "ContestResults")
+	UI.keepPlaced(panel, "ContestResults")
 	UI.new("UIPadding", { PaddingTop = UDim.new(0, 24), Parent = panel })
-	scale = UI.new("UIScale", { Parent = panel })
+	scale = UI.scaler(panel)
 	screen:GetPropertyChangedSignal("AbsoluteSize"):Connect(fit)
 end
 

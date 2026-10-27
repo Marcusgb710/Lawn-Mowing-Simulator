@@ -116,9 +116,12 @@ own buttons or in a phone's notch.
    goes into the artifact's own database (`layouts/current`, with the save before it in
    `layouts/previous`).
 3. Then `python3 scripts/apply-hud-layout.py <saved.json>`, with that document saved as JSON,
-   writes the placement values (anchor, position, size, touch, compact, order and list) into
-   `UiLayout.luau`. It leaves everything else alone, runs stylua, and checks every value reads back
-   as saved. Then the usual checks, a playtest on a phone and a PC in Studio, and a PR.
+   writes the placement values (screen, parent, order, list, anchor, position, size, scale, touch
+   and compact) into `UiLayout.luau`. A field the save leaves out stays as it is, and one that's
+   null comes out; inside touch, compact and list it's the same, key by key. It leaves everything
+   else alone, runs stylua, and checks the file reads back as the save says (`--dry-run` only
+   says what it would change). Then the usual checks, a playtest on a phone and a PC in Studio,
+   and a PR.
 
 ## How the game plays
 

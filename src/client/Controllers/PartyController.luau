@@ -110,7 +110,9 @@ local function showInvite(from: Player, timeout: number)
 		BackgroundColor3 = UI.Colors.Background,
 		Parent = UI.getScreen(),
 	}, { UI.corner(10), UI.padding(10) })
-	UI.place(popup, "CrewInvite")
+	UI.keepPlaced(popup, "CrewInvite")
+	-- At the top of the screen (on a touch screen), the toasts keep below it.
+	UI.keepToastsBelow(popup)
 	invitePopups[from] = popup
 	popup.Destroying:Connect(function()
 		if invitePopups[from] == popup then
@@ -124,12 +126,14 @@ local function showInvite(from: Player, timeout: number)
 	if UserInputService.KeyboardEnabled then
 		text ..= "  (hold Alt to click)"
 	end
-	UI.label(text, {
+	-- Smaller for a long name, so it stays on its line over the buttons.
+	local label = UI.label(text, {
 		TextXAlignment = Enum.TextXAlignment.Center,
 		TextWrapped = true,
-		TextSize = 16,
+		TextScaled = true,
 		Parent = popup,
 	})
+	UI.new("UITextSizeConstraint", { MaxTextSize = 16, Parent = label })
 
 	local function respond(accept: boolean)
 		popup:Destroy()
