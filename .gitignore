@@ -16,3 +16,6 @@ Thumbs.db
 
 # Claude Code workspaces (worktrees, local settings)
 .claude/
+
+# The HUD editor page, built from src/client/UiLayout.luau by scripts/build-hud-editor.py
+tools/hud-editor/hud-editor.html
