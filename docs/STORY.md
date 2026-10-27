@@ -7,6 +7,10 @@ The mock-up of the intro, the Messages app and the contest results is at
 https://claude.ai/artifact/FQbzu9rR7bMz64MQ8t2o7K. It's private until it's shared from its Share
 menu.
 
+**Next:** [The Owed List](STORY_OWED_LIST.md) builds on this story. You inherit June's old lawn
+business, and free yards for neighbors in need become the biggest, most satisfying job of each
+act. It isn't built yet.
+
 ## The pitch
 
 Grandma June has won the Maple Grove Best Yard trophy 30 years running. This summer, her
