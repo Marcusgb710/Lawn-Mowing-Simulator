@@ -295,30 +295,24 @@ function CutsceneController:Start()
 		ZIndex = 2,
 		Parent = overlay,
 	})
-	for _, anchorY in { 0, 1 } do
-		UI.new("Frame", {
-			AnchorPoint = Vector2.new(0, anchorY),
-			Position = UDim2.fromScale(0, anchorY),
-			Size = UDim2.fromScale(1, 0.12),
+	-- The letterbox bars along the top and bottom.
+	for _, id in { "CutsceneTopBar", "CutsceneBottomBar" } do
+		local bar = UI.new("Frame", {
 			BackgroundColor3 = Color3.new(0, 0, 0),
 			BorderSizePixel = 0,
 			Parent = overlay,
 		})
+		UI.place(bar, id)
 	end
 	title = UI.heading("", {
-		AnchorPoint = Vector2.new(0.5, 1),
-		Position = UDim2.new(0.5, 0, 0.88, -36),
-		Size = UDim2.new(0.8, 0, 0, 40),
 		TextSize = 36,
 		TextXAlignment = Enum.TextXAlignment.Center,
 		TextStrokeTransparency = 0.4,
 		ZIndex = 3,
 		Parent = overlay,
 	})
+	UI.place(title, "CutsceneTitle")
 	subtitle = UI.label("", {
-		AnchorPoint = Vector2.new(0.5, 1),
-		Position = UDim2.new(0.5, 0, 0.88, -8),
-		Size = UDim2.new(0.8, 0, 0, 26),
 		TextSize = 22,
 		TextColor3 = UI.Colors.SubText,
 		TextXAlignment = Enum.TextXAlignment.Center,
@@ -326,6 +320,7 @@ function CutsceneController:Start()
 		ZIndex = 3,
 		Parent = overlay,
 	})
+	UI.place(subtitle, "CutsceneSubtitle")
 
 	Net.event("TravelStarted").OnClientEvent:Connect(function(info)
 		task.spawn(play, info)

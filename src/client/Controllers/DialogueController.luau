@@ -52,8 +52,9 @@ local BUBBLE_PER_CHARACTER = 0.05
 local BUBBLE_DISTANCE = 300
 -- If the title card never says it's gone, scenes wait this long (seconds) after joining.
 local TITLE_CARD_WAIT = 40
--- Screens shorter than this (pixels) get the smaller sizes: phones held sideways.
-local COMPACT_HEIGHT = 500
+-- Screens shorter than this (pixels) get the smaller sizes, and UiLayout's compact places: phones
+-- held sideways.
+local COMPACT_HEIGHT = UI.Layout.__screen.compactHeight
 -- How often (seconds) to look for a scene to play.
 local CHECK_EVERY = 0.25
 
@@ -117,12 +118,11 @@ local function metrics()
 		elseif camera then camera.ViewportSize
 		else Vector2.new(1280, 720)
 	local compact = viewport.Y < COMPACT_HEIGHT
+	local boxSize = UI.layout("DialogueBox", compact).size :: UDim2
 	return {
 		compact = compact,
-		topBar = if compact then 52 else 56,
-		bottomBar = if compact then 36 else 56,
-		boxWidth = math.max(200, math.min(viewport.X - 32, if compact then 812 else 900)),
-		boxBottom = if compact then 14 else 30,
+		-- As wide as the screen less 16 px each side, but at least 200 and at most the box's own.
+		boxWidth = math.max(200, math.min(viewport.X - 32, boxSize.X.Offset)),
 		portrait = if compact then 84 else 116,
 		-- How far above the text the portrait's top is (it pokes up out of the box).
 		portraitRise = if compact then 36 else 48,
@@ -133,7 +133,6 @@ local function metrics()
 		text = if compact then 20 else 26,
 		name = if compact then 16 else 20,
 		footer = 44,
-		bubbleWidth = if compact then 240 else 320,
 		bubbleText = if compact then 16 else 19,
 	}
 end
@@ -312,7 +311,7 @@ function DialogueController.bubble(adornee: Instance, speaker: string?, text: st
 	local gui = UI.new("BillboardGui", {
 		Name = "SpeechBubble",
 		Adornee = adornee,
-		Size = UDim2.fromOffset(sizes.bubbleWidth, 200),
+		Size = UI.layout("SpeechBubble", sizes.compact).size,
 		-- Its bottom (the tail) sits just over the adornee.
 		SizeOffset = Vector2.new(0, 0.5),
 		AlwaysOnTop = true,
@@ -541,9 +540,9 @@ local function layoutBox(text: string, speaking: boolean)
 	local bounds = TextService:GetTextSize(Story.plain(text), sizes.text, UI.Font, Vector2.new(textWidth, math.huge))
 	local height = sizes.padTop + bounds.Y + 6 + sizes.footer + sizes.padBottom
 
-	topBar.Size = UDim2.new(1, 0, 0, sizes.topBar)
-	bottomBar.Size = UDim2.new(1, 0, 0, sizes.bottomBar)
-	box.Position = UDim2.new(0.5, 0, 1, -sizes.boxBottom)
+	UI.place(topBar, "DialogueTopBar", sizes.compact)
+	UI.place(bottomBar, "DialogueBottomBar", sizes.compact)
+	UI.place(box, "DialogueBox", sizes.compact)
 	box.Size = UDim2.fromOffset(sizes.boxWidth, height)
 	portrait.Size = UDim2.fromOffset(sizes.portrait, sizes.portrait)
 	portrait.Position = UDim2.fromOffset(sizes.padX, sizes.padTop - sizes.portraitRise)
@@ -556,7 +555,7 @@ local function layoutBox(text: string, speaking: boolean)
 	continueButton.Position = UDim2.new(1, -sizes.padX + 6, 1, -sizes.padBottom)
 	continueLabel.TextSize = if sizes.compact then 16 else 18
 	skipButton.TextSize = if sizes.compact then 16 else 17
-	card.Position = UDim2.new(0.5, 0, 0, sizes.topBar + 14)
+	UI.place(card, "DialogueToolCard", sizes.compact)
 end
 
 -- Types the line out; going on while it's typing shows the rest of it.
@@ -692,14 +691,12 @@ local function actTitle(act: number)
 	local info = Story.Acts[act]
 	local holder = UI.new("CanvasGroup", {
 		Name = "ActTitle",
-		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.fromScale(0.5, 0.34),
-		Size = UDim2.new(0.86, 0, 0, 110),
 		BackgroundTransparency = 1,
 		GroupTransparency = 1,
 		ZIndex = 5,
 		Parent = screen,
-	}, { UI.new("UISizeConstraint", { MaxSize = Vector2.new(760, 110) }) })
+	})
+	UI.place(holder, "ActTitle")
 	titleCard = holder
 	local words = UI.wordmark(`Act{act}`, `Act {act}: {if info then info.name else ""}`, 96, {
 		AnchorPoint = Vector2.new(0.5, 0.5),
@@ -932,19 +929,17 @@ local function build()
 		Parent = bars,
 	})
 	topBar = UI.new("Frame", {
-		Size = UDim2.new(1, 0, 0, 56),
 		BackgroundColor3 = UI.Colors.Letterbox,
 		BorderSizePixel = 0,
 		Parent = bars,
 	})
+	UI.place(topBar, "DialogueTopBar")
 	bottomBar = UI.new("Frame", {
-		AnchorPoint = Vector2.new(0, 1),
-		Position = UDim2.fromScale(0, 1),
-		Size = UDim2.new(1, 0, 0, 56),
 		BackgroundColor3 = UI.Colors.Letterbox,
 		BorderSizePixel = 0,
 		Parent = bars,
 	})
+	UI.place(bottomBar, "DialogueBottomBar")
 	-- The art's soft inner edge along each bar (turned over for the bottom one).
 	if StoryArt.Letterbox ~= "" then
 		for _, bar in { topBar, bottomBar } do
@@ -979,39 +974,32 @@ local function build()
 
 	-- Up top: where and when (in the middle, clear of Roblox's own buttons), and Skip.
 	caption = UI.label("", {
-		AnchorPoint = Vector2.new(0.5, 0),
-		Position = UDim2.new(0.5, 0, 0, 6),
-		Size = UDim2.new(0.5, 0, 0, 44),
 		TextSize = 16,
 		TextColor3 = UI.Colors.SubText,
 		TextXAlignment = Enum.TextXAlignment.Center,
 		TextTruncate = Enum.TextTruncate.AtEnd,
 		Parent = screen,
 	})
+	UI.place(caption, "DialogueCaption")
 	skipButton = UI.button("Skip", skip, {
 		Name = "Skip",
 		Style = "Neutral",
 		Icon = "Skip",
 		IconSize = 18,
-		AnchorPoint = Vector2.new(1, 0),
-		Position = UDim2.new(1, -12, 0, 6),
-		Size = UDim2.fromOffset(0, 44),
-		AutomaticSize = Enum.AutomaticSize.X,
 		TextSize = 17,
 		FontFace = UI.Fonts.Heavy,
 		Parent = screen,
 	})
+	UI.place(skipButton, "DialogueSkip")
 	UI.new("UIPadding", { PaddingLeft = UDim.new(0, 16), PaddingRight = UDim.new(0, 16), Parent = skipButton })
 
 	-- The box along the bottom.
 	box = sliced(StoryArt.DialogueBox, UI.Colors.Panel, 20, {
 		Name = "Box",
-		AnchorPoint = Vector2.new(0.5, 1),
-		Position = UDim2.new(0.5, 0, 1, -30),
-		Size = UDim2.fromOffset(900, 160),
 		ZIndex = 2,
 		Parent = screen,
 	})
+	UI.place(box, "DialogueBox")
 	portrait = DialogueController.face("June", 116)
 	portrait.ZIndex = 3
 	portrait.Parent = box
@@ -1086,12 +1074,11 @@ local function build()
 	-- The card that pops up for a new tool.
 	card = sliced(Art.slice("Card"), UI.Colors.Panel, 16, {
 		Name = "Card",
-		AnchorPoint = Vector2.new(0.5, 0),
-		Size = UDim2.fromOffset(300, 64),
 		Visible = false,
 		ZIndex = 2,
 		Parent = screen,
 	})
+	UI.place(card, "DialogueToolCard")
 	cardIcon = UI.new("Frame", {
 		Position = UDim2.fromOffset(12, 10),
 		Size = UDim2.fromOffset(44, 44),

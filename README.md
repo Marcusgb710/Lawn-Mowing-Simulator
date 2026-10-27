@@ -233,6 +233,8 @@ src/client/                  -> StarterPlayer.StarterPlayerScripts.Client
                                 the Messages app, Gloria's yard as your act has it, and the Best
                                 Yard contest's judges and results screen
   UI.luau                       the look: colours, fonts, windows, cards, buttons, bars, prompts
+  UiLayout.luau                 where everything on the play screen goes, as plain data for the
+                                layout editor (lune run scripts/ui-layout-json prints it as JSON)
   Art.luau                      the GUI art by name (plain frames wherever an id is still "")
   BitmapText.luau               money, scores, timers and headlines in the display font's atlases
   Goal.luau                     your story goal, for the Messages app and Grandma's sticky note

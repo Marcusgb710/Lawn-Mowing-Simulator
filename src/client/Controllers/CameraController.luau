@@ -40,9 +40,8 @@ local BOB_DIP = 0.08
 local SHAKE_ON_FOOT = 0.012
 local SHAKE_RIDING = 0.025
 local SHAKE_SPEED = 22
--- The dot's size with its art, and the hold ring's around it.
-local RETICLE_SIZE = 26
-local RING_SIZE = 76
+-- The plain dot's size, while the dot's art isn't uploaded (with it, it's UiLayout's Reticle).
+local PLAIN_DOT = 6
 
 local CameraController = {}
 
@@ -114,13 +113,11 @@ local function buildHoldRing()
 	end
 	local ring = UI.new("Frame", {
 		Name = "HoldRing",
-		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.fromScale(0.5, 0.5),
-		Size = UDim2.fromOffset(RING_SIZE, RING_SIZE),
 		BackgroundTransparency = 1,
 		Visible = false,
 		Parent = crosshair,
 	})
+	UI.place(ring, "HoldRing")
 	UI.new("ImageLabel", { Image = track, Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Parent = ring })
 	-- Each half shows the fill through a gradient that's opaque on one side of a line through the
 	-- middle: turning the line sweeps the fill round (GuiLayout.ring).
@@ -257,23 +254,20 @@ function CameraController:Start()
 	if dot ~= "" then
 		reticle = UI.new("ImageLabel", {
 			Name = "Dot",
-			AnchorPoint = Vector2.new(0.5, 0.5),
-			Position = UDim2.fromScale(0.5, 0.5),
-			Size = UDim2.fromOffset(RETICLE_SIZE, RETICLE_SIZE),
 			Image = dot,
 			BackgroundTransparency = 1,
 			Parent = crosshair,
 		})
+		UI.place(reticle, "Reticle")
 	else
 		reticle = UI.new("Frame", {
 			Name = "Dot",
-			AnchorPoint = Vector2.new(0.5, 0.5),
-			Position = UDim2.fromScale(0.5, 0.5),
-			Size = UDim2.fromOffset(6, 6),
 			BackgroundColor3 = Color3.new(1, 1, 1),
 			BackgroundTransparency = 0.15,
 			Parent = crosshair,
 		}, { UI.corner(3), UI.new("UIStroke", { Color = Color3.new(0, 0, 0), Transparency = 0.5 }) })
+		UI.place(reticle, "Reticle")
+		reticle.Size = UDim2.fromOffset(PLAIN_DOT, PLAIN_DOT)
 	end
 	buildHoldRing()
 

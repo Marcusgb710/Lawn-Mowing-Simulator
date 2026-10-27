@@ -757,7 +757,7 @@ end
 
 local function updateUI()
 	local target = current
-	local touch = UserInputService.TouchEnabled
+	local touch = UI.isTouch()
 	CameraController.setReticle(if not target then "Idle" elseif target.fits then "Active" else "Blocked")
 	if not target then
 		prompt.frame.Visible = false
@@ -800,20 +800,11 @@ function InteractController:Start()
 		Parent = player:WaitForChild("PlayerGui"),
 	})
 	-- Under the dot.
-	prompt = UI.prompt({
-		AnchorPoint = Vector2.new(0.5, 0),
-		Position = UDim2.new(0.5, 0, 0.5, 22),
-		Visible = false,
-		Parent = screen,
-	})
+	prompt = UI.prompt({ Visible = false, Parent = screen })
+	UI.place(prompt.frame, "InteractPrompt")
 	-- On a phone: the big round button that does what E does, with its glyph and words.
-	button = UI.touchButton("", "PickUp", {
-		AnchorPoint = Vector2.new(1, 0.5),
-		Position = UDim2.new(1, -24, 0.55, 0),
-		Size = UDim2.fromOffset(110, 110),
-		Visible = false,
-		Parent = screen,
-	})
+	button = UI.touchButton("", "PickUp", { Visible = false, Parent = screen })
+	UI.place(button, "InteractButton")
 	button.Activated:Connect(function()
 		if current and not heldByButton and not isHold(current, false) then
 			perform(current, false)
@@ -824,14 +815,12 @@ function InteractController:Start()
 			perform(current, true)
 		end
 	end, {
-		AnchorPoint = Vector2.new(1, 1),
-		Position = UDim2.new(1, -24, 0.55, -66),
-		Size = UDim2.fromOffset(110, 44),
 		TextSize = 16,
 		Style = "Neutral",
 		Visible = false,
 		Parent = screen,
 	})
+	UI.place(secondButton, "InteractSecondButton")
 
 	highlight = Instance.new("Highlight")
 	highlight.FillTransparency = 0.55

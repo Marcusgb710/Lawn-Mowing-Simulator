@@ -50,10 +50,6 @@ end
 function TutorialController:Start()
 	banner = UI.label("", {
 		Name = "Coach",
-		AnchorPoint = Vector2.new(0.5, 0),
-		Position = UDim2.new(0.5, 0, 0, 12),
-		Size = UDim2.fromScale(0.6, 0),
-		AutomaticSize = Enum.AutomaticSize.Y,
 		BackgroundTransparency = 0.15,
 		BackgroundColor3 = UI.Colors.Background,
 		TextColor3 = UI.Colors.Money,
@@ -63,9 +59,9 @@ function TutorialController:Start()
 		Visible = false,
 		Parent = UI.getScreen(),
 	})
+	UI.place(banner, "TutorialBanner")
 	UI.corner(10).Parent = banner
 	UI.padding(10).Parent = banner
-	UI.new("UISizeConstraint", { MaxSize = Vector2.new(520, math.huge), Parent = banner })
 	UI.keepToastsBelow(banner)
 
 	ClientState.Changed:Connect(function(key)

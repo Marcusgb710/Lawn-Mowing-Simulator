@@ -11,7 +11,6 @@
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local UserInputService = game:GetService("UserInputService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Assets = require(Shared.Assets)
@@ -311,14 +310,10 @@ function CarryController.putBack()
 end
 
 function CarryController:Start()
-	-- On a phone it stays between the big round buttons on the right and the HUD on the left, and
-	-- it grows to fit its words.
+	-- On a phone it stays between the big round buttons on the right and the HUD on the left (its
+	-- touch size in UiLayout.luau), and it grows to fit its words.
 	carryLabel = UI.label("", {
 		Name = "CarryHint",
-		AnchorPoint = Vector2.new(0.5, 1),
-		Position = UDim2.new(0.5, 0, 1, -90),
-		Size = if UserInputService.TouchEnabled then UDim2.new(1, -540, 0, 0) else UDim2.fromScale(0.9, 0),
-		AutomaticSize = Enum.AutomaticSize.Y,
 		BackgroundTransparency = 0.25,
 		BackgroundColor3 = UI.Colors.Background,
 		TextXAlignment = Enum.TextXAlignment.Center,
@@ -327,12 +322,9 @@ function CarryController:Start()
 		Visible = false,
 		Parent = UI.getScreen(),
 	})
+	UI.place(carryLabel, "CarryHint")
 	UI.corner(8).Parent = carryLabel
 	UI.padding(6).Parent = carryLabel
-	UI.new(
-		"UISizeConstraint",
-		{ MinSize = Vector2.new(240, 0), MaxSize = Vector2.new(460, math.huge), Parent = carryLabel }
-	)
 
 	-- Several changes come together (a load changes what you carry and your profile), so they
 	-- redraw storage once.

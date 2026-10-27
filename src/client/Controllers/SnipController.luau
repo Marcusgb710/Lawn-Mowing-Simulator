@@ -8,7 +8,6 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Net = require(Shared.Net)
@@ -106,12 +105,10 @@ end
 function SnipController:Start()
 	button = UI.touchButton("Snip", "Snip", {
 		Name = "Snip",
-		AnchorPoint = Vector2.new(1, 0.5),
-		Position = UDim2.new(1, -146, 0.55, 0),
-		Size = UDim2.fromOffset(96, 96),
 		Visible = false,
 		Parent = UI.getScreen(),
 	})
+	UI.place(button, "SnipButton")
 	-- Held down for a steady snip, snip, snip, until that touch ends wherever the finger slid to.
 	button.InputBegan:Connect(function(input)
 		local pressing = input.UserInputType == Enum.UserInputType.Touch
@@ -139,7 +136,7 @@ function SnipController:Start()
 	end
 
 	RunService.Heartbeat:Connect(function()
-		local show = heldItem ~= nil and UserInputService.TouchEnabled and canSnip()
+		local show = heldItem ~= nil and UI.isTouch() and canSnip()
 		if button.Visible ~= show then
 			button.Visible = show
 			buttonDown = false

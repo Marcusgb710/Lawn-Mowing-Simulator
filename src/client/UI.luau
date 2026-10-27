@@ -3,19 +3,22 @@
 -- tabs and bars drawn with the art's kit (Art.luau), plus price tags, tier badges, a tool's
 -- condition, rubber stamps and sparkles. Any piece of art that isn't uploaded yet is drawn with
 -- plain rounded frames in the same colours instead, so the game looks finished either way, and
--- uploading the art (Config/GuiArt.luau) changes nothing else.
+-- uploading the art (Config/GuiArt.luau) changes nothing else. Where each piece of the play
+-- screen goes is in UiLayout.luau, and UI.place puts it there.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local StarterGui = game:GetService("StarterGui")
 local TextService = game:GetService("TextService")
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local GuiLayout = require(Shared:WaitForChild("GuiLayout"))
 local Signal = require(Shared:WaitForChild("Signal"))
 local Art = require(script.Parent.Art)
 local BitmapText = require(script.Parent.BitmapText)
+local UiLayout = require(script.Parent.UiLayout)
 
 local UI = {}
 
@@ -107,8 +110,6 @@ local screen: ScreenGui = nil
 local panels = {}
 -- While set, menus open inside this frame (the shop computer's screen) instead of on their own.
 local host: Frame? = nil
-local PANEL_SIZE = UDim2.fromScale(0.9, 0.75)
-local PANEL_MAX = Vector2.new(720, 520)
 
 -- UI.new("Frame", { Size = ... }, { children })
 function UI.new(className: string, props, children: { Instance }?): any
@@ -172,6 +173,96 @@ function UI.heading(text: string, props): TextLabel
 		label[key] = value
 	end
 	return label
+end
+
+-- Where things go -------------------------------------------------------------------------------
+
+-- Where every element on the play screen goes, by name (UiLayout.luau, which the layout editor
+-- reads and rewrites), and the rules for the screens they're on (UI.Layout.__screen).
+UI.Layout = UiLayout
+
+-- Whether this is a touch screen (a phone or a tablet): the phone buttons show there, and
+-- UiLayout's `touch` places are used.
+function UI.isTouch(): boolean
+	return UserInputService.TouchEnabled
+end
+
+export type Placement = {
+	anchor: Vector2?,
+	position: UDim2?,
+	size: UDim2?,
+	autoSize: Enum.AutomaticSize?,
+	min: Vector2?,
+	max: Vector2?,
+	order: number?,
+}
+
+local function udim2(value: { number }?): UDim2?
+	return if value then UDim2.new(value[1], value[2], value[3], value[4]) else nil
+end
+
+-- Element `id`'s place on this screen (UiLayout.luau): its own anchor, position and size, with its
+-- `touch` ones over them on a touch screen, and its `compact` ones over those when `compact` (a
+-- short screen, which the caller decides).
+function UI.layout(id: string, compact: boolean?): Placement
+	local entry = UiLayout[id]
+	if not entry then
+		error(`UiLayout.luau has no {id}`, 2)
+	end
+	local touch = if UI.isTouch() then entry.touch else nil
+	local short = if compact then entry.compact else nil
+	local function pick(key: string): any
+		return (short and short[key]) or (touch and touch[key]) or entry[key]
+	end
+	local anchor, min, max = pick("anchor"), entry.min, entry.max
+	return {
+		anchor = if anchor then Vector2.new(anchor[1], anchor[2]) else nil,
+		position = udim2(pick("position")),
+		size = udim2(pick("size")),
+		autoSize = if entry.autoSize then (Enum.AutomaticSize :: any)[entry.autoSize] else nil,
+		-- A side without a limit can be any size.
+		min = if min then Vector2.new(min.width or 0, min.height or 0) else nil,
+		max = if max then Vector2.new(max.width or math.huge, max.height or math.huge) else nil,
+		order = entry.order,
+	}
+end
+
+-- Puts `gui` where UiLayout.luau says element `id` goes (see UI.layout): its AnchorPoint,
+-- Position, Size and AutomaticSize, its limits (a UISizeConstraint), its place in its parent's
+-- list, and the gaps in its own list. What the entry leaves out stays as it is. Returns `gui`.
+function UI.place<T>(gui: T, id: string, compact: boolean?): T
+	local object = gui :: any
+	local placement = UI.layout(id, compact)
+	if placement.anchor then
+		object.AnchorPoint = placement.anchor
+	end
+	if placement.position then
+		object.Position = placement.position
+	end
+	if placement.size then
+		object.Size = placement.size
+	end
+	if placement.autoSize then
+		object.AutomaticSize = placement.autoSize
+	end
+	if placement.order then
+		object.LayoutOrder = placement.order
+	end
+	if placement.min or placement.max then
+		local limits = object:FindFirstChildOfClass("UISizeConstraint")
+			or UI.new("UISizeConstraint", { Parent = object })
+		limits.MinSize = placement.min or Vector2.zero
+		limits.MaxSize = placement.max or Vector2.new(math.huge, math.huge)
+	end
+	local list = UiLayout[id].list
+	if list then
+		local layout = object:FindFirstChildOfClass("UIListLayout") or UI.list()
+		layout.FillDirection = (Enum.FillDirection :: any)[list.direction or "Vertical"]
+		layout.Padding = UDim.new(0, list.padding or 0)
+		layout.HorizontalAlignment = (Enum.HorizontalAlignment :: any)[list.align or "Left"]
+		layout.Parent = object
+	end
+	return gui
 end
 
 -- Kit pieces -------------------------------------------------------------------------------
@@ -1096,17 +1187,15 @@ local function panelTop(docked: boolean): number
 	return if docked then 40 else 52
 end
 
--- A centered window with a title and close button. Returns the window and its content frame.
+-- A window with a title and close button, where every menu's goes (UiLayout's MenuWindow).
+-- Returns the window and its content frame.
 function UI.panel(name: string, title: string)
 	local window = UI.sliced("Panel", {
 		Name = name,
-		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.fromScale(0.5, 0.5),
-		Size = PANEL_SIZE,
 		Visible = false,
 		Parent = host or UI.getScreen(),
 	}, { color = UI.Colors.Background, radius = 12 })
-	UI.new("UISizeConstraint", { MaxSize = PANEL_MAX, Parent = window })
+	UI.place(window, "MenuWindow")
 	UI.heading(title, {
 		Name = "Title",
 		Position = UDim2.fromOffset(16, 10),
@@ -1175,11 +1264,18 @@ end
 -- has room for the list), or back on the screen on its own.
 local function dock(panel: GuiObject)
 	local docked = host ~= nil
-	local constraint = panel:FindFirstChildOfClass("UISizeConstraint")
 	panel.Parent = host or UI.getScreen()
-	panel.Size = if docked then UDim2.fromScale(1, 1) else PANEL_SIZE
-	if constraint then
-		constraint.MaxSize = if docked then Vector2.new(math.huge, math.huge) else PANEL_MAX
+	if docked then
+		-- The whole of the computer's screen, however big that is.
+		panel.AnchorPoint = Vector2.new(0.5, 0.5)
+		panel.Position = UDim2.fromScale(0.5, 0.5)
+		panel.Size = UDim2.fromScale(1, 1)
+		local constraint = panel:FindFirstChildOfClass("UISizeConstraint")
+		if constraint then
+			constraint.MaxSize = Vector2.new(math.huge, math.huge)
+		end
+	else
+		UI.place(panel, "MenuWindow")
 	end
 	local edge, top = if docked then 10 else 16, panelTop(docked)
 	local title = panel:FindFirstChild("Title")
@@ -1304,23 +1400,30 @@ end
 
 -- Toasts and big moments ---------------------------------------------------------------------
 
--- Little messages pop up in a stack at the top of the screen. Toasts have a screen of their own,
--- above the shop computer's monitor (so its replies show) but under the drive cutscene.
+-- Little messages pop up in a stack near the top of the screen (UiLayout's Toasts). Toasts have a
+-- screen of their own, above the shop computer's monitor (so its replies show) but under the
+-- drive cutscene.
 local toastScreen: ScreenGui = nil
 local toastHolder: Frame = nil
--- How far down the screen the toasts start, and what they stay below (see UI.keepToastsBelow).
-local TOAST_TOP = 60
+-- What the toasts stay below (see UI.keepToastsBelow), and how far below it they start.
 local toastsUnder: GuiObject? = nil
+local TOAST_GAP = 8
 local function placeToasts()
 	if not toastHolder then
 		return
 	end
-	local top = TOAST_TOP
+	local base = UI.layout("Toasts").position :: UDim2
 	local under = toastsUnder
 	if under and under.Visible then
-		top = math.max(top, under.AbsolutePosition.Y + under.AbsoluteSize.Y + 8)
+		-- In pixels down the screen: where the stack would start, and just under `under`.
+		local top = base.Y.Scale * toastScreen.AbsoluteSize.Y + base.Y.Offset
+		local below = under.AbsolutePosition.Y + under.AbsoluteSize.Y + TOAST_GAP
+		if below > top then
+			toastHolder.Position = base + UDim2.fromOffset(0, below - top)
+			return
+		end
 	end
-	toastHolder.Position = UDim2.new(0.5, 0, 0, top)
+	toastHolder.Position = base
 end
 local function toastStack(): Frame
 	if not toastHolder then
@@ -1333,12 +1436,10 @@ local function toastStack(): Frame
 		})
 		toastHolder = UI.new("Frame", {
 			Name = "Toasts",
-			AnchorPoint = Vector2.new(0.5, 0),
-			Position = UDim2.new(0.5, 0, 0, TOAST_TOP),
-			Size = UDim2.new(1, -32, 0, 200),
 			BackgroundTransparency = 1,
 			Parent = toastScreen,
-		}, { UI.list(6), UI.new("UISizeConstraint", { MaxSize = Vector2.new(420, 200) }) })
+		})
+		UI.place(toastHolder, "Toasts")
 		placeToasts()
 	end
 	return toastHolder
@@ -1378,9 +1479,11 @@ end
 
 local TOAST_TEXT = 17
 function UI.notify(message: string)
-	-- As tall as the message wraps to (the stack is at most 420 wide, less the padding).
+	-- As tall as the message wraps to (the stack is at most its max width, less the padding).
 	local stack = toastStack().AbsoluteSize.X
-	local width = (if stack > 100 then math.min(420, stack) else 420) - 32
+	local max = UI.layout("Toasts").max
+	local widest = if max then max.X else stack
+	local width = (if stack > 100 then math.min(widest, stack) else widest) - 32
 	local lines = TextService:GetTextSize(message, TOAST_TEXT, UI.Font, Vector2.new(math.max(100, width - 12), 1000))
 	local toast = UI.new("CanvasGroup", {
 		Name = "Notice",
@@ -1410,13 +1513,11 @@ function UI.moment(name: string, text: string, subtitle: string?, seconds: numbe
 	end
 	local holder = UI.new("CanvasGroup", {
 		Name = "Moment",
-		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.fromScale(0.5, 0.3),
-		Size = UDim2.new(0.9, 0, 0, 140),
 		BackgroundTransparency = 1,
 		GroupTransparency = 1,
 		Parent = toastScreen,
-	}, { UI.new("UISizeConstraint", { MaxSize = Vector2.new(720, 140) }) })
+	})
+	UI.place(holder, "Moment")
 	momentHolder = holder
 	local words = UI.wordmark(name, text, 84, {
 		AnchorPoint = Vector2.new(0.5, 0),
