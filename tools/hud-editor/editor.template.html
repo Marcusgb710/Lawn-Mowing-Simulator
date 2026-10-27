@@ -221,6 +221,9 @@ button { cursor: pointer; }
   border-radius: 8px; padding: 7px 9px; margin-top: 5px; font-size: 12.5px; font-weight: 600; line-height: 1.35;
 }
 .warn-item b { font-weight: 900; }
+.warn-item.note { background: var(--raised); color: var(--muted); }
+.warn-item .where { color: var(--muted); font-weight: 600; }
+.warn-item .where::before { content: "· "; }
 .warns p { margin: 0; color: var(--muted); font-size: 12.5px; }
 
 /* Stage */
@@ -380,6 +383,9 @@ button { cursor: pointer; }
 .scene-pick { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 900; color: var(--muted); letter-spacing: 0.6px; text-transform: uppercase; }
 .scene-pick select { border: 1px solid var(--line-strong); background: var(--raised); border-radius: 9px; padding: 6px 8px; font-weight: 800; font-size: 13px; text-transform: none; letter-spacing: 0; color: var(--ink); }
 .insp-flags { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.scale-row { display: grid; grid-template-columns: minmax(0, 1fr) 96px; gap: 10px; align-items: center; }
+.scale-row input[type="range"] { width: 100%; accent-color: var(--accent); }
+.hud.drop-target .fill { border-color: var(--select) !important; border-style: solid !important; background: color-mix(in srgb, var(--select) 16%, transparent) !important; }
 .insp-flags li { font-size: 12.5px; font-weight: 600; background: var(--accent-soft); border-radius: 8px; padding: 7px 9px; }
 .eye.off { font-size: 9.5px; font-weight: 900; letter-spacing: 0.4px; text-transform: uppercase; cursor: default; color: var(--muted); border: 1px solid var(--line-strong); border-radius: 5px; width: auto; height: auto; padding: 2px 3px; margin: 0 3px; }
 
@@ -410,6 +416,8 @@ button { cursor: pointer; }
 .chip-g { font-weight: 800; font-size: clamp(7px, 36cqh, 14px); color: var(--g-text); background: var(--g-danger); border: 2px solid var(--g-ink); border-radius: 999px; padding: 0.25em 0.7em; white-space: nowrap; }
 .k-pill { border-radius: 999px; }
 .k-pill .fill { background: rgba(23, 48, 28, 0.85); border: 2px solid rgba(255, 247, 224, 0.2); }
+.k-toasts { pointer-events: none; }
+.k-toasts .toast-g { pointer-events: auto; cursor: grab; }
 .k-toasts .fill { border: 1.5px dashed rgba(255, 247, 224, 0.4); background: transparent; }
 .k-toasts { border-radius: 8px; }
 .k-toasts .content { align-items: flex-start; padding: 0; }
@@ -629,7 +637,8 @@ button { cursor: pointer; }
           <ol>
             <li>Choose a screen at the top (a phone, a tablet or a PC) and a scene, like <b>Mowing a job</b>.</li>
             <li>Drag pieces into place. Pink lines show when edges line up. Pieces in a column swap places; drag a column by its name tab.</li>
-            <li>Red stripes mean two pieces overlap, or a piece sits under Roblox's buttons.</li>
+            <li>Red stripes mean two pieces overlap, a piece sits under Roblox's buttons, or on a phone it's too close to something you tap. Each scene is checked every way it can be, with the pieces that come and go (the first-job coach, a crew invite) there and not.</li>
+            <li><b>Everything at once</b> shows every piece, and lists which ones share a spot but take turns.</li>
             <li>Press <b>Save layout</b>, then tell Claude to apply your HUD layout.</li>
           </ol>
         </div>
@@ -647,6 +656,14 @@ button { cursor: pointer; }
               <button class="btn" id="orderUp">Move up</button>
               <button class="btn" id="orderDown">Move down</button>
               <button class="btn" id="selectParent">Select its column</button>
+            </div>
+          </div>
+          <div class="field" id="columnField" hidden>
+            <div class="field-label">Its column</div>
+            <p class="hint" id="columnHint"></p>
+            <div class="insp-actions">
+              <button class="btn" id="detachBtn">Take it out of the column</button>
+              <button class="btn" id="attachBtn">Put it back in the column</button>
             </div>
           </div>
           <div class="field" id="listField" hidden>
@@ -687,6 +704,14 @@ button { cursor: pointer; }
               <label class="num"><span>H</span><input id="sizeH" type="number" step="1" inputmode="numeric"></label>
             </div>
             <p class="hint" id="sizeHint"></p>
+          </div>
+          <div class="field" id="scaleField">
+            <div class="field-label">Scale</div>
+            <div class="scale-row">
+              <input id="scaleRange" type="range" min="50" max="200" step="5" aria-label="Scale">
+              <label class="num"><span>%</span><input id="scalePct" type="number" min="25" max="300" step="5" inputmode="numeric"></label>
+            </div>
+            <p class="hint" id="scaleHint"></p>
           </div>
           <details class="adv" id="advField">
             <summary>Exact Roblox values</summary>
@@ -740,7 +765,7 @@ const COMPACT_HEIGHT = SCREEN.compactHeight || 500;
 const SCREENS = SCREEN.screens || {};
 const SCALING = SCREEN.scaling || {};
 // The fields a layout can change. Everything else in an entry (label, note...) is the code's.
-const EDITABLE = ["anchor", "position", "size", "touch", "compact", "order", "list"];
+const EDITABLE = ["anchor", "position", "size", "scale", "touch", "compact", "order", "list", "parent", "screen"];
 
 // Screens to try the layout on, in Roblox's GUI pixels (points on phones), held sideways. `notch`
 // is the safe-area inset Roblox keeps clear on each side.
@@ -758,26 +783,68 @@ const DEVICES = [
 const LEFT = ["LeftColumn", "MoneyPanel", "MenuButtons", "TruckButton", "GuideButton", "CrewButton", "MouseHint", "GrandmaGoal"];
 const RIGHT = ["RightColumn", "CurbAppeal"];
 const LOOKING = ["Reticle", "InteractPrompt", "InteractButton"];
+const DECOR = ["DecorButtons", "DecorTopRow", "DecorBottomRow", "DecorPlaceButton", "DecorTurnButton", "DecorPutBackButton", "DecorSendBackButton"];
+// Each scene has what shows at that moment (`ids`, drawn), and what can come and go while it's on
+// (`also`, drawn when you show it with the eye): the first-job coach is up from the end of the
+// intro until the first job's paid, a tool can be worked on (the hold ring) at the shop's
+// workbench or the truck's tailgate, and a crew invite can come at any time. A job you've taken
+// stays on the tracker while you load the truck or decorate. What gives way to what (a piece's
+// hideWhile) and curb appeal hiding on a short screen while the job tracker shows are worked out
+// as the game does, and every scene is checked each way it can be (see waysOf).
 const SCENES = [
-  { id: "shop", name: "At the shop", ids: [...LEFT, ...RIGHT, ...LOOKING, "TutorialBanner", "Toasts"] },
-  { id: "job", name: "Mowing a job", job: true, hotbar: true, ids: [...LEFT, ...RIGHT, "JobTracker", "ToolCondition", ...LOOKING, "HoldRing", "Toasts"] },
-  { id: "shears", name: "Cutting with shears", job: true, hotbar: true, ids: [...LEFT, ...RIGHT, "JobTracker", "ToolCondition", "Reticle", "SnipButton", "Toasts"] },
-  { id: "carry", name: "Carrying a tool", ids: [...LEFT, ...RIGHT, ...LOOKING, "InteractSecondButton", "CarryHint", "Toasts"] },
-  { id: "decor", name: "Decorating", ids: [...LEFT, ...RIGHT, "Reticle", "DecorPrompt", "DecorButtons", "DecorPlaceButton", "DecorTurnButton", "DecorPutBackButton", "DecorSendBackButton", "Toasts"] },
-  { id: "popups", name: "Payday and popups", ids: [...LEFT, ...RIGHT, "Moment", "PayBreakdown", "CrewInvite", "Toasts"] },
+  { id: "shop", name: "At the shop", ids: [...LEFT, ...RIGHT, ...LOOKING, "TutorialBanner", "Toasts"], also: ["HoldRing", "CrewInvite"] },
+  // a tool you can use comes out of storage in your hands, for your own lawn: shears snip there
+  { id: "ready", name: "Job taken, loading the truck", ids: [...LEFT, ...RIGHT, "JobTracker", ...LOOKING, "InteractSecondButton", "CarryHint", "Toasts"], also: ["SnipButton", "ToolCondition", "TutorialBanner", "HoldRing", "CrewInvite"] },
+  { id: "job", name: "Mowing a job", hotbar: true, ids: [...LEFT, ...RIGHT, "JobTracker", "ToolCondition", ...LOOKING, "HoldRing", "Toasts"], also: ["TutorialBanner", "CrewInvite"] },
+  { id: "shears", name: "Cutting with shears", hotbar: true, ids: [...LEFT, ...RIGHT, "JobTracker", "ToolCondition", ...LOOKING, "SnipButton", "Toasts"], also: ["TutorialBanner", "CrewInvite"] },
+  { id: "decor", name: "Decorating", ids: [...LEFT, ...RIGHT, "JobTracker", "Reticle", "DecorPrompt", ...DECOR, "Toasts"], also: ["CrewInvite"] },
+  { id: "payday", name: "Payday", ids: [...LEFT, ...RIGHT, "JobTracker", "Moment", "PayBreakdown", "Toasts"], also: ["TutorialBanner", "CrewInvite"] },
+  { id: "invite", name: "A crew invite on a job", hotbar: true, ids: [...LEFT, ...RIGHT, "JobTracker", "ToolCondition", ...LOOKING, "SnipButton", "CrewInvite", "Toasts"], also: ["TutorialBanner"] },
   { id: "menu", name: "A menu open", ids: [...LEFT, ...RIGHT, "MenuWindow", "Toasts"] },
   { id: "computer", name: "At the shop computer", ids: ["ComputerMonitor", "Toasts"] },
   { id: "dialogue", name: "In a story scene", ids: ["DialogueTopBar", "DialogueBottomBar", "DialogueCaption", "DialogueSkip", "DialogueBox", "DialogueToolCard", "SpeechBubble"] },
   { id: "act", name: "An act's title", ids: ["DialogueTopBar", "DialogueBottomBar", "ActTitle"] },
   { id: "drive", name: "Driving to a job", ids: ["CutsceneTopBar", "CutsceneBottomBar", "CutsceneTitle", "CutsceneSubtitle"] },
   { id: "contest", name: "Best Yard results", ids: ["ContestResults"] },
-  { id: "studio", name: "Studio playtest", ids: [...LEFT, ...RIGHT, ...LOOKING, "StudioTestHint", "StudioTestPanel"] },
-  { id: "all", name: "Everything at once", ids: null },
+  // Studio's test panel only ever shows in a playtest, over whatever's there: not checked.
+  { id: "studio", name: "Studio playtest (not checked)", checks: false, ids: [...LEFT, ...RIGHT, ...LOOKING, "StudioTestHint", "StudioTestPanel"] },
+  // Every piece drawn at once, so some share a spot: it says which of those ever show together.
+  { id: "all", name: "Everything at once", checks: false, ids: null },
 ];
+// What comes and goes within a scene, and that others give way to (anything named in a hideWhile):
+// each scene is checked with every mix of them there and not, so what gives way is checked too.
+const SOMETIMES = [...new Set(IDS.flatMap((id) => {
+  const d = DEFAULTS[id];
+  return [d.hideWhile, d.touch && d.touch.hideWhile, d.compact && d.compact.hideWhile].flat().filter((o) => o && DEFAULTS[o]);
+}))];
+// Each way a scene can be: everything it has, with and without each piece that comes and goes.
+function waysOf(scene) {
+  const all = [...new Set([...(scene.ids || []), ...(scene.also || [])])];
+  const coming = SOMETIMES.filter((id) => all.includes(id));
+  const stays = all.filter((id) => !coming.includes(id));
+  const ways = [];
+  for (let mask = 0; mask < 1 << coming.length; mask++) {
+    const on = coming.filter((_, i) => mask & (1 << i));
+    ways.push(Object.assign({}, scene, { ids: [...stays, ...on], also: [], with: on, without: coming.filter((id) => !on.includes(id)), way: true }));
+  }
+  return ways;
+}
+// Pieces that only show for a moment (a toast, a big "Level up!", a crew invite): they may pass over
+// the HUD and each other, but not over what you're playing with.
+const PASSING = new Set(["Toasts", "Moment", "CrewInvite"]);
+// What you tap on a phone: the game's own buttons (Roblox's are in coreControls).
+const TAPPABLE = new Set(["TruckButton", "GuideButton", "CrewButton", "InteractButton", "InteractSecondButton", "SnipButton", "DecorPlaceButton", "DecorTurnButton", "DecorPutBackButton", "DecorSendBackButton", "CrewInvite", "DialogueSkip"]);
+const MUST_STAY_CLEAR = new Set(["InteractPrompt", "DecorPrompt", ...TAPPABLE]);
+// On a touch screen, how far apart things stay, in the screen's pixels: what you read keeps this far
+// from anything you tap (so a thumb on a button doesn't cover it, and a tap meant for the button
+// doesn't miss), two buttons a little less, and everything well clear of the move stick, where
+// your thumb sits.
+const CLEAR = { reading: 12, tapping: 8, thumb: 24 };
 
 // How each piece is drawn: the game's look, with sample words.
 const LOOKS = {
   LeftColumn: { kind: "group" }, RightColumn: { kind: "group" }, MenuButtons: { kind: "group" }, DecorButtons: { kind: "group" },
+  DecorTopRow: { kind: "group" }, DecorBottomRow: { kind: "group" },
   MoneyPanel: { kind: "money" },
   TruckButton: { kind: "button", icon: "truck", text: "Truck", key: "T" },
   GuideButton: { kind: "button", icon: "book", text: "Guide", key: "G" },
@@ -799,7 +866,7 @@ const LOOKS = {
   DecorPutBackButton: { kind: "button", text: "Put back" },
   DecorSendBackButton: { kind: "button", text: "Send back" },
   Toasts: { kind: "toasts", sample: "Job board: 3 new jobs nearby." },
-  Moment: { kind: "moment", text: "LEVEL UP!" },
+  Moment: { kind: "moment", text: "LEVEL UP!", wide: 340 },
   PayBreakdown: { kind: "receipt", text: "Payday" },
   CrewInvite: { kind: "panel", icon: "crew", text: "Sam invited you", sample: "Join · No thanks" },
   MenuWindow: { kind: "window", text: "Truck" },
@@ -863,29 +930,60 @@ function savePrefs() {
 }
 
 // ================================================================ who's where
-const ancestorsCache = {};
+// The screen being laid out or checked right now (what's where can depend on it: a column's piece
+// can have its own column on a touch screen), and otherwise the one being edited.
+let viewDev = null;
+function withDev(dev, fn) {
+  const was = viewDev;
+  viewDev = dev;
+  try { return fn(); } finally { viewDev = was; }
+}
+// A piece can leave its column in the editor, so the tree comes from the layout being edited.
+// `null` in the layout means "taken away": the field is removed from the game's file on apply. On a
+// touch screen a column's piece can have its own (its touch parent): false is out of its column.
+function sharedParent(id) {
+  const L = state.layout[id];
+  if (L && "parent" in L) return L.parent || null;
+  return DEFAULTS[id].parent || null;
+}
+function parentOf(id, dev) {
+  dev = dev || viewDev || state.device;
+  const t = state.layout[id] && state.layout[id].touch;
+  if (dev && dev.touch && t && t.parent !== undefined && t.parent !== null) return t.parent || null;
+  return sharedParent(id);
+}
 function ancestors(id) {
-  if (ancestorsCache[id]) return ancestorsCache[id];
   const out = [];
-  let p = DEFAULTS[id].parent;
-  while (p && DEFAULTS[p] && !out.includes(p)) { out.push(p); p = DEFAULTS[p].parent; }
-  return (ancestorsCache[id] = out);
+  let p = parentOf(id);
+  while (p && DEFAULTS[p] && p !== id && !out.includes(p)) { out.push(p); p = parentOf(p); }
+  return out;
 }
 function screenOf(id) {
-  let d = DEFAULTS[id];
-  for (const a of [id, ...ancestors(id)]) if (DEFAULTS[a].screen) return DEFAULTS[a].screen;
-  return d.screen || "LawnUI";
+  for (const a of [id, ...ancestors(id)]) {
+    const L = state.layout[a];
+    const s = L && L.screen !== undefined ? L.screen : DEFAULTS[a].screen;
+    if (s) return s;
+  }
+  return "LawnUI";
 }
 function childrenOf(id) {
-  return IDS.filter((c) => DEFAULTS[c].parent === id);
+  return IDS.filter((c) => parentOf(c) === id);
 }
 function listOf(id) {
   return state.layout[id] && state.layout[id].list;
 }
 function inList(id) {
-  const p = DEFAULTS[id].parent;
+  const p = parentOf(id);
   return !!(p && DEFAULTS[p] && listOf(p));
 }
+// The column a piece may leave and go back into (UiLayout's `detach`), or null.
+function homeColumn(id) {
+  const d = DEFAULTS[id];
+  if (typeof d.detach === "string" && DEFAULTS[d.detach]) return d.detach;
+  if (d.detach && d.parent && DEFAULTS[d.parent]) return d.parent;
+  return null;
+}
+const isDetached = (id) => !!homeColumn(id) && !parentOf(id);
 const isWorld = (id) => !!(SCREENS[screenOf(id)] && SCREENS[screenOf(id)].billboard);
 const isFixed = (id) => !!DEFAULTS[id].fixed;
 const isCompact = (dev) => dev.h < COMPACT_HEIGHT;
@@ -902,14 +1000,32 @@ function sceneHas(id) {
   const base = !ids || ids.includes(id);
   return state.toggled.has(id) ? !base : base;
 }
-// Whether a piece shows on `dev` in this scene (and everything it's inside does).
-function shows(id, dev) {
+// The pieces `id` gives way to on `dev` (its hideWhile, a short screen's or a touch screen's over
+// its own): while one of them shows, it hides.
+function hideWhileOf(id, dev) {
+  const d = DEFAULTS[id];
+  if (isCompact(dev) && d.compact && d.compact.hideWhile) return d.compact.hideWhile;
+  if (dev.touch && d.touch && d.touch.hideWhile) return d.touch.hideWhile;
+  return d.hideWhile || null;
+}
+// Whether a piece shows on `dev` in this scene (and everything it's inside does), and nothing it
+// gives way to is showing. `path` is what's being asked about already, so it never goes round in
+// a circle.
+function shows(id, dev, path) {
   for (const a of [id, ...ancestors(id)]) {
     if (!sceneHas(a) || !deviceAllows(a, dev)) return false;
   }
-  if (id === "CurbAppeal" && state.scene.job) {
+  // everything at once draws every piece, so nothing gives way there
+  if (!state.scene.ids) return true;
+  for (const other of hideWhileOf(id, dev) || []) {
+    const seen = path || new Set([id]);
+    if (!DEFAULTS[other] || seen.has(other)) continue;
+    if (shows(other, dev, new Set([...seen, other]))) return false;
+  }
+  // curb appeal hides on a short screen while the job tracker shows (HudController)
+  if (id === "CurbAppeal") {
     const fullHeight = (SCALING.Columns && SCALING.Columns.fullHeight) || 560;
-    if (rootRect(dev, "LawnUI").h < fullHeight) return false;
+    if (rootRect(dev, "LawnUI").h < fullHeight && shows("JobTracker", dev, new Set([...(path || []), id]))) return false;
   }
   return true;
 }
@@ -927,65 +1043,92 @@ function rootRect(dev, screen) {
 // The placement used on `dev`: the shared one, then the phone one, then the short-screen one.
 function placementOf(id, dev) {
   const L = state.layout[id];
-  const p = { anchor: L.anchor || [0, 0], position: L.position || [0, 0, 0, 0], size: L.size };
-  if (dev.touch && L.touch) for (const k of ["anchor", "position", "size"]) if (L.touch[k]) p[k] = L.touch[k];
-  if (isCompact(dev) && L.compact) for (const k of ["anchor", "position", "size"]) if (L.compact[k]) p[k] = L.compact[k];
+  const p = {
+    anchor: L.anchor || [0, 0],
+    position: L.position || [0, 0, 0, 0],
+    size: L.size,
+    scale: typeof L.scale === "number" ? L.scale : 1,
+  };
+  for (const [on, o] of [[dev.touch, L.touch], [isCompact(dev), L.compact]]) {
+    if (!on || !o) continue;
+    for (const k of ["anchor", "position", "size"]) if (o[k]) p[k] = o[k];
+    if (typeof o.scale === "number") p.scale = o.scale;
+  }
   return p;
 }
 const dims = (v) => (v ? { w: v.width, h: v.height } : {});
 
-// A piece's own size (before any UIScale), given its parent's box size.
+// Sizes the game works out while playing (each piece's note has the rule).
+const RUNTIME = {
+  // As wide as its screen less 32 px, but at least 200 and at most its size.
+  DialogueBox: (z, parent) => ({ w: Math.max(200, Math.min(z.w, parent.w - 32)), h: z.h }),
+};
+
+// A piece's own size (before any UIScale), given its parent's box size. With autoSize, the size
+// is the least it can be that way, and it grows to fit what's in it: for words, about `typical`,
+// taller when it's narrower than that and the words wrap onto more lines.
 function measure(id, pw, ph, dev, memo) {
-  const key = id;
-  if (memo[key]) return memo[key];
+  if (memo[id]) return memo[id];
   const d = DEFAULTS[id];
   const p = placementOf(id, dev);
-  const typical = d.typical || [160, 40];
+  // about how big it shows: on a short screen or a touch screen it may have its own estimate
+  const typical = (isCompact(dev) && d.compact && d.compact.typical) || (dev.touch && d.touch && d.touch.typical) || d.typical || [160, 40];
   let w = p.size ? p.size[0] * pw + p.size[1] : typical[0];
   let h = p.size ? p.size[2] * ph + p.size[3] : typical[1];
+  const mn = dims(d.min), mx = dims(d.max);
+  const clampW = (v) => Math.max(mn.w !== undefined ? mn.w : -Infinity, Math.min(mx.w !== undefined ? mx.w : Infinity, v));
+  w = clampW(w);
+  if (RUNTIME[id]) ({ w, h } = RUNTIME[id]({ w, h }, { w: pw, h: ph }));
   const auto = d.autoSize || "";
   const list = listOf(id);
   if (auto) {
     const kids = list ? orderedChildren(id).filter((c) => shows(c, dev)) : [];
     if (list && kids.length) {
-      const sizes = kids.map((c) => measure(c, w, h, dev, memo));
+      const sizes = kids.map((c) => {
+        const z = measure(c, w, h, dev, memo);
+        const k = placementOf(c, dev).scale;
+        return { w: z.w * k, h: z.h * k };
+      });
       const gap = list.padding || 0;
       if (list.direction === "Horizontal") {
-        if (auto.includes("X")) w = Math.max(w, sizes.reduce((s, z) => s + z.w, 0) + gap * (kids.length - 1));
+        if (auto.includes("X")) w = Math.max(w, sizes.reduce((t, z) => t + z.w, 0) + gap * (kids.length - 1));
         if (auto.includes("Y")) h = Math.max(h, Math.max(...sizes.map((z) => z.h)));
       } else {
-        if (auto.includes("Y")) h = Math.max(h, sizes.reduce((s, z) => s + z.h, 0) + gap * (kids.length - 1));
+        if (auto.includes("Y")) h = Math.max(h, sizes.reduce((t, z) => t + z.h, 0) + gap * (kids.length - 1));
         if (auto.includes("X")) w = Math.max(w, Math.max(...sizes.map((z) => z.w)));
       }
     } else if (!list) {
       if (auto.includes("X")) w = Math.max(w, typical[0]);
-      if (auto.includes("Y")) h = Math.max(h, typical[1]);
+      if (auto.includes("Y")) {
+        const wrap = auto.includes("X") || !typical[0] || !w ? 1 : Math.max(0.6, Math.min(2.5, typical[0] / w));
+        h = Math.max(h, Math.round(typical[1] * wrap));
+      }
     }
   }
-  const mn = dims(d.min), mx = dims(d.max);
-  if (mx.w !== undefined) w = Math.min(w, mx.w);
   if (mx.h !== undefined) h = Math.min(h, mx.h);
-  if (mn.w !== undefined) w = Math.max(w, mn.w);
   if (mn.h !== undefined) h = Math.max(h, mn.h);
-  return (memo[key] = { w: Math.max(0, w), h: Math.max(0, h) });
+  return (memo[id] = { w: Math.max(0, w), h: Math.max(0, h) });
 }
 
 function orderedChildren(id) {
   const kids = childrenOf(id);
   return kids
-    .map((c, i) => ({ c, o: state.layout[c].order !== undefined ? state.layout[c].order : 1e6 + i }))
+    .map((c, i) => ({ c, o: typeof state.layout[c].order === "number" ? state.layout[c].order : 1e6 + i }))
     .sort((a, b) => a.o - b.o)
     .map((x) => x.c);
 }
 
-// How much a UIScale shrinks a piece on this screen (__screen.scaling), 1 for most.
-function scaleOf(id, dev, raw) {
+// How much a fit-to-screen UIScale shrinks a piece here (__screen.scaling), 1 for most. A piece
+// taken out of a HUD column fits by the columns' rule on its own.
+function fitOf(id, dev, raw) {
   for (const [name, rule] of Object.entries(SCALING)) {
-    if (!rule.elements || !rule.elements.includes(id)) continue;
+    const listed = rule.elements && rule.elements.includes(id);
+    if (!listed && !(name === "Columns" && isDetached(id))) continue;
     const root = rootRect(dev, screenOf(id));
     if (name === "Columns") {
+      const margin = dev.touch && rule.touchMargin !== undefined ? rule.touchMargin : rule.margin !== undefined ? rule.margin : 24;
       let s = Math.min(1, Math.max(rule.minScale || 0.7, root.h / (rule.fullHeight || 560)));
-      if (raw.h > 0) s = Math.min(s, Math.max(rule.tightScale || 0.5, (root.h - (rule.margin || 24)) / raw.h));
+      if (raw.h > 0) s = Math.min(s, Math.max(rule.tightScale || 0.5, (root.h - margin) / raw.h));
       return s;
     }
     if (name === "PayBreakdown") {
@@ -1000,14 +1143,17 @@ function scaleOf(id, dev, raw) {
 }
 
 // Every piece's box on `dev` in screen pixels, as drawn. Each box also keeps its parent's box
-// (`parent`, in the same unscaled frame its UDim2 is worked out in) and the scale it's drawn at
-// (`s`, about `ox, oy`), which dragging uses to turn screen pixels back into layout values.
+// (`parent`, in the unscaled frame its UDim2 is worked out in), the scale it's drawn at overall
+// (`s`), its own UIScale (`scale`: fit times its `scale`), and for a piece in a list, the `scale`
+// already in its box (`k`). Dragging uses these to turn screen pixels back into layout values.
 function computeRects(dev) {
+  return withDev(dev, () => layoutAll(dev));
+}
+function layoutAll(dev) {
   const memo = {};
   const rects = {};
   const xf = (t, x, y) => ({ x: t.ox + (x - t.ox) * t.s, y: t.oy + (y - t.oy) * t.s });
   function placeBox(id, parentBox, t) {
-    const d = DEFAULTS[id];
     const p = placementOf(id, dev);
     const size = measure(id, parentBox.w, parentBox.h, dev, memo);
     let x, y;
@@ -1019,58 +1165,60 @@ function computeRects(dev) {
       x = parentBox.x + p.position[0] * parentBox.w + p.position[1] - p.anchor[0] * size.w;
       y = parentBox.y + p.position[2] * parentBox.h + p.position[3] - p.anchor[1] * size.h;
     }
-    return layoutAt(id, { x, y, w: size.w, h: size.h }, parentBox, t, p.anchor);
+    return layoutAt(id, { x, y, w: size.w, h: size.h }, parentBox, t, isWorld(id) ? [0.5, 1] : p.anchor, 0);
   }
-  function layoutAt(id, raw, parentBox, t, anchor) {
-    // This piece's own UIScale, about its anchor point.
-    const s = scaleOf(id, dev, raw);
+  function layoutAt(id, raw, parentBox, t, anchor, k) {
+    // This piece's own UIScale, about its anchor point: its fit, times its `scale` (unless it's in
+    // a list, where its `scale` is already in its box).
+    const p = placementOf(id, dev);
+    const s = fitOf(id, dev, raw) * (k ? 1 : p.scale);
     let own = t;
     if (s !== 1) {
       const ox = raw.x + anchor[0] * raw.w, oy = raw.y + anchor[1] * raw.h;
-      // compose: first this scale (in the parent's frame), then the parent's
-      own = { s: t.s * s, ox: 0, oy: 0, inner: { s, ox, oy }, outer: t };
+      own = { s: t.s * s, inner: { s, ox, oy }, outer: t };
     }
     const toScreen = (x, y) => {
       if (own.inner) {
         const a = { x: own.inner.ox + (x - own.inner.ox) * own.inner.s, y: own.inner.oy + (y - own.inner.oy) * own.inner.s };
-        return xf(own.outer, a.x, a.y);
+        return toOuter(own.outer, a.x, a.y);
       }
-      return xf(own, x, y);
+      return toOuter(own, x, y);
     };
     const tl = toScreen(raw.x, raw.y), br = toScreen(raw.x + raw.w, raw.y + raw.h);
-    const pin = toScreen(parentBox.x, parentBox.y);
-    rects[id] = {
-      x: tl.x, y: tl.y, w: br.x - tl.x, h: br.y - tl.y, raw, parent: parentBox, s: own.s, scale: s,
-      pinX: 0, pinY: 0, toScreen,
-    };
-    const p = placementOf(id, dev);
     const pinPt = toScreen(parentBox.x + p.position[0] * parentBox.w, parentBox.y + p.position[2] * parentBox.h);
-    rects[id].pinX = pinPt.x;
-    rects[id].pinY = pinPt.y;
-    void pin;
+    rects[id] = {
+      x: tl.x, y: tl.y, w: br.x - tl.x, h: br.y - tl.y, raw, parent: parentBox, s: own.s, scale: s, k: k || 1,
+      pinX: pinPt.x, pinY: pinPt.y, toScreen,
+    };
     // What's inside: a list stacks them; otherwise each one's own UDim2 in this box.
     const kids = childrenOf(id);
     if (!kids.length) return;
-    const childT = own.inner ? { s: own.s, inner: own.inner, outer: own.outer } : own;
     const list = listOf(id);
     if (list) {
-      let cursor = 0;
       const gap = list.padding || 0;
+      const align = list.align || "Left";
+      const items = [];
       for (const c of orderedChildren(id)) {
         if (!shows(c, dev)) { placeHidden(c, raw); continue; }
-        const z = measure(c, raw.w, raw.h, dev, memo);
+        const ck = placementOf(c, dev).scale;
+        const z0 = measure(c, raw.w, raw.h, dev, memo);
+        items.push({ c, ck, z: { w: z0.w * ck, h: z0.h * ck } });
+      }
+      // a row lines up along its width as a whole, as Roblox's HorizontalAlignment does
+      const across = items.reduce((t, it) => t + it.z.w, 0) + gap * Math.max(0, items.length - 1);
+      let cursor = list.direction !== "Horizontal" ? 0 : align === "Right" ? raw.w - across : align === "Center" ? (raw.w - across) / 2 : 0;
+      for (const { c, ck, z } of items) {
         let cx, cy;
         if (list.direction === "Horizontal") {
           cx = raw.x + cursor;
           cy = raw.y;
           cursor += z.w + gap;
         } else {
-          const align = list.align || "Left";
           cx = align === "Right" ? raw.x + raw.w - z.w : align === "Center" ? raw.x + (raw.w - z.w) / 2 : raw.x;
           cy = raw.y + cursor;
           cursor += z.h + gap;
         }
-        layoutChild(c, { x: cx, y: cy, w: z.w, h: z.h }, raw, childT);
+        layoutAt(c, { x: cx, y: cy, w: z.w, h: z.h }, raw, own, [0, 0], ck);
       }
     } else {
       for (const c of kids) {
@@ -1078,36 +1226,43 @@ function computeRects(dev) {
         const z = measure(c, raw.w, raw.h, dev, memo);
         const cx = raw.x + cp.position[0] * raw.w + cp.position[1] - cp.anchor[0] * z.w;
         const cy = raw.y + cp.position[2] * raw.h + cp.position[3] - cp.anchor[1] * z.h;
-        layoutChild(c, { x: cx, y: cy, w: z.w, h: z.h }, raw, childT);
+        layoutAt(c, { x: cx, y: cy, w: z.w, h: z.h }, raw, own, cp.anchor, 0);
       }
     }
   }
-  function layoutChild(id, raw, parentRaw, t) {
-    const anchor = placementOf(id, dev).anchor;
+  // A transform is either plain (scale about ox, oy) or a piece's own scale inside its parent's.
+  function toOuter(t, x, y) {
     if (t.inner) {
-      // children live in the scaled parent's frame: route through its transform
-      const parentT = { s: t.s, ox: 0, oy: 0 };
-      void parentT;
+      const a = { x: t.inner.ox + (x - t.inner.ox) * t.inner.s, y: t.inner.oy + (y - t.inner.oy) * t.inner.s };
+      return toOuter(t.outer, a.x, a.y);
     }
-    layoutAt(id, raw, parentRaw, t.inner ? { s: t.s, ox: 0, oy: 0, inner: t.inner, outer: t.outer } : t, anchor);
+    return xf(t, x, y);
   }
   function placeHidden(id, parentRaw) {
-    rects[id] = { x: 0, y: 0, w: 0, h: 0, raw: { x: 0, y: 0, w: 0, h: 0 }, parent: parentRaw, s: 1, scale: 1, hidden: true, toScreen: (x, y) => ({ x, y }) };
+    rects[id] = { x: 0, y: 0, w: 0, h: 0, raw: { x: 0, y: 0, w: 0, h: 0 }, parent: parentRaw, s: 1, scale: 1, k: 1, hidden: true, toScreen: (x, y) => ({ x, y }) };
   }
   const identity = { s: 1, ox: 0, oy: 0 };
   for (const id of IDS) {
-    const d = DEFAULTS[id];
-    if (d.parent && DEFAULTS[d.parent]) continue;
+    const p = parentOf(id);
+    if (p && DEFAULTS[p]) continue;
     placeBox(id, rootRect(dev, screenOf(id)), identity);
   }
-  // Toasts start just under the first-job coach while it shows.
-  const coach = rects.TutorialBanner, toasts = rects.Toasts;
-  if (coach && toasts && shows("TutorialBanner", dev) && shows("Toasts", dev) && toasts.y < coach.y + coach.h + 8) {
-    const dy = coach.y + coach.h + 8 - toasts.y;
-    toasts.y += dy;
-    toasts.pushed = dy;
+  // Toasts start just under what's showing at the top of the screen in their way: the first-job
+  // coach, and on a touch screen Grandma's goal or a crew invite (UI.keepToastsBelow).
+  const toasts = rects.Toasts;
+  if (toasts && shows("Toasts", dev)) {
+    let start = toasts.y;
+    for (const id of ["TutorialBanner", "GrandmaGoal", "CrewInvite"]) {
+      const r = rects[id];
+      if (!r || r.hidden || !shows(id, dev)) continue;
+      if (r.y < toasts.y && r.x < toasts.x + toasts.w && r.x + r.w > toasts.x) start = Math.max(start, r.y + r.h + 8);
+    }
+    if (start > toasts.y) {
+      toasts.pushed = start - toasts.y;
+      toasts.y = start;
+    }
   }
-  for (const id of IDS) if (!rects[id]) rects[id] = { x: 0, y: 0, w: 0, h: 0, raw: { x: 0, y: 0, w: 0, h: 0 }, parent: rootRect(dev, "LawnUI"), s: 1, scale: 1, hidden: true, toScreen: (x, y) => ({ x, y }) };
+  for (const id of IDS) if (!rects[id]) rects[id] = { x: 0, y: 0, w: 0, h: 0, raw: { x: 0, y: 0, w: 0, h: 0 }, parent: rootRect(dev, "LawnUI"), s: 1, scale: 1, k: 1, hidden: true, toScreen: (x, y) => ({ x, y }) };
   return rects;
 }
 
@@ -1135,20 +1290,81 @@ function coreControls(dev) {
 }
 
 const overlapArea = (a, b) => Math.max(0, Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x)) * Math.max(0, Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y));
-// The box a piece really covers: some draw their words outside it (the round phone buttons).
-function coverOf(id, r) {
+// What a piece really covers on screen, which isn't always its box: the round phone buttons write
+// their words under it, a prompt and the tool chips are pills in the middle of a wider box (on a
+// touch screen the look-at prompt is only the thing's name, since the button says what it does),
+// a big moment's wordmark is in the middle of its (at most 340 px wide: New Tool!), and the toasts'
+// box is where they stack, usually one at a time.
+function coverOf(id, r, dev) {
   const look = LOOKS[id] || {};
-  // the toasts' box is where they stack; one message is what's usually there
+  const middle = (w) => ({ x: r.x + (r.w - Math.min(r.w, w)) / 2, y: r.y, w: Math.min(r.w, w), h: r.h });
   if (look.kind === "toasts") return { x: r.x, y: r.y, w: r.w, h: Math.min(r.h, 40 * r.s) };
+  if (look.kind === "prompt") return middle((dev && dev.touch ? 190 : 250) * r.s);
+  if (look.kind === "chips") return middle(260 * r.s);
+  if (look.wide) return middle(look.wide * r.s);
   if (!look.below) return r;
   const side = (look.side || 0) * r.s;
   return { x: r.x - side, y: r.y, w: r.w + side * 2, h: r.h + look.below * r.s };
 }
 const nameOf = (id) => (DEFAULTS[id] && DEFAULTS[id].label) || id;
 
-function warningsFor(dev, rects) {
+// `quick` checks only the scene as it's drawn (while dragging), not every way it can be.
+function warningsFor(dev, rects, quick) {
+  return withDev(dev, () => (quick && state.scene.checks !== false ? checkOne(dev, rects) : checkScreen(dev, rects)));
+}
+// The gap between two boxes, corner to corner when they're off to one side of each other.
+function gapBetween(a, b) {
+  const dx = Math.max(0, b.x - (a.x + a.w), a.x - (b.x + b.w));
+  const dy = Math.max(0, b.y - (a.y + a.h), a.y - (b.y + b.h));
+  return Math.hypot(dx, dy);
+}
+// The checked scenes where `a` and `b` both show on `dev`, as the game has them (the pieces you've
+// hidden or shown by hand aside).
+function scenesWithBoth(a, b, dev) {
+  const was = { scene: state.scene, toggled: state.toggled };
+  state.toggled = new Set();
+  try {
+    return SCENES.filter((s) => {
+      if (s.checks === false) return false;
+      return waysOf(s).some((way) => {
+        state.scene = way;
+        return shows(a, dev) && shows(b, dev);
+      });
+    });
+  } finally {
+    state.scene = was.scene;
+    state.toggled = was.toggled;
+  }
+}
+function checkScreen(dev, rects) {
+  if (state.scene.checks === false) return state.scene.ids ? { list: [], flagged: new Set(), notes: [] } : everythingAtOnce(dev, rects);
+  const found = checkOne(dev, rects);
+  if (state.scene.way) return found;
+  // and every other way this scene can be, with what comes and goes there or not
+  const seen = new Set(found.list.map((item) => item.text));
+  const was = { scene: state.scene, toggled: state.toggled };
+  state.toggled = new Set();
+  try {
+    for (const way of waysOf(was.scene)) {
+      state.scene = way;
+      for (const item of checkOne(dev, layoutAll(dev)).list) {
+        if (seen.has(item.text)) continue;
+        seen.add(item.text);
+        const label = way.with.length ? `with the ${way.with.map(nameOf).join(" and the ")}` : `without the ${way.without.map(nameOf).join(" or the ")}`;
+        found.list.push({ ids: item.ids, text: `${item.text} <span class="where">${esc(label)}</span>` });
+        for (const id of item.ids) found.flagged.add(id);
+      }
+    }
+  } finally {
+    state.scene = was.scene;
+    state.toggled = was.toggled;
+  }
+  return found;
+}
+function checkOne(dev, rects) {
   const list = [];
   const flagged = new Set();
+  const notes = [];
   const ids = IDS.filter((id) => shows(id, dev) && !isWorld(id) && !rects[id].hidden);
   const leaves = ids.filter((id) => (LOOKS[id] || {}).kind !== "group" || !childrenOf(id).some((c) => shows(c, dev)));
   const screenArea = dev.w * dev.h;
@@ -1156,14 +1372,14 @@ function warningsFor(dev, rects) {
   const bars = (id) => (LOOKS[id] || {}).kind === "bar";
   const core = coreControls(dev);
   for (const id of ids) {
-    const r = coverOf(id, rects[id]);
+    const r = coverOf(id, rects[id], dev);
     if (r.x < -0.5 || r.y < -0.5 || r.x + r.w > dev.w + 0.5 || r.y + r.h > dev.h + 0.5) {
       list.push({ ids: [id], text: `<b>${esc(nameOf(id))}</b> runs off the edge of the screen.` });
       flagged.add(id);
     }
   }
   for (const id of leaves) {
-    const r = coverOf(id, rects[id]);
+    const r = coverOf(id, rects[id], dev);
     if (big(r) || bars(id) || isFixed(id)) continue;
     for (const c of core) {
       if (overlapArea(r, c) > 12) {
@@ -1171,7 +1387,10 @@ function warningsFor(dev, rects) {
         flagged.add(id);
       }
     }
-    if (dev.notch && (r.x < dev.notch - 0.5 || r.x + r.w > dev.w - dev.notch + 0.5) && screenOf(id) !== "Interact") {
+    // the notch only cuts in partway down the side (drawn the same way)
+    const notchTop = dev.h * 0.27, notchBottom = dev.h * 0.73;
+    const inNotch = dev.notch && r.y < notchBottom && r.y + r.h > notchTop && (r.x < dev.notch - 0.5 || r.x + r.w > dev.w - dev.notch + 0.5);
+    if (inNotch) {
       list.push({ ids: [id], text: `<b>${esc(nameOf(id))}</b> reaches into the notch area.` });
       flagged.add(id);
     }
@@ -1181,7 +1400,9 @@ function warningsFor(dev, rects) {
       const a = leaves[i], b = leaves[j];
       if (ancestors(a).includes(b) || ancestors(b).includes(a)) continue;
       if ((isFixed(a) && isFixed(b)) || bars(a) || bars(b)) continue;
-      const ra = coverOf(a, rects[a]), rb = coverOf(b, rects[b]);
+      if ((PASSING.has(a) && !MUST_STAY_CLEAR.has(b)) || (PASSING.has(b) && !MUST_STAY_CLEAR.has(a))) continue;
+      if (PASSING.has(a) && PASSING.has(b)) continue;
+      const ra = coverOf(a, rects[a], dev), rb = coverOf(b, rects[b], dev);
       if (big(ra) || big(rb)) continue;
       if (overlapArea(ra, rb) > 16) {
         list.push({ ids: [a, b], text: `<b>${esc(nameOf(a))}</b> overlaps <b>${esc(nameOf(b))}</b>.` });
@@ -1190,7 +1411,96 @@ function warningsFor(dev, rects) {
       }
     }
   }
-  return { list, flagged };
+  if (dev.touch) tooClose(dev, rects, leaves, core, list, flagged, { big, bars });
+  return { list, flagged, notes };
+}
+
+// Everything at once draws every piece, so some share a spot. Its problems are every scene's, where
+// things really meet; the pieces drawn over each other that never show at the same time are notes
+// (the story's scenes and the drive, which have the screen to themselves, and Studio's test panel
+// left out).
+function everythingAtOnce(dev, rects) {
+  const list = [], flagged = new Set(), notes = [];
+  const was = { scene: state.scene, toggled: state.toggled };
+  state.toggled = new Set();
+  try {
+    for (const scene of SCENES) {
+      if (scene.checks === false) continue;
+      state.scene = scene;
+      for (const item of checkScreen(dev, layoutAll(dev)).list) {
+        list.push({ ids: item.ids, text: `${item.text} <span class="where">${esc(scene.name)}</span>` });
+        for (const id of item.ids) flagged.add(id);
+      }
+    }
+  } finally {
+    state.scene = was.scene;
+    state.toggled = was.toggled;
+  }
+  const playing = (id) => !["Dialogue", "Cutscene", "Studio"].includes(DEFAULTS[id].group);
+  const ids = IDS.filter((id) => playing(id) && deviceAllows(id, dev) && !isWorld(id) && !rects[id].hidden);
+  const leaves = ids.filter((id) => (LOOKS[id] || {}).kind !== "group" || !childrenOf(id).length);
+  const big = (r) => r.w * r.h > dev.w * dev.h * 0.3;
+  const bars = (id) => (LOOKS[id] || {}).kind === "bar";
+  // what `a` gives way to that's `b` or holds it, if anything
+  const yieldsTo = (a, b) => (hideWhileOf(a, dev) || []).find((o) => o === b || ancestors(b).includes(o)) || null;
+  for (let i = 0; i < leaves.length; i++) {
+    for (let j = i + 1; j < leaves.length; j++) {
+      const a = leaves[i], b = leaves[j];
+      if (ancestors(a).includes(b) || ancestors(b).includes(a) || (isFixed(a) && isFixed(b)) || bars(a) || bars(b)) continue;
+      const ra = coverOf(a, rects[a], dev), rb = coverOf(b, rects[b], dev);
+      if (big(ra) || big(rb) || overlapArea(ra, rb) <= 16 || scenesWithBoth(a, b, dev).length) continue;
+      const ab = yieldsTo(a, b), ba = !ab && yieldsTo(b, a);
+      // what only passes over for a moment can come at any time: nothing to say, unless the other
+      // gives way to it
+      if (!ab && !ba && (PASSING.has(a) || PASSING.has(b))) continue;
+      const text = ab
+        ? `<b>${esc(nameOf(a))}</b> hides while the <b>${esc(nameOf(ab))}</b> show${ab === b ? "s" : ""}: they share a spot.`
+        : ba
+          ? `<b>${esc(nameOf(b))}</b> hides while the <b>${esc(nameOf(ba))}</b> show${ba === a ? "s" : ""}: they share a spot.`
+          : `<b>${esc(nameOf(a))}</b> and <b>${esc(nameOf(b))}</b> share a spot, but never show at the same time.`;
+      if (!notes.some((n) => n.text === text)) notes.push({ ids: [a, b], text });
+    }
+  }
+  return { list, flagged, notes };
+}
+
+// On a touch screen: what you read stays CLEAR.reading px from anything you tap, two buttons stay
+// CLEAR.tapping px apart, and everything stays CLEAR.thumb px from the move stick. A round button's
+// words aren't part of what you tap. Something passing over for a moment (a toast) may come close
+// to a button, as long as it doesn't cover it. Overlaps are their own problem.
+function tooClose(dev, rects, leaves, core, list, flagged, { big, bars }) {
+  const box = (id) => (TAPPABLE.has(id) ? rects[id] : coverOf(id, rects[id], dev));
+  const say = (ids, gap, need, other) => {
+    const them = other ? `Roblox's ${esc(other)}` : `<b>${esc(nameOf(ids[1]))}</b>`;
+    list.push({ ids, text: `<b>${esc(nameOf(ids[0]))}</b> is ${Math.max(0, Math.round(gap))} px from ${them}: keep ${need} px between them on a touch screen.` });
+    for (const id of ids) flagged.add(id);
+  };
+  const skip = (id) => isFixed(id) || bars(id);
+  for (let i = 0; i < leaves.length; i++) {
+    for (let j = i + 1; j < leaves.length; j++) {
+      const a = leaves[i], b = leaves[j];
+      const tapA = TAPPABLE.has(a), tapB = TAPPABLE.has(b);
+      if (!tapA && !tapB) continue;
+      if (skip(a) || skip(b) || ancestors(a).includes(b) || ancestors(b).includes(a)) continue;
+      if (!(tapA && tapB) && (PASSING.has(a) || PASSING.has(b))) continue;
+      const ra = box(a), rb = box(b);
+      if (big(ra) || big(rb) || overlapArea(ra, rb) > 16) continue;
+      const need = tapA && tapB ? CLEAR.tapping : CLEAR.reading;
+      const gap = gapBetween(ra, rb);
+      if (gap < need - 0.5) say([a, b], gap, need);
+    }
+  }
+  for (const id of leaves) {
+    if (skip(id) || (PASSING.has(id) && !TAPPABLE.has(id))) continue;
+    const r = box(id);
+    if (big(r)) continue;
+    for (const c of core) {
+      if (overlapArea(r, c) > 12) continue;
+      const need = c.kind === "stick" ? CLEAR.thumb : TAPPABLE.has(id) ? CLEAR.tapping : CLEAR.reading;
+      const gap = gapBetween(r, c);
+      if (gap < need - 0.5) say([id], gap, need, c.label);
+    }
+  }
 }
 
 // ================================================================ drawing the game's pieces
@@ -1538,7 +1848,7 @@ function drawPieces(parts, rects, flagged) {
     const piece = pieceHTML(id, r, dev);
     const look = lookOf(id);
     const grows = DEFAULTS[id].autoSize ? " grows" : "";
-    el.className = `hud k-${piece.cls}${grows}` + (prefs.show.warn && flagged.has(id) ? " warned" : "") + (isFixed(id) ? " fixed" : "") + (state.selected === id ? " is-selected" : "");
+    el.className = `hud k-${piece.cls}${grows}` + (prefs.show.warn && flagged.has(id) ? " warned" : "") + (isFixed(id) ? " fixed" : "") + (state.selected === id ? " is-selected" : "") + (drag && drag.attach === id ? " drop-target" : "");
     Object.assign(el.style, { left: r.x + "px", top: r.y + "px", width: Math.max(1, r.w) + "px", height: Math.max(1, r.h) + "px" });
     el.style.setProperty("--s", r.s);
     el.dataset.id = id;
@@ -1547,7 +1857,7 @@ function drawPieces(parts, rects, flagged) {
       const grip = document.createElement("span");
       grip.className = "grip";
       grip.textContent = nameOf(id);
-      grip.title = inList(id) ? "Drag to change its place in the column" : "Drag to move the whole group";
+      grip.title = homeColumn(id) ? "Drag to move it (out of its column, or back)" : inList(id) ? "Drag to change its place in the column" : "Drag to move the whole group";
       grip.style.transform = `scale(${1 / zoom})`;
       grip.addEventListener("pointerdown", (e) => startDrag(e, id, "move"));
       el.appendChild(grip);
@@ -1625,13 +1935,13 @@ function drawSelection(parts, rects, guides) {
   }
 }
 
-// Which ways a piece can be resized: not the way it grows to fit, and not at all without a size.
+// Which ways a piece can be resized: both, for anything with a size. Where it grows to fit what's
+// in it, the size is the least it can be.
 function resizableAxes(id, dev) {
   if (isFixed(id)) return { x: false, y: false };
   const p = placementOf(id, dev);
   if (!p.size) return { x: false, y: false };
-  const auto = DEFAULTS[id].autoSize || "";
-  return { x: !auto.includes("X"), y: !auto.includes("Y") };
+  return { x: true, y: true };
 }
 
 function renderStage() {
@@ -1656,7 +1966,7 @@ function renderPieces(guides, dragging) {
   if (!main) return;
   const rects = computeRects(state.device);
   lastRects = rects;
-  lastWarnings = warningsFor(state.device, rects);
+  lastWarnings = warningsFor(state.device, rects, !!dragging);
   drawUnder(main);
   drawPieces(main, rects, lastWarnings.flagged);
   drawSelection(main, rects, guides);
@@ -1755,22 +2065,31 @@ function renderSide() {
 
   const warns = $("warns");
   const w = lastWarnings.list;
+  const notes = lastWarnings.notes || [];
+  const everything = !state.scene.ids;
   warns.className = "warns" + (w.length ? "" : " clear");
-  if (!prefs.show.warn) {
-    warns.innerHTML = `<h3>Problems</h3><p>Problem checks are off.</p>`;
-  } else if (!w.length) {
-    warns.innerHTML = `<h3>No problems</h3><p>${esc(state.scene.name)} on ${esc(dev.short)}: nothing overlaps, and everything stays clear of Roblox's buttons.</p>`;
-  } else {
-    warns.innerHTML = `<h3>${w.length} problem${w.length === 1 ? "" : "s"} · ${esc(state.scene.name)} on ${esc(dev.short)}</h3>`;
-    for (const item of w.slice(0, 40)) {
+  const items = (list, className) => {
+    for (const item of list.slice(0, 40)) {
       const b = document.createElement("button");
       b.type = "button";
-      b.className = "warn-item";
+      b.className = className;
       b.innerHTML = item.text;
       b.addEventListener("click", () => select(item.ids[0], true));
       warns.appendChild(b);
     }
+  };
+  if (!prefs.show.warn) {
+    warns.innerHTML = `<h3>Problems</h3><p>Problem checks are off.</p>`;
+  } else if (!w.length) {
+    warns.innerHTML = everything
+      ? `<h3>No problems</h3><p>Everything at once on ${esc(dev.short)}: every piece is drawn, so some share a spot.${notes.length ? " None of these ever show at the same time:" : ""}</p>`
+      : `<h3>No problems</h3><p>${esc(state.scene.name)} on ${esc(dev.short)}: nothing overlaps${dev.touch ? ", nothing crowds a button" : ""}, and everything stays clear of Roblox's buttons.</p>`;
+  } else {
+    warns.innerHTML = `<h3>${w.length} problem${w.length === 1 ? "" : "s"} · ${esc(state.scene.name)} on ${esc(dev.short)}</h3>`;
+    items(w, "warn-item");
+    if (notes.length) warns.insertAdjacentHTML("beforeend", `<p>These share a spot too, but never show at the same time:</p>`);
   }
+  if (prefs.show.warn) items(notes, "warn-item note");
 }
 
 // ================================================================ the selected piece's settings
@@ -1812,7 +2131,7 @@ function renderInspector() {
   const r = lastRects && lastRects[id];
   const visible = shows(id, dev);
   $("inspTitle").textContent = nameOf(id);
-  const where = d.parent ? ` · inside ${nameOf(d.parent)}` : ` · on ${screenOf(id)}`;
+  const where = parentOf(id) ? ` · inside ${nameOf(parentOf(id))}` : ` · on ${screenOf(id)}`;
   $("inspId").textContent = id + where;
   $("inspNote").textContent = d.note || "";
   show("inspNote", !!d.note);
@@ -1820,9 +2139,14 @@ function renderInspector() {
   const flags = [];
   if (d.device === "touch") flags.push("Only on touch screens.");
   if (d.device === "keyboard") flags.push("Only with a keyboard.");
-  if (!visible && deviceAllows(id, dev)) flags.push("Hidden in this scene: show it with the eye in the list.");
+  const takers = (hideWhileOf(id, dev) || []).filter((o) => DEFAULTS[o] && state.scene.ids && shows(o, dev));
+  const inScene = [id, ...ancestors(id)].every((a) => sceneHas(a));
+  if (!visible && takers.length) flags.push(`Hidden here while ${takers.map(nameOf).join(" and ")} ${takers.length === 1 ? "shows" : "show"}: ${takers.length === 1 ? "it takes" : "they take"} its spot, so it gives way (its hideWhile).`);
+  else if (!visible && inScene && id === "CurbAppeal" && deviceAllows(id, dev)) flags.push("Hidden on a short screen while the job tracker shows, which needs the room.");
+  else if (!visible && deviceAllows(id, dev)) flags.push("Hidden in this scene: show it with the eye in the list.");
   if (isFixed(id)) flags.push("The game puts this where the camera aims, so it can't be moved. It's here so you can place things around it.");
-  if (r && r.scale && r.scale !== 1) flags.push(`Shrinks to fit this screen: drawn at ${Math.round(r.scale * 100)}%.`);
+  const fit = r && !r.hidden ? fitOf(id, dev, r.raw) : 1;
+  if (fit !== 1) flags.push(`Fits this screen: drawn at ${Math.round(fit * 100)}%${p.scale !== 1 ? `, then your ${Math.round(p.scale * 100)}%` : ""}.`);
   if (r && r.pushed) flags.push(`Moved ${Math.round(r.pushed)} px down here to stay under the first-job coach.`);
   if (L.compact && isCompact(dev)) flags.push("Short screens (like this one) use their own values for this piece, and your changes here go into those.");
   if (isWorld(id)) flags.push("Floats over a person in the world, so only its size is set here.");
@@ -1836,6 +2160,23 @@ function renderInspector() {
   show("offField", positioned);
   show("orderField", editable && inList(id));
   show("listField", editable && !!L.list);
+  const home = homeColumn(id);
+  show("columnField", editable && !!home);
+  if (home) {
+    const out = isDetached(id);
+    const phones = L.touch && dev.touch ? " on phones and tablets" : "";
+    $("columnHint").textContent = out
+      ? `On its own on the screen${phones}. Drag it over the ${nameOf(home)} to stack it there again, or:`
+      : `Stacked in the ${nameOf(home)}${phones}. Drag it out of the column to put it anywhere, or:`;
+    show("detachBtn", !out);
+    show("attachBtn", out);
+  }
+  show("scaleField", editable && !isWorld(id));
+  if (editable && !isWorld(id)) {
+    setInput("scalePct", Math.round(p.scale * 100));
+    setInput("scaleRange", Math.round(p.scale * 100));
+    $("scaleHint").textContent = `Makes it bigger or smaller, words and all${L.touch && dev.touch ? ", on phones and tablets only" : ""}. 100% is the size it's made at.`;
+  }
 
   const split = !!L.touch;
   $("linkSame").setAttribute("aria-pressed", String(!split));
@@ -1852,7 +2193,7 @@ function renderInspector() {
       if (on) pinned = true;
     }
     const pinName = pinned ? PIN_NAMES[Math.round(p.anchor[1] * 2)][Math.round(p.anchor[0] * 2)] : null;
-    const of = d.parent ? "its group" : "the screen";
+    const of = parentOf(id) ? "its group" : "the screen";
     $("pinHint").textContent = pinned
       ? `Stays the same distance from the ${pinName} of ${of} on every screen size.`
       : `Custom: its ${anchorName(p.anchor)} sits ${num(p.position[0] * 100, 1)}% across and ${num(p.position[2] * 100, 1)}% down ${of}. Pick a pin to tidy it.`;
@@ -1861,9 +2202,9 @@ function renderInspector() {
   }
 
   if (inList(id)) {
-    const sibs = orderedChildren(d.parent);
+    const sibs = orderedChildren(parentOf(id));
     const idx = sibs.indexOf(id);
-    $("orderHint").textContent = `${ordinal(idx + 1)} of ${sibs.length} in ${nameOf(d.parent)}. Drag it up or down on the screen, or:`;
+    $("orderHint").textContent = `${ordinal(idx + 1)} of ${sibs.length} in ${nameOf(parentOf(id))}. Drag it up or down on the screen, or:`;
     $("orderUp").disabled = idx <= 0;
     $("orderDown").disabled = idx >= sibs.length - 1;
   }
@@ -1881,9 +2222,9 @@ function renderInspector() {
     setInput("sizeH", Math.round(p.size[3]));
     const bits = [];
     const auto = d.autoSize || "";
-    if (auto.includes("Y")) bits.push("its height grows to fit what's in it");
-    if (auto.includes("X")) bits.push("its width grows to fit what's in it");
-    if (p.size[0]) bits.push(`its width also takes ${num(p.size[0] * 100, 1)}% of ${d.parent ? "its group" : "the screen"}`);
+    if (auto.includes("Y")) bits.push(`its height grows to fit what's in it: what you set is the least it can be (it shows ${r && !r.hidden ? Math.round(r.raw.h) : "?"} tall here)`);
+    if (auto.includes("X")) bits.push(`its width grows to fit what's in it: what you set is the least it can be`);
+    if (p.size[0]) bits.push(`its width also takes ${num(p.size[0] * 100, 1)}% of ${parentOf(id) ? "its group" : "the screen"}`);
     if (p.size[2]) bits.push(`its height also takes ${num(p.size[2] * 100, 1)}%`);
     const lim = [];
     if (d.max && d.max.width) lim.push(`at most ${d.max.width} wide`);
@@ -1910,6 +2251,7 @@ function renderInspector() {
   }
   $("absBox").textContent = r && !r.hidden && visible ? `${dev.short}: x ${Math.round(r.x)}, y ${Math.round(r.y)}, ${Math.round(r.w)} × ${Math.round(r.h)}` : `Not on the screen in this scene on ${dev.short}.`;
   $("resetEl").disabled = JSON.stringify(defaultLayout()[id]) === JSON.stringify(L);
+  $("resetEl").textContent = isDetached(id) || (homeColumn(id) && JSON.stringify(defaultLayout()[id]) !== JSON.stringify(L)) ? "Back to the game's spot and column" : "Back to the game's spot";
 }
 const capital = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 const ordinal = (n) => n + (n % 10 === 1 && n % 100 !== 11 ? "st" : n % 10 === 2 && n % 100 !== 12 ? "nd" : n % 10 === 3 && n % 100 !== 13 ? "rd" : "th");
@@ -1964,6 +2306,17 @@ function apply(id, dev, patch) {
   const target = writeTo(id, dev);
   for (const [k, v] of Object.entries(patch)) target[k] = v;
 }
+// Sets a field of a piece's shared layout. Taking a field away (null) keeps `null` when the game's
+// file has it, so applying the layout removes it there, and drops it when the file never had it.
+function setField(id, key, value) {
+  const L = state.layout[id];
+  if (value === null || value === undefined) {
+    if (DEFAULTS[id][key] !== undefined) L[key] = null;
+    else delete L[key];
+  } else {
+    L[key] = value;
+  }
+}
 const roundOff = (v) => Math.round(v);
 
 // The UDim2 values that put `id` at this box (in screen pixels) on `dev`, keeping its anchor and
@@ -1971,8 +2324,9 @@ const roundOff = (v) => Math.round(v);
 // where they're dropped.
 function solve(id, dev, rects, left, top, w, h) {
   const r = rects[id];
-  const s = r.s || 1;
-  // back from screen pixels to the frame its UDim2 lives in: undo the scale about the anchor
+  // back from screen pixels to the frame its UDim2 lives in: undo the scale it's drawn at (and,
+  // in a list, the `scale` already in its box)
+  const s = (r.s || 1) * (r.k || 1);
   const p = placementOf(id, dev);
   const parent = r.parent;
   const rawW = w / s, rawH = h / s;
@@ -2029,12 +2383,17 @@ function setLinked(linked) {
   const dev = state.device;
   if (linked && L.touch) {
     if (dev.touch) {
-      for (const k of ["anchor", "position", "size"]) if (L.touch[k]) L[k] = clone(L.touch[k]);
+      for (const k of ["anchor", "position", "size", "scale"]) if (L.touch[k] !== undefined && L.touch[k] !== null) L[k] = clone(L.touch[k]);
+      // in or out of its column everywhere, as it is on a phone
+      if (homeColumn(id) && L.touch.parent !== undefined && L.touch.parent !== null) {
+        setField(id, "parent", L.touch.parent || null);
+        setField(id, "screen", L.touch.parent ? null : "LawnUI");
+      }
     }
-    delete L.touch;
+    setField(id, "touch", null);
   } else if (!linked && !L.touch) {
     L.touch = {};
-    for (const k of ["anchor", "position", "size"]) if (L[k]) L.touch[k] = clone(L[k]);
+    for (const k of ["anchor", "position", "size", "scale"]) if (L[k] !== undefined && L[k] !== null) L.touch[k] = clone(L[k]);
   }
   pushUndo(before);
   renderPieces();
@@ -2095,7 +2454,7 @@ for (const b of $("listAlign").children) {
   });
 }
 function moveInList(id, delta) {
-  const parent = DEFAULTS[id].parent;
+  const parent = parentOf(id);
   const sibs = orderedChildren(parent);
   const idx = sibs.indexOf(id);
   const to = Math.max(0, Math.min(sibs.length - 1, idx + delta));
@@ -2115,12 +2474,116 @@ $("resetEl").addEventListener("click", () => {
   const before = snapshot();
   state.layout[id] = defaultLayout()[id];
   // its siblings' order goes back too, so the column reads as it did
-  if (inList(id)) for (const c of childrenOf(DEFAULTS[id].parent)) if (DEFAULTS[c].order !== undefined) state.layout[c].order = DEFAULTS[c].order;
+  if (inList(id)) for (const c of childrenOf(parentOf(id))) if (DEFAULTS[c].order !== undefined) state.layout[c].order = DEFAULTS[c].order;
   pushUndo(before);
   renderPieces();
   toast(`${nameOf(id)} is back in the game's spot.`);
 });
-$("selectParent").addEventListener("click", () => { const p = DEFAULTS[state.selected] && DEFAULTS[state.selected].parent; if (p) select(p, true); });
+$("selectParent").addEventListener("click", () => { const p = state.selected && parentOf(state.selected); if (p) select(p, true); });
+
+// The scale: bigger or smaller, words and all. Into the phone values when it has its own.
+function setScale(pct) {
+  const id = state.selected;
+  if (!id) return;
+  const v = Math.max(0.25, Math.min(3, Math.round(pct) / 100));
+  const target = writeTo(id, state.device);
+  if (target === state.layout[id]) setField(id, "scale", Math.abs(v - 1) < 1e-9 && DEFAULTS[id].scale === undefined ? null : v);
+  else target.scale = v;
+}
+numberInput("scalePct", (v) => setScale(v));
+(function scaleSlider() {
+  const el = $("scaleRange");
+  let before = null;
+  el.addEventListener("pointerdown", () => { before = snapshot(); });
+  el.addEventListener("input", () => {
+    if (before === null) before = snapshot();
+    setScale(parseFloat(el.value));
+    renderPieces();
+  });
+  el.addEventListener("change", () => { if (before !== null) pushUndo(before); before = null; });
+})();
+
+// Taking a piece out of its column puts it on the game's screen, pinned to whichever corner of the
+// screen it's nearest, where it was dropped; putting it back stacks it at `index`. On a touch
+// screen, a piece with its own place there (touch) goes out of or into its column there only.
+const phoneOnly = (id, dev) => !!(dev && dev.touch && state.layout[id].touch);
+function setTouchField(id, key, value) {
+  const L = state.layout[id];
+  L.touch = Object.assign({}, L.touch);
+  if (value === null || value === undefined) delete L.touch[key];
+  else L.touch[key] = value;
+}
+function detachTo(id, dev, left, top) {
+  const own = phoneOnly(id, dev);
+  const set = own ? (k, v) => setTouchField(id, k, v) : (k, v) => setField(id, k, v);
+  if (own) {
+    setTouchField(id, "parent", false);
+  } else {
+    setField(id, "parent", null);
+    setField(id, "screen", "LawnUI");
+  }
+  const root = rootRect(dev, "LawnUI");
+  // first pinned top-left, which puts its drawn top-left exactly here...
+  set("anchor", [0, 0]);
+  set("position", [0, Math.round(left - root.x), 0, Math.round(top - root.y)]);
+  const r = computeRects(dev)[id];
+  // ...then pinned to the nearest corner, keeping it where it is
+  const ax = r.x + r.w / 2 < root.x + root.w / 2 ? 0 : 1;
+  const ay = r.y + r.h / 2 < root.y + root.h / 2 ? 0 : 1;
+  const px = r.x + ax * r.w, py = r.y + ay * r.h;
+  set("anchor", [ax, ay]);
+  set("position", [ax, Math.round(px - root.x - ax * root.w), ay, Math.round(py - root.y - ay * root.h)]);
+  // a phone place left over from the column goes too, unless phones have their own column there
+  const L = state.layout[id];
+  const phonesOwn = L.touch && L.touch.parent !== undefined && L.touch.parent !== null;
+  if (!own && L.touch && !phonesOwn) { L.touch = Object.assign({}, L.touch); delete L.touch.anchor; delete L.touch.position; }
+}
+function attachAt(id, column, index, dev) {
+  if (phoneOnly(id, dev)) {
+    setTouchField(id, "anchor", null);
+    setTouchField(id, "position", null);
+    // in its column on a touch screen: the same as everywhere else, or its own
+    setTouchField(id, "parent", sharedParent(id) === column ? null : column);
+  } else {
+    setField(id, "parent", column);
+    setField(id, "screen", null);
+    setField(id, "anchor", null);
+    setField(id, "position", null);
+  }
+  const sibs = orderedChildren(column).filter((c) => c !== id);
+  sibs.splice(Math.max(0, Math.min(sibs.length, index)), 0, id);
+  sibs.forEach((c, i) => (state.layout[c].order = i + 1));
+}
+// Where in a column a piece dropped at height `y` (screen pixels) goes.
+function indexIn(column, y, rects, id) {
+  let index = 0;
+  for (const c of orderedChildren(column).filter((c) => c !== id)) {
+    const rc = rects[c];
+    if (rc.hidden) { index++; continue; }
+    if (y > rc.y + rc.h / 2) index++;
+  }
+  return index;
+}
+$("detachBtn").addEventListener("click", () => {
+  const id = state.selected;
+  if (!id || !lastRects || !homeColumn(id) || isDetached(id)) return;
+  const before = snapshot();
+  const r = lastRects[id];
+  detachTo(id, state.device, r.x, r.y);
+  pushUndo(before);
+  renderPieces();
+  toast(`${nameOf(id)} is on its own now, where it was. Drag it anywhere.`);
+});
+$("attachBtn").addEventListener("click", () => {
+  const id = state.selected;
+  const home = id && homeColumn(id);
+  if (!home || !isDetached(id)) return;
+  const before = snapshot();
+  attachAt(id, home, typeof DEFAULTS[id].order === "number" ? DEFAULTS[id].order - 1 : 99, state.device);
+  pushUndo(before);
+  renderPieces();
+  toast(`${nameOf(id)} is back in the ${nameOf(home)}.`);
+});
 
 function select(id, reveal) {
   state.selected = id;
@@ -2144,11 +2607,18 @@ function startDrag(e, id, mode) {
   if (state.selected !== id) { state.selected = id; }
   const movable = !isFixed(id) && !isWorld(id);
   if (mode === "move" && !movable) { renderPieces(); return; }
+  const box = main.screen.getBoundingClientRect();
+  const z0 = state.zoomValue;
   drag = {
     id, mode, startX: e.clientX, startY: e.clientY, rect: { x: r.x, y: r.y, w: r.w, h: r.h },
     before: snapshot(), moved: false, pointer: e.pointerId,
     reorder: mode === "move" && inList(id),
+    // a column's piece can be dragged out of it (and back), wherever it is now
+    roams: mode === "move" && !!homeColumn(id),
+    screenBox: box,
+    grabX: (e.clientX - box.left) / z0 - r.x, grabY: (e.clientY - box.top) / z0 - r.y,
     lines: snapLines(id),
+    left: false,
   };
   window.addEventListener("pointermove", onDrag);
   window.addEventListener("pointerup", endDrag);
@@ -2186,11 +2656,41 @@ function onDrag(e) {
   drag.moved = true;
   const id = drag.id;
   const dev = state.device;
+  if (drag.roams) {
+    // A column's piece: over its column it stacks there, anywhere else it's on its own.
+    state.layout = JSON.parse(drag.before);
+    const rects = computeRects(dev);
+    const home = homeColumn(id);
+    const pt = { x: (e.clientX - drag.screenBox.left) / z, y: (e.clientY - drag.screenBox.top) / z };
+    const col = rects[home];
+    const pad = 14;
+    const over = col && !col.hidden && pt.x > col.x - pad && pt.x < col.x + col.w + pad && pt.y > col.y - pad && pt.y < col.y + col.h + pad;
+    if (over) {
+      attachAt(id, home, indexIn(home, pt.y, rects, id), dev);
+      drag.attach = home;
+      schedule();
+      return;
+    }
+    drag.attach = null;
+    drag.left = true;
+    let left = pt.x - drag.grabX, top = pt.y - drag.grabY;
+    const guides = [];
+    if (prefs.show.snap && !e.altKey) {
+      const threshold = 6 / z;
+      const sx = snapAxis([left, left + drag.rect.w / 2, left + drag.rect.w], drag.lines.xs, threshold);
+      if (sx) { left += sx.d; guides.push({ axis: "x", at: sx.at }); }
+      const sy = snapAxis([top, top + drag.rect.h / 2, top + drag.rect.h], drag.lines.ys, threshold);
+      if (sy) { top += sy.d; guides.push({ axis: "y", at: sy.at }); }
+    }
+    detachTo(id, dev, left, top);
+    schedule(guides);
+    return;
+  }
   if (drag.reorder) {
     // A piece in a column: find where its middle now falls among its neighbours.
     state.layout = JSON.parse(drag.before);
     const rects = computeRects(dev);
-    const parent = DEFAULTS[id].parent;
+    const parent = parentOf(id);
     const list = listOf(parent);
     const horizontal = list.direction === "Horizontal";
     const r0 = drag.rect;
@@ -2253,14 +2753,18 @@ function endDrag(e) {
   window.removeEventListener("pointerup", endDrag);
   window.removeEventListener("pointercancel", endDrag);
   const before = drag.before;
-  const wasReorder = drag.reorder && drag.moved;
+  const wasReorder = drag.reorder && drag.moved && !drag.left;
+  const tookOut = drag.roams && drag.moved && !drag.attach && drag.left;
   drag = null;
   if (rafPending) { cancelAnimationFrame(rafPending); rafPending = null; }
   pushUndo(before);
   renderPieces();
-  if (wasReorder && !store.get("lms-hud-reorder-tip")) {
+  if (tookOut && !store.get("lms-hud-detach-tip")) {
+    store.set("lms-hud-detach-tip", true);
+    toast("Out of its column now, pinned to the nearest corner. Drag it back over the column to stack it again.");
+  } else if (wasReorder && !store.get("lms-hud-reorder-tip")) {
     store.set("lms-hud-reorder-tip", true);
-    toast("Pieces in a column swap places. To move the whole column, drag its name tab.");
+    toast("Pieces in a column swap places, or drag one out of the column to put it anywhere. To move a whole column, drag its name tab.");
   }
 }
 
@@ -2269,7 +2773,7 @@ function nudge(dx, dy) {
   if (!id || !lastRects || isFixed(id) || isWorld(id)) return;
   const before = snapshot();
   if (inList(id)) {
-    const list = listOf(DEFAULTS[id].parent);
+    const list = listOf(parentOf(id));
     const step = list.direction === "Horizontal" ? Math.sign(dx) : Math.sign(dy);
     if (step && moveInList(id, step)) { pushUndo(before); renderPieces(); }
     return;
@@ -2446,25 +2950,41 @@ async function copyText(text, done) {
 // layouts/current is the layout Claude puts into the game; layouts/previous is the one before it.
 const remote = { db: null, savedAt: null, ready: false, lastOwnSave: null };
 
+// Each piece as a JSON merge patch on its entry in UiLayout.luau (what scripts/apply-hud-layout.py
+// takes): every field it has, and null for each one the game's file has that's been taken away,
+// inside touch, compact and list too.
 function serialize() {
   const out = {};
-  for (const id of IDS) out[id] = clone(state.layout[id]);
+  for (const id of IDS) {
+    const d = DEFAULTS[id];
+    const entry = clone(state.layout[id]);
+    for (const k of EDITABLE) if (d[k] !== undefined && entry[k] === undefined) entry[k] = null;
+    for (const k of ["touch", "compact", "list"]) {
+      if (!entry[k] || typeof entry[k] !== "object" || !d[k] || typeof d[k] !== "object") continue;
+      for (const inner of Object.keys(d[k])) if (!(inner in entry[k])) entry[k][inner] = null;
+    }
+    out[id] = entry;
+  }
   return out;
 }
 function fromSaved(elements) {
   const base = defaultLayout();
   for (const id of IDS) {
-    const s = elements && elements[id];
-    if (!s || typeof s !== "object") continue;
+    const saved = elements && elements[id];
+    if (!saved || typeof saved !== "object") continue;
     const d = DEFAULTS[id];
     const entry = {};
     for (const k of EDITABLE) {
-      if (s[k] !== undefined && s[k] !== null) entry[k] = clone(s[k]);
+      if (saved[k] === null) { if (d[k] !== undefined) entry[k] = null; }
+      else if (saved[k] !== undefined) entry[k] = clone(saved[k]);
       else if (k !== "touch" && d[k] !== undefined) entry[k] = clone(d[k]);
     }
-    // only what this piece can have: no position for something placed by a list, and so on
-    for (const k of ["anchor", "position", "size", "compact", "order", "list"]) if (d[k] === undefined && k !== "anchor" && k !== "position") delete entry[k];
-    if (d.anchor === undefined && !d.position) { delete entry.anchor; delete entry.position; }
+    for (const k of ["touch", "compact", "list"]) {
+      if (!entry[k] || typeof entry[k] !== "object") continue;
+      for (const inner of Object.keys(entry[k])) if (entry[k][inner] === null) delete entry[k][inner];
+    }
+    // a parent that isn't a piece any more: back to the game's own
+    if (entry.parent && !DEFAULTS[entry.parent]) entry.parent = d.parent;
     base[id] = entry;
   }
   return base;
@@ -2617,7 +3137,7 @@ function luauValue(v, indent) {
 }
 function luauKey(k) { return /^[A-Za-z_][A-Za-z0-9_]*$/.test(k) ? k : `[${JSON.stringify(k)}]`; }
 function toLuau() {
-  const order = ["label", "group", "screen", "parent", "order", "list", "anchor", "position", "size", "autoSize", "min", "max", "typical", "touch", "compact", "device", "fixed", "note"];
+  const order = ["label", "group", "screen", "parent", "detach", "order", "list", "anchor", "position", "size", "scale", "autoSize", "min", "max", "typical", "touch", "compact", "device", "fixed", "note"];
   const lines = [];
   if (META.header) lines.push(META.header.replace(/\s+$/, ""), "");
   lines.push("return {");
@@ -2627,7 +3147,7 @@ function toLuau() {
     const L = state.layout[id];
     const entry = {};
     for (const k of Object.keys(d)) entry[k] = d[k];
-    for (const k of EDITABLE) { if (L[k] !== undefined) entry[k] = L[k]; else delete entry[k]; }
+    for (const k of EDITABLE) { if (L[k] !== undefined && L[k] !== null) entry[k] = L[k]; else delete entry[k]; }
     const keys = [...order.filter((k) => k in entry), ...Object.keys(entry).filter((k) => !order.includes(k))];
     lines.push(`\t${luauKey(id)} = {`);
     for (const k of keys) lines.push(`\t\t${luauKey(k)} = ${luauValue(entry[k], "\t\t")},`);
