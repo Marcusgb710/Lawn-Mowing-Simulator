@@ -2674,9 +2674,21 @@ async function copyText(text, done) {
 // layouts/current is the layout Claude puts into the game; layouts/previous is the one before it.
 const remote = { db: null, savedAt: null, ready: false, lastOwnSave: null };
 
+// Each piece as a JSON merge patch on its entry in UiLayout.luau (what scripts/apply-hud-layout.py
+// takes): every field it has, and null for each one the game's file has that's been taken away,
+// inside touch, compact and list too.
 function serialize() {
   const out = {};
-  for (const id of IDS) out[id] = clone(state.layout[id]);
+  for (const id of IDS) {
+    const d = DEFAULTS[id];
+    const entry = clone(state.layout[id]);
+    for (const k of EDITABLE) if (d[k] !== undefined && entry[k] === undefined) entry[k] = null;
+    for (const k of ["touch", "compact", "list"]) {
+      if (!entry[k] || typeof entry[k] !== "object" || !d[k] || typeof d[k] !== "object") continue;
+      for (const inner of Object.keys(d[k])) if (!(inner in entry[k])) entry[k][inner] = null;
+    }
+    out[id] = entry;
+  }
   return out;
 }
 function fromSaved(elements) {
@@ -2690,6 +2702,10 @@ function fromSaved(elements) {
       if (saved[k] === null) { if (d[k] !== undefined) entry[k] = null; }
       else if (saved[k] !== undefined) entry[k] = clone(saved[k]);
       else if (k !== "touch" && d[k] !== undefined) entry[k] = clone(d[k]);
+    }
+    for (const k of ["touch", "compact", "list"]) {
+      if (!entry[k] || typeof entry[k] !== "object") continue;
+      for (const inner of Object.keys(entry[k])) if (entry[k][inner] === null) delete entry[k][inner];
     }
     // a parent that isn't a piece any more: back to the game's own
     if (entry.parent && !DEFAULTS[entry.parent]) entry.parent = d.parent;
