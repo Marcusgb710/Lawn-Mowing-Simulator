@@ -1458,7 +1458,7 @@ function everythingAtOnce(dev, rects) {
         : ba
           ? `<b>${esc(nameOf(b))}</b> hides while the <b>${esc(nameOf(ba))}</b> show${ba === a ? "s" : ""}: they share a spot.`
           : `<b>${esc(nameOf(a))}</b> and <b>${esc(nameOf(b))}</b> share a spot, but never show at the same time.`;
-      notes.push({ ids: [a, b], text });
+      if (!notes.some((n) => n.text === text)) notes.push({ ids: [a, b], text });
     }
   }
   return { list, flagged, notes };
