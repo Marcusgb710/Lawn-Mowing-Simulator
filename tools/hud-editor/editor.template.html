@@ -1,0 +1,2653 @@
+<title>Lawn Mowing HUD Editor</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Denk+One&family=JetBrains+Mono:wght@400;600&family=Lilita+One&family=Nunito:wght@400;600;700;800;900&display=swap">
+<style>
+/* Layout: a workbench. The game's pieces on the left, the device on a cutting mat in the middle,
+   the selected piece's settings on the right. Chrome uses the game's own greens and cream. */
+:root {
+  --bg: #F2EDDA;
+  --surface: #FFFBEF;
+  --raised: #FFFFFF;
+  --ink: #17301C;
+  --muted: #587060;
+  --line: #DDD5BB;
+  --line-strong: #C7BE9F;
+  --accent: #3F8A26;
+  --accent-ink: #FFFFFF;
+  --accent-soft: #E3F1D6;
+  --select: #F2B705;
+  --warn: #B83E0B;
+  --warn-soft: #FBE6DA;
+  --mat: #E5DFC8;
+  --mat-line: rgba(23, 48, 28, 0.07);
+  --bezel: #1C211D;
+  --bezel-edge: #3A403B;
+  --shadow: 0 1px 2px rgba(23, 48, 28, 0.08), 0 8px 24px rgba(23, 48, 28, 0.08);
+
+  --font-display: "Denk One", "Arial Rounded MT Bold", "Trebuchet MS", sans-serif;
+  --font-ui: "Nunito", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* The game's own GUI palette (src/shared/Config/GuiArt.luau). The same in both themes, since it
+     paints the game's pieces over the game's scene. */
+  --g-ink: #17301C;
+  --g-panel: #24442B;
+  --g-card: #315A39;
+  --g-text: #FFF7E0;
+  --g-subtext: #CFE3C6;
+  --g-accent: #7BC74D;
+  --g-accent-dark: #4E9A2E;
+  --g-money: #FFD24A;
+  --g-gold: #E8B931;
+  --g-grandma: #E3C27A;
+  --g-primary: #386E28;
+  --g-danger: #E0553F;
+  --g-info: #6FB7E8;
+  --g-paper: #F6E7BE;
+  --g-paper-ink: #5A3E1B;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0D1912;
+    --surface: #12231A;
+    --raised: #182D21;
+    --ink: #F3EED8;
+    --muted: #A3BDA9;
+    --line: #21392A;
+    --line-strong: #2E4F39;
+    --accent: #7BC74D;
+    --accent-ink: #0D1912;
+    --accent-soft: #1D3A22;
+    --select: #FFD24A;
+    --warn: #FF946A;
+    --warn-soft: #3A1E12;
+    --mat: #09140D;
+    --mat-line: rgba(207, 227, 198, 0.06);
+    --bezel: #040705;
+    --bezel-edge: #26302A;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.35);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0D1912;
+  --surface: #12231A;
+  --raised: #182D21;
+  --ink: #F3EED8;
+  --muted: #A3BDA9;
+  --line: #21392A;
+  --line-strong: #2E4F39;
+  --accent: #7BC74D;
+  --accent-ink: #0D1912;
+  --accent-soft: #1D3A22;
+  --select: #FFD24A;
+  --warn: #FF946A;
+  --warn-soft: #3A1E12;
+  --mat: #09140D;
+  --mat-line: rgba(207, 227, 198, 0.06);
+  --bezel: #040705;
+  --bezel-edge: #26302A;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.35);
+  color-scheme: dark;
+}
+
+html, body { height: 100%; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+}
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--select); outline-offset: 2px; }
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+.app {
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 12px;
+  gap: 12px;
+  box-sizing: border-box;
+}
+
+/* ---------- Top bar ---------- */
+.top { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1 1 320px; }
+.brand-mark {
+  width: 40px; height: 40px; border-radius: 12px; flex: none;
+  background: var(--g-panel); display: grid; place-items: center;
+  box-shadow: inset 0 -3px 0 var(--g-ink);
+}
+.brand h1 {
+  font-family: var(--font-display); font-weight: 400; font-size: 22px; line-height: 1.1;
+  margin: 0; letter-spacing: 0.2px; text-wrap: balance;
+}
+.brand p { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
+.actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; position: relative; }
+.status {
+  font-size: 12.5px; font-weight: 700; color: var(--muted);
+  padding: 6px 10px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line);
+  white-space: nowrap;
+}
+.status[data-tone="dirty"] { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 35%, var(--line)); }
+.status[data-tone="ok"] { color: var(--accent); }
+.btn {
+  border: 1px solid var(--line-strong); background: var(--raised); color: var(--ink);
+  border-radius: 10px; padding: 7px 12px; font-weight: 800; font-size: 13px;
+  display: inline-flex; align-items: center; gap: 6px; min-height: 36px; box-sizing: border-box;
+}
+.btn:hover { border-color: var(--ink); }
+.btn:disabled { opacity: 0.45; cursor: default; border-color: var(--line-strong); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: transparent; box-shadow: inset 0 -2px 0 rgba(0,0,0,0.18); }
+.btn.primary:hover { filter: brightness(1.06); }
+.btn.icon { padding: 7px 9px; }
+.btn svg { width: 16px; height: 16px; flex: none; }
+.menu {
+  position: absolute; right: 0; top: calc(100% + 6px); z-index: 30; min-width: 230px;
+  background: var(--raised); border: 1px solid var(--line-strong); border-radius: 12px;
+  box-shadow: var(--shadow); padding: 6px; display: grid; gap: 2px;
+}
+.menu button {
+  text-align: left; border: 0; background: transparent; border-radius: 8px; padding: 9px 10px;
+  font-weight: 700; display: flex; gap: 8px; align-items: center;
+}
+.menu button:hover { background: var(--accent-soft); }
+.menu .danger { color: var(--warn); }
+.menu hr { border: 0; border-top: 1px solid var(--line); margin: 4px 2px; }
+
+/* ---------- Workbench ---------- */
+.work {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr) 300px;
+  gap: 12px;
+}
+.panel {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+  min-height: 0; display: flex; flex-direction: column; overflow: hidden;
+}
+.panel-head {
+  padding: 12px 14px 10px; border-bottom: 1px solid var(--line);
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+}
+.panel-head h2 {
+  margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 15px; letter-spacing: 0.3px;
+}
+.panel-body { overflow: auto; min-height: 0; flex: 1; }
+
+/* Element list */
+.search {
+  width: 100%; box-sizing: border-box; border: 1px solid var(--line-strong); background: var(--raised);
+  border-radius: 9px; padding: 7px 10px; font-size: 13px;
+}
+.side-search { padding: 10px 12px 6px; }
+.group-label {
+  font-size: 11px; font-weight: 900; letter-spacing: 0.9px; text-transform: uppercase; color: var(--muted);
+  padding: 12px 14px 4px; display: flex; justify-content: space-between; align-items: center;
+}
+.group-label button { border: 0; background: none; color: var(--muted); font-size: 11px; font-weight: 800; padding: 2px 4px; letter-spacing: 0; text-transform: none; }
+.row {
+  display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; align-items: center; gap: 4px;
+  padding: 3px 8px 3px 6px; margin: 1px 6px; border-radius: 9px; cursor: pointer;
+}
+.row:hover { background: var(--accent-soft); }
+.row[aria-selected="true"] { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--select); }
+.row .name { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 5px 0; }
+.row .name.child { padding-left: 14px; }
+.row.hidden-row .name { opacity: 0.45; }
+.eye { border: 0; background: none; width: 28px; height: 28px; border-radius: 7px; display: grid; place-items: center; color: var(--muted); padding: 0; }
+.eye:hover { background: var(--raised); color: var(--ink); }
+.eye svg { width: 16px; height: 16px; }
+.badges { display: flex; gap: 4px; align-items: center; }
+.dot { width: 8px; height: 8px; border-radius: 50%; }
+.dot.changed { background: var(--select); }
+.dot.warn { background: var(--warn); }
+.dot.split { width: auto; height: auto; border-radius: 5px; font-size: 10px; font-weight: 900; padding: 1px 5px; background: var(--raised); border: 1px solid var(--line-strong); color: var(--muted); }
+
+.warns { border-top: 1px solid var(--line); padding: 10px 12px 12px; max-height: 38%; overflow: auto; }
+.warns h3 { margin: 0 0 6px; font-size: 11px; font-weight: 900; letter-spacing: 0.9px; text-transform: uppercase; color: var(--warn); }
+.warns.clear h3 { color: var(--accent); }
+.warn-item {
+  display: block; width: 100%; text-align: left; border: 0; background: var(--warn-soft); color: var(--ink);
+  border-radius: 8px; padding: 7px 9px; margin-top: 5px; font-size: 12.5px; font-weight: 600; line-height: 1.35;
+}
+.warn-item b { font-weight: 900; }
+.warns p { margin: 0; color: var(--muted); font-size: 12.5px; }
+
+/* Stage */
+.stage-panel { position: relative; }
+.stage-bar {
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between;
+  padding: 10px 12px; border-bottom: 1px solid var(--line);
+}
+.seg { display: inline-flex; background: var(--raised); border: 1px solid var(--line-strong); border-radius: 10px; padding: 3px; gap: 2px; flex-wrap: wrap; }
+.seg button { border: 0; background: transparent; border-radius: 7px; padding: 5px 9px; font-weight: 800; font-size: 12.5px; color: var(--muted); white-space: nowrap; }
+.seg button[aria-pressed="true"] { background: var(--g-panel); color: var(--g-text); }
+.seg button:not([aria-pressed="true"]):hover { color: var(--ink); }
+.device-select { display: none; border: 1px solid var(--line-strong); background: var(--raised); border-radius: 9px; padding: 6px 8px; font-weight: 700; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  border: 1px solid var(--line-strong); background: transparent; border-radius: 999px; padding: 4px 10px;
+  font-size: 12px; font-weight: 800; color: var(--muted);
+}
+.chip[aria-pressed="true"] { background: var(--accent-soft); color: var(--ink); border-color: color-mix(in srgb, var(--accent) 45%, var(--line-strong)); }
+.stage {
+  position: relative; flex: 1; min-height: 0; overflow: auto;
+  background-color: var(--mat);
+  background-image:
+    linear-gradient(var(--mat-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--mat-line) 1px, transparent 1px);
+  background-size: 24px 24px;
+  display: flex; padding: 24px; box-sizing: border-box;
+  touch-action: none;
+}
+.stage-foot {
+  display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 8px 12px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted);
+}
+.zoom { display: inline-flex; align-items: center; gap: 4px; }
+.zoom button { border: 1px solid var(--line-strong); background: var(--raised); border-radius: 7px; min-width: 28px; height: 26px; font-weight: 900; }
+.zoom .mono { min-width: 48px; text-align: center; color: var(--ink); }
+.tip { color: var(--muted); }
+.tip kbd { font-family: var(--font-mono); font-size: 11px; border: 1px solid var(--line-strong); border-bottom-width: 2px; border-radius: 5px; padding: 0 4px; background: var(--raised); color: var(--ink); }
+
+.banner {
+  position: absolute; left: 50%; top: 58px; transform: translateX(-50%); z-index: 20;
+  background: var(--raised); border: 1px solid var(--line-strong); border-radius: 12px; box-shadow: var(--shadow);
+  padding: 8px 10px 8px 14px; display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 13px;
+  max-width: calc(100% - 32px); box-sizing: border-box; flex-wrap: wrap;
+}
+
+/* The device */
+.device-wrap { position: relative; flex: none; margin: auto; }
+.device {
+  position: absolute; left: 0; top: 0; transform-origin: 0 0;
+}
+.bezel {
+  position: absolute; inset: calc(var(--bz) * -1); border-radius: var(--bzr);
+  background: var(--bezel); box-shadow: 0 0 0 1px var(--bezel-edge), var(--shadow);
+}
+.bezel.monitor::after {
+  content: ""; position: absolute; left: 50%; bottom: calc(var(--bz) * -3.2); width: 18%; height: calc(var(--bz) * 3.2);
+  transform: translateX(-50%); background: var(--bezel); border-radius: 0 0 6px 6px;
+  box-shadow: 0 0 0 1px var(--bezel-edge);
+}
+.screen { position: absolute; left: 0; top: 0; overflow: hidden; border-radius: var(--scr); background: #8fc0e8; }
+.screen canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+.layer { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+.notch { position: absolute; background: #000; border-radius: 0 999px 999px 0; }
+.home-bar { position: absolute; height: 5px; border-radius: 3px; background: rgba(255, 255, 255, 0.7); }
+
+.zone { position: absolute; pointer-events: none; }
+.zone.topbar { background: repeating-linear-gradient(135deg, rgba(23,48,28,0.22) 0 6px, rgba(23,48,28,0.06) 6px 12px); border-bottom: 1px dashed rgba(255,255,255,0.7); }
+.zone.side { background: repeating-linear-gradient(135deg, rgba(0,0,0,0.25) 0 6px, rgba(0,0,0,0.08) 6px 12px); }
+.zone .zone-label {
+  position: absolute; right: 8px; bottom: 4px; font: 800 11px/1 var(--font-ui); color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.6); letter-spacing: 0.3px;
+}
+.zone.side .zone-label { right: auto; left: 50%; bottom: auto; top: 50%; transform: translate(-50%, -50%) rotate(-90deg); white-space: nowrap; }
+.root-box { position: absolute; border: 1px dashed rgba(255, 255, 255, 0.55); pointer-events: none; }
+.grid-lines { position: absolute; pointer-events: none; background-image: linear-gradient(rgba(255,255,255,0.18) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.18) 1px, transparent 1px); }
+
+/* Roblox's own controls, for reference */
+.core { position: absolute; pointer-events: none; display: grid; place-items: center; }
+.core.logo { border-radius: 50%; background: rgba(20, 22, 24, 0.75); }
+.core.logo::before { content: ""; width: 38%; height: 38%; background: #fff; transform: rotate(15deg); border-radius: 2px; }
+.core.pill { border-radius: 999px; background: rgba(20, 22, 24, 0.75); }
+.core.pill::before { content: ""; width: 70%; height: 16%; border-radius: 4px; background:
+  radial-gradient(circle, #fff 45%, transparent 50%) 0 50% / 33% 100% repeat-x; opacity: 0.85; }
+.core.jump { border-radius: 50%; border: 3px solid rgba(255,255,255,0.75); background: rgba(20,22,24,0.35); box-sizing: border-box; }
+.core.jump::before { content: ""; width: 0; height: 0; border-left: 9px solid transparent; border-right: 9px solid transparent; border-bottom: 12px solid rgba(255,255,255,0.85); }
+.core.stick { border-radius: 50%; border: 3px solid rgba(255,255,255,0.55); background: rgba(20,22,24,0.18); box-sizing: border-box; }
+.core.stick::before { content: ""; width: 46%; height: 46%; border-radius: 50%; background: rgba(255,255,255,0.55); }
+.core.hotbar { border-radius: 6px; display: flex; gap: 5px; place-items: initial; justify-content: center; }
+.core.hotbar span { flex: 1; border-radius: 6px; background: rgba(20, 22, 24, 0.6); border: 2px solid rgba(255,255,255,0.35); }
+.core-tag {
+  position: absolute; pointer-events: none; font: 800 10px/1 var(--font-ui); color: #fff; white-space: nowrap;
+  background: rgba(20,22,24,0.7); padding: 3px 5px; border-radius: 5px; transform: translate(-50%, -100%);
+}
+
+/* ---------- The game's pieces ---------- */
+.hud {
+  position: absolute; box-sizing: border-box; cursor: grab; user-select: none; -webkit-user-select: none;
+  touch-action: none; color: var(--g-text); font-family: var(--font-ui); container-type: size;
+}
+.hud.dragging { cursor: grabbing; }
+.hud.ghost-size { outline: 1px dashed rgba(255, 247, 224, 0.75); outline-offset: -1px; }
+.hud.warned::after {
+  content: ""; position: absolute; inset: -2px; border-radius: inherit; pointer-events: none;
+  box-shadow: 0 0 0 2px var(--g-danger);
+  background: repeating-linear-gradient(135deg, rgba(224, 85, 63, 0.18) 0 5px, transparent 5px 10px);
+}
+.hud .fill { position: absolute; inset: 0; border-radius: inherit; overflow: hidden; }
+.k-panel .fill { background: color-mix(in srgb, var(--g-panel) 90%, transparent); border: 2px solid var(--g-ink); box-shadow: inset 0 0 0 1.5px rgba(255,247,224,0.10); }
+.k-panel { border-radius: 10px; }
+.k-banner .fill { background: color-mix(in srgb, var(--g-panel) 92%, transparent); border: 2px solid var(--g-ink); }
+.k-banner { border-radius: 10px; }
+.k-paper .fill { background: var(--g-paper); border: 2px solid #C9A86A; box-shadow: 0 2px 0 rgba(90, 62, 27, 0.25); }
+.k-paper { border-radius: 6px; color: var(--g-paper-ink); }
+.k-button .fill { background: var(--g-primary); border: 2px solid var(--g-ink); box-shadow: inset 0 -3px 0 rgba(0,0,0,0.25), inset 0 2px 0 rgba(255,255,255,0.12); }
+.k-button { border-radius: 9px; }
+.k-round .fill { background: radial-gradient(circle at 50% 40%, #4f9a3a, var(--g-primary)); border: 3px solid var(--g-ink); border-radius: 50%; box-shadow: inset 0 -3px 0 rgba(0,0,0,0.25); }
+.k-round { border-radius: 50%; }
+.k-prompt .fill { background: rgba(23, 48, 28, 0.82); border: 2px solid rgba(255, 247, 224, 0.15); }
+.k-prompt { border-radius: 999px; }
+.k-bubble .fill { background: var(--g-text); border: 2.5px solid var(--g-ink); }
+.k-bubble { border-radius: 14px; color: var(--g-ink); }
+.k-window .fill { background: color-mix(in srgb, var(--g-panel) 96%, transparent); border: 3px solid var(--g-ink); }
+.k-window .fill::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 18%; max-height: 44px; background: var(--g-card); border-bottom: 2px solid var(--g-ink); }
+.k-window { border-radius: 14px; }
+.k-bar .fill { background: rgba(23, 48, 28, 0.6); border: 2px solid var(--g-ink); }
+.k-bar { border-radius: 8px; }
+.k-plain .fill { background: rgba(23, 48, 28, 0.45); border: 2px dashed rgba(255, 247, 224, 0.55); }
+.k-plain { border-radius: 8px; }
+
+.hud .content {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 6cqh;
+  padding: 0 8cqh; box-sizing: border-box; overflow: hidden; text-align: center;
+}
+.hud .t-head { font-family: "Denk One", var(--font-display); font-size: clamp(7px, 30cqh, 26px); line-height: 1; white-space: nowrap; text-shadow: 0 1.5px 0 var(--g-ink); }
+.hud .t-body { font-weight: 800; font-size: clamp(6px, 26cqh, 20px); line-height: 1.05; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hud .t-money { font-family: "Lilita One", var(--font-display); color: var(--g-money); font-size: clamp(8px, 40cqh, 34px); line-height: 1; text-shadow: 0 2px 0 var(--g-ink); }
+.hud .t-small { font-weight: 700; color: var(--g-subtext); font-size: clamp(6px, 18cqh, 14px); line-height: 1.1; }
+.hud .stack { display: flex; flex-direction: column; align-items: flex-start; gap: 3cqh; min-width: 0; text-align: left; }
+.hud .ic { width: auto; height: 46cqh; max-height: 34px; aspect-ratio: 1; flex: none; }
+.k-round .content { flex-direction: column; gap: 2cqh; }
+.k-round .ic { height: 48cqh; max-height: none; }
+.k-round .t-body { font-size: clamp(6px, 17cqh, 16px); }
+.k-paper .t-head { color: var(--g-paper-ink); text-shadow: none; font-size: clamp(7px, 20cqh, 18px); }
+.k-paper .t-small { color: #7A5A30; }
+.k-bubble .t-body { color: var(--g-ink); }
+.k-prompt .key {
+  font-family: var(--font-mono); font-weight: 700; font-size: clamp(6px, 34cqh, 16px); color: var(--g-ink);
+  background: var(--g-text); border-radius: 5px; padding: 0 0.4em; line-height: 1.5; box-shadow: inset 0 -2px 0 rgba(0,0,0,0.25);
+}
+.hud .tag {
+  position: absolute; left: 0; bottom: calc(100% + 3px); white-space: nowrap; pointer-events: none;
+  font: 800 10px/1 var(--font-ui); color: #fff; background: rgba(20, 22, 24, 0.78); border-radius: 4px; padding: 3px 5px;
+  transform-origin: 0 100%;
+}
+
+.scene-pick { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 900; color: var(--muted); letter-spacing: 0.6px; text-transform: uppercase; }
+.scene-pick select { border: 1px solid var(--line-strong); background: var(--raised); border-radius: 9px; padding: 6px 8px; font-weight: 800; font-size: 13px; text-transform: none; letter-spacing: 0; color: var(--ink); }
+.insp-flags { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.insp-flags li { font-size: 12.5px; font-weight: 600; background: var(--accent-soft); border-radius: 8px; padding: 7px 9px; }
+.eye.off { font-size: 9.5px; font-weight: 900; letter-spacing: 0.4px; text-transform: uppercase; cursor: default; color: var(--muted); border: 1px solid var(--line-strong); border-radius: 5px; width: auto; height: auto; padding: 2px 3px; margin: 0 3px; }
+
+/* the game's pieces, by look */
+.k-group { cursor: default; }
+.k-group .fill { border: 1.5px dashed rgba(255, 247, 224, 0.45); background: rgba(23, 48, 28, 0.06); }
+.k-group.is-selected .fill { border-color: var(--select); }
+.grip {
+  position: absolute; left: -2px; bottom: calc(100% + 2px); transform-origin: 0 100%; white-space: nowrap; cursor: grab;
+  font: 800 10.5px/1 var(--font-ui); color: #1b1b1b; background: var(--g-grandma); border: 1.5px solid var(--g-ink);
+  border-radius: 6px 6px 6px 0; padding: 3px 7px 3px 18px; touch-action: none; pointer-events: auto;
+  background-image: radial-gradient(circle, rgba(23,48,28,.7) 1px, transparent 1.4px); background-size: 4px 4px; background-position: 5px 3px; background-repeat: repeat-y;
+}
+.k-group.is-selected .grip { background-color: var(--select); }
+.k-text .content { justify-content: flex-start; padding: 0 2px; }
+.k-text .fill { display: none; }
+.k-tracker { border-radius: 10px; }
+.k-tracker .fill { background: color-mix(in srgb, var(--g-panel) 92%, transparent); border: 2px solid var(--g-ink); }
+.k-tracker .content { align-items: flex-start; padding: 8px 10px; }
+.hud .tracker { gap: 5px; width: 100%; }
+.hud .tracker .t-head { font-size: clamp(8px, 4.6cqw, 17px); }
+.hud .todo { font-weight: 700; font-size: clamp(7px, 4cqw, 14px); color: var(--g-text); display: flex; gap: 6px; align-items: center; white-space: nowrap; }
+.hud .todo::before { content: ""; width: 0.8em; height: 0.8em; border-radius: 3px; border: 2px solid var(--g-subtext); flex: none; }
+.hud .todo.done { opacity: 0.6; text-decoration: line-through; }
+.hud .todo.done::before { background: var(--g-accent); border-color: var(--g-accent); }
+.k-chips .fill { display: none; }
+.k-chips .content { gap: 6px; flex-wrap: wrap; }
+.chip-g { font-weight: 800; font-size: clamp(7px, 36cqh, 14px); color: var(--g-text); background: var(--g-danger); border: 2px solid var(--g-ink); border-radius: 999px; padding: 0.25em 0.7em; white-space: nowrap; }
+.k-pill { border-radius: 999px; }
+.k-pill .fill { background: rgba(23, 48, 28, 0.85); border: 2px solid rgba(255, 247, 224, 0.2); }
+.k-toasts .fill { border: 1.5px dashed rgba(255, 247, 224, 0.4); background: transparent; }
+.k-toasts { border-radius: 8px; }
+.k-toasts .content { align-items: flex-start; padding: 0; }
+.toast-g { width: 100%; height: min(40px, 100%); display: flex; align-items: center; justify-content: center; background: color-mix(in srgb, var(--g-panel) 94%, transparent); border: 2px solid var(--g-ink); border-radius: 9px; padding: 0 10px; box-sizing: border-box; }
+.k-moment .fill { display: none; }
+.t-moment { font-family: "Lilita One", var(--font-display); color: var(--g-money); font-size: clamp(10px, 55cqh, 72px); line-height: 1; letter-spacing: 1px; -webkit-text-stroke: 2px var(--g-ink); paint-order: stroke fill; text-shadow: 0 3px 0 var(--g-ink); white-space: nowrap; }
+.k-receipt { border-radius: 10px; color: var(--g-paper-ink); }
+.k-receipt .fill { background: var(--g-paper); border: 2px solid #C9A86A; }
+.k-receipt .content { align-items: flex-start; padding: 6% 7%; }
+.hud .receipt { width: 100%; gap: 4%; }
+.hud .receipt .t-head { color: var(--g-paper-ink); text-shadow: none; font-size: clamp(9px, 6cqw, 30px); }
+.hud .receipt .line { display: flex; justify-content: space-between; width: 100%; font-size: clamp(7px, 3.4cqw, 16px); border-bottom: 1px dashed rgba(90, 62, 27, 0.35); padding-bottom: 2%; }
+.hud .receipt .line b { font-weight: 700; } .hud .receipt .line i { font-style: normal; font-weight: 900; }
+.hud .receipt .total { border-bottom: 0; font-size: clamp(8px, 4.2cqw, 20px); }
+.win-title { position: absolute; top: 0; left: 0; right: 0; height: min(18%, 44px); display: flex; align-items: center; justify-content: center; font-family: "Denk One", var(--font-display); font-size: clamp(8px, 7cqh, 22px); color: var(--g-text); text-shadow: 0 1.5px 0 var(--g-ink); }
+.k-monitor { border-radius: 12px; }
+.k-monitor .fill { background: #1d2420; border: 3px solid #0d110e; }
+.mon-screen { position: absolute; inset: 3% 2.5% 13% 2.5%; border-radius: 6px; background: linear-gradient(160deg, #6fb7e8, #a7d58a 70%, #7bc74d); }
+.mon-bar { position: absolute; left: 2.5%; right: 2.5%; bottom: 3%; height: 8%; border-radius: 5px; background: rgba(23,48,28,0.9); display: flex; align-items: center; gap: 1.5%; padding: 0 1.5%; box-sizing: border-box; }
+.mon-bar i { height: 70%; aspect-ratio: 1; border-radius: 4px; background: var(--g-card); }
+.mon-bar b { margin-left: auto; font-family: "Lilita One", var(--font-display); color: var(--g-money); font-size: clamp(6px, 4cqh, 18px); font-weight: 400; }
+.k-dot { cursor: not-allowed; }
+.k-dot .fill { inset: 30%; border-radius: 50%; background: #fff; box-shadow: 0 0 0 2px rgba(23,48,28,0.9); }
+.k-ring { cursor: not-allowed; }
+.k-ring .fill { border-radius: 50%; border: 4px solid rgba(255,247,224,0.85); box-shadow: 0 0 0 2px rgba(23,48,28,0.6), inset 0 0 0 2px rgba(23,48,28,0.6); background: conic-gradient(var(--g-accent) 0 38%, transparent 38% 100%); -webkit-mask: radial-gradient(circle, transparent 58%, #000 60%); mask: radial-gradient(circle, transparent 58%, #000 60%); }
+.k-bar .fill { background: #050806; border: 0; border-radius: 0; }
+.k-bar { border-radius: 0; }
+.k-caption .fill { display: none; }
+.cap { color: var(--g-text) !important; background: rgba(5, 8, 6, 0.55); padding: 0.3em 0.8em; border-radius: 999px; font-size: clamp(7px, 32cqh, 16px) !important; letter-spacing: 1px; text-transform: uppercase; font-weight: 900; }
+.k-dialogue { border-radius: 14px; }
+.k-dialogue .fill { background: color-mix(in srgb, var(--g-ink) 94%, transparent); border: 3px solid var(--g-grandma); }
+.k-dialogue .content { justify-content: flex-start; padding: 0 3%; gap: 3%; }
+.portrait { height: 70%; aspect-ratio: 1; border-radius: 50%; flex: none; background: radial-gradient(circle at 50% 38%, #f3d2b0 0 28%, transparent 29%), radial-gradient(circle at 50% 100%, #e3c27a 0 46%, transparent 47%), #8a6a3b; border: 3px solid var(--g-grandma); }
+.name-tag { font-family: "Denk One", var(--font-display); color: var(--g-ink); background: var(--g-grandma); border-radius: 6px; padding: 0.15em 0.6em; font-size: clamp(7px, 13cqh, 20px); }
+.k-bubble .fill { display: none; }
+.k-bubble .content { align-items: flex-end; padding: 0; }
+.bubble-g { width: 100%; background: var(--g-text); border: 2.5px solid var(--g-ink); border-radius: 16px; padding: 10px 12px; box-sizing: border-box; position: relative; }
+.bubble-g::after { content: ""; position: absolute; left: 50%; bottom: -12px; width: 16px; height: 16px; background: var(--g-text); border-right: 2.5px solid var(--g-ink); border-bottom: 2.5px solid var(--g-ink); transform: translateX(-50%) rotate(45deg); }
+.bubble-g .t-body { color: var(--g-ink); font-size: clamp(8px, 9cqh, 18px); }
+.k-title .fill, .k-subtitle .fill { display: none; }
+.hud .wrap { white-space: normal; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; text-align: left; }
+.k-banner .content { justify-content: flex-start; padding: 0 4%; }
+.hud .kbd { font-family: var(--font-mono); font-weight: 700; font-size: clamp(6px, 30cqh, 13px); color: var(--g-ink); background: var(--g-text); border-radius: 5px; padding: 0.1em 0.45em; box-shadow: inset 0 -2px 0 rgba(0,0,0,0.25); }
+.k-button .content { justify-content: flex-start; padding: 0 9%; }
+.hud .xp { display: block; width: 100%; height: 7px; border-radius: 4px; background: rgba(23,48,28,0.8); overflow: hidden; margin-top: 2px; }
+.hud .xp i { display: block; height: 100%; background: var(--g-accent); border-radius: 4px; }
+.hud .paper-xp { background: rgba(90,62,27,0.2); }
+.hud .paper-xp i { background: var(--g-hat, #C8463C); }
+.hud .pill-row { display: inline-flex; align-items: center; gap: 0.5em; background: rgba(23, 48, 28, 0.88); border: 2px solid rgba(255,247,224,0.18); border-radius: 999px; padding: 0 0.9em 0 0.3em; height: min(46px, 100%); box-sizing: border-box; }
+.k-prompt .fill { display: none; }
+.hud .below { position: absolute; left: -20px; right: -20px; top: 100%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 13px; color: var(--g-text); text-shadow: 0 1.5px 0 var(--g-ink), 0 0 3px rgba(0,0,0,0.6); pointer-events: none; }
+.hud.fixed { cursor: not-allowed; }
+.hud.grows::before { content: ""; position: absolute; left: 50%; bottom: -1px; width: 22px; height: 3px; transform: translateX(-50%); border-radius: 2px; background: rgba(255, 247, 224, 0.55); pointer-events: none; }
+.k-group.grows::before { display: none; }
+
+/* Selection */
+.sel { position: absolute; pointer-events: none; box-sizing: border-box; border: 2px solid var(--select); }
+.handle {
+  position: absolute; width: 12px; height: 12px; margin: -6px 0 0 -6px; background: #fff; border: 2px solid var(--select);
+  border-radius: 3px; box-sizing: border-box; pointer-events: auto; touch-action: none;
+}
+@media (pointer: coarse) { .handle { width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 6px; } }
+.anchor-pt { position: absolute; width: 10px; height: 10px; margin: -5px 0 0 -5px; background: var(--select); transform: rotate(45deg); border: 2px solid #1b1b1b; box-sizing: border-box; }
+.pin-line { position: absolute; border-top: 2px dashed var(--select); transform-origin: 0 50%; opacity: 0.9; }
+.pin-label {
+  position: absolute; font: 700 10.5px/1 var(--font-mono); color: #1b1b1b; background: var(--select);
+  padding: 3px 5px; border-radius: 4px; white-space: nowrap; transform: translate(-50%, -50%);
+}
+.guide { position: absolute; background: #FF4FA3; pointer-events: none; }
+.guide.v { width: 1px; top: 0; bottom: 0; }
+.guide.h { height: 1px; left: 0; right: 0; }
+
+/* All screens */
+.all-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; width: 100%; align-self: flex-start; }
+.mini {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px; text-align: left;
+  display: flex; flex-direction: column; gap: 8px; cursor: pointer; min-width: 0;
+}
+.mini:hover { border-color: var(--line-strong); box-shadow: var(--shadow); }
+.mini[aria-current="true"] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.mini-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.mini-head b { font-weight: 900; }
+.mini-head span { font-size: 12px; color: var(--muted); }
+.mini-stage { position: relative; display: grid; place-items: center; padding: 8px; background: var(--mat); border-radius: 8px; }
+.mini .hud, .mini .handle { pointer-events: none; }
+.mini-warn { font-size: 12px; font-weight: 800; color: var(--warn); }
+.mini-warn.ok { color: var(--accent); }
+
+/* Inspector */
+.insp-empty { padding: 18px 16px; color: var(--muted); display: grid; gap: 10px; }
+.insp-empty b { color: var(--ink); }
+.insp-empty ol { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
+.insp { padding: 14px 16px 18px; display: grid; gap: 16px; }
+.insp-head { display: grid; gap: 3px; }
+.insp-title { font-family: var(--font-display); font-size: 18px; line-height: 1.15; text-wrap: balance; }
+.insp-id { font-size: 11.5px; color: var(--muted); }
+.insp-note { margin: 0; color: var(--muted); font-size: 13px; }
+.field { display: grid; gap: 7px; }
+.field-label { font-size: 11px; font-weight: 900; letter-spacing: 0.9px; text-transform: uppercase; color: var(--muted); }
+.hint { margin: 0; font-size: 12.5px; color: var(--muted); }
+.pin-grid { display: grid; grid-template-columns: repeat(3, 34px); grid-template-rows: repeat(3, 26px); gap: 4px; padding: 6px; background: var(--raised); border: 1px solid var(--line-strong); border-radius: 10px; width: max-content; }
+.pin-grid button { border: 1px solid var(--line-strong); background: var(--surface); border-radius: 6px; padding: 0; display: grid; place-items: center; }
+.pin-grid button::before { content: ""; width: 7px; height: 7px; border-radius: 2px; background: var(--line-strong); transform: rotate(45deg); }
+.pin-grid button[aria-pressed="true"] { background: var(--g-panel); border-color: var(--g-panel); }
+.pin-grid button[aria-pressed="true"]::before { background: var(--select); }
+.pin-row { display: flex; gap: 12px; align-items: center; }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.num { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 6px; background: var(--raised); border: 1px solid var(--line-strong); border-radius: 9px; padding: 0 0 0 9px; }
+.num span { font-size: 12px; font-weight: 900; color: var(--muted); }
+.num input { border: 0; background: transparent; padding: 7px 9px 7px 0; width: 100%; min-width: 0; font-family: var(--font-mono); font-size: 13px; outline: none; }
+.num:focus-within { border-color: var(--ink); }
+.adv summary { cursor: pointer; font-size: 12.5px; font-weight: 800; color: var(--muted); }
+.adv[open] summary { margin-bottom: 8px; }
+.adv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.adv-grid .sub { grid-column: 1 / -1; font-size: 11px; font-weight: 900; color: var(--muted); letter-spacing: 0.6px; text-transform: uppercase; margin-top: 4px; }
+.abs { font-size: 12.5px; color: var(--ink); background: var(--raised); border: 1px solid var(--line); border-radius: 9px; padding: 8px 10px; }
+.insp-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.toast {
+  position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
+  background: var(--g-panel); color: var(--g-text); border: 2px solid var(--g-ink); border-radius: 12px; z-index: 50;
+  padding: 10px 14px; font-weight: 800; box-shadow: var(--shadow); max-width: calc(100% - 32px); box-sizing: border-box;
+}
+.confirm-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+/* Smaller windows: the page scrolls, and the device keeps a good height. */
+@media (max-width: 1279px), (max-height: 779px) {
+  html, body { height: auto; }
+  .app { height: auto; min-height: 100%; }
+  .work {
+    grid-template-columns: 240px minmax(0, 1fr);
+    grid-template-areas: "side stage" "side inspect";
+    grid-template-rows: auto auto;
+    align-items: start;
+  }
+  .side { grid-area: side; position: sticky; top: 12px; max-height: calc(100vh - 24px); }
+  .stage-panel { grid-area: stage; }
+  .stage { height: clamp(380px, 64vh, 680px); flex: none; }
+  .inspect { grid-area: inspect; }
+  .inspect .panel-body { overflow: visible; }
+  .insp { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); column-gap: 20px; align-items: start; }
+  .insp-head, .insp-note, .insp-actions { grid-column: 1 / -1; }
+}
+@media (max-width: 760px) {
+  .work { grid-template-columns: minmax(0, 1fr); grid-template-areas: "stage" "inspect" "side"; }
+  .side { position: static; max-height: none; }
+  .side .panel-body { max-height: 360px; }
+  .stage { height: clamp(260px, 56vh, 520px); padding: 12px; }
+  .seg.devices { display: none; }
+  .device-select { display: inline-block; }
+  .brand p { display: none; }
+  .tip { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+
+<div class="app" id="app">
+  <header class="top">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><path d="M4 17h14l2-6H8.5L7 7H3.5" stroke="#FFF7E0" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="7.5" cy="19.5" r="2.6" fill="#7BC74D" stroke="#17301C" stroke-width="1.4"/><circle cx="17" cy="19.5" r="2.6" fill="#7BC74D" stroke="#17301C" stroke-width="1.4"/><path d="M20 11l3-4" stroke="#FFD24A" stroke-width="2.2" stroke-linecap="round"/></svg>
+      </div>
+      <div>
+        <h1>Lawn Mowing HUD Editor</h1>
+        <p>Drag the game's pieces where you want them, then save. Claude puts your layout into the game.</p>
+      </div>
+    </div>
+    <div class="actions">
+      <span class="status" id="status" role="status">Loading…</span>
+      <button class="btn icon" id="undo" title="Undo (Ctrl+Z)" aria-label="Undo"><svg viewBox="0 0 16 16" fill="none"><path d="M5 4L2 7l3 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M2.5 7H10a4 4 0 010 8H8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+      <button class="btn icon" id="redo" title="Redo (Ctrl+Shift+Z)" aria-label="Redo"><svg viewBox="0 0 16 16" fill="none"><path d="M11 4l3 3-3 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.5 7H6a4 4 0 000 8h2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+      <button class="btn primary" id="save"><svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5l3 3 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="saveLabel">Save layout</span></button>
+      <button class="btn icon" id="moreBtn" aria-haspopup="menu" aria-expanded="false" aria-label="More"><svg viewBox="0 0 16 16"><circle cx="3" cy="8" r="1.6" fill="currentColor"/><circle cx="8" cy="8" r="1.6" fill="currentColor"/><circle cx="13" cy="8" r="1.6" fill="currentColor"/></svg></button>
+      <div class="menu" id="menu" role="menu" hidden>
+        <button role="menuitem" id="copyLuau">Copy as UiLayout.luau</button>
+        <button role="menuitem" id="copyJson">Copy layout for Claude</button>
+        <button role="menuitem" id="loadSaved">Load the last saved layout</button>
+        <button role="menuitem" id="loadPrevious">Go back to the save before that</button>
+        <hr>
+        <button role="menuitem" class="danger" id="resetAll">Put everything back to the game's layout…</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="work">
+    <section class="panel side" aria-label="The game's pieces">
+      <div class="panel-head"><h2>Pieces</h2><span class="mono" id="count" style="font-size:12px;color:var(--muted)"></span></div>
+      <div class="side-search"><input id="filter" class="search" type="search" placeholder="Find a piece" aria-label="Find a piece"></div>
+      <div class="panel-body" id="list"></div>
+      <div class="warns" id="warns"></div>
+    </section>
+
+    <section class="panel stage-panel" aria-label="Screen">
+      <div class="stage-bar">
+        <div class="seg devices" id="devices" role="group" aria-label="Screen size"></div>
+        <select id="deviceSelect" class="device-select" aria-label="Screen size"></select>
+        <label class="scene-pick"><span>Scene</span><select id="sceneSelect" aria-label="What's happening in the game"></select></label>
+        <div class="chips" id="chips" role="group" aria-label="Show on screen"></div>
+        <div class="seg" id="viewSeg" role="group" aria-label="View">
+          <button id="viewOne" aria-pressed="true">One screen</button>
+          <button id="viewAll" aria-pressed="false">Every screen</button>
+        </div>
+      </div>
+      <div class="stage" id="stage"></div>
+      <div class="stage-foot">
+        <span class="tip">Drag to move, drag a corner to resize. <kbd>←</kbd><kbd>→</kbd> nudge 1px, with <kbd>Shift</kbd> 10px. Hold <kbd>Alt</kbd> to skip snapping.</span>
+        <span class="zoom"><button id="zoomOut" aria-label="Zoom out">−</button><span class="mono" id="zoomLabel">Fit</span><button id="zoomIn" aria-label="Zoom in">+</button><button id="zoomFit" style="padding:0 8px">Fit</button></span>
+      </div>
+      <div class="banner" id="banner" hidden></div>
+    </section>
+
+    <section class="panel inspect" aria-label="Selected piece">
+      <div class="panel-head"><h2>Settings</h2><span class="mono" id="platformTag" style="font-size:12px;color:var(--muted)"></span></div>
+      <div class="panel-body">
+        <div class="insp-empty" id="inspEmpty">
+          <p><b>Pick a piece</b> on the screen or in the list to move it.</p>
+          <ol>
+            <li>Choose a screen at the top (a phone, a tablet or a PC) and a scene, like <b>Mowing a job</b>.</li>
+            <li>Drag pieces into place. Pink lines show when edges line up. Pieces in a column swap places; drag a column by its name tab.</li>
+            <li>Red stripes mean two pieces overlap, or a piece sits under Roblox's buttons.</li>
+            <li>Press <b>Save layout</b>, then tell Claude to apply your HUD layout.</li>
+          </ol>
+        </div>
+        <div class="insp" id="insp" hidden>
+          <div class="insp-head">
+            <div class="insp-title" id="inspTitle"></div>
+            <div class="insp-id mono" id="inspId"></div>
+          </div>
+          <p class="insp-note" id="inspNote"></p>
+          <ul class="insp-flags" id="inspFlags" hidden></ul>
+          <div class="field" id="orderField" hidden>
+            <div class="field-label">Place in its column</div>
+            <p class="hint" id="orderHint"></p>
+            <div class="insp-actions">
+              <button class="btn" id="orderUp">Move up</button>
+              <button class="btn" id="orderDown">Move down</button>
+              <button class="btn" id="selectParent">Select its column</button>
+            </div>
+          </div>
+          <div class="field" id="listField" hidden>
+            <div class="field-label">How it stacks what's in it</div>
+            <div class="pair">
+              <label class="num"><span>Gap</span><input id="listGap" type="number" step="1" min="0" inputmode="numeric"></label>
+              <div class="seg" id="listAlign" role="group" aria-label="Line them up on the">
+                <button data-align="Left">Left</button><button data-align="Center">Middle</button><button data-align="Right">Right</button>
+              </div>
+            </div>
+          </div>
+          <div class="field" id="linkField">
+            <div class="field-label">Phones and PCs</div>
+            <div class="seg" role="group" aria-label="Phones and PCs">
+              <button id="linkSame" aria-pressed="true">Same spot</button>
+              <button id="linkSplit" aria-pressed="false">Phones get their own</button>
+            </div>
+            <p class="hint" id="linkHint"></p>
+          </div>
+          <div class="field" id="pinField">
+            <div class="field-label">Pinned to</div>
+            <div class="pin-row">
+              <div class="pin-grid" id="pinGrid" role="group" aria-label="Pin to"></div>
+              <p class="hint" id="pinHint"></p>
+            </div>
+          </div>
+          <div class="field" id="offField">
+            <div class="field-label">Distance from the pin</div>
+            <div class="pair">
+              <label class="num"><span>X</span><input id="offX" type="number" step="1" inputmode="numeric"></label>
+              <label class="num"><span>Y</span><input id="offY" type="number" step="1" inputmode="numeric"></label>
+            </div>
+          </div>
+          <div class="field" id="sizeField">
+            <div class="field-label">Size</div>
+            <div class="pair">
+              <label class="num"><span>W</span><input id="sizeW" type="number" step="1" inputmode="numeric"></label>
+              <label class="num"><span>H</span><input id="sizeH" type="number" step="1" inputmode="numeric"></label>
+            </div>
+            <p class="hint" id="sizeHint"></p>
+          </div>
+          <details class="adv" id="advField">
+            <summary>Exact Roblox values</summary>
+            <div class="adv-grid">
+              <div class="sub">AnchorPoint</div>
+              <label class="num"><span>X</span><input id="aX" type="number" step="0.05"></label>
+              <label class="num"><span>Y</span><input id="aY" type="number" step="0.05"></label>
+              <div class="sub">Position</div>
+              <label class="num"><span>X×</span><input id="pXs" type="number" step="0.01"></label>
+              <label class="num"><span>X+</span><input id="pXo" type="number" step="1"></label>
+              <label class="num"><span>Y×</span><input id="pYs" type="number" step="0.01"></label>
+              <label class="num"><span>Y+</span><input id="pYo" type="number" step="1"></label>
+              <div class="sub">Size</div>
+              <label class="num"><span>W×</span><input id="sXs" type="number" step="0.01"></label>
+              <label class="num"><span>W+</span><input id="sXo" type="number" step="1"></label>
+              <label class="num"><span>H×</span><input id="sYs" type="number" step="0.01"></label>
+              <label class="num"><span>H+</span><input id="sYo" type="number" step="1"></label>
+            </div>
+          </details>
+          <div class="field">
+            <div class="field-label">On this screen</div>
+            <div class="abs mono" id="absBox"></div>
+          </div>
+          <div class="insp-actions">
+            <button class="btn" id="resetEl">Back to the game's spot</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script type="application/json" id="defaults">__DEFAULTS__</script>
+<script type="application/json" id="meta">__META__</script>
+<script>
+(() => {
+"use strict";
+
+// ================================================================ data from the game
+// DEFAULTS is src/client/UiLayout.luau as JSON, filled in by scripts/build-hud-editor.py. Its
+// __screen entry (how the ScreenGuis and the scaling work) comes through META.
+const DEFAULTS = JSON.parse(document.getElementById("defaults").textContent);
+const META = JSON.parse(document.getElementById("meta").textContent);
+const SCREEN = META.screen || {};
+delete DEFAULTS.__screen;
+const IDS = (META.order || []).filter((id) => DEFAULTS[id]);
+for (const id of Object.keys(DEFAULTS)) if (!IDS.includes(id)) IDS.push(id);
+const TOPBAR = META.topbar || 58;
+const COMPACT_HEIGHT = SCREEN.compactHeight || 500;
+const SCREENS = SCREEN.screens || {};
+const SCALING = SCREEN.scaling || {};
+// The fields a layout can change. Everything else in an entry (label, note...) is the code's.
+const EDITABLE = ["anchor", "position", "size", "touch", "compact", "order", "list"];
+
+// Screens to try the layout on, in Roblox's GUI pixels (points on phones), held sideways. `notch`
+// is the safe-area inset Roblox keeps clear on each side.
+const DEVICES = [
+  { id: "phone", name: "iPhone 13", short: "iPhone 13", w: 844, h: 390, touch: true, notch: 47, kind: "phone" },
+  { id: "small", name: "iPhone SE", short: "iPhone SE", w: 667, h: 375, touch: true, notch: 0, kind: "phone" },
+  { id: "android", name: "Android phone", short: "Android", w: 800, h: 360, touch: true, notch: 0, kind: "phone" },
+  { id: "big", name: "iPhone 15 Pro Max", short: "Pro Max", w: 932, h: 430, touch: true, notch: 59, kind: "phone" },
+  { id: "tablet", name: "iPad", short: "iPad", w: 1180, h: 820, touch: true, notch: 0, kind: "tablet" },
+  { id: "laptop", name: "Laptop", short: "Laptop", w: 1366, h: 768, touch: false, notch: 0, kind: "monitor" },
+  { id: "pc", name: "PC monitor (1080p)", short: "PC", w: 1920, h: 1080, touch: false, notch: 0, kind: "monitor" },
+];
+
+// What shows together in the game, so pieces are only checked against what they can meet.
+const LEFT = ["LeftColumn", "MoneyPanel", "MenuButtons", "TruckButton", "GuideButton", "CrewButton", "MouseHint", "GrandmaGoal"];
+const RIGHT = ["RightColumn", "CurbAppeal"];
+const LOOKING = ["Reticle", "InteractPrompt", "InteractButton"];
+const SCENES = [
+  { id: "shop", name: "At the shop", ids: [...LEFT, ...RIGHT, ...LOOKING, "TutorialBanner", "Toasts"] },
+  { id: "job", name: "Mowing a job", job: true, hotbar: true, ids: [...LEFT, ...RIGHT, "JobTracker", "ToolCondition", ...LOOKING, "HoldRing", "Toasts"] },
+  { id: "shears", name: "Cutting with shears", job: true, hotbar: true, ids: [...LEFT, ...RIGHT, "JobTracker", "ToolCondition", "Reticle", "SnipButton", "Toasts"] },
+  { id: "carry", name: "Carrying a tool", ids: [...LEFT, ...RIGHT, ...LOOKING, "InteractSecondButton", "CarryHint", "Toasts"] },
+  { id: "decor", name: "Decorating", ids: [...LEFT, ...RIGHT, "Reticle", "DecorPrompt", "DecorButtons", "DecorPlaceButton", "DecorTurnButton", "DecorPutBackButton", "DecorSendBackButton", "Toasts"] },
+  { id: "popups", name: "Payday and popups", ids: [...LEFT, ...RIGHT, "Moment", "PayBreakdown", "CrewInvite", "Toasts"] },
+  { id: "menu", name: "A menu open", ids: [...LEFT, ...RIGHT, "MenuWindow", "Toasts"] },
+  { id: "computer", name: "At the shop computer", ids: ["ComputerMonitor", "Toasts"] },
+  { id: "dialogue", name: "In a story scene", ids: ["DialogueTopBar", "DialogueBottomBar", "DialogueCaption", "DialogueSkip", "DialogueBox", "DialogueToolCard", "SpeechBubble"] },
+  { id: "act", name: "An act's title", ids: ["DialogueTopBar", "DialogueBottomBar", "ActTitle"] },
+  { id: "drive", name: "Driving to a job", ids: ["CutsceneTopBar", "CutsceneBottomBar", "CutsceneTitle", "CutsceneSubtitle"] },
+  { id: "contest", name: "Best Yard results", ids: ["ContestResults"] },
+  { id: "studio", name: "Studio playtest", ids: [...LEFT, ...RIGHT, ...LOOKING, "StudioTestHint", "StudioTestPanel"] },
+  { id: "all", name: "Everything at once", ids: null },
+];
+
+// How each piece is drawn: the game's look, with sample words.
+const LOOKS = {
+  LeftColumn: { kind: "group" }, RightColumn: { kind: "group" }, MenuButtons: { kind: "group" }, DecorButtons: { kind: "group" },
+  MoneyPanel: { kind: "money" },
+  TruckButton: { kind: "button", icon: "truck", text: "Truck", key: "T" },
+  GuideButton: { kind: "button", icon: "book", text: "Guide", key: "G" },
+  CrewButton: { kind: "button", icon: "crew", text: "Crew", key: "C" },
+  MouseHint: { kind: "text", text: "Hold Alt for the mouse" },
+  GrandmaGoal: { kind: "paper", text: "Grandma's goal", sample: "Buy the Reel Push Mower · $0 / $150" },
+  CurbAppeal: { kind: "panel", icon: "house", text: "Curb appeal", sample: "62 / 100" },
+  JobTracker: { kind: "tracker", text: "Edna's front lawn", sample: ["Pick up the junk", "Mow the lawn", "Trim the edges"] },
+  ToolCondition: { kind: "chips", sample: ["Dull blade", "Low fuel"] },
+  TutorialBanner: { kind: "banner", sample: "Look at the computer in your shop and press E, then take the Front Lawn job." },
+  CarryHint: { kind: "banner", sample: "Walk to your truck and press E to put it in the bed." },
+  InteractPrompt: { kind: "prompt", key: "E", sample: "Pick up Grass Shears" },
+  DecorPrompt: { kind: "prompt", key: "E", sample: "Place the garden gnome" },
+  InteractButton: { kind: "round", icon: "hand", text: "Pick up", below: 28, side: 20 },
+  InteractSecondButton: { kind: "pill", text: "Take one" },
+  SnipButton: { kind: "round", icon: "scissors", text: "Snip", below: 28 },
+  DecorPlaceButton: { kind: "button", icon: "box", text: "Place" },
+  DecorTurnButton: { kind: "button", text: "Turn" },
+  DecorPutBackButton: { kind: "button", text: "Put back" },
+  DecorSendBackButton: { kind: "button", text: "Send back" },
+  Toasts: { kind: "toasts", sample: "Job board: 3 new jobs nearby." },
+  Moment: { kind: "moment", text: "LEVEL UP!" },
+  PayBreakdown: { kind: "receipt", text: "Payday" },
+  CrewInvite: { kind: "panel", icon: "crew", text: "Sam invited you", sample: "Join · No thanks" },
+  MenuWindow: { kind: "window", text: "Truck" },
+  ComputerMonitor: { kind: "monitor", text: "Shop computer" },
+  ContestResults: { kind: "window", text: "Best Yard results" },
+  Reticle: { kind: "dot" },
+  HoldRing: { kind: "ring" },
+  DialogueTopBar: { kind: "bar" }, DialogueBottomBar: { kind: "bar" }, CutsceneTopBar: { kind: "bar" }, CutsceneBottomBar: { kind: "bar" },
+  DialogueCaption: { kind: "caption", text: "Maple Grove · First day of summer" },
+  DialogueSkip: { kind: "pill", text: "Skip" },
+  DialogueBox: { kind: "dialogue", text: "Grandma June", sample: "Well, look who finally showed up. That grass won't cut itself." },
+  DialogueToolCard: { kind: "panel", icon: "scissors", text: "New tool", sample: "Grass Shears" },
+  ActTitle: { kind: "moment", text: "ACT ONE" },
+  SpeechBubble: { kind: "bubble", sample: "You missed a spot, dear." },
+  CutsceneTitle: { kind: "title", text: "Off to Edna's" },
+  CutsceneSubtitle: { kind: "subtitle", text: "Front lawn · 214 Maple Lane" },
+  StudioTestHint: { kind: "text", text: "Studio test panel: K" },
+  StudioTestPanel: { kind: "window", text: "Test panel" },
+};
+
+// ================================================================ state
+const store = {
+  get(key) { try { return JSON.parse(localStorage.getItem(key)); } catch { return null; } },
+  set(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch {} },
+  del(key) { try { localStorage.removeItem(key); } catch {} },
+};
+const DRAFT_KEY = "lms-hud-draft-v2";
+const PREFS_KEY = "lms-hud-prefs-v2";
+const SHOW_DEFAULTS = { names: false, safe: true, core: true, hotbar: false, grid: false, snap: true, warn: true };
+const prefs = Object.assign({ device: "phone", view: "one", scene: "shop" }, store.get(PREFS_KEY) || {});
+prefs.show = Object.assign({}, SHOW_DEFAULTS, prefs.show || {});
+
+const clone = (v) => (v === undefined ? undefined : JSON.parse(JSON.stringify(v)));
+function defaultLayout() {
+  const out = {};
+  for (const id of IDS) {
+    const d = DEFAULTS[id];
+    const entry = {};
+    for (const k of EDITABLE) if (d[k] !== undefined) entry[k] = clone(d[k]);
+    out[id] = entry;
+  }
+  return out;
+}
+
+const state = {
+  layout: defaultLayout(),
+  device: DEVICES.find((d) => d.id === prefs.device) || DEVICES[0],
+  view: prefs.view === "all" ? "all" : "one",
+  scene: SCENES.find((s) => s.id === prefs.scene) || SCENES[0],
+  toggled: new Set(),
+  selected: null,
+  zoom: "fit",
+  zoomValue: 1,
+  dirty: false,
+  filter: "",
+};
+const undoStack = [];
+const redoStack = [];
+function savePrefs() {
+  store.set(PREFS_KEY, { device: state.device.id, view: state.view, scene: state.scene.id, show: prefs.show });
+}
+
+// ================================================================ who's where
+const ancestorsCache = {};
+function ancestors(id) {
+  if (ancestorsCache[id]) return ancestorsCache[id];
+  const out = [];
+  let p = DEFAULTS[id].parent;
+  while (p && DEFAULTS[p] && !out.includes(p)) { out.push(p); p = DEFAULTS[p].parent; }
+  return (ancestorsCache[id] = out);
+}
+function screenOf(id) {
+  let d = DEFAULTS[id];
+  for (const a of [id, ...ancestors(id)]) if (DEFAULTS[a].screen) return DEFAULTS[a].screen;
+  return d.screen || "LawnUI";
+}
+function childrenOf(id) {
+  return IDS.filter((c) => DEFAULTS[c].parent === id);
+}
+function listOf(id) {
+  return state.layout[id] && state.layout[id].list;
+}
+function inList(id) {
+  const p = DEFAULTS[id].parent;
+  return !!(p && DEFAULTS[p] && listOf(p));
+}
+const isWorld = (id) => !!(SCREENS[screenOf(id)] && SCREENS[screenOf(id)].billboard);
+const isFixed = (id) => !!DEFAULTS[id].fixed;
+const isCompact = (dev) => dev.h < COMPACT_HEIGHT;
+function deviceAllows(id, dev) {
+  for (const a of [id, ...ancestors(id)]) {
+    const want = DEFAULTS[a].device;
+    if (want === "touch" && !dev.touch) return false;
+    if (want === "keyboard" && dev.touch) return false;
+  }
+  return true;
+}
+function sceneHas(id) {
+  const ids = state.scene.ids;
+  const base = !ids || ids.includes(id);
+  return state.toggled.has(id) ? !base : base;
+}
+// Whether a piece shows on `dev` in this scene (and everything it's inside does).
+function shows(id, dev) {
+  for (const a of [id, ...ancestors(id)]) {
+    if (!sceneHas(a) || !deviceAllows(a, dev)) return false;
+  }
+  if (id === "CurbAppeal" && state.scene.job) {
+    const fullHeight = (SCALING.Columns && SCALING.Columns.fullHeight) || 560;
+    if (rootRect(dev, "LawnUI").h < fullHeight) return false;
+  }
+  return true;
+}
+
+// ================================================================ geometry
+function rootRect(dev, screen) {
+  const conf = SCREENS[screen] || SCREENS.LawnUI || { ignoreGuiInset: false, screenInsets: "CoreUISafeInsets" };
+  const side = dev.notch;
+  if (conf.billboard) return { x: 0, y: 0, w: dev.w, h: dev.h };
+  if (conf.ignoreGuiInset === false) return { x: side, y: TOPBAR, w: dev.w - side * 2, h: dev.h - TOPBAR };
+  if (conf.screenInsets === "DeviceSafeInsets") return { x: side, y: 0, w: dev.w - side * 2, h: dev.h };
+  return { x: 0, y: 0, w: dev.w, h: dev.h };
+}
+
+// The placement used on `dev`: the shared one, then the phone one, then the short-screen one.
+function placementOf(id, dev) {
+  const L = state.layout[id];
+  const p = { anchor: L.anchor || [0, 0], position: L.position || [0, 0, 0, 0], size: L.size };
+  if (dev.touch && L.touch) for (const k of ["anchor", "position", "size"]) if (L.touch[k]) p[k] = L.touch[k];
+  if (isCompact(dev) && L.compact) for (const k of ["anchor", "position", "size"]) if (L.compact[k]) p[k] = L.compact[k];
+  return p;
+}
+const dims = (v) => (v ? { w: v.width, h: v.height } : {});
+
+// A piece's own size (before any UIScale), given its parent's box size.
+function measure(id, pw, ph, dev, memo) {
+  const key = id;
+  if (memo[key]) return memo[key];
+  const d = DEFAULTS[id];
+  const p = placementOf(id, dev);
+  const typical = d.typical || [160, 40];
+  let w = p.size ? p.size[0] * pw + p.size[1] : typical[0];
+  let h = p.size ? p.size[2] * ph + p.size[3] : typical[1];
+  const auto = d.autoSize || "";
+  const list = listOf(id);
+  if (auto) {
+    const kids = list ? orderedChildren(id).filter((c) => shows(c, dev)) : [];
+    if (list && kids.length) {
+      const sizes = kids.map((c) => measure(c, w, h, dev, memo));
+      const gap = list.padding || 0;
+      if (list.direction === "Horizontal") {
+        if (auto.includes("X")) w = Math.max(w, sizes.reduce((s, z) => s + z.w, 0) + gap * (kids.length - 1));
+        if (auto.includes("Y")) h = Math.max(h, Math.max(...sizes.map((z) => z.h)));
+      } else {
+        if (auto.includes("Y")) h = Math.max(h, sizes.reduce((s, z) => s + z.h, 0) + gap * (kids.length - 1));
+        if (auto.includes("X")) w = Math.max(w, Math.max(...sizes.map((z) => z.w)));
+      }
+    } else if (!list) {
+      if (auto.includes("X")) w = Math.max(w, typical[0]);
+      if (auto.includes("Y")) h = Math.max(h, typical[1]);
+    }
+  }
+  const mn = dims(d.min), mx = dims(d.max);
+  if (mx.w !== undefined) w = Math.min(w, mx.w);
+  if (mx.h !== undefined) h = Math.min(h, mx.h);
+  if (mn.w !== undefined) w = Math.max(w, mn.w);
+  if (mn.h !== undefined) h = Math.max(h, mn.h);
+  return (memo[key] = { w: Math.max(0, w), h: Math.max(0, h) });
+}
+
+function orderedChildren(id) {
+  const kids = childrenOf(id);
+  return kids
+    .map((c, i) => ({ c, o: state.layout[c].order !== undefined ? state.layout[c].order : 1e6 + i }))
+    .sort((a, b) => a.o - b.o)
+    .map((x) => x.c);
+}
+
+// How much a UIScale shrinks a piece on this screen (__screen.scaling), 1 for most.
+function scaleOf(id, dev, raw) {
+  for (const [name, rule] of Object.entries(SCALING)) {
+    if (!rule.elements || !rule.elements.includes(id)) continue;
+    const root = rootRect(dev, screenOf(id));
+    if (name === "Columns") {
+      let s = Math.min(1, Math.max(rule.minScale || 0.7, root.h / (rule.fullHeight || 560)));
+      if (raw.h > 0) s = Math.min(s, Math.max(rule.tightScale || 0.5, (root.h - (rule.margin || 24)) / raw.h));
+      return s;
+    }
+    if (name === "PayBreakdown") {
+      const m = rule.margin || 24;
+      return Math.min(1, (root.h - m) / Math.max(1, raw.h), (root.w - m) / Math.max(1, raw.w));
+    }
+    if (name === "ContestResults") {
+      return Math.min(root.w / (raw.w + (rule.marginX || 32)), root.h / (raw.h + (rule.marginY || 24)), rule.maxScale || 1.15);
+    }
+  }
+  return 1;
+}
+
+// Every piece's box on `dev` in screen pixels, as drawn. Each box also keeps its parent's box
+// (`parent`, in the same unscaled frame its UDim2 is worked out in) and the scale it's drawn at
+// (`s`, about `ox, oy`), which dragging uses to turn screen pixels back into layout values.
+function computeRects(dev) {
+  const memo = {};
+  const rects = {};
+  const xf = (t, x, y) => ({ x: t.ox + (x - t.ox) * t.s, y: t.oy + (y - t.oy) * t.s });
+  function placeBox(id, parentBox, t) {
+    const d = DEFAULTS[id];
+    const p = placementOf(id, dev);
+    const size = measure(id, parentBox.w, parentBox.h, dev, memo);
+    let x, y;
+    if (isWorld(id)) {
+      // Over a person in the world: show it over June's porch, growing up from its bottom.
+      x = dev.w * 0.3 - size.w / 2;
+      y = dev.h * 0.5 - 30 - size.h;
+    } else {
+      x = parentBox.x + p.position[0] * parentBox.w + p.position[1] - p.anchor[0] * size.w;
+      y = parentBox.y + p.position[2] * parentBox.h + p.position[3] - p.anchor[1] * size.h;
+    }
+    return layoutAt(id, { x, y, w: size.w, h: size.h }, parentBox, t, p.anchor);
+  }
+  function layoutAt(id, raw, parentBox, t, anchor) {
+    // This piece's own UIScale, about its anchor point.
+    const s = scaleOf(id, dev, raw);
+    let own = t;
+    if (s !== 1) {
+      const ox = raw.x + anchor[0] * raw.w, oy = raw.y + anchor[1] * raw.h;
+      // compose: first this scale (in the parent's frame), then the parent's
+      own = { s: t.s * s, ox: 0, oy: 0, inner: { s, ox, oy }, outer: t };
+    }
+    const toScreen = (x, y) => {
+      if (own.inner) {
+        const a = { x: own.inner.ox + (x - own.inner.ox) * own.inner.s, y: own.inner.oy + (y - own.inner.oy) * own.inner.s };
+        return xf(own.outer, a.x, a.y);
+      }
+      return xf(own, x, y);
+    };
+    const tl = toScreen(raw.x, raw.y), br = toScreen(raw.x + raw.w, raw.y + raw.h);
+    const pin = toScreen(parentBox.x, parentBox.y);
+    rects[id] = {
+      x: tl.x, y: tl.y, w: br.x - tl.x, h: br.y - tl.y, raw, parent: parentBox, s: own.s, scale: s,
+      pinX: 0, pinY: 0, toScreen,
+    };
+    const p = placementOf(id, dev);
+    const pinPt = toScreen(parentBox.x + p.position[0] * parentBox.w, parentBox.y + p.position[2] * parentBox.h);
+    rects[id].pinX = pinPt.x;
+    rects[id].pinY = pinPt.y;
+    void pin;
+    // What's inside: a list stacks them; otherwise each one's own UDim2 in this box.
+    const kids = childrenOf(id);
+    if (!kids.length) return;
+    const childT = own.inner ? { s: own.s, inner: own.inner, outer: own.outer } : own;
+    const list = listOf(id);
+    if (list) {
+      let cursor = 0;
+      const gap = list.padding || 0;
+      for (const c of orderedChildren(id)) {
+        if (!shows(c, dev)) { placeHidden(c, raw); continue; }
+        const z = measure(c, raw.w, raw.h, dev, memo);
+        let cx, cy;
+        if (list.direction === "Horizontal") {
+          cx = raw.x + cursor;
+          cy = raw.y;
+          cursor += z.w + gap;
+        } else {
+          const align = list.align || "Left";
+          cx = align === "Right" ? raw.x + raw.w - z.w : align === "Center" ? raw.x + (raw.w - z.w) / 2 : raw.x;
+          cy = raw.y + cursor;
+          cursor += z.h + gap;
+        }
+        layoutChild(c, { x: cx, y: cy, w: z.w, h: z.h }, raw, childT);
+      }
+    } else {
+      for (const c of kids) {
+        const cp = placementOf(c, dev);
+        const z = measure(c, raw.w, raw.h, dev, memo);
+        const cx = raw.x + cp.position[0] * raw.w + cp.position[1] - cp.anchor[0] * z.w;
+        const cy = raw.y + cp.position[2] * raw.h + cp.position[3] - cp.anchor[1] * z.h;
+        layoutChild(c, { x: cx, y: cy, w: z.w, h: z.h }, raw, childT);
+      }
+    }
+  }
+  function layoutChild(id, raw, parentRaw, t) {
+    const anchor = placementOf(id, dev).anchor;
+    if (t.inner) {
+      // children live in the scaled parent's frame: route through its transform
+      const parentT = { s: t.s, ox: 0, oy: 0 };
+      void parentT;
+    }
+    layoutAt(id, raw, parentRaw, t.inner ? { s: t.s, ox: 0, oy: 0, inner: t.inner, outer: t.outer } : t, anchor);
+  }
+  function placeHidden(id, parentRaw) {
+    rects[id] = { x: 0, y: 0, w: 0, h: 0, raw: { x: 0, y: 0, w: 0, h: 0 }, parent: parentRaw, s: 1, scale: 1, hidden: true, toScreen: (x, y) => ({ x, y }) };
+  }
+  const identity = { s: 1, ox: 0, oy: 0 };
+  for (const id of IDS) {
+    const d = DEFAULTS[id];
+    if (d.parent && DEFAULTS[d.parent]) continue;
+    placeBox(id, rootRect(dev, screenOf(id)), identity);
+  }
+  // Toasts start just under the first-job coach while it shows.
+  const coach = rects.TutorialBanner, toasts = rects.Toasts;
+  if (coach && toasts && shows("TutorialBanner", dev) && shows("Toasts", dev) && toasts.y < coach.y + coach.h + 8) {
+    const dy = coach.y + coach.h + 8 - toasts.y;
+    toasts.y += dy;
+    toasts.pushed = dy;
+  }
+  for (const id of IDS) if (!rects[id]) rects[id] = { x: 0, y: 0, w: 0, h: 0, raw: { x: 0, y: 0, w: 0, h: 0 }, parent: rootRect(dev, "LawnUI"), s: 1, scale: 1, hidden: true, toScreen: (x, y) => ({ x, y }) };
+  return rects;
+}
+
+// Roblox's own buttons, which the game's pieces must keep clear of.
+function coreControls(dev) {
+  const out = [];
+  const side = dev.notch;
+  const gameScreen = !state.scene.ids || state.scene.ids.some((id) => DEFAULTS[id] && screenOf(id) === "LawnUI");
+  out.push({ kind: "logo", x: side + 12, y: 9, w: 44, h: 44, label: "Roblox button" });
+  out.push({ kind: "pill", x: side + 64, y: 9, w: 132, h: 44, label: "menu, chat and voice buttons" });
+  if (dev.touch && gameScreen) {
+    const small = Math.min(dev.w, dev.h) <= 500;
+    const s = small ? 70 : 120;
+    out.push({ kind: "jump", x: dev.w - side - (s * 1.5 - 10), y: small ? dev.h - s - 20 : dev.h - s * 1.75, w: s, h: s, label: "jump button" });
+    const t = small ? 72 : 120;
+    out.push({ kind: "stick", x: side + 24, y: dev.h - t - 21, w: t, h: t, label: "move stick" });
+  }
+  if ((prefs.show.hotbar || state.scene.hotbar) && gameScreen) {
+    const slot = dev.touch && Math.min(dev.w, dev.h) <= 500 ? 48 : 60;
+    const n = 4;
+    const w = n * slot + (n - 1) * 5;
+    out.push({ kind: "hotbar", x: (dev.w - w) / 2, y: dev.h - slot - 6, w, h: slot, label: "hotbar", slots: n });
+  }
+  return out;
+}
+
+const overlapArea = (a, b) => Math.max(0, Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x)) * Math.max(0, Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y));
+// The box a piece really covers: some draw their words outside it (the round phone buttons).
+function coverOf(id, r) {
+  const look = LOOKS[id] || {};
+  // the toasts' box is where they stack; one message is what's usually there
+  if (look.kind === "toasts") return { x: r.x, y: r.y, w: r.w, h: Math.min(r.h, 40 * r.s) };
+  if (!look.below) return r;
+  const side = (look.side || 0) * r.s;
+  return { x: r.x - side, y: r.y, w: r.w + side * 2, h: r.h + look.below * r.s };
+}
+const nameOf = (id) => (DEFAULTS[id] && DEFAULTS[id].label) || id;
+
+function warningsFor(dev, rects) {
+  const list = [];
+  const flagged = new Set();
+  const ids = IDS.filter((id) => shows(id, dev) && !isWorld(id) && !rects[id].hidden);
+  const leaves = ids.filter((id) => (LOOKS[id] || {}).kind !== "group" || !childrenOf(id).some((c) => shows(c, dev)));
+  const screenArea = dev.w * dev.h;
+  const big = (r) => r.w * r.h > screenArea * 0.3;
+  const bars = (id) => (LOOKS[id] || {}).kind === "bar";
+  const core = coreControls(dev);
+  for (const id of ids) {
+    const r = coverOf(id, rects[id]);
+    if (r.x < -0.5 || r.y < -0.5 || r.x + r.w > dev.w + 0.5 || r.y + r.h > dev.h + 0.5) {
+      list.push({ ids: [id], text: `<b>${esc(nameOf(id))}</b> runs off the edge of the screen.` });
+      flagged.add(id);
+    }
+  }
+  for (const id of leaves) {
+    const r = coverOf(id, rects[id]);
+    if (big(r) || bars(id) || isFixed(id)) continue;
+    for (const c of core) {
+      if (overlapArea(r, c) > 12) {
+        list.push({ ids: [id], text: `<b>${esc(nameOf(id))}</b> sits under Roblox's ${esc(c.label)}.` });
+        flagged.add(id);
+      }
+    }
+    if (dev.notch && (r.x < dev.notch - 0.5 || r.x + r.w > dev.w - dev.notch + 0.5) && screenOf(id) !== "Interact") {
+      list.push({ ids: [id], text: `<b>${esc(nameOf(id))}</b> reaches into the notch area.` });
+      flagged.add(id);
+    }
+  }
+  for (let i = 0; i < leaves.length; i++) {
+    for (let j = i + 1; j < leaves.length; j++) {
+      const a = leaves[i], b = leaves[j];
+      if (ancestors(a).includes(b) || ancestors(b).includes(a)) continue;
+      if ((isFixed(a) && isFixed(b)) || bars(a) || bars(b)) continue;
+      const ra = coverOf(a, rects[a]), rb = coverOf(b, rects[b]);
+      if (big(ra) || big(rb)) continue;
+      if (overlapArea(ra, rb) > 16) {
+        list.push({ ids: [a, b], text: `<b>${esc(nameOf(a))}</b> overlaps <b>${esc(nameOf(b))}</b>.` });
+        flagged.add(a);
+        flagged.add(b);
+      }
+    }
+  }
+  return { list, flagged };
+}
+
+// ================================================================ drawing the game's pieces
+const ICONS = {
+  truck: '<svg viewBox="0 0 24 24" fill="none"><path d="M2 7h11v9H2zM13 10h4l3 3v3h-7z" fill="currentColor" opacity=".95"/><circle cx="6" cy="17.5" r="2.2" fill="#17301C" stroke="currentColor" stroke-width="1.6"/><circle cx="16.5" cy="17.5" r="2.2" fill="#17301C" stroke="currentColor" stroke-width="1.6"/></svg>',
+  book: '<svg viewBox="0 0 24 24" fill="none"><path d="M4 5.5C6.5 4.5 9.5 4.5 12 6c2.5-1.5 5.5-1.5 8-.5V19c-2.5-1-5.5-1-8 .5-2.5-1.5-5.5-1.5-8-.5z" fill="currentColor"/><path d="M12 6v13.5" stroke="#17301C" stroke-width="1.5"/></svg>',
+  crew: '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="8.5" cy="8" r="3.2"/><circle cx="16.5" cy="9" r="2.6"/><path d="M2.5 19c.5-3.6 3-5.5 6-5.5s5.5 1.9 6 5.5zM14.5 14.2c.6-.2 1.3-.3 2-.3 2.5 0 4.6 1.6 5 5.1h-5.2c-.2-1.9-.8-3.5-1.8-4.8z"/></svg>',
+  scissors: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="6.5" cy="17.5" r="3"/><circle cx="17.5" cy="17.5" r="3"/><path d="M8.6 15.4L17 4M15.4 15.4L7 4"/></svg>',
+  coin: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="#FFD24A" stroke="#17301C" stroke-width="2"/><path d="M12 7v10M14.5 9.2c-.6-.8-1.5-1.2-2.5-1.2-1.4 0-2.5.8-2.5 1.9 0 2.6 5 1.4 5 4.1 0 1.1-1.1 2-2.5 2-1.1 0-2-.5-2.6-1.3" stroke="#17301C" stroke-width="1.7" fill="none" stroke-linecap="round"/></svg>',
+  house: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l9 8h-2.5v9h-5v-6h-3v6h-5v-9H3z"/></svg>',
+  hand: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 11V5.5a1.5 1.5 0 013 0V10h.5V4a1.5 1.5 0 013 0v6h.5V5.5a1.5 1.5 0 013 0V14c0 4-2.7 7-6.5 7-2.4 0-4-1-5.5-3L3.6 14.5a1.5 1.5 0 012.3-1.9z"/></svg>',
+  box: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3.5 7.5L12 3l8.5 4.5v9L12 21l-8.5-4.5z"/><path d="M3.5 7.5L12 12l8.5-4.5M12 12v9"/></svg>',
+};
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+function lookOf(id) {
+  if (LOOKS[id]) return LOOKS[id];
+  const label = nameOf(id);
+  if (childrenOf(id).length) return { kind: "group" };
+  if (/button/i.test(label)) return { kind: "button", text: label.replace(/\s*button/i, "") };
+  return { kind: "panel", text: label };
+}
+
+function pieceHTML(id, r, dev) {
+  const look = lookOf(id);
+  const icon = look.icon ? `<span class="ic">${ICONS[look.icon]}</span>` : "";
+  const small = r.h < 30;
+  let inner = "";
+  let cls = look.kind;
+  switch (look.kind) {
+    case "group":
+      inner = "";
+      break;
+    case "money":
+      cls = "panel";
+      inner = `<span class="ic">${ICONS.coin}</span><div class="stack"><span class="t-money">$1,250</span>${small ? "" : '<span class="t-small">Level 3 · 7 jobs done</span><span class="xp"><i style="width:62%"></i></span>'}</div>`;
+      break;
+    case "button": {
+      const key = look.key && !dev.touch ? `<span class="kbd">${esc(look.key)}</span>` : "";
+      inner = `${key}${icon}<span class="t-body">${esc(look.text || nameOf(id))}</span>`;
+      break;
+    }
+    case "text":
+      inner = `<span class="t-small" style="color:var(--g-text);opacity:.85">${esc(look.text)}</span>`;
+      break;
+    case "paper":
+      inner = `<div class="stack"><span class="t-head">${esc((look.text || "").toUpperCase())}</span>${small ? "" : `<span class="t-small">${esc(look.sample || "")}</span><span class="xp paper-xp"><i style="width:30%"></i></span>`}</div>`;
+      break;
+    case "panel":
+      inner = `${icon}<div class="stack"><span class="t-body">${esc(look.text || nameOf(id))}</span>${small || !look.sample ? "" : `<span class="t-small">${esc(look.sample)}</span>`}</div>`;
+      break;
+    case "tracker":
+      inner = `<div class="stack tracker"><span class="t-head">${esc(look.text)}</span>${(look.sample || []).map((t, i) => `<span class="todo${i === 0 ? " done" : ""}">${esc(t)}</span>`).join("")}<span class="t-small">⏱ 2:14 · par 4:00</span></div>`;
+      break;
+    case "chips":
+      inner = (look.sample || []).map((t) => `<span class="chip-g">${esc(t)}</span>`).join("");
+      break;
+    case "banner":
+      inner = `<span class="t-body wrap" style="color:var(--g-money)">${esc(look.sample || nameOf(id))}</span>`;
+      break;
+    case "prompt":
+      inner = `<span class="pill-row"><span class="key">${esc(look.key || "E")}</span><span class="t-body">${esc(look.sample || nameOf(id))}</span></span>`;
+      break;
+    case "round":
+      inner = `${icon}`;
+      break;
+    case "pill":
+      inner = `<span class="t-body">${esc(look.text || nameOf(id))}</span>`;
+      break;
+    case "toasts":
+      inner = `<span class="toast-g"><span class="t-body">${esc(look.sample)}</span></span>`;
+      break;
+    case "moment":
+      inner = `<span class="t-moment">${esc(look.text)}</span>`;
+      break;
+    case "receipt":
+      inner = `<div class="stack receipt"><span class="t-head">${esc(look.text)}</span><span class="line"><b>Base pay</b><i>$120</i></span><span class="line"><b>Stripes bonus</b><i>$18</i></span><span class="line"><b>Fast finish</b><i>$12</i></span><span class="line total"><b>Total</b><i>$150</i></span></div>`;
+      break;
+    case "window":
+      inner = `<span class="win-title">${esc(look.text || nameOf(id))}</span>`;
+      break;
+    case "monitor":
+      inner = `<span class="mon-screen"></span><span class="mon-bar"><i></i><i></i><i></i><i></i><b>$1,250</b></span>`;
+      break;
+    case "dot":
+    case "ring":
+      inner = "";
+      break;
+    case "bar":
+      inner = "";
+      break;
+    case "caption":
+      inner = `<span class="t-small cap">${esc(look.text)}</span>`;
+      break;
+    case "dialogue":
+      inner = `<span class="portrait"></span><div class="stack"><span class="name-tag">${esc(look.text)}</span><span class="t-body wrap" style="color:var(--g-text)">${esc(look.sample)}</span></div>`;
+      break;
+    case "bubble":
+      inner = `<span class="bubble-g"><span class="t-body wrap">${esc(look.sample)}</span></span>`;
+      break;
+    case "title":
+      inner = `<span class="t-moment" style="font-size:clamp(8px,70cqh,40px)">${esc(look.text)}</span>`;
+      break;
+    case "subtitle":
+      inner = `<span class="t-body" style="color:var(--g-subtext)">${esc(look.text)}</span>`;
+      break;
+    default:
+      inner = `<span class="t-body">${esc(look.text || nameOf(id))}</span>`;
+  }
+  let extra = "";
+  if (look.kind === "round") extra = `<span class="below" style="height:${look.below}px">${esc(look.text)}</span>`;
+  return { cls, html: `<div class="fill"></div><div class="content">${inner}</div>${extra}` };
+}
+
+// ================================================================ the backdrop: Maple Grove on a summer morning
+function drawScene(canvas, dev, scale, dim) {
+  const ratio = Math.min(2.5, (window.devicePixelRatio || 1) * scale);
+  canvas.width = Math.max(1, Math.round(dev.w * ratio));
+  canvas.height = Math.max(1, Math.round(dev.h * ratio));
+  const c = canvas.getContext("2d");
+  c.setTransform(ratio, 0, 0, ratio, 0, 0);
+  const W = dev.w, H = dev.h;
+  const horizon = H * 0.5;
+  const sky = c.createLinearGradient(0, 0, 0, horizon);
+  sky.addColorStop(0, "#3f86d6");
+  sky.addColorStop(0.65, "#8cc0ec");
+  sky.addColorStop(1, "#cfe6f6");
+  c.fillStyle = sky;
+  c.fillRect(0, 0, W, horizon + 1);
+  const sun = c.createRadialGradient(W * 0.8, H * 0.12, 0, W * 0.8, H * 0.12, H * 0.25);
+  sun.addColorStop(0, "rgba(255,255,240,0.95)");
+  sun.addColorStop(0.25, "rgba(255,250,220,0.5)");
+  sun.addColorStop(1, "rgba(255,250,220,0)");
+  c.fillStyle = sun;
+  c.fillRect(0, 0, W, horizon);
+  c.fillStyle = "rgba(255,255,255,0.85)";
+  for (const [cx, cy, s] of [[0.22, 0.17, 1], [0.58, 0.1, 0.7]]) {
+    const x = W * cx, y = H * cy, u = H * 0.05 * s;
+    c.beginPath();
+    c.ellipse(x, y, u * 2.4, u * 0.8, 0, 0, Math.PI * 2);
+    c.ellipse(x - u * 1.1, y - u * 0.3, u * 1.1, u * 0.8, 0, 0, Math.PI * 2);
+    c.ellipse(x + u * 0.6, y - u * 0.6, u * 1.3, u * 1.0, 0, 0, Math.PI * 2);
+    c.fill();
+  }
+  c.fillStyle = "#4f8a3c";
+  c.beginPath();
+  c.moveTo(0, horizon);
+  for (let x = 0; x <= W + 20; x += 18) c.lineTo(x, horizon - (Math.sin(x * 0.045) * 6 + Math.sin(x * 0.11) * 4 + 12));
+  c.lineTo(W, horizon);
+  c.closePath();
+  c.fill();
+  const ground = c.createLinearGradient(0, horizon, 0, H);
+  ground.addColorStop(0, "#77b356");
+  ground.addColorStop(1, "#5d9a3f");
+  c.fillStyle = ground;
+  c.fillRect(0, horizon, W, H - horizon);
+  const vx = W * 0.5, stripes = 14;
+  for (let i = -stripes; i < stripes; i++) {
+    if (i % 2 === 0) continue;
+    c.fillStyle = "rgba(255,255,255,0.07)";
+    c.beginPath();
+    c.moveTo(vx + i * 6, horizon);
+    c.lineTo(vx + (i + 1) * 6, horizon);
+    c.lineTo(vx + (i + 1) * (W / stripes) * 1.6, H);
+    c.lineTo(vx + i * (W / stripes) * 1.6, H);
+    c.closePath();
+    c.fill();
+  }
+  c.fillStyle = "#b9bab3";
+  c.beginPath();
+  c.moveTo(W * 0.6, horizon + 2);
+  c.lineTo(W * 0.66, horizon + 2);
+  c.lineTo(W * 1.05, H);
+  c.lineTo(W * 0.78, H);
+  c.closePath();
+  c.fill();
+  const sx = W * 0.5, sw = H * 0.22, sh = H * 0.13, sy = horizon - sh + 4;
+  c.fillStyle = "#c58f55";
+  c.fillRect(sx - sw / 2, sy, sw, sh);
+  c.fillStyle = "rgba(0,0,0,0.12)";
+  for (let k = 1; k < 7; k++) c.fillRect(sx - sw / 2 + (sw / 7) * k, sy, 1, sh);
+  c.fillStyle = "#ead7ae";
+  c.beginPath();
+  c.moveTo(sx - sw / 2 - 4, sy + 2);
+  c.lineTo(sx, sy - sh * 0.35);
+  c.lineTo(sx + sw / 2 + 4, sy + 2);
+  c.closePath();
+  c.fill();
+  c.fillStyle = "#6e4a26";
+  c.fillRect(sx - sw * 0.12, sy + sh * 0.35, sw * 0.24, sh * 0.65);
+  const tx = W * 0.6, ty = horizon + H * 0.01, tw = H * 0.24, th = H * 0.07;
+  c.fillStyle = "#e9ecef";
+  c.fillRect(tx, ty - th, tw * 0.62, th * 0.62);
+  c.fillRect(tx, ty - th * 0.45, tw, th * 0.5);
+  c.fillStyle = "#5b6b78";
+  c.fillRect(tx + tw * 0.06, ty - th * 0.92, tw * 0.48, th * 0.38);
+  c.fillStyle = "#1e2326";
+  for (const wx of [0.2, 0.8]) { c.beginPath(); c.arc(tx + tw * wx, ty + th * 0.06, th * 0.24, 0, Math.PI * 2); c.fill(); }
+  const px = W * 0.3, py = horizon + 3, pw = H * 0.16, ph = H * 0.05;
+  c.fillStyle = "#b98f5f";
+  c.fillRect(px - pw / 2, py - ph * 0.35, pw, ph * 0.35);
+  c.strokeStyle = "#f4f1e8";
+  c.lineWidth = 1.2;
+  for (let k = 0; k <= 8; k++) { const x = px - pw / 2 + (pw / 8) * k; c.beginPath(); c.moveTo(x, py - ph * 0.35); c.lineTo(x, py - ph); c.stroke(); }
+  c.beginPath(); c.moveTo(px - pw / 2, py - ph); c.lineTo(px + pw / 2, py - ph); c.stroke();
+  const vig = c.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.35, W / 2, H / 2, Math.max(W, H) * 0.75);
+  vig.addColorStop(0, "rgba(0,0,0,0)");
+  vig.addColorStop(1, "rgba(0,0,0,0.22)");
+  c.fillStyle = vig;
+  c.fillRect(0, 0, W, H);
+  if (dim) { c.fillStyle = `rgba(10,20,14,${dim})`; c.fillRect(0, 0, W, H); }
+}
+
+// ================================================================ rendering
+const $ = (id) => document.getElementById(id);
+const stageEl = $("stage");
+let main = null;
+let lastRects = null;
+let lastWarnings = { list: [], flagged: new Set() };
+
+function bezelFor(dev) {
+  if (dev.kind === "phone") return { bz: 14, bzr: 46, scr: 34 };
+  if (dev.kind === "tablet") return { bz: 22, bzr: 34, scr: 14 };
+  return { bz: 12, bzr: 14, scr: 4 };
+}
+function fitZoom(dev, availW, availH) {
+  const b = bezelFor(dev);
+  const extraY = dev.kind === "monitor" ? b.bz * 3.4 : 0;
+  return Math.max(0.1, Math.min((availW - b.bz * 2 - 8) / dev.w, (availH - b.bz * 2 - extraY - 8) / dev.h, 2));
+}
+// Scenes that take the whole screen (the drive, a story scene) dim the world behind them a little.
+const sceneDim = () => (["dialogue", "act", "drive", "contest", "computer"].includes(state.scene.id) ? 0.18 : 0);
+
+function buildDevice(container, dev, zoom, interactive) {
+  const b = bezelFor(dev);
+  const wrap = document.createElement("div");
+  wrap.className = "device-wrap";
+  const extraY = dev.kind === "monitor" ? b.bz * 3.4 : 0;
+  wrap.style.width = dev.w * zoom + b.bz * 2 + "px";
+  wrap.style.height = dev.h * zoom + b.bz * 2 + extraY + "px";
+  const frame = document.createElement("div");
+  Object.assign(frame.style, { position: "absolute", left: b.bz + "px", top: b.bz + "px", width: dev.w * zoom + "px", height: dev.h * zoom + "px" });
+  const bezel = document.createElement("div");
+  bezel.className = "bezel" + (dev.kind === "monitor" ? " monitor" : "");
+  bezel.style.setProperty("--bz", b.bz + "px");
+  bezel.style.setProperty("--bzr", b.bzr + "px");
+  frame.appendChild(bezel);
+  const device = document.createElement("div");
+  device.className = "device";
+  Object.assign(device.style, { width: dev.w + "px", height: dev.h + "px", transform: `scale(${zoom})` });
+  const screen = document.createElement("div");
+  screen.className = "screen";
+  Object.assign(screen.style, { width: dev.w + "px", height: dev.h + "px" });
+  screen.style.setProperty("--scr", b.scr / zoom + "px");
+  const canvas = document.createElement("canvas");
+  screen.appendChild(canvas);
+  drawScene(canvas, dev, zoom, sceneDim());
+  const under = document.createElement("div");
+  under.className = "layer";
+  const layer = document.createElement("div");
+  layer.className = "layer";
+  const over = document.createElement("div");
+  over.className = "layer";
+  over.style.pointerEvents = "none";
+  screen.append(under, layer, over);
+  if (dev.notch) {
+    const n = document.createElement("div");
+    n.className = "notch";
+    Object.assign(n.style, { left: "0px", top: dev.h * 0.27 + "px", width: Math.round(dev.notch * 0.62) + "px", height: dev.h * 0.46 + "px" });
+    screen.appendChild(n);
+    const hb = document.createElement("div");
+    hb.className = "home-bar";
+    Object.assign(hb.style, { width: "134px", left: (dev.w - 134) / 2 + "px", top: dev.h - 10 + "px" });
+    screen.appendChild(hb);
+  }
+  device.appendChild(screen);
+  frame.appendChild(device);
+  wrap.appendChild(frame);
+  container.appendChild(wrap);
+  return { wrap, device, screen, canvas, under, layer, over, dev, zoom, interactive };
+}
+
+function drawUnder(parts) {
+  const { under, dev } = parts;
+  under.innerHTML = "";
+  if (prefs.show.safe) {
+    const top = document.createElement("div");
+    top.className = "zone topbar";
+    Object.assign(top.style, { left: "0px", top: "0px", width: dev.w + "px", height: TOPBAR + "px" });
+    top.innerHTML = '<span class="zone-label">Roblox top bar</span>';
+    under.appendChild(top);
+    if (dev.notch) {
+      for (const left of [0, dev.w - dev.notch]) {
+        const z = document.createElement("div");
+        z.className = "zone side";
+        Object.assign(z.style, { left: left + "px", top: TOPBAR + "px", width: dev.notch + "px", height: dev.h - TOPBAR + "px" });
+        z.innerHTML = '<span class="zone-label">Notch side</span>';
+        under.appendChild(z);
+      }
+    }
+    const root = rootRect(dev, "LawnUI");
+    const rb = document.createElement("div");
+    rb.className = "root-box";
+    Object.assign(rb.style, { left: root.x + "px", top: root.y + "px", width: root.w + "px", height: root.h + "px" });
+    under.appendChild(rb);
+  }
+  if (prefs.show.grid) {
+    const root = rootRect(dev, "LawnUI");
+    const g = document.createElement("div");
+    g.className = "grid-lines";
+    Object.assign(g.style, { left: root.x + "px", top: root.y + "px", width: root.w + "px", height: root.h + "px", backgroundSize: "8px 8px" });
+    under.appendChild(g);
+  }
+  if (prefs.show.core) {
+    for (const c of coreControls(dev)) {
+      const el = document.createElement("div");
+      el.className = "core " + c.kind;
+      Object.assign(el.style, { left: c.x + "px", top: c.y + "px", width: c.w + "px", height: c.h + "px" });
+      if (c.kind === "hotbar") el.innerHTML = "<span></span>".repeat(c.slots);
+      under.appendChild(el);
+      if (prefs.show.names && parts.interactive) {
+        const t = document.createElement("div");
+        t.className = "core-tag";
+        t.textContent = "Roblox " + c.label;
+        Object.assign(t.style, { left: c.x + c.w / 2 + "px", top: c.y - 3 + "px", transform: `translate(-50%,-100%) scale(${1 / parts.zoom})`, transformOrigin: "50% 100%" });
+        under.appendChild(t);
+      }
+    }
+  }
+}
+
+function drawPieces(parts, rects, flagged) {
+  const { layer, zoom, interactive, dev } = parts;
+  layer.innerHTML = "";
+  // groups first (they're drawn as outlines under what they hold), then everything else in order
+  const ids = IDS.filter((id) => shows(id, dev) && !rects[id].hidden);
+  const groups = ids.filter((id) => lookOf(id).kind === "group");
+  const rest = ids.filter((id) => lookOf(id).kind !== "group");
+  for (const id of [...groups, ...rest]) {
+    const r = rects[id];
+    const el = document.createElement("div");
+    const piece = pieceHTML(id, r, dev);
+    const look = lookOf(id);
+    const grows = DEFAULTS[id].autoSize ? " grows" : "";
+    el.className = `hud k-${piece.cls}${grows}` + (prefs.show.warn && flagged.has(id) ? " warned" : "") + (isFixed(id) ? " fixed" : "") + (state.selected === id ? " is-selected" : "");
+    Object.assign(el.style, { left: r.x + "px", top: r.y + "px", width: Math.max(1, r.w) + "px", height: Math.max(1, r.h) + "px" });
+    el.style.setProperty("--s", r.s);
+    el.dataset.id = id;
+    el.innerHTML = piece.html;
+    if (look.kind === "group" && interactive) {
+      const grip = document.createElement("span");
+      grip.className = "grip";
+      grip.textContent = nameOf(id);
+      grip.title = inList(id) ? "Drag to change its place in the column" : "Drag to move the whole group";
+      grip.style.transform = `scale(${1 / zoom})`;
+      grip.addEventListener("pointerdown", (e) => startDrag(e, id, "move"));
+      el.appendChild(grip);
+    }
+    if (interactive) {
+      el.setAttribute("aria-label", nameOf(id));
+      if (prefs.show.names && look.kind !== "group") {
+        const tag = document.createElement("span");
+        tag.className = "tag";
+        tag.textContent = nameOf(id);
+        tag.style.transform = `scale(${1 / zoom})`;
+        el.appendChild(tag);
+      }
+      el.addEventListener("pointerdown", (e) => {
+        if (e.target.classList.contains("grip")) return;
+        startDrag(e, id, "move");
+      });
+    }
+    layer.appendChild(el);
+  }
+}
+
+function drawSelection(parts, rects, guides) {
+  const { over, zoom, dev } = parts;
+  over.innerHTML = "";
+  for (const g of guides || []) {
+    const el = document.createElement("div");
+    el.className = "guide " + (g.axis === "x" ? "v" : "h");
+    if (g.axis === "x") Object.assign(el.style, { left: g.at + "px", width: 1 / zoom + "px" });
+    else Object.assign(el.style, { top: g.at + "px", height: 1 / zoom + "px" });
+    over.appendChild(el);
+  }
+  const id = state.selected;
+  if (!id || !rects[id] || rects[id].hidden || !shows(id, dev)) return;
+  const r = rects[id];
+  const sel = document.createElement("div");
+  sel.className = "sel";
+  Object.assign(sel.style, { left: r.x + "px", top: r.y + "px", width: r.w + "px", height: r.h + "px", borderWidth: 2 / zoom + "px" });
+  over.appendChild(sel);
+  if (isFixed(id)) return;
+  if (!inList(id) && !isWorld(id)) {
+    const p = placementOf(id, dev);
+    const ax = r.x + p.anchor[0] * r.w, ay = r.y + p.anchor[1] * r.h;
+    const dx = ax - r.pinX, dy = ay - r.pinY;
+    const len = Math.hypot(dx, dy);
+    if (len > 2) {
+      const line = document.createElement("div");
+      line.className = "pin-line";
+      Object.assign(line.style, { left: r.pinX + "px", top: r.pinY + "px", width: len + "px", borderTopWidth: 2 / zoom + "px", transform: `rotate(${Math.atan2(dy, dx)}rad)` });
+      over.appendChild(line);
+      const lab = document.createElement("div");
+      lab.className = "pin-label";
+      lab.textContent = `${Math.round(p.position[1])}, ${Math.round(p.position[3])}`;
+      Object.assign(lab.style, { left: r.pinX + dx / 2 + "px", top: r.pinY + dy / 2 + "px", transform: `translate(-50%,-50%) scale(${1 / zoom})` });
+      over.appendChild(lab);
+    }
+    const pin = document.createElement("div");
+    pin.className = "anchor-pt";
+    Object.assign(pin.style, { left: ax + "px", top: ay + "px", transform: `rotate(45deg) scale(${1 / zoom})` });
+    over.appendChild(pin);
+  }
+  const axes = resizableAxes(id, dev);
+  if (!axes.x && !axes.y) return;
+  const all = { nw: [0, 0], n: [0.5, 0], ne: [1, 0], e: [1, 0.5], se: [1, 1], s: [0.5, 1], sw: [0, 1], w: [0, 0.5] };
+  const cursors = { nw: "nwse-resize", se: "nwse-resize", ne: "nesw-resize", sw: "nesw-resize", n: "ns-resize", s: "ns-resize", e: "ew-resize", w: "ew-resize" };
+  for (const [name, [hx, hy]] of Object.entries(all)) {
+    const needsX = name.includes("e") || name.includes("w");
+    const needsY = name.includes("n") || name.includes("s");
+    if ((needsX && !axes.x) || (needsY && !axes.y)) continue;
+    const h = document.createElement("div");
+    h.className = "handle";
+    Object.assign(h.style, { left: r.x + r.w * hx + "px", top: r.y + r.h * hy + "px", transform: `scale(${1 / zoom})`, cursor: cursors[name] });
+    h.addEventListener("pointerdown", (e) => startDrag(e, id, name));
+    over.appendChild(h);
+  }
+}
+
+// Which ways a piece can be resized: not the way it grows to fit, and not at all without a size.
+function resizableAxes(id, dev) {
+  if (isFixed(id)) return { x: false, y: false };
+  const p = placementOf(id, dev);
+  if (!p.size) return { x: false, y: false };
+  const auto = DEFAULTS[id].autoSize || "";
+  return { x: !auto.includes("X"), y: !auto.includes("Y") };
+}
+
+function renderStage() {
+  stageEl.innerHTML = "";
+  main = null;
+  if (state.view === "all") { renderAll(); renderSide(); return; }
+  const dev = state.device;
+  const box = stageEl.getBoundingClientRect();
+  const pad = parseFloat(getComputedStyle(stageEl).paddingLeft) || 0;
+  const fit = fitZoom(dev, box.width - pad * 2, box.height - pad * 2);
+  state.zoomValue = state.zoom === "fit" ? fit : state.zoom;
+  $("zoomLabel").textContent = state.zoom === "fit" ? `Fit · ${Math.round(state.zoomValue * 100)}%` : `${Math.round(state.zoomValue * 100)}%`;
+  main = buildDevice(stageEl, dev, state.zoomValue, true);
+  main.screen.addEventListener("pointerdown", (e) => {
+    if (e.target === main.screen || e.target.classList.contains("layer") || e.target.tagName === "CANVAS") select(null);
+  });
+  renderPieces();
+}
+
+function renderPieces(guides, dragging) {
+  if (state.view === "all") { renderAll(); renderSide(); return; }
+  if (!main) return;
+  const rects = computeRects(state.device);
+  lastRects = rects;
+  lastWarnings = warningsFor(state.device, rects);
+  drawUnder(main);
+  drawPieces(main, rects, lastWarnings.flagged);
+  drawSelection(main, rects, guides);
+  if (!dragging) renderSide();
+  renderInspector();
+}
+
+function renderAll() {
+  stageEl.innerHTML = "";
+  const grid = document.createElement("div");
+  grid.className = "all-grid";
+  stageEl.appendChild(grid);
+  for (const dev of DEVICES) {
+    const card = document.createElement("div");
+    card.className = "mini";
+    card.tabIndex = 0;
+    card.setAttribute("role", "button");
+    card.setAttribute("aria-label", `Edit on ${dev.name}`);
+    if (dev.id === state.device.id) card.setAttribute("aria-current", "true");
+    const rects = computeRects(dev);
+    const warn = warningsFor(dev, rects);
+    card.innerHTML = `<div class="mini-head"><b>${esc(dev.name)}</b><span class="mono">${dev.w} × ${dev.h}${dev.touch ? " · touch" : ""}</span></div><div class="mini-stage"></div><div class="mini-warn ${warn.list.length ? "" : "ok"}">${warn.list.length ? `${warn.list.length} problem${warn.list.length === 1 ? "" : "s"}` : "No problems"}</div>`;
+    grid.appendChild(card);
+    const holder = card.querySelector(".mini-stage");
+    const width = Math.max(200, holder.getBoundingClientRect().width - 16);
+    const parts = buildDevice(holder, dev, fitZoom(dev, width, 400), false);
+    drawUnder(parts);
+    drawPieces(parts, rects, warn.flagged);
+    const open = () => { state.device = dev; state.zoom = "fit"; setView("one"); };
+    card.addEventListener("click", open);
+    card.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } });
+  }
+  lastRects = computeRects(state.device);
+  lastWarnings = warningsFor(state.device, lastRects);
+  renderInspector();
+}
+
+// ================================================================ list of pieces and problems
+function changedIds() {
+  const def = defaultLayout();
+  return IDS.filter((id) => JSON.stringify(def[id]) !== JSON.stringify(state.layout[id]));
+}
+
+function renderSide() {
+  const list = $("list");
+  const q = state.filter.trim().toLowerCase();
+  const changed = new Set(changedIds());
+  const dev = state.device;
+  const groups = new Map();
+  for (const id of IDS) {
+    const d = DEFAULTS[id];
+    if (q && !`${id} ${d.label || ""} ${d.group || ""}`.toLowerCase().includes(q)) continue;
+    const g = d.group || "Other";
+    if (!groups.has(g)) groups.set(g, []);
+    groups.get(g).push(id);
+  }
+  const frag = document.createDocumentFragment();
+  for (const [g, ids] of groups) {
+    const head = document.createElement("div");
+    head.className = "group-label";
+    head.innerHTML = `<span>${esc(g)}</span>`;
+    frag.appendChild(head);
+    for (const id of ids) {
+      const d = DEFAULTS[id];
+      const visible = shows(id, dev);
+      const allowed = deviceAllows(id, dev);
+      const row = document.createElement("div");
+      row.className = "row" + (visible ? "" : " hidden-row");
+      row.setAttribute("role", "option");
+      row.setAttribute("aria-selected", String(state.selected === id));
+      const depth = ancestors(id).length;
+      const on = sceneHas(id);
+      const eye = allowed
+        ? `<button class="eye" type="button" aria-label="${on ? "Hide" : "Show"} ${esc(nameOf(id))}" title="${on ? "Hide in this scene (only here, not in the game)" : "Show in this scene"}">${on ? '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 8s2.2-4 6-4 6 4 6 4-2.2 4-6 4-6-4-6-4z"/><circle cx="8" cy="8" r="1.8" fill="currentColor"/></svg>' : '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 8s2.2-4 6-4 6 4 6 4-2.2 4-6 4-6-4-6-4z"/><path d="M3 13L13 3" stroke-linecap="round"/></svg>'}</button>`
+        : `<span class="eye off" title="${d.device === "touch" ? "Only on touch screens" : "Only with a keyboard"}">${d.device === "touch" ? "Tap" : "Key"}</span>`;
+      const badges = [
+        state.layout[id].touch ? '<span class="dot split" title="Phones have their own spot">PH</span>' : "",
+        isFixed(id) ? '<span class="dot split" title="The game decides where this goes">🔒</span>' : "",
+        visible && lastWarnings.flagged.has(id) ? '<span class="dot warn" title="Has a problem on this screen"></span>' : "",
+        changed.has(id) ? '<span class="dot changed" title="Moved from the game\'s spot"></span>' : "",
+      ].join("");
+      row.innerHTML = `${eye}<span class="name" style="padding-left:${depth * 12}px">${esc(nameOf(id))}</span><span class="badges">${badges}</span>`;
+      const eyeBtn = row.querySelector("button.eye");
+      if (eyeBtn) eyeBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        state.toggled.has(id) ? state.toggled.delete(id) : state.toggled.add(id);
+        renderPieces();
+      });
+      row.addEventListener("click", () => select(id, true));
+      frag.appendChild(row);
+    }
+  }
+  list.innerHTML = "";
+  list.appendChild(frag);
+  $("count").textContent = `${IDS.length} pieces`;
+
+  const warns = $("warns");
+  const w = lastWarnings.list;
+  warns.className = "warns" + (w.length ? "" : " clear");
+  if (!prefs.show.warn) {
+    warns.innerHTML = `<h3>Problems</h3><p>Problem checks are off.</p>`;
+  } else if (!w.length) {
+    warns.innerHTML = `<h3>No problems</h3><p>${esc(state.scene.name)} on ${esc(dev.short)}: nothing overlaps, and everything stays clear of Roblox's buttons.</p>`;
+  } else {
+    warns.innerHTML = `<h3>${w.length} problem${w.length === 1 ? "" : "s"} · ${esc(state.scene.name)} on ${esc(dev.short)}</h3>`;
+    for (const item of w.slice(0, 40)) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "warn-item";
+      b.innerHTML = item.text;
+      b.addEventListener("click", () => select(item.ids[0], true));
+      warns.appendChild(b);
+    }
+  }
+}
+
+// ================================================================ the selected piece's settings
+const PIN_NAMES = [["top-left corner", "top edge", "top-right corner"], ["left edge", "middle", "right edge"], ["bottom-left corner", "bottom edge", "bottom-right corner"]];
+(function buildPinGrid() {
+  const grid = $("pinGrid");
+  for (let y = 0; y < 3; y++) for (let x = 0; x < 3; x++) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.dataset.x = String(x / 2);
+    b.dataset.y = String(y / 2);
+    b.setAttribute("aria-label", "Pin to the " + PIN_NAMES[y][x]);
+    b.title = "Pin to the " + PIN_NAMES[y][x];
+    b.addEventListener("click", () => repin(x / 2, y / 2));
+    grid.appendChild(b);
+  }
+})();
+const num = (v, digits = 3) => {
+  const n = Math.round(v * 10 ** digits) / 10 ** digits;
+  return Object.is(n, -0) ? 0 : n;
+};
+function setInput(id, value) {
+  const el = $(id);
+  if (document.activeElement === el) return;
+  el.value = value;
+}
+const show = (id, on) => { $(id).hidden = !on; };
+
+function renderInspector() {
+  const id = state.selected;
+  const dev = state.device;
+  $("platformTag").textContent = `${dev.touch ? "Touch" : "Mouse and keyboard"}${isCompact(dev) ? " · short screen" : ""}`;
+  if (!id) { $("insp").hidden = true; $("inspEmpty").hidden = false; return; }
+  $("insp").hidden = false;
+  $("inspEmpty").hidden = true;
+  const d = DEFAULTS[id];
+  const L = state.layout[id];
+  const p = placementOf(id, dev);
+  const r = lastRects && lastRects[id];
+  const visible = shows(id, dev);
+  $("inspTitle").textContent = nameOf(id);
+  const where = d.parent ? ` · inside ${nameOf(d.parent)}` : ` · on ${screenOf(id)}`;
+  $("inspId").textContent = id + where;
+  $("inspNote").textContent = d.note || "";
+  show("inspNote", !!d.note);
+
+  const flags = [];
+  if (d.device === "touch") flags.push("Only on touch screens.");
+  if (d.device === "keyboard") flags.push("Only with a keyboard.");
+  if (!visible && deviceAllows(id, dev)) flags.push("Hidden in this scene: show it with the eye in the list.");
+  if (isFixed(id)) flags.push("The game puts this where the camera aims, so it can't be moved. It's here so you can place things around it.");
+  if (r && r.scale && r.scale !== 1) flags.push(`Shrinks to fit this screen: drawn at ${Math.round(r.scale * 100)}%.`);
+  if (r && r.pushed) flags.push(`Moved ${Math.round(r.pushed)} px down here to stay under the first-job coach.`);
+  if (L.compact && isCompact(dev)) flags.push("Short screens (like this one) use their own values for this piece, and your changes here go into those.");
+  if (isWorld(id)) flags.push("Floats over a person in the world, so only its size is set here.");
+  $("inspFlags").innerHTML = flags.map((f) => `<li>${esc(f)}</li>`).join("");
+  show("inspFlags", flags.length > 0);
+
+  const editable = !isFixed(id);
+  const positioned = editable && !inList(id) && !isWorld(id);
+  show("linkField", editable && !isWorld(id) && !inList(id));
+  show("pinField", positioned);
+  show("offField", positioned);
+  show("orderField", editable && inList(id));
+  show("listField", editable && !!L.list);
+
+  const split = !!L.touch;
+  $("linkSame").setAttribute("aria-pressed", String(!split));
+  $("linkSplit").setAttribute("aria-pressed", String(split));
+  $("linkHint").textContent = split
+    ? (dev.touch ? "You're changing the phone and tablet spot. PCs keep their own." : "You're changing the PC spot. Phones and tablets keep their own.")
+    : "One spot for every screen: moving it here moves it everywhere.";
+
+  if (positioned) {
+    let pinned = false;
+    for (const b of $("pinGrid").children) {
+      const on = +b.dataset.x === p.anchor[0] && +b.dataset.y === p.anchor[1] && p.position[0] === p.anchor[0] && p.position[2] === p.anchor[1];
+      b.setAttribute("aria-pressed", String(on));
+      if (on) pinned = true;
+    }
+    const pinName = pinned ? PIN_NAMES[Math.round(p.anchor[1] * 2)][Math.round(p.anchor[0] * 2)] : null;
+    const of = d.parent ? "its group" : "the screen";
+    $("pinHint").textContent = pinned
+      ? `Stays the same distance from the ${pinName} of ${of} on every screen size.`
+      : `Custom: its ${anchorName(p.anchor)} sits ${num(p.position[0] * 100, 1)}% across and ${num(p.position[2] * 100, 1)}% down ${of}. Pick a pin to tidy it.`;
+    setInput("offX", Math.round(p.position[1]));
+    setInput("offY", Math.round(p.position[3]));
+  }
+
+  if (inList(id)) {
+    const sibs = orderedChildren(d.parent);
+    const idx = sibs.indexOf(id);
+    $("orderHint").textContent = `${ordinal(idx + 1)} of ${sibs.length} in ${nameOf(d.parent)}. Drag it up or down on the screen, or:`;
+    $("orderUp").disabled = idx <= 0;
+    $("orderDown").disabled = idx >= sibs.length - 1;
+  }
+  if (L.list) {
+    setInput("listGap", L.list.padding || 0);
+    for (const b of $("listAlign").children) b.setAttribute("aria-pressed", String((L.list.align || "Left") === b.dataset.align));
+  }
+
+  const axes = resizableAxes(id, dev);
+  show("sizeField", editable && !!p.size);
+  if (p.size) {
+    $("sizeW").disabled = !axes.x;
+    $("sizeH").disabled = !axes.y;
+    setInput("sizeW", Math.round(p.size[1]));
+    setInput("sizeH", Math.round(p.size[3]));
+    const bits = [];
+    const auto = d.autoSize || "";
+    if (auto.includes("Y")) bits.push("its height grows to fit what's in it");
+    if (auto.includes("X")) bits.push("its width grows to fit what's in it");
+    if (p.size[0]) bits.push(`its width also takes ${num(p.size[0] * 100, 1)}% of ${d.parent ? "its group" : "the screen"}`);
+    if (p.size[2]) bits.push(`its height also takes ${num(p.size[2] * 100, 1)}%`);
+    const lim = [];
+    if (d.max && d.max.width) lim.push(`at most ${d.max.width} wide`);
+    if (d.max && d.max.height) lim.push(`at most ${d.max.height} tall`);
+    if (d.min && d.min.width) lim.push(`at least ${d.min.width} wide`);
+    if (d.min && d.min.height) lim.push(`at least ${d.min.height} tall`);
+    $("sizeHint").textContent = (bits.length ? capital(bits.join("; ")) + ". " : "In pixels. ") + (lim.length ? capital(lim.join(", ")) + "." : "");
+  }
+
+  show("advField", editable);
+  setInput("aX", num(p.anchor[0]));
+  setInput("aY", num(p.anchor[1]));
+  setInput("pXs", num(p.position[0]));
+  setInput("pXo", num(p.position[1], 1));
+  setInput("pYs", num(p.position[2]));
+  setInput("pYo", num(p.position[3], 1));
+  for (const k of ["aX", "aY", "pXs", "pXo", "pYs", "pYo"]) $(k).disabled = !positioned;
+  for (const k of ["sXs", "sXo", "sYs", "sYo"]) $(k).disabled = !p.size || !editable;
+  if (p.size) {
+    setInput("sXs", num(p.size[0]));
+    setInput("sXo", num(p.size[1], 1));
+    setInput("sYs", num(p.size[2]));
+    setInput("sYo", num(p.size[3], 1));
+  }
+  $("absBox").textContent = r && !r.hidden && visible ? `${dev.short}: x ${Math.round(r.x)}, y ${Math.round(r.y)}, ${Math.round(r.w)} × ${Math.round(r.h)}` : `Not on the screen in this scene on ${dev.short}.`;
+  $("resetEl").disabled = JSON.stringify(defaultLayout()[id]) === JSON.stringify(L);
+}
+const capital = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+const ordinal = (n) => n + (n % 10 === 1 && n % 100 !== 11 ? "st" : n % 10 === 2 && n % 100 !== 12 ? "nd" : n % 10 === 3 && n % 100 !== 13 ? "rd" : "th");
+function anchorName(a) {
+  const names = { "0,0": "top-left corner", "0.5,0": "top middle", "1,0": "top-right corner", "0,0.5": "left middle", "0.5,0.5": "middle", "1,0.5": "right middle", "0,1": "bottom-left corner", "0.5,1": "bottom middle", "1,1": "bottom-right corner" };
+  return names[`${a[0]},${a[1]}`] || "anchor point";
+}
+
+// ================================================================ editing
+function snapshot() { return JSON.stringify(state.layout); }
+function pushUndo(before) {
+  if (before === snapshot()) return;
+  undoStack.push(before);
+  if (undoStack.length > 200) undoStack.shift();
+  redoStack.length = 0;
+  markDirty();
+}
+function markDirty() {
+  state.dirty = true;
+  store.set(DRAFT_KEY, { layout: state.layout, at: Date.now(), base: remote.savedAt || null, version: META.version || null });
+  updateStatus();
+  updateUndo();
+}
+function updateUndo() {
+  $("undo").disabled = !undoStack.length;
+  $("redo").disabled = !redoStack.length;
+}
+function undo() {
+  if (!undoStack.length) return;
+  redoStack.push(snapshot());
+  state.layout = JSON.parse(undoStack.pop());
+  markDirty();
+  renderPieces();
+}
+function redo() {
+  if (!redoStack.length) return;
+  undoStack.push(snapshot());
+  state.layout = JSON.parse(redoStack.pop());
+  markDirty();
+  renderPieces();
+}
+
+// Where a change made on `dev` goes: the short-screen values if this piece has them and this is a
+// short screen, else the phone values if it has them and this is a touch screen, else the shared.
+function writeTo(id, dev) {
+  const L = state.layout[id];
+  if (isCompact(dev) && L.compact) return L.compact;
+  if (dev.touch && L.touch) return L.touch;
+  return L;
+}
+function apply(id, dev, patch) {
+  const target = writeTo(id, dev);
+  for (const [k, v] of Object.entries(patch)) target[k] = v;
+}
+const roundOff = (v) => Math.round(v);
+
+// The UDim2 values that put `id` at this box (in screen pixels) on `dev`, keeping its anchor and
+// scales. Works in the piece's own unscaled frame, so pieces inside a shrunk column still land
+// where they're dropped.
+function solve(id, dev, rects, left, top, w, h) {
+  const r = rects[id];
+  const s = r.s || 1;
+  // back from screen pixels to the frame its UDim2 lives in: undo the scale about the anchor
+  const p = placementOf(id, dev);
+  const parent = r.parent;
+  const rawW = w / s, rawH = h / s;
+  // the anchor point on screen stays put through a scale about it
+  const anchorScreenX = left + p.anchor[0] * w, anchorScreenY = top + p.anchor[1] * h;
+  const anchorRaw = unscale(r, anchorScreenX, anchorScreenY);
+  const out = {};
+  if (p.size) {
+    const axes = resizableAxes(id, dev);
+    out.size = [
+      p.size[0], axes.x ? roundOff(rawW - p.size[0] * parent.w) : p.size[1],
+      p.size[2], axes.y ? roundOff(rawH - p.size[2] * parent.h) : p.size[3],
+    ];
+  }
+  out.position = [
+    p.position[0], roundOff(anchorRaw.x - parent.x - p.position[0] * parent.w),
+    p.position[2], roundOff(anchorRaw.y - parent.y - p.position[2] * parent.h),
+  ];
+  return out;
+}
+// Screen pixels back to a piece's UDim2 frame. Its own UIScale (if any) is about its anchor point,
+// which is where we measure from, so only the scales of what it's inside matter here.
+function unscale(r, x, y) {
+  const outer = r.s / (r.scale || 1);
+  if (Math.abs(outer - 1) < 1e-6) return { x, y };
+  // find the frame's origin: the screen point of the parent box's top-left
+  const o = r.toScreen(r.parent.x, r.parent.y);
+  return { x: r.parent.x + (x - o.x) / outer, y: r.parent.y + (y - o.y) / outer };
+}
+
+function repin(ax, ay) {
+  const id = state.selected;
+  if (!id || !lastRects) return;
+  const before = snapshot();
+  const dev = state.device;
+  const r = lastRects[id];
+  const p = placementOf(id, dev);
+  const target = writeTo(id, dev);
+  // keep it where it is: same box, new anchor and scales
+  const parent = r.parent;
+  const raw = r.raw;
+  target.anchor = [ax, ay];
+  target.position = [ax, roundOff(raw.x + ax * raw.w - parent.x - ax * parent.w), ay, roundOff(raw.y + ay * raw.h - parent.y - ay * parent.h)];
+  if (p.size && target !== state.layout[id]) target.size = clone(p.size);
+  pushUndo(before);
+  renderPieces();
+}
+
+function setLinked(linked) {
+  const id = state.selected;
+  if (!id) return;
+  const before = snapshot();
+  const L = state.layout[id];
+  const dev = state.device;
+  if (linked && L.touch) {
+    if (dev.touch) {
+      for (const k of ["anchor", "position", "size"]) if (L.touch[k]) L[k] = clone(L.touch[k]);
+    }
+    delete L.touch;
+  } else if (!linked && !L.touch) {
+    L.touch = {};
+    for (const k of ["anchor", "position", "size"]) if (L[k]) L.touch[k] = clone(L[k]);
+  }
+  pushUndo(before);
+  renderPieces();
+}
+
+function numberInput(id, fn) {
+  const el = $(id);
+  let before = null;
+  el.addEventListener("focus", () => { before = snapshot(); });
+  el.addEventListener("input", () => {
+    const v = parseFloat(el.value);
+    if (!Number.isFinite(v) || !state.selected) return;
+    if (before === null) before = snapshot();
+    fn(v);
+    renderPieces();
+  });
+  el.addEventListener("change", () => { if (before !== null) pushUndo(before); before = snapshot(); });
+  el.addEventListener("blur", () => { if (before !== null) pushUndo(before); before = null; renderInspector(); });
+  el.addEventListener("keydown", (e) => { if (e.key === "Enter") el.blur(); });
+}
+function edit(fn) {
+  const id = state.selected;
+  const dev = state.device;
+  const p = placementOf(id, dev);
+  const next = { anchor: clone(p.anchor), position: clone(p.position) };
+  if (p.size) next.size = clone(p.size);
+  fn(next);
+  if (inList(id) || isWorld(id)) { delete next.anchor; delete next.position; }
+  apply(id, dev, next);
+}
+const clamp01 = (v) => Math.max(0, Math.min(1, v));
+numberInput("offX", (v) => edit((n) => (n.position[1] = Math.round(v))));
+numberInput("offY", (v) => edit((n) => (n.position[3] = Math.round(v))));
+numberInput("sizeW", (v) => edit((n) => n.size && (n.size[1] = Math.round(v))));
+numberInput("sizeH", (v) => edit((n) => n.size && (n.size[3] = Math.round(v))));
+numberInput("aX", (v) => edit((n) => (n.anchor[0] = clamp01(v))));
+numberInput("aY", (v) => edit((n) => (n.anchor[1] = clamp01(v))));
+numberInput("pXs", (v) => edit((n) => (n.position[0] = v)));
+numberInput("pXo", (v) => edit((n) => (n.position[1] = v)));
+numberInput("pYs", (v) => edit((n) => (n.position[2] = v)));
+numberInput("pYo", (v) => edit((n) => (n.position[3] = v)));
+numberInput("sXs", (v) => edit((n) => n.size && (n.size[0] = v)));
+numberInput("sXo", (v) => edit((n) => n.size && (n.size[1] = v)));
+numberInput("sYs", (v) => edit((n) => n.size && (n.size[2] = v)));
+numberInput("sYo", (v) => edit((n) => n.size && (n.size[3] = v)));
+numberInput("listGap", (v) => {
+  const L = state.layout[state.selected];
+  if (L.list) L.list = Object.assign({}, L.list, { padding: Math.max(0, Math.round(v)) });
+});
+for (const b of $("listAlign").children) {
+  b.addEventListener("click", () => {
+    const L = state.layout[state.selected];
+    if (!L || !L.list) return;
+    const before = snapshot();
+    L.list = Object.assign({}, L.list, { align: b.dataset.align });
+    pushUndo(before);
+    renderPieces();
+  });
+}
+function moveInList(id, delta) {
+  const parent = DEFAULTS[id].parent;
+  const sibs = orderedChildren(parent);
+  const idx = sibs.indexOf(id);
+  const to = Math.max(0, Math.min(sibs.length - 1, idx + delta));
+  if (to === idx) return false;
+  sibs.splice(idx, 1);
+  sibs.splice(to, 0, id);
+  sibs.forEach((c, i) => (state.layout[c].order = i + 1));
+  return true;
+}
+$("orderUp").addEventListener("click", () => { const b = snapshot(); if (moveInList(state.selected, -1)) { pushUndo(b); renderPieces(); } });
+$("orderDown").addEventListener("click", () => { const b = snapshot(); if (moveInList(state.selected, 1)) { pushUndo(b); renderPieces(); } });
+$("linkSame").addEventListener("click", () => setLinked(true));
+$("linkSplit").addEventListener("click", () => setLinked(false));
+$("resetEl").addEventListener("click", () => {
+  const id = state.selected;
+  if (!id) return;
+  const before = snapshot();
+  state.layout[id] = defaultLayout()[id];
+  // its siblings' order goes back too, so the column reads as it did
+  if (inList(id)) for (const c of childrenOf(DEFAULTS[id].parent)) if (DEFAULTS[c].order !== undefined) state.layout[c].order = DEFAULTS[c].order;
+  pushUndo(before);
+  renderPieces();
+  toast(`${nameOf(id)} is back in the game's spot.`);
+});
+$("selectParent").addEventListener("click", () => { const p = DEFAULTS[state.selected] && DEFAULTS[state.selected].parent; if (p) select(p, true); });
+
+function select(id, reveal) {
+  state.selected = id;
+  if (id && reveal && !shows(id, state.device) && deviceAllows(id, state.device)) {
+    // show it (and what it's inside) in this scene
+    for (const a of [id, ...ancestors(id)]) if (!sceneHas(a)) state.toggled.has(a) ? state.toggled.delete(a) : state.toggled.add(a);
+  }
+  if (state.view === "all" && id && reveal) setView("one");
+  else renderPieces();
+}
+
+// ================================================================ dragging, with snapping and reordering
+let drag = null;
+function startDrag(e, id, mode) {
+  if (e.button !== undefined && e.button !== 0) return;
+  e.preventDefault();
+  e.stopPropagation();
+  if (drag) return;
+  const r = lastRects && lastRects[id];
+  if (!r || r.hidden) return;
+  if (state.selected !== id) { state.selected = id; }
+  const movable = !isFixed(id) && !isWorld(id);
+  if (mode === "move" && !movable) { renderPieces(); return; }
+  drag = {
+    id, mode, startX: e.clientX, startY: e.clientY, rect: { x: r.x, y: r.y, w: r.w, h: r.h },
+    before: snapshot(), moved: false, pointer: e.pointerId,
+    reorder: mode === "move" && inList(id),
+    lines: snapLines(id),
+  };
+  window.addEventListener("pointermove", onDrag);
+  window.addEventListener("pointerup", endDrag);
+  window.addEventListener("pointercancel", endDrag);
+  renderPieces(null, true);
+}
+
+function snapLines(id) {
+  const dev = state.device;
+  const xs = [], ys = [];
+  const add = (r) => { xs.push(r.x, r.x + r.w / 2, r.x + r.w); ys.push(r.y, r.y + r.h / 2, r.y + r.h); };
+  add({ x: 0, y: 0, w: dev.w, h: dev.h });
+  add(rootRect(dev, screenOf(id)));
+  const skip = new Set([id, ...IDS.filter((o) => ancestors(o).includes(id))]);
+  for (const o of IDS) if (!skip.has(o) && shows(o, dev) && !lastRects[o].hidden) add(lastRects[o]);
+  if (prefs.show.core) for (const c of coreControls(dev)) add(c);
+  return { xs, ys };
+}
+function snapAxis(values, lines, threshold) {
+  let best = null;
+  for (const v of values) for (const l of lines) {
+    const d = l - v;
+    if (Math.abs(d) <= threshold && (!best || Math.abs(d) < Math.abs(best.d))) best = { d, at: l };
+  }
+  return best;
+}
+
+let rafPending = null;
+function onDrag(e) {
+  if (!drag || e.pointerId !== drag.pointer) return;
+  const z = state.zoomValue;
+  const dx = (e.clientX - drag.startX) / z;
+  const dy = (e.clientY - drag.startY) / z;
+  if (!drag.moved && Math.hypot(dx * z, dy * z) < 3) return;
+  drag.moved = true;
+  const id = drag.id;
+  const dev = state.device;
+  if (drag.reorder) {
+    // A piece in a column: find where its middle now falls among its neighbours.
+    state.layout = JSON.parse(drag.before);
+    const rects = computeRects(dev);
+    const parent = DEFAULTS[id].parent;
+    const list = listOf(parent);
+    const horizontal = list.direction === "Horizontal";
+    const r0 = drag.rect;
+    const mid = horizontal ? r0.x + r0.w / 2 + dx : r0.y + r0.h / 2 + dy;
+    const sibs = orderedChildren(parent).filter((c) => c !== id);
+    let index = 0;
+    for (const c of sibs) {
+      const rc = rects[c];
+      if (rc.hidden || !shows(c, dev)) { index++; continue; }
+      const cm = horizontal ? rc.x + rc.w / 2 : rc.y + rc.h / 2;
+      if (mid > cm) index++;
+    }
+    const all = orderedChildren(parent).filter((c) => c !== id);
+    all.splice(index, 0, id);
+    all.forEach((c, i) => (state.layout[c].order = i + 1));
+    schedule();
+    return;
+  }
+  const snapping = prefs.show.snap && !e.altKey;
+  const threshold = 6 / z;
+  const r0 = drag.rect;
+  const guides = [];
+  let left = r0.x, top = r0.y, right = r0.x + r0.w, bottom = r0.y + r0.h;
+  const m = drag.mode;
+  if (m === "move") {
+    left += dx; right += dx; top += dy; bottom += dy;
+    if (snapping) {
+      const sx = snapAxis([left, (left + right) / 2, right], drag.lines.xs, threshold);
+      if (sx) { left += sx.d; right += sx.d; guides.push({ axis: "x", at: sx.at }); }
+      const sy = snapAxis([top, (top + bottom) / 2, bottom], drag.lines.ys, threshold);
+      if (sy) { top += sy.d; bottom += sy.d; guides.push({ axis: "y", at: sy.at }); }
+    }
+  } else {
+    if (m.includes("w")) left = Math.min(left + dx, right - 8);
+    if (m.includes("e")) right = Math.max(right + dx, left + 8);
+    if (m.includes("n")) top = Math.min(top + dy, bottom - 8);
+    if (m.includes("s")) bottom = Math.max(bottom + dy, top + 8);
+    if (snapping) {
+      const edge = (val, lines, axis) => { const s = snapAxis([val], lines, threshold); if (s) { guides.push({ axis, at: s.at }); return val + s.d; } return val; };
+      if (m.includes("w")) left = edge(left, drag.lines.xs, "x");
+      if (m.includes("e")) right = edge(right, drag.lines.xs, "x");
+      if (m.includes("n")) top = edge(top, drag.lines.ys, "y");
+      if (m.includes("s")) bottom = edge(bottom, drag.lines.ys, "y");
+    }
+  }
+  state.layout = JSON.parse(drag.before);
+  const rects = computeRects(dev);
+  const patch = solve(id, dev, rects, left, top, right - left, bottom - top);
+  if (inList(id)) delete patch.position;
+  apply(id, dev, patch);
+  schedule(guides);
+}
+function schedule(guides) {
+  if (rafPending) cancelAnimationFrame(rafPending);
+  rafPending = requestAnimationFrame(() => { rafPending = null; renderPieces(guides, true); });
+}
+function endDrag(e) {
+  if (!drag || (e.pointerId !== undefined && e.pointerId !== drag.pointer)) return;
+  window.removeEventListener("pointermove", onDrag);
+  window.removeEventListener("pointerup", endDrag);
+  window.removeEventListener("pointercancel", endDrag);
+  const before = drag.before;
+  const wasReorder = drag.reorder && drag.moved;
+  drag = null;
+  if (rafPending) { cancelAnimationFrame(rafPending); rafPending = null; }
+  pushUndo(before);
+  renderPieces();
+  if (wasReorder && !store.get("lms-hud-reorder-tip")) {
+    store.set("lms-hud-reorder-tip", true);
+    toast("Pieces in a column swap places. To move the whole column, drag its name tab.");
+  }
+}
+
+function nudge(dx, dy) {
+  const id = state.selected;
+  if (!id || !lastRects || isFixed(id) || isWorld(id)) return;
+  const before = snapshot();
+  if (inList(id)) {
+    const list = listOf(DEFAULTS[id].parent);
+    const step = list.direction === "Horizontal" ? Math.sign(dx) : Math.sign(dy);
+    if (step && moveInList(id, step)) { pushUndo(before); renderPieces(); }
+    return;
+  }
+  const r = lastRects[id];
+  apply(id, state.device, solve(id, state.device, lastRects, r.x + dx * r.s, r.y + dy * r.s, r.w, r.h));
+  pushUndo(before);
+  renderPieces();
+}
+
+document.addEventListener("keydown", (e) => {
+  const tag = (e.target && e.target.tagName) || "";
+  const typing = tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA";
+  const mod = e.metaKey || e.ctrlKey;
+  if (mod && e.key.toLowerCase() === "z" && !typing) { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
+  if (mod && e.key.toLowerCase() === "y" && !typing) { e.preventDefault(); redo(); return; }
+  if (mod && e.key.toLowerCase() === "s") { e.preventDefault(); save(); return; }
+  if (typing) return;
+  if (e.key === "Escape") { closeMenu(); select(null); return; }
+  const step = e.shiftKey ? 10 : 1;
+  const moves = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] };
+  if (moves[e.key] && state.selected && state.view === "one") { e.preventDefault(); nudge(...moves[e.key]); }
+});
+
+// ================================================================ toolbar
+const CHIPS = [["names", "Names"], ["safe", "Safe areas"], ["core", "Roblox buttons"], ["hotbar", "Hotbar"], ["grid", "Grid"], ["snap", "Snap"], ["warn", "Problems"]];
+(function buildToolbar() {
+  const seg = $("devices");
+  const sel = $("deviceSelect");
+  for (const dev of DEVICES) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.textContent = dev.short;
+    b.title = `${dev.name}, ${dev.w} × ${dev.h}`;
+    b.dataset.id = dev.id;
+    b.addEventListener("click", () => setDevice(dev.id));
+    seg.appendChild(b);
+    const o = document.createElement("option");
+    o.value = dev.id;
+    o.textContent = `${dev.name} (${dev.w} × ${dev.h})`;
+    sel.appendChild(o);
+  }
+  sel.addEventListener("change", () => setDevice(sel.value));
+  const scene = $("sceneSelect");
+  for (const s of SCENES) {
+    const o = document.createElement("option");
+    o.value = s.id;
+    o.textContent = s.name;
+    scene.appendChild(o);
+  }
+  scene.addEventListener("change", () => setScene(scene.value));
+  const chips = $("chips");
+  for (const [key, label] of CHIPS) {
+    const c = document.createElement("button");
+    c.type = "button";
+    c.className = "chip";
+    c.textContent = label;
+    c.dataset.key = key;
+    c.addEventListener("click", () => {
+      prefs.show[key] = !prefs.show[key];
+      savePrefs();
+      syncToolbar();
+      renderPieces();
+    });
+    chips.appendChild(c);
+  }
+  $("viewOne").addEventListener("click", () => setView("one"));
+  $("viewAll").addEventListener("click", () => setView("all"));
+  $("zoomIn").addEventListener("click", () => { state.zoom = Math.min(3, (state.zoomValue || 1) * 1.25); renderStage(); });
+  $("zoomOut").addEventListener("click", () => { state.zoom = Math.max(0.15, (state.zoomValue || 1) / 1.25); renderStage(); });
+  $("zoomFit").addEventListener("click", () => { state.zoom = "fit"; renderStage(); });
+  $("filter").addEventListener("input", (e) => { state.filter = e.target.value; renderSide(); });
+  $("undo").addEventListener("click", undo);
+  $("redo").addEventListener("click", redo);
+  $("save").addEventListener("click", save);
+  $("moreBtn").addEventListener("click", (e) => { e.stopPropagation(); $("menu").hidden ? openMenu() : closeMenu(); });
+  document.addEventListener("click", (e) => { if (!$("menu").hidden && !$("menu").contains(e.target)) closeMenu(); });
+  $("copyLuau").addEventListener("click", () => { closeMenu(); copyText(toLuau(), "Copied the whole UiLayout.luau. It goes over src/client/UiLayout.luau."); });
+  $("copyJson").addEventListener("click", () => { closeMenu(); copyText(JSON.stringify({ hudLayout: serialize() }), "Copied. Paste it to Claude and ask for it to go into the game."); });
+  $("loadSaved").addEventListener("click", () => { closeMenu(); loadRemote("current"); });
+  $("loadPrevious").addEventListener("click", () => { closeMenu(); loadRemote("previous"); });
+  $("resetAll").addEventListener("click", () => { closeMenu(); askResetAll(); });
+})();
+function syncToolbar() {
+  for (const b of $("devices").children) b.setAttribute("aria-pressed", String(b.dataset.id === state.device.id));
+  $("deviceSelect").value = state.device.id;
+  $("sceneSelect").value = state.scene.id;
+  for (const c of $("chips").children) c.setAttribute("aria-pressed", String(!!prefs.show[c.dataset.key] || (c.dataset.key === "hotbar" && !!state.scene.hotbar)));
+  $("viewOne").setAttribute("aria-pressed", String(state.view === "one"));
+  $("viewAll").setAttribute("aria-pressed", String(state.view === "all"));
+  $("zoomOut").disabled = $("zoomIn").disabled = $("zoomFit").disabled = state.view === "all";
+}
+function openMenu() { $("menu").hidden = false; $("moreBtn").setAttribute("aria-expanded", "true"); }
+function closeMenu() { $("menu").hidden = true; $("moreBtn").setAttribute("aria-expanded", "false"); }
+function setDevice(id) {
+  const dev = DEVICES.find((d) => d.id === id);
+  if (!dev) return;
+  state.device = dev;
+  state.zoom = "fit";
+  savePrefs();
+  syncToolbar();
+  renderStage();
+}
+function setScene(id) {
+  const scene = SCENES.find((s) => s.id === id);
+  if (!scene) return;
+  state.scene = scene;
+  state.toggled.clear();
+  savePrefs();
+  syncToolbar();
+  renderStage();
+}
+function setView(v) {
+  state.view = v;
+  savePrefs();
+  syncToolbar();
+  renderStage();
+}
+
+let toastTimer = null;
+function toast(text) {
+  const t = $("toast");
+  t.textContent = text;
+  t.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => (t.hidden = true), 3600);
+}
+function showBanner(html, buttons) {
+  const b = $("banner");
+  b.innerHTML = `<span>${html}</span>`;
+  const row = document.createElement("span");
+  row.className = "confirm-row";
+  for (const [label, fn, primary] of buttons) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "btn" + (primary ? " primary" : "");
+    btn.textContent = label;
+    btn.addEventListener("click", () => { b.hidden = true; fn(); });
+    row.appendChild(btn);
+  }
+  b.appendChild(row);
+  b.hidden = false;
+}
+function askResetAll() {
+  showBanner("Put every piece back where the game has it now?", [
+    ["Put them back", () => {
+      const before = snapshot();
+      state.layout = defaultLayout();
+      pushUndo(before);
+      renderPieces();
+      toast("Every piece is back in the game's spot. Undo brings your layout back.");
+    }, true],
+    ["Keep my layout", () => {}],
+  ]);
+}
+async function copyText(text, done) {
+  try {
+    await navigator.clipboard.writeText(text);
+    toast(done);
+  } catch {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    Object.assign(ta.style, { position: "fixed", opacity: "0" });
+    document.body.appendChild(ta);
+    ta.select();
+    let ok = false;
+    try { ok = document.execCommand("copy"); } catch {}
+    ta.remove();
+    toast(ok ? done : "Copying isn't allowed here. Use Save layout instead.");
+  }
+}
+
+// ================================================================ saving (the page's database)
+// layouts/current is the layout Claude puts into the game; layouts/previous is the one before it.
+const remote = { db: null, savedAt: null, ready: false, lastOwnSave: null };
+
+function serialize() {
+  const out = {};
+  for (const id of IDS) out[id] = clone(state.layout[id]);
+  return out;
+}
+function fromSaved(elements) {
+  const base = defaultLayout();
+  for (const id of IDS) {
+    const s = elements && elements[id];
+    if (!s || typeof s !== "object") continue;
+    const d = DEFAULTS[id];
+    const entry = {};
+    for (const k of EDITABLE) {
+      if (s[k] !== undefined && s[k] !== null) entry[k] = clone(s[k]);
+      else if (k !== "touch" && d[k] !== undefined) entry[k] = clone(d[k]);
+    }
+    // only what this piece can have: no position for something placed by a list, and so on
+    for (const k of ["anchor", "position", "size", "compact", "order", "list"]) if (d[k] === undefined && k !== "anchor" && k !== "position") delete entry[k];
+    if (d.anchor === undefined && !d.position) { delete entry.anchor; delete entry.position; }
+    base[id] = entry;
+  }
+  return base;
+}
+
+function updateStatus(kind) {
+  const s = $("status");
+  if (kind === "saving") { s.textContent = "Saving…"; s.dataset.tone = ""; return; }
+  if (kind === "error") { s.textContent = "Couldn't save"; s.dataset.tone = "dirty"; return; }
+  if (state.dirty) { s.textContent = remote.db ? "Unsaved changes" : "Not saved (saving is off here)"; s.dataset.tone = "dirty"; }
+  else if (remote.savedAt) { s.textContent = "Saved " + timeAgo(remote.savedAt); s.dataset.tone = "ok"; }
+  else if (remote.db) { s.textContent = "The game's layout"; s.dataset.tone = ""; }
+  else { s.textContent = remote.ready ? "Saving is off in this view" : "Loading…"; s.dataset.tone = ""; }
+}
+function timeAgo(iso) {
+  const t = new Date(iso);
+  if (isNaN(t)) return "";
+  const today = new Date().toDateString() === t.toDateString();
+  const time = t.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  return today ? time : t.toLocaleDateString([], { month: "short", day: "numeric" }) + ", " + time;
+}
+
+async function save() {
+  if (!remote.db) {
+    copyText(JSON.stringify({ hudLayout: serialize() }), "Saving is off in this view, so the layout was copied instead. Paste it to Claude.");
+    return;
+  }
+  const body = {
+    savedAt: new Date().toISOString(),
+    device: state.device.id,
+    defaults: META.version || null,
+    changed: changedIds(),
+    elements: serialize(),
+  };
+  updateStatus("saving");
+  try {
+    const cur = await remote.db.doc("layouts/current").get();
+    if (cur.exists) await remote.db.doc("layouts/previous").set(clone(cur.data()));
+    remote.lastOwnSave = body.savedAt;
+    await remote.db.doc("layouts/current").set(body);
+    remote.savedAt = body.savedAt;
+    state.dirty = false;
+    store.del(DRAFT_KEY);
+    updateStatus();
+    toast(body.changed.length ? `Saved ${body.changed.length} changed piece${body.changed.length === 1 ? "" : "s"}. Now tell Claude to apply your HUD layout.` : "Saved. It matches the game's layout.");
+  } catch (err) {
+    updateStatus("error");
+    const code = err && err.code;
+    toast(code === "quota_exceeded" ? "The layout store is full. Ask Claude to clear old layouts." : code === "resource_exhausted" ? "Saving too fast. Wait a moment and save again." : "Couldn't save. Check your connection and save again.");
+  }
+}
+
+async function loadRemote(which) {
+  if (!remote.db) { toast("Saving is off in this view, so there's nothing saved to load."); return; }
+  try {
+    const snap = await remote.db.doc("layouts/" + which).get();
+    if (!snap.exists) { toast(which === "previous" ? "There's no earlier save yet." : "Nothing has been saved yet."); return; }
+    const before = snapshot();
+    state.layout = fromSaved(snap.data().elements);
+    pushUndo(before);
+    renderPieces();
+    toast(which === "previous" ? "Loaded the save before the last one. Save to keep it." : "Loaded the last saved layout.");
+  } catch {
+    toast("Couldn't load it. Try again in a moment.");
+  }
+}
+
+function applyRemote(data, reason) {
+  state.layout = fromSaved(data.elements);
+  remote.savedAt = data.savedAt || null;
+  state.dirty = false;
+  undoStack.length = 0;
+  redoStack.length = 0;
+  updateUndo();
+  updateStatus();
+  renderPieces();
+  if (reason) toast(reason);
+}
+
+(async function connect() {
+  const draft = store.get(DRAFT_KEY);
+  const usableDraft = draft && draft.layout && (!draft.version || !META.version || draft.version === META.version) ? draft : null;
+  let db = null;
+  try { db = window.claude && window.claude.use ? await window.claude.use("db") : null; } catch { db = null; }
+  remote.ready = true;
+  remote.db = db;
+  if (!db) {
+    if (usableDraft) {
+      state.layout = fromSaved(usableDraft.layout);
+      state.dirty = true;
+      renderPieces();
+    }
+    updateStatus();
+    $("saveLabel").textContent = "Copy layout";
+    return;
+  }
+  let first = true;
+  db.doc("layouts/current").onSnapshot((snap) => {
+    if (snap.metadata && snap.metadata.hasPendingWrites) return;
+    const data = snap.exists ? snap.data() : null;
+    if (first) {
+      first = false;
+      const draftNewer = usableDraft && (!data || !data.savedAt || usableDraft.base === data.savedAt || (usableDraft.at && usableDraft.at > Date.parse(data.savedAt)));
+      if (draftNewer) {
+        state.layout = fromSaved(usableDraft.layout);
+        remote.savedAt = data ? data.savedAt : null;
+        state.dirty = true;
+        updateStatus();
+        renderPieces();
+        showBanner("Your unsaved changes from last time are back.", [
+          ["Keep them", () => {}, true],
+          ["Throw them away", () => { store.del(DRAFT_KEY); applyRemote(data || { elements: defaultLayout() }, data ? "Back to your last save." : "Back to the game's layout."); }],
+        ]);
+      } else if (data) {
+        applyRemote(data);
+      } else {
+        updateStatus();
+      }
+      return;
+    }
+    if (!data || data.savedAt === remote.lastOwnSave || data.savedAt === remote.savedAt) return;
+    if (state.dirty) {
+      showBanner(`A newer layout was saved at ${esc(timeAgo(data.savedAt))}.`, [
+        ["Load it", () => applyRemote(data, "Loaded the newer layout."), true],
+        ["Keep mine", () => {}],
+      ]);
+    } else {
+      applyRemote(data, "Loaded the newer saved layout.");
+    }
+  }, () => {
+    remote.db = null;
+    $("saveLabel").textContent = "Copy layout";
+    updateStatus();
+  });
+  updateStatus();
+})();
+
+// ================================================================ export as Luau
+function luauValue(v, indent) {
+  if (Array.isArray(v)) return "{ " + v.map((x) => luauValue(x, indent)).join(", ") + " }";
+  if (v && typeof v === "object") {
+    const parts = Object.keys(v).map((k) => `${luauKey(k)} = ${luauValue(v[k], indent + "\t")}`);
+    const one = "{ " + parts.join(", ") + " }";
+    if (one.length <= 90) return one;
+    return "{\n" + parts.map((p) => indent + "\t" + p + ",").join("\n") + "\n" + indent + "}";
+  }
+  if (typeof v === "number") return String(num(v, 4));
+  if (typeof v === "boolean") return v ? "true" : "false";
+  return JSON.stringify(String(v));
+}
+function luauKey(k) { return /^[A-Za-z_][A-Za-z0-9_]*$/.test(k) ? k : `[${JSON.stringify(k)}]`; }
+function toLuau() {
+  const order = ["label", "group", "screen", "parent", "order", "list", "anchor", "position", "size", "autoSize", "min", "max", "typical", "touch", "compact", "device", "fixed", "note"];
+  const lines = [];
+  if (META.header) lines.push(META.header.replace(/\s+$/, ""), "");
+  lines.push("return {");
+  if (META.screen) lines.push(`\t__screen = ${luauValue(META.screen, "\t")},`, "");
+  for (const id of IDS) {
+    const d = DEFAULTS[id];
+    const L = state.layout[id];
+    const entry = {};
+    for (const k of Object.keys(d)) entry[k] = d[k];
+    for (const k of EDITABLE) { if (L[k] !== undefined) entry[k] = L[k]; else delete entry[k]; }
+    const keys = [...order.filter((k) => k in entry), ...Object.keys(entry).filter((k) => !order.includes(k))];
+    lines.push(`\t${luauKey(id)} = {`);
+    for (const k of keys) lines.push(`\t\t${luauKey(k)} = ${luauValue(entry[k], "\t\t")},`);
+    lines.push("\t},");
+  }
+  lines.push("}", "");
+  return lines.join("\n");
+}
+
+// ================================================================ start
+stageEl.addEventListener("pointerdown", (e) => { if (e.target === stageEl) select(null); });
+$("list").setAttribute("role", "listbox");
+$("list").setAttribute("aria-label", "Pieces");
+syncToolbar();
+updateUndo();
+renderStage();
+let resizeTimer = null;
+new ResizeObserver(() => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => { if (state.view === "all" || state.zoom === "fit") renderStage(); }, 80);
+}).observe(stageEl);
+})();
+</script>

@@ -339,7 +339,7 @@ return {
 		size = { 0.6, 0, 0, 0 },
 		autoSize = "Y",
 		max = { width = 520 },
-		typical = { 506, 130 },
+		typical = { 450, 86 },
 		note = "Coaches a new player through their first job, a step at a time, once the intro scene's over "
 			.. "and until the job's paid. As tall as its words. The toasts keep below it.",
 	},
