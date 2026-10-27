@@ -1,5 +1,5 @@
 -- Copies models staged by scripts/PrepareChatGPTModels.luau into assets/<Folder>/<id>.rbxm so Rojo
--- syncs them into ReplicatedStorage.Assets.
+-- syncs them into ServerStorage.Assets.
 --
 --   lune run scripts/export-models [file] [--overwrite]
 --

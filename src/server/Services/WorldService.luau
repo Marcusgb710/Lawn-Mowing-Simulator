@@ -78,6 +78,9 @@ local FALLBACK_WALL = 0.8
 -- whose bottom is this high above the floor is out of the way overhead (see makeWalkable).
 local FLAT_WALL = 1
 local HEADROOM = 7
+-- The most a joining player's device is given to load their business once it's built, before that
+-- request gives up (JobService asks again when it moves them in).
+local FIRST_STREAM_TIMEOUT = 15
 
 local WorldService = {}
 -- Fired with (owner) after a business plot is (re)built, so the truck bed can be refilled.
@@ -92,6 +95,8 @@ local spawnCFrame = CFrame.new(0, 5, 0)
 local plots = {}
 -- [Player] = plot
 local playerPlots = {}
+-- [Player] = true once they've been given a plot and it's built, or there was none free.
+local settled = setmetatable({}, { __mode = "k" })
 -- Who a player's crew leader is, so crews hang out at the leader's business. Set by PartyService.
 local getLeader = function(player: Player): Player
 	return player
@@ -900,6 +905,15 @@ function WorldService:GetWorkbenchBusiness(player: Player): string?
 	return ownerData and ownerData.equipped.Business or "Shed"
 end
 
+-- Waits, for at most `timeout` seconds, until the player has been given their business plot and
+-- it's built (or there was none free for them).
+function WorldService:WaitForPlot(player: Player, timeout: number)
+	local deadline = os.clock() + timeout
+	while not settled[player] and player.Parent == Players and os.clock() < deadline do
+		task.wait()
+	end
+end
+
 function WorldService:IsAtBusiness(player: Player): boolean
 	local plot = playerPlots[getLeader(player)] or playerPlots[player]
 	local character = player.Character
@@ -957,13 +971,26 @@ function WorldService:Start()
 			if not plot.owner then
 				plot.owner = player
 				playerPlots[player] = plot
+				local started = os.clock()
 				buildPlot(plot)
+				-- Joining waits on this, so it's in the F9 console (the title card logs its side).
+				print(string.format("[Load] %s's business built in %.2f s", player.Name, os.clock() - started))
+				-- Start loading it on their device now. Their character may not even be in yet, and
+				-- JobService only moves them in once it's loaded, so it's often there already.
+				task.spawn(
+					pcall,
+					player.RequestStreamAroundAsync,
+					player,
+					WorldService:GetHomeCFrame(player).Position,
+					FIRST_STREAM_TIMEOUT
+				)
 				break
 			end
 		end
 		if not playerPlots[player] then
 			warn(`No free business plot for {player.Name}. Lower Max Players or add more plots.`)
 		end
+		settled[player] = true
 	end
 	Players.PlayerAdded:Connect(onPlayerAdded)
 	for _, player in Players:GetPlayers() do

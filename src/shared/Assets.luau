@@ -1,6 +1,17 @@
 -- Finds the real model for something, or falls back to a placeholder.
 --
--- Where real models go (all inside ReplicatedStorage.Assets):
+-- Where the models are: every one is in ServerStorage.Assets (assets/ in the repo), which the
+-- server builds the world from and clients never download, so joining doesn't wait on them.
+-- What the server puts in Workspace streams to the screens near it as usual. Client code that
+-- clones models itself finds them in ReplicatedStorage.Assets, which holds copies of just those
+-- (listed in default.project.json): the kit's grass clumps (GrassController), the decorations and
+-- the gnome and flower patch (DecorController) and the judges (ContestController). New client code
+-- that clones a model needs it added to that list, or it gets the placeholder. Each screen also
+-- gets its own copies of what only it needs (see Assets.shareWith): its player's tools, for laying
+-- them out in storage (CarryController, from DataService), and the crew's truck and trailer, for
+-- the drive (CutsceneController, from JobService).
+--
+-- Where real models go (in assets/, so in ServerStorage.Assets):
 --   Tools/<item id>     e.g. Tools/GasPushMower       a Tool with a Handle, or a Model/Part (we wrap it in a Tool).
 --                                                     The hand holds the handle (or the Model's PrimaryPart)
 --                                                     with its +Y up and its LookVector pointing forward.
@@ -23,17 +34,79 @@
 --
 -- Item ids are listed in Shared/Config/Items.luau.
 
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local ServerStorage = game:GetService("ServerStorage")
 
 local Placeholders = require(script.Parent.Placeholders)
 local Premium = require(script.Parent.Config.Premium)
 
 local Assets = {}
 
-local function findAsset(folderName: string, name: string): Instance?
-	local assets = ReplicatedStorage:FindFirstChild("Assets")
-	local folder = assets and assets:FindFirstChild(folderName)
+-- The hidden ScreenGui in a player's PlayerGui with the copies only their screen gets.
+local OWN_COPIES = "MyAssets"
+
+local onServer = RunService:IsServer()
+
+local function findIn(root: Instance?, folderName: string, name: string): Instance?
+	local folder = root and root:FindFirstChild(folderName)
 	return folder and folder:FindFirstChild(name)
+end
+
+local function findAsset(folderName: string, name: string): Instance?
+	if onServer then
+		-- ReplicatedStorage too, for a model dropped in there in Studio.
+		return findIn(ServerStorage:FindFirstChild("Assets"), folderName, name)
+			or findIn(ReplicatedStorage:FindFirstChild("Assets"), folderName, name)
+	end
+	local playerGui = Players.LocalPlayer and Players.LocalPlayer:FindFirstChildOfClass("PlayerGui")
+	return findIn(ReplicatedStorage:FindFirstChild("Assets"), folderName, name)
+		or findIn(playerGui and playerGui:FindFirstChild(OWN_COPIES), folderName, name)
+		-- Empty on a player's device; Studio's command bar in Team Create counts as a client.
+		or findIn(ServerStorage:FindFirstChild("Assets"), folderName, name)
+end
+
+-- Server only. Copies these models (by name, from `folderName`) to one player's screen, for client
+-- code there that builds things from them: into a hidden ScreenGui in their PlayerGui, which no
+-- other screen downloads, so nobody waits on models only someone else needs. Each is copied once;
+-- one without a real model is skipped (that screen uses the placeholder, as it would anyway).
+-- Returns false if their PlayerGui isn't there yet.
+function Assets.shareWith(player: Player, folderName: string, names: { string }): boolean
+	local playerGui = player:FindFirstChildOfClass("PlayerGui")
+	if not playerGui then
+		return false
+	end
+	local copies = playerGui:FindFirstChild(OWN_COPIES)
+	if not copies then
+		local holder = Instance.new("ScreenGui")
+		holder.Name = OWN_COPIES
+		-- It never shows anything, and it stays through respawns.
+		holder.Enabled = false
+		holder.ResetOnSpawn = false
+		holder.Parent = playerGui
+		copies = holder
+	end
+	local folder = copies:FindFirstChild(folderName)
+	if not folder then
+		folder = Instance.new("Folder")
+		folder.Name = folderName
+		folder.Parent = copies
+	end
+	for _, name in names do
+		local found = not folder:FindFirstChild(name) and findAsset(folderName, name)
+		if found then
+			local copy = found:Clone()
+			-- A LocalScript would run in a PlayerGui, and these are only ever copied from.
+			for _, descendant in copy:GetDescendants() do
+				if descendant:IsA("LuaSourceContainer") then
+					descendant:Destroy()
+				end
+			end
+			copy.Parent = folder
+		end
+	end
+	return true
 end
 
 local function prepareModel(model: Model): Model

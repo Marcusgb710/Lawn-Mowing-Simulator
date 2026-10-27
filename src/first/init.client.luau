@@ -327,6 +327,16 @@ local function waitFor(check: () -> boolean, seconds: number)
 	end
 end
 
+-- Each step of joining goes in the F9 console, so a slow join (on a phone, say) shows where the
+-- time went: how long the step took, and how long since the card went up. The server logs its
+-- side (loading the save, building the business).
+local stepStarted = started
+local function logStep(step: string)
+	local now = os.clock()
+	print(string.format("[Load] %s after %.1f s (%.1f s in)", step, now - stepStarted, now - started))
+	stepStarted = now
+end
+
 local images = { Art.Logo, Art.Mower, Art.Stripes }
 for _, image in Art.Background do
 	table.insert(images, image)
@@ -364,15 +374,18 @@ progress(0.1, "Loading the neighborhood...")
 if not game:IsLoaded() then
 	game.Loaded:Wait()
 end
+logStep("Game loaded")
 
 progress(0.45, "Opening up your shop...")
-waitFor(function()
+local function arrived(): boolean
 	return player:GetAttribute("ArrivedAtBusiness") == true
-end, GIVE_UP - (os.clock() - started))
+end
+waitFor(arrived, GIVE_UP - (os.clock() - started))
+logStep(if arrived() then "At their business" else "Gave up waiting for their business")
 
 progress(0.8, "Getting your tools ready...")
 local params = RaycastParams.new()
-waitFor(function()
+local function onGround(): boolean
 	local character = player.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart")
 	if not (root and root:IsA("BasePart")) then
@@ -380,7 +393,9 @@ waitFor(function()
 	end
 	params.FilterDescendantsInstances = { character }
 	return workspace:Raycast(root.Position, Vector3.new(0, -12, 0), params) ~= nil
-end, GROUND_WAIT)
+end
+waitFor(onGround, GROUND_WAIT)
+logStep(if onGround() then "Ground loaded under them" else "Gave up waiting for the ground")
 
 progress(1, "Ready!")
 task.wait(math.max(0.6, MIN_SHOWN - (os.clock() - started)))
@@ -394,6 +409,7 @@ local breathing = TweenService:Create(
 	{ TextTransparency = 0.45 }
 )
 breathing:Play()
+logStep("Tap to start showing")
 local go = Instance.new("BindableEvent")
 local connection = UserInputService.InputBegan:Connect(function(input)
 	local kind = input.UserInputType
@@ -409,6 +425,7 @@ end)
 go.Event:Wait()
 connection:Disconnect()
 breathing:Cancel()
+logStep("Started")
 
 -- The server turned them to face their shop, but a first-person camera keeps looking the way it
 -- was (and turns the character with it), so point the camera the way the server said.

@@ -13,7 +13,7 @@
 --   won      never sold: it's won (the Best Yard Trophy, from the contest; see ContestService),
 --            comes in a box like an order and can't be sent back
 --
--- Model swap: put a model named after the id in ReplicatedStorage.Assets.Decorations.
+-- Model swap: put a model named after the id in assets/Decorations.
 
 local Decorations = {}
 

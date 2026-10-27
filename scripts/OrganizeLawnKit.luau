@@ -8,7 +8,7 @@
 --                      the ground under the asset and faces the asset's front (LookVector).
 --
 -- Then save the place and run `lune run scripts/export-kit` to write them into assets/Kit (synced
--- into ReplicatedStorage.Assets.Kit), then `lune run scripts/build-kit-tools` for the shop tools.
+-- into ServerStorage.Assets.Kit), then `lune run scripts/build-kit-tools` for the shop tools.
 
 local ServerStorage = game:GetService("ServerStorage")
 local ChangeHistoryService = game:GetService("ChangeHistoryService")

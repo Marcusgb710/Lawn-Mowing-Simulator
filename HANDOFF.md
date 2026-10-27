@@ -230,3 +230,15 @@ Work through it in Play mode, and with 2–4 players (Test → Clients and Serve
 - **Walls and doors:** building walls collide, but doorways must stay open. `makeWalkable` in
   `WorldService` handles this; check walking in through every door after a building model changes.
 - **Rojo-Warn spam** ("Ignoring change for instance … unknown to Rojo") in Output is harmless.
+- **Models are in `ServerStorage.Assets`**, from `assets/`, so joining doesn't download all of them.
+  - `ReplicatedStorage.Assets` only has copies of the few that client code clones, listed in
+    `default.project.json`.
+  - Each player's screen gets its own copies of the tools they own, and of the crew's truck and
+    trailer just before the drive cutscene (`Assets.shareWith`).
+  - New client code that clones a model needs the model added to that list.
+  - A Studio place synced before this still has the old, full `ReplicatedStorage.Assets`, because
+    Rojo leaves unknown models alone. Delete that folder once, then reconnect Rojo, which puts
+    back the small one.
+- **Join time:** joining prints `[Load]` lines in the F9 console. The Client tab has the title
+  card's steps and the Server tab has the save, the business build and arriving there (see
+  README.md, "How long joining takes").

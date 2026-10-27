@@ -332,6 +332,11 @@ local function travel(players: { Player }, info, destination: (number, Player) -
 	for index, player in players do
 		traveling[player] = token
 		setFrozen(player, true)
+		-- The cutscene builds the crew's truck on their screen (CutsceneController), from copies of
+		-- its models that only their screen gets (Assets.shareWith). They go out first, so they've
+		-- arrived by the time this has.
+		Assets.shareWith(player, "Trucks", { info.truckId })
+		Assets.shareWith(player, "Trailers", { info.trailerId })
 		Net.event("TravelStarted"):FireClient(player, info)
 
 		local target = destination(index, player)
@@ -1005,7 +1010,10 @@ function JobService:Start()
 		end
 	end)
 
+	-- [Player] = os.clock() when they joined, until they've first arrived at their business.
+	local joinedAt = {}
 	local function goHome(player: Player)
+		local streamStarted = os.clock()
 		if player.Parent == Players and player.Character and not self:IsBusy(player) then
 			local home = WorldService:GetHomeCFrame(player)
 			-- Load the business on their device first, so they don't land in an empty world.
@@ -1013,6 +1021,19 @@ function JobService:Start()
 			if player.Parent == Players and player.Character and not self:IsBusy(player) then
 				player.Character:PivotTo(home)
 			end
+		end
+		local joined = joinedAt[player]
+		if joined then
+			joinedAt[player] = nil
+			-- The title card logs its side of this in their own F9 console.
+			print(
+				string.format(
+					"[Load] %s is at their business %.1f s after joining (%.1f s of that loading it on their device)",
+					player.Name,
+					os.clock() - joined,
+					os.clock() - streamStarted
+				)
+			)
 		end
 		-- The title card waits for this, and turns their camera this way (see ReplicatedFirst).
 		player:SetAttribute("ArrivedFacing", WorldService:GetHomeCFrame(player).LookVector)
@@ -1049,6 +1070,7 @@ function JobService:Start()
 	end)
 
 	local function onPlayerAdded(player: Player)
+		joinedAt[player] = os.clock()
 		player.CharacterAdded:Connect(function(character)
 			character:WaitForChild("HumanoidRootPart", 5)
 			local job = playerJobs[player]
@@ -1065,9 +1087,11 @@ function JobService:Start()
 					character:PivotTo(job.lawn.spawnCFrame)
 				end
 			else
-				-- Everyone else spawns at their crew's business (once it's been built).
+				-- Everyone else spawns at their crew's business, as soon as it's been built (and a
+				-- frame on, so the spawn doesn't put them back).
 				DataService:WaitForData(player)
-				task.wait(0.2)
+				WorldService:WaitForPlot(player, 5)
+				task.wait()
 				if player.Character == character then
 					goHome(player)
 				end
@@ -1080,6 +1104,7 @@ function JobService:Start()
 	end
 
 	Players.PlayerRemoving:Connect(function(player)
+		joinedAt[player] = nil
 		traveling[player] = nil
 		wrongToolWarnings[player] = nil
 		takenFor[player] = nil

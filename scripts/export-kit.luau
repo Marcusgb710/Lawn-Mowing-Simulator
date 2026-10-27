@@ -1,5 +1,5 @@
 -- Copies the organized Lawn Mowing kit out of a saved place file into assets/Kit so Rojo syncs it
--- into ReplicatedStorage.Assets.Kit.
+-- into ServerStorage.Assets.Kit.
 --
 --   lune run scripts/export-kit [place file]
 --
