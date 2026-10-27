@@ -1,7 +1,10 @@
 # Assets (for the modeler)
 
-This folder becomes `ReplicatedStorage.Assets` in the game. Anything in here replaces a
+This folder becomes `ServerStorage.Assets` in the game. Anything in here replaces a
 placeholder, as long as it's named after the item's `id` in `src/shared/Config/Items.luau`.
+Only the server reads it, so players don't download every model when they join. The few that
+client code clones are copied to `ReplicatedStorage.Assets` too, and that list is in
+`default.project.json`.
 
 - `Tools/`: one per tool tier, e.g. `ReelMower.rbxm`, `GasPushMower.rbxm`, `LeafBlower.rbxm`.
   A `Tool` with a part named `Handle` works best. A plain Model also works, and its PrimaryPart
@@ -36,5 +39,5 @@ placeholder, as long as it's named after the item's `id` in `src/shared/Config/I
   go. Without slots they get spread over the front.
 
 Save models from Studio with right-click → *Save to File* as `.rbxm` into the right folder, or
-just drop them into `ReplicatedStorage.Assets` in Studio. Rojo won't delete models added that
+just drop them into `ServerStorage.Assets` in Studio. Rojo won't delete models added that
 way.

@@ -11,8 +11,8 @@
 -- Storage: each business building has room for a set number of tools of each kind (`storage`,
 -- see Storage.luau). You can't buy a tool without a free spot for it.
 --
--- Model swap: put a model named after the item's `id` in ReplicatedStorage.Assets.Tools
--- (or Assets.Trucks for trucks) and it replaces the placeholder automatically.
+-- Model swap: put a model named after the item's `id` in assets/Tools (or assets/Trucks for
+-- trucks) and it replaces the placeholder automatically.
 
 local Tools = require(script.Parent.Tools)
 
@@ -136,7 +136,7 @@ Items.Catalog = {
 	-- floor spots only take push machines without an engine. Every business has a workbench;
 	-- `fixtures` are shop machines that come with the building (see Maintenance.luau). `desk` is
 	-- the job computer desk that stands inside (Props/<desk>).
-	-- Model swap: put a model named after the id in ReplicatedStorage.Assets.Buildings.
+	-- Model swap: put a model named after the id in assets/Buildings.
 	Business = {
 		{
 			id = "Shed",

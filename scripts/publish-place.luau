@@ -26,12 +26,14 @@ local roblox = require("@lune/roblox")
 local serde = require("@lune/serde")
 local stdio = require("@lune/stdio")
 
--- Every tree Rojo builds from the repo, by its path in the game. Keep it in step with
--- default.project.json (the script checks).
+-- Every tree Rojo builds from the repo, by its path in the game: a node with a $path, or a folder
+-- made of them (ReplicatedStorage.Assets, the models clients need, picked from assets/). Keep it
+-- in step with default.project.json (the script checks).
 local MANAGED = {
 	"ReplicatedFirst.First",
 	"ReplicatedStorage.Shared",
 	"ReplicatedStorage.Assets",
+	"ServerStorage.Assets",
 	"ServerScriptService.Server",
 	"StarterPlayer.StarterPlayerScripts.Client",
 }
@@ -119,8 +121,8 @@ local function isManaged(path: string): boolean
 	return table.find(MANAGED, path) ~= nil
 end
 
--- default.project.json: checks its $path trees are exactly MANAGED, and returns the properties it
--- sets on everything else, as { path, names }.
+-- default.project.json: checks the trees it builds are exactly MANAGED (and that nothing outside
+-- them has a $path), and returns the properties it sets on everything else, as { path, names }.
 local function readProject(): { { path: string, names: { string } } }
 	if not fs.isFile(PROJECT) then
 		fail(`can't find {PROJECT}: run this from the repo root`)
@@ -128,10 +130,15 @@ local function readProject(): { { path: string, names: { string } } }
 	local project = serde.decode("json", fs.readFile(PROJECT))
 	local found, properties = {}, {}
 	local function walk(node, path: string?)
-		if path and node["$path"] then
+		if path and isManaged(path) then
+			-- All of it comes from the build.
 			table.insert(found, path)
+			return
 		end
-		if path and node["$properties"] and not node["$path"] then
+		if path and node["$path"] then
+			fail(`{PROJECT} builds {path}, which publish-place doesn't know about: add it to MANAGED`)
+		end
+		if path and node["$properties"] then
 			local names = {}
 			for name in node["$properties"] do
 				table.insert(names, name)
@@ -146,11 +153,6 @@ local function readProject(): { { path: string, names: { string } } }
 		end
 	end
 	walk(project.tree, nil)
-	for _, path in found do
-		if not isManaged(path) then
-			fail(`{PROJECT} builds {path}, which publish-place doesn't know about: add it to MANAGED`)
-		end
-	end
 	for _, path in MANAGED do
 		if not table.find(found, path) then
 			fail(`MANAGED has {path}, but {PROJECT} doesn't build it any more: take it out of MANAGED`)
@@ -287,18 +289,78 @@ local function guiArtLine(game): string
 	return `GuiArt ids filled: {filled} of {total}`
 end
 
-local function storyLine(game): string
-	local story = find(game, "ReplicatedStorage.Assets.Story")
-	if not story then
-		fail("the build has no ReplicatedStorage.Assets.Story")
-	end
+local function countModels(folder): number
 	local models = 0
-	for _, child in story:GetChildren() do
+	for _, child in folder:GetChildren() do
 		if child:IsA("Model") then
 			models += 1
 		end
 	end
-	return `Assets.Story models: {models}`
+	return models
+end
+
+local function storyLine(game): string
+	local story = find(game, "ServerStorage.Assets.Story")
+	if not story then
+		fail("the build has no ServerStorage.Assets.Story")
+	end
+	return `Assets.Story models: {countModels(story)}`
+end
+
+-- The decorations' ids, from the build's Config/Decorations.
+local function decorationIds(game): { string }
+	local module = find(game, "ReplicatedStorage.Shared.Config.Decorations")
+	if not module then
+		fail("the build has no ReplicatedStorage.Shared.Config.Decorations")
+	end
+	local ok, config = pcall(function()
+		return luau.load(module.Source, {
+			debugName = "Decorations",
+			environment = { Vector3 = roblox.Vector3, Color3 = roblox.Color3 },
+		})()
+	end)
+	if not ok or typeof(config) ~= "table" or typeof(config.List) ~= "table" then
+		fail(`couldn't read the decorations: {config}`)
+	end
+	local ids = {}
+	for _, decoration in config.List do
+		table.insert(ids, decoration.id)
+	end
+	return ids
+end
+
+-- Every model is in ServerStorage.Assets, and the copies every client downloads when it joins (the
+-- ones client code clones) in ReplicatedStorage.Assets: how many, and how big that download is.
+-- DecorController clones decorations on the screen, so every decoration the server has a model for
+-- needs its copy there too (default.project.json lists the ones outside assets/Decorations).
+local function assetsLine(game): string
+	local counts = {}
+	for _, path in { "ServerStorage.Assets", "ReplicatedStorage.Assets" } do
+		local assets = find(game, path)
+		if not assets then
+			fail(`the build has no {path}`)
+		end
+		local models = 0
+		for _, folder in assets:GetChildren() do
+			models += countModels(folder)
+		end
+		table.insert(counts, { assets = assets, models = models })
+	end
+	local function has(root: string, id: string): boolean
+		return find(game, `{root}.Decorations.{id}`) ~= nil or find(game, `{root}.Props.{id}`) ~= nil
+	end
+	local decorations = decorationIds(game)
+	for _, id in decorations do
+		if has("ServerStorage.Assets", id) and not has("ReplicatedStorage.Assets", id) then
+			fail(
+				`the decoration {id} has a model, but clients don't get it: add it to ReplicatedStorage.Assets in {PROJECT}`
+			)
+		end
+	end
+	local server, client = counts[1], counts[2]
+	local download = #roblox.serializeModel({ client.assets })
+	return `Assets: {server.models} models (ServerStorage), {client.models} of them sent to every client `
+		.. `(ReplicatedStorage, {sizeText(download)}, with all {#decorations} decorations)`
 end
 
 local function merge(basePath: string, codePath: string, out: string)
@@ -338,6 +400,7 @@ local function merge(basePath: string, codePath: string, out: string)
 		table.insert(lines, `{entry.path}: {table.concat(set, ", ")}`)
 	end
 
+	table.insert(lines, assetsLine(base))
 	table.insert(lines, storyLine(base))
 	table.insert(lines, guiArtLine(base))
 	local studioTest = find(base, "ServerScriptService.Server.Services.StudioTestService")

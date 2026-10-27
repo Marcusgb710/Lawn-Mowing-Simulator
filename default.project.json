@@ -16,6 +16,47 @@
         "$path": "src/shared"
       },
       "Assets": {
+        "$className": "Folder",
+        "Decorations": {
+          "$path": "assets/Decorations"
+        },
+        "Kit": {
+          "$className": "Folder",
+          "Grass_Short_A": {
+            "$path": "assets/Kit/Grass_Short_A.rbxm"
+          },
+          "Grass_Short_B": {
+            "$path": "assets/Kit/Grass_Short_B.rbxm"
+          },
+          "Grass_Tall_A": {
+            "$path": "assets/Kit/Grass_Tall_A.rbxm"
+          },
+          "Grass_Tall_B": {
+            "$path": "assets/Kit/Grass_Tall_B.rbxm"
+          }
+        },
+        "Props": {
+          "$className": "Folder",
+          "FlowerPatch": {
+            "$path": "assets/Props/FlowerPatch.rbxm"
+          },
+          "GardenGnome": {
+            "$path": "assets/Props/GardenGnome.rbxm"
+          }
+        },
+        "Story": {
+          "$className": "Folder",
+          "NPC_Judge1": {
+            "$path": "assets/Story/NPC_Judge1.rbxm"
+          },
+          "NPC_Judge2": {
+            "$path": "assets/Story/NPC_Judge2.rbxm"
+          }
+        }
+      }
+    },
+    "ServerStorage": {
+      "Assets": {
         "$path": "assets"
       }
     },

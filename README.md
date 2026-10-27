@@ -58,6 +58,19 @@ Services*. Without it the game still runs, it just doesn't save progress.
 
 **Testing crews:** Test tab → Clients and Servers → pick 2–4 players → Start.
 
+**How long joining takes:** joining prints `[Load]` lines in the F9 console. On a phone, type
+`/console` in the chat, or open it from the settings in the Roblox menu. On your own screen (the
+Client tab), each line says how long one of the title card's steps took, and how long the card
+had been up by then:
+1. the game loading;
+2. getting to your business;
+3. the ground loading under you;
+4. "Tap to start" showing;
+5. you tapping.
+
+Another line says when the client scripts were ready. The Server tab adds how long your save took
+to load and your business to build, and when you got there.
+
 ## Publishing
 
 Players (and phones) only get what's been published. To publish the latest `main`, no Studio
@@ -73,8 +86,9 @@ python3 scripts/publish.py             # the same, then publish; prints the new 
 - It builds the code with `rojo build`, then `scripts/publish-place.luau` (Lune) swaps it into a
   **base place** that has what Studio made and Rojo doesn't manage: Terrain, Baseplate,
   SpawnLocation, the Sky and Lighting effects, `StreamingEnabled` and every service's settings.
-  It prints a short check (what was kept, Assets.Story models, GuiArt ids filled) before
-  publishing.
+  It prints a short check before publishing: what was kept, how many models every client
+  downloads when it joins (and how big that is), the Assets.Story models and the GuiArt ids
+  filled.
 - **The base place** is Studio's newest AutoRecovery copy of the place, or
   [`place/base.rbxl`](place/base.rbxl) when there isn't one. `--base FILE` picks another. After
   changing something in Studio outside the Rojo trees (lighting, terrain, the spawn), remake the
@@ -210,7 +224,8 @@ truck. Only the leader accepts jobs and drives. Leaving the crew in the middle o
 default.project.json         Rojo project: maps the folders below into the game
 rokit.toml                   Tool versions (Rojo, Selene, StyLua, Lune)
 place/base.rbxl              the Studio-made parts scripts/publish.py publishes the code into
-assets/                      -> ReplicatedStorage.Assets   real models go here (see below)
+assets/                      -> ServerStorage.Assets       real models go here (see below); copies of
+                                the few that client code clones -> ReplicatedStorage.Assets
 src/shared/                  -> ReplicatedStorage.Shared   code used by both server and client
   Config/GameConfig.luau        balance numbers: travel time, pay formula, penalties, leveling...
   Config/Tools.luau             every tool: tier, verbs, size class, stats, what it's for
@@ -266,8 +281,20 @@ full design (realistic tools, storage, maintenance, and the phase plan) is in
 
 ## Swapping in real models
 
-Models live in `ReplicatedStorage.Assets`, sorted into folders. Name each model after the item's
-`id` from `src/shared/Config/Items.luau` and the game uses it instead of the placeholder:
+Models live in `assets/`, sorted into folders, which Rojo puts in `ServerStorage.Assets`. Name
+each model after the item's `id` from `src/shared/Config/Items.luau` and the game uses it instead
+of the placeholder.
+
+Only the server reads them there, so they don't add to anyone's join time. What it builds into
+the world streams to the players near it. Clients get two kinds of copies:
+- **Models that client code clones itself.** These are copied to `ReplicatedStorage.Assets`, which
+  every client downloads when it joins, so keep that set small. They're listed in
+  `default.project.json`: the grass clumps, the decorations, the gnome and the flower patch, and
+  the judges. If new client code clones a model, add it there, or that screen gets the
+  placeholder.
+- **What only one player's screen needs.** That screen gets its own copies (`Assets.shareWith`):
+  the tools the player owns, which it lays out in storage, and the crew's truck and trailer, just
+  before the drive cutscene.
 
 | Folder | Name it | What it should be |
 | --- | --- | --- |
@@ -281,8 +308,9 @@ Models live in `ReplicatedStorage.Assets`, sorted into folders. Name each model 
 
 There are two ways to add them:
 
-- **In Studio:** drop the model into the right folder under `ReplicatedStorage.Assets`. Rojo leaves
-  models added this way alone. Save the place to keep them.
+- **In Studio:** drop the model into the right folder under `ServerStorage.Assets`. Rojo leaves
+  models added this way alone. Save the place to keep them. `scripts/publish.py` publishes what's
+  in `assets/`, though, so save it to a file as well.
 - **As files (recommended, so they're in git):** right-click the model → *Save to File* as `.rbxm`
   into the matching `assets/` folder, e.g. `assets/Trucks/RustyPickup.rbxm`. Rojo syncs it into
   the game.

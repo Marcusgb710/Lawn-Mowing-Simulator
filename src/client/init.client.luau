@@ -1,7 +1,10 @@
 -- Client entry point. Hooks remotes up to ClientState, then starts every controller.
 
 local ContentProvider = game:GetService("ContentProvider")
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local started = os.clock()
 
 local Net = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Net"))
 local ClientState = require(script.ClientState)
@@ -65,10 +68,18 @@ for _, name in CONTROLLERS do
 	local controller = require(Controllers:WaitForChild(name))
 	controller:Start()
 end
+local controllersTook = os.clock() - started
 
--- Fetch the GUI's frames and glyphs now, so buttons that only show up later (the phone buttons,
--- prompts, menus) have their art ready instead of downloading it as they appear.
+-- Fetch the GUI's frames and glyphs, so buttons that only show up later (the phone buttons,
+-- prompts, menus) have their art ready instead of downloading it as they appear. Not until the
+-- player's at their business, though: before that, a phone's connection is busy loading the world
+-- around it, which the title card is waiting on. What's on screen loads its own art anyway.
 task.spawn(function()
+	local player = Players.LocalPlayer
+	local giveUp = os.clock() + 30
+	while player:GetAttribute("ArrivedAtBusiness") ~= true and os.clock() < giveUp do
+		task.wait(0.25)
+	end
 	local GuiArt = require(ReplicatedStorage.Shared.Config.GuiArt)
 	local ids = {}
 	for path, id in GuiArt.Images do
@@ -94,3 +105,11 @@ local contest = Net.func("GetContest"):InvokeServer()
 if contest and not ClientState.contest then
 	ClientState.set("contest", contest)
 end
+-- For the F9 console, next to the title card's steps.
+print(
+	string.format(
+		"[Load] Client scripts ready after %.1f s (starting the controllers took %.1f s)",
+		os.clock() - started,
+		controllersTook
+	)
+)

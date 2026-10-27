@@ -9,6 +9,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Assets = require(Shared.Assets)
 local GameConfig = require(Shared.Config.GameConfig)
 local Items = require(Shared.Config.Items)
 local Maintenance = require(Shared.Config.Maintenance)
@@ -504,7 +505,33 @@ local function createLeaderstats(player: Player, data)
 	leaderstats.Parent = player
 end
 
+-- Players whose PlayerGui wasn't there yet for their tools (see shareTools).
+local waitingForGui = {}
+
+-- Their screen lays out their own tools in storage itself (see CarryController), from copies of
+-- the models only it gets (Assets.shareWith): nobody downloads the whole tool shop when joining.
+-- They go out before the profile that lists them, so they've arrived by the time it has.
+local function shareTools(player: Player, data)
+	local ids = {}
+	for _, tool in Items.ownedTools(data.owned) do
+		table.insert(ids, tool.id)
+	end
+	if Assets.shareWith(player, "Tools", ids) or waitingForGui[player] then
+		return
+	end
+	-- No PlayerGui yet (a save that loads at once, in Studio): send it all again when there is.
+	waitingForGui[player] = true
+	task.spawn(function()
+		local playerGui = player:WaitForChild("PlayerGui", 10)
+		waitingForGui[player] = nil
+		if playerGui and player.Parent == Players then
+			DataService:Changed(player)
+		end
+	end)
+end
+
 local function onPlayerAdded(player: Player)
+	local started = os.clock()
 	local loaded, data, canSave = pcall(load, player)
 	if not loaded then
 		-- Always give them a profile so nothing waits on it forever, but don't save it.
@@ -515,6 +542,8 @@ local function onPlayerAdded(player: Player)
 		return
 	end
 	profiles[player] = { data = data, canSave = canSave }
+	-- Joining waits on this, so it's in the F9 console (the title card logs its side).
+	print(string.format("[Load] %s's save loaded in %.2f s", player.Name, os.clock() - started))
 	createLeaderstats(player, data)
 	DataService:Changed(player)
 end
@@ -562,6 +591,7 @@ function DataService:Changed(player: Player)
 		leaderstats.Money.Value = data.money
 		leaderstats.Level.Value = GameConfig.levelFromXp(data.xp)
 	end
+	shareTools(player, data)
 	Net.event("ProfileUpdated"):FireClient(player, snapshot(data))
 end
 

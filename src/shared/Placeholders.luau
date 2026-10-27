@@ -1,4 +1,4 @@
--- Block-model stand-ins used until the real models exist in ReplicatedStorage.Assets.
+-- Block-model stand-ins used until the real models exist in assets/ (see Assets.luau).
 -- Nothing else in the game depends on what these look like, so feel free to delete them later.
 
 local Decorations = require(script.Parent.Config.Decorations)
