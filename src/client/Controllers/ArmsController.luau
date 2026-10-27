@@ -63,10 +63,15 @@ local REACH_SIDE, REACH_AHEAD = 0.3, 1.1
 -- They follow part of the way when you look up or down.
 local HAND_POSE = CFrame.new(0.62, -0.72, -1.55) * CFrame.Angles(math.rad(-12), math.rad(-6), 0)
 local HAND_PITCH_FOLLOW = 0.7
--- Grass shears (`snip` in Tools.luau) sit a little lower and nearer the middle, tipped down so
--- their blades point at the grass you're aiming at, and follow your view nearly all the way.
+-- Grass shears (`snip` in Tools.luau) sit a little lower and nearer the middle, turned so their
+-- blade tips point just under where you look (SNIP_DIP), toward the grass you're aiming at, and
+-- follow your view nearly all the way. The tips are the model's farthest point from the handle, so this holds
+-- however the model angles its blades: the high-poly shears hang theirs about 40° down, and
+-- tipping those down another fixed angle turned them back toward you when you looked down.
 -- Each snip jabs them forward and down (SNIP_JAB, at its furthest halfway through SNIP_TIME).
-local SNIP_POSE = CFrame.new(0.45, -0.7, -1.6) * CFrame.Angles(math.rad(-28), math.rad(-5), 0)
+local SNIP_AT = CFrame.new(0.45, -0.7, -1.6)
+local SNIP_TURN = math.rad(-5)
+local SNIP_DIP = math.rad(5)
 local SNIP_PITCH_FOLLOW = 0.9
 local SNIP_JAB = CFrame.new(0, -0.12, -0.3) * CFrame.Angles(math.rad(-15), 0, 0)
 local SNIP_TIME = 0.18
@@ -240,13 +245,17 @@ local function handPose(shape: Shape, body: CFrame, view: CFrame, base: CFrame, 
 	return frame * CFrame.new(0, 0, -math.min(push, 2)) * base
 end
 
--- Where grass shears sit right now: jabbing forward and down just after a snip.
-local function snipPose(): CFrame
+-- Where grass shears sit right now: tips SNIP_DIP below your view, jabbing forward and down just
+-- after a snip.
+local function snipPose(shape: Shape): CFrame
+	-- How far below straight ahead the model points its blade tips.
+	local built = math.atan2(-shape.far.Y, -shape.far.Z)
+	local base = SNIP_AT * CFrame.Angles(built - SNIP_DIP, SNIP_TURN, 0)
 	local since = os.clock() - snippedAt
 	if since >= SNIP_TIME then
-		return SNIP_POSE
+		return base
 	end
-	return CFrame.new():Lerp(SNIP_JAB, math.sin(math.pi * since / SNIP_TIME)) * SNIP_POSE
+	return CFrame.new():Lerp(SNIP_JAB, math.sin(math.pi * since / SNIP_TIME)) * base
 end
 
 local function restorePose()
@@ -357,7 +366,7 @@ local function grips(held: Instance, character: Model, body: CFrame, view: CFram
 		elseif hold == "Reach" then
 			pose = body * clearCamera(shape, CFrame.new(REACH_SIDE, shape.below + 0.05, -REACH_AHEAD), camera)
 		elseif item and item.snip then
-			pose = handPose(shape, body, view, snipPose(), SNIP_PITCH_FOLLOW)
+			pose = handPose(shape, body, view, snipPose(shape), SNIP_PITCH_FOLLOW)
 		else
 			pose = handPose(shape, body, view, HAND_POSE, HAND_PITCH_FOLLOW)
 		end
