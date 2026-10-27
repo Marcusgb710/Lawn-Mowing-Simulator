@@ -315,7 +315,7 @@ return {
 		order = 3,
 		size = { 0, 220, 0, 0 },
 		autoSize = "Y",
-		typical = { 220, 128 },
+		typical = { 220, 86 },
 		note = "Grandma's sticky note with your story goal and how close you are, while you have one. As "
 			.. "tall as its words.",
 	},
@@ -366,14 +366,15 @@ return {
 		group = "HUD",
 		screen = "LawnUI",
 		anchor = { 0.5, 1 },
-		position = { 0.5, 0, 1, -130 },
+		position = { 0.5, 0, 1, -68 },
 		size = { 0.9, 0, 0, 36 },
 		autoSize = "Y",
 		max = { width = 440 },
 		typical = { 440, 36 },
+		compact = { position = { 0.5, 0, 1, -56 } },
 		note = "What's wrong with the tool in your hands (a chip for each thing), or 'Working on it... 3s' "
-			.. "while you work on one. The chips go onto a second line when they don't fit. Far enough up to "
-			.. "clear Roblox's hotbar.",
+			.. "while you work on one. The chips go onto a second line when they don't fit. Just above Roblox's "
+			.. "hotbar (60 px slots, 48 on a phone), and below the look-at prompt.",
 	},
 
 	-- Prompts ------------------------------------------------------------------------------------
@@ -388,50 +389,53 @@ return {
 		autoSize = "Y",
 		max = { width = 520 },
 		typical = { 450, 86 },
+		touch = { size = { 1, -300, 0, 0 }, scale = 0.85 },
 		note = "Coaches a new player through their first job, a step at a time, once the intro scene's over "
-			.. "and until the job's paid. As tall as its words. The toasts keep below it.",
+			.. "and until the job's paid. As tall as its words. The toasts keep below it. On a touch screen "
+			.. "it's narrower, to fit between the HUD's columns, and a little smaller, so it stays above the dot.",
 	},
 	CarryHint = {
 		label = "Carry hint",
 		group = "Prompts",
 		screen = "LawnUI",
 		anchor = { 0.5, 1 },
-		position = { 0.5, 0, 1, -90 },
+		position = { 0.5, 0, 1, -20 },
 		size = { 0.9, 0, 0, 0 },
 		autoSize = "Y",
 		min = { width = 240 },
 		max = { width = 460 },
-		touch = { size = { 1, -540, 0, 0 } },
+		touch = { size = { 1, -360, 0, 0 } },
 		typical = { 304, 78 },
-		note = "What to do with the tool you're carrying or driving at your business. On a touch screen it's "
-			.. "540 px narrower than the screen, to stay between the round buttons on the right and the HUD on "
-			.. "the left. As tall as its words.",
+		note = "What to do with the tool you're carrying or driving at your business, along the bottom under "
+			.. "the look-at prompt. On a touch screen it's 360 px narrower than the screen, to stay between "
+			.. "Roblox's move stick and jump button. As tall as its words.",
 	},
 	InteractPrompt = {
 		label = "Look-at prompt",
 		group = "Prompts",
 		screen = "Interact",
 		anchor = { 0.5, 0 },
-		position = { 0.5, 0, 0.5, 22 },
+		position = { 0.5, 0, 0.5, 42 },
 		size = { 0, 440, 0, 0 },
 		autoSize = "Y",
 		typical = { 440, 46 },
-		note = "Just under the dot while it's on something you can use: a 46 px pill for each thing you can "
-			.. "do (6 px apart), red with the reason when it won't work. With a keyboard there's a second pill "
-			.. "for R when there's a second thing to do. On a touch screen it only shows when the thing has a "
-			.. "name, since the button says what it does.",
+		note = "Under the dot, clear of the hold ring, while it's on something you can use: a 46 px pill "
+			.. "for each thing you can do (6 px apart), red with the reason when it won't work. With a "
+			.. "keyboard there's a second pill for R when there's a second thing to do. On a touch screen it "
+			.. "only shows when the thing has a name, since the button says what it does.",
 	},
 	DecorPrompt = {
 		label = "Decorating prompt",
 		group = "Prompts",
 		screen = "Decorating",
 		anchor = { 0.5, 0 },
-		position = { 0.5, 0, 0.5, 22 },
+		position = { 0.5, 0, 0.5, 42 },
 		size = { 0, 440, 0, 0 },
 		autoSize = "Y",
 		typical = { 440, 46 },
-		note = "Just under the dot while you're putting a decoration down: its name, red with why it can't "
-			.. "go there, and with a keyboard or gamepad a second pill with the keys (98 px tall then).",
+		note = "Under the dot, like the look-at prompt, while you're putting a decoration down: its name, "
+			.. "red with why it can't go there, and with a keyboard or gamepad a second pill with the keys "
+			.. "(98 px tall then).",
 	},
 
 	-- Phone buttons --------------------------------------------------------------------------------
@@ -443,10 +447,12 @@ return {
 		anchor = { 1, 0.5 },
 		position = { 1, -24, 0.55, 0 },
 		size = { 0, 110, 0, 110 },
+		touch = { anchor = { 1, 1 }, position = { 1, -75, 0.69, 0 }, scale = 0.7 },
 		device = "touch",
 		note = "The big round button that does what E does, while the dot's on something you can use, greyed "
 			.. "out when it won't work. Its glyph is inside and its words go under it (28 px more, 20 px past "
-			.. "each side).",
+			.. "each side). On a touch screen it's smaller and low on the right, above Roblox's jump button "
+			.. "and under the HUD's right column, clear of a phone's notch.",
 	},
 	InteractSecondButton = {
 		label = "Look-at second button",
@@ -455,9 +461,11 @@ return {
 		anchor = { 1, 1 },
 		position = { 1, -24, 0.55, -66 },
 		size = { 0, 110, 0, 44 },
+		touch = { anchor = { 1, 1 }, position = { 1, -170, 0.69, 0 }, scale = 0.6 },
 		device = "touch",
 		note = "What R does, when the thing you're looking at has a second thing to do (take one tool out of "
-			.. "the bucket, the building's machines, the mailbox). Just over the round button.",
+			.. "the bucket, the building's machines, the mailbox). Over the round button, or on a touch "
+			.. "screen just left of it, where the Snip button goes (they never show together).",
 	},
 	SnipButton = {
 		label = "Snip button",
@@ -466,10 +474,12 @@ return {
 		anchor = { 1, 0.5 },
 		position = { 1, -146, 0.55, 0 },
 		size = { 0, 96, 0, 96 },
+		touch = { anchor = { 1, 1 }, position = { 1, -170, 0.69, -18 }, scale = 0.7 },
 		device = "touch",
 		note = "While you hold grass shears in first person: tap to snip, hold to keep snipping. Its words go "
-			.. "under it (28 px more). Left of the look-at button, but on the game's own screen, so it sits a "
-			.. "little lower than that one does at the same 0.55.",
+			.. "under it (28 px more). Left of the look-at button, level with it. It's on the game's own "
+			.. "screen, which starts under Roblox's top bar, so its y is worked out to land where the look-at "
+			.. "button's 0.69 of the whole screen does.",
 	},
 	DecorButtons = {
 		label = "Decorating buttons",
@@ -478,10 +488,13 @@ return {
 		anchor = { 1, 0.5 },
 		position = { 1, -24, 0.4, 0 },
 		size = { 0, 110, 0, 240 },
+		touch = { anchor = { 1, 0 }, position = { 1, -59, 0, 150 }, scale = 0.6 },
+		compact = { anchor = { 1, 0 }, position = { 1, -59, 0, 127 }, scale = 0.55 },
 		list = { direction = "Vertical", padding = 8, align = "Left" },
 		device = "touch",
 		note = "While you're putting a decoration down, on the right where the look-at button usually is, "
-			.. "clear of the jump button.",
+			.. "under the HUD's right column and clear of the jump button. On a short screen they're smaller "
+			.. "to fit between the two.",
 	},
 	DecorPlaceButton = {
 		label = "Place button",
@@ -526,6 +539,7 @@ return {
 		position = { 0.5, 0, 0, 60 },
 		size = { 1, -32, 0, 200 },
 		max = { width = 420, height = 200 },
+		touch = { size = { 0, 320, 0, 200 } },
 		list = { direction = "Vertical", padding = 6, align = "Left" },
 		note = "Where the little messages stack, each fading after a few seconds: a notice is 40 px tall or "
 			.. "as tall as it wraps to, a new text 64 px. While the first-job coach shows, the stack moves down "
@@ -561,7 +575,9 @@ return {
 		anchor = { 0.5, 1 },
 		position = { 0.5, 0, 1, -110 },
 		size = { 0, 360, 0, 90 },
-		note = "When someone invites you to their crew, until you answer or it runs out: Join or No thanks.",
+		touch = { position = { 0.5, 0, 1, -20 }, scale = 0.8 },
+		note = "When someone invites you to their crew, until you answer or it runs out: Join or No thanks. "
+			.. "On a touch screen it's smaller and along the bottom, under the look-at prompt.",
 	},
 
 	-- Menus ----------------------------------------------------------------------------------------
@@ -654,7 +670,7 @@ return {
 		screen = "Dialogue",
 		anchor = { 0.5, 0 },
 		position = { 0.5, 0, 0, 6 },
-		size = { 0.5, 0, 0, 44 },
+		size = { 0.4, 0, 0, 44 },
 		note = "Where and when the scene is ('Maple Grove · First day of summer'), up top in the middle, "
 			.. "clear of Roblox's own buttons.",
 	},
