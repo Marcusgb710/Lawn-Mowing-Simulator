@@ -58,25 +58,6 @@ Services*. Without it the game still runs, it just doesn't save progress.
 
 **Testing crews:** Test tab → Clients and Servers → pick 2–4 players → Start.
 
-## Moving the HUD around (the HUD editor)
-
-Where every piece of the play screen goes is in `src/client/UiLayout.luau`. The HUD editor is a web
-page that draws those pieces on a phone, tablet or PC screen, in the game's own colours and fonts,
-over a drawing of the game, so they can be dragged into place. It shows the scenes they appear in
-(at the shop, mowing a job, a story scene...) and flags pieces that overlap, or sit under Roblox's
-own buttons or in a phone's notch.
-
-1. `python3 scripts/build-hud-editor.py` builds the page from `UiLayout.luau` into
-   `tools/hud-editor/hud-editor.html` (not committed). It's published as the "Lawn Mowing HUD
-   Editor" artifact; rebuild and republish it when pieces are added or taken out.
-2. In the editor, pick a screen and a scene, drag the pieces, and press **Save layout**. The layout
-   goes into the artifact's own database (`layouts/current`, with the save before it in
-   `layouts/previous`).
-3. Then `python3 scripts/apply-hud-layout.py <saved.json>`, with that document saved as JSON,
-   writes the placement values (anchor, position, size, touch, compact, order and list) into
-   `UiLayout.luau`. It leaves everything else alone, runs stylua, and checks every value reads back
-   as saved. Then the usual checks, a playtest on a phone and a PC in Studio, and a PR.
-
 ## Publishing
 
 Players (and phones) only get what's been published. To publish the latest `main`, no Studio
@@ -105,6 +86,25 @@ python3 scripts/publish.py             # the same, then publish; prints the new 
   Dink Studios with **universe-places** write access on this experience. Never commit it.
 - **Close Studio first.** While Studio has the place open, Roblox answers 409 "Server is busy".
   The script waits 45 s and tries again, up to 8 times.
+
+## Moving the HUD around (the HUD editor)
+
+Where every piece of the play screen goes is in `src/client/UiLayout.luau`. The HUD editor is a web
+page that draws those pieces on a phone, tablet or PC screen, in the game's own colours and fonts,
+over a drawing of the game, so they can be dragged into place. It shows the scenes they appear in
+(at the shop, mowing a job, a story scene...) and flags pieces that overlap, or sit under Roblox's
+own buttons or in a phone's notch.
+
+1. `python3 scripts/build-hud-editor.py` builds the page from `UiLayout.luau` into
+   `tools/hud-editor/hud-editor.html` (not committed). It's published as the "Lawn Mowing HUD
+   Editor" artifact; rebuild and republish it when pieces are added or taken out.
+2. In the editor, pick a screen and a scene, drag the pieces, and press **Save layout**. The layout
+   goes into the artifact's own database (`layouts/current`, with the save before it in
+   `layouts/previous`).
+3. Then `python3 scripts/apply-hud-layout.py <saved.json>`, with that document saved as JSON,
+   writes the placement values (anchor, position, size, touch, compact, order and list) into
+   `UiLayout.luau`. It leaves everything else alone, runs stylua, and checks every value reads back
+   as saved. Then the usual checks, a playtest on a phone and a PC in Studio, and a PR.
 
 ## How the game plays
 
