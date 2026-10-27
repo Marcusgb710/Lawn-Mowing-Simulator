@@ -223,9 +223,11 @@ Work through it in Play mode, and with 2–4 players (Test → Clients and Serve
 - **Saves in Studio** need Game Settings → Security → *Enable Studio Access to API Services*.
   Without it the game runs but doesn't save. `DataService` skips its retries in Studio so joining
   stays fast.
-- **First person keeps the look direction across teleports.** When the server moves a player (for
-  example back to the shop), it sets the `ArrivedFacing` attribute so the client can turn the
-  camera.
+- **First person keeps the look direction across teleports.** When the server moves a player (back
+  to the shop, out to a job's house, after a respawn), `setArrivedFacing` in `JobService` sets the
+  `ArrivedFacing` attribute and counts up `Arrivals`. `CameraController` then turns the camera once
+  it's back in first person; at join the title card does it. New code that moves a player should
+  do the same.
 - **Rojo drops `PrimaryPart`** on synced MeshPart models. Use pivots, or find parts by name.
 - **Walls and doors:** building walls collide, but doorways must stay open. `makeWalkable` in
   `WorldService` handles this; check walking in through every door after a building model changes.

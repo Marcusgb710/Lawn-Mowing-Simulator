@@ -153,6 +153,8 @@ One PR per phase, each stacked on the one before. Every phase still needs a Stud
         controls (`RIDE_RIGHT`, or add `GripLeft` / `GripRight` attachments to the models);
       - carried tools in view at the business;
       - the mouse freeing while menus are open, Left Alt, the keys, and the dot;
+      - facing the shop after a reset at the business, after a job and after joining or leaving
+        a crew, and facing the house on arriving at a job and after a reset there;
       - head bob and engine shake strength, and motion sickness on a phone.
 - [ ] **Immersion 1: walk-in buildings, truck at the door.** Waiting on the new building, truck
       and trailer models (instructions24). When they're in, check in Studio:

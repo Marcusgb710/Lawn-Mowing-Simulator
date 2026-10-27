@@ -428,12 +428,15 @@ breathing:Cancel()
 logStep("Started")
 
 -- The server turned them to face their shop, but a first-person camera keeps looking the way it
--- was (and turns the character with it), so point the camera the way the server said.
+-- was (and turns the character with it), so point the camera the way the server said. Once the
+-- card's gone, CameraController turns it after each move. FacedArrival says which move this was,
+-- so it doesn't turn the camera for this one again.
 local facing = player:GetAttribute("ArrivedFacing")
 local camera = workspace.CurrentCamera
 if typeof(facing) == "Vector3" and camera then
 	local from = camera.CFrame.Position
 	camera.CFrame = CFrame.lookAt(from, from + Vector3.new(facing.X, 0, facing.Z))
+	player:SetAttribute("FacedArrival", player:GetAttribute("Arrivals"))
 end
 cardUp = false
 for config, wasOn in hiddenChat do
