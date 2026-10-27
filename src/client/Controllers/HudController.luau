@@ -7,7 +7,7 @@
 --   * the condition of the tool in your hands, a glyph for each thing wrong ("Running low on
 --     fuel" by the fuel can), or what you're doing to one at the workbench;
 --   * the pay breakdown when a job's done, and the big moments: Level Up! and New Tool!
--- On a keyboard V switches camera motion on and off.
+-- On a keyboard V switches camera motion on and off. Where each piece goes is in UiLayout.luau.
 
 local Players = game:GetService("Players")
 local ProximityPromptService = game:GetService("ProximityPromptService")
@@ -32,22 +32,19 @@ local CameraController = require(script.Parent.CameraController)
 
 local player = Players.LocalPlayer
 
--- The menu buttons down the left, their glyphs, and the key that opens each one. Jobs and orders
--- are on the computer in your shop (see ComputerController).
+-- The menu buttons down the left, their glyphs, the key that opens each one, and its button's
+-- place in UiLayout.luau. Jobs and orders are on the computer in your shop (see
+-- ComputerController).
 local MENUS = {
-	{ name = "Truck", key = Enum.KeyCode.T },
-	{ name = "Guide", key = Enum.KeyCode.G },
-	{ name = "Crew", key = Enum.KeyCode.C },
+	{ name = "Truck", key = Enum.KeyCode.T, layout = "TruckButton" },
+	{ name = "Guide", key = Enum.KeyCode.G, layout = "GuideButton" },
+	{ name = "Crew", key = Enum.KeyCode.C, layout = "CrewButton" },
 }
 local MOTION_KEY = Enum.KeyCode.V
--- The columns down each side are full size on screens at least this tall (in pixels), and shrink
--- on shorter ones (phones held sideways), down to SIDE_MIN_SCALE, or further (to SIDE_TIGHT_SCALE)
+-- The columns down each side are full size on screens at least `fullHeight` tall (in pixels), and
+-- shrink on shorter ones (phones held sideways), down to `minScale`, or further (to `tightScale`)
 -- if that's what it takes to fit everything in a column on the screen.
-local SIDE_FULL_HEIGHT = 560
-local SIDE_MIN_SCALE = 0.7
-local SIDE_TIGHT_SCALE = 0.5
-local SIDE_WIDTH = 220
-local TRACKER_WIDTH = 280
+local COLUMNS = UI.Layout.__screen.scaling.Columns
 -- Room for the key badge at the left of a menu button.
 local KEY_ROOM = 46
 
@@ -189,14 +186,10 @@ end
 local function buildCondition()
 	conditionPanel = UI.sliced("Tooltip", {
 		Name = "ToolCondition",
-		AnchorPoint = Vector2.new(0.5, 1),
-		Position = UDim2.new(0.5, 0, 1, -130),
-		Size = UDim2.new(0.9, 0, 0, 36),
-		AutomaticSize = Enum.AutomaticSize.Y,
 		Visible = false,
 		Parent = UI.getScreen(),
 	}, { color = UI.Colors.Background, transparency = 0.25, radius = 8 })
-	UI.new("UISizeConstraint", { MaxSize = Vector2.new(440, math.huge), Parent = conditionPanel })
+	UI.place(conditionPanel, "ToolCondition")
 	UI.new("UIPadding", {
 		PaddingTop = UDim.new(0, 6),
 		PaddingBottom = UDim.new(0, 6),
@@ -225,13 +218,13 @@ local function fitColumn(column: Frame, scale: UIScale)
 		local height = UI.getScreen().AbsoluteSize.Y
 		if height <= 0 then
 			local camera = workspace.CurrentCamera
-			height = if camera then camera.ViewportSize.Y else SIDE_FULL_HEIGHT
+			height = if camera then camera.ViewportSize.Y else COLUMNS.fullHeight
 		end
-		local wanted = math.clamp(height / SIDE_FULL_HEIGHT, SIDE_MIN_SCALE, 1)
+		local wanted = math.clamp(height / COLUMNS.fullHeight, COLUMNS.minScale, 1)
 		-- The column's own height, before scaling.
 		local content = column.AbsoluteSize.Y / math.max(scale.Scale, 0.01)
 		if content > 0 then
-			wanted = math.min(wanted, math.max(SIDE_TIGHT_SCALE, (height - 24) / content))
+			wanted = math.min(wanted, math.max(COLUMNS.tightScale, (height - COLUMNS.margin) / content))
 		end
 		if math.abs(scale.Scale - wanted) > 0.005 then
 			scale.Scale = wanted
@@ -247,44 +240,21 @@ end
 local side: Frame
 local right: Frame
 local function buildColumns()
-	side = UI.new("Frame", {
-		Name = "Side",
-		Position = UDim2.fromOffset(12, 12),
-		Size = UDim2.fromOffset(SIDE_WIDTH, 0),
-		AutomaticSize = Enum.AutomaticSize.Y,
-		BackgroundTransparency = 1,
-		Parent = UI.getScreen(),
-	}, { UI.list(10) })
+	side = UI.new("Frame", { Name = "Side", BackgroundTransparency = 1, Parent = UI.getScreen() })
+	UI.place(side, "LeftColumn")
 	fitColumn(side, UI.new("UIScale", { Parent = side }))
 
 	-- Curb appeal and the job tracker down the right.
-	right = UI.new("Frame", {
-		Name = "Right",
-		AnchorPoint = Vector2.new(1, 0),
-		Position = UDim2.new(1, -12, 0, 12),
-		Size = UDim2.fromOffset(TRACKER_WIDTH, 0),
-		AutomaticSize = Enum.AutomaticSize.Y,
-		BackgroundTransparency = 1,
-		Parent = UI.getScreen(),
-	}, {
-		UI.new("UIListLayout", {
-			Padding = UDim.new(0, 10),
-			HorizontalAlignment = Enum.HorizontalAlignment.Right,
-			SortOrder = Enum.SortOrder.LayoutOrder,
-		}),
-	})
+	right = UI.new("Frame", { Name = "Right", BackgroundTransparency = 1, Parent = UI.getScreen() })
+	UI.place(right, "RightColumn")
 	local rightScale = UI.new("UIScale", { Parent = right })
 	-- It scales from its top right corner, so it stays in the corner.
 	fitColumn(right, rightScale)
 end
 
 local function buildStats()
-	local frame = hudPanel({
-		Name = "Stats",
-		Size = UDim2.fromOffset(SIDE_WIDTH, 104),
-		LayoutOrder = 1,
-		Parent = side,
-	})
+	local frame = hudPanel({ Name = "Stats", Parent = side })
+	UI.place(frame, "MoneyPanel")
 	UI.padding(10).Parent = frame
 	local moneyIcon = UI.icon(
 		"Money",
@@ -318,13 +288,8 @@ end
 
 -- Your crew's business's curb appeal (see HomeLawnService), which pays a bonus on jobs.
 local function buildCurbAppeal()
-	curbPanel = hudPanel({
-		Name = "CurbAppeal",
-		Size = UDim2.fromOffset(SIDE_WIDTH, 78),
-		LayoutOrder = 1,
-		Visible = false,
-		Parent = right,
-	})
+	curbPanel = hudPanel({ Name = "CurbAppeal", Visible = false, Parent = right })
+	UI.place(curbPanel, "CurbAppeal")
 	UI.padding(10).Parent = curbPanel
 	local icon = UI.icon(
 		"CurbAppeal",
@@ -354,7 +319,7 @@ local function updateCurbAppeal()
 	local owner = if party then party.leader else player
 	local value = owner and owner:GetAttribute("CurbAppeal")
 	-- On a short screen (a phone) the job tracker needs the room while a job's on.
-	local short = UI.getScreen().AbsoluteSize.Y < SIDE_FULL_HEIGHT
+	local short = UI.getScreen().AbsoluteSize.Y < COLUMNS.fullHeight
 	curbPanel.Visible = typeof(value) == "number" and not (short and tracker.Visible)
 	if typeof(value) == "number" then
 		curbValue.Text = `{value} / 100`
@@ -363,27 +328,20 @@ local function updateCurbAppeal()
 end
 
 local function buildMenuButtons()
-	local frame = UI.new("Frame", {
-		Name = "Menu",
-		Size = UDim2.fromOffset(150, 0),
-		AutomaticSize = Enum.AutomaticSize.Y,
-		BackgroundTransparency = 1,
-		LayoutOrder = 2,
-		Parent = side,
-	}, { UI.list(8) })
+	local frame = UI.new("Frame", { Name = "Menu", BackgroundTransparency = 1, Parent = side })
+	UI.place(frame, "MenuButtons")
 
 	local keyboard = UserInputService.KeyboardEnabled
-	for index, menu in MENUS do
+	for _, menu in MENUS do
 		local button = UI.button(menu.name, function()
 			UI.toggle(menu.name)
 		end, {
 			Style = "Menu",
 			Icon = menu.name,
-			Size = UDim2.fromOffset(150, 44),
 			TextXAlignment = Enum.TextXAlignment.Left,
-			LayoutOrder = index,
 			Parent = frame,
 		})
+		UI.place(button, menu.layout)
 		-- Room for the key badge on the left (the glyph goes after it).
 		local iconRoom = if button:FindFirstChild("Icon") then 26 else 0
 		local left = if keyboard then KEY_ROOM else 10
@@ -407,15 +365,14 @@ local function buildMenuButtons()
 	end
 	if keyboard then
 		-- The mouse is locked to the middle of the screen in first person.
-		UI.label("Hold Alt for the mouse", {
-			Size = UDim2.fromOffset(150, 16),
+		local hint = UI.label("Hold Alt for the mouse", {
 			TextSize = 13,
 			FontFace = UI.Fonts.Medium,
 			TextColor3 = UI.Colors.SubText,
 			TextStrokeTransparency = 0.6,
-			LayoutOrder = #MENUS + 1,
 			Parent = frame,
 		})
+		UI.place(hint, "MouseHint")
 	end
 end
 
@@ -423,12 +380,10 @@ end
 local function buildGoal()
 	goalNote = UI.sliced("StickyNote", {
 		Name = "Goal",
-		Size = UDim2.fromOffset(SIDE_WIDTH, 0),
-		AutomaticSize = Enum.AutomaticSize.Y,
-		LayoutOrder = 3,
 		Visible = false,
 		Parent = side,
 	}, { color = UI.Colors.Grandma, radius = 6 })
+	UI.place(goalNote, "GrandmaGoal")
 	UI.new("UIPadding", {
 		PaddingTop = UDim.new(0, 10),
 		PaddingBottom = UDim.new(0, 12),
@@ -519,12 +474,10 @@ end
 local function buildTracker()
 	tracker = UI.sliced("GoalTracker", {
 		Name = "JobTracker",
-		Size = UDim2.fromOffset(TRACKER_WIDTH, 0),
-		AutomaticSize = Enum.AutomaticSize.Y,
-		LayoutOrder = 2,
 		Visible = false,
 		Parent = right,
 	}, { color = UI.Colors.Background, transparency = 0.2, radius = 10 })
+	UI.place(tracker, "JobTracker")
 	UI.new("UIPadding", {
 		PaddingTop = UDim.new(0, 12),
 		PaddingBottom = UDim.new(0, 14),
@@ -700,20 +653,19 @@ local function showPay(job)
 	local lines, total = PayBreakdown.lines(result, weights)
 	payPanel = UI.sliced("Panel", {
 		Name = "PayBreakdown",
-		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.fromScale(0.5, 0.5),
-		Size = UDim2.fromOffset(500, 0),
-		AutomaticSize = Enum.AutomaticSize.Y,
 		ZIndex = 5,
 		Parent = UI.getScreen(),
 	}, { color = UI.Colors.Background, radius = 14 })
-	-- Scaled down to fit a short screen.
+	UI.place(payPanel, "PayBreakdown")
+	-- Scaled down to fit a short screen, keeping `margin` clear (UiLayout.luau).
 	local scale = UI.new("UIScale", { Parent = payPanel })
+	local margin = UI.Layout.__screen.scaling.PayBreakdown.margin
+	local width = payPanel.Size.X.Offset
 	local function fit()
 		local screen = UI.getScreen().AbsoluteSize
 		local height = payPanel.AbsoluteSize.Y / math.max(scale.Scale, 0.01)
 		if height > 0 and screen.Y > 0 then
-			scale.Scale = math.min(1, (screen.Y - 24) / height, (screen.X - 24) / 500)
+			scale.Scale = math.min(1, (screen.Y - margin) / height, (screen.X - margin) / width)
 		end
 	end
 	payPanel:GetPropertyChangedSignal("AbsoluteSize"):Connect(fit)

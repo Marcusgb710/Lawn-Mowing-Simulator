@@ -8,7 +8,9 @@
 -- too, and UI.luau's tables have a glyph for every tool tier, condition part and supply action.
 -- Then the maths: setting text in the bitmap fonts (src/shared/GuiLayout.luau), the hold ring and
 -- the striped fills, and the pay breakdown's lines adding up to what a job paid
--- (src/shared/PayBreakdown.luau).
+-- (src/shared/PayBreakdown.luau). And src/client/UiLayout.luau, where everything on the play
+-- screen goes (the layout editor rewrites it): every entry is the right shape, every element the
+-- client places by name is in it, and every one in it is placed somewhere.
 -- Given the art's GUI folder (or with art-source/GUI in this repo), it also reads the manifest
 -- and the .fnt files again and checks GuiArt matches them exactly. Exits with an error if
 -- anything's off.
@@ -20,6 +22,7 @@ local serde = require("@lune/serde")
 local GuiArt = require("../src/shared/Config/GuiArt")
 local GuiLayout = require("../src/shared/GuiLayout")
 local PayBreakdown = require("../src/shared/PayBreakdown")
+local UiLayout = require("../src/client/UiLayout")
 
 local failures = 0
 local function check(ok: boolean, message: string)
@@ -205,6 +208,132 @@ end
 local actionGlyphs = tableKeys("ACTION_GLYPHS")
 for action in each('action%s*=%s*"(%w+)"') do
 	check(actionGlyphs[action] == true, `UI.luau's ACTION_GLYPHS has no glyph for {action}`)
+end
+
+-- UiLayout fits together -------------------------------------------------------------------------
+
+-- What an entry can have, and what each one is (see UiLayout.luau's header).
+local LAYOUT_FIELDS = {
+	label = "string",
+	group = "string",
+	screen = "string",
+	parent = "string",
+	order = "number",
+	list = "table",
+	anchor = "table",
+	position = "table",
+	size = "table",
+	autoSize = "string",
+	min = "table",
+	max = "table",
+	typical = "table",
+	touch = "table",
+	compact = "table",
+	device = "string",
+	fixed = "boolean",
+	note = "string",
+}
+-- Whether `value` is a list of `count` numbers.
+local function isNumbers(value: any, count: number): boolean
+	if typeof(value) ~= "table" or #value ~= count then
+		return false
+	end
+	for _, number in value do
+		if typeof(number) ~= "number" then
+			return false
+		end
+	end
+	return true
+end
+-- An anchor, a position and a size, any of them left out.
+local function checkPlaces(where: string, places: { [string]: any })
+	for key, place in places do
+		if key == "anchor" then
+			check(isNumbers(place, 2), `{where}: its anchor isn't two numbers`)
+		elseif key == "position" or key == "size" then
+			check(isNumbers(place, 4), `{where}: its {key} isn't a UDim2's four numbers`)
+		else
+			check(false, `{where} has {key}, which isn't an anchor, position or size`)
+		end
+	end
+end
+local screens = UiLayout.__screen.screens
+for id, entry in UiLayout do
+	if id == "__screen" then
+		continue
+	end
+	local where = `UiLayout's {id}`
+	for field, value in entry do
+		local kind = LAYOUT_FIELDS[field]
+		check(kind ~= nil, `{where} has {field}, which the layout editor doesn't know`)
+		check(kind == nil or typeof(value) == kind, `{where}: its {field} isn't a {kind}`)
+	end
+	for _, field in { "label", "group", "note" } do
+		check(entry[field] ~= nil and entry[field] ~= "", `{where} has no {field}`)
+	end
+	check(entry.size ~= nil, `{where} has no size`)
+	checkPlaces(where, { anchor = entry.anchor, position = entry.position, size = entry.size })
+	checkPlaces(`{where}'s touch places`, entry.touch or {})
+	checkPlaces(`{where}'s compact places`, entry.compact or {})
+	local parent = entry.parent and UiLayout[entry.parent]
+	if entry.parent then
+		check(parent ~= nil, `{where} is in {entry.parent}, which isn't in UiLayout`)
+		check(entry.screen == nil, `{where} is in {entry.parent}, so it has no screen of its own`)
+		if parent and parent.list then
+			check(entry.order ~= nil, `{where} has no order in {entry.parent}'s list`)
+			check(entry.position == nil, `{where} has a position, but {entry.parent}'s list places it`)
+		end
+	else
+		check(screens[entry.screen or ""] ~= nil, `{where} isn't on one of __screen.screens`)
+	end
+	check(entry.autoSize == nil or table.find({ "X", "Y", "XY" }, entry.autoSize) ~= nil, `{where}: odd autoSize`)
+	check(entry.device == nil or entry.device == "touch" or entry.device == "keyboard", `{where}: odd device`)
+	check(entry.typical == nil or isNumbers(entry.typical, 2), `{where}: typical isn't a width and a height`)
+	for _, side in { "min", "max" } do
+		for key, value in entry[side] or {} do
+			check(
+				(key == "width" or key == "height") and typeof(value) == "number",
+				`{where}: its {side} has {key}, not a width or height in pixels`
+			)
+		end
+	end
+	local list = entry.list
+	if list then
+		check(list.direction == "Vertical" or list.direction == "Horizontal", `{where}: odd list direction`)
+		check(typeof(list.padding) == "number", `{where}'s list has no padding`)
+		check(table.find({ "Left", "Center", "Right" }, list.align) ~= nil, `{where}: odd list align`)
+	end
+end
+for name, rule in UiLayout.__screen.scaling do
+	for _, id in rule.elements do
+		check(UiLayout[id] ~= nil, `__screen.scaling.{name} scales {id}, which isn't in UiLayout`)
+	end
+end
+
+-- Every element the client places by name (UI.place, UI.layout) is in UiLayout, and every one in
+-- it is named somewhere in the client, so none are left over.
+local named: { [string]: boolean } = {}
+local function scanPlaces(folder: string)
+	for _, name in fs.readDir(folder) do
+		local path = `{folder}/{name}`
+		if fs.isDir(path) then
+			scanPlaces(path)
+		elseif string.match(name, "%.luau$") and name ~= "UiLayout.luau" then
+			local source = fs.readFile(path)
+			for _, pattern in { 'UI%.place%([^,]+,%s*"([%w_]+)"', 'UI%.layout%(%s*"([%w_]+)"' } do
+				for id in string.gmatch(source, pattern) do
+					check(UiLayout[id] ~= nil, `{path} places {id}, which isn't in UiLayout`)
+				end
+			end
+			for word in string.gmatch(source, '"([%w_]+)"') do
+				named[word] = true
+			end
+		end
+	end
+end
+scanPlaces("src/client")
+for id in UiLayout do
+	check(id == "__screen" or named[id] == true, `UiLayout's {id} isn't placed anywhere in src/client`)
 end
 
 -- Setting text in the bitmap fonts ---------------------------------------------------------------

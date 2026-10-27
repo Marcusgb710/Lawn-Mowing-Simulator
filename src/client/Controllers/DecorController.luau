@@ -366,7 +366,7 @@ local function setPlacing(id: string?)
 	clearGhost()
 	placingId = id
 	prompt.frame.Visible = id ~= nil
-	buttons.Visible = id ~= nil and UserInputService.TouchEnabled
+	buttons.Visible = id ~= nil and UI.isTouch()
 	if returnButton then
 		returnButton.Visible = player:GetAttribute("PlacingOwn") == true
 	end
@@ -421,44 +421,35 @@ function DecorController:Start()
 		ResetOnSpawn = false,
 		Parent = player:WaitForChild("PlayerGui"),
 	})
-	prompt = UI.prompt({
-		AnchorPoint = Vector2.new(0.5, 0),
-		Position = UDim2.new(0.5, 0, 0.5, 22),
-		Visible = false,
-		Parent = screen,
-	})
-	-- Phone buttons, on the right where the look-at button usually is, clear of the jump button.
-	buttons = UI.new("Frame", {
-		AnchorPoint = Vector2.new(1, 0.5),
-		Position = UDim2.new(1, -24, 0.4, 0),
-		Size = UDim2.fromOffset(110, 240),
-		BackgroundTransparency = 1,
-		Visible = false,
-		Parent = screen,
-	}, { UI.list(8) })
+	prompt = UI.prompt({ Visible = false, Parent = screen })
+	UI.place(prompt.frame, "DecorPrompt")
+	-- Phone buttons, on the right where the look-at button usually is, clear of the jump button:
+	-- each one's words, what it does, its glyph and its place in UiLayout.luau.
+	buttons = UI.new("Frame", { BackgroundTransparency = 1, Visible = false, Parent = screen })
+	UI.place(buttons, "DecorButtons")
 	for index, entry in
 		{
-			{ "Place", place, "Place" },
+			{ "Place", place, "Place", "DecorPlaceButton" },
 			{
 				"Turn",
 				function()
 					turnBy(TURN_STEP)
 				end,
 				"Turn",
+				"DecorTurnButton",
 			},
-			{ "Put back", putBack, "PutBack" },
-			{ "Send back", sendBack, "Back" },
+			{ "Put back", putBack, "PutBack", "DecorPutBackButton" },
+			{ "Send back", sendBack, "Back", "DecorSendBackButton" },
 		}
 	do
 		local made = UI.button(entry[1], entry[2], {
-			LayoutOrder = index,
-			Size = UDim2.fromOffset(110, if index == 1 then 80 else 44),
 			TextSize = if index == 1 then 22 else 16,
 			Style = if index == 1 then "Primary" else "Neutral",
 			Icon = entry[3],
 			IconSize = if index == 1 then 26 else 18,
 			Parent = buttons,
 		})
+		UI.place(made, entry[4])
 		if index == 4 then
 			returnButton = made
 		end

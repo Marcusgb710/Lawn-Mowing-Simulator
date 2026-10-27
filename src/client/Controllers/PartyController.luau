@@ -107,12 +107,10 @@ local function showInvite(from: Player, timeout: number)
 	end
 	local popup = UI.new("Frame", {
 		Name = "Invite",
-		AnchorPoint = Vector2.new(0.5, 1),
-		Position = UDim2.new(0.5, 0, 1, -110),
-		Size = UDim2.fromOffset(360, 90),
 		BackgroundColor3 = UI.Colors.Background,
 		Parent = UI.getScreen(),
 	}, { UI.corner(10), UI.padding(10) })
+	UI.place(popup, "CrewInvite")
 	invitePopups[from] = popup
 	popup.Destroying:Connect(function()
 		if invitePopups[from] == popup then

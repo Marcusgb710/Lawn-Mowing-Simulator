@@ -28,9 +28,11 @@ local DialogueController = require(script.Parent.DialogueController)
 
 local player = Players.LocalPlayer
 
--- The results screen is laid out at this size and scaled to fit (never past `MAX_SCALE`).
-local LAYOUT = Vector2.new(1100, 640)
-local MAX_SCALE = 1.15
+-- The results screen is laid out at its size in UiLayout.luau and scaled to fit, keeping a margin
+-- clear and never past `maxScale` (UiLayout's __screen.scaling.ContestResults).
+local RESULTS_SIZE = UI.layout("ContestResults").size :: UDim2
+local LAYOUT = Vector2.new(RESULTS_SIZE.X.Offset, RESULTS_SIZE.Y.Offset)
+local FIT = UI.Layout.__screen.scaling.ContestResults
 -- How fast the judges walk (studs a second), how far behind the first the second one follows,
 -- and how much they bob.
 local WALK_SPEED = 3.2
@@ -487,7 +489,7 @@ end
 local function fit()
 	local size = screen.AbsoluteSize
 	if size.X > 0 and size.Y > 0 then
-		scale.Scale = math.min(size.X / (LAYOUT.X + 32), size.Y / (LAYOUT.Y + 24), MAX_SCALE)
+		scale.Scale = math.min(size.X / (LAYOUT.X + FIT.marginX), size.Y / (LAYOUT.Y + FIT.marginY), FIT.maxScale)
 	end
 end
 
@@ -722,12 +724,10 @@ local function build()
 	})
 	panel = UI.sliced("Panel", {
 		Name = "Results",
-		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.fromScale(0.5, 0.5),
-		Size = UDim2.fromOffset(LAYOUT.X, LAYOUT.Y),
 		ClipsDescendants = true,
 		Parent = screen,
 	}, { color = UI.Colors.Background, radius = 24 }) :: Frame
+	UI.place(panel, "ContestResults")
 	UI.new("UIPadding", { PaddingTop = UDim.new(0, 24), Parent = panel })
 	scale = UI.new("UIScale", { Parent = panel })
 	screen:GetPropertyChangedSignal("AbsoluteSize"):Connect(fit)

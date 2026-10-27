@@ -15,7 +15,8 @@ local ClientState = require(script.Parent.Parent.ClientState)
 local UI = require(script.Parent.Parent.UI)
 
 local TOGGLE_KEY = Enum.KeyCode.K
-local WIDTH = 240
+-- The panel's width (UiLayout.luau), which its buttons are laid out for.
+local WIDTH = (UI.layout("StudioTestPanel").size :: UDim2).X.Offset
 
 local StudioTestController = {}
 
@@ -80,26 +81,21 @@ local function build()
 	})
 
 	-- A small hint in the corner, so it's clear the panel's there.
-	UI.label("Studio test panel: K", {
-		AnchorPoint = Vector2.new(1, 1),
-		Position = UDim2.new(1, -10, 1, -8),
-		Size = UDim2.fromOffset(170, 16),
+	local hint = UI.label("Studio test panel: K", {
 		TextSize = 13,
 		TextColor3 = UI.Colors.SubText,
 		TextTransparency = 0.3,
 		TextXAlignment = Enum.TextXAlignment.Right,
 		Parent = screen,
 	})
+	UI.place(hint, "StudioTestHint")
 
 	panel = UI.new("Frame", {
-		AnchorPoint = Vector2.new(1, 0.5),
-		Position = UDim2.new(1, -12, 0.5, 0),
-		Size = UDim2.fromOffset(WIDTH, 0),
-		AutomaticSize = Enum.AutomaticSize.Y,
 		BackgroundColor3 = UI.Colors.Panel,
 		Visible = false,
 		Parent = screen,
 	}, { UI.corner(10), UI.padding(10), UI.list(6) })
+	UI.place(panel, "StudioTestPanel")
 
 	UI.label("Studio test", {
 		Size = UDim2.new(1, 0, 0, 22),

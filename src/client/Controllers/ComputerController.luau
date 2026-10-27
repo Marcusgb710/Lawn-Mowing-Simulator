@@ -397,14 +397,12 @@ local function build()
 	})
 	-- The monitor: a dark bezel around the screen.
 	local bezel = UI.new("Frame", {
-		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.fromScale(0.5, 0.5),
-		Size = UDim2.fromScale(0.98, 0.96),
 		BackgroundColor3 = Color3.fromRGB(22, 22, 26),
 		-- Taps on the monitor stay on it, instead of reaching the thumbstick and walking you off.
 		Active = true,
 		Parent = screen,
-	}, { UI.corner(14), UI.new("UISizeConstraint", { MaxSize = Vector2.new(1000, 640) }) })
+	}, { UI.corner(14) })
+	UI.place(bezel, "ComputerMonitor")
 	local display = UI.new("Frame", {
 		Position = UDim2.fromOffset(6, 6),
 		Size = UDim2.new(1, -12, 1, -12),
