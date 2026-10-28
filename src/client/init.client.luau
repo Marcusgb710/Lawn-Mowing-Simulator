@@ -29,6 +29,7 @@ local CONTROLLERS = {
 	"DecorController",
 	"GrassController",
 	"ToolFxController",
+	"EngineAudioController",
 	"ArmsController",
 	"SnipController",
 	"PartyController",
