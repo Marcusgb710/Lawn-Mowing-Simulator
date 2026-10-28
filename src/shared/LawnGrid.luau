@@ -169,4 +169,10 @@ function LawnGrid.cutCount(cells: string): number
 	end)
 end
 
+-- How many of a task's `total` targets must be done to finish it: `threshold` (0-1) of the ones
+-- that aren't `optional`, rounded up so a share is never finished early.
+function LawnGrid.needed(total: number, optional: number, threshold: number): number
+	return math.ceil((total - optional) * threshold)
+end
+
 return LawnGrid

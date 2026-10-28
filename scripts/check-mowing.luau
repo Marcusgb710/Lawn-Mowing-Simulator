@@ -387,6 +387,12 @@ check(not table.find(HomeLawn.decode("10", 32, 16), true), "tile flags without t
 check(not table.find(HomeLawn.decode("10", 32, 16, 6), true), "rows that don't divide into tiles are all not done")
 check(HomeLawn.encode(spread) == string.rep("1", 16) .. string.rep("0", 16), "what was spread saves back per cell")
 
+-- How many cells finish a task ---------------------------------------------------------------------
+
+check(LawnGrid.needed(1000, 0, 0.99) == 990 and LawnGrid.needed(1000, 100, 0.99) == 891, "needed rounds up")
+check(LawnGrid.needed(30, 0, 0.95) == 29, "a share of a count that isn't whole needs the next whole one")
+check(LawnGrid.needed(0, 0, 0.99) == 0 and LawnGrid.needed(40, 40, 0.99) == 0, "no cells that count, none needed")
+
 if failures > 0 then
 	print(`{failures} check(s) failed`)
 	process.exit(1)

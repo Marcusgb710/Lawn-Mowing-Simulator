@@ -366,6 +366,29 @@ function GrassController.lawnFolderAt(worldX: number, worldZ: number): Folder?
 	return nil
 end
 
+-- The Grass folder of the job site's lawn you're at: the nearest one drawn as a surface to your
+-- character, if any. Job sites are far apart, so that's the one you're working. The simple
+-- renderer's lawns don't count (there's nothing to light up on them).
+function GrassController.jobLawnFolder(): Folder?
+	local jobSites = workspace:FindFirstChild("JobSites")
+	local character = Players.LocalPlayer.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	if not (jobSites and root and root:IsA("BasePart")) then
+		return nil
+	end
+	local nearest: Folder? = nil
+	local nearestDistance = math.huge
+	for folder, lawn in lawns do
+		if lawn.mode == "Surface" and folder:IsDescendantOf(jobSites) then
+			local distance = distanceToLawn(lawn, root.Position)
+			if distance < nearestDistance then
+				nearest, nearestDistance = folder, distance
+			end
+		end
+	end
+	return nearest
+end
+
 -- Your own mower paints its strip every frame instead of waiting for the server's swaths, which
 -- come ten times a second and a little late, so the cut shows under the deck and not in chunks
 -- behind it. The server stays the judge: the swaths it sends confirm what we painted, and a cell it

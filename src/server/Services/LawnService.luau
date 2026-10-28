@@ -2671,9 +2671,13 @@ function Lawn:CheckHazards(position: Vector3, radius: number)
 	return hits
 end
 
--- The number of targets that must be done for a task to count as finished.
+-- The number of targets that must be done for a task to count as finished. Mowing asks for a bigger
+-- share than the other tasks (GameConfig.MowCompletionThreshold).
 local function needed(task): number
-	return math.ceil((task.total - task.optional) * GameConfig.CompletionThreshold)
+	local threshold = if task.type.target == "Grass"
+		then GameConfig.MowCompletionThreshold
+		else GameConfig.CompletionThreshold
+	return LawnGrid.needed(task.total, task.optional, threshold)
 end
 
 function Lawn:IsComplete(): boolean

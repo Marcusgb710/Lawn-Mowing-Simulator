@@ -12,6 +12,7 @@ Sounds.Ids = {
 	Bucket = "", -- a hand tool dropped in the tool bucket
 	Snip = "", -- a snip of grass shears
 	BladeHit = "", -- a mower's blade hitting a rock or a stick hidden in the grass
+	LawnDone = "", -- the chime when a lawn is mowed enough to count as done
 }
 
 -- Plays `name` from `parent` (a part or attachment), if it has an id.
