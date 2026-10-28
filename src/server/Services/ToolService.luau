@@ -87,6 +87,12 @@ local lastDeck = setmetatable({}, { __mode = "k" })
 -- Sweeping a sliver that short would turn the deck to face wherever the jitter pointed, and flip
 -- its orientation every tick.
 local STANDING_DECK = 0.05
+-- A mower's deck can't have gone further in one tick than the mower can walk: its walk speed times
+-- the time since the last tick, SWEEP_SLACK times over, plus SWEEP_GRACE studs. (A lag spike is
+-- still bounded: the time since the last tick grows with it.) A deck that is further than that
+-- from where it was has jumped: a client owns where its character is, and could teleport it.
+local SWEEP_SLACK = 3
+local SWEEP_GRACE = 2
 
 -- Snips of hand shears land where your aim crosses this high above your feet (about the top of
 -- tall grass, which is what you see when you aim at it).
@@ -581,7 +587,8 @@ local function applyWork(
 end
 
 -- A mower's deck, `halfWidth` studs either side, sweeping from one spot to another this tick (world
--- studs). Says whether it cut any grass, and what junk hidden in it the mower chewed up.
+-- studs). Says whether it cut any grass, what junk hidden in it the mower chewed up, and whether
+-- junk stopped it short.
 local function sweep(
 	player: Player,
 	atJob: boolean,
@@ -592,7 +599,7 @@ local function sweep(
 	halfWidth: number,
 	toolId: string,
 	options
-): (boolean, { any }?)
+): (boolean, { any }?, boolean)
 	if atJob then
 		return JobService:Sweep(player, fromX, fromZ, toX, toZ, halfWidth, toolId, options)
 	end
@@ -747,6 +754,27 @@ local function snip(player: Player, direction: unknown)
 	end
 end
 
+-- Your walk speed while you hold a tool: soft tires slow you down, and so does a mower cutting
+-- through grass. Only moves once it's off by enough to matter.
+local function applyWalkSpeed(tool: Tool, humanoid: Humanoid, item, condition, cutting: boolean)
+	if not item.walkSpeed or tool.Parent ~= humanoid.Parent then
+		return
+	end
+	local walkSpeed = item.walkSpeed
+		* Maintenance.tireFactor(condition)
+		* (if cutting then GameConfig.CuttingSlowdown else 1)
+	if math.abs(humanoid.WalkSpeed - walkSpeed) > 0.1 then
+		humanoid.WalkSpeed = walkSpeed
+	end
+end
+
+-- The tool can't work right now (broken down, stalled, or off the job): its effects go off, and so
+-- does the slowdown from cutting, since it isn't.
+local function haltWork(tool: Tool, humanoid: Humanoid, item, condition)
+	stopWork(tool)
+	applyWalkSpeed(tool, humanoid, item, condition, false)
+end
+
 local function workTick(elapsed: number)
 	for tool in running do
 		local character = tool.Parent
@@ -758,18 +786,18 @@ local function workTick(elapsed: number)
 			lastDeck[tool] = nil
 			continue
 		end
-		-- Off the job, tools only work on your own lawn: driving a ride-on or carrying a mower
-		-- around the business does no work and no wear.
-		local atJob = JobService:IsAtJobSite(player)
-		if not (atJob or HomeLawnService:CanWork(player, tool:GetAttribute("ItemId"))) then
-			stopWork(tool)
-			continue
-		end
-
 		local itemId = tool:GetAttribute("ItemId")
 		local item = Tools.get(itemId)
 		local data = DataService:Get(player)
 		local condition = data and data.condition[itemId] or {}
+		-- Off the job, tools only work on your own lawn: driving a ride-on or carrying a mower
+		-- around the business does no work and no wear.
+		local atJob = JobService:IsAtJobSite(player)
+		if not (atJob or HomeLawnService:CanWork(player, itemId)) then
+			haltWork(tool, humanoid, item, condition)
+			continue
+		end
+
 		local moving = humanoid.MoveDirection.Magnitude > 0.1
 
 		-- Out of fuel, a flat, no line or a wrecked engine: it just won't go. Say so once.
@@ -781,31 +809,23 @@ local function workTick(elapsed: number)
 			end
 		end
 		if blocker then
-			stopWork(tool)
+			haltWork(tool, humanoid, item, condition)
 			continue
 		end
 		-- It hit something hidden in the grass: it catches again in a moment.
 		if isStalled(tool) then
-			stopWork(tool)
+			haltWork(tool, humanoid, item, condition)
 			continue
 		end
 		if item.motorized == false and not moving then
-			stopWork(tool)
+			haltWork(tool, humanoid, item, condition)
 			continue
 		end
 
 		-- Soft tires slow you down, and so does cutting through grass; a dull blade cuts slower and
 		-- rougher.
 		local speed, quality = Maintenance.effects(condition)
-		if item.walkSpeed and tool.Parent == character then
-			local cutting = tool:GetAttribute("Cutting") == true
-			local walkSpeed = item.walkSpeed
-				* Maintenance.tireFactor(condition)
-				* (if cutting then GameConfig.CuttingSlowdown else 1)
-			if math.abs(humanoid.WalkSpeed - walkSpeed) > 0.1 then
-				humanoid.WalkSpeed = walkSpeed
-			end
-		end
+		applyWalkSpeed(tool, humanoid, item, condition, tool:GetAttribute("Cutting") == true)
 
 		-- While it tows, a ride-on's own deck is up: the attachment behind does the work.
 		local towedId = tool:GetAttribute("Towing")
@@ -825,15 +845,24 @@ local function workTick(elapsed: number)
 			if item.category == "Mower" then
 				-- The deck sweeps from where it was last tick to where it is now, so nothing between
 				-- the two is skipped however fast it goes. One that has barely moved stands where it
-				-- was (and keeps standing until it has really gone somewhere).
+				-- was (and keeps standing until it has really gone somewhere). One that has jumped
+				-- further than the mower can walk starts afresh instead of cutting across the gap.
 				local previous = lastDeck[tool]
-				local from, to = previous or front, front
-				if previous and Vector2.new(front.X - previous.X, front.Z - previous.Z).Magnitude < STANDING_DECK then
-					to = previous
-				else
+				local step = if previous then Vector2.new(front.X - previous.X, front.Z - previous.Z).Magnitude else 0
+				local farthest = (item.walkSpeed or GameConfig.DefaultWalkSpeed) * elapsed * SWEEP_SLACK + SWEEP_GRACE
+				if step > farthest then
+					previous = nil
+				end
+				local from = previous or front
+				local to = if previous and step < STANDING_DECK then previous else front
+				local stopped
+				cut, hits, stopped = sweep(player, atJob, from.X, from.Z, to.X, to.Z, item.radius, itemId, options)
+				-- Junk stopped the sweep short: the deck stays where it began, so the next tick sweeps
+				-- from there and is stopped by the same junk, instead of starting past it and leaving
+				-- the cells in between uncut.
+				if not previous or (step >= STANDING_DECK and not stopped) then
 					lastDeck[tool] = front
 				end
-				cut, hits = sweep(player, atJob, from.X, from.Z, to.X, to.Z, item.radius, itemId, options)
 			else
 				cut, hits = applyWork(player, atJob, front, item.radius, itemId, item.power * elapsed * speed, options)
 			end
