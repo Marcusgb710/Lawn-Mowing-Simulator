@@ -251,6 +251,72 @@ local odd: Swath.Segment = {
 check(sameSegment(Swath.unpack(Swath.pack(odd)), odd), "a sweep round-trips with its numbers untouched and no radius")
 check(sameSegment(Swath.unpack(Swath.pack(snip)), snip), "a snip round-trips with its radius")
 
+-- The grass images ------------------------------------------------------------------------------
+
+local GrassImages = require("../src/shared/GrassImages")
+
+check(GrassImages.pixelsPerStud(36, 28) == 4, "a small lawn gets 4 px per stud")
+check(GrassImages.pixelsPerStud(112, 88) == 4, "the biggest lawn still fits at 4")
+check(GrassImages.pixelsPerStud(300, 40) == 2, "pixelsPerStud caps at 1024")
+check(GrassImages.pixelsPerStud(40, 300) == 2, "the long side can be either one")
+check(GrassImages.pixelsPerStud(256, 256) == 4, "a lawn exactly 1024 px across at 4 still gets 4")
+check(GrassImages.pixelsPerStud(256.25, 40) == 2, "a quarter stud more needs a 1025th pixel, so it halves")
+check(GrassImages.pixelsPerStud(512, 10) == 2 and GrassImages.pixelsPerStud(513, 10) == 1, "it halves again past 512")
+check(GrassImages.pixelsPerStud(5000, 40) == 1, "a huge lawn never drops below 1 px per stud")
+
+check(GrassImages.shellCount(false) == 6 and GrassImages.shellCount(true) == 4, "shell counts")
+local plan = GrassImages.shellPlan(6, 1.5)
+check(#plan == 6 and plan[6].height == 1.5 and plan[1].density == 1 and plan[6].density < 0.4, "shell plan")
+check(plan[1].height == 0.25 and plan[3].height == 0.75, "shells rise in even steps")
+local fading = math.abs(plan[6].density - 0.35) < 1e-9
+for shell = 2, #plan do
+	fading = fading and plan[shell].density < plan[shell - 1].density
+end
+check(fading, "density falls shell by shell down to 0.35")
+local touchPlan = GrassImages.shellPlan(GrassImages.shellCount(true), 1.5)
+check(#touchPlan == 4 and touchPlan[4].height == 1.5 and math.abs(touchPlan[4].density - 0.35) < 1e-9, "touch plan")
+local lone = GrassImages.shellPlan(1, 1.5)
+check(#lone == 1 and lone[1].height == 1.5 and lone[1].density == 1, "a single shell is full height and full density")
+check(#GrassImages.shellPlan(0, 1.5) == 0, "no shells, no plan")
+
+local dots = GrassImages.bladeDots(40, 40, 1, 7)
+check(#dots > 40 and #dots == #GrassImages.bladeDots(40, 40, 1, 7), "dots are plentiful and deterministic")
+check(#GrassImages.bladeDots(50, 30, 1, 3) == 56, "0.6 dots per 4 x 4 px at full density")
+check(#GrassImages.bladeDots(50, 30, 0.5, 3) == 28, "half the density, half the dots")
+check(#GrassImages.bladeDots(40, 40, 0, 7) == 0, "no density, no dots")
+local again = GrassImages.bladeDots(40, 40, 1, 7)
+local identical = #again == #dots
+for index, dot in dots do
+	local other = again[index]
+	identical = identical
+		and other ~= nil
+		and dot.x == other.x
+		and dot.y == other.y
+		and dot.r == other.r
+		and dot.tone == other.tone
+end
+check(identical, "the same arguments give the very same dots")
+local inRange = true
+local quadrants = {}
+for _, dot in GrassImages.bladeDots(50, 30, 1, 3) do
+	inRange = inRange and dot.x >= 0 and dot.x < 50 and dot.y >= 0 and dot.y < 30
+	inRange = inRange and dot.r >= 1 and dot.r <= 2 and dot.tone >= 0 and dot.tone <= 1
+	quadrants[(if dot.x < 25 then 0 else 1) + (if dot.y < 15 then 0 else 2)] = true
+end
+check(inRange, "every dot sits inside the image, 1 to 2 px across, with a tone from 0 to 1")
+check(quadrants[0] and quadrants[1] and quadrants[2] and quadrants[3], "dots reach every quarter of the image")
+local nearby = GrassImages.bladeDots(40, 40, 1, 8)
+check(math.abs(nearby[1].x - dots[1].x) > 1 or math.abs(nearby[1].y - dots[1].y) > 1, "neighbouring seeds start apart")
+
+local px, py = GrassImages.worldToPixel(100, 200, 4, 110, 205)
+check(px == 40 and py == 20, "world to pixel")
+local originX, originY = GrassImages.worldToPixel(100, 200, 4, 100, 200)
+check(originX == 0 and originY == 0, "the lawn's origin is the image's top-left pixel")
+local fractX, fractY = GrassImages.worldToPixel(0, 0, 2, 0.3, 0.75)
+check(fractX == 0.6 and fractY == 1.5, "pixels are not rounded")
+local beforeX, beforeY = GrassImages.worldToPixel(100, 200, 4, 99, 198)
+check(beforeX == -4 and beforeY == -8, "a point before the origin is a negative pixel, not clamped")
+
 if failures > 0 then
 	print(`{failures} check(s) failed`)
 	process.exit(1)
