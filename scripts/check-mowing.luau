@@ -63,6 +63,153 @@ check(#LawnGrid.cellsInCircle(10, 10, -5, -5, 1) == 0, "a snip off the lawn cuts
 
 check(LawnGrid.mowableCount("0011--2") == 5 and LawnGrid.cutCount("0011--2") == 3, "counts")
 
+-- The swath log ---------------------------------------------------------------------------------
+
+local Swath = require("../src/shared/Swath")
+
+check(Swath.shade(0, 1) == "Light" and Swath.shade(0, -1) == "Dark" and Swath.shade(1, 0) == "Flat", "shade by travel")
+check(Swath.shade(0.7, 0.71) == "Light", "just past 45 degrees away is still light")
+-- A direction `degreesFromZ` off +Z, `scale` long (negative scale points it along -Z instead). The
+-- stripe turns from light or dark to flat 60 degrees off, which the checks below sit either side of.
+local function heading(degreesFromZ: number, scale: number): (number, number)
+	return scale * math.sin(math.rad(degreesFromZ)), scale * math.cos(math.rad(degreesFromZ))
+end
+check(Swath.shade(heading(59, 1)) == "Light", "59 degrees off +Z is light")
+check(Swath.shade(heading(61, 1)) == "Flat", "61 degrees off +Z is flat")
+check(Swath.shade(heading(59, -1)) == "Dark", "59 degrees off -Z is dark")
+check(Swath.shade(heading(61, -1)) == "Flat", "61 degrees off -Z is flat")
+check(Swath.shade(0, 40) == "Light" and Swath.shade(0, 0.001) == "Light", "only the way it goes counts, not how far")
+check(Swath.shade(0, 0) == "Flat", "no direction is flat")
+
+local colorsOk = Swath.RAGGED == "Ragged"
+for _, name in { "Light", "Flat", "Dark", Swath.RAGGED } do
+	local color = Swath.Colors[name]
+	colorsOk = colorsOk and color ~= nil and #color == 3
+	for _, channel in color or {} do
+		colorsOk = colorsOk and channel >= 0 and channel <= 255
+	end
+end
+check(colorsOk, "every shade, and ragged, has an RGB colour from 0 to 255")
+
+local function seg(fromX: number, fromZ: number, toX: number, toZ: number): Swath.Segment
+	return {
+		fromX = fromX,
+		fromZ = fromZ,
+		toX = toX,
+		toZ = toZ,
+		halfWidth = 2.5,
+		shade = Swath.shade(toX - fromX, toZ - fromZ),
+		ragged = false,
+	}
+end
+
+local log: { Swath.Segment } = {}
+check(Swath.append(log, seg(0, 0, 0, 2)) == false and #log == 1, "first segment is added")
+check(
+	Swath.append(log, seg(0, 2, 0, 4)) == true and #log == 1 and log[1].toZ == 4,
+	"collinear same-shade segments merge"
+)
+check(log[1].fromX == 0 and log[1].fromZ == 0 and log[1].toX == 0, "a merge only moves the end")
+check(Swath.append(log, seg(0, 4, 0, 2)) == false and #log == 2, "a turn starts a new segment")
+check(
+	Swath.append(
+		log,
+		{ fromX = 1, fromZ = 1, toX = 1, toZ = 1, halfWidth = 0, radius = 1, shade = "Flat", ragged = false }
+	)
+			== false
+		and #log == 3,
+	"snips never merge"
+)
+check(Swath.append(log, seg(5, 5, 5, 5)) == false and #log == 3, "no segment for an empty sweep")
+
+-- What does and doesn't carry on from the sweep before it, each against a fresh log.
+local function continuesOn(first: Swath.Segment, second: Swath.Segment): boolean
+	local pass: { Swath.Segment } = {}
+	Swath.append(pass, first)
+	return Swath.append(pass, second) == true and #pass == 1
+end
+local function startsAnew(first: Swath.Segment, second: Swath.Segment): boolean
+	local pass: { Swath.Segment } = {}
+	Swath.append(pass, first)
+	return Swath.append(pass, second) == false and #pass == 2
+end
+-- A 2 stud sweep from where seg(0, 0, 0, 2) ends, bent `degrees` off its heading.
+local function bent(degrees: number): Swath.Segment
+	local toX, toZ = heading(degrees, 2)
+	return seg(0, 2, toX, 2 + toZ)
+end
+check(
+	continuesOn(seg(0, 0, 0, 2), bent(1)) and continuesOn(seg(0, 0, 0, 2), bent(-1)),
+	"a bend of 1 degree is the same pass"
+)
+check(
+	startsAnew(seg(0, 0, 0, 2), bent(3)) and startsAnew(seg(0, 0, 0, 2), bent(-3)),
+	"a bend of 3 degrees is a new segment"
+)
+check(continuesOn(seg(0, 0, 0, 2), seg(0.2, 2, 0.2, 4)), "a restart within a quarter stud still merges")
+check(startsAnew(seg(0, 0, 0, 2), seg(0.3, 2, 0.3, 4)), "a restart over a quarter stud to the side is a new segment")
+check(startsAnew(seg(0, 0, 0, 2), seg(0, 2.3, 0, 4.3)), "a restart over a quarter stud on is a new segment")
+local narrower = seg(0, 2, 0, 4)
+narrower.halfWidth = 1
+check(startsAnew(seg(0, 0, 0, 2), narrower), "a different deck width is a new segment")
+local torn = seg(0, 2, 0, 4)
+torn.ragged = true
+check(startsAnew(seg(0, 0, 0, 2), torn), "ragged cutting doesn't merge into clean cutting")
+local otherShade = seg(0, 2, 0, 4)
+otherShade.shade = "Flat"
+check(startsAnew(seg(0, 0, 0, 2), otherShade), "a different shade is a new segment")
+local snip: Swath.Segment =
+	{ fromX = 1, fromZ = 1, toX = 1, toZ = 1, halfWidth = 0, radius = 1, shade = "Light", ragged = false }
+check(startsAnew(snip, snip), "two snips on one spot are two snips")
+-- A snip that lines up with a sweep in every other way still stands alone, whichever comes first.
+local lined: Swath.Segment =
+	{ fromX = 0, fromZ = 2, toX = 0, toZ = 4, halfWidth = 2.5, radius = 1, shade = "Light", ragged = false }
+check(startsAnew(seg(0, 0, 0, 2), lined), "a snip never merges into a sweep")
+check(startsAnew(lined, seg(0, 4, 0, 6)), "a sweep never merges into a snip")
+
+local drive: { Swath.Segment } = {}
+for step = 0, 9 do
+	Swath.append(drive, seg(0, step, 0, step + 1))
+end
+check(#drive == 1 and drive[1].toZ == 10, "a long straight run, tick by tick, stays one segment")
+
+local reused = seg(0, 0, 0, 2)
+local copies: { Swath.Segment } = {}
+Swath.append(copies, reused)
+reused.toZ = 99
+check(copies[1].toZ == 2, "the log keeps its own copy of a segment")
+
+local packed = Swath.pack(log[1])
+check(Swath.unpack(packed).toZ == 4 and Swath.unpack(packed).shade == "Light", "pack round-trips")
+local expected = { 0, 0, 0, 4, 2.5, 0, "Light", false }
+local layoutOk = #packed == #expected
+for position, value in expected do
+	layoutOk = layoutOk and packed[position] == value
+end
+check(layoutOk, "a segment packs flat: from, to, half width, radius (0 for none), shade, ragged")
+
+local function sameSegment(a: Swath.Segment, b: Swath.Segment): boolean
+	return a.fromX == b.fromX
+		and a.fromZ == b.fromZ
+		and a.toX == b.toX
+		and a.toZ == b.toZ
+		and a.halfWidth == b.halfWidth
+		and a.radius == b.radius
+		and a.shade == b.shade
+		and a.ragged == b.ragged
+end
+local odd: Swath.Segment = {
+	fromX = 0.1234567,
+	fromZ = 8.7654321,
+	toX = -3.3333333,
+	toZ = 12.5,
+	halfWidth = 2.5,
+	shade = "Dark",
+	ragged = true,
+}
+check(sameSegment(Swath.unpack(Swath.pack(odd)), odd), "a sweep round-trips with its numbers untouched and no radius")
+check(sameSegment(Swath.unpack(Swath.pack(snip)), snip), "a snip round-trips with its radius")
+
 if failures > 0 then
 	print(`{failures} check(s) failed`)
 	process.exit(1)
