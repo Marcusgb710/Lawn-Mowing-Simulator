@@ -2,11 +2,11 @@
 -- crossfades into a lower, labouring one while it's cutting thick grass (the server's "Cutting"
 -- attribute on the tool, see ToolService) and pitches down a little with the load. It also plays
 -- a pull-start the first time it runs after it's equipped. A reel mower has no engine: it whirrs
--- while its pusher walks.
+-- while it's working, which the server only allows while its pusher walks.
 --
 -- Every player's equipped mower is covered, so each client hears everyone else's. The sounds sit on
--- the tool's Handle and live only while the tool is working. Their ids are in Shared/Sounds, where
--- an empty id stays silent.
+-- the tool's base part and live only while the tool is working: they fade in and out over a
+-- moment. Their ids are in Shared/Sounds, where an empty id stays silent.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -21,14 +21,11 @@ local Tools = require(Shared.Config.Tools)
 local IDLE_VOLUME = 0.5
 local LOAD_VOLUME = 0.6
 local WHIRR_VOLUME = 0.4
--- Seconds for a full crossfade, and for the pitch to settle on a new speed.
+-- Seconds for a full crossfade, for the loops to fade in or out, and for the pitch to settle.
 local FADE_TIME = 0.15
 -- Pitch while cutting, normally 1, and how much it rises while the mower is moving.
 local LOAD_SPEED = 0.85
 local MOVING_NUDGE = 0.05
--- Fewest studs a second that count as moving, for characters whose MoveDirection isn't known here.
-local MOVING_SPEED = 1
-local ROLL_OFF = 60
 
 local EngineAudioController = {}
 
@@ -38,8 +35,10 @@ type State = {
 	pulled: boolean,
 	-- "Motor", "Reel" or "Other"; nil until the tool's ItemId has arrived.
 	kind: string?,
-	-- 0-1: how far the engine has crossfaded to its load note (a reel mower: to its whirr).
+	-- 0-1: how far the engine has crossfaded from its idle note to its load note.
 	mix: number,
+	-- 0-1: how far the loops have faded in. It falls to 0 once the tool stops working.
+	gain: number,
 	speed: number,
 	-- Looping Sounds, by their name in Sounds.Ids.
 	sounds: { [string]: Sound },
@@ -63,49 +62,47 @@ local function kindOf(tool: Tool): string?
 	return "Other"
 end
 
+-- The part everything in a tool is welded to: "Handle", or "RideRoot" on riding mowers (see ToolService).
 local function baseOf(tool: Tool): BasePart?
-	local handle = tool:FindFirstChild("Handle")
-	if handle and handle:IsA("BasePart") then
-		return handle
+	local base = tool:FindFirstChild("Handle") or tool:FindFirstChild("RideRoot")
+	if base and base:IsA("BasePart") then
+		return base
 	end
 	return tool:FindFirstChildWhichIsA("BasePart", true)
 end
 
--- The same test the head bob uses. MoveDirection may not be known for other players' characters,
--- so how fast they're really going counts too.
+-- The same test the head bob uses (see CameraController).
 local function isMoving(character: Model): boolean
 	local humanoid = character:FindFirstChildOfClass("Humanoid")
-	if humanoid and humanoid.MoveDirection.Magnitude > 0.1 and humanoid.FloorMaterial ~= Enum.Material.Air then
-		return true
-	end
-	local root = character:FindFirstChild("HumanoidRootPart")
-	if root and root:IsA("BasePart") then
-		local velocity = root.AssemblyLinearVelocity
-		return Vector3.new(velocity.X, 0, velocity.Z).Magnitude > MOVING_SPEED
-	end
-	return false
+	return humanoid ~= nil and humanoid.MoveDirection.Magnitude > 0.1 and humanoid.FloorMaterial ~= Enum.Material.Air
 end
 
--- The looping Sound called `name`, started silent the first time it's asked for. Nil if it has no id.
-local function loopOf(state: State, name: string, base: BasePart): Sound?
+-- Makes sure the loop called `name` is playing on `base`, silent to start with. A loop on a base
+-- that's since been replaced (streamed out and back in) died with it, so it's started again.
+local function ensureLoop(state: State, name: string, base: BasePart)
 	local known = state.sounds[name]
+	if known and known.Parent == base then
+		return
+	end
 	if known then
-		return known
+		known:Destroy()
+		state.sounds[name] = nil
 	end
-	local id = Sounds.Ids[name]
-	if not id or id == "" then
-		return nil
+	local sound = Sounds.loop(base, name)
+	if sound then
+		sound:Play()
+		state.sounds[name] = sound
 	end
-	local sound = Instance.new("Sound")
-	sound.Name = name
-	sound.SoundId = id
-	sound.Looped = true
-	sound.Volume = 0
-	sound.RollOffMaxDistance = ROLL_OFF
-	sound.Parent = base
-	sound:Play()
-	state.sounds[name] = sound
-	return sound
+end
+
+-- How loud the loop `name` is right now, before it fades in or out.
+local function volumeOf(name: string, mix: number): number
+	if name == "EngineIdle" then
+		return IDLE_VOLUME * (1 - mix)
+	elseif name == "EngineLoad" then
+		return LOAD_VOLUME * mix
+	end
+	return WHIRR_VOLUME
 end
 
 local function silence(state: State)
@@ -125,51 +122,43 @@ local function updateTool(tool: Tool, character: Model, deltaTime: number)
 		if not working then
 			return
 		end
-		state = { seen = frameNumber, pulled = false, kind = nil, mix = 0, speed = 1, sounds = {} }
+		state = { seen = frameNumber, pulled = false, kind = nil, mix = 0, gain = 0, speed = 1, sounds = {} }
 		states[tool] = state
 	end
 	state.seen = frameNumber
-	if not working then
+	if working and not state.kind then
+		state.kind = kindOf(tool)
+	end
+
+	-- A working mower we can hear has a base to sound from. Anything else fades out what it had.
+	local base = if working and (state.kind == "Motor" or state.kind == "Reel") then baseOf(tool) else nil
+	local fade = deltaTime / FADE_TIME
+	state.gain = math.clamp(state.gain + (if base then fade else -fade), 0, 1)
+	if not base and state.gain == 0 then
 		silence(state)
 		return
 	end
 
-	state.kind = state.kind or kindOf(tool)
-	local base = baseOf(tool)
-	if not base or (state.kind ~= "Motor" and state.kind ~= "Reel") then
-		return
-	end
-	local moving = isMoving(character)
-	local fade = deltaTime / FADE_TIME
-
-	if state.kind == "Reel" then
-		local wanted = if moving then 1 else 0
-		state.mix += math.clamp(wanted - state.mix, -fade, fade)
-		local whirr = loopOf(state, "ReelWhirr", base)
-		if whirr then
-			whirr.Volume = WHIRR_VOLUME * state.mix
+	if base then
+		if state.kind == "Reel" then
+			ensureLoop(state, "ReelWhirr", base)
+		else
+			-- The pull-start is for the first time it runs after it's equipped, not each time it starts up.
+			if not state.pulled then
+				state.pulled = true
+				Sounds.play(base, "PullStart")
+			end
+			local cutting = tool:GetAttribute("Cutting") == true
+			state.mix += math.clamp((if cutting then 1 else 0) - state.mix, -fade, fade)
+			local speed = (if cutting then LOAD_SPEED else 1) + (if isMoving(character) then MOVING_NUDGE else 0)
+			state.speed += (speed - state.speed) * math.min(fade, 1)
+			ensureLoop(state, "EngineIdle", base)
+			ensureLoop(state, "EngineLoad", base)
 		end
-		return
 	end
-
-	-- The pull-start is for the first time it runs after it's equipped, not each time it starts up.
-	if not state.pulled then
-		state.pulled = true
-		Sounds.play(base, "PullStart")
-	end
-	local cutting = tool:GetAttribute("Cutting") == true
-	state.mix += math.clamp((if cutting then 1 else 0) - state.mix, -fade, fade)
-	local speed = (if cutting then LOAD_SPEED else 1) + (if moving then MOVING_NUDGE else 0)
-	state.speed += (speed - state.speed) * math.min(fade, 1)
-	local idle = loopOf(state, "EngineIdle", base)
-	if idle then
-		idle.Volume = IDLE_VOLUME * (1 - state.mix)
-		idle.PlaybackSpeed = state.speed
-	end
-	local load = loopOf(state, "EngineLoad", base)
-	if load then
-		load.Volume = LOAD_VOLUME * state.mix
-		load.PlaybackSpeed = state.speed
+	for name, sound in state.sounds do
+		sound.Volume = volumeOf(name, state.mix) * state.gain
+		sound.PlaybackSpeed = state.speed
 	end
 end
 
@@ -183,8 +172,8 @@ function EngineAudioController:Start()
 				updateTool(tool, character, deltaTime)
 			end
 		end
-		-- A tool nobody holds any more (put away, or its player gone) goes quiet, and is forgotten so
-		-- that its next equip starts clean.
+		-- A tool nobody holds any more (put away, or its player gone) goes quiet at once, with its
+		-- sounds going away with it, and is forgotten so that its next equip starts clean.
 		for tool, state in states do
 			if state.seen ~= frameNumber then
 				silence(state)
