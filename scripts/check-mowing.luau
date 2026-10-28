@@ -392,9 +392,14 @@ check(HomeLawn.encode(spread) == string.rep("1", 16) .. string.rep("0", 16), "wh
 check(LawnGrid.needed(1000, 0, 0.99) == 990 and LawnGrid.needed(1000, 100, 0.99) == 891, "needed rounds up")
 check(LawnGrid.needed(30, 0, 0.95) == 29, "a share of a count that isn't whole needs the next whole one")
 check(LawnGrid.needed(0, 0, 0.99) == 0 and LawnGrid.needed(40, 40, 0.99) == 0, "no cells that count, none needed")
--- The HUD's mowing percent is the cells done over the ones the job requires (LawnService's
--- GetProgress: total less optional), so it's at the threshold or more exactly when `needed` are done,
--- on a lawn with no optional cells and on ones where a tenth, over a quarter or half of them are.
+-- The HUD's mowing percent is the required cells cut (LawnService's `requiredDone`: cutting an
+-- optional cell beside flowers or trees doesn't add to it) over the ones the job requires (total less
+-- optional), so it's at the threshold or more exactly when `needed` of them are cut, on a lawn with
+-- no optional cells and on ones where a tenth, over a quarter or half of them are. Which cells are
+-- required lives in LawnService, which Lune can't load, so the counting itself isn't checked here.
+-- A 6 x 5 tile lawn with one flower patch (464 cells, 128 of them optional) needs 333 of its 336.
+check(LawnGrid.needed(464, 128, 0.99) == 333, "a lawn with a flower patch needs 333 of its 336 required cells")
+check(332 / 336 < 0.99 and 333 / 336 >= 0.99, "and 333 is where its percent gets to 99%")
 local agree = true
 for total = 1, 400 do
 	for _, optional in { 0, total // 10, total * 28 // 100, total // 2 } do

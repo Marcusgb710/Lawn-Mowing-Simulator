@@ -859,11 +859,13 @@ end
 
 -- Whether the "Show what I missed" button shows: while the job tracker does, from the time a
 -- mowing to-do (the one with a percent, of what the job requires) is MissedSpotsFrom done until it
--- counts as finished. A lawn drawn the simple way has nothing to light up, so it never shows for one.
+-- counts as finished, and only while there's a lawn to light up: one on a job site, near you and
+-- drawn as a surface (the simple renderer has nothing to tint). Where you are and what's drawn
+-- change without a job update, so the 0.25 s loop in Start checks again.
 local function updateMissedButton()
 	local job = ClientState.job
 	local show = false
-	if job and job.tasks and tracker.Visible and GrassController.isSurface() then
+	if job and job.tasks and tracker.Visible and GrassController.jobLawnFolder() then
 		for _, info in job.tasks do
 			if info.percent and info.percent >= GameConfig.MissedSpotsFrom and info.done < info.needed then
 				show = true
@@ -1166,6 +1168,7 @@ function HudController:Start()
 			updateTimer()
 			updateCondition()
 			updateCurbAppeal()
+			updateMissedButton()
 		end
 	end)
 

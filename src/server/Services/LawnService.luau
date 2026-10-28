@@ -2066,6 +2066,11 @@ function LawnService:Build(template, origin: Vector3, address: string, condition
 			targets = {},
 			total = 0,
 			done = 0,
+			-- Mowing is judged by this, not `done`: how many of the cut grass cells were required
+			-- (not optional), since cutting the grass beside flowers and trees is allowed but not
+			-- asked for. Only grass cells are counted (see countsAsRequired); every other task is
+			-- judged by `done`.
+			requiredDone = 0,
 			optional = 0,
 		}
 		table.insert(lawn.tasks, task)
@@ -2381,6 +2386,12 @@ function Lawn:_mowingFit(toolId: string, result): TaskTypes.Fit?
 	return fit
 end
 
+-- Whether finishing or regrowing `target` changes the task's `requiredDone`: a grass cell that
+-- isn't one of the optional ones beside flowers and trees.
+local function countsAsRequired(target): boolean
+	return target.kind == "Grass" and not target.optional
+end
+
 -- Cuts a grass cell's target all at once and credits `result` the way _work credits a finished
 -- target.
 function Lawn:_cutGrass(target, fit, ragged: boolean, result)
@@ -2389,6 +2400,9 @@ function Lawn:_cutGrass(target, fit, ragged: boolean, result)
 	target.raggedCut = ragged
 	VISUALS.Grass(target, 1)
 	target.task.done += 1
+	if countsAsRequired(target) then
+		target.task.requiredDone += 1
+	end
 	result.changed = true
 	result.work += applied
 	result.fitWork += applied * fit.pay
@@ -2680,9 +2694,15 @@ local function needed(task): number
 	return LawnGrid.needed(task.total, task.optional, threshold)
 end
 
+-- How many of a task's targets count towards `needed`: mowing's required cells (cutting the optional
+-- ones beside flowers and trees earns nothing), and the targets done for every other task.
+local function doneTowardsNeeded(task): number
+	return if task.type.target == "Grass" then task.requiredDone else task.done
+end
+
 function Lawn:IsComplete(): boolean
 	for _, task in self.tasks do
-		if task.done < needed(task) then
+		if doneTowardsNeeded(task) < needed(task) then
 			return false
 		end
 	end
@@ -2691,8 +2711,9 @@ end
 
 -- Progress for the HUD: { { task = "MowSmallLawn", label = "Mow the lawn", done = 10, needed = 29 }, ... }
 -- Mowing also has `percent`, 0-1: how much of what the job requires is cut. The grass beside flowers
--- and trees is optional (it doesn't count against you if it's left), so it isn't part of what's
--- required. That puts it at MowCompletionThreshold or more exactly when the task is complete.
+-- and trees is optional (it doesn't count against you if it's left, and cutting it doesn't count
+-- towards the job), so it isn't part of what's required. That puts it at MowCompletionThreshold or
+-- more exactly when the task is complete.
 function Lawn:GetProgress()
 	local progress = {}
 	for _, task in self.tasks do
@@ -2700,12 +2721,11 @@ function Lawn:GetProgress()
 			local entry = {
 				task = task.id,
 				label = task.type.label,
-				done = math.min(task.done, needed(task)),
+				done = math.min(doneTowardsNeeded(task), needed(task)),
 				needed = needed(task),
 			}
 			if task.type.target == "Grass" then
-				-- Cells cut beside flowers and trees still count as cut, so it's capped at 1.
-				entry.percent = math.min(1, task.done / math.max(1, task.total - task.optional))
+				entry.percent = math.min(1, task.requiredDone / math.max(1, task.total - task.optional))
 			end
 			table.insert(progress, entry)
 		end
@@ -2732,6 +2752,9 @@ function Lawn:Finish(target)
 	end
 	target.work = 0
 	target.task.done += 1
+	if countsAsRequired(target) then
+		target.task.requiredDone += 1
+	end
 	local debris = target.kind == "Grass" and self:_debrisOn(target.index)
 	if debris then
 		self:_removeDebris(debris)
@@ -2749,6 +2772,9 @@ function Lawn:Regrow(target): boolean
 	end
 	target.work = target.maxWork
 	target.task.done -= 1
+	if countsAsRequired(target) then
+		target.task.requiredDone -= 1
+	end
 	if target.kind == "Grass" then
 		self:_setGrass(target.index, LawnGrid.TALL)
 		-- The chance is for a tile's worth of grass, and a cell is only part of one.

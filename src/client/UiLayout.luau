@@ -399,10 +399,10 @@ return {
 		note = "Under the job tracker, once the mowing's percent (how much of what the job requires is cut, "
 			.. "not counting the optional grass beside flowers and trees) reaches GameConfig.MissedSpotsFrom "
 			.. "(90%) and until the mowing counts as done: lights up all the grass that's left, red, for "
-			.. "GameConfig.MissedSpotsSeconds. "
-			.. "With a keyboard its key (M) is on it, as on the menu buttons. Taller on a touch screen, to be "
-			.. "easy to tap. It's hidden whenever the job tracker is, and a lawn drawn the simple way has "
-			.. "nothing to light up, so it doesn't show for one. Nothing takes its spot.",
+			.. "GameConfig.MissedSpotsSeconds. With a keyboard its key (M) is on it, as on the menu buttons. "
+			.. "Taller on a touch screen, to be easy to tap. It's hidden whenever the job tracker is, and "
+			.. "unless a job site's lawn near you is drawn as a surface (the simple renderer has nothing to "
+			.. "light up, and a lawn far off isn't drawn). Nothing takes its spot.",
 	},
 	ToolCondition = {
 		label = "Tool condition",
