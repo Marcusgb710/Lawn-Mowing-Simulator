@@ -9,9 +9,11 @@
 -- This needs nothing from Roblox, so it loads in Lune too: colours are plain { r, g, b } tables
 -- for the client to turn into Color3.
 
--- A sweep runs from (fromX, fromZ) to (toX, toZ) with the deck halfWidth studs either side. A snip
--- sets radius instead (and halfWidth is 0), and is a round patch at its from spot. shade is one of
--- "Light", "Dark" and "Flat" (see Swath.shade), and ragged is a dull blade's torn cut.
+-- A sweep runs from (fromX, fromZ) to (toX, toZ), where the deck's center was at each end, with the
+-- deck halfWidth studs either side; what it cut reaches LawnGrid.DeckReach further at each end. One
+-- that went nowhere is a mower standing still, which cut the deck's own rectangle, lying along +Z.
+-- A snip sets radius instead (and halfWidth is 0), and is a round patch at its from spot. shade is
+-- one of "Light", "Dark" and "Flat" (see Swath.shade), and ragged is a dull blade's torn cut.
 export type Segment = {
 	fromX: number,
 	fromZ: number,
@@ -88,13 +90,10 @@ local function carriesOn(last: Segment, segment: Segment): boolean
 end
 
 -- Adds a segment to the end of the log, or stretches the last one when this carries straight on
--- from it. Returns whether it stretched the last one. A sweep that went nowhere is dropped, and a
--- snip always stands alone. The log keeps its own copy, so the caller may reuse the table.
+-- from it. Returns whether it stretched the last one. A snip, and a sweep that went nowhere (a
+-- mower standing still cuts once, under its deck), always stand alone: they never stretch the last
+-- one and nothing stretches them. The log keeps its own copy, so the caller may reuse the table.
 function Swath.append(log: { Segment }, segment: Segment): boolean
-	if segment.radius == nil and segment.fromX == segment.toX and segment.fromZ == segment.toZ then
-		return false
-	end
-
 	local last = log[#log]
 	if last ~= nil and carriesOn(last, segment) then
 		last.toX, last.toZ = segment.toX, segment.toZ

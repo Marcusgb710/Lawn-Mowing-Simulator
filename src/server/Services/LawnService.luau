@@ -2392,14 +2392,10 @@ function Lawn:_cutGrass(target, fit, ragged: boolean, result)
 end
 
 -- Adds what a sweep or snip cut to the swath log and sends it to everyone drawing the lawn, saying
--- whether it stretched the log's last segment. A sweep that went nowhere isn't logged (see
--- Swath.append), so it isn't sent either: a client asking for the log later draws the same.
+-- whether it stretched the log's last segment.
 function Lawn:_logSwath(segment: Swath.Segment)
-	local logged = #self.swaths
 	local merged = Swath.append(self.swaths, segment)
-	if merged or #self.swaths > logged then
-		self:FireNearby("Swath", Swath.pack(segment), merged)
-	end
+	self:FireNearby("Swath", Swath.pack(segment), merged)
 end
 
 -- Fires a grass event (`eventName`, with the lawn's Grass folder first) to every player close
@@ -2424,9 +2420,9 @@ end
 
 -- A mower's deck, `halfWidth` studs either side, moving in a straight line this tick from
 -- (fromX, fromZ) to (toX, toZ), in world studs. Every tall cell it passes over is cut, if the tool
--- fits the mowing. Junk in the grass: a motorized mower (`strikes`) chews it up and cuts on;
--- anything else stops at it, so the junk's cell and everything past it are left (`debris` says
--- what stopped it).
+-- fits the mowing; standing still, the cells under the deck. Junk in the grass: a motorized mower
+-- (`strikes`) chews it up and cuts on; anything else stops at it, so the junk's cell and everything
+-- past it are left (`debris` says what stopped it).
 function Lawn:Sweep(
 	fromX: number,
 	fromZ: number,
@@ -2484,10 +2480,22 @@ function Lawn:Sweep(
 		return result
 	end
 
-	-- The swath ends where the cutting did: half a cell short of the junk that stopped it.
+	-- The swath ends where the cutting did. A deck that barely moved stood still (see
+	-- LawnGrid.heading), so its swath goes nowhere. One that junk stopped ends short of it: clients
+	-- paint a swath DeckReach past its end, so it ends that much short of half a cell before the junk.
 	local endX, endZ = toX, toZ
+	if length == 0 then
+		endX, endZ = fromX, fromZ
+	end
 	if stopAt < math.huge then
-		local reached = math.clamp(stopAt - 0.5, 0, length)
+		local reached = stopAt - 0.5 - LawnGrid.DeckReach
+		if reached <= 0 then
+			-- Too close to where the deck started to paint any of it without painting over the junk
+			-- (always so for a deck standing still). What did get cut goes undrawn, though the
+			-- ledger a client asks for has it.
+			return result
+		end
+		reached = math.min(reached, length)
 		endX, endZ = fromX + alongX * reached, fromZ + alongZ * reached
 	end
 	self:_logSwath({
@@ -2496,7 +2504,7 @@ function Lawn:Sweep(
 		toX = endX,
 		toZ = endZ,
 		halfWidth = halfWidth,
-		shade = if ragged then Swath.RAGGED else Swath.shade(toX - fromX, toZ - fromZ),
+		shade = if ragged then Swath.RAGGED else Swath.shade(endX - fromX, endZ - fromZ),
 		ragged = ragged,
 	})
 	return result

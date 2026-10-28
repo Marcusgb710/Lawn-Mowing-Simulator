@@ -46,6 +46,9 @@ local GameConfig = {
 	MowCompletionThreshold = 0.99,
 	-- How far in front of the player a mower's deck sits, in studs.
 	DeckOffset = 2,
+	-- A snip of the shears clears a circle of grass this many studs round (their own snip.radius
+	-- still covers everything else they cut).
+	SnipRadius = 1,
 	-- Players this close to a lawn (studs) hear about every cut on it: clients draw lawns within
 	-- 200 studs, plus 30 of slack before they stop.
 	GrassDrawDistance = 230,

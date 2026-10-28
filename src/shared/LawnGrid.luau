@@ -25,7 +25,8 @@ LawnGrid.EMPTY = "-"
 local BARELY_MOVED = 1e-6
 -- The deck's cut reaches this far past where it started and where it ended, so a mower standing
 -- still cuts a deck-wide strip two studs long, along the way it faces (+Z).
-local DECK_REACH = 1
+-- Clients extend the swaths they paint by the same amount at each end.
+LawnGrid.DeckReach = 1
 
 function LawnGrid.index(column: number, row: number, rows: number): number
 	return column * rows + row + 1
@@ -70,7 +71,7 @@ function LawnGrid.cellsUnderSweep(
 
 	-- The strip's four corners, only to find which cells are worth testing.
 	local minX, maxX, minZ, maxZ = math.huge, -math.huge, math.huge, -math.huge
-	for _, distance in { -DECK_REACH, length + DECK_REACH } do
+	for _, distance in { -LawnGrid.DeckReach, length + LawnGrid.DeckReach } do
 		for _, side in { -halfWidth, halfWidth } do
 			local x = fromX + alongX * distance + acrossX * side
 			local z = fromZ + alongZ * distance + acrossZ * side
@@ -86,7 +87,7 @@ function LawnGrid.cellsUnderSweep(
 			local z = row + 0.5 - fromZ
 			local along = x * alongX + z * alongZ
 			local across = x * acrossX + z * acrossZ
-			if along > -DECK_REACH and along < length + DECK_REACH and math.abs(across) < halfWidth then
+			if along > -LawnGrid.DeckReach and along < length + LawnGrid.DeckReach and math.abs(across) < halfWidth then
 				table.insert(found, LawnGrid.index(column, row, rows))
 			end
 		end

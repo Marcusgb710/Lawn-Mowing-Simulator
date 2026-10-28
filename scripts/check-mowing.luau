@@ -125,7 +125,14 @@ check(
 		and #log == 3,
 	"snips never merge"
 )
-check(Swath.append(log, seg(5, 5, 5, 5)) == false and #log == 3, "no segment for an empty sweep")
+check(
+	Swath.append(log, seg(5, 5, 5, 5)) == false and #log == 4,
+	"an empty sweep (a mower standing still) is its own entry"
+)
+check(
+	Swath.append(log, seg(5, 5, 5, 7)) == false and #log == 5,
+	"a sweep carrying on from a standing one doesn't merge into it"
+)
 
 -- What does and doesn't carry on from the sweep before it, each against a fresh log.
 local function continuesOn(first: Swath.Segment, second: Swath.Segment): boolean
@@ -170,6 +177,7 @@ check(startsAnew(snip, snip), "two snips on one spot are two snips")
 local lined: Swath.Segment =
 	{ fromX = 0, fromZ = 2, toX = 0, toZ = 4, halfWidth = 2.5, radius = 1, shade = "Light", ragged = false }
 check(startsAnew(seg(0, 0, 0, 2), lined), "a snip never merges into a sweep")
+check(startsAnew(seg(0, 0, 0, 2), seg(0, 2, 0, 2)), "a mower stopping at the end of a pass is its own entry")
 check(startsAnew(lined, seg(0, 4, 0, 6)), "a sweep never merges into a snip")
 
 local drive: { Swath.Segment } = {}
