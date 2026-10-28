@@ -131,6 +131,16 @@ local function syncCondition(tool: Instance, condition)
 	end
 end
 
+-- Copies onto a mower whether its blade is dull enough to tear the grass (RAGGED_BELOW), so its
+-- player's client leaves that cut to the server's swaths instead of painting a clean strip ahead of
+-- them (see GrassController). Only moves when it changes.
+local function syncRagged(tool: Instance, quality: number)
+	local ragged = quality < RAGGED_BELOW
+	if tool:GetAttribute("Ragged") ~= ragged then
+		tool:SetAttribute("Ragged", ragged)
+	end
+end
+
 local function getHumanoid(player: Player): Humanoid?
 	local character = player.Character
 	return character and character:FindFirstChildOfClass("Humanoid")
@@ -884,6 +894,9 @@ local function workTick(elapsed: number)
 		local perks = Premium.perksFor(premium, itemId)
 		Maintenance.wear(item, condition, elapsed, true, moving, cut == true, rng:NextNumber(), perks)
 		strike(tool, condition, hits, perks)
+		if isMower(tool) then
+			syncRagged(tool, quality)
+		end
 		syncCondition(tool, condition)
 		noteWarnings(player, tool, item, condition, data)
 

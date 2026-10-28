@@ -7,7 +7,9 @@
 -- swath (see Swath). Each swath is painted into the pictures (see GrassPaint): its stripe shade into
 -- the turf and a hole of the same shape through every shell, so a cut follows the deck instead of
 -- snapping to cells. A lawn that starts being drawn asks for everything cut on it so far
--- (GetSwaths). Lawns far away aren't drawn at all, images included, to keep phones happy.
+-- (GetSwaths). Your own mower doesn't wait for its swaths: it paints its strip every frame, and
+-- whatever the server never confirms grows back. Lawns far away aren't drawn at all, images
+-- included, to keep phones happy.
 -- Without EditableImages (the Mesh / Image API toggle is off in a published game, or the device's
 -- memory budget is spent) lawns are drawn the simple way instead, for the rest of the session (see
 -- GrassFallback).
@@ -22,6 +24,7 @@ local GameConfig = require(Shared.Config.GameConfig)
 local GrassImages = require(Shared.GrassImages)
 local Net = require(Shared.Net)
 local Swath = require(Shared.Swath)
+local Tools = require(Shared.Config.Tools)
 
 local GrassPaint = require(script.Parent.Parent.GrassPaint)
 local GrassFallback = require(script.Parent.GrassFallback)
@@ -49,12 +52,26 @@ local HIGHLIGHT_TINT = Color3.new(2.5, 0.35, 0.35)
 local HIGHLIGHT_FADE = 0.25
 local HIGHLIGHT_PULSE = 0.8
 
+-- Studs a deck must move in a frame to paint ahead; less is standing still, which the server cuts within a tick.
+local PREDICT_MIN_MOVE = 0.05
+-- Seconds a painted cell waits for the server's swath: the client can't know about junk stops or refused cuts.
+local CONFIRM_SECONDS = 0.5
+-- Seconds between looks for cells that waited too long: the ledger copy is the server's truth, and decides.
+local RECONCILE_INTERVAL = 0.1
+
 local GrassController = {}
 
 -- [Grass folder] = everything we know about that lawn
 local lawns = {}
 -- Set for the rest of the session once an EditableImage couldn't be made (see show).
 local useFallback = false
+-- [lawn] = { [cell index] = os.clock() your own mower last painted it }, for the cells no swath from
+-- the server has vouched for yet (see paintOwnMower and reconcile).
+local unconfirmed = {}
+-- Where your mower's deck was last frame while it's been cutting, and which mower that was.
+local lastLocalDeck: Vector3? = nil
+local lastLocalTool: Tool? = nil
+local lastReconcile = 0
 
 local function localGrass(): Folder
 	local folder = workspace:FindFirstChild("LocalGrass")
@@ -140,6 +157,8 @@ end
 -- Draws a lawn afresh from what GetSwaths sent: the ledger (the truth for every cell) and the swath
 -- log (for the stripes; see GrassPaint.redraw).
 local function redraw(lawn, cells: string, log: { { number | string | boolean } })
+	-- Everything is the server's now, your own mower's paint included.
+	unconfirmed[lawn] = nil
 	if lawn.mode == "Fallback" then
 		-- No stripes there: the ledger is all it draws.
 		GrassFallback.applyCells(lawn, cells)
@@ -210,6 +229,7 @@ local function hide(lawn)
 		GrassFallback.hide(lawn)
 	end
 	stopHighlight(lawn)
+	unconfirmed[lawn] = nil
 	destroyImages(lawn)
 	lawn.container:Destroy()
 	lawn.container = nil
@@ -292,6 +312,27 @@ local function track(folder: Instance, regrows: boolean)
 	update()
 end
 
+-- A sweep of the deck as GrassPaint takes it, in lawn-local studs.
+local function sweepSegment(
+	fromX: number,
+	fromZ: number,
+	toX: number,
+	toZ: number,
+	halfWidth: number,
+	shade: string,
+	ragged: boolean
+): Swath.Segment
+	return {
+		fromX = fromX,
+		fromZ = fromZ,
+		toX = toX,
+		toZ = toZ,
+		halfWidth = halfWidth,
+		shade = shade,
+		ragged = ragged,
+	}
+end
+
 -- Paints a sweep on a drawn lawn ahead of the server's swath (your own mower, so the cut keeps up
 -- with the deck), in lawn-local studs. Nothing when the lawn isn't drawn, or is drawn the simple
 -- way, which only shows what the server has cut.
@@ -309,15 +350,127 @@ function GrassController.paintSweep(
 	if not (lawn and lawn.mode == "Surface") then
 		return
 	end
-	GrassPaint.paintSwath(lawn, {
-		fromX = fromX,
-		fromZ = fromZ,
-		toX = toX,
-		toZ = toZ,
-		halfWidth = halfWidth,
-		shade = shade,
-		ragged = ragged,
-	}, false)
+	GrassPaint.paintSwath(lawn, sweepSegment(fromX, fromZ, toX, toZ, halfWidth, shade, ragged), false)
+end
+
+-- The Grass folder of the lawn drawn as a surface that a spot in the world (studs) is over, if any.
+function GrassController.lawnFolderAt(worldX: number, worldZ: number): Folder?
+	for folder, lawn in lawns do
+		if lawn.mode == "Surface" then
+			local x, z = worldX - lawn.origin.X, worldZ - lawn.origin.Z
+			if x >= 0 and x < lawn.columns and z >= 0 and z < lawn.rows then
+				return folder
+			end
+		end
+	end
+	return nil
+end
+
+-- Your own mower paints its strip every frame instead of waiting for the server's swaths, which
+-- come ten times a second and a little late, so the cut shows under the deck and not in chunks
+-- behind it. The server stays the judge: the swaths it sends confirm what we painted, and a cell it
+-- never cut (junk stopped the deck, or the cut was refused) grows back from the ledger's say-so.
+
+-- The mower your character holds, with the part it's driven from, when it's cutting right now and
+-- its blade is sharp. A dull blade's torn cut is the server's alone: painting it every frame would
+-- tear the same cells again and again, and a guess at it would stay wrong.
+local function cuttingMower(): (Tool?, BasePart?)
+	local character = Players.LocalPlayer.Character
+	local tool = character and character:FindFirstChildOfClass("Tool")
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	-- The server stops working a fallen character's tool without clearing what it set.
+	if not (tool and humanoid and humanoid.Health > 0 and root and root:IsA("BasePart")) then
+		return nil, nil
+	end
+	if
+		tool:GetAttribute("Category") ~= "Mower"
+		or tool:GetAttribute("Working") ~= true
+		or tool:GetAttribute("Cutting") ~= true
+		or tool:GetAttribute("Blocked") ~= nil
+		or tool:GetAttribute("Ragged") == true
+	then
+		return nil, nil
+	end
+	return tool, root
+end
+
+-- Notes the cells a segment of your own mower's paint cuts, for reconcile to look at.
+local function remember(lawn, segment: Swath.Segment, now: number)
+	local painted = unconfirmed[lawn]
+	if not painted then
+		painted = {}
+		unconfirmed[lawn] = painted
+	end
+	for _, index in GrassPaint.cutCells(lawn, segment) do
+		painted[index] = now
+	end
+end
+
+-- A swath from the server vouches for the cells it cut: the ledger has them mowed now. Nothing to
+-- do for cells we never painted.
+local function confirm(lawn, segment: Swath.Segment)
+	local painted = unconfirmed[lawn]
+	if painted then
+		for _, index in GrassPaint.cutCells(lawn, segment) do
+			painted[index] = nil
+		end
+	end
+end
+
+-- Paints the strip your mower's deck made this frame: from where it was last frame to where it is
+-- now, on the lawn under it. The deck is where the server puts it (see ToolService's workTick). A
+-- frame with no previous deck (the mower just started cutting, or was swapped) only notes where it is.
+local function paintOwnMower(now: number)
+	local tool, root = cuttingMower()
+	local itemId = if tool then tool:GetAttribute("ItemId") else nil
+	local item = if typeof(itemId) == "string" then Tools.get(itemId) else nil
+	if not (tool and root and item) then
+		lastLocalDeck, lastLocalTool = nil, nil
+		return
+	end
+
+	local deck = root.Position + root.CFrame.LookVector * GameConfig.DeckOffset
+	local last = if tool == lastLocalTool then lastLocalDeck else nil
+	lastLocalDeck, lastLocalTool = deck, tool
+	if not last then
+		return
+	end
+	local dx, dz = deck.X - last.X, deck.Z - last.Z
+	if dx * dx + dz * dz < PREDICT_MIN_MOVE * PREDICT_MIN_MOVE then
+		return
+	end
+	local folder = GrassController.lawnFolderAt(deck.X, deck.Z)
+	local lawn = folder and lawns[folder]
+	if not (folder and lawn) then
+		return
+	end
+
+	local origin = lawn.origin
+	local fromX, fromZ, toX, toZ = last.X - origin.X, last.Z - origin.Z, deck.X - origin.X, deck.Z - origin.Z
+	local shade = Swath.shade(dx, dz)
+	GrassController.paintSweep(folder, fromX, fromZ, toX, toZ, item.radius, shade, false)
+	remember(lawn, sweepSegment(fromX, fromZ, toX, toZ, item.radius, shade, false), now)
+end
+
+-- Grows back what your own mower painted away that the server hasn't confirmed in CONFIRM_SECONDS
+-- and still has tall: the cells are the server's to cut, and it didn't.
+local function reconcile(now: number)
+	for lawn, painted in unconfirmed do
+		local waited = {}
+		for index, paintedAt in painted do
+			if now - paintedAt >= CONFIRM_SECONDS then
+				table.insert(waited, index)
+				painted[index] = nil
+			end
+		end
+		if lawn.mode == "Surface" then
+			GrassPaint.regrowUncut(lawn, waited)
+		end
+		if next(painted) == nil then
+			unconfirmed[lawn] = nil
+		end
+	end
 end
 
 -- Tints a drawn lawn's uncut grass red for `seconds`, with a soft pulse, then puts it back. Calling
@@ -360,6 +513,7 @@ function GrassController:Start()
 		local segment = Swath.unpack(packed)
 		if lawn.mode == "Surface" then
 			GrassPaint.paintSwath(lawn, segment, true)
+			confirm(lawn, segment)
 		else
 			GrassFallback.applySegment(lawn, segment)
 		end
@@ -382,6 +536,15 @@ function GrassController:Start()
 			if lawn.mode then
 				fetch(lawn)
 			end
+		end
+	end)
+
+	RunService.RenderStepped:Connect(function()
+		local now = os.clock()
+		paintOwnMower(now)
+		if now - lastReconcile >= RECONCILE_INTERVAL then
+			lastReconcile = now
+			reconcile(now)
 		end
 	end)
 

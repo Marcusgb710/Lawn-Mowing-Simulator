@@ -257,6 +257,11 @@ local function cutCells(lawn, segment: Swath.Segment): { number }
 	)
 end
 
+-- GrassController tells your own mower's paint from the server's by the cells a segment cuts: the
+-- ledger changes those and no others, so they are what the server confirms. A stamp's soft edge
+-- on the cells around them is left to stand, as it is for the server's own swaths.
+GrassPaint.cutCells = cutCells
+
 -- Where a sweep's stripe lies: its middle, the way it went, and half its length and width (studs).
 -- One that barely moved stood still, facing +Z with no length, as the server has it, so it paints
 -- the deck's own rectangle along +Z. Either way the cut reaches DeckReach past both ends (see
@@ -426,6 +431,19 @@ function GrassPaint.regrowCells(lawn, indexes: { number })
 			drawCell(lawn, index, LawnGrid.TALL)
 		end
 	end
+end
+
+-- Grows back the cells of `indexes` that the ledger still says are tall: the grass your own mower
+-- painted away (GrassController.paintSweep) that the server never cut. A cell the server did cut is
+-- mowed in the ledger by now and is left alone.
+function GrassPaint.regrowUncut(lawn, indexes: { number })
+	local uncut = {}
+	for _, index in indexes do
+		if lawn.cells[index] == LawnGrid.TALL then
+			table.insert(uncut, index)
+		end
+	end
+	GrassPaint.regrowCells(lawn, uncut)
 end
 
 return GrassPaint
