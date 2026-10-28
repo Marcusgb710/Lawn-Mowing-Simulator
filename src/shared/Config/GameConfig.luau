@@ -46,6 +46,9 @@ local GameConfig = {
 	MowCompletionThreshold = 0.99,
 	-- How far in front of the player a mower's deck sits, in studs.
 	DeckOffset = 2,
+	-- Players this close to a lawn (studs) hear about every cut on it: clients draw lawns within
+	-- 200 studs, plus 30 of slack before they stop.
+	GrassDrawDistance = 230,
 	-- Walk speed is multiplied by this while a mower is cutting.
 	CuttingSlowdown = 0.85,
 	-- Camera shake is multiplied by this while a mower is cutting.

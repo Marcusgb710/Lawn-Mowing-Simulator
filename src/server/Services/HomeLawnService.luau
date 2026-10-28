@@ -227,6 +227,8 @@ local function grow(owner: Player, entry, seconds: number)
 		end
 	end
 	local grew = false
+	-- The grass cells that grow back, for the clients drawing the lawn.
+	local regrown = {}
 	for _, target in entry.targets do
 		if target.work > 0 then
 			-- Not done: when it is, its time starts from then.
@@ -253,12 +255,99 @@ local function grow(owner: Player, entry, seconds: number)
 		if clear and entry.lawn:Regrow(target) then
 			entry.ages[target] = nil
 			grew = true
+			if target.kind == "Grass" then
+				table.insert(regrown, target.index)
+			end
 		end
+	end
+	if #regrown > 0 then
+		entry.lawn:FireNearby("Regrow", regrown)
 	end
 	if grew then
 		entry.tidy = entry.lawn:IsComplete()
 		refresh(owner, entry)
 	end
+end
+
+-- How a bit of work was done, from ToolService (see JobService's WorkOptions).
+type WorkOptions = {
+	quiet: boolean?,
+	moving: boolean?,
+	seconds: number?,
+	ragged: boolean?,
+	snip: boolean?,
+	strikes: boolean?,
+}
+
+-- Who's working and how, as the lawn wants it (see LawnService's WorkContext).
+local function workContext(player: Player, data, options: WorkOptions)
+	return {
+		protections = protectionsOf(player, data),
+		holder = player,
+		moving = options.moving,
+		seconds = options.seconds,
+		ragged = options.ragged,
+		closest = options.snip,
+		strikes = options.strikes,
+	}
+end
+
+-- Tells the player what they need to know about a bit of work on their crew's lawn, and saves it
+-- when something got finished (with a neighbor's tip when that made the lawn tidy). `snip` is a
+-- snip of hand shears, and `trimmed` a shrub the same bit of work trimmed. Returns whether
+-- anything got done, and the junk in the grass a mower just chewed up.
+local function settle(
+	player: Player,
+	entry,
+	result,
+	options: WorkOptions,
+	snip: boolean,
+	trimmed: boolean
+): (boolean, { any }?)
+	local owner = leaderOf(player)
+	if result.message then
+		notify(player, result.message)
+	end
+	for _, debris in result.struck do
+		notify(player, debris.kind.hit)
+	end
+	local warnedRecently = os.clock() - (warnedAt[player] or 0) <= 4
+	if result.hurt and not warnedRecently then
+		warnedAt[player] = os.clock()
+		notify(player, HURT_MESSAGES[result.hurt] or "You need some protection for that.")
+	elseif result.debris and not warnedRecently then
+		warnedAt[player] = os.clock()
+		notify(player, Debris.blockedMessage(result.debris.kind, snip))
+	elseif result.blocked and not (result.changed or trimmed) and not options.quiet and not warnedRecently then
+		warnedAt[player] = os.clock()
+		notify(player, "That won't work here.")
+	end
+	if not result.changed or doneCount(entry.lawn) == entry.done then
+		return result.changed or trimmed, result.struck
+	end
+
+	-- Something got finished: save it, and see whether the lawn's tidy now.
+	refresh(owner, entry)
+	local tidy = entry.lawn:IsComplete()
+	if tidy and not entry.tidy then
+		local ownerData = DataService:Get(owner)
+		local now = os.time()
+		local state = ownerData and savedState(ownerData)
+		if state and state.tipReady and HomeLawn.tipDue(state.tippedAt, now) then
+			state.tippedAt = now
+			state.tipReady = false
+			local tip = GameConfig.HomeLawn.TidyTip
+			DataService:AddMoney(owner, tip)
+			notify(owner, `Your lawn looks great! A neighbor tipped you {Format.money(tip)}.`)
+		elseif owner == player then
+			notify(player, "Your lawn looks great!")
+		end
+		if owner ~= player then
+			notify(player, `{owner.DisplayName}'s lawn looks great!`)
+		end
+	end
+	entry.tidy = tidy
+	return true, result.struck
 end
 
 -- Public API ---------------------------------------------------------------------------------
@@ -306,22 +395,16 @@ function HomeLawnService:YardMeasures(owner: Player): { lawnShare: number, edgeS
 end
 
 -- Called by ToolService every tick a player uses a tool on their crew's home lawn (and for every
--- snip of hand shears). Takes the same options as JobService:ApplyWork, and says whether anything
--- got done and what junk in the grass a mower just chewed up.
+-- snip of hand shears), on everything but the grass, which mowers sweep (Sweep) and shears snip
+-- (SnipAt). Takes the same options as JobService:ApplyWork, and says whether anything got done and
+-- what junk in the grass a mower just chewed up.
 function HomeLawnService:ApplyWork(
 	player: Player,
 	position: Vector3,
 	radius: number,
 	toolId: string,
 	amount: number,
-	options: {
-		quiet: boolean?,
-		moving: boolean?,
-		seconds: number?,
-		ragged: boolean?,
-		snip: boolean?,
-		strikes: boolean?,
-	}
+	options: WorkOptions
 ): (boolean, { any }?)
 	local owner = leaderOf(player)
 	local entry = lawnUnder(player)
@@ -338,58 +421,50 @@ function HomeLawnService:ApplyWork(
 		end
 		return trimmed, nil
 	end
-	local result = entry.lawn:ApplyWork(position, radius, toolId, amount, {
-		protections = protectionsOf(player, data),
-		holder = player,
-		moving = options.moving,
-		seconds = options.seconds,
-		ragged = options.ragged,
-		closest = options.snip,
-		strikes = options.strikes,
-	})
-	if result.message then
-		notify(player, result.message)
-	end
-	for _, debris in result.struck do
-		notify(player, debris.kind.hit)
-	end
-	local warnedRecently = os.clock() - (warnedAt[player] or 0) <= 4
-	if result.hurt and not warnedRecently then
-		warnedAt[player] = os.clock()
-		notify(player, HURT_MESSAGES[result.hurt] or "You need some protection for that.")
-	elseif result.debris and not warnedRecently then
-		warnedAt[player] = os.clock()
-		notify(player, Debris.blockedMessage(result.debris.kind, options.snip == true))
-	elseif result.blocked and not (result.changed or trimmed) and not options.quiet and not warnedRecently then
-		warnedAt[player] = os.clock()
-		notify(player, "That won't work here.")
-	end
-	if not result.changed or doneCount(entry.lawn) == entry.done then
-		return result.changed or trimmed, result.struck
-	end
+	local result = entry.lawn:ApplyWork(position, radius, toolId, amount, workContext(player, data, options))
+	return settle(player, entry, result, options, options.snip == true, trimmed)
+end
 
-	-- Something got finished: save it, and see whether the lawn's tidy now.
-	refresh(owner, entry)
-	local tidy = entry.lawn:IsComplete()
-	if tidy and not entry.tidy then
-		local ownerData = DataService:Get(owner)
-		local now = os.time()
-		local state = ownerData and savedState(ownerData)
-		if state and state.tipReady and HomeLawn.tipDue(state.tippedAt, now) then
-			state.tippedAt = now
-			state.tipReady = false
-			local tip = GameConfig.HomeLawn.TidyTip
-			DataService:AddMoney(owner, tip)
-			notify(owner, `Your lawn looks great! A neighbor tipped you {Format.money(tip)}.`)
-		elseif owner == player then
-			notify(player, "Your lawn looks great!")
-		end
-		if owner ~= player then
-			notify(player, `{owner.DisplayName}'s lawn looks great!`)
-		end
+-- Called by ToolService every tick a mower's deck, `halfWidth` studs either side, moves over their
+-- crew's home lawn: from where it was last tick to where it is now, in world studs (see
+-- Lawn:Sweep). Takes the same options as ApplyWork and returns the same.
+function HomeLawnService:Sweep(
+	player: Player,
+	fromX: number,
+	fromZ: number,
+	toX: number,
+	toZ: number,
+	halfWidth: number,
+	toolId: string,
+	options: WorkOptions
+): (boolean, { any }?)
+	local entry = lawnUnder(player)
+	local data = DataService:Get(player)
+	if not (entry and data) then
+		return false, nil
 	end
-	entry.tidy = tidy
-	return true, result.struck
+	local result = entry.lawn:Sweep(fromX, fromZ, toX, toZ, halfWidth, toolId, workContext(player, data, options))
+	return settle(player, entry, result, options, false, false)
+end
+
+-- Called by ToolService for every snip of hand shears on their crew's home lawn: the grass within
+-- `radius` of (x, z), in world studs (see Lawn:SnipAt). Takes the same options as ApplyWork and
+-- returns the same.
+function HomeLawnService:SnipAt(
+	player: Player,
+	x: number,
+	z: number,
+	radius: number,
+	toolId: string,
+	options: WorkOptions
+): (boolean, { any }?)
+	local entry = lawnUnder(player)
+	local data = DataService:Get(player)
+	if not (entry and data) then
+		return false, nil
+	end
+	local result = entry.lawn:SnipAt(x, z, radius, toolId, workContext(player, data, options))
+	return settle(player, entry, result, options, true, false)
 end
 
 -- Picks up the junk in their crew's lawn that `thing` is part of, if it's within `reach` studs of

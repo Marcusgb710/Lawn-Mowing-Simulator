@@ -63,6 +63,11 @@ check(#LawnGrid.cellsInCircle(10, 10, -5, -5, 1) == 0, "a snip off the lawn cuts
 
 check(LawnGrid.mowableCount("0011--2") == 5 and LawnGrid.cutCount("0011--2") == 3, "counts")
 
+-- The lawn as it's built ------------------------------------------------------------------------
+
+local mask = LawnGrid.mowableMask(4, 4, { [LawnGrid.index(1, 1, 4)] = true })
+check(#mask == 16 and mask[LawnGrid.index(1, 1, 4)] == "-" and mask[1] == "0", "mowable mask marks blocked cells")
+
 -- The swath log ---------------------------------------------------------------------------------
 
 local Swath = require("../src/shared/Swath")

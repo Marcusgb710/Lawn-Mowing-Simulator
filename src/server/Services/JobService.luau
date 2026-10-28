@@ -694,35 +694,23 @@ export type WorkOptions = {
 	strikes: boolean?,
 }
 
--- Called by ToolService every tick a player is using a tool (and for every snip of hand shears).
--- Returns whether anything got done, and the junk in the grass a mower just chewed up (for the
--- blade's wear).
-function JobService:ApplyWork(
-	player: Player,
-	position: Vector3,
-	radius: number,
-	toolId: string,
-	amount: number,
-	options: WorkOptions
-): (boolean, { any }?)
-	local job = playerJobs[player]
-	if not job or job.state ~= "Working" then
-		return false, nil
-	end
-
-	if options.damagesHazards then
-		for _, hazard in job.lawn:CheckHazards(position, if options.snip then SNIP_HAZARD_REACH else radius) do
-			local penalty = damagePenalty(job)
-			job.penalty += penalty
-			job.damageCount += 1
-			job.dirty = true
-			for _, member in job.members do
-				notify(member, `{player.DisplayName} wrecked a {hazard.name}! -{Format.money(penalty)}`)
-			end
+-- Wrecks any flower patch or gnome within `reach` of `position` (only X and Z count), and takes
+-- it off the job's pay.
+local function wreckHazards(job, player: Player, position: Vector3, reach: number)
+	for _, hazard in job.lawn:CheckHazards(position, reach) do
+		local penalty = damagePenalty(job)
+		job.penalty += penalty
+		job.damageCount += 1
+		job.dirty = true
+		for _, member in job.members do
+			notify(member, `{player.DisplayName} wrecked a {hazard.name}! -{Format.money(penalty)}`)
 		end
 	end
+end
 
-	local result = job.lawn:ApplyWork(position, radius, toolId, amount, {
+-- Who's working and how, as the lawn wants it (see LawnService's WorkContext).
+local function workContext(player: Player, options: WorkOptions)
+	return {
 		protections = protectionsOf(player),
 		holder = player,
 		moving = options.moving,
@@ -730,7 +718,13 @@ function JobService:ApplyWork(
 		ragged = options.ragged,
 		closest = options.snip,
 		strikes = options.strikes,
-	})
+	}
+end
+
+-- Adds what a bit of work did to the job (pay, finish, junk a mower chewed up), tells the player
+-- what they need to know, and finishes the job when that was the last of it. `snip` is a snip of
+-- hand shears. Returns whether anything got done, and the junk chewed up.
+local function settle(job, player: Player, result, options: WorkOptions, snip: boolean): (boolean, { any }?)
 	if result.message then
 		notify(player, result.message)
 	end
@@ -759,7 +753,7 @@ function JobService:ApplyWork(
 	elseif result.debris and not warnedRecently then
 		-- Something hidden in the grass is in the way (it never says which tool would cut through).
 		wrongToolWarnings[player] = os.clock()
-		notify(player, Debris.blockedMessage(result.debris.kind, options.snip == true))
+		notify(player, Debris.blockedMessage(result.debris.kind, snip))
 	elseif result.blocked and not result.changed and not options.quiet and not warnedRecently then
 		-- Never say which tool would work: knowing your tools is the game.
 		wrongToolWarnings[player] = os.clock()
@@ -772,6 +766,74 @@ function JobService:ApplyWork(
 		end
 	end
 	return result.changed, result.struck
+end
+
+-- Called by ToolService every tick a player is using a tool (and for every snip of hand shears)
+-- on everything but the grass, which mowers sweep (Sweep) and shears snip (SnipAt). Returns
+-- whether anything got done, and the junk in the grass a mower just chewed up (for the blade's
+-- wear).
+function JobService:ApplyWork(
+	player: Player,
+	position: Vector3,
+	radius: number,
+	toolId: string,
+	amount: number,
+	options: WorkOptions
+): (boolean, { any }?)
+	local job = playerJobs[player]
+	if not job or job.state ~= "Working" then
+		return false, nil
+	end
+	if options.damagesHazards then
+		wreckHazards(job, player, position, if options.snip then SNIP_HAZARD_REACH else radius)
+	end
+	local result = job.lawn:ApplyWork(position, radius, toolId, amount, workContext(player, options))
+	return settle(job, player, result, options, options.snip == true)
+end
+
+-- Called by ToolService every tick a mower's deck, `halfWidth` studs either side, moves over the
+-- job's lawn: from where it was last tick to where it is now, in world studs (see Lawn:Sweep).
+-- Takes the same options as ApplyWork and returns the same.
+function JobService:Sweep(
+	player: Player,
+	fromX: number,
+	fromZ: number,
+	toX: number,
+	toZ: number,
+	halfWidth: number,
+	toolId: string,
+	options: WorkOptions
+): (boolean, { any }?)
+	local job = playerJobs[player]
+	if not job or job.state ~= "Working" then
+		return false, nil
+	end
+	if options.damagesHazards then
+		wreckHazards(job, player, Vector3.new(toX, 0, toZ), halfWidth)
+	end
+	local result = job.lawn:Sweep(fromX, fromZ, toX, toZ, halfWidth, toolId, workContext(player, options))
+	return settle(job, player, result, options, false)
+end
+
+-- Called by ToolService for every snip of hand shears: the grass within `radius` of (x, z), in
+-- world studs (see Lawn:SnipAt). Takes the same options as ApplyWork and returns the same.
+function JobService:SnipAt(
+	player: Player,
+	x: number,
+	z: number,
+	radius: number,
+	toolId: string,
+	options: WorkOptions
+): (boolean, { any }?)
+	local job = playerJobs[player]
+	if not job or job.state ~= "Working" then
+		return false, nil
+	end
+	if options.damagesHazards then
+		wreckHazards(job, player, Vector3.new(x, 0, z), SNIP_HAZARD_REACH)
+	end
+	local result = job.lawn:SnipAt(x, z, radius, toolId, workContext(player, options))
+	return settle(job, player, result, options, true)
 end
 
 -- Picks up the piece of junk in the grass that `thing` is part of (the client says what the

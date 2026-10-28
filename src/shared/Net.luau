@@ -18,6 +18,8 @@ local EVENTS = {
 	"Notify",
 	"StoryUpdated",
 	"ContestUpdated",
+	"Swath",
+	"Regrow",
 	-- client -> server
 	"AbandonJob",
 	"LeaveParty",
@@ -64,6 +66,7 @@ local FUNCTIONS = {
 	"InviteToParty",
 	"RespondToInvite",
 	"KickFromParty",
+	"GetSwaths",
 }
 
 local folder: Folder
