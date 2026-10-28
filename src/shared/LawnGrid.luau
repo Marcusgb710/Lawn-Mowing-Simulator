@@ -95,6 +95,28 @@ function LawnGrid.cellsUnderSweep(
 	return found
 end
 
+-- How far along a sweep from one spot towards another (see heading) a cell's center lies, from
+-- where the deck started.
+function LawnGrid.along(rows: number, fromX: number, fromZ: number, toX: number, toZ: number, index: number): number
+	local alongX, alongZ = LawnGrid.heading(fromX, fromZ, toX, toZ)
+	local column, row = LawnGrid.cell(index, rows)
+	return (column + 0.5 - fromX) * alongX + (row + 0.5 - fromZ) * alongZ
+end
+
+-- Where a sweep from one spot towards another ends when its deck stops at something `stopAt`
+-- studs along the way (see along): short enough that every cell it cuts (cellsUnderSweep to there,
+-- which reaches DeckReach further) has its center more than half a cell before that point. Nil
+-- when the deck can't move before it gets there, so it cuts nothing.
+function LawnGrid.stopBefore(fromX: number, fromZ: number, toX: number, toZ: number, stopAt: number): (number?, number?)
+	local alongX, alongZ, length = LawnGrid.heading(fromX, fromZ, toX, toZ)
+	local reached = math.min(stopAt - 0.5 - LawnGrid.DeckReach, length)
+	-- Any less and it would count as standing still, which cuts the deck's own rectangle along +Z.
+	if reached <= BARELY_MOVED then
+		return nil, nil
+	end
+	return fromX + alongX * reached, fromZ + alongZ * reached
+end
+
 -- The cells a round snip (a pair of shears) cuts: those whose center is within radius of the spot,
 -- as indexes in ascending order.
 function LawnGrid.cellsInCircle(columns: number, rows: number, x: number, z: number, radius: number): { number }

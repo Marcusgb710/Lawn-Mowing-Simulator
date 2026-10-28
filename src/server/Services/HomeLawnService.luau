@@ -369,8 +369,8 @@ function HomeLawnService:CurbAppeal(owner: Player): number
 end
 
 -- What the Best Yard judges look at on the owner's lawn (Config/Contest.luau): how much of its
--- grass, weeds and leaves is done and how much of its edge (each 0-1), and how many pieces of
--- junk are in the grass. Nil if they have no lawn.
+-- grass, weeds and leaves is done and how much of its edge (each 0-1, every target weighted by
+-- Lawn:WeightedProgress), and how many pieces of junk are in the grass. Nil if they have no lawn.
 function HomeLawnService:YardMeasures(owner: Player): { lawnShare: number, edgeShare: number, junk: number }?
 	local entry = lawns[owner]
 	if not entry then
@@ -378,13 +378,13 @@ function HomeLawnService:YardMeasures(owner: Player): { lawnShare: number, edgeS
 	end
 	local lawnDone, lawnTotal, edgeDone, edgeTotal = 0, 0, 0, 0
 	for _, task in entry.lawn.tasks do
-		local done = math.min(task.done, task.total)
+		local done, total = entry.lawn:WeightedProgress(task)
 		if task.type.target == "Edge" then
 			edgeDone += done
-			edgeTotal += task.total
+			edgeTotal += total
 		else
 			lawnDone += done
-			lawnTotal += task.total
+			lawnTotal += total
 		end
 	end
 	return {

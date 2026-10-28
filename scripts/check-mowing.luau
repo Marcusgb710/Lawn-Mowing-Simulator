@@ -54,6 +54,34 @@ end
 check(ascending, "the cells come back in ascending order, none twice")
 check(same(LawnGrid.cellsUnderSweep(10, 10, 5.5, 11, 5.5, -1, 2.5), cells), "a pass the other way cuts the same cells")
 
+-- A deck stopped by junk ------------------------------------------------------------------------
+
+-- Pushing up x=5.5 from z=0, 5 wide, with junk in cell (5, 6): its center is 6.5 studs along.
+local junkCell = LawnGrid.index(5, 6, 10)
+check(LawnGrid.along(10, 5.5, 0, 5.5, 9, junkCell) == 6.5, "how far along a sweep a cell's center lies")
+local stopX, stopZ = LawnGrid.stopBefore(5.5, 0, 5.5, 9, 6.5)
+check(stopX == 5.5 and stopZ == 5, "the swath ends the deck's reach and half a cell short of the junk's center")
+local upToJunk = LawnGrid.cellsUnderSweep(10, 10, 5.5, 0, stopX :: number, stopZ :: number, 2.5)
+local shortOfJunk = true
+for _, index in upToJunk do
+	local _, row = LawnGrid.cell(index, 10)
+	shortOfJunk = shortOfJunk and row < 6
+end
+check(#upToJunk == 30 and shortOfJunk, "so it covers the 6 rows before the junk's row and nothing from it on")
+check(LawnGrid.stopBefore(5.5, 5, 5.5, 9, 1.5) == nil, "junk 1.5 studs ahead stops the deck before it cuts anything")
+check(LawnGrid.stopBefore(5.5, 5, 5.5, 5, 0.5) == nil, "junk under a standing deck stops it before it cuts anything")
+-- On a diagonal, cells beside the line can sit closer to the junk's center than the cells on it.
+local stopAt = LawnGrid.along(10, 0, 0, 9, 9, LawnGrid.index(5, 5, 10))
+local diagonalX, diagonalZ = LawnGrid.stopBefore(0, 0, 9, 9, stopAt)
+local diagonalCells = if diagonalX
+	then LawnGrid.cellsUnderSweep(10, 10, 0, 0, diagonalX, diagonalZ :: number, 1.5)
+	else {}
+local diagonalShort = #diagonalCells > 0
+for _, index in diagonalCells do
+	diagonalShort = diagonalShort and LawnGrid.along(10, 0, 0, 9, 9, index) < stopAt - 0.5
+end
+check(diagonalShort, "on a diagonal, every cell the swath covers is over half a cell short of the junk's center")
+
 -- Snips -----------------------------------------------------------------------------------------
 
 check(#LawnGrid.cellsInCircle(10, 10, 5, 5, 1) == 4, "a 1-stud snip touches the 4 cells round its point")

@@ -49,8 +49,8 @@ local GameConfig = {
 	-- A snip of the shears clears a circle of grass this many studs round (their own snip.radius
 	-- still covers everything else they cut).
 	SnipRadius = 1,
-	-- Players this close to a lawn (studs) hear about every cut on it: clients draw lawns within
-	-- 200 studs, plus 30 of slack before they stop.
+	-- How far from a lawn (studs) a client may still be drawing it: lawns within 200 studs of its
+	-- camera, plus 30 of slack before it stops.
 	GrassDrawDistance = 230,
 	-- Walk speed is multiplied by this while a mower is cutting.
 	CuttingSlowdown = 0.85,

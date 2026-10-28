@@ -87,6 +87,9 @@ local LawnService = {}
 
 -- [Grass folder] = its lawn, so a client can ask for a lawn's swaths by the folder it draws.
 local lawnsByGrass = {}
+-- Clients draw lawns by how far their camera is from them, and the server only knows where
+-- characters are: this much past GameConfig.GrassDrawDistance covers the gap between the two.
+local CAMERA_SLACK = 32
 
 local Lawn = {}
 Lawn.__index = Lawn
@@ -2357,24 +2360,25 @@ function Lawn:_hasWorkFor(toolId: string): boolean
 	return false
 end
 
--- The cells of `indexes` that still have tall grass, and how well `toolId` fits the mowing (nil
--- when there's no tall grass or it can't mow). When it can't, `result.blocked` says whether to tell
--- them: grass lies under everything else, so only when the tool has nothing else to do here.
-function Lawn:_tallGrass(indexes: { number }, toolId: string, result): ({ number }, TaskTypes.Fit?)
+-- The cells of `indexes` that still have tall grass.
+function Lawn:_tallCells(indexes: { number }): { number }
 	local tall = {}
 	for _, index in indexes do
 		if self.grassState[index] == LawnGrid.TALL then
 			table.insert(tall, index)
 		end
 	end
-	if #tall == 0 then
-		return tall, nil
-	end
+	return tall
+end
+
+-- How well `toolId` fits the mowing, or nil when it can't mow. Then `result.blocked` says whether
+-- to tell them: grass lies under everything else, so only when the tool has nothing else to do here.
+function Lawn:_mowingFit(toolId: string, result): TaskTypes.Fit?
 	local fit = TaskTypes.fit(self.grassTask.id, toolId)
 	if not fit then
 		result.blocked = not self:_hasWorkFor(toolId)
 	end
-	return tall, fit
+	return fit
 end
 
 -- Cuts a grass cell's target all at once and credits `result` the way _work credits a finished
@@ -2398,21 +2402,24 @@ function Lawn:_logSwath(segment: Swath.Segment)
 	self:FireNearby("Swath", Swath.pack(segment), merged)
 end
 
--- Fires a grass event (`eventName`, with the lawn's Grass folder first) to every player close
--- enough to be drawing the lawn.
+-- Fires a grass event (`eventName`, with the lawn's Grass folder first) to every player who may be
+-- drawing the lawn: anyone near it, and anyone without a character to tell (respawning or still
+-- loading in), whose camera could be anywhere.
 function Lawn:FireNearby(eventName: string, ...: any)
 	local event = Net.event(eventName)
 	local origin = self.origin
+	local reach = GameConfig.GrassDrawDistance + CAMERA_SLACK
 	for _, player in Players:GetPlayers() do
 		local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-		if not (root and root:IsA("BasePart")) then
-			continue
+		local near = true
+		if root and root:IsA("BasePart") then
+			-- How far they are from the lawn's rectangle (none at all when they're on it).
+			local position = root.Position
+			local x = math.clamp(position.X, origin.X, origin.X + self.width)
+			local z = math.clamp(position.Z, origin.Z, origin.Z + self.depth)
+			near = Vector2.new(position.X - x, position.Z - z).Magnitude <= reach
 		end
-		-- How far they are from the lawn's rectangle (none at all when they're on it).
-		local position = root.Position
-		local x = math.clamp(position.X, origin.X, origin.X + self.width)
-		local z = math.clamp(position.Z, origin.Z, origin.Z + self.depth)
-		if Vector2.new(position.X - x, position.Z - z).Magnitude <= GameConfig.GrassDrawDistance then
+		if near then
 			event:FireClient(player, self.grassFolder, ...)
 		end
 	end
@@ -2421,8 +2428,8 @@ end
 -- A mower's deck, `halfWidth` studs either side, moving in a straight line this tick from
 -- (fromX, fromZ) to (toX, toZ), in world studs. Every tall cell it passes over is cut, if the tool
 -- fits the mowing; standing still, the cells under the deck. Junk in the grass: a motorized mower
--- (`strikes`) chews it up and cuts on; anything else stops at it, so the junk's cell and everything
--- past it are left (`debris` says what stopped it).
+-- (`strikes`) chews it up and cuts on; anything else stops short of it (`debris` says what stopped
+-- it). The swath logged covers exactly the cells cut.
 function Lawn:Sweep(
 	fromX: number,
 	fromZ: number,
@@ -2439,35 +2446,47 @@ function Lawn:Sweep(
 	-- From here on in lawn-local studs, as LawnGrid and the swath log have them.
 	fromX, fromZ = fromX - self.origin.X, fromZ - self.origin.Z
 	toX, toZ = toX - self.origin.X, toZ - self.origin.Z
-	local swept = LawnGrid.cellsUnderSweep(self.cellColumns, self.cellRows, fromX, fromZ, toX, toZ, halfWidth)
-	local tall, fit = self:_tallGrass(swept, toolId, result)
+	-- A deck that barely moved stood still (see LawnGrid.heading), so its swath goes nowhere.
+	local _, _, length = LawnGrid.heading(fromX, fromZ, toX, toZ)
+	if length == 0 then
+		toX, toZ = fromX, fromZ
+	end
+	local columns, rows = self.cellColumns, self.cellRows
+	local tall = self:_tallCells(LawnGrid.cellsUnderSweep(columns, rows, fromX, fromZ, toX, toZ, halfWidth))
+	if #tall == 0 then
+		return result
+	end
+	local fit = self:_mowingFit(toolId, result)
 	if not fit then
 		return result
 	end
 
-	-- How far along the way the deck's going each cell lies, to know which come after junk.
-	local alongX, alongZ, length = LawnGrid.heading(fromX, fromZ, toX, toZ)
-	local along = {}
-	for _, index in tall do
-		local column, row = LawnGrid.cell(index, self.cellRows)
-		along[index] = (column + 0.5 - fromX) * alongX + (row + 0.5 - fromZ) * alongZ
-	end
-	local stopAt = math.huge
+	-- Anything but a motorized mower stops at the first junk in its way: it only sweeps as far as it
+	-- can without cutting the junk's cell (see LawnGrid.stopBefore), and then the swath it leaves is
+	-- still just what it cut. When it can't move at all before the junk, it cuts nothing.
 	if not (context and context.strikes) then
+		local stopAt = math.huge
 		for _, index in tall do
 			local debris = self:_debrisOn(index)
-			if debris and along[index] < stopAt then
-				stopAt = along[index]
-				result.debris = debris
+			if debris then
+				local along = LawnGrid.along(rows, fromX, fromZ, toX, toZ, index)
+				if along < stopAt then
+					stopAt, result.debris = along, debris
+				end
 			end
+		end
+		if result.debris then
+			local stopX, stopZ = LawnGrid.stopBefore(fromX, fromZ, toX, toZ, stopAt)
+			if not stopX then
+				return result
+			end
+			toX, toZ = stopX, stopZ
+			tall = self:_tallCells(LawnGrid.cellsUnderSweep(columns, rows, fromX, fromZ, toX, toZ, halfWidth))
 		end
 	end
 
 	local ragged = context ~= nil and context.ragged == true
 	for _, index in tall do
-		if along[index] >= stopAt then
-			continue
-		end
 		-- Only a motorized mower gets here with junk in the way.
 		local debris = self:_debrisOn(index)
 		if debris then
@@ -2479,32 +2498,13 @@ function Lawn:Sweep(
 	if not result.changed then
 		return result
 	end
-
-	-- The swath ends where the cutting did. A deck that barely moved stood still (see
-	-- LawnGrid.heading), so its swath goes nowhere. One that junk stopped ends short of it: clients
-	-- paint a swath DeckReach past its end, so it ends that much short of half a cell before the junk.
-	local endX, endZ = toX, toZ
-	if length == 0 then
-		endX, endZ = fromX, fromZ
-	end
-	if stopAt < math.huge then
-		local reached = stopAt - 0.5 - LawnGrid.DeckReach
-		if reached <= 0 then
-			-- Too close to where the deck started to paint any of it without painting over the junk
-			-- (always so for a deck standing still). What did get cut goes undrawn, though the
-			-- ledger a client asks for has it.
-			return result
-		end
-		reached = math.min(reached, length)
-		endX, endZ = fromX + alongX * reached, fromZ + alongZ * reached
-	end
 	self:_logSwath({
 		fromX = fromX,
 		fromZ = fromZ,
-		toX = endX,
-		toZ = endZ,
+		toX = toX,
+		toZ = toZ,
 		halfWidth = halfWidth,
-		shade = if ragged then Swath.RAGGED else Swath.shade(endX - fromX, endZ - fromZ),
+		shade = if ragged then Swath.RAGGED else Swath.shade(toX - fromX, toZ - fromZ),
 		ragged = ragged,
 	})
 	return result
@@ -2518,8 +2518,11 @@ function Lawn:SnipAt(x: number, z: number, radius: number, toolId: string, conte
 		return result
 	end
 	x, z = x - self.origin.X, z - self.origin.Z
-	local tall, fit =
-		self:_tallGrass(LawnGrid.cellsInCircle(self.cellColumns, self.cellRows, x, z, radius), toolId, result)
+	local tall = self:_tallCells(LawnGrid.cellsInCircle(self.cellColumns, self.cellRows, x, z, radius))
+	if #tall == 0 then
+		return result
+	end
+	local fit = self:_mowingFit(toolId, result)
 	if not fit then
 		return result
 	end
@@ -2754,12 +2757,28 @@ function Lawn:Regrow(target): boolean
 	return true
 end
 
--- How much of the whole lawn is done, 0-1.
+-- How much of a task is done and how much of it there is, each target counted by its share of a
+-- whole target's work (TaskTypes' workPerTarget). A grass cell counts a sixteenth, so a lawn's grass
+-- weighs what its tiles did and the rest of the yard still counts; every other target counts 1.
+function Lawn:WeightedProgress(task): (number, number)
+	local done, total = 0, 0
+	for _, target in task.targets do
+		local weight = target.maxWork / task.type.workPerTarget
+		total += weight
+		if target.work <= 0 then
+			done += weight
+		end
+	end
+	return done, total
+end
+
+-- How much of the whole lawn is done, 0-1, each target weighted as WeightedProgress does.
 function Lawn:DoneShare(): number
 	local done, total = 0, 0
 	for _, task in self.tasks do
-		done += math.min(task.done, task.total)
-		total += task.total
+		local taskDone, taskTotal = self:WeightedProgress(task)
+		done += taskDone
+		total += taskTotal
 	end
 	return if total > 0 then done / total else 1
 end
