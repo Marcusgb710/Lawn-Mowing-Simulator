@@ -35,15 +35,42 @@ function HomeLawn.encode(done: { boolean }): string
 	return table.concat(characters)
 end
 
--- The other way. Anything that doesn't fit `count` targets (a missing save, or a lawn that's been
--- resized since) is all not done.
-function HomeLawn.decode(saved: unknown, count: number): { boolean }
+-- Spreads a save with one flag per square tile of `spread` cells (16 for 4 x 4 cells) over a lawn
+-- of `count` cells, `rows` of them deep, or nil if the save isn't that lawn's. Tiles and cells are
+-- both counted column by column, so tile (c, r) covers the cells from (side * c, side * r) on.
+local function spreadTiles(saved: string, count: number, spread: number, rows: number): { boolean }?
+	local side = math.sqrt(spread)
+	if side % 1 ~= 0 or rows % side ~= 0 or count % rows ~= 0 or #saved * spread ~= count then
+		return nil
+	end
+	local tileRows = rows // side
 	local done = table.create(count, false)
-	if typeof(saved) ~= "string" or #saved ~= count then
+	local index = 0
+	for column = 0, count // rows - 1 do
+		for row = 0, rows - 1 do
+			index += 1
+			local tile = (column // side) * tileRows + row // side + 1
+			done[index] = string.sub(saved, tile, tile) == "1"
+		end
+	end
+	return done
+end
+
+-- The other way. Anything that doesn't fit `count` targets (a missing save, or a lawn that's been
+-- resized since) is all not done. The grass used to be saved as one flag per tile, so when `spread`
+-- (cells per tile) and `rows` (how many cells deep the lawn is) are given, a save with a flag per
+-- tile is spread over the cells instead, and an old tidy lawn comes back tidy.
+function HomeLawn.decode(saved: unknown, count: number, spread: number?, rows: number?): { boolean }
+	local done = table.create(count, false)
+	if typeof(saved) ~= "string" then
 		return done
 	end
-	for index = 1, count do
-		done[index] = string.sub(saved, index, index) == "1"
+	if #saved == count then
+		for index = 1, count do
+			done[index] = string.sub(saved, index, index) == "1"
+		end
+	elseif spread and rows then
+		done = spreadTiles(saved, count, spread, rows) or done
 	end
 	return done
 end

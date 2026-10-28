@@ -38,6 +38,9 @@ local PROTECTIONS_REFRESH = 2
 local GROW_CLEARANCE = 10
 -- How often the lawns grow (seconds).
 local GROW_TICK = 1
+-- Saves from before the grass was cut into one-stud cells keep one flag for each 4 x 4 stud tile
+-- of it, so a flag stands for this many cells (written down, as the tiles are gone from the config).
+local CELLS_PER_SAVED_TILE = 16
 local HURT_MESSAGES = {
 	Thorns = "Ouch! Those thorns shred your bare hands.",
 	Chemicals = "You can't handle weed killer with your bare hands.",
@@ -176,7 +179,13 @@ local function build(owner: Player)
 	lawn.folder.Name = "HomeLawn_" .. owner.UserId
 	lawn.folder:SetAttribute("OwnerUserId", owner.UserId)
 	for _, task in lawn.tasks do
-		local done = HomeLawn.decode(savedState(data).done[task.id], #task.targets)
+		local saved = savedState(data).done[task.id]
+		local done
+		if task.type.target == "Grass" then
+			done = HomeLawn.decode(saved, #task.targets, CELLS_PER_SAVED_TILE, lawn.cellRows)
+		else
+			done = HomeLawn.decode(saved, #task.targets)
+		end
 		for index, target in task.targets do
 			if done[index] then
 				lawn:Finish(target)

@@ -317,6 +317,76 @@ check(fractX == 0.6 and fractY == 1.5, "pixels are not rounded")
 local beforeX, beforeY = GrassImages.worldToPixel(100, 200, 4, 99, 198)
 check(beforeX == -4 and beforeY == -8, "a point before the origin is a negative pixel, not clamped")
 
+-- Home lawn saves from before cells ---------------------------------------------------------------
+
+local fs = require("@lune/fs")
+local luau = require("@lune/luau")
+
+-- HomeLawn reaches its sibling configs through `script`, which Lune doesn't have (and GameConfig
+-- builds Vector3s as it loads), so it's loaded with those stood in for. The save format below
+-- never touches them. Run from the repo root, like the command at the top.
+local stub = {}
+setmetatable(stub, {
+	__index = function()
+		return stub
+	end,
+})
+local HomeLawn = luau.load(fs.readFile("src/shared/HomeLawn.luau"), {
+	debugName = "HomeLawn",
+	environment = {
+		script = stub,
+		require = function()
+			return stub
+		end,
+	},
+})()
+
+-- A 2x1-tile lawn saved per tile: left tile done, right not. Its cells are 8 across and 4 deep.
+local spread = HomeLawn.decode("10", 32, 16, 4)
+check(#spread == 32 and spread[1] == true and spread[32] == false, "tile flags spread to cells")
+local leftBlock = true
+for index = 1, 16 do
+	leftBlock = leftBlock and spread[index] == true and spread[index + 16] == false
+end
+check(leftBlock, "the done tile fills its 16 cells and the other tile's cells stay not done")
+check(HomeLawn.decode("10", 32)[1] == false, "mismatched saves without a spread are all not done")
+check(#HomeLawn.decode("10", 32) == 32, "an unspread mismatch still gives one flag per target")
+
+-- A 2x2-tile lawn (8x8 cells), tiles counted column by column like cells: with only the second
+-- tile, (column 0, row 1), done, the cells that come on are columns 0-3 of rows 4-7.
+local second = HomeLawn.decode("0100", 64, 16, 8)
+local only = true
+local doneCells = 0
+for column = 0, 7 do
+	for row = 0, 7 do
+		local isDone = second[LawnGrid.index(column, row, 8)]
+		doneCells += if isDone then 1 else 0
+		only = only and isDone == (column < 4 and row >= 4)
+	end
+end
+check(only and doneCells == 16, "a tile's block of cells follows the tile's column and row")
+local third = HomeLawn.decode("0010", 64, 16, 8)
+check(
+	third[LawnGrid.index(4, 0, 8)] == true and third[LawnGrid.index(7, 3, 8)] == true,
+	"the third tile is the one across, in the first row"
+)
+check(third[LawnGrid.index(3, 0, 8)] == false and third[LawnGrid.index(4, 4, 8)] == false, "and only its block")
+
+-- Saves that already have a flag per cell, and saves that fit neither, are read as they were.
+local perCell = string.rep("1", 31) .. "0"
+local cellsBack = HomeLawn.decode(perCell, 32, 16, 4)
+check(
+	cellsBack[1] == true and cellsBack[31] == true and cellsBack[32] == false,
+	"a save with a flag per cell is read as is"
+)
+check(HomeLawn.decode(nil, 32, 16, 4)[1] == false, "a missing save is all not done")
+check(HomeLawn.decode(12, 32, 16, 4)[1] == false, "a save that isn't a string is all not done")
+local resized = HomeLawn.decode("101", 32, 16, 4)
+check(#resized == 32 and not table.find(resized, true), "a lawn resized since is all not done")
+check(not table.find(HomeLawn.decode("10", 32, 16), true), "tile flags without the lawn's rows are all not done")
+check(not table.find(HomeLawn.decode("10", 32, 16, 6), true), "rows that don't divide into tiles are all not done")
+check(HomeLawn.encode(spread) == string.rep("1", 16) .. string.rep("0", 16), "what was spread saves back per cell")
+
 if failures > 0 then
 	print(`{failures} check(s) failed`)
 	process.exit(1)
