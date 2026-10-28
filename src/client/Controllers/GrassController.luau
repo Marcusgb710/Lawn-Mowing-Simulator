@@ -20,18 +20,18 @@ local UserInputService = game:GetService("UserInputService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local GameConfig = require(Shared.Config.GameConfig)
 local GrassImages = require(Shared.GrassImages)
-local LawnGrid = require(Shared.LawnGrid)
 local Net = require(Shared.Net)
 local Swath = require(Shared.Swath)
 
 local GrassPaint = require(script.Parent.Parent.GrassPaint)
 local GrassFallback = require(script.Parent.GrassFallback)
 
--- Lawns further than this from the camera (studs, from the lawn's edge) aren't drawn.
-local DRAW_DISTANCE = 200
--- A drawn lawn goes when it's this much further than that, so a lawn right at the edge doesn't
--- flicker in and out as you move.
+-- A drawn lawn goes when it's this much further from the camera than where it starts being drawn,
+-- so a lawn right at the edge doesn't flicker in and out as you move.
 local DRAW_SLACK = 30
+-- Lawns further than this from the camera (studs, from the lawn's edge) aren't drawn. The server
+-- sends swaths out to GrassDrawDistance, the furthest a drawn lawn can be.
+local DRAW_DISTANCE = GameConfig.GrassDrawDistance - DRAW_SLACK
 local UPDATE_INTERVAL = 0.5
 
 -- How high the turf plate's top face sits above the ground (studs). The server lays its own plain
@@ -98,24 +98,21 @@ local function destroyImages(lawn)
 	for _, image in lawn.shells do
 		image:Destroy()
 	end
-	for _, image in lawn.templates do
-		image:Destroy()
-	end
 	table.clear(lawn.shells)
-	table.clear(lawn.templates)
 	table.clear(lawn.decals)
+	lawn.cells = nil
 end
 
--- Makes a lawn's images and parts: the turf plate, and the shells stacked by GrassImages.shellPlan,
--- each with a template to grow cells back from. False, with whatever was made left for
--- destroyImages, when an image can't be made.
+-- Makes a lawn's images and parts, all tall: the turf plate, and the shells stacked by
+-- GrassImages.shellPlan. False, with whatever was made left for show to clear away, when an image
+-- can't be made.
 local function buildSurface(lawn): boolean
-	if not GrassPaint.makeBrushes() then
+	local touch = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
+	local plan = GrassImages.shellPlan(GrassImages.shellCount(touch), GameConfig.TallGrassHeight * lawn.tallScale)
+	if not GrassPaint.prepare(plan) then
 		return false
 	end
 	local size = Vector2.new(lawn.columns * lawn.pps, lawn.rows * lawn.pps)
-	local touch = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
-	local plan = GrassImages.shellPlan(GrassImages.shellCount(touch), GameConfig.TallGrassHeight * lawn.tallScale)
 	lawn.turf = GrassPaint.newImage(size)
 	if not lawn.turf then
 		return false
@@ -126,14 +123,9 @@ local function buildSurface(lawn): boolean
 			return false
 		end
 		table.insert(lawn.shells, shell)
-		local template = GrassPaint.newImage(size)
-		if not template then
-			return false
-		end
-		table.insert(lawn.templates, template)
 	end
 
-	GrassPaint.fill(lawn, plan)
+	GrassPaint.reset(lawn)
 	local turf = surfacePart(lawn, "Turf", TURF_HEIGHT, lawn.turf)
 	turf.Material = Enum.Material.Grass
 	turf.Color = GrassPaint.UNCUT
@@ -145,48 +137,15 @@ local function buildSurface(lawn): boolean
 	return true
 end
 
--- The cells a swath cut, by the server's own geometry.
-local function cutCells(lawn, segment: Swath.Segment): { number }
-	if segment.radius then
-		return LawnGrid.cellsInCircle(lawn.columns, lawn.rows, segment.fromX, segment.fromZ, segment.radius)
-	end
-	return LawnGrid.cellsUnderSweep(
-		lawn.columns,
-		lawn.rows,
-		segment.fromX,
-		segment.fromZ,
-		segment.toX,
-		segment.toZ,
-		segment.halfWidth
-	)
-end
-
--- Draws a lawn afresh from what GetSwaths sent: the ledger is the truth for every cell, then the
--- log is replayed for the stripes and the smooth edges of each cut. A home lawn's log keeps swaths
--- over grass that has grown back since, so cells the log cut that the ledger says are tall grow
--- back again.
+-- Draws a lawn afresh from what GetSwaths sent: the ledger (the truth for every cell) and the swath
+-- log (for the stripes; see GrassPaint.redraw).
 local function redraw(lawn, cells: string, log: { { number | string | boolean } })
 	if lawn.mode == "Fallback" then
 		-- No stripes there: the ledger is all it draws.
 		GrassFallback.applyCells(lawn, cells)
-		return
+	else
+		GrassPaint.redraw(lawn, cells, log)
 	end
-	GrassPaint.reset(lawn)
-	GrassPaint.applyCells(lawn, cells)
-	local regrown, seen = {}, {}
-	for _, packed in log do
-		local segment = Swath.unpack(packed)
-		GrassPaint.paintSegment(lawn, segment)
-		if lawn.regrows then
-			for _, index in cutCells(lawn, segment) do
-				if not seen[index] and string.sub(cells, index, index) == LawnGrid.TALL then
-					seen[index] = true
-					table.insert(regrown, index)
-				end
-			end
-		end
-	end
-	GrassPaint.regrowCells(lawn, regrown)
 end
 
 -- Asks the server for everything cut on a drawn lawn and redraws it, unless it's been hidden or
@@ -217,16 +176,24 @@ local function show(lawn)
 	lawn.container = Instance.new("Folder")
 	lawn.container.Name = lawn.name
 	lawn.container.Parent = localGrass()
-	if not useFallback and buildSurface(lawn) then
+	-- An image that can't be made comes back nil; anything else that goes wrong building it throws.
+	-- Either way the lawn, and every one after it, is drawn the simple way.
+	local built, problem = false, nil
+	if not useFallback then
+		local ok, result = pcall(buildSurface, lawn)
+		built, problem = ok and result, if ok then nil else tostring(result)
+	end
+	if built then
 		lawn.mode = "Surface"
 	else
-		-- The parts only go up once every image is made, so only images can be left over.
 		destroyImages(lawn)
+		lawn.container:ClearAllChildren()
 		if not useFallback then
 			useFallback = true
 			warn(
-				"[Grass] Couldn't make an EditableImage (is Allow Mesh / Image APIs on, or is the memory "
-					.. "budget spent?): drawing lawns the simple way for the rest of the session"
+				"[Grass] Couldn't draw lawns as surfaces ("
+					.. (problem or "no EditableImage: is Allow Mesh / Image APIs on, or is the memory budget spent?")
+					.. "): drawing them the simple way for the rest of the session"
 			)
 		end
 		lawn.mode = "Fallback"
@@ -265,10 +232,11 @@ local function update()
 	local cameraPosition = camera.CFrame.Position
 	for _, lawn in lawns do
 		local reach = if lawn.mode then DRAW_DISTANCE + DRAW_SLACK else DRAW_DISTANCE
-		if distanceToLawn(lawn, cameraPosition) <= reach then
-			show(lawn)
-		else
-			hide(lawn)
+		-- One lawn going wrong mustn't stop the rest showing and hiding (or kill the update loop).
+		local ok, problem = pcall(if distanceToLawn(lawn, cameraPosition) <= reach then show else hide, lawn)
+		if not ok and not lawn.warned then
+			lawn.warned = true
+			warn(`[Grass] Couldn't update the lawn {lawn.name}: {problem}`)
 		end
 	end
 end
@@ -303,12 +271,15 @@ local function track(folder: Instance, regrows: boolean)
 		container = nil,
 		turf = nil,
 		shells = {},
-		templates = {},
+		-- The ledger as this client has it, while drawn as a surface (see GrassPaint).
+		cells = nil,
 		-- The shells' Decals, for highlightUncut.
 		decals = {},
 		highlight = nil,
 		-- Counts GetSwaths requests, so only the latest one's answer is drawn.
 		fetches = 0,
+		-- Whether a failed update has been warned about, so it's said once.
+		warned = false,
 	}
 	lawns[folder] = lawn
 
@@ -338,7 +309,7 @@ function GrassController.paintSweep(
 	if not (lawn and lawn.mode == "Surface") then
 		return
 	end
-	GrassPaint.paintSegment(lawn, {
+	GrassPaint.paintSwath(lawn, {
 		fromX = fromX,
 		fromZ = fromZ,
 		toX = toX,
@@ -346,7 +317,7 @@ function GrassController.paintSweep(
 		halfWidth = halfWidth,
 		shade = shade,
 		ragged = ragged,
-	})
+	}, false)
 end
 
 -- Tints a drawn lawn's uncut grass red for `seconds`, with a soft pulse, then puts it back. Calling
@@ -388,7 +359,7 @@ function GrassController:Start()
 		end
 		local segment = Swath.unpack(packed)
 		if lawn.mode == "Surface" then
-			GrassPaint.paintSegment(lawn, segment)
+			GrassPaint.paintSwath(lawn, segment, true)
 		else
 			GrassFallback.applySegment(lawn, segment)
 		end

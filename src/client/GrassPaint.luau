@@ -1,11 +1,13 @@
--- The painting behind GrassController's lawns: the brushes, and what each swath, ledger cell and
--- regrown cell does to a lawn's pictures.
+-- The painting behind GrassController's lawns: the brushes and grass tiles, and what the ledger,
+-- each swath and each regrown cell do to a lawn's pictures.
 --
--- A drawn lawn has a turf image (the ground's colour and the stripes) and a few shell images (blade
--- dots, see GrassImages), each shell with a template: a copy of its dots as first drawn, to grow
--- grass back from. These take GrassController's lawn record and use its turf, shells, templates,
--- pps (pixels per stud), columns and rows. Everything is in lawn-local studs, which are cells too
--- (see LawnGrid), and a picture's X and Y are the lawn's X and Z (GrassImages.worldToPixel).
+-- A drawn lawn has a turf image (the ground's colour and the stripes) and a few shell images of
+-- blade dots (see GrassImages). Each shell is tiled from its own grass tile, made once a session and
+-- shared by every lawn, and grass grows back from it too. These take GrassController's lawn record
+-- and use its turf, shells, pps (pixels per stud), columns, rows and regrows, and keep its `cells`:
+-- the lawn's ledger as this client has it (one state per cell, see LawnGrid), so a swath never
+-- paints over what the server says a cell is. Everything is in lawn-local studs, which are cells
+-- too, and a picture's X and Y are the lawn's X and Z (GrassImages.worldToPixel).
 
 local AssetService = game:GetService("AssetService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -15,19 +17,19 @@ local GrassImages = require(Shared.GrassImages)
 local LawnGrid = require(Shared.LawnGrid)
 local Swath = require(Shared.Swath)
 
--- The brushes are this many pixels a side, and the ragged pattern's blocks this many.
+-- The stamps are this many pixels a side.
 local BRUSH_SIZE = 16
+-- The grass tiles are this many: a multiple of every pixels-per-stud, so a cell never straddles two.
+local TILE = 256
+-- A dull blade's torn cut keeps every other square of this many pixels standing.
 local RAGGED_BLOCK = 2
 
 local OVERWRITE = Enum.ImageCombineType.Overwrite
 local BLEND = Enum.ImageCombineType.BlendSourceOver
--- Stamps into the turf blend, so a ragged brush's holes leave the turf as it was and a stamp's soft
--- edges don't leave see-through pixels.
+-- Stamps into the turf blend, so a stamp's soft edges don't leave see-through pixels. The eraser
+-- writes clear pixels into the shells.
 local STAMP = { CombineType = BLEND }
--- The plain eraser writes clear pixels. The ragged eraser multiplies: opaque white keeps a shell's
--- grass as it is (the tufts) and clear takes it out.
 local ERASE = { CombineType = OVERWRITE }
-local ERASE_RAGGED = { CombineType = Enum.ImageCombineType.Multiply }
 
 local WHITE = Color3.new(1, 1, 1)
 
@@ -40,10 +42,13 @@ local SHADES: { [string]: Color3 } = {}
 for shade, rgb in Swath.Colors do
 	SHADES[shade] = Color3.fromRGB(rgb[1], rgb[2], rgb[3])
 end
+-- The turf under uncut grass.
+local UNCUT = darken(SHADES.Flat, 0.15)
 -- Cells with no grass (flower patches, tree rings): bare ground.
 local GROUND = Color3.fromRGB(92, 68, 46)
--- The turf under each kind of cell the ledger has (tall cells keep the uncut turf).
+-- The turf under each kind of cell the ledger has.
 local CELL_COLORS = {
+	[LawnGrid.TALL] = UNCUT,
 	[LawnGrid.MOWED] = SHADES.Flat,
 	[LawnGrid.RAGGED] = SHADES[Swath.RAGGED],
 	[LawnGrid.EMPTY] = GROUND,
@@ -54,14 +59,17 @@ local BLADE_LIGHT = Color3.fromRGB(98, 160, 60)
 -- Wheel tracks are this much darker than the stripe, this many pixels in from its long edges.
 local TRACK_DARKEN = 0.1
 local TRACK_INSET = 1
+-- A cell's corner is this far from its centre (studs).
+local HALF_DIAGONAL = math.sqrt(0.5)
 
 local GrassPaint = {}
 
--- The turf under uncut grass.
-GrassPaint.UNCUT = darken(SHADES.Flat, 0.15)
+GrassPaint.UNCUT = UNCUT
 
--- The 16 x 16 stamps (see makeBrushes), made the first time a lawn is drawn.
+-- Made the first time a lawn is drawn (see prepare): a solid stamp per shade and the eraser, and
+-- a grass tile per shell.
 local brushes = nil
+local tiles = nil
 
 -- A blank EditableImage, or nil when one can't be made: the API is off in this game (that throws)
 -- or the device's memory budget is spent (that returns nil).
@@ -70,31 +78,38 @@ function GrassPaint.newImage(size: Vector2): EditableImage?
 	return if ok and image then image else nil
 end
 
--- Paints every other RAGGED_BLOCK square of a brush: those whose block column plus block row is
--- even when `parity` is 0, and the rest when it's 1.
-local function checker(image: EditableImage, color: Color3, parity: number)
-	local blocks = BRUSH_SIZE // RAGGED_BLOCK
-	local size = Vector2.new(RAGGED_BLOCK, RAGGED_BLOCK)
-	for blockX = 0, blocks - 1 do
-		for blockY = 0, blocks - 1 do
-			if (blockX + blockY) % 2 == parity then
-				image:DrawRectangle(Vector2.new(blockX, blockY) * RAGGED_BLOCK, size, color, 0, OVERWRITE)
+-- A shell's grass tile: its blade dots (the same on every client), with each dot that runs over an
+-- edge drawn again past the opposite one, so tiles laid side by side meet without a seam.
+local WRAPS = { -TILE, 0, TILE }
+local function drawTile(tile: EditableImage, plan: { GrassImages.Shell }, index: number)
+	local lift = if #plan > 1 then (index - 1) / (#plan - 1) else 0
+	for _, dot in GrassImages.bladeDots(TILE, TILE, plan[index].density, index) do
+		local color = BLADE_DARK:Lerp(BLADE_LIGHT, (dot.tone + lift) / 2)
+		for _, offsetX in WRAPS do
+			local x = dot.x + offsetX
+			if x + dot.r > 0 and x - dot.r < TILE then
+				for _, offsetY in WRAPS do
+					local y = dot.y + offsetY
+					if y + dot.r > 0 and y - dot.r < TILE then
+						tile:DrawCircle(Vector2.new(x, y), dot.r, color, 0, BLEND)
+					end
+				end
 			end
 		end
 	end
 end
 
--- Makes the brushes, once: a solid stamp per shade for the turf (DrawImageTransformed takes no
--- colour, so each shade gets its own), the ragged stamp (the Ragged colour with every other block
--- left out), a clear eraser for the shells, and a ragged eraser that clears only where the ragged
--- stamp paints. False when they can't be made.
-function GrassPaint.makeBrushes(): boolean
+-- Makes the session's brushes and grass tiles (one per shell of `plan`, the shells'
+-- GrassImages.shellPlan: a session's shell count never changes), once. A solid stamp per shade
+-- paints a stripe into the turf (DrawImageTransformed takes no colour, so each shade gets its own)
+-- and the eraser clears a shell. False when they can't be made.
+function GrassPaint.prepare(plan: { GrassImages.Shell }): boolean
 	if brushes then
 		return true
 	end
 	local made, failed = {}, false
-	local function brush(): EditableImage
-		local image = GrassPaint.newImage(Vector2.new(BRUSH_SIZE, BRUSH_SIZE))
+	local function create(size: Vector2): EditableImage
+		local image = GrassPaint.newImage(size)
 		if image then
 			table.insert(made, image)
 		else
@@ -102,65 +117,200 @@ function GrassPaint.makeBrushes(): boolean
 		end
 		return image :: EditableImage
 	end
+	local brushSize = Vector2.new(BRUSH_SIZE, BRUSH_SIZE)
 	local solid = {}
 	for shade in SHADES do
-		solid[shade] = brush()
+		solid[shade] = create(brushSize)
 	end
-	local ragged, eraser, raggedEraser = brush(), brush(), brush()
-	if failed then
+	local eraser = create(brushSize)
+	local grass = {}
+	for index = 1, #plan do
+		grass[index] = create(Vector2.new(TILE, TILE))
+	end
+	local drawn = not failed
+		and pcall(function()
+			for shade, brush in solid do
+				brush:DrawRectangle(Vector2.zero, brushSize, SHADES[shade], 0, OVERWRITE)
+			end
+			-- Clear white, so the shells' cut edges never filter towards black.
+			eraser:DrawRectangle(Vector2.zero, brushSize, WHITE, 1, OVERWRITE)
+			for index, tile in grass do
+				drawTile(tile, plan, index)
+			end
+		end)
+	if not drawn then
 		for _, image in made do
 			image:Destroy()
 		end
 		return false
 	end
-
-	for shade, image in solid do
-		image:DrawRectangle(Vector2.zero, image.Size, SHADES[shade], 0, OVERWRITE)
-	end
-	-- Clear pixels are white, so blending and multiplying never pull in black at the edges.
-	for _, image in { ragged, eraser, raggedEraser } do
-		image:DrawRectangle(Vector2.zero, image.Size, WHITE, 1, OVERWRITE)
-	end
-	checker(ragged, SHADES[Swath.RAGGED], 0)
-	checker(raggedEraser, WHITE, 1)
-	brushes = { solid = solid, ragged = ragged, eraser = eraser, raggedEraser = raggedEraser }
+	brushes = { solid = solid, eraser = eraser }
+	tiles = grass
 	return true
 end
 
--- Puts a lawn back to all tall: every shell from its template, and the turf uncut.
+-- Puts a lawn back to all tall: every cell tall in the ledger, every shell tiled with its grass and
+-- the turf uncut.
 function GrassPaint.reset(lawn)
+	local size = lawn.turf.Size
 	for index, shell in lawn.shells do
-		shell:DrawImage(Vector2.zero, lawn.templates[index], OVERWRITE)
-	end
-	lawn.turf:DrawRectangle(Vector2.zero, lawn.turf.Size, GrassPaint.UNCUT, 0, OVERWRITE)
-end
-
--- Paints a newly made lawn: each template's blade dots (the same on every client), then reset.
--- `plan` is the shells' GrassImages.shellPlan.
-function GrassPaint.fill(lawn, plan: { GrassImages.Shell })
-	for index, template in lawn.templates do
-		local lift = if #plan > 1 then (index - 1) / (#plan - 1) else 0
-		for _, dot in GrassImages.bladeDots(template.Size.X, template.Size.Y, plan[index].density, index) do
-			local color = BLADE_DARK:Lerp(BLADE_LIGHT, (dot.tone + lift) / 2)
-			template:DrawCircle(Vector2.new(dot.x, dot.y), dot.r, color, 0, BLEND)
+		-- DrawImage takes a tile hanging over the canvas's edge and draws the part inside.
+		for y = 0, size.Y - 1, TILE do
+			for x = 0, size.X - 1, TILE do
+				shell:DrawImage(Vector2.new(x, y), tiles[index], OVERWRITE)
+			end
 		end
 	end
-	GrassPaint.reset(lawn)
+	lawn.turf:DrawRectangle(Vector2.zero, size, UNCUT, 0, OVERWRITE)
+	lawn.cells = table.create(lawn.columns * lawn.rows, LawnGrid.TALL)
 end
 
--- Paints one swath: its stripe into the turf and its shape out of every shell.
-function GrassPaint.paintSegment(lawn, segment: Swath.Segment)
+-- A dull blade's torn cut on pixels read from (left, top) of a shell: where every other
+-- RAGGED_BLOCK square falls (counted from the image's corner, so cuts that overlap agree) the grass
+-- goes, and the rest stands as tufts.
+local function tear(pixels: buffer, left: number, top: number, width: number, height: number)
+	for y = 0, height - 1 do
+		for x = 0, width - 1 do
+			if ((left + x) // RAGGED_BLOCK + (top + y) // RAGGED_BLOCK) % 2 == 0 then
+				buffer.writeu8(pixels, (y * width + x) * 4 + 3, 0)
+			end
+		end
+	end
+end
+
+-- Gives a rectangle of a shell its grass back from the shell's tile, torn when `torn`. The tile
+-- repeats from the image's corner, so a pixel's grass is at (x mod TILE, y mod TILE); a run of
+-- cells can cross from one tile into the next, so it goes a tile at a time.
+local function regrass(shell: EditableImage, tile: EditableImage, position: Vector2, size: Vector2, torn: boolean)
+	local right, bottom = position.X + size.X, position.Y + size.Y
+	local y = position.Y
+	while y < bottom do
+		local height = math.min(TILE - y % TILE, bottom - y)
+		local x = position.X
+		while x < right do
+			local width = math.min(TILE - x % TILE, right - x)
+			local pixels = tile:ReadPixelsBuffer(Vector2.new(x % TILE, y % TILE), Vector2.new(width, height))
+			if torn then
+				tear(pixels, x, y, width, height)
+			end
+			shell:WritePixelsBuffer(Vector2.new(x, y), Vector2.new(width, height), pixels)
+			x += width
+		end
+		y += height
+	end
+end
+
+-- Draws a rectangle of cells that are all in one state the way the ledger has it: tall and ragged
+-- grass comes back from the tiles (torn when ragged), cut and empty cells have none, and the turf
+-- takes the state's colour.
+local function drawArea(lawn, position: Vector2, size: Vector2, state: string)
+	lawn.turf:DrawRectangle(position, size, CELL_COLORS[state], 0, OVERWRITE)
+	local grows = state == LawnGrid.TALL or state == LawnGrid.RAGGED
+	for index, shell in lawn.shells do
+		if grows then
+			regrass(shell, tiles[index], position, size, state == LawnGrid.RAGGED)
+		else
+			shell:DrawRectangle(position, size, WHITE, 1, OVERWRITE)
+		end
+	end
+end
+
+local function drawCell(lawn, index: number, state: string)
+	local column, row = LawnGrid.cell(index, lawn.rows)
+	local pps = lawn.pps
+	drawArea(lawn, Vector2.new(column * pps, row * pps), Vector2.new(pps, pps), state)
+end
+
+-- Draws every cell whose state is in `states` the way the ledger has it. Cells are counted column
+-- by column, so it goes a column at a time in runs of one state.
+local function drawCells(lawn, states: { [string]: boolean })
+	local cells, rows, pps = lawn.cells, lawn.rows, lawn.pps
+	for column = 0, lawn.columns - 1 do
+		local base = column * rows
+		local row = 0
+		while row < rows do
+			local state = cells[base + row + 1]
+			local first = row
+			repeat
+				row += 1
+			until row >= rows or cells[base + row + 1] ~= state
+			if states[state] then
+				drawArea(lawn, Vector2.new(column * pps, first * pps), Vector2.new(pps, (row - first) * pps), state)
+			end
+		end
+	end
+end
+
+-- The cells a swath cut, by the server's own geometry.
+local function cutCells(lawn, segment: Swath.Segment): { number }
+	if segment.radius then
+		return LawnGrid.cellsInCircle(lawn.columns, lawn.rows, segment.fromX, segment.fromZ, segment.radius)
+	end
+	return LawnGrid.cellsUnderSweep(
+		lawn.columns,
+		lawn.rows,
+		segment.fromX,
+		segment.fromZ,
+		segment.toX,
+		segment.toZ,
+		segment.halfWidth
+	)
+end
+
+-- Where a sweep's stripe lies: its middle, the way it went, and half its length and width (studs).
+-- One that barely moved stood still, facing +Z with no length, as the server has it, so it paints
+-- the deck's own rectangle along +Z. Either way the cut reaches DeckReach past both ends (see
+-- LawnGrid.cellsUnderSweep).
+local function stripe(segment: Swath.Segment): (number, number, number, number, number, number)
+	local alongX, alongZ, length = LawnGrid.heading(segment.fromX, segment.fromZ, segment.toX, segment.toZ)
+	local middleX, middleZ = (segment.fromX + segment.toX) / 2, (segment.fromZ + segment.toZ) / 2
+	return middleX, middleZ, alongX, alongZ, length / 2 + LawnGrid.DeckReach, segment.halfWidth
+end
+
+-- Every cell a clean swath's stamp may paint on, generously: each whose centre is within half a
+-- cell's diagonal (and a pixel of soft edge) of the stripe or the snip.
+local function touched(lawn, segment: Swath.Segment): { number }
+	local margin = HALF_DIAGONAL + 1 / lawn.pps
+	local found = {}
+	local function scan(minX: number, maxX: number, minZ: number, maxZ: number, near: (number, number) -> boolean)
+		for column = math.max(0, math.floor(minX)), math.min(lawn.columns - 1, math.floor(maxX)) do
+			for row = math.max(0, math.floor(minZ)), math.min(lawn.rows - 1, math.floor(maxZ)) do
+				if near(column + 0.5, row + 0.5) then
+					table.insert(found, LawnGrid.index(column, row, lawn.rows))
+				end
+			end
+		end
+	end
+	if segment.radius then
+		local x, z, reach = segment.fromX, segment.fromZ, segment.radius + margin
+		scan(x - reach, x + reach, z - reach, z + reach, function(cellX, cellZ)
+			return (cellX - x) ^ 2 + (cellZ - z) ^ 2 < reach * reach
+		end)
+		return found
+	end
+	local middleX, middleZ, alongX, alongZ, halfLength, halfWidth = stripe(segment)
+	halfLength += margin
+	halfWidth += margin
+	local extentX = math.abs(alongX) * halfLength + math.abs(alongZ) * halfWidth
+	local extentZ = math.abs(alongZ) * halfLength + math.abs(alongX) * halfWidth
+	scan(middleX - extentX, middleX + extentX, middleZ - extentZ, middleZ + extentZ, function(cellX, cellZ)
+		local dx, dz = cellX - middleX, cellZ - middleZ
+		return math.abs(dx * alongX + dz * alongZ) < halfLength and math.abs(dz * alongX - dx * alongZ) < halfWidth
+	end)
+	return found
+end
+
+-- A clean swath's stamp: its stripe into the turf, with wheel tracks, and its shape out of every
+-- shell. A snip is a round patch.
+local function stamp(lawn, segment: Swath.Segment)
 	local pps = lawn.pps
 	local turf = lawn.turf
-	-- A dull blade's cut always takes the Ragged colour, whatever shade it was heading.
-	local shade = if segment.ragged then Swath.RAGGED else segment.shade
-	local color = SHADES[shade] or SHADES.Flat
+	local color = SHADES[segment.shade] or SHADES.Flat
 	local function pixel(x: number, z: number): Vector2
 		return Vector2.new(GrassImages.worldToPixel(0, 0, pps, x, z))
 	end
 
 	if segment.radius then
-		-- A snip: a round patch.
 		local center, radius = pixel(segment.fromX, segment.fromZ), segment.radius * pps
 		turf:DrawCircle(center, radius, color, 0, BLEND)
 		for _, shell in lawn.shells do
@@ -168,25 +318,17 @@ function GrassPaint.paintSegment(lawn, segment: Swath.Segment)
 		end
 		return
 	end
-
-	local halfWidth = segment.halfWidth
-	if halfWidth <= 0 then
+	if segment.halfWidth <= 0 then
 		return
 	end
-	-- Which way it went, as the server has it: one that barely moved stood still, facing +Z with no
-	-- length, so it paints the deck's own rectangle along +Z. Either way the cut reaches DeckReach
-	-- past both ends (see LawnGrid.cellsUnderSweep).
-	local alongX, alongZ, length = LawnGrid.heading(segment.fromX, segment.fromZ, segment.toX, segment.toZ)
-	local halfLength = length / 2 + LawnGrid.DeckReach
-	local middleX, middleZ = (segment.fromX + segment.toX) / 2, (segment.fromZ + segment.toZ) / 2
+
+	local middleX, middleZ, alongX, alongZ, halfLength, halfWidth = stripe(segment)
 	local center = pixel(middleX, middleZ)
 	local scale = Vector2.new(2 * halfLength * pps / BRUSH_SIZE, 2 * halfWidth * pps / BRUSH_SIZE)
 	-- Image X and Y are lawn X and Z, so the angle on the lawn is the angle in the picture.
 	local angle = math.deg(math.atan2(alongZ, alongX))
-	local brush = if segment.ragged then brushes.ragged else brushes.solid[shade] or brushes.solid.Flat
-	turf:DrawImageTransformed(center, scale, angle, brush, STAMP)
+	turf:DrawImageTransformed(center, scale, angle, brushes.solid[segment.shade] or brushes.solid.Flat, STAMP)
 
-	-- The wheel tracks, just inside the two long edges.
 	local track = darken(color, TRACK_DARKEN)
 	local edge = halfWidth - TRACK_INSET / pps
 	for _, side in { -edge, edge } do
@@ -196,75 +338,93 @@ function GrassPaint.paintSegment(lawn, segment: Swath.Segment)
 		turf:DrawLine(startPixel, endPixel, track, 0, BLEND)
 	end
 
-	local eraser = if segment.ragged then brushes.raggedEraser else brushes.eraser
-	local erase = if segment.ragged then ERASE_RAGGED else ERASE
 	for _, shell in lawn.shells do
-		shell:DrawImageTransformed(center, scale, angle, eraser, erase)
+		shell:DrawImageTransformed(center, scale, angle, brushes.eraser, ERASE)
 	end
 end
 
--- A dull blade's torn cut over a rectangle of a shell, a pixel at a time: where the ragged brush
--- would paint (every other RAGGED_BLOCK square, counted from the image's corner) the grass goes,
--- and the rest stays standing as tufts. (A brush shrunk to one cell would blur its pattern away.)
-local function tear(image: EditableImage, position: Vector2, size: Vector2)
-	local pixels = image:ReadPixelsBuffer(position, size)
-	for y = 0, size.Y - 1 do
-		for x = 0, size.X - 1 do
-			if ((position.X + x) // RAGGED_BLOCK + (position.Y + y) // RAGGED_BLOCK) % 2 == 0 then
-				buffer.writeu8(pixels, (y * size.X + x) * 4 + 3, 0)
+-- Paints a swath, keeping to the ledger. A clean cut stamps its smooth stripe, then puts back the
+-- cells under it that the server didn't cut clean: empty ground stays bare and ragged grass stays
+-- ragged. A dull blade's cut (a sweep or a snip) tears exactly the cells it cut, cell by cell,
+-- since a stretched stamp would blur its tufts and overlapping ones would wear them away; its
+-- edges follow the cells. `confirmed` is the server's own swath, which the ledger takes in; your
+-- own mower's paint ahead of it (GrassController.paintSweep) leaves the ledger alone.
+function GrassPaint.paintSwath(lawn, segment: Swath.Segment, confirmed: boolean)
+	local cells = lawn.cells
+	if segment.ragged then
+		for _, index in cutCells(lawn, segment) do
+			local state = cells[index]
+			if state == LawnGrid.TALL or state == LawnGrid.RAGGED then
+				if confirmed then
+					cells[index] = LawnGrid.RAGGED
+				end
+				drawCell(lawn, index, LawnGrid.RAGGED)
+			end
+		end
+		return
+	end
+
+	stamp(lawn, segment)
+	if confirmed then
+		for _, index in cutCells(lawn, segment) do
+			if cells[index] == LawnGrid.TALL then
+				cells[index] = LawnGrid.MOWED
 			end
 		end
 	end
-	image:WritePixelsBuffer(position, size, pixels)
+	for _, index in touched(lawn, segment) do
+		local state = cells[index]
+		if state == LawnGrid.EMPTY or state == LawnGrid.RAGGED then
+			drawCell(lawn, index, state)
+		end
+	end
 end
 
--- Draws every cell the way the ledger has it (one character per cell, see LawnGrid): cut and empty
--- cells come out of every shell, raggedly for a ragged cut, and the turf under them takes their
--- colour. Cells are counted column by column, so it goes a column at a time in runs of one state.
-function GrassPaint.applyCells(lawn, cells: string)
-	local cellPixels = lawn.pps
-	local rows = lawn.rows
-	for column = 0, lawn.columns - 1 do
-		local base = column * rows
-		local row = 0
-		while row < rows do
-			local state = string.sub(cells, base + row + 1, base + row + 1)
-			local first = row
-			repeat
-				row += 1
-			until row >= rows or string.sub(cells, base + row + 1, base + row + 1) ~= state
-			local color = CELL_COLORS[state]
-			if color then
-				local position = Vector2.new(column * cellPixels, first * cellPixels)
-				local size = Vector2.new(cellPixels, (row - first) * cellPixels)
-				lawn.turf:DrawRectangle(position, size, color, 0, OVERWRITE)
-				for _, shell in lawn.shells do
-					if state == LawnGrid.RAGGED then
-						tear(shell, position, size)
-					else
-						shell:DrawRectangle(position, size, WHITE, 1, OVERWRITE)
-					end
+-- Draws a lawn afresh from what GetSwaths sent: the ledger (one character per cell) and the swath
+-- log. The ledger is the truth for every cell: the mown cells go first, the log's clean cuts are
+-- stamped over them for the stripes and smooth edges, and then the cells a stamp mustn't change
+-- (empty and ragged) are drawn over those. A home lawn's log keeps swaths over grass that has grown
+-- back since, so cells a clean swath cut that the ledger says are tall grow back.
+function GrassPaint.redraw(lawn, cells: string, log: { { number | string | boolean } })
+	GrassPaint.reset(lawn)
+	local ledger = lawn.cells
+	for index = 1, math.min(#cells, #ledger) do
+		ledger[index] = string.sub(cells, index, index)
+	end
+	drawCells(lawn, { [LawnGrid.MOWED] = true })
+
+	local regrown, seen = {}, {}
+	for _, packed in log do
+		local segment = Swath.unpack(packed)
+		if segment.ragged then
+			-- Its cells are ragged in the ledger, or have grown back: the last pass draws them.
+			continue
+		end
+		stamp(lawn, segment)
+		if lawn.regrows then
+			for _, index in cutCells(lawn, segment) do
+				if not seen[index] and ledger[index] == LawnGrid.TALL then
+					seen[index] = true
+					table.insert(regrown, index)
 				end
 			end
 		end
 	end
+	for _, index in regrown do
+		drawCell(lawn, index, LawnGrid.TALL)
+	end
+	drawCells(lawn, { [LawnGrid.EMPTY] = true, [LawnGrid.RAGGED] = true })
 end
 
--- Grows cells back: each shell gets the cell's square back from its template (DrawImage can't
--- take part of an image, so the pixels are copied), and the turf under them goes flat.
+-- Grows cells back (the Regrow event): tall in the ledger, their grass back from the tiles and the
+-- turf under them uncut.
 function GrassPaint.regrowCells(lawn, indexes: { number })
-	local cellPixels = lawn.pps
-	local size = Vector2.new(cellPixels, cellPixels)
 	for _, index in indexes do
-		if index < 1 or index > lawn.columns * lawn.rows then
-			continue
+		local state = lawn.cells[index]
+		if state ~= nil and state ~= LawnGrid.EMPTY then
+			lawn.cells[index] = LawnGrid.TALL
+			drawCell(lawn, index, LawnGrid.TALL)
 		end
-		local column, row = LawnGrid.cell(index, lawn.rows)
-		local position = Vector2.new(column * cellPixels, row * cellPixels)
-		for shellIndex, shell in lawn.shells do
-			shell:WritePixelsBuffer(position, size, lawn.templates[shellIndex]:ReadPixelsBuffer(position, size))
-		end
-		lawn.turf:DrawRectangle(position, size, SHADES.Flat, 0, OVERWRITE)
 	end
 end
 
