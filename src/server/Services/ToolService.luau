@@ -83,6 +83,8 @@ local stalledUntil = setmetatable({}, { __mode = "k" })
 -- [Tool] = where a mower's deck was at its last tick, for as long as it has run without a break:
 -- its next sweep goes from there to where the deck is now.
 local lastDeck = setmetatable({}, { __mode = "k" })
+-- [Tool] = true while lastDeck is held where it is because junk stopped the mower's sweep
+local deckHeld = setmetatable({}, { __mode = "k" })
 -- A deck that moved less than this since the last tick (studs along the ground) is standing still.
 -- Sweeping a sliver that short would turn the deck to face wherever the jitter pointed, and flip
 -- its orientation every tick.
@@ -93,6 +95,10 @@ local STANDING_DECK = 0.05
 -- from where it was has jumped: a client owns where its character is, and could teleport it.
 local SWEEP_SLACK = 3
 local SWEEP_GRACE = 2
+-- A deck held at junk lets go once it is this far (studs along the ground) from where it was held,
+-- and starts afresh where it is, without sweeping back across the junk: the junk costs about its
+-- own width of uncut grass, not as much as the player keeps walking.
+local HOLD_RELEASE = 1.5
 
 -- Snips of hand shears land where your aim crosses this high above your feet (about the top of
 -- tall grass, which is what you see when you aim at it).
@@ -179,6 +185,7 @@ end
 -- deck was, so when it starts again it doesn't cut a line across the gap.
 local function stopWork(tool: Tool)
 	lastDeck[tool] = nil
+	deckHeld[tool] = nil
 	setFx(tool, false)
 end
 
@@ -784,6 +791,7 @@ local function workTick(elapsed: number)
 		if not (player and humanoid and root and root:IsA("BasePart")) or humanoid.Health <= 0 then
 			running[tool] = nil
 			lastDeck[tool] = nil
+			deckHeld[tool] = nil
 			continue
 		end
 		local itemId = tool:GetAttribute("ItemId")
@@ -846,22 +854,26 @@ local function workTick(elapsed: number)
 				-- The deck sweeps from where it was last tick to where it is now, so nothing between
 				-- the two is skipped however fast it goes. One that has barely moved stands where it
 				-- was (and keeps standing until it has really gone somewhere). One that has jumped
-				-- further than the mower can walk starts afresh instead of cutting across the gap.
+				-- further than the mower can walk, or has been held at junk and then gone on, starts afresh
+				-- instead of cutting across the gap.
 				local previous = lastDeck[tool]
 				local step = if previous then Vector2.new(front.X - previous.X, front.Z - previous.Z).Magnitude else 0
 				local farthest = (item.walkSpeed or GameConfig.DefaultWalkSpeed) * elapsed * SWEEP_SLACK + SWEEP_GRACE
-				if step > farthest then
+				if step > farthest or (deckHeld[tool] and step > HOLD_RELEASE) then
 					previous = nil
 				end
 				local from = previous or front
 				local to = if previous and step < STANDING_DECK then previous else front
 				local stopped
 				cut, hits, stopped = sweep(player, atJob, from.X, from.Z, to.X, to.Z, item.radius, itemId, options)
-				-- Junk stopped the sweep short: the deck stays where it began, so the next tick sweeps
+				-- Junk stopped the sweep short: the deck is held where it began, so the next tick sweeps
 				-- from there and is stopped by the same junk, instead of starting past it and leaving
-				-- the cells in between uncut.
+				-- the cells in between uncut. Until it has gone HOLD_RELEASE from there (above).
 				if not previous or (step >= STANDING_DECK and not stopped) then
 					lastDeck[tool] = front
+					deckHeld[tool] = nil
+				elseif stopped then
+					deckHeld[tool] = true
 				end
 			else
 				cut, hits = applyWork(player, atJob, front, item.radius, itemId, item.power * elapsed * speed, options)
