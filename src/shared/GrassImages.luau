@@ -98,4 +98,60 @@ function GrassImages.worldToPixel(originX: number, originZ: number, pps: number,
 	return (x - originX) * pps, (z - originZ) * pps
 end
 
+-- One side of the box, for clipLine. The segment is walked as t from 0 (its start) to 1 (its end),
+-- and it's on this side's inside while room + gain * t is 0 or more: `room` is how far inside the
+-- start sits, `gain` how fast that grows. Narrows enter..leave, the stretch of t still inside, to
+-- what this side allows. When none is left, enter ends up above leave and stays there.
+local function clipSide(room: number, gain: number, enter: number, leave: number): (number, number)
+	if gain == 0 then
+		-- Running alongside this side: all of the segment is inside it, or none.
+		if room < 0 then
+			return 1, 0
+		end
+		return enter, leave
+	end
+	local crossing = -room / gain
+	if gain > 0 then
+		return math.max(enter, crossing), leave
+	end
+	return enter, math.min(leave, crossing)
+end
+
+-- The spot t of the way from `from` along `delta`, held to 0..limit so rounding can't leave it a
+-- hair outside.
+local function pointAlong(from: number, delta: number, t: number, limit: number): number
+	return math.clamp(from + delta * t, 0, limit)
+end
+
+-- Clips the segment (x1, y1)-(x2, y2) to the box from (0, 0) to (width, height), edges included
+-- (Liang-Barsky), and gives the clipped endpoints, or nil when none of the segment is inside. An
+-- EditableImage won't draw a line with either end outside it, so a swath that runs off the lawn is
+-- cut back to the picture with this first.
+function GrassImages.clipLine(
+	x1: number,
+	y1: number,
+	x2: number,
+	y2: number,
+	width: number,
+	height: number
+): (number?, number?, number?, number?)
+	local dx, dy = x2 - x1, y2 - y1
+	local enter, leave = clipSide(x1, dx, 0, 1)
+	enter, leave = clipSide(width - x1, -dx, enter, leave)
+	enter, leave = clipSide(y1, dy, enter, leave)
+	enter, leave = clipSide(height - y1, -dy, enter, leave)
+	if enter > leave then
+		return nil
+	end
+	-- An end that was already inside comes back as it went in, not as a sum that may be off a hair.
+	local startX, startY, endX, endY = x1, y1, x2, y2
+	if enter > 0 then
+		startX, startY = pointAlong(x1, dx, enter, width), pointAlong(y1, dy, enter, height)
+	end
+	if leave < 1 then
+		endX, endY = pointAlong(x1, dx, leave, width), pointAlong(y1, dy, leave, height)
+	end
+	return startX, startY, endX, endY
+end
+
 return GrassImages

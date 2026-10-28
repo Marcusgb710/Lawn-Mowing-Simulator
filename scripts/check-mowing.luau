@@ -317,6 +317,36 @@ check(fractX == 0.6 and fractY == 1.5, "pixels are not rounded")
 local beforeX, beforeY = GrassImages.worldToPixel(100, 200, 4, 99, 198)
 check(beforeX == -4 and beforeY == -8, "a point before the origin is a negative pixel, not clamped")
 
+-- clipLine keeps a segment inside the picture. The box is 143 x 111; the numbers are the clipped
+-- endpoints, which can be a hair off from rounding.
+local function clipsTo(x1: number, y1: number, x2: number, y2: number, ...: number): boolean
+	local expected = { ... }
+	local got = { GrassImages.clipLine(x1, y1, x2, y2, 143, 111) }
+	if #got ~= #expected then
+		return false
+	end
+	for index, value in expected do
+		if math.abs(got[index] - value) > 1e-6 then
+			return false
+		end
+	end
+	return true
+end
+check(clipsTo(10, 20, 30, 40, 10, 20, 30, 40), "a segment inside the box stays put")
+check(clipsTo(-8, 10, 20, 10, 0, 10, 20, 10), "an end past the left edge is cut back to it")
+check(clipsTo(50, 100, 50, 130, 50, 100, 50, 111), "an end past the bottom is cut back to it")
+-- This one is steeper than the box's diagonal, so it comes in through the top edge and goes out through the bottom.
+check(
+	clipsTo(-10, -10, 153, 121, -10 + 163 * 10 / 131, 0, -10 + 163 * 121 / 131, 111),
+	"a segment crossing the box with both ends out is cut at both"
+)
+check(clipsTo(-14.3, -11.1, 157.3, 122.1, 0, 0, 143, 111), "a diagonal through two corners is cut back to them")
+check(clipsTo(-5, 0, -5, 111), "a segment running alongside the box has nothing inside")
+check(clipsTo(200, 200, 300, 250), "a segment far away has nothing inside")
+check(clipsTo(7, 7, 7, 7, 7, 7, 7, 7), "a point inside stays")
+check(clipsTo(-1, 7, -1, 7), "a point outside is gone")
+check(clipsTo(0, 5, 143, 5, 0, 5, 143, 5), "a segment exactly on the box's edges stays")
+
 -- Home lawn saves from before cells ---------------------------------------------------------------
 
 local fs = require("@lune/fs")

@@ -336,11 +336,18 @@ local function stamp(lawn, segment: Swath.Segment)
 
 	local track = darken(color, TRACK_DARKEN)
 	local edge = halfWidth - TRACK_INSET / pps
+	-- DrawLine wants both ends inside the picture, and a deck sweeps in from outside the lawn, so each
+	-- track is clipped to it first, a pixel in from the far edges so rounding can't push an end out.
+	local lastX, lastY = turf.Size.X - 1, turf.Size.Y - 1
 	for _, side in { -edge, edge } do
 		local offsetX, offsetZ = -alongZ * side, alongX * side
 		local startPixel = pixel(middleX - alongX * halfLength + offsetX, middleZ - alongZ * halfLength + offsetZ)
 		local endPixel = pixel(middleX + alongX * halfLength + offsetX, middleZ + alongZ * halfLength + offsetZ)
-		turf:DrawLine(startPixel, endPixel, track, 0, BLEND)
+		local fromX, fromY, toX, toY =
+			GrassImages.clipLine(startPixel.X, startPixel.Y, endPixel.X, endPixel.Y, lastX, lastY)
+		if fromX and fromY and toX and toY then
+			turf:DrawLine(Vector2.new(fromX, fromY), Vector2.new(toX, toY), track, 0, BLEND)
+		end
 	end
 
 	for _, shell in lawn.shells do
