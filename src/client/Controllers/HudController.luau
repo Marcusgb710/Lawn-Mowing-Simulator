@@ -858,8 +858,8 @@ local function celebrate(row)
 end
 
 -- Whether the "Show what I missed" button shows: while the job tracker does, from the time a
--- mowing to-do (the one with a percent) is MissedSpotsFrom done until it counts as finished. A lawn
--- drawn the simple way has nothing to light up, so it never shows for one.
+-- mowing to-do (the one with a percent, of what the job requires) is MissedSpotsFrom done until it
+-- counts as finished. A lawn drawn the simple way has nothing to light up, so it never shows for one.
 local function updateMissedButton()
 	local job = ClientState.job
 	local show = false

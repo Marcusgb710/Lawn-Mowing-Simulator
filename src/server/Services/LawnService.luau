@@ -2690,7 +2690,9 @@ function Lawn:IsComplete(): boolean
 end
 
 -- Progress for the HUD: { { task = "MowSmallLawn", label = "Mow the lawn", done = 10, needed = 29 }, ... }
--- Mowing also has `percent`: the share of the grass that's cut, 0-1.
+-- Mowing also has `percent`, 0-1: how much of what the job requires is cut. The grass beside flowers
+-- and trees is optional (it doesn't count against you if it's left), so it isn't part of what's
+-- required. That puts it at MowCompletionThreshold or more exactly when the task is complete.
 function Lawn:GetProgress()
 	local progress = {}
 	for _, task in self.tasks do
@@ -2702,9 +2704,8 @@ function Lawn:GetProgress()
 				needed = needed(task),
 			}
 			if task.type.target == "Grass" then
-				local cells = table.concat(self.grassState)
-				local mowable = LawnGrid.mowableCount(cells)
-				entry.percent = if mowable > 0 then LawnGrid.cutCount(cells) / mowable else 1
+				-- Cells cut beside flowers and trees still count as cut, so it's capped at 1.
+				entry.percent = math.min(1, task.done / math.max(1, task.total - task.optional))
 			end
 			table.insert(progress, entry)
 		end

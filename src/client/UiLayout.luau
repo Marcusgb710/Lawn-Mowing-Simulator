@@ -396,8 +396,10 @@ return {
 		order = 3,
 		size = { 0, 280, 0, 44 },
 		touch = { size = { 0, 280, 0, 52 } },
-		note = "Under the job tracker, once the lawn is mowed to GameConfig.MissedSpotsFrom (90%) and until "
-			.. "the mowing counts as done: lights up the grass that's left, red, for GameConfig.MissedSpotsSeconds. "
+		note = "Under the job tracker, once the mowing's percent (how much of what the job requires is cut, "
+			.. "not counting the optional grass beside flowers and trees) reaches GameConfig.MissedSpotsFrom "
+			.. "(90%) and until the mowing counts as done: lights up all the grass that's left, red, for "
+			.. "GameConfig.MissedSpotsSeconds. "
 			.. "With a keyboard its key (M) is on it, as on the menu buttons. Taller on a touch screen, to be "
 			.. "easy to tap. It's hidden whenever the job tracker is, and a lawn drawn the simple way has "
 			.. "nothing to light up, so it doesn't show for one. Nothing takes its spot.",

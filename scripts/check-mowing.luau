@@ -392,6 +392,19 @@ check(HomeLawn.encode(spread) == string.rep("1", 16) .. string.rep("0", 16), "wh
 check(LawnGrid.needed(1000, 0, 0.99) == 990 and LawnGrid.needed(1000, 100, 0.99) == 891, "needed rounds up")
 check(LawnGrid.needed(30, 0, 0.95) == 29, "a share of a count that isn't whole needs the next whole one")
 check(LawnGrid.needed(0, 0, 0.99) == 0 and LawnGrid.needed(40, 40, 0.99) == 0, "no cells that count, none needed")
+-- The HUD's mowing percent is the cells done over the ones the job requires (LawnService's
+-- GetProgress: total less optional), so it's at the threshold or more exactly when `needed` are done,
+-- on a lawn with no optional cells and on ones where a tenth, over a quarter or half of them are.
+local agree = true
+for total = 1, 400 do
+	for _, optional in { 0, total // 10, total * 28 // 100, total // 2 } do
+		local needed = LawnGrid.needed(total, optional, 0.99)
+		for done = math.max(0, needed - 2), math.min(total, needed + 2) do
+			agree = agree and (done / (total - optional) >= 0.99) == (done >= needed)
+		end
+	end
+end
+check(agree, "the percent reaches the threshold exactly when the task has what it needs")
 
 if failures > 0 then
 	print(`{failures} check(s) failed`)

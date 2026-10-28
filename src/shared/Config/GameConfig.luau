@@ -42,7 +42,8 @@ local GameConfig = {
 	CellSize = 1,
 	-- Pixels per stud in the mowed picture (halved for a lawn too big to fit one image).
 	PixelsPerStud = 4,
-	-- Mowing counts as done at this share of a lawn's mowable cells (other tasks use CompletionThreshold).
+	-- Mowing counts as done at this share of the cells it requires: a lawn's mowable cells, less the
+	-- optional ones beside flowers and trees (other tasks use CompletionThreshold).
 	MowCompletionThreshold = 0.99,
 	-- How far in front of the player a mower's deck sits, in studs.
 	DeckOffset = 2,
@@ -56,7 +57,7 @@ local GameConfig = {
 	CuttingSlowdown = 0.85,
 	-- Camera shake is multiplied by this while a mower is cutting.
 	CuttingShake = 1.5,
-	-- From this share of the lawn mowed, the "Show what I missed" button appears...
+	-- From this share of what the mowing requires, the "Show what I missed" button appears...
 	MissedSpotsFrom = 0.9,
 	-- ...and the uncut spots stay lit for this many seconds.
 	MissedSpotsSeconds = 3,
