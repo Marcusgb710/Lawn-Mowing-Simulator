@@ -52,6 +52,7 @@ Other useful commands:
 | `rojo sourcemap -o sourcemap.json` | Lets the Luau extension in VS Code understand the game tree |
 | `stylua src` | Auto-formats the code |
 | `selene src` | Lints the code |
+| `lune run scripts/check-mowing` | Checks the lawn's cell maths: which cells a mower's deck cuts, and the cell counts |
 
 **Testing saves in Studio:** Game Settings → Security → turn on *Enable Studio Access to API
 Services*. Without it the game still runs, it just doesn't save progress.
