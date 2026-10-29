@@ -13,7 +13,8 @@
 --      * fits       anchors everything, turns the front to -Z, scales to the entry's fit, and puts
 --                   the bottom centre on the origin
 --      * adds       the Handle and grips (tools) or the Root, the renames and collision, markers,
---                   boxes and synthesised parts
+--                   boxes and synthesised parts. Anything the mesh already calls Handle (or Root)
+--                   is renamed Handle_mesh (Root_mesh) first, so the added one is the only one.
 --      * stages     ServerStorage.ModelImport.<Folder>.<id>, replacing an older copy
 --    Each entry prints "ok <id> parts=<n> size=<x>x<y>x<z>" or "FAIL <id> <reason>"; a name the
 --    manifest gives that isn't in the model is a FAIL, so a stale entry never ships quietly.
@@ -56,6 +57,11 @@ local UNWANTED = {
 
 local function fail(message: string)
 	error(message, 0)
+end
+
+-- The part the game finds a model by: a tool's Handle, or the Root of everything else.
+local function contractName(entry): string
+	return if entry.folder == "Tools" then "Handle" else "Root"
 end
 
 local function partsOf(root: Instance): { BasePart }
@@ -258,13 +264,19 @@ local function normalise(entry, model: Model)
 end
 
 -- What the game expects of a model (src/shared/Assets.luau): the Handle or Root, and the entry's extras.
-local function contract(entry, model: Model)
+-- Returns how many things the mesh already had under the Handle or Root name, which it renamed.
+local function contract(entry, model: Model): number
 	local list = partsOf(model)
-	local handleName = if entry.folder == "Tools" then "Handle" else "Root"
+	local handleName = contractName(entry)
 
-	-- The entry's collision for the mesh's own parts: all of them, then the ones it names.
+	-- The entry's collision for the mesh's own parts: all of them, then the ones it names. Queries
+	-- stay on and touches off: players aim at tools, desks and decorations to use them, and a
+	-- non-colliding part with CanQuery off is invisible to that aim. (The invisible markers made
+	-- further down keep CanQuery off.)
 	for _, part in list do
 		part.CanCollide = entry.collide
+		part.CanQuery = true
+		part.CanTouch = false
 	end
 	-- Every name here is the mesh's own, so find all the parts before renaming any of them.
 	local steps = {}
@@ -293,6 +305,11 @@ local function contract(entry, model: Model)
 		end
 	end
 	for _, step in steps do
+		if step.part ~= handleMesh and step.info.rename == handleName then
+			fail(`parts: {step.part.Name} can't be renamed {handleName}, which is the importer's own (use handlePart)`)
+		end
+	end
+	for _, step in steps do
 		if step.info.collide ~= nil then
 			step.part.CanCollide = step.info.collide
 		end
@@ -300,13 +317,17 @@ local function contract(entry, model: Model)
 			step.part.Name = step.info.rename
 		end
 	end
+	-- A Store mesh often has its own Handle (a handlebar group, say), and the game finds ours with
+	-- FindFirstChild, so two would be a coin toss. Whatever is left with the name moves aside.
+	local clashes = 0
+	for _, d in model:GetDescendants() do
+		if d.Name == handleName and d ~= handleMesh then
+			d.Name = handleName .. "_mesh"
+			clashes += 1
+		end
+	end
 	if handleMesh then
 		handleMesh.Name = handleName
-	end
-	for _, part in list do
-		if part.Name == handleName and part ~= handleMesh then
-			fail(`it already has a part named {handleName}; rename it under parts`)
-		end
 	end
 
 	local primary = handleMesh
@@ -343,11 +364,13 @@ local function contract(entry, model: Model)
 		part.Material = Enum.Material[s.material]
 		part.Color = s.color
 		part.Anchored = true
+		part.CanTouch = false
 		if s.hinge then
 			part.PivotOffset = part.CFrame:ToObjectSpace(CFrame.new(s.hinge))
 		end
 		part.Parent = model
 	end
+	return clashes
 end
 
 local function stage(entry, model: Model)
@@ -371,11 +394,14 @@ for _, entry in MODELS do
 		model = keepOne(entry, model)
 		clean(entry, model)
 		normalise(entry, model)
-		contract(entry, model)
+		local clashes = contract(entry, model)
 		local list = partsOf(model)
 		local low, high = bounds(list)
 		local size = high - low
 		local line = string.format("ok %s parts=%d size=%.1fx%.1fx%.1f", entry.id, #list, size.X, size.Y, size.Z)
+		if clashes > 0 then
+			line ..= ` (renamed {clashes} {contractName(entry)} clashes)`
+		end
 		if entry.budget and #list > entry.budget then
 			line ..= ` (over its budget of {entry.budget} parts)`
 		end

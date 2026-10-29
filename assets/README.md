@@ -65,7 +65,9 @@ holds:
   below is in that frame: +Y up, front toward -Z.
 - Tools only: `handle` (`{ "position", "size" }`, an invisible `Handle` part) or `handlePart` (the
   mesh to rename `Handle`), and `grips` (`{ "left", "right" }`, the `GripLeft`/`GripRight`
-  attachments on it). Everything else gets the invisible `Root` part at (0, 0.5, 0).
+  attachments on it). Everything else gets the invisible `Root` part at (0, 0.5, 0). A part or
+  Model the mesh already calls `Handle` (or `Root`) is renamed `Handle_mesh` (`Root_mesh`) first,
+  and the import says how many it renamed.
 - `parts`: `{ "<mesh name>": { "rename", "collide" } }`, by the names the mesh arrives with.
 - `markers`: `[{ "name", "position", "orientation" (degrees), "attributes" }]`, attachments on the
   `Handle` or `Root`. `boxes`: `[{ "name", "position", "size" }]`, invisible parts that don't
@@ -73,8 +75,9 @@ holds:
 - `synth`: `[{ "name", "position", "size", "material", "color": [r, g, b], "hinge" }]`, plain parts
   for what a fused mesh lacks, such as the equipment trailer's ramp. `material` is an
   `Enum.Material` name, and `hinge` (optional) is where the part pivots.
-- `collide`: the mesh parts' `CanCollide`. Without it, `Trucks`, `Trailers` and `Buildings` collide
-  and the rest don't.
+- `collide`: the mesh parts' `CanCollide`. Without it, `Trucks`, `Trailers`, `Buildings` and
+  `Props/House` collide and the rest don't. Either way the mesh parts get `CanQuery` on and
+  `CanTouch` off, so players can still aim at a part that doesn't collide.
 - `strip`: `["Class:Name"]`, instances to delete besides the scripts, sounds, effects, GUIs,
   humanoids, constraints, motors and body movers every model loses (a baked-in logo decal, say).
 - `budget`: how many parts the model may have; the import says so when it goes over.

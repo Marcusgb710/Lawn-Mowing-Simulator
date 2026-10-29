@@ -2,7 +2,8 @@
   "name": "LawnMowingSimulator",
   "globIgnorePaths": [
     "**/*.md",
-    "**/.gitkeep"
+    "**/.gitkeep",
+    "**/manifest"
   ],
   "tree": {
     "$className": "DataModel",

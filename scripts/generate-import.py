@@ -25,8 +25,10 @@ TEMPLATE = os.path.join(HERE, "ImportStoreModels.template.luau")
 OUT = os.path.join(HERE, "ImportStoreModels.luau")
 
 FOLDERS = ("Tools", "Trucks", "Trailers", "Buildings", "Props", "Decorations", "Story")
-# Models that players walk into, drive or park against: their parts collide unless the entry says not to.
+# Models that players walk into, drive or park against: their parts collide unless the entry says not
+# to. The customer's house is one of these too, though it lives in Props.
 SOLID_FOLDERS = ("Trucks", "Trailers", "Buildings")
+SOLID_PROPS = ("House",)
 FACINGS = ("+X", "-X", "+Z", "-Z")
 AXES = ("height", "width", "length")
 ENTRY_FIELDS = (
@@ -157,7 +159,7 @@ def entry_problems(entry: dict) -> list:
         problems.append(f"folder must be one of {', '.join(FOLDERS)}")
     source = entry.get("source")
     kind = source.get("kind") if isinstance(source, dict) else None
-    if kind not in SOURCE_FIELDS:
+    if not isinstance(kind, str) or kind not in SOURCE_FIELDS:
         problems.append(f"source.kind must be one of {', '.join(SOURCE_FIELDS)}")
     else:
         problems += record_problems("source", source, {"kind": NAME, **SOURCE_FIELDS[kind]}, {})
@@ -280,6 +282,10 @@ def block(name: str, rows: list) -> str:
     return f"{name} = {{\n" + "".join(f"\t\t\t{row},\n" for row in rows) + "\t\t}"
 
 
+def solid_by_default(entry: dict) -> bool:
+    return entry["folder"] in SOLID_FOLDERS or (entry["folder"] == "Props" and entry["id"] in SOLID_PROPS)
+
+
 def render_entry(entry: dict) -> str:
     folder, fit = entry["folder"], entry["fit"]
     fields = [
@@ -303,7 +309,7 @@ def render_entry(entry: dict) -> str:
         grips = entry["grips"]
         fields.append(f"grips = {{ left = {vec(grips['left'])}, right = {vec(grips['right'])} }}")
     # Always written out, so the generated script holds every rule and the template holds none.
-    fields.append(f"collide = {lua_value(entry.get('collide', folder in SOLID_FOLDERS))}")
+    fields.append(f"collide = {lua_value(entry.get('collide', solid_by_default(entry)))}")
     if entry.get("parts"):
         fields.append(block("parts", [f"[{lua_value(name)}] = {part_lua(info)}" for name, info in entry["parts"].items()]))
     for field, render in (("markers", marker_lua), ("boxes", box_lua), ("synth", synth_lua)):

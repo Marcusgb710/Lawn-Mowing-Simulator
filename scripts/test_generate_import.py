@@ -87,6 +87,15 @@ class GenerateTest(unittest.TestCase):
         explicit = {**truck, "collide": False}
         self.assertIn("collide = false,", generate_import.generate(manifest_of(explicit), TEMPLATE))
 
+    def test_the_house_collides_by_default_though_it_lives_in_props(self):
+        def render(entry_id):
+            entry = {**store_entry(), "id": entry_id, "folder": "Props"}
+            del entry["handle"], entry["grips"]
+            return generate_import.generate(manifest_of(entry), TEMPLATE)
+
+        self.assertIn("collide = true,", render("House"))
+        self.assertIn("collide = false,", render("GardenGnome"))
+
     def test_renders_markers_boxes_and_synth(self):
         entry = {**store_entry(), "id": "EquipmentTrailer", "folder": "Trailers"}
         del entry["handle"], entry["grips"]
@@ -174,6 +183,7 @@ class ValidateTest(unittest.TestCase):
         cases = {
             "unknown folder": edit(lambda e: (e.update(folder="Garage"), e.pop("handle"), e.pop("grips"))),
             "unknown source kind": edit(lambda e: e["source"].update(kind="scrape")),
+            "source kind that is a list": edit(lambda e: e["source"].update(kind=["store"])),
             "store entry without an asset id": edit(lambda e: e["source"].pop("assetId")),
             "store entry without a creator": edit(lambda e: e["source"].pop("creator")),
             "unknown fit axis": edit(lambda e: e["fit"].update(axis="depth")),
