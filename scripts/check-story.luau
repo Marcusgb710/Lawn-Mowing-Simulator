@@ -8,11 +8,13 @@
 -- (src/shared/Config/Cast.luau; scripts/cast-check.py asks the catalog about their ids), and where
 -- CastService puts a rig's Root so it stands on the spot a statue did (src/shared/CastRig.luau), and
 -- which pose NpcAnimator picks for a person and how fast the judges' walk plays
--- (src/shared/NpcAnimator.luau). Exits with an error if anything's off.
+-- (src/shared/NpcAnimator.luau), and that the first-timer's job never reaches the job board
+-- (src/shared/Config/Jobs.luau). Exits with an error if anything's off.
 
 local fs = require("@lune/fs")
 local luau = require("@lune/luau")
 local process = require("@lune/process")
+local roblox = require("@lune/roblox")
 
 local Cast = require("../src/shared/Config/Cast")
 local CastRig = require("../src/shared/CastRig")
@@ -229,19 +231,37 @@ check(Story.openingScene(4, none) == "Act4", "act 4 has its scene")
 
 -- Beats ---------------------------------------------------------------------------------------
 
-check(same(beatIds({ kind = "Joined" }, facts()), { "Intro" }), "a new player gets the intro")
+-- A new player starts on a lawn with the shears in hand (JobService:StartFirstJob), so nothing
+-- plays as they join: June's welcome waits for their first payday, ahead of her texts about it.
+check(#beatIds({ kind = "Joined" }, facts()) == 0, "no beat fires as a new player joins")
 check(
 	same(beatIds({ kind = "Joined" }, facts({ jobsCompleted = 5 })), { "WelcomeBack" }),
 	"a returning player gets the welcome back"
 )
-check(#beatIds({ kind = "Joined" }, facts(), { Intro = true }) == 0, "the intro plays once")
 check(
 	#beatIds({ kind = "Joined" }, facts({ jobsCompleted = 3, seen = { Intro = true } }), { Intro = true }) == 0,
 	"someone who had the intro isn't welcomed back"
 )
 local job =
 	{ kind = "JobFinished", customer = "Mrs. Alvarez", pay = 66, quality = 0.8, preference = "Balanced", crew = 1 }
-check(same(beatIds(job, facts({ jobsCompleted = 1 })), { "FirstJob" }), "June texts after the first job")
+local intro = Story.beat("Intro")
+check(intro ~= nil and intro.on == "JobFinished", "the intro waits for a finished job")
+check(
+	intro ~= nil and intro.when(facts({ jobsCompleted = 1, seen = {} }), job) == true,
+	"the intro plays at the first payday"
+)
+check(
+	intro ~= nil and intro.when(facts({ jobsCompleted = 1, seen = { Intro = true } }), job) == false,
+	"the intro plays once"
+)
+check(
+	same(beatIds(job, facts({ jobsCompleted = 1 })), { "Intro", "FirstJob" }),
+	"the first payday plays the intro, then June texts"
+)
+check(
+	same(beatIds(job, facts({ jobsCompleted = 1, seen = { Intro = true } }), { Intro = true }), { "FirstJob" }),
+	"June texts after the first job"
+)
 check(same(beatIds(job, facts({ jobsCompleted = 2 })), { "SecondJob" }), "Mrs. Rossi texts after the second job")
 -- Winning a customer back from TurfKing: JobService says `wonBack` when it pays their bonus.
 local perfect = {
@@ -282,6 +302,40 @@ check(Story.critique(facts({ jobsCompleted = 2 }), job) ~= nil, "June critiques 
 check(Story.critique(facts({ act = 2, jobsCompleted = 5 }), job) == nil, "June stops critiquing after act 1")
 local poor = Story.critique(facts({ jobsCompleted = 2 }), { kind = "JobFinished", quality = 0.4 })
 check(poor == Story.Critiques[3].lines[1], "a poor finish gets a poor critique")
+
+-- The first job -------------------------------------------------------------------------------
+
+-- Jobs reaches TaskTypes, and TaskTypes reaches Tools, through `script`, which Lune doesn't have,
+-- and Tools builds Color3s and Vector3s as it loads. So each is loaded here with Lune's and handed
+-- to the next as its sibling, the way check-season loads Season. Run from the repo root, like the
+-- command at the top.
+local function loadConfig(name: string, siblings: { [string]: any }?)
+	return luau.load(fs.readFile(`src/shared/Config/{name}.luau`), {
+		debugName = name,
+		environment = {
+			Color3 = roblox.Color3,
+			Vector3 = roblox.Vector3,
+			script = { Parent = siblings or {} },
+			require = function(module)
+				return module
+			end,
+		},
+	})()
+end
+local Tools = loadConfig("Tools")
+local TaskTypes = loadConfig("TaskTypes", { Tools = Tools })
+local Jobs = loadConfig("Jobs", { TaskTypes = TaskTypes })
+
+local firstMow = Jobs.get("FirstMow")
+check(firstMow ~= nil and firstMow.hidden == true, "the first-timer's job is hidden")
+check(typeof(Jobs.boardTemplates) == "function", "Jobs.boardTemplates is there")
+local onBoard = if typeof(Jobs.boardTemplates) == "function" then Jobs.boardTemplates() else {}
+local hiddenOnBoard = false
+for _, template in onBoard do
+	hiddenOnBoard = hiddenOnBoard or template.hidden == true
+end
+check(not hiddenOnBoard, "a hidden template is never on the board")
+check(#onBoard == #Jobs.Templates - 1, "the board offers every template but the first-timer's")
 
 -- TurfKing taking jobs ------------------------------------------------------------------------
 
