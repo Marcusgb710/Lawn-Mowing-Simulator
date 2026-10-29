@@ -16,6 +16,6 @@ return {
 	-- How many studs one repeat of the lawn and soil textures covers on the ground.
 	TileStuds = 8,
 	-- Tufts is a grid of square cells, `size` pixels a side, counted left to right then top to
-	-- bottom from the top left. The sheet is 256 x 256 and the grid fills its top half.
+	-- bottom from the top left. The sheet is 256 x 128, exactly the grid.
 	TuftSheet = { columns = 4, rows = 2, size = 64 },
 }

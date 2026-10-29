@@ -3,15 +3,14 @@
 
     python scripts/make-grass-tufts.py [OUT.png] [--check]
 
-Writes art-source/Grass/Grass_Tufts.png (or OUT.png), 256 x 256 RGBA: a 4 x 2 grid of 64 px cells
-along the top, one tuft in each, standing on the bottom edge of its cell. The lower half of the
-sheet is left clear, so the file is square. A tuft is 5 to 9 tapered blades fanned out from one
-base, in two greens. It is seeded, so the same script always draws the same sheet.
+Writes art-source/Grass/Grass_Tufts.png (or OUT.png), 256 by 128 RGBA: a 4 x 2 grid of 64 px
+cells, exactly filling the sheet, one tuft in each, standing on the bottom edge of its cell. A tuft
+is 5 to 9 tapered blades fanned out from one base, in two greens. It is seeded, so the same script
+always draws the same sheet.
 
 --check draws the sheet into a temporary file and tests it instead: the size and mode, that every
 cell holds a tuft with some solid pixels and clear corners, that every tuft has 5 to 9 blades, that
-only greens were used, that nothing is drawn below the grid, and that drawing it twice gives the
-same bytes. Exits with an error if
+only greens were used, and that drawing it twice gives the same bytes. Exits with an error if
 anything's off. Upload the sheet with scripts/upload-grass-art.py.
 """
 
@@ -26,7 +25,8 @@ from PIL import Image, ImageDraw
 COLUMNS = 4
 ROWS = 2
 CELL = 64
-SIZE = 256  # the sheet is square; the grid fills its top half
+WIDTH = COLUMNS * CELL
+HEIGHT = ROWS * CELL
 SEED = 20261028
 SUPERSAMPLE = 4  # each cell is drawn this many times bigger, then shrunk, for smooth edges
 DARK = (58, 112, 40)
@@ -96,7 +96,7 @@ def draw_tuft(rng):
 def build_sheet(seed=SEED):
     """Returns the sheet and how many blades each of its tufts has."""
     rng = random.Random(seed)
-    sheet = Image.new("RGBA", (SIZE, SIZE), DARK + (0,))
+    sheet = Image.new("RGBA", (WIDTH, HEIGHT), DARK + (0,))
     counts = []
     for index in range(COLUMNS * ROWS):
         cell, count = draw_tuft(rng)
@@ -124,7 +124,7 @@ def check():
         image = Image.open(path)
         image.load()
 
-    expect(image.size == (SIZE, SIZE), f"sheet is {image.size}, not 256 x 256")
+    expect(image.size == (WIDTH, HEIGHT), f"sheet is {image.size}, not 256 x 128")
     expect(image.mode == "RGBA", f"sheet is {image.mode}, not RGBA")
     expect(len(counts) == COLUMNS * ROWS, f"{len(counts)} tufts, not {COLUMNS * ROWS}")
     for number, count in enumerate(counts):
@@ -149,9 +149,6 @@ def check():
             expect(DARK in cell_seen and LIGHT in cell_seen, f"{name}: doesn't show both greens")
             for x, y in ((left, top), (left + CELL - 1, top), (left, top + CELL - 1), (left + CELL - 1, top + CELL - 1)):
                 expect(pixels[x, y][3] == 0, f"{name}: corner {x},{y} isn't clear")
-
-    below = sum(1 for y in range(ROWS * CELL, SIZE) for x in range(SIZE) if pixels[x, y][3] > 0)
-    expect(below == 0, f"{below} pixels below the grid aren't clear")
 
     if failures:
         for failure in failures:

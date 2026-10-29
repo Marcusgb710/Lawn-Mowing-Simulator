@@ -39,9 +39,6 @@ def load_gui_uploader():
     spec = importlib.util.spec_from_file_location("upload_gui_art", os.path.join(ROOT, "scripts", "upload-gui-art.py"))
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    # Its upload() names an asset with display_name(path); these get names that say they're grass.
-    names = {path: name for _, path, name in IMAGES}
-    module.display_name = lambda path: names[path]
     return module
 
 
@@ -88,7 +85,8 @@ def main():
     for field, path, name in IMAGES:
         full = os.path.join(ROOT, path)
         if not os.path.exists(full):
-            sys.exit(f"Missing {path}. Draw the tuft sheet with scripts/make-grass-tufts.py first.")
+            hint = " Draw it with scripts/make-grass-tufts.py first." if field == "Tufts" else ""
+            sys.exit(f"Missing {path}.{hint}")
         state = f"already uploaded as {ids[field]}, skipped" if ids[field] else f"will be named {name}"
         print(f"  {field:<6} {path} ({os.path.getsize(full)} bytes): {state}")
     print(f"{len(IMAGES) - len(todo)} of {len(IMAGES)} already uploaded, {len(todo)} to go, as Image assets under group {gui.GROUP_ID} (Big Dink Studios).")
@@ -97,17 +95,18 @@ def main():
     key = gui.read_key()
 
     failures = []
-    for field, path, _ in todo:
-        asset_id, problem = gui.upload(key, ROOT, path)
+    for field, path, name in todo:
+        asset_id, problem = gui.upload(key, ROOT, path, name=name, description=f"Lawn Mowing Simulator lawn art: {path}")
         if asset_id:
             write_id(field, asset_id)
             print(f"{field} -> {asset_id}", flush=True)
-        elif problem.startswith(("HTTP 401", "HTTP 403")):
+        elif (problem or "").startswith(("HTTP 401", "HTTP 403")):
             print(f"FAILED {path}: {' '.join(problem.split()[:2])}")
             left = read_ids()
             print_manual_steps([image for image in IMAGES if not left[image[0]]])
             sys.exit(2)
         else:
+            problem = problem or "Roblox finished but sent no asset id"
             failures.append((path, problem))
             print(f"FAILED {path}: {problem}", flush=True)
 
