@@ -180,15 +180,18 @@ Work through it in Play mode, and with 2–4 players (Test → Clients and Serve
 **Before release** section covers the rest:
 - making the game public;
 - max players;
-- sounds (`src/shared/Sounds.luau` has empty ids);
+- sounds (the mowers' engine and the lawn-done chime have ids in `src/shared/Sounds.luau`; the
+  rest are still empty);
+- turning on Allow Mesh / Image APIs, or lawns draw the plain-part fallback (see "Gotchas");
 - animations;
 - the game icon and thumbnails.
 
 ## How work gets done here
 
 - **Branches and PRs:** never commit straight to `main` for code. Make a branch, open a PR, merge
-  with `--merge`. Before PRs, run `selene src`, `stylua src` and
-  `rojo build -o /tmp/check.rbxl`.
+  with `--merge`. Before PRs, run `lune run scripts/check-mowing`, `lune run scripts/check-gui`,
+  `lune run scripts/check-story`, `selene src`, `stylua --check src` (`stylua src` fixes what it
+  finds) and `rojo build -o /tmp/check.rbxl`.
 - **ChatGPT/Codex makes the models and art.**
   - Write a self-contained spec as `alphainstructions/instructionsN.md`; **the next one is
     `instructions37.md`**.
@@ -244,3 +247,14 @@ Work through it in Play mode, and with 2–4 players (Test → Clients and Serve
 - **Join time:** joining prints `[Load]` lines in the F9 console. The Client tab has the title
   card's steps and the Server tab has the save, the business build and arriving there (see
   README.md, "How long joining takes").
+- **Fluid mowing needs Allow Mesh / Image APIs, in Studio too.** Lawns are drawn into EditableImages
+  (a turf image and a few grass shells, see `GrassController.luau` and `GrassPaint.luau`), and creating
+  one throws until the toggle is on: Experience Settings → Security, for a published game and for
+  Studio alike. Until then, or when a phone's image memory runs out, the client draws the plain-part
+  fallback instead (`GrassFallback.luau`: a flat plate with blocks of tall grass, no stripes, no
+  "Show what I missed" button) and logs one `[Grass]` warning. The game plays and finishes the same on
+  it, but it isn't the look to judge or screenshot, and the game must never assume the toggle is on.
+  To force the fallback for a test with the toggle on, set `useFallback = true` in the local near the
+  top of `GrassController.luau` (and put it back). `lune run scripts/check-mowing` is the fast check
+  for the mowing math (cells, sweeps, snips, shade, the needed-count arithmetic, line clipping): it
+  needs no Studio. The design is `docs/superpowers/specs/2026-10-28-fluid-mowing-design.md`.

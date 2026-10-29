@@ -1,6 +1,6 @@
 # What's left — Lawn Mowing Simulator
 
-Last updated: 2026-10-24
+Last updated: 2026-10-28
 
 ## Done so far
 
@@ -48,6 +48,8 @@ Last updated: 2026-10-24
      grip or add a tool, edit `TOOLS` in that file and re-run; Rojo syncs it right away.
 
   Lune 0.11 is installed globally with Rokit (`~/.rokit/bin/lune`).
+- **Fluid mowing** (cells, swaths, EditableImage shells, fallback, engine audio): PR pending. The
+  list of what to check is **Fluid mowing: to check**, below.
 
 ## Models
 
@@ -81,19 +83,20 @@ paste `scripts/PrepareChatGPTModels.luau` into the command bar, save
 Not uploaded yet: `Textures/Lawn_Uncut_Color.png`, `Textures/Lawn_Mown_Color.png` and
 `Textures/Soil_Color.png` from the kit. They're 512×512 tiling lawn and soil color maps, and the
 glTF doesn't reference them, so the importer skipped them. Upload them with **Asset Manager → Bulk
-Import** (as Big Dink Studios), then use them as MaterialVariants or Textures on the lawn tiles.
+Import** (as Big Dink Studios), then use them as MaterialVariants or Textures on the lawn's turf.
 
 ## Code work to use the rest of the kit
 
 Yards (`src/server/Services/LawnService.luau`) now use the kit, falling back to blocks if
 `Assets.Kit` is missing:
 
-- [x] **Grass**: the server only tracks tile state (a string attribute on each job site's
-      `Grass` folder, see `src/shared/LawnGrid.luau`). Each client draws it
-      (`src/client/Controllers/GrassController.luau`): one `Grass_Tall_A/B` clump per tile, swapped
-      for `Grass_Short_A/B` on a striped turf plate when mowed, `_LOD` clumps beyond 70 studs, and
-      nothing at all for lawns more than 200 studs away. Still to do: use the lawn texture for
-      distant ground once it's uploaded.
+- [x] **Grass** (fluid mowing, PR pending): the server keeps the lawn as a ledger of 1-stud cells
+      (`src/shared/LawnGrid.luau`, `LawnService.luau`) and logs every sweep of a mower's deck as a
+      swath (`src/shared/Swath.luau`). Each client paints the swaths into EditableImages
+      (`GrassController.luau`, `GrassPaint.luau`): a turf plate with 6 grass shells on PC and 4 on
+      phones, and nothing at all for lawns more than 200 studs away. Without EditableImages (Allow
+      Mesh / Image APIs is off, or a phone's memory is spent) `GrassFallback.luau` draws plain parts
+      instead. The kit's `Grass_Tall_*` and `Grass_Short_*` clumps are no longer used for lawns.
 - [x] **Weeds**: random `Weed_*` models, scaled up 1.6–2.2× (life-size weeds are tiny next to a
       player), shrinking toward the ground as they're whacked. `OriginalSize` is set too.
 - [x] **Hedges**: `Shrub_Rounded` stretched to the overgrown size and shrunk to the trimmed size.
@@ -218,8 +221,8 @@ One PR per phase, each stacked on the one before. Every phase still needs a Stud
         talks about snipping and picking up junk; an old save keeps its reel mower and gets the
         shears too;
       - snipping on PC (click, and hold for a steady rhythm) and on a phone (tap the world, and
-        hold the Snip button): one tile at a time where the dot is, 6 snips a tile, the grass
-        getting shorter every couple of snips, nothing out past about 6 studs, weeds too;
+        hold the Snip button): a patch of grass at a time where the dot is (the cells within a
+        stud of it, all cut at once), nothing out past about 6 studs, weeds too (12 snips each);
       - the shears in view (`SNIP_POSE`, `SNIP_JAB` in `ArmsController.luau`) on PC and a phone,
         R15 and R6: not clipping the camera, blades toward the grass, the jab easy to read;
       - the junk on the first job: 4 pieces, hidden but findable; the look-at hint and E / the
@@ -227,8 +230,9 @@ One PR per phase, each stacked on the one before. Every phase still needs a Stud
         mower jamming; the tracker's "Pick up junk in the grass" row;
       - a gas mower over a rock: the THUNK message, the 1.5 s stall, "Cut is getting ragged", the
         bits flying; the pay breakdown with junk left behind or chewed up;
-      - time the first job as a new player: about 5 minutes (tune `snip` in `Tools.luau` and
-        `QuickMow` in `Jobs.luau`), and a little over a minute with the reel mower;
+      - time the first job as a new player: about 5 minutes (tune `SnipRadius` in `GameConfig.luau`
+        and `QuickMow` in `Jobs.luau`; GAME_DESIGN.md's "The first job" works it out at about
+        4 1/2), and a little over a minute with the reel mower;
       - a couple of pieces on your own lawn, and more turning up as it grows back;
       - the junk placeholders (`Placeholders.luau`) look like what they are, and ids for the new
         `Snip` and `BladeHit` sounds in `Sounds.luau`.
@@ -413,8 +417,29 @@ new palette and fonts (DenkOne headings, Nunito text). To switch the art on, see
       The shop cards stay rows (picture on the left) instead of the style frames' 4-across grid,
       so long stats and phones still fit.
 
+## Fluid mowing: to check
+
+The lawn is carved as you mow (see docs/GAME_DESIGN.md, "Mowing: cells, swaths and shells"). Play it
+with Allow Mesh / Image APIs on (Studio needs it too), and the last item with it off.
+
+- [ ] Mow a straight pass with the reel mower: one clean strip, deck-wide, crisp edges, no seams.
+- [ ] Mow a curve and a figure-eight: the shape follows the deck.
+- [ ] Back-and-forth rows: light and dark stripes alternate; a diagonal reads flat.
+- [ ] Clippings only in tall grass; none crossing the cut strip; engine dips and recovers.
+- [ ] 90%: the missed button lights the strips; 99%: chime and stamp, job completes.
+- [ ] Dull blade: ragged tufts remain, quality drops as before.
+- [ ] Junk: push mower stops at it, gas mower chews it with the existing bits effect.
+- [ ] Home lawn: leave for a job, come back, patches have grown back and mow again.
+- [ ] Phone (landscape): the big lawn draws, holds frame rate, and the HUD pieces fit.
+- [ ] Toggle off Mesh / Image APIs in a test copy: the fallback draws and the job still completes.
+- [ ] Reel mower stops dead at junk hidden in the grass (needs real walking)
+- [ ] Phone preset: the 28×22 lawn mows and finishes with the F9 memory panel open
+- [ ] A second player hears the first's mower and sees their swaths
+
 ## Before release
 
+- [ ] Turn on Allow Mesh / Image APIs (Experience Settings → Security) before publishing; without
+      it the lawn uses the plain-part fallback.
 - [ ] Turn on *Game Settings → Security → Enable Studio Access to API Services* so progress saves
       when testing in Studio. The game is already published under Big Dink Studios.
 - [ ] Make the experience public when it's ready to play.
@@ -422,8 +447,9 @@ new palette and fonts (DenkOne headings, Nunito text). To switch the art on, see
 - [ ] **Test on a real phone.** Prompts and tools already use ProximityPrompts and
       `Tool.Activated`, so touch should work, but hold-to-use tools and the carry/load flow need
       checking. Profile frame rate with grass on screen. The kit makes no device FPS promise.
-- [ ] **Sounds**: the kit has none. Mower engine, trimmer, rake and blower, cash register, UI
-      clicks.
+- [ ] **Sounds**: the kit has none. The mowers' engine, pull-start and reel whirr and the lawn-done
+      chime use free Creator Store ids in `src/shared/Sounds.luau`. Still empty: trimmer, rake and
+      blower, cash register, UI clicks, the shears' snip and a blade hitting junk.
 - [ ] **Animations**: pushing and holding poses for mowers and trimmers.
 - [ ] **Store art**: put `art-source/GUI/Store/` on the Roblox page (game icon, 5 thumbnails, the
       pass and product icons) on the Creator Dashboard. The in-game GUI art is under **GUI

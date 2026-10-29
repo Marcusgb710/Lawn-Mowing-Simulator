@@ -56,6 +56,9 @@ Every job task has a **task type** with one verb and a **fit table**
 - `qualityHits` lower the finish some tools leave on a task (a bow rake tears turf: x0.6;
   anvil pruners crush live stems: x0.7).
 - `speedHits` slow some tools down further (a shovel on hard ground: x0.6).
+- Mowing is the exception to "work speed": a mower's sweep cuts everything under its deck, so a
+  fit changes the pay and the finish but never how fast it cuts (see "Mowing: cells, swaths and
+  shells" in section 4).
 - `protection` (`Thorns`, `Chemicals`) means the task needs gloves that protect against it
   (phase C/D).
 
@@ -108,16 +111,19 @@ You start from the bottom: a new player's only tool is a free pair of **grass sh
 for **$150**: the pay of 2-3 early jobs with the shears.
 
 - **Shears cut by hand, a snip at a time** (`snip` in `Tools.luau`, `SnipController`, `ToolService`).
-  Each click (or tap, or the **Snip** button on a phone) cuts the one thing nearest where you aim:
-  a grass tile, or a weed. Holding the button keeps snipping, two snips a second. A snip lands
+  Each click (or tap, or the **Snip** button on a phone) cuts what's where you aim: the grass
+  around that spot or, where there's none left to cut, the one weed nearest. Holding the button
+  keeps snipping, two snips a second. A snip lands
   where your aim crosses grass-top height (1 stud up), up to 7.5 studs from your eyes, so you look
   down at the grass and move along as you go. The client only says which way you're looking; the
   server works out where that lands and what's there, and limits snips to the shears' rhythm.
-- **Tall grass takes several snips.** The shears are listed as a Good fit for `MowSmallLawn` (x0.8),
-  so a snip does 0.225 x 0.8 = 0.18 of a tile: **6 snips a tile** (7 once they're dull), and 12 for
-  a weed. The tile gets shorter every quarter of the way (`LawnGrid.PARTLY_CUT`), and the shears
-  wear like any fine edge (a sharpening stone fixes them). They have no Mow verb, so their blade
-  stays a fine one, and they can't do any lawn bigger than a small one.
+- **A snip clears a patch of grass.** It cuts every tall cell whose center is within **1 stud** of
+  where it lands (`GameConfig.SnipRadius`): 1 to 4 cells, about 3 on fresh grass, all at once and
+  never in stages. The shears are a Good fit for `MowSmallLawn` (x0.8), which lowers the pay, not
+  the cut. A dull pair leaves the patch ragged instead of taking longer. A weed still takes
+  several snips (**12**: a snip does 0.225 x 0.8 = 0.18 of the 2 a weed takes). The shears wear
+  like any fine edge (a sharpening stone fixes them). They have no Mow verb, so their blade stays
+  a fine one, and they can't do any lawn bigger than a small one.
 - **In first person** the shears sit low in front of you, tipped down at the grass, following
   your view, and jab forward with every snip (`SNIP_POSE`, `SNIP_JAB` in `ArmsController`). Only
   snips that cut something throw clippings.
@@ -184,6 +190,10 @@ for **$150**: the pay of 2-3 early jobs with the shears.
 Reel mowers cut cleanest but are slow and can't take tall grass. Rotary mowers handle tall grass
 with a medium cut. Blade sharpness (phase E) will multiply cut quality.
 
+A mower's deck is twice its **Width (radius)**, and how fast it clears a lawn is its deck width
+and its walk speed: **Power** no longer meters mowing (it still meters every other task). See
+"Mowing: cells, swaths and shells" in section 4.
+
 Each job offer gets a **customer preference**, hinted only in the story text
 (`Jobs.Stories`): "Wedding photos in the backyard Saturday, it has to look immaculate" is
 Quality; "Just knock it down before the HOA inspection at noon" is Speed.
@@ -218,7 +228,7 @@ pay = base pay
 Templates live in `src/shared/Config/Jobs.luau`:
 
 - `tier`, `minLevel`, `parTime`, `basePay`, `xp`
-- `lawn`: columns, rows and flower patches
+- `lawn`: columns, rows (in 4-stud tiles) and flower patches
 - `tasks`: `{ type = <task type>, amount = n }`, in the customer's order
 - `notes`: extra things this customer might say
 
@@ -235,6 +245,92 @@ slots are level 1 jobs. `Jobs.luau` also refuses templates that couldn't be fini
 - a counted task with no amount Jobs vary: some need one tool, others
 several. Later phases add task `protection`, ordering, and soil conditions for pro jobs.
 
+### Mowing: cells, swaths and shells
+
+The grass isn't a field of tiles. A lawn's grass is a ledger of **1-stud cells**
+(`GameConfig.CellSize`, `src/shared/LawnGrid.luau`), a mower's deck cuts the cells it sweeps over,
+and the picture is carved to match. Everything that isn't grass (edges, hedges, weeds, leaves,
+flowers, the turf-renovation steps) keeps the **4-stud tile** (`GameConfig.TileSize`): a job's
+`lawn` is still columns and rows of tiles, each holding 4 x 4 = 16 cells.
+
+- **The ledger.** The server keeps one state per cell: tall, mowed, ragged (a dull blade's cut) or
+  no grass (under flower patches and tree rings). Pay, progress, the finish and where the junk lies
+  are all counted from it. The cells beside flowers and trees are **optional**: leaving them costs
+  nothing, and cutting them counts for nothing towards the job.
+- **The sweep.** Every work tick the mower's deck goes from where it was last tick to where it is
+  now, and every tall cell whose center it passes strictly inside is cut at once (`Lawn:Sweep`).
+  The deck is **twice the mower's `radius`** wide and sits **2** studs ahead of the player
+  (`GameConfig.DeckOffset`). Its cut reaches a stud past each end of a sweep (`LawnGrid.DeckReach`),
+  so a mower standing still cuts the strip under its deck once. Nothing meters the cut: a mower
+  clears a lawn as fast as its deck is wide and it walks, and the tool's fit changes only the pay
+  and the finish.
+- **The swath log.** A sweep or snip that cut something is logged as a segment (where the deck
+  went, how wide, its shade, whether it was ragged; `src/shared/Swath.luau`) and sent to the
+  players in range as a `Swath` event. A sweep that carries straight on from the last one (same
+  width, shade and ragging, starting within a quarter stud of where it ended and within 2 degrees
+  of its heading) stretches that entry, so a straight pass is one entry however long it takes.
+- **Shade.** Stripes come from how you drive, against the lawn's local +Z ("away from the
+  street"). Travel whose direction has a dot product with +Z above **0.5** cuts a **Light** stripe
+  (heading away from the street), below **-0.5** a **Dark** one (coming back), and anything between
+  is **Flat**. A tidy back-and-forth makes real stripes and a scribble looks like one. The greens
+  are close enough to read as one lawn (`Swath.Colors`), and stripes change no pay.
+- **Ragged cuts.** A blade under half sharp (finish below 0.8) tears the grass instead of slowing
+  the mower. Those cells are **Ragged**: a duller yellow-green with tufts left standing, torn cell
+  by cell. They count as cut, and the dull blade's lower finish weighs on the job as before, scaled
+  to cells.
+- **Drawn on the client.** The ledger is never sent every tick (at 1-stud cells it's 16 times what
+  tiles were). A client that starts drawing a lawn (or respawns) asks for the ledger and the log
+  once (`GetSwaths`), then follows `Swath` events, and `Regrow` events on a home lawn. Lawns more
+  than **200** studs from the camera aren't drawn (30 studs of slack before one is dropped), and
+  their images are destroyed.
+- **A turf plate and grass shells.** A drawn lawn is one flat plate of turf plus a few thin
+  **shells** stacked above it, each a Decal showing its own EditableImage
+  (`GrassController`, `GrassPaint`, `src/shared/GrassImages.luau`). The turf image holds the stripe
+  colors and faint wheel tracks. Each shell is a field of blade dots that thins out towards the top
+  one, so from the side the stack reads as standing grass and from above as dense turf. A swath
+  paints its shade into the turf and erases its own shape from every shell, so the cut follows the
+  deck instead of snapping to cells. Pictures are **4 pixels a stud** (`PixelsPerStud`) and never
+  above **1024 x 1024**: a lawn too big for that drops to 2, then 1 pixel a stud (the biggest job
+  lawn, 112 x 88 studs, is 448 x 352 at 4). Shells: **6** on desktop and console, **4** on phones
+  (touch and no keyboard), never fewer than 2.
+- **Your own mower doesn't wait.** Work ticks are coarser than frames, so a swath that only showed
+  up on each tick would appear in chunks behind the deck. The client paints its own mower's strip
+  every frame, from where the deck is on screen. The server's swath for it lands on the same
+  pixels, and a cell the server hasn't confirmed within **0.5 s** (junk stopped the deck, or the
+  cut was refused) grows back from the client's copy of the ledger. Other players' mowers, and a
+  dull blade's torn cut, are drawn from the server's swaths only.
+- **The fallback.** EditableImage fails in a published game (and in Studio) until the owner turns
+  on **Allow Mesh / Image APIs** (Experience Settings → Security), and creating one fails too when
+  a device's memory budget is spent. Then the client draws lawns the plain way for the rest of the
+  session (`GrassFallback`): one flat plate of mown green with a block of tall grass over every
+  2 x 2 patch of cells that still has an uncut one. No stripes, no smooth edges, and no missed-spots
+  button, since there's nothing to tint. It follows the same ledger and the same events, so the
+  job plays and finishes the same. It's a safety net, and the game never assumes the toggle is on.
+- **The counter.** The mowing row on the job tracker shows the percent of the required cells that
+  are cut (the lawn's mowable cells less the optional ones), where other tasks count what's done.
+  Mowing finishes at **99%** of the required cells (`GameConfig.MowCompletionThreshold`); every
+  other task keeps **95%** (`CompletionThreshold`).
+- **Show what I missed.** From **90%** (`MissedSpotsFrom`) until the job counts as done, a
+  **Show what I missed** button under the tracker (key **M** on a keyboard) tints the uncut grass
+  red for **3 s** (`MissedSpotsSeconds`), with a soft pulse. It only shows over a job's lawn drawn
+  as a surface.
+- **Finishing.** The mowing row gets the `LawnDone` chime and the art's Job Complete! stamp, once,
+  and the job goes on as before.
+- **Feel.** The server sets the tool's `Cutting` attribute when a tick's sweep cut a cell, and
+  clears it when it didn't. While it's set: walk speed x**0.85** (`CuttingSlowdown`), camera shake
+  x**1.5** while a gas engine runs (`CuttingShake`), and clippings fly from the mower's chute.
+- **Sound** (`EngineAudioController`, ids in `Sounds.Ids`). A petrol mower idles on `EngineIdle`
+  and crossfades to a lower `EngineLoad` while it cuts, with its pitch down to **0.85** (nudged up
+  a touch while you move). `PullStart` plays the first time it runs after you equip it. A reel
+  mower whirrs (`ReelWhirr`) while you push it. Everyone hears everyone's mower.
+- **Pay.** A cell pays 1/16 of what a tile did (`workPerTarget` / 16), so a lawn pays what it
+  always has.
+- **Growing back.** On a home lawn the server marks cells tall again and sends their indexes in a
+  `Regrow` event. Each client grows that grass back in its pictures.
+- **Checks.** `lune run scripts/check-mowing` runs the lawn's math outside Roblox: which cells a
+  sweep and a snip cut, the shade rule, the swath log, the needed-count arithmetic and the line
+  clipping.
+
 ### The first job
 
 With only the shears, the board's first slot is always `QuickMow` (shown as **Front Lawn**), the
@@ -243,18 +339,22 @@ shears:
 
 | | |
 | --- | --- |
-| Lawn | 9 x 7 tiles, 1 flower patch: 62 grass tiles. The 8 around the flowers are optional, so it's done at 95% of the other 54 = **52 tiles** |
-| Snipping | 52 tiles x 6 snips x 0.5 s = **156 s** |
-| Re-aiming | about one lost beat (0.5 s) per tile = **26 s** |
+| Lawn | 9 x 7 tiles (36 x 28 studs), 1 flower patch: 992 grass cells. The 128 around the flowers are optional, so it's done at 99% of the other 864 = **856 cells** |
+| Snipping | 856 cells at about 3 a snip x 0.5 s = **~143 s** |
+| Re-aiming | about one lost beat (0.5 s) every 6 snips = **~24 s** |
 | Walking | a few steps every few tiles (you reach about 6 studs) = **~30 s** |
 | Junk | 4 pieces to spot and pick up, ~10 s each = **~40 s** |
 | Finding your feet | reading the coach, first snips = **~30 s** |
-| Total | **~282 s, about 4 3/4 minutes**; par time 300 s |
+| Total | **~267 s, about 4 1/2 minutes**; par time 300 s |
+
+That's arithmetic, not a stopwatch time: it takes about 3 cells a snip (the area of a 1-stud
+circle) and assumes no snip overlaps another, so time it in Play.
 
 It pays $70 base (offers roll $65-90). With the shears' Good fit (x0.8) and a fine finish, a
 new player earns about **$66 a job**, so the $150 reel mower takes 2-3 jobs. The same lawn takes a
-reel mower (about 8 studs a pass at 12 studs/s, after picking up the junk) a little over a minute,
-which beats half par for the full speed bonus: about $94 a job. That's the reward for upgrading;
+reel mower (a 5-stud deck: about 8 passes of 28 studs at 12 studs/s, less 15% while it cuts, after
+picking up the junk) a little over a minute, which beats half par for the full speed bonus: about
+$94 a job. That's the reward for upgrading;
 every later mowing job is sized for real mowers. 15 xp.
 
 ### Junk in the grass
@@ -266,11 +366,13 @@ cutting there.
 
 - **How much:** one piece per 16 lawn tiles on homeowner jobs, per 14 on serious ones and per 12
   on pro ones, rounded, 1 to 10 (a job's `lawn.debris` sets it outright): 2 on a tiny yard, 4 on
-  the first job, 5 on a suburban lawn, 10 on the big ones. Never on the tiles by the flowers, and a
-  tile or more apart. Sticks turn up most often, then rocks and balls, then toys and frisbees.
-- **Grass shears can't cut a spot with something in it** ("There's a stick in the grass there.
-  Pick it up first."), and a **reel mower** jams on it ("The mower jams on..."), so that tile stays
-  tall until it's cleared.
+  the first job, 5 on a suburban lawn, 10 on the big ones. Each lies on one cell, never on the
+  optional cells beside flowers and trees, and at least 4 cells (4 studs) from the next piece.
+  Sticks turn up most often, then rocks and balls, then toys and frisbees.
+- **Grass shears can't snip a spot with something in it**: a snip that would cut a cell with junk
+  on it does nothing ("There's a stick in the grass there. Pick it up first."). A **reel mower**,
+  like any mower that isn't motorized, jams on it ("The mower jams on..."): its sweep ends before
+  the junk's cell, so that cell and the grass beyond it in that pass stay tall until it's cleared.
 - **A motorized mower runs right over it and chews it up.** Its blade loses a chunk of its edge at
   once (`wear`: a rock 0.3, a stick or a toy 0.15, a ball or frisbee 0.05, through
   `Maintenance.strike`; Diamond Blades still never dull), the engine stalls for 1.5 s, bits fly
@@ -278,8 +380,9 @@ cutting there.
 - **Whatever's left at the end** costs the same, and every piece left or chewed up takes 0.04 off
   the finish. The tracker shows "Pick up junk in the grass 1/4" (how many there are, never where),
   and the pay breakdown says how many were left or chewed up.
-- **Your own lawn** hides a couple too, and each bit of grass that grows back has a 5% chance of
-  something new turning up in it (up to 3 at a time). There they only cost blade wear and stalls.
+- **Your own lawn** hides a couple too, and each tile's worth of grass that grows back has a 5%
+  chance of something new turning up in it (a cell carries 1/16 of that), up to 3 at a time. There
+  they only cost blade wear and stalls.
   They aren't saved: a rebuilt lawn hides its own again.
 - The server checks every pick-up: the piece must still be on your job's lawn (or your crew's own
   lawn) and within 12 studs of your eyes.
@@ -323,7 +426,8 @@ Nine serious-tier jobs (`NewShrubBorder` to `FallCleanup`, level 3-5) use the ti
   one-wheeled barrow (`tips`) while you walk it: about a 5% chance per second, and the load goes
   back on the pile. The fit tables pick the right barrow for the load: carts for light, bulky
   loads; two wheels for heavy ones.
-- **Fertilizing** covers every lawn tile (like mowing); a pale dusting shows where it landed.
+- **Fertilizing** covers every lawn tile (still 4 studs a side: only mowing is cut into cells); a
+  pale dusting shows where it landed.
 - **Spot-spraying** kills weeds in the lawn and the driveway cracks (they wilt). It needs
   chemical-proof gloves; work gloves aren't enough.
 - **Branches:** loppers for 1-2 inch branches, a pruning saw for thicker; pruners can't cut either.
@@ -339,7 +443,7 @@ All the pro equipment is on sale. Five pro jobs join the park and the estate:
 | --- | --- |
 | ShowLawn | putting-green grass (1.25 in): only reel mowers cut it right, and cut quality (`cutQuality` x blade sharpness) decides the pay on quality-minded jobs |
 | OvergrownLot | knee-high grass (9 in): reel mowers can't cut it; the grass is drawn taller (`TallScale` on the Grass folder) |
-| WoodedEstate | a tight lawn with trees in mulch rings (`trees`): on `tight` tasks every mower's speed is scaled by `0.4 + 0.6 x maneuverability`, so a stand-on (0.95) beats a lawn tractor (0.4) |
+| WoodedEstate | a tight lawn with trees in mulch rings (`trees`) to mow around. The `tight` speed scale (`0.4 + 0.6 x maneuverability`) only slowed the old tile work: a sweep isn't metered, so maneuverability no longer slows a mower here |
 | TurfRenovation | the full renovation, thick thatch (`thatch = 0.8` in) |
 | LawnRenewal | renovation without dethatching (thin thatch) |
 
@@ -516,7 +620,7 @@ Every owned tool has a **condition**, saved with the player:
 | Fuel | `engine` FourStroke (regular gas) or TwoStroke (50:1 mix) | 300 s (four-stroke) or 240 s (two-stroke) of running | won't run |
 | Engine | the same | wrong fuel wrecks it at once | won't start until repaired |
 | Air tires | `tires = "Air"` (ride-ons, barrows, spreader) | 1800 s of rolling, plus a puncture now and then | slower and harder to push; flat won't roll |
-| Blade | mowers, edgers, spades ("heavy"); pruners, shears, hedge trimmers ("fine") | 1200 s of cutting | slower and rougher cut (quality down to 60%) |
+| Blade | mowers, edgers, spades ("heavy"); pruners, shears, hedge trimmers ("fine") | 1200 s of cutting | slower and rougher cut (quality down to 60%); a mower isn't slowed, its cut goes ragged once the blade is under half sharp |
 | Trimmer line | string trimmers | 240 s of trimming | won't cut |
 
 Electric and battery tools need no fuel; flat-free tires never need air. A motorized mower that
@@ -721,7 +825,7 @@ Tools are worked on by hand instead of from a menu (`MaintenanceService`; the st
     placeholder's `Wheel`);
   - a spool (`<Id>__Spool...`) shows bare as the line runs out;
   - grass cut with a dull blade is left ragged, duller and with torn tufts sticking up
-    (`LawnGrid.RAGGED`; GrassController draws it).
+    (`LawnGrid.RAGGED`; `GrassPaint` draws it, cell by cell).
 
 ## 9. The shop as the hub
 
@@ -804,7 +908,8 @@ which earns your business curb appeal and a bonus on every job.
   a `DriverSeat` and a hinged tailgate.
 - **Your own lawn** (`HomeLawnService`, `src/shared/HomeLawn.luau`). Every plot has a front lawn
   left of the driveway, about 28 × 32 studs (7 × 8 tiles). It's a real lawn, built by
-  `LawnService` from the same kit grass and mowed on the same `LawnGrid` as customers' lawns:
+  `LawnService` and cut and drawn like customers' lawns (cells, swaths and shells: see "Mowing:
+  cells, swaths and shells" in section 4):
   - the grass (`MowSmallLawn`);
   - the edge along the sidewalk and driveway (`EdgeSidewalk`);
   - 5 weeds by the building and along the side (`TrimAroundObstacles`);
@@ -818,8 +923,9 @@ which earns your business curb appeal and a bonus on every job.
 
   It grows back while you play: from tidy, it's fully overgrown again after
   `GameConfig.HomeLawn.RegrowMinutes` (40) in the game. Every so often one finished bit comes back
-  (a grass tile, an edge strip, a weed, a leaf pile), never right next to someone. It doesn't grow
-  while you're offline. What's done is saved (`homeLawn`), so it looks the same when you come
+  (a grass cell, an edge strip, a weed, a leaf pile), never right next to someone. Grass comes back
+  a cell at a time, and every client drawing the lawn grows it back in its pictures. It doesn't
+  grow while you're offline. What's done is saved (`homeLawn`), so it looks the same when you come
   back; a new lawn starts overgrown. Getting an untidy lawn tidy again earns a neighbor's tip
   (`TidyTip`, $25), at most once every `TidyTipCooldownMinutes` (30), and only after it has grown
   back below `TipAfterBelowShare` (75%) done since the last tip, so a stray weed isn't a tip.
@@ -940,7 +1046,8 @@ never skips a level or a business requirement, and nothing is sold as plain cash
 | Hub 3 | Your own lawn (regrowing, saved, worked with your own tools) and curb appeal's pay bonus | done |
 | Hub 3b | Decorations: ordering, boxes, first-person placing with snapping, markers, shrubs to trim, curb appeal | done |
 | Immersion 3 | Hands-on maintenance at service spots and the vise, steps for blades and wheels, tailgate supplies on a job, visible wear and ragged grass | done |
-| Starting out | Grass shears as the free starting tool (cutting a snip at a time), the reel mower as the first buy, junk hidden in the grass, a 5-minute first job | **this PR** |
+| Starting out | Grass shears as the free starting tool (cutting a snip at a time), the reel mower as the first buy, junk hidden in the grass, a 5-minute first job | done |
+| Fluid mowing | The lawn as 1-stud cells and swaths, drawn into EditableImage turf and grass shells with a plain-part fallback; a percent counter, a missed-spots button, engine sounds | **this PR** |
 
 New tools are already in `Tools.luau` with `available = false`, so they aren't sold until the
 phase that gives them work.
@@ -972,7 +1079,8 @@ phase that gives them work.
   bought before is already unpacked.
 - **Version 7 (your own lawn)** adds `homeLawn`: which parts of the lawn are done, one character
   per target and task, when the last tidy tip was paid, and whether another is due. Existing players' lawns start
-  overgrown.
+  overgrown. A grass target is a 1-stud cell now: a save from before has one flag per 4 x 4 stud
+  tile and loads spread over the cells (`HomeLawn.decode`), so a tidy lawn stays tidy.
 - **Version 8 (decorations)** adds `decor`: the decorations `placed` in the yard (id, where in
   plot space, and a shrub's trim state) and those still in their `boxes`. Nobody has any yet.
 - **`premium`** (Robux purchases) holds `owned`, `passes`, `truckPaint` and `receipts`. It needs
