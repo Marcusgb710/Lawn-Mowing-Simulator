@@ -75,6 +75,28 @@ local function describe(person: Cast.Person): HumanoidDescription
 	return description
 end
 
+-- A rig made by CreateHumanoidModelFromDescription is built in ReplicatedStorage, so it never gets a
+-- physics step, and each Accessory's Handle (the hair and the layered garments) stays where its asset
+-- was authored, up to 20 studs from the body, until the rig has spent a frame in workspace. A bounding
+-- box taken before then would measure the yard, not the person. So each Handle is put where its Weld
+-- wants it, in place. Nothing else moves: the API already placed the body parts.
+local function settleAccessories(rig: Model)
+	for _, accessory in rig:GetChildren() do
+		if accessory:IsA("Accessory") then
+			local handle = accessory:FindFirstChild("Handle")
+			local weld = if handle then handle:FindFirstChildOfClass("Weld") else nil
+			if handle and handle:IsA("BasePart") and weld then
+				local part0, part1 = weld.Part0, weld.Part1
+				if part1 == handle and part0 then
+					handle.CFrame = part0.CFrame * weld.C0 * weld.C1:Inverse()
+				elseif part0 == handle and part1 then
+					handle.CFrame = part1.CFrame * weld.C1 * weld.C0:Inverse()
+				end
+			end
+		end
+	end
+end
+
 -- The free catalog has no grey hair, so the hair's own texture comes off and the color goes on.
 -- Returns whether there was any hair to color.
 local function recolorHair(rig: Model, hairColor: Color3): boolean
@@ -140,6 +162,7 @@ local function build(id: string, person: Cast.Person): Model
 	local chest = rig:FindFirstChild("UpperTorso")
 	assert(humanoid and rootPart and head and chest, "the rig has no Humanoid, HumanoidRootPart, Head or UpperTorso")
 
+	settleAccessories(rig)
 	if person.hairColor and not recolorHair(rig, color(person.hairColor)) then
 		warn(`CastService: {id} has a hair color but no hair to color`)
 	end
