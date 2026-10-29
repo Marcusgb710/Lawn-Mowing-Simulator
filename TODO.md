@@ -480,6 +480,10 @@ Later (known, and left for after this PR):
       `art-source/GUI/Source/RenderOnly/Textures/`) and `art-source/Grass/Grass_Tufts.png`, copy
       each image's id and write it as a plain number into `Mown`, `Uncut`, `Soil` and `Tufts`.
       Then use them on the lawn's turf (MaterialVariants or Textures; `TileStuds` is 8).
+- [ ] **TurfKing T-shirt**: create the T-shirt from `art-source/Cast/TurfKing_Tee.png` on the Create
+      page (Avatar items, T-shirt, free; Open Cloud can't make one), then put its id in `tshirt`
+      for Chad and Sam_TurfKing in `src/shared/Config/Cast.luau` (both 0 now) and run
+      `lune run scripts/check-story`. `python scripts/make-turfking-tee.py` redraws the image.
 - [ ] **Store art**: put `art-source/GUI/Store/` on the Roblox page (game icon, 5 thumbnails, the
       pass and product icons) on the Creator Dashboard. The in-game GUI art is under **GUI
       overhaul** above.
