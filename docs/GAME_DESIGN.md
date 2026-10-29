@@ -297,6 +297,14 @@ flowers, the turf-renovation steps) keeps the **4-stud tile** (`GameConfig.TileS
   above **1024 x 1024**: a lawn too big for that drops to 2, then 1 pixel a stud (the biggest job
   lawn, 112 x 88 studs, is 448 x 352 at 4). Shells: **6** on desktop and console, **4** on phones
   (touch and no keyboard), never fewer than 2.
+- **A real texture under the paint.** With the lawn art uploaded (`GrassArt`) the turf plate also
+  carries the mown-lawn map as a tiling `Texture` (one tile per 8 studs) under its Decal, so the
+  turf image only has to hold what changes: uncut grass is an opaque mottle sampled from the uncut
+  map, and mown grass is a translucent tint of its stripe shade (35% light, 45% dark) that lets the
+  texture show through. Each shell stamps one of eight tufts from the tuft sheet, about a stud
+  across, at every blade dot instead of drawing a circle. A lawn too far away to draw keeps its bare
+  turf with the same texture, so it still reads as lawn. If any of the images is missing or won't
+  load, the lawn is painted in flat colours and dots as before, with one warning, for the session.
 - **Your own mower doesn't wait.** Work ticks are coarser than frames, so a swath that only showed
   up on each tick would appear in chunks behind the deck. The client paints its own mower's strip
   every frame, from where the deck is on screen. The server's swath for it lands on the same

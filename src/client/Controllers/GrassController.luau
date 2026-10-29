@@ -2,14 +2,17 @@
 --
 -- A lawn is a turf plate with a few "shells" of grass stacked above it, each a Decal showing an
 -- EditableImage: the turf is the ground's colour and the stripes, and each shell a field of blade
--- dots (see GrassImages), thinner towards the top, so the stack reads as standing grass. The server
+-- dots (see GrassImages), thinner towards the top, so the stack reads as standing grass. With the
+-- lawn art (GrassArt) the turf plate also carries the mown lawn as a tiling Texture under its Decal,
+-- which then holds only the stripes and the uncut mottle, and the shells' blades are tufts. The server
 -- keeps which cells are cut (see LawnGrid) and sends what every mower and pair of shears cuts as a
 -- swath (see Swath). Each swath is painted into the pictures (see GrassPaint): its stripe shade into
 -- the turf and a hole of the same shape through every shell, so a cut follows the deck instead of
 -- snapping to cells. A lawn that starts being drawn asks for everything cut on it so far
 -- (GetSwaths). Your own mower doesn't wait for its swaths: it paints its strip every frame, and
--- whatever the server never confirms grows back. Lawns far away aren't drawn at all, images
--- included, to keep phones happy.
+-- whatever the server never confirms grows back. Lawns far away have no images, to keep phones
+-- happy: they aren't drawn at all, or with the lawn art they're left as a bare turf plate and its
+-- texture, so they still read as lawn.
 -- Without EditableImages (the Mesh / Image API toggle is off in a published game, or the device's
 -- memory budget is spent) lawns are drawn the simple way instead, for the rest of the session (see
 -- GrassFallback).
@@ -21,6 +24,7 @@ local UserInputService = game:GetService("UserInputService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local GameConfig = require(Shared.Config.GameConfig)
+local GrassArt = require(Shared.Config.GrassArt)
 local GrassImages = require(Shared.GrassImages)
 local Net = require(Shared.Net)
 local Swath = require(Shared.Swath)
@@ -75,6 +79,8 @@ local GrassController = {}
 local lawns = {}
 -- Set for the rest of the session once an EditableImage couldn't be made (see show).
 local useFallback = false
+-- Whether the turf's texture has failed to set and been warned about (see addTexture).
+local textureWarned = false
 -- [lawn] = { [cell index] = os.clock() your own mower last painted it }, for the cells no swath from
 -- the server has vouched for yet (see paintOwnMower and reconcile).
 local unconfirmed = {}
@@ -117,6 +123,33 @@ local function surfacePart(lawn, name: string, height: number, image: EditableIm
 	return part, decal
 end
 
+-- Lays the mown lawn texture over a turf plate's top face, tiling every GrassArt.TileStuds studs, under
+-- its Decal if it has one (a lower ZIndex is drawn first, and the Decal's picture is see-through where
+-- the lawn is mown). The part keeps its plain colour, and the warning is said once, if the texture
+-- can't be set.
+local function addTexture(part: Part, decal: Decal?)
+	local texture = Instance.new("Texture")
+	local ok, problem = pcall(function()
+		texture.Face = Enum.NormalId.Top
+		texture.ColorMapContent = Content.fromAssetId(GrassArt.Mown)
+		texture.StudsPerTileU = GrassArt.TileStuds
+		texture.StudsPerTileV = GrassArt.TileStuds
+		texture.ZIndex = 0
+		if decal then
+			decal.ZIndex = 1
+		end
+	end)
+	if ok then
+		texture.Parent = part
+		return
+	end
+	texture:Destroy()
+	if not textureWarned then
+		textureWarned = true
+		warn(`[Grass] Couldn't lay the lawn texture on the turf: {problem}`)
+	end
+end
+
 local function destroyImages(lawn)
 	if lawn.turf then
 		lawn.turf:Destroy()
@@ -128,6 +161,15 @@ local function destroyImages(lawn)
 	table.clear(lawn.shells)
 	table.clear(lawn.decals)
 	lawn.cells = nil
+end
+
+-- Takes down what a lawn has in the world: its parts, or a far lawn's bare turf.
+local function clearContainer(lawn)
+	if lawn.container then
+		lawn.container:Destroy()
+		lawn.container = nil
+	end
+	lawn.turfPart, lawn.turfDecal = nil, nil
 end
 
 -- Makes a lawn's images and parts, all tall: the turf plate, and the shells stacked by
@@ -152,9 +194,13 @@ local function buildSurface(lawn): boolean
 	end
 
 	GrassPaint.reset(lawn)
-	local turf = surfacePart(lawn, "Turf", TURF_HEIGHT, lawn.turf)
+	local turf, turfDecal = surfacePart(lawn, "Turf", TURF_HEIGHT, lawn.turf)
 	turf.Material = Enum.Material.Grass
 	turf.Color = GrassPaint.UNCUT
+	lawn.turfPart, lawn.turfDecal = turf, turfDecal
+	if GrassPaint.textured() then
+		addTexture(turf, turfDecal)
+	end
 	for index, shell in plan do
 		local part, decal = surfacePart(lawn, "Shell" .. index, shell.height, lawn.shells[index])
 		part.Transparency = 1
@@ -214,6 +260,8 @@ local function show(lawn)
 	if lawn.mode then
 		return
 	end
+	-- A far lawn's bare turf makes way for the drawn one.
+	clearContainer(lawn)
 	lawn.container = Instance.new("Folder")
 	lawn.container.Name = lawn.name
 	lawn.container.Parent = localGrass()
@@ -247,14 +295,26 @@ local function hide(lawn)
 	if not lawn.mode then
 		return
 	end
+	-- Over the lawn art, a lawn drawn as a surface leaves its turf behind, bare but for the texture,
+	-- so a far lawn reads as lawn and not as nothing. Anything else goes entirely.
+	local keepsTurf = lawn.mode == "Surface" and GrassPaint.textured()
 	if lawn.mode == "Fallback" then
 		GrassFallback.hide(lawn)
 	end
 	stopHighlight(lawn)
 	unconfirmed[lawn] = nil
 	destroyImages(lawn)
-	lawn.container:Destroy()
-	lawn.container = nil
+	if keepsTurf then
+		for _, child in lawn.container:GetChildren() do
+			if child ~= lawn.turfPart then
+				child:Destroy()
+			end
+		end
+		lawn.turfDecal:Destroy()
+		lawn.turfDecal = nil
+	else
+		clearContainer(lawn)
+	end
 	lawn.mode = nil
 end
 
@@ -268,7 +328,9 @@ end
 
 local function update()
 	local camera = workspace.CurrentCamera
-	if not camera then
+	-- No lawn is drawn until GrassPaint knows whether it has the lawn art: it waits on the asset
+	-- loads, and drawing a lawn in the meantime would settle the session on flat colours.
+	if not camera or not GrassPaint.loaded() then
 		return
 	end
 	local cameraPosition = camera.CFrame.Position
@@ -311,7 +373,10 @@ local function track(folder: Instance, regrows: boolean)
 		-- "Surface" or "Fallback" while drawn, nil while not.
 		mode = nil,
 		container = nil,
+		-- The turf's image, then the turf plate's part and its Decal, which are all a far lawn keeps.
 		turf = nil,
+		turfPart = nil,
+		turfDecal = nil,
 		shells = {},
 		-- The ledger as this client has it, while drawn as a surface (see GrassPaint).
 		cells = nil,
@@ -328,6 +393,7 @@ local function track(folder: Instance, regrows: boolean)
 	folder.AncestryChanged:Connect(function()
 		if not folder:IsDescendantOf(workspace) then
 			hide(lawn)
+			clearContainer(lawn)
 			lawns[folder] = nil
 		end
 	end)
@@ -613,6 +679,8 @@ function GrassController:Start()
 		end)
 	end
 	task.spawn(function()
+		GrassPaint.load()
+		update()
 		while true do
 			task.wait(UPDATE_INTERVAL)
 			update()

@@ -8,11 +8,20 @@
 -- the lawn's ledger as this client has it (one state per cell, see LawnGrid), so a swath never
 -- paints over what the server says a cell is. Everything is in lawn-local studs, which are cells
 -- too, and a picture's X and Y are the lawn's X and Z (GrassImages.worldToPixel).
+--
+-- Given the lawn art (GrassArt) the pictures hold other things. The turf image is painted over a
+-- tiling texture on its part: uncut grass is an opaque mottle sampled from the uncut texture, and
+-- mown grass a see-through tint of its shade, so the mown texture shows through. A shell's blades
+-- are tufts from the tuft sheet. Without the art (an image is missing or won't load) it paints the
+-- flat colours and dots it always did. load finds out which, once a session, and says so when it's
+-- the flat one.
 
 local AssetService = game:GetService("AssetService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
+local GameConfig = require(Shared.Config.GameConfig)
+local GrassArt = require(Shared.Config.GrassArt)
 local GrassImages = require(Shared.GrassImages)
 local LawnGrid = require(Shared.LawnGrid)
 local Swath = require(Shared.Swath)
@@ -23,12 +32,24 @@ local BRUSH_SIZE = 16
 local TILE = 256
 -- A dull blade's torn cut keeps every other square of this many pixels standing.
 local RAGGED_BLOCK = 2
+-- The uncut mottle is this many pixels a side, repeated across the turf: a multiple of every
+-- pixels-per-stud too.
+local MOTTLE = 64
+
+-- What load found: the pixels the textured brushes are made from, as RGBA bytes. The mottle is
+-- MOTTLE pixels a side and each tuft GrassArt.TuftSheet.size, in the order GrassImages.tuftFor counts.
+type Art = { mottle: buffer, tufts: { buffer } }
+
+-- Said once, when the lawn is painted without the art.
+local UNAVAILABLE = "GrassPaint: lawn textures unavailable, painting flat colours"
 
 local OVERWRITE = Enum.ImageCombineType.Overwrite
 local BLEND = Enum.ImageCombineType.BlendSourceOver
--- Stamps into the turf blend, so a stamp's soft edges don't leave see-through pixels. The eraser
--- writes clear pixels into the shells.
+-- Stamps into a flat turf blend, so a stamp's soft edges don't leave see-through pixels. Over the
+-- texture a stamp is see-through on purpose, and writes over what's there (TINT), so one painted
+-- twice leaves the same pixels. The eraser writes clear pixels into the shells.
 local STAMP = { CombineType = BLEND }
+local TINT = { CombineType = OVERWRITE }
 local ERASE = { CombineType = OVERWRITE }
 
 local WHITE = Color3.new(1, 1, 1)
@@ -59,17 +80,31 @@ local BLADE_LIGHT = Color3.fromRGB(98, 160, 60)
 -- Wheel tracks are this much darker than the stripe, this many pixels in from its long edges.
 local TRACK_DARKEN = 0.1
 local TRACK_INSET = 1
+-- Over the lawn texture a mown stripe is a tint: this much of its colour shows (1 is solid) for the
+-- light shades, and a little more for the dark one. Wheel tracks show this much.
+local TINT_LIGHT = 0.35
+local TINT_DARK = 0.45
+local TRACK_OPACITY = 0.45
 -- A cell's corner is this far from its centre (studs).
 local HALF_DIAGONAL = math.sqrt(0.5)
+
+-- How much of a shade's colour shows over the lawn texture. A shade that's neither light nor dark
+-- counts as light.
+local function opacity(shade: string): number
+	return if shade == "Dark" then TINT_DARK else TINT_LIGHT
+end
 
 local GrassPaint = {}
 
 GrassPaint.UNCUT = UNCUT
 
--- Made the first time a lawn is drawn (see prepare): a solid stamp per shade and the eraser, and
--- a grass tile per shell.
+-- Made the first time a lawn is drawn (see prepare): a stamp per shade, the eraser and, with the
+-- lawn art, the mottle and the tufts, and a grass tile per shell.
 local brushes = nil
 local tiles = nil
+-- The lawn art's pixels, once load has found them: nil until then, and when it can't be had.
+local art: Art? = nil
+local started, loaded = false, false
 
 -- A blank EditableImage, or nil when one can't be made: the API is off in this game (that throws)
 -- or the device's memory budget is spent (that returns nil).
@@ -78,20 +113,103 @@ function GrassPaint.newImage(size: Vector2): EditableImage?
 	return if ok and image then image else nil
 end
 
+-- Reads the lawn art's pixels, or gives nil, with nothing left behind, when any of it can't be had:
+-- an id that isn't uploaded yet (0), an image that won't load or is too small, or the API being off
+-- or the memory budget spent. The mown texture is only checked here (it's the part's own Texture);
+-- the mottle is the corner of the uncut texture, and each tuft a cell of the sheet.
+local function readArt(): Art?
+	local images: { EditableImage } = {}
+	local found: Art? = nil
+	pcall(function()
+		local ids = { GrassArt.Mown, GrassArt.Uncut, GrassArt.Tufts }
+		for _, id in ids do
+			if id <= 0 then
+				return
+			end
+		end
+		for _, id in ids do
+			-- This yields, and throws when the image won't load; it returns nil with no memory to spare.
+			local image = AssetService:CreateEditableImageAsync(Content.fromAssetId(id))
+			if not image then
+				return
+			end
+			table.insert(images, image)
+		end
+		local uncut, sheet = images[2], images[3]
+		local columns, rows, cell = GrassArt.TuftSheet.columns, GrassArt.TuftSheet.rows, GrassArt.TuftSheet.size
+		if uncut.Size.X < MOTTLE or uncut.Size.Y < MOTTLE then
+			return
+		end
+		if sheet.Size.X < columns * cell or sheet.Size.Y < rows * cell then
+			return
+		end
+
+		local mottle = uncut:ReadPixelsBuffer(Vector2.zero, Vector2.new(MOTTLE, MOTTLE))
+		-- Uncut grass is solid, whatever the texture says: nothing shows through it.
+		for offset = 3, buffer.len(mottle) - 1, 4 do
+			buffer.writeu8(mottle, offset, 255)
+		end
+		local tufts = {}
+		for index = 1, GrassImages.TUFTS do
+			local column, row = (index - 1) % columns, (index - 1) // columns
+			tufts[index] = sheet:ReadPixelsBuffer(Vector2.new(column * cell, row * cell), Vector2.new(cell, cell))
+		end
+		found = { mottle = mottle, tufts = tufts }
+	end)
+	for _, image in images do
+		image:Destroy()
+	end
+	return found
+end
+
+-- Finds out, once a session, whether the lawns can be painted over the lawn art, and says so (once)
+-- when they can't. It waits on the asset loads, so GrassController holds its lawns until it's done.
+function GrassPaint.load()
+	if started then
+		return
+	end
+	started = true
+	art = readArt()
+	if not art then
+		warn(UNAVAILABLE)
+	end
+	loaded = true
+end
+
+-- Whether load has finished.
+function GrassPaint.loaded(): boolean
+	return loaded
+end
+
+-- Whether lawns are painted over the lawn art: settled once prepare has run, and false before.
+function GrassPaint.textured(): boolean
+	return brushes ~= nil and brushes.mottle ~= nil
+end
+
 -- A shell's grass tile: its blade dots (the same on every client), with each dot that runs over an
--- edge drawn again past the opposite one, so tiles laid side by side meet without a seam.
+-- edge drawn again past the opposite one, so tiles laid side by side meet without a seam. With
+-- `tufts` a dot is the tuft GrassImages.tuftFor picks, a stud across, and not a coloured circle.
 local WRAPS = { -TILE, 0, TILE }
-local function drawTile(tile: EditableImage, plan: { GrassImages.Shell }, index: number)
+local function drawTile(tile: EditableImage, plan: { GrassImages.Shell }, index: number, tufts: { EditableImage }?)
 	local lift = if #plan > 1 then (index - 1) / (#plan - 1) else 0
+	-- A tuft is the sheet's cell shrunk to a stud across, and reaches half that from its dot.
+	local tuftScale = Vector2.one * (GameConfig.PixelsPerStud / GrassArt.TuftSheet.size)
+	local tuftReach = GameConfig.PixelsPerStud / 2
 	for _, dot in GrassImages.bladeDots(TILE, TILE, plan[index].density, index) do
 		local color = BLADE_DARK:Lerp(BLADE_LIGHT, (dot.tone + lift) / 2)
+		local reach = if tufts then tuftReach else dot.r
 		for _, offsetX in WRAPS do
 			local x = dot.x + offsetX
-			if x + dot.r > 0 and x - dot.r < TILE then
+			if x + reach > 0 and x - reach < TILE then
 				for _, offsetY in WRAPS do
 					local y = dot.y + offsetY
-					if y + dot.r > 0 and y - dot.r < TILE then
-						tile:DrawCircle(Vector2.new(x, y), dot.r, color, 0, BLEND)
+					if y + reach > 0 and y - reach < TILE then
+						if tufts then
+							local tuft = tufts[GrassImages.tuftFor(dot)]
+							tile:DrawImageTransformed(Vector2.new(x, y), tuftScale, 0, tuft, STAMP)
+						else
+							tile:DrawCircle(Vector2.new(x, y), dot.r, color, 0, BLEND)
+						end
 					end
 				end
 			end
@@ -100,13 +218,11 @@ local function drawTile(tile: EditableImage, plan: { GrassImages.Shell }, index:
 end
 
 -- Makes the session's brushes and grass tiles (one per shell of `plan`, the shells'
--- GrassImages.shellPlan: a session's shell count never changes), once. A solid stamp per shade
--- paints a stripe into the turf (DrawImageTransformed takes no colour, so each shade gets its own)
--- and the eraser clears a shell. False when they can't be made.
-function GrassPaint.prepare(plan: { GrassImages.Shell }): boolean
-	if brushes then
-		return true
-	end
+-- GrassImages.shellPlan: a session's shell count never changes) from the lawn art `from`, or as flat
+-- colours when that's nil. A stamp per shade paints a stripe into the turf (DrawImageTransformed
+-- takes no colour, so each shade gets its own) and the eraser clears a shell. They're kept only when
+-- every one is made: otherwise it gives false, and why, with nothing left behind.
+local function makeBrushes(plan: { GrassImages.Shell }, from: Art?): (boolean, string?)
 	local made, failed = {}, false
 	local function create(size: Vector2): EditableImage
 		local image = GrassPaint.newImage(size)
@@ -118,50 +234,102 @@ function GrassPaint.prepare(plan: { GrassImages.Shell }): boolean
 		return image :: EditableImage
 	end
 	local brushSize = Vector2.new(BRUSH_SIZE, BRUSH_SIZE)
+	local mottleSize = Vector2.new(MOTTLE, MOTTLE)
+	local tuftSize = Vector2.new(GrassArt.TuftSheet.size, GrassArt.TuftSheet.size)
 	local solid = {}
 	for shade in SHADES do
 		solid[shade] = create(brushSize)
 	end
 	local eraser = create(brushSize)
+	local mottle: EditableImage? = nil
+	local tufts: { EditableImage }? = nil
+	if from then
+		mottle = create(mottleSize)
+		tufts = {}
+		for _ = 1, GrassImages.TUFTS do
+			table.insert(tufts, create(tuftSize))
+		end
+	end
 	local grass = {}
 	for index = 1, #plan do
 		grass[index] = create(Vector2.new(TILE, TILE))
 	end
-	local drawn = not failed
-		and pcall(function()
+
+	local ok, problem = false, "no EditableImage: is the memory budget spent?"
+	if not failed then
+		ok, problem = pcall(function()
 			for shade, brush in solid do
-				brush:DrawRectangle(Vector2.zero, brushSize, SHADES[shade], 0, OVERWRITE)
+				-- Over the texture a stamp is a tint, with only some of its colour showing.
+				local transparency = if from then 1 - opacity(shade) else 0
+				brush:DrawRectangle(Vector2.zero, brushSize, SHADES[shade], transparency, OVERWRITE)
 			end
 			-- Clear white, so the shells' cut edges never filter towards black.
 			eraser:DrawRectangle(Vector2.zero, brushSize, WHITE, 1, OVERWRITE)
+			if from and mottle and tufts then
+				mottle:WritePixelsBuffer(Vector2.zero, mottleSize, from.mottle)
+				for index, tuft in tufts do
+					tuft:WritePixelsBuffer(Vector2.zero, tuftSize, from.tufts[index])
+				end
+			end
 			for index, tile in grass do
-				drawTile(tile, plan, index)
+				drawTile(tile, plan, index, tufts)
 			end
 		end)
-	if not drawn then
+	end
+	if not ok then
 		for _, image in made do
 			image:Destroy()
 		end
-		return false
+		return false, problem
 	end
-	brushes = { solid = solid, eraser = eraser }
+	brushes = { solid = solid, eraser = eraser, mottle = mottle, tufts = tufts }
 	tiles = grass
-	return true
+	return true, nil
+end
+
+-- Makes the session's brushes and grass tiles once (see makeBrushes), after load has finished: from
+-- the lawn art if there is any. If they can't be made from it they're made as flat colours instead,
+-- with the same warning as load's. False when even those can't be made.
+function GrassPaint.prepare(plan: { GrassImages.Shell }): boolean
+	if brushes then
+		return true
+	end
+	if not loaded then
+		error("GrassPaint.prepare ran before GrassPaint.load finished")
+	end
+	if art then
+		local ok, problem = makeBrushes(plan, art)
+		if ok then
+			return true
+		end
+		art = nil
+		warn(`{UNAVAILABLE} ({problem})`)
+	end
+	return (makeBrushes(plan, nil))
+end
+
+-- Tiles `image` from its corner with `tile`, a square of `size` pixels. DrawImage takes a tile
+-- hanging over the canvas's edge and draws the part inside.
+local function tileOver(image: EditableImage, tile: EditableImage, size: number)
+	local extent = image.Size
+	for y = 0, extent.Y - 1, size do
+		for x = 0, extent.X - 1, size do
+			image:DrawImage(Vector2.new(x, y), tile, OVERWRITE)
+		end
+	end
 end
 
 -- Puts a lawn back to all tall: every cell tall in the ledger, every shell tiled with its grass and
--- the turf uncut.
+-- the turf uncut (the mottle, tiled, over the texture).
 function GrassPaint.reset(lawn)
-	local size = lawn.turf.Size
 	for index, shell in lawn.shells do
-		-- DrawImage takes a tile hanging over the canvas's edge and draws the part inside.
-		for y = 0, size.Y - 1, TILE do
-			for x = 0, size.X - 1, TILE do
-				shell:DrawImage(Vector2.new(x, y), tiles[index], OVERWRITE)
-			end
-		end
+		tileOver(shell, tiles[index], TILE)
 	end
-	lawn.turf:DrawRectangle(Vector2.zero, size, UNCUT, 0, OVERWRITE)
+	if brushes.mottle then
+		tileOver(lawn.turf, brushes.mottle, MOTTLE)
+	else
+		lawn.turf:DrawRectangle(Vector2.zero, lawn.turf.Size, UNCUT, 0, OVERWRITE)
+	end
 	lawn.cells = table.create(lawn.columns * lawn.rows, LawnGrid.TALL)
 end
 
@@ -178,25 +346,50 @@ local function tear(pixels: buffer, left: number, top: number, width: number, he
 	end
 end
 
--- Gives a rectangle of a shell its grass back from the shell's tile, torn when `torn`. The tile
--- repeats from the image's corner, so a pixel's grass is at (x mod TILE, y mod TILE); a run of
--- cells can cross from one tile into the next, so it goes a tile at a time.
-local function regrass(shell: EditableImage, tile: EditableImage, position: Vector2, size: Vector2, torn: boolean)
+-- Gives a rectangle of an image its grass back from `tile`, a square of `tileSize` pixels (a shell's
+-- grass tile, or the turf's mottle), torn when `torn`. The tile repeats from the image's corner, so
+-- a pixel's grass is at (x mod tileSize, y mod tileSize); a run of cells can cross from one tile
+-- into the next, so it goes a tile at a time.
+local function regrass(
+	image: EditableImage,
+	tile: EditableImage,
+	tileSize: number,
+	position: Vector2,
+	size: Vector2,
+	torn: boolean
+)
 	local right, bottom = position.X + size.X, position.Y + size.Y
 	local y = position.Y
 	while y < bottom do
-		local height = math.min(TILE - y % TILE, bottom - y)
+		local height = math.min(tileSize - y % tileSize, bottom - y)
 		local x = position.X
 		while x < right do
-			local width = math.min(TILE - x % TILE, right - x)
-			local pixels = tile:ReadPixelsBuffer(Vector2.new(x % TILE, y % TILE), Vector2.new(width, height))
+			local width = math.min(tileSize - x % tileSize, right - x)
+			local pixels = tile:ReadPixelsBuffer(Vector2.new(x % tileSize, y % tileSize), Vector2.new(width, height))
 			if torn then
 				tear(pixels, x, y, width, height)
 			end
-			shell:WritePixelsBuffer(Vector2.new(x, y), Vector2.new(width, height), pixels)
+			image:WritePixelsBuffer(Vector2.new(x, y), Vector2.new(width, height), pixels)
 			x += width
 		end
 		y += height
+	end
+end
+
+-- Paints the turf under a rectangle of cells that are all in one state. Flat, it takes the state's
+-- colour. Over the lawn texture, uncut grass is the mottle (solid), bare ground is solid, and a cut
+-- cell is a tint of its colour that lets the texture show through.
+local function paintTurf(lawn, position: Vector2, size: Vector2, state: string)
+	local turf = lawn.turf
+	if not brushes.mottle then
+		turf:DrawRectangle(position, size, CELL_COLORS[state], 0, OVERWRITE)
+	elseif state == LawnGrid.TALL then
+		regrass(turf, brushes.mottle, MOTTLE, position, size, false)
+	elseif state == LawnGrid.EMPTY then
+		turf:DrawRectangle(position, size, GROUND, 0, OVERWRITE)
+	else
+		-- Mowed or ragged: neither is a dark stripe, so it shows as much as a light one.
+		turf:DrawRectangle(position, size, CELL_COLORS[state], 1 - TINT_LIGHT, OVERWRITE)
 	end
 end
 
@@ -204,11 +397,11 @@ end
 -- grass comes back from the tiles (torn when ragged), cut and empty cells have none, and the turf
 -- takes the state's colour.
 local function drawArea(lawn, position: Vector2, size: Vector2, state: string)
-	lawn.turf:DrawRectangle(position, size, CELL_COLORS[state], 0, OVERWRITE)
+	paintTurf(lawn, position, size, state)
 	local grows = state == LawnGrid.TALL or state == LawnGrid.RAGGED
 	for index, shell in lawn.shells do
 		if grows then
-			regrass(shell, tiles[index], position, size, state == LawnGrid.RAGGED)
+			regrass(shell, tiles[index], TILE, position, size, state == LawnGrid.RAGGED)
 		else
 			shell:DrawRectangle(position, size, WHITE, 1, OVERWRITE)
 		end
@@ -306,18 +499,22 @@ local function touched(lawn, segment: Swath.Segment): { number }
 end
 
 -- A clean swath's stamp: its stripe into the turf, with wheel tracks, and its shape out of every
--- shell. A snip is a round patch.
+-- shell. A snip is a round patch. Over the lawn texture the stripe and tracks are tints written over
+-- the turf's pixels, so the texture shows through them (see TINT).
 local function stamp(lawn, segment: Swath.Segment)
 	local pps = lawn.pps
 	local turf = lawn.turf
 	local color = SHADES[segment.shade] or SHADES.Flat
+	local textured = brushes.mottle ~= nil
+	local combine = if textured then OVERWRITE else BLEND
+	local transparency = if textured then 1 - opacity(segment.shade) else 0
 	local function pixel(x: number, z: number): Vector2
 		return Vector2.new(GrassImages.worldToPixel(0, 0, pps, x, z))
 	end
 
 	if segment.radius then
 		local center, radius = pixel(segment.fromX, segment.fromZ), segment.radius * pps
-		turf:DrawCircle(center, radius, color, 0, BLEND)
+		turf:DrawCircle(center, radius, color, transparency, combine)
 		for _, shell in lawn.shells do
 			shell:DrawCircle(center, radius, WHITE, 1, OVERWRITE)
 		end
@@ -332,9 +529,11 @@ local function stamp(lawn, segment: Swath.Segment)
 	local scale = Vector2.new(2 * halfLength * pps / BRUSH_SIZE, 2 * halfWidth * pps / BRUSH_SIZE)
 	-- Image X and Y are lawn X and Z, so the angle on the lawn is the angle in the picture.
 	local angle = math.deg(math.atan2(alongZ, alongX))
-	turf:DrawImageTransformed(center, scale, angle, brushes.solid[segment.shade] or brushes.solid.Flat, STAMP)
+	local brush = brushes.solid[segment.shade] or brushes.solid.Flat
+	turf:DrawImageTransformed(center, scale, angle, brush, if textured then TINT else STAMP)
 
 	local track = darken(color, TRACK_DARKEN)
+	local trackTransparency = if textured then 1 - TRACK_OPACITY else 0
 	local edge = halfWidth - TRACK_INSET / pps
 	-- DrawLine wants both ends inside the picture, and a deck sweeps in from outside the lawn, so each
 	-- track is clipped to it first, a pixel in from the far edges so rounding can't push an end out.
@@ -346,7 +545,7 @@ local function stamp(lawn, segment: Swath.Segment)
 		local fromX, fromY, toX, toY =
 			GrassImages.clipLine(startPixel.X, startPixel.Y, endPixel.X, endPixel.Y, lastX, lastY)
 		if fromX and fromY and toX and toY then
-			turf:DrawLine(Vector2.new(fromX, fromY), Vector2.new(toX, toY), track, 0, BLEND)
+			turf:DrawLine(Vector2.new(fromX, fromY), Vector2.new(toX, toY), track, trackTransparency, combine)
 		end
 	end
 
