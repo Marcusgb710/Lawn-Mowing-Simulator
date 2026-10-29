@@ -308,8 +308,9 @@ flowers, the turf-renovation steps) keeps the **4-stud tile** (`GameConfig.TileS
   job plays and finishes the same. It's a safety net, and the game never assumes the toggle is on.
 - **The counter.** The mowing row on the job tracker shows the percent of the required cells that
   are cut (the lawn's mowable cells less the optional ones), where other tasks count what's done.
-  Mowing finishes at **99%** of the required cells (`GameConfig.MowCompletionThreshold`); every
-  other task keeps **95%** (`CompletionThreshold`).
+  A job's mowing finishes at **99%** of the required cells (`GameConfig.MowCompletionThreshold`);
+  every other task keeps **95%** (`CompletionThreshold`), and so does a home lawn's grass, which
+  has no percent and no missed-spots button to chase the last cells with.
 - **Show what I missed.** From **90%** (`MissedSpotsFrom`) until the job counts as done, a
   **Show what I missed** button under the tracker (key **M** on a keyboard) tints the uncut grass
   red for **3 s** (`MissedSpotsSeconds`), with a soft pulse. It only shows over a job's lawn drawn

@@ -46,6 +46,10 @@ local REFETCH_DELAY = 1.5
 local TURF_HEIGHT = 0.1
 local PLATE_THICKNESS = 0.1
 
+-- A phone (touch and no keyboard) gets fewer shells. Decided once: GrassPaint makes the session's
+-- grass tiles for one shell count, so a keyboard plugged in later mustn't ask for more.
+local TOUCH = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
+
 local WHITE = Color3.new(1, 1, 1)
 -- "Show what I missed": the shells' tint. A Decal's tint multiplies the picture, so red goes past 1
 -- to turn green blades red rather than just dark (selene's 0-1 rule is for ordinary colours).
@@ -57,6 +61,9 @@ local HIGHLIGHT_PULSE = 0.8
 
 -- Studs a deck must move in a frame to paint ahead; less is standing still, which the server cuts within a tick.
 local PREDICT_MIN_MOVE = 0.05
+-- A mower that starts mowing paints as if it had just come this far the way you face, as the
+-- server cuts it (ToolService's START_SLIVER), so the first stamp faces that way and not +Z.
+local START_SLIVER = 0.1
 -- Seconds a painted cell waits for the server's swath: the client can't know about junk stops or refused cuts.
 local CONFIRM_SECONDS = 0.5
 -- Seconds between looks for cells that waited too long: the ledger copy is the server's truth, and decides.
@@ -71,7 +78,7 @@ local useFallback = false
 -- [lawn] = { [cell index] = os.clock() your own mower last painted it }, for the cells no swath from
 -- the server has vouched for yet (see paintOwnMower and reconcile).
 local unconfirmed = {}
--- Where your mower's deck was last frame while it's been cutting, and which mower that was.
+-- Where your mower's deck was last frame while it's been mowing, and which mower that was.
 local lastLocalDeck: Vector3? = nil
 local lastLocalTool: Tool? = nil
 local lastReconcile = 0
@@ -127,8 +134,7 @@ end
 -- GrassImages.shellPlan. False, with whatever was made left for show to clear away, when an image
 -- can't be made.
 local function buildSurface(lawn): boolean
-	local touch = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
-	local plan = GrassImages.shellPlan(GrassImages.shellCount(touch), GameConfig.TallGrassHeight * lawn.tallScale)
+	local plan = GrassImages.shellPlan(GrassImages.shellCount(TOUCH), GameConfig.TallGrassHeight * lawn.tallScale)
 	if not GrassPaint.prepare(plan) then
 		return false
 	end
@@ -410,9 +416,11 @@ end
 -- behind it. The server stays the judge: the swaths it sends confirm what we painted, and a cell it
 -- never cut (junk stopped the deck, or the cut was refused) grows back from the ledger's say-so.
 
--- The mower your character holds, with the part it's driven from, when it's cutting right now and
--- its blade is sharp. A dull blade's torn cut is the server's alone: painting it every frame would
--- tear the same cells again and again, and a guess at it would stay wrong.
+-- The mower your character holds, with the part it's driven from, when it's mowing right now (the
+-- server's "Mows": its deck is on a lawn it can cut, whether or not the last tick cut any, so a
+-- pass paints from its first stud) and its blade is sharp. A dull blade's torn cut is the server's
+-- alone: painting it every frame would tear the same cells again and again, and a guess at it would
+-- stay wrong. "Cutting" is for the clippings, the slowdown and the shake, not for this.
 local function cuttingMower(): (Tool?, BasePart?)
 	local character = Players.LocalPlayer.Character
 	local tool = character and character:FindFirstChildOfClass("Tool")
@@ -425,7 +433,7 @@ local function cuttingMower(): (Tool?, BasePart?)
 	if
 		tool:GetAttribute("Category") ~= "Mower"
 		or tool:GetAttribute("Working") ~= true
-		or tool:GetAttribute("Cutting") ~= true
+		or tool:GetAttribute("Mows") ~= true
 		or tool:GetAttribute("Blocked") ~= nil
 		or tool:GetAttribute("Ragged") == true
 	then
@@ -459,7 +467,8 @@ end
 
 -- Paints the strip your mower's deck made this frame: from where it was last frame to where it is
 -- now, on the lawn under it. The deck is where the server puts it (see ToolService's workTick). A
--- frame with no previous deck (the mower just started cutting, or was swapped) only notes where it is.
+-- frame with no previous deck (the mower just started mowing, or was swapped) paints the deck's
+-- own rectangle, the way you face, as the server's fresh start does.
 local function paintOwnMower(now: number)
 	local tool, root = cuttingMower()
 	local itemId = if tool then tool:GetAttribute("ItemId") else nil
@@ -469,11 +478,16 @@ local function paintOwnMower(now: number)
 		return
 	end
 
-	local deck = root.Position + root.CFrame.LookVector * GameConfig.DeckOffset
+	local look = root.CFrame.LookVector
+	local deck = root.Position + look * GameConfig.DeckOffset
 	local last = if tool == lastLocalTool then lastLocalDeck else nil
 	lastLocalDeck, lastLocalTool = deck, tool
 	if not last then
-		return
+		local flat = Vector3.new(look.X, 0, look.Z)
+		if flat.Magnitude <= 1e-3 then
+			return
+		end
+		last = deck - flat.Unit * START_SLIVER
 	end
 	local dx, dz = deck.X - last.X, deck.Z - last.Z
 	if dx * dx + dz * dz < PREDICT_MIN_MOVE * PREDICT_MIN_MOVE then

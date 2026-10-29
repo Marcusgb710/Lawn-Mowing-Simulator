@@ -794,7 +794,8 @@ end
 -- Called by ToolService every tick a mower's deck, `halfWidth` studs either side, moves over the
 -- job's lawn: from where it was last tick to where it is now, in world studs (see Lawn:Sweep).
 -- Takes the same options as ApplyWork and returns the same, plus whether junk in the grass stopped
--- the deck short (only a mower that isn't motorized stops at it).
+-- the deck short (only a mower that isn't motorized stops at it) and whether the mower can mow
+-- the lawn at all (it fits the mowing), cut or not.
 function JobService:Sweep(
 	player: Player,
 	fromX: number,
@@ -804,17 +805,17 @@ function JobService:Sweep(
 	halfWidth: number,
 	toolId: string,
 	options: WorkOptions
-): (boolean, { any }?, boolean)
+): (boolean, { any }?, boolean, boolean)
 	local job = playerJobs[player]
 	if not job or job.state ~= "Working" then
-		return false, nil, false
+		return false, nil, false, false
 	end
 	if options.damagesHazards then
 		wreckHazards(job, player, Vector3.new(toX, 0, toZ), halfWidth)
 	end
 	local result = job.lawn:Sweep(fromX, fromZ, toX, toZ, halfWidth, toolId, workContext(player, options))
 	local changed, struck = settle(job, player, result, options, false)
-	return changed, struck, result.debris ~= nil
+	return changed, struck, result.debris ~= nil, result.fits == true
 end
 
 -- Called by ToolService for every snip of hand shears: the grass within `radius` of (x, z), in

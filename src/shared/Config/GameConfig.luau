@@ -42,8 +42,9 @@ local GameConfig = {
 	CellSize = 1,
 	-- Pixels per stud in the mowed picture (halved for a lawn too big to fit one image).
 	PixelsPerStud = 4,
-	-- Mowing counts as done at this share of the cells it requires: a lawn's mowable cells, less the
-	-- optional ones beside flowers and trees (other tasks use CompletionThreshold).
+	-- Mowing on a job counts as done at this share of the cells it requires: a lawn's mowable cells,
+	-- less the optional ones beside flowers and trees (other tasks, and a home lawn's grass, use
+	-- CompletionThreshold).
 	MowCompletionThreshold = 0.99,
 	-- How far in front of the player a mower's deck sits, in studs.
 	DeckOffset = 2,

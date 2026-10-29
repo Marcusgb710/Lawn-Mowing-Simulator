@@ -437,7 +437,8 @@ end
 -- Called by ToolService every tick a mower's deck, `halfWidth` studs either side, moves over their
 -- crew's home lawn: from where it was last tick to where it is now, in world studs (see
 -- Lawn:Sweep). Takes the same options as ApplyWork and returns the same, plus whether junk in the
--- grass stopped the deck short (only a mower that isn't motorized stops at it).
+-- grass stopped the deck short (only a mower that isn't motorized stops at it) and whether the
+-- mower can mow the lawn at all (it fits the mowing), cut or not.
 function HomeLawnService:Sweep(
 	player: Player,
 	fromX: number,
@@ -447,15 +448,15 @@ function HomeLawnService:Sweep(
 	halfWidth: number,
 	toolId: string,
 	options: WorkOptions
-): (boolean, { any }?, boolean)
+): (boolean, { any }?, boolean, boolean)
 	local entry = lawnUnder(player)
 	local data = DataService:Get(player)
 	if not (entry and data) then
-		return false, nil, false
+		return false, nil, false, false
 	end
 	local result = entry.lawn:Sweep(fromX, fromZ, toX, toZ, halfWidth, toolId, workContext(player, data, options))
 	local changed, struck = settle(player, entry, result, options, false, false)
-	return changed, struck, result.debris ~= nil
+	return changed, struck, result.debris ~= nil, result.fits == true
 end
 
 -- Called by ToolService for every snip of hand shears on their crew's home lawn: the grass within

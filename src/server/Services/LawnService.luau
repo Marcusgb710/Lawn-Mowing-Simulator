@@ -2175,6 +2175,8 @@ export type WorkResult = {
 	debris: any?,
 	-- Junk a motorized mower just ran over and chewed up.
 	struck: { any },
+	-- A sweep: the tool can mow this lawn, whether or not there was any tall grass under the deck.
+	fits: boolean,
 }
 
 -- Who's doing the work and how, for things that depend on it.
@@ -2208,6 +2210,7 @@ local function emptyResult(): WorkResult
 		message = nil,
 		debris = nil,
 		struck = {},
+		fits = false,
 	}
 end
 
@@ -2483,6 +2486,8 @@ function Lawn:Sweep(
 	if not self.grassTask then
 		return result
 	end
+	-- Asked before looking under the deck, so a mower over grass that's already cut still counts.
+	result.fits = TaskTypes.fit(self.grassTask.id, toolId) ~= nil
 	-- From here on in lawn-local studs, as LawnGrid and the swath log have them.
 	fromX, fromZ = fromX - self.origin.X, fromZ - self.origin.Z
 	toX, toZ = toX - self.origin.X, toZ - self.origin.Z
@@ -2718,10 +2723,12 @@ function Lawn:CheckHazards(position: Vector3, radius: number)
 	return hits
 end
 
--- The number of targets that must be done for a task to count as finished. Mowing asks for a bigger
--- share than the other tasks (GameConfig.MowCompletionThreshold).
-local function needed(task): number
-	local threshold = if task.type.target == "Grass"
+-- The number of targets that must be done for a task to count as finished. Mowing on a job asks for
+-- a bigger share than the other tasks (GameConfig.MowCompletionThreshold). A `home` lawn's grass
+-- doesn't: it has no percent on screen and no missed-spots button to find the last cells with, so it
+-- takes CompletionThreshold like everything else.
+local function needed(task, home: boolean?): number
+	local threshold = if task.type.target == "Grass" and not home
 		then GameConfig.MowCompletionThreshold
 		else GameConfig.CompletionThreshold
 	return LawnGrid.needed(task.total, task.optional, threshold)
@@ -2735,7 +2742,7 @@ end
 
 function Lawn:IsComplete(): boolean
 	for _, task in self.tasks do
-		if doneTowardsNeeded(task) < needed(task) then
+		if doneTowardsNeeded(task) < needed(task, self.home) then
 			return false
 		end
 	end
@@ -2745,8 +2752,8 @@ end
 -- Progress for the HUD: { { task = "MowSmallLawn", label = "Mow the lawn", done = 10, needed = 29 }, ... }
 -- Mowing also has `percent`, 0-1: how much of what the job requires is cut. The grass beside flowers
 -- and trees is optional (it doesn't count against you if it's left, and cutting it doesn't count
--- towards the job), so it isn't part of what's required. That puts it at MowCompletionThreshold or
--- more exactly when the task is complete.
+-- towards the job), so it isn't part of what's required. That puts it at the mowing's threshold (see
+-- needed) or more exactly when the task is complete.
 function Lawn:GetProgress()
 	local progress = {}
 	for _, task in self.tasks do
@@ -2754,8 +2761,8 @@ function Lawn:GetProgress()
 			local entry = {
 				task = task.id,
 				label = task.type.label,
-				done = math.min(doneTowardsNeeded(task), needed(task)),
-				needed = needed(task),
+				done = math.min(doneTowardsNeeded(task), needed(task, self.home)),
+				needed = needed(task, self.home),
 			}
 			if task.type.target == "Grass" then
 				entry.percent = math.min(1, task.requiredDone / math.max(1, task.total - task.optional))
