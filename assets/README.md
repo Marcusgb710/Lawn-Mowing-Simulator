@@ -72,15 +72,16 @@ holds:
   and the import says how many it renamed.
 - `parts`: `{ "<mesh name>": { "rename", "collide" } }`, by the names the mesh arrives with.
 - `body` (`"largest"`, `"all"` or a list of colours, Trucks only): after the `parts` renames, names
-  parts `<id>__Body`, for a mesh whose parts are all called `Part`. `largest` names the largest
-  visible part. `all` names every visible part except wheels, tires, rims and glass (any name with
+  parts `<id>__Body`. `largest` names the largest visible part, for a mesh whose parts are all
+  called `Part`. `all` names every visible part except wheels, tires, rims and glass (any name with
   `Wheel`, `Tire`, `Rim`, `Glass` or `Window` in it, whatever the case), so a truck of dozens of
-  loose parts takes its livery everywhere. A list of `[r, g, b]` colours (whole numbers from 0 to
-  255, such as `[[111, 0, 0]]`) names every fully opaque part that is neither `Glass` nor `Neon` and
-  whose colour is within 8 of a listed one on each channel, for a mesh that has no names to tell
-  its painted panels apart, and the import fails if no part matches. With `all` or a list, a part
-  already named `<id>__Body`, `__DriverDoor`, `__Tailgate` or `__RearDoor` keeps its name, and the
-  import says how many parts it renamed.
+  loose parts takes its livery everywhere. It suits a mesh whose wheels and glass carry names. A
+  list of `[r, g, b]` colours (whole numbers from 0 to 255, such as `[[111, 0, 0]]`) is for a mesh
+  whose parts are all called `Part`, where no name tells a panel from a tire. It names every fully
+  opaque part whose `Material` is neither `Glass` nor `Neon` and whose red, green and blue are each
+  within 8 out of 255 of a listed colour's. The import fails if no part matches. With `all` or a
+  list, a part already named `<id>__Body`, `__DriverDoor`, `__Tailgate` or `__RearDoor` keeps its
+  name, and the import says how many parts it renamed.
 - `markers`: `[{ "name", "position", "orientation" (degrees), "attributes" }]`, attachments on the
   `Handle` or `Root`. `boxes`: `[{ "name", "position", "size" }]`, invisible parts that don't
   collide (`BedArea`, `BaySpot`).

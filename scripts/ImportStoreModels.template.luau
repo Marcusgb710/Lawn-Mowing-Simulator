@@ -379,9 +379,12 @@ local function contract(entry, model: Model): (number, number)
 			step.part.Name = step.info.rename
 		end
 	end
-	-- A truck whose parts are all called "Part" has nothing to find its body by, so the entry can ask
-	-- for the largest visible one (by box volume) to be named. After the renames above, so a name the
-	-- entry gave is not undone, and a clash with one of them is a FAIL, not a quiet second Body.
+	-- A truck's body is named <id>__Body by one of three rules: "largest" takes the largest visible part
+	-- (by box volume), "all" every part that takes paint, and a colour list every part of those colours.
+	-- "largest" and the list are for a truck whose parts are all called "Part" and so have nothing to
+	-- find the body by. All three run after the renames above, so a name the entry gave is not undone:
+	-- "largest" fails on a part already named <id>__Body, not a quiet second Body, while "all" and the
+	-- list leave it as it is and don't count it. bodyParts is how many parts "all" or the list named.
 	local bodyParts = 0
 	if entry.body == "largest" then
 		local bodyName = entry.id .. "__Body"
