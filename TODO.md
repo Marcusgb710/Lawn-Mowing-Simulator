@@ -482,6 +482,10 @@ The spec's playtest checklist for slice 1:
 - [ ] the rail on a phone in landscape
 - [ ] every sound
 
+The payday half (June's welcome, then her texts) plays once per playtest launch, so a second
+**Start as a first-timer** run in the same launch shows no welcome. Restart Studio for a second
+look.
+
 What the reviews asked to see in Studio:
 
 - [ ] The star pop on the pay panel: each star should grow out of its middle (the anchor was moved
@@ -494,6 +498,13 @@ What the reviews asked to see in Studio:
       with and without the gold sign.
 - [ ] The total's "+$" pop on the pay panel: it starts in the middle of the big total, so check it
       doesn't read as clutter.
+- [ ] The star glyph on the pay panel and the job board: nothing else in the game draws it, so it
+      may fall back to a system font and look off.
+- [ ] The XP button by thumb on a phone: it is 36 px, about 25 px at the columns' 0.7 scale.
+- [ ] The text-only DONE stamp (`UI.stampText`): its width is a guess of 0.6 heights per letter,
+      which fits "DONE"; check it on the rail.
+- [ ] The "Level n: text" subtitle against the 720 px level-up moment: it may be too long for
+      one line.
 
 ## Model overhaul: what is left
 

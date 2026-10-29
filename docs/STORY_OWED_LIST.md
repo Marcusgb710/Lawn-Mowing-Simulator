@@ -84,7 +84,7 @@ new.
 3. **June:** *"Thirty years. Thirty years I've won Best Yard on this street… and Gloria Pemberton
    goes and hires somebody."*
 4. *(Changed)* **June:** *"My last mower died in '09. Did this whole yard with these ever since.
-   On my knees. Don't you lose 'em."* Card: New tool, Grandma's Grass Shears.
+   On my knees. Don't you lose 'em."* Card: Already yours, Grandma's Grass Shears.
 5. *(New, shot: the shed sign)* **June:** *"Hollis Lawn Care. Thirty-eight years out of that shed.
    It's yours now: the shed, the truck, the book. What's left of the customers."* Card: Inherited
    from Grandma June.

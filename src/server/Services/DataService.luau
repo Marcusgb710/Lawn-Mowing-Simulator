@@ -482,6 +482,10 @@ local function save(player: Player): boolean
 		if versionOf(stored) > DATA_VERSION then
 			return nil
 		end
+		-- Studio's reset can land while this call is in flight; a save that can't save writes nothing.
+		if not profile.canSave then
+			return nil
+		end
 		return profile.data, { player.UserId }
 	end)
 	if not ok then

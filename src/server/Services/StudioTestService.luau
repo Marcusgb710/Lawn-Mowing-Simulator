@@ -81,6 +81,9 @@ local TESTS = {
 		-- The story's reset with the save; sending it no texts tells their screen (no scene is
 		-- queued, so the intro waits for the first payday).
 		StoryService:SendTexts(player, {})
+		-- And the contest view they had (act 4's judging) goes back to Locked, so the goals rail
+		-- shows act 1's goal.
+		ContestService:OpenForTesting(player, true)
 		JobService:StartFirstJob(player)
 		local job = JobService:GetJob(player)
 		if not (job and job.firstTimer) then

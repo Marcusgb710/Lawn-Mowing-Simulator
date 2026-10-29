@@ -523,7 +523,8 @@ local function onStoryChanged()
 	for _, text in story.texts do
 		newest = math.max(newest, text.n)
 	end
-	if lastSeen == nil then
+	if lastSeen == nil or newest < lastSeen then
+		-- First update, or the inbox started over (Studio's reset): count from here, no toasts.
 		lastSeen = newest
 	elseif newest > lastSeen then
 		for _, text in story.texts do
