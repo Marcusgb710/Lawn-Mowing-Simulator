@@ -4,6 +4,8 @@
 local Services = script:WaitForChild("Services")
 
 local LOAD_ORDER = {
+	-- First: the people's rigs have to exist before anything builds a yard, a house or a porch.
+	"CastService",
 	"DataService",
 	"WorldService",
 	"GloriaService",

@@ -53,11 +53,11 @@ def display_name(path):
     return name[:50]
 
 
-def upload(key, folder, path):
+def upload(key, folder, path, name=None, description=None):
     request = {
         "assetType": "Image",
-        "displayName": display_name(path),
-        "description": f"Lawn Mowing Simulator GUI art: {path}",
+        "displayName": name or display_name(path),
+        "description": description or f"Lawn Mowing Simulator GUI art: {path}",
         "creationContext": {"creator": {"groupId": GROUP_ID}},
     }
     wait = BACKOFF

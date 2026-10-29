@@ -2,7 +2,8 @@
   "name": "LawnMowingSimulator",
   "globIgnorePaths": [
     "**/*.md",
-    "**/.gitkeep"
+    "**/.gitkeep",
+    "**/manifest"
   ],
   "tree": {
     "$className": "DataModel",
@@ -30,13 +31,7 @@
           }
         },
         "Story": {
-          "$className": "Folder",
-          "NPC_Judge1": {
-            "$path": "assets/Story/NPC_Judge1.rbxm"
-          },
-          "NPC_Judge2": {
-            "$path": "assets/Story/NPC_Judge2.rbxm"
-          }
+          "$className": "Folder"
         }
       }
     },

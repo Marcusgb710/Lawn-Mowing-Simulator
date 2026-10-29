@@ -2,7 +2,7 @@
 --   lune run scripts/check-mowing
 -- It checks which cells a mower's deck sweeps over and a snip cuts, and how many cells finish a
 -- task (src/shared/LawnGrid.luau); the swath log's shades, merging, cap and packing
--- (src/shared/Swath.luau); the grass pictures' sums and line clipping (src/shared/GrassImages.luau);
+-- (src/shared/Swath.luau); the grass pictures' sums, tuft picks and line clipping (src/shared/GrassImages.luau);
 -- and how home lawn saves from before cells are read (src/shared/HomeLawn.luau). Exits with an
 -- error if anything's off.
 
@@ -366,6 +366,31 @@ check(inRange, "every dot sits inside the image, 1 to 2 px across, with a tone f
 check(quadrants[0] and quadrants[1] and quadrants[2] and quadrants[3], "dots reach every quarter of the image")
 local nearby = GrassImages.bladeDots(40, 40, 1, 8)
 check(math.abs(nearby[1].x - dots[1].x) > 1 or math.abs(nearby[1].y - dots[1].y) > 1, "neighbouring seeds start apart")
+
+-- A tuft is picked from the dot alone: the same dot always draws the same one of the sheet's eight.
+local GrassArt = require("../src/shared/Config/GrassArt")
+check(
+	GrassImages.TUFTS == GrassArt.TuftSheet.columns * GrassArt.TuftSheet.rows,
+	"there is one tuft kind for each cell of the sheet"
+)
+local tuftDots = GrassImages.bladeDots(256, 256, 1, 11)
+local tuftDotsAgain = GrassImages.bladeDots(256, 256, 1, 11)
+check(#tuftDots >= 1000 and #tuftDotsAgain == #tuftDots, "a tile has the 1000 dots tuftFor is tried on")
+local tuftsInRange, tuftsAgree = true, true
+local tuftCounts = {}
+for index = 1, 1000 do
+	local tuft = GrassImages.tuftFor(tuftDots[index])
+	tuftsInRange = tuftsInRange and tuft == math.floor(tuft) and tuft >= 1 and tuft <= 8
+	tuftsAgree = tuftsAgree and tuft == GrassImages.tuftFor(tuftDotsAgain[index])
+	tuftCounts[tuft] = (tuftCounts[tuft] or 0) + 1
+end
+check(tuftsInRange, "tuftFor gives a whole number from 1 to 8 for 1000 dots")
+check(tuftsAgree, "tuftFor gives the same tuft for the same dot on every call")
+local everyTuft = true
+for tuft = 1, 8 do
+	everyTuft = everyTuft and (tuftCounts[tuft] or 0) >= 60
+end
+check(everyTuft, "every one of the eight tufts turns up, none rare")
 
 local px, py = GrassImages.worldToPixel(100, 200, 4, 110, 205)
 check(px == 40 and py == 20, "world to pixel")

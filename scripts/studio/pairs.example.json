@@ -1,0 +1,4 @@
+[
+ {"name": "ReelMower", "now": "Tools/ReelMower", "store": [2312990949, 3337410217], "gap": 14},
+ {"name": "RustyPickup", "now": "Trucks/RustyPickup", "store": [8178175195, 8764904616], "gap": 30, "step": 70}
+]

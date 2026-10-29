@@ -1,5 +1,5 @@
 -- The sums behind a lawn's grass pictures: how sharp to draw it, how many layers of grass to stack,
--- where each layer's dots go, and where a spot on the lawn lands in the picture.
+-- where each layer's dots go, which tuft each dot is, and where a spot on the lawn lands in the picture.
 --
 -- The client draws a lawn as a flat turf plate with a few "shells" of grass stacked above it, each
 -- one an EditableImage. This only does the maths, so it needs nothing from Roblox and loads in Lune
@@ -35,6 +35,10 @@ export type Shell = { height: number, density: number }
 export type Dot = { x: number, y: number, r: number, tone: number }
 
 local GrassImages = {}
+
+-- How many tufts the grass sheet has, one for each cell of GrassArt.TuftSheet. This file loads
+-- nothing, so scripts/check-mowing is what keeps the two agreeing.
+GrassImages.TUFTS = 8
 
 -- Gives the next number from 0 up to (not including) 1 each time it's called.
 local function randoms(seed: number): () -> number
@@ -90,6 +94,12 @@ function GrassImages.bladeDots(widthPx: number, heightPx: number, density: numbe
 		dots[index] = { x = x, y = y, r = r, tone = tone }
 	end
 	return dots
+end
+
+-- Which of the sheet's tufts (1 to TUFTS) a dot is drawn as. It comes from the dot's own numbers, so
+-- the same dot is the same tuft on every client, however often it's drawn.
+function GrassImages.tuftFor(dot: Dot): number
+	return 1 + math.floor(dot.x * 7 + dot.y * 13 + dot.r * 101 + dot.tone * 1009) % GrassImages.TUFTS
 end
 
 -- Where a spot on the lawn falls in its picture, not rounded: lawn X runs along the image's X and

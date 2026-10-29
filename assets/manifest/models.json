@@ -1,0 +1,1311 @@
+{
+  "version": 1,
+  "complete": false,
+  "models": [
+    {
+      "id": "GasPushMower",
+      "folder": "Tools",
+      "source": {
+        "kind": "store",
+        "assetId": 18744991009,
+        "name": "(MQ) Internal Combustion Push Mower Set",
+        "creator": "MinecraftPro97k"
+      },
+      "keep": "Internal Combustion Push Mower (No Accessories)",
+      "facing": "-X",
+      "up": "+Y",
+      "fit": {
+        "axis": "height",
+        "studs": 3.7
+      },
+      "handle": {
+        "position": [
+          0,
+          3.5,
+          2.2
+        ],
+        "size": [
+          1.6,
+          0.2,
+          0.2
+        ]
+      },
+      "grips": {
+        "left": [
+          -0.7,
+          3.55,
+          2.2
+        ],
+        "right": [
+          0.7,
+          3.55,
+          2.2
+        ]
+      },
+      "parts": {
+        "Rim": {
+          "rename": "GasPushMower__Wheel"
+        },
+        "Tread": {
+          "rename": "GasPushMower__Wheel"
+        }
+      },
+      "collide": false,
+      "budget": 120
+    },
+    {
+      "id": "SelfPropelledMower",
+      "folder": "Tools",
+      "source": {
+        "kind": "store",
+        "assetId": 14148347483,
+        "name": "Lawn mower",
+        "creator": "Creator Store"
+      },
+      "facing": "+Z",
+      "up": "+Y",
+      "fit": {
+        "axis": "height",
+        "studs": 3.8
+      },
+      "handle": {
+        "position": [
+          0,
+          3.6,
+          3.0
+        ],
+        "size": [
+          1.6,
+          0.2,
+          0.2
+        ]
+      },
+      "grips": {
+        "left": [
+          -0.7,
+          3.65,
+          3.0
+        ],
+        "right": [
+          0.7,
+          3.65,
+          3.0
+        ]
+      },
+      "strip": [
+        "Decal:Decal"
+      ],
+      "collide": false,
+      "budget": 120
+    },
+    {
+      "id": "RidingMower",
+      "folder": "Tools",
+      "source": {
+        "kind": "store",
+        "assetId": 18753235446,
+        "name": "Internal Combustion Riding Mower (Realistic Tune)",
+        "creator": "MinecraftPro97k"
+      },
+      "keep": "Craftsman Internal Combustion Riding Mower",
+      "facing": "-X",
+      "up": "+Y",
+      "fit": {
+        "axis": "length",
+        "studs": 6.8
+      },
+      "handle": {
+        "position": [
+          0,
+          3.3,
+          0.8
+        ],
+        "size": [
+          1.2,
+          0.2,
+          1.2
+        ]
+      },
+      "grips": {
+        "left": [
+          -0.5,
+          3.4,
+          0.6
+        ],
+        "right": [
+          0.5,
+          3.4,
+          0.6
+        ]
+      },
+      "strip": [
+        "Decal:Craftsman Logo"
+      ],
+      "collide": false,
+      "budget": 120
+    },
+    {
+      "id": "ZeroTurnMower",
+      "folder": "Tools",
+      "source": {
+        "kind": "store",
+        "assetId": 9040187964,
+        "name": "Zero Turn Mower",
+        "creator": "azo9azaz7"
+      },
+      "facing": "-Z",
+      "up": "+Y",
+      "fit": {
+        "axis": "length",
+        "studs": 7.3
+      },
+      "handle": {
+        "position": [
+          0,
+          2.8,
+          1.4
+        ],
+        "size": [
+          1.2,
+          0.2,
+          1.2
+        ]
+      },
+      "grips": {
+        "left": [
+          -0.7,
+          3.4,
+          0.8
+        ],
+        "right": [
+          0.7,
+          3.4,
+          0.8
+        ]
+      },
+      "collide": false,
+      "budget": 120
+    },
+    {
+      "id": "CommercialZeroTurn",
+      "folder": "Tools",
+      "source": {
+        "kind": "store",
+        "assetId": 9040187964,
+        "name": "Zero Turn Mower",
+        "creator": "azo9azaz7"
+      },
+      "facing": "-Z",
+      "up": "+Y",
+      "fit": {
+        "axis": "length",
+        "studs": 8.2
+      },
+      "handle": {
+        "position": [
+          0,
+          3.1,
+          1.6
+        ],
+        "size": [
+          1.2,
+          0.2,
+          1.2
+        ]
+      },
+      "grips": {
+        "left": [
+          -0.8,
+          3.8,
+          0.9
+        ],
+        "right": [
+          0.8,
+          3.8,
+          0.9
+        ]
+      },
+      "collide": false,
+      "budget": 120
+    },
+    {
+      "id": "GasTrimmer",
+      "folder": "Tools",
+      "source": {
+        "kind": "store",
+        "assetId": 10911250645,
+        "name": "[FREE] Trimmer",
+        "creator": "ParqropaQ10"
+      },
+      "facing": "+Z",
+      "up": "+Y",
+      "fit": {
+        "axis": "length",
+        "studs": 6.0
+      },
+      "handle": {
+        "position": [
+          0,
+          2.4,
+          1.8
+        ],
+        "size": [
+          0.3,
+          0.3,
+          1.2
+        ]
+      },
+      "grips": {
+        "left": [
+          -0.2,
+          2.7,
+          0.6
+        ],
+        "right": [
+          0.2,
+          2.4,
+          2.2
+        ]
+      },
+      "strip": [
+        "Decal:####################",
+        "Decal:#######################"
+      ],
+      "collide": false,
+      "budget": 160
+    },
+    {
+      "id": "ElectricTrimmer",
+      "folder": "Tools",
+      "source": {
+        "kind": "store",
+        "assetId": 11332996700,
+        "name": "Engine Trimmer Emak",
+        "creator": "ParqropaQ10"
+      },
+      "keep": "Model",
+      "facing": "+X",
+      "up": "+Y",
+      "fit": {
+        "axis": "length",
+        "studs": 5.6
+      },
+      "handle": {
+        "position": [
+          0,
+          2.4,
+          1.6
+        ],
+        "size": [
+          0.3,
+          0.3,
+          1.2
+        ]
+      },
+      "grips": {
+        "left": [
+          -0.2,
+          2.7,
+          0.4
+        ],
+        "right": [
+          0.2,
+          2.4,
+          2.0
+        ]
+      },
+      "strip": [
+        "Decal:############"
+      ],
+      "collide": false,
+      "budget": 200
+    },
+    {
+      "id": "Brushcutter",
+      "folder": "Tools",
+      "source": {
+        "kind": "store",
+        "assetId": 10655806975,
+        "name": "[FREE] Trimmer Pack",
+        "creator": "ParqropaQ10"
+      },
+      "keep": "Model",
+      "facing": "+X",
+      "up": "+Y",
+      "fit": {
+        "axis": "length",
+        "studs": 6.2
+      },
+      "handle": {
+        "position": [
+          0,
+          2.5,
+          1.8
+        ],
+        "size": [
+          0.3,
+          0.3,
+          1.2
+        ]
+      },
+      "grips": {
+        "left": [
+          -0.3,
+          2.9,
+          0.6
+        ],
+        "right": [
+          0.3,
+          2.5,
+          2.2
+        ]
+      },
+      "collide": false,
+      "budget": 200
+    },
+    {
+      "id": "ReelMower",
+      "folder": "Tools",
+      "source": {
+        "kind": "kept"
+      }
+    },
+    {
+      "id": "StandOnMower",
+      "folder": "Tools",
+      "source": {
+        "kind": "kept"
+      }
+    },
+    {
+      "id": "CommercialReelMower",
+      "folder": "Tools",
+      "source": {
+        "kind": "kept"
+      }
+    },
+    {
+      "id": "StraightShaftTrimmer",
+      "folder": "Tools",
+      "source": {
+        "kind": "kept"
+      }
+    },
+    {
+      "id": "LeafBlower",
+      "folder": "Tools",
+      "source": {
+        "kind": "store",
+        "assetId": 15099646987,
+        "name": "LeafPusher",
+        "creator": "markosimicHI"
+      },
+      "facing": "-Z",
+      "up": "+Y",
+      "fit": {
+        "axis": "length",
+        "studs": 3.6
+      },
+      "handle": {
+        "position": [
+          0,
+          2.0,
+          0.6
+        ],
+        "size": [
+          0.3,
+          0.6,
+          0.3
+        ]
+      },
+      "grips": {
+        "left": [
+          -0.2,
+          2.1,
+          0.0
+        ],
+        "right": [
+          0.1,
+          2.2,
+          0.8
+        ]
+      },
+      "collide": false,
+      "budget": 60
+    },
+    {
+      "id": "BackpackBlower",
+      "folder": "Tools",
+      "source": {
+        "kind": "store",
+        "assetId": 15847772855,
+        "name": "ARI",
+        "creator": "Sapeurfab"
+      },
+      "facing": "-Z",
+      "up": "+Y",
+      "fit": {
+        "axis": "height",
+        "studs": 2.8
+      },
+      "handle": {
+        "position": [
+          0,
+          1.6,
+          0.4
+        ],
+        "size": [
+          0.3,
+          0.3,
+          0.3
+        ]
+      },
+      "grips": {
+        "left": [
+          -0.4,
+          1.4,
+          -0.6
+        ],
+        "right": [
+          0.5,
+          1.6,
+          -0.2
+        ]
+      },
+      "collide": false,
+      "budget": 120
+    },
+    {
+      "id": "HandHedgeShears",
+      "folder": "Tools",
+      "source": {
+        "kind": "store",
+        "assetId": 12806083167,
+        "name": "for script",
+        "creator": "TDaviYT"
+      },
+      "facing": "-Z",
+      "up": "+Y",
+      "fit": {
+        "axis": "length",
+        "studs": 2.4
+      },
+      "handle": {
+        "position": [
+          0,
+          0.8,
+          0.8
+        ],
+        "size": [
+          0.6,
+          0.2,
+          0.2
+        ]
+      },
+      "grips": {
+        "left": [
+          -0.25,
+          0.8,
+          0.9
+        ],
+        "right": [
+          0.25,
+          0.8,
+          0.9
+        ]
+      },
+      "collide": false,
+      "budget": 12
+    },
+    {
+      "id": "BroadcastSpreader",
+      "folder": "Tools",
+      "source": {
+        "kind": "store",
+        "assetId": 8508333136,
+        "name": "models",
+        "creator": "johndeereargentina"
+      },
+      "facing": "-Z",
+      "up": "+Y",
+      "fit": {
+        "axis": "height",
+        "studs": 3.6
+      },
+      "handle": {
+        "position": [
+          0,
+          3.4,
+          1.8
+        ],
+        "size": [
+          1.4,
+          0.2,
+          0.2
+        ]
+      },
+      "grips": {
+        "left": [
+          -0.6,
+          3.45,
+          1.8
+        ],
+        "right": [
+          0.6,
+          3.45,
+          1.8
+        ]
+      },
+      "collide": false,
+      "budget": 60
+    },
+    {
+      "id": "BackpackSprayer",
+      "folder": "Tools",
+      "source": {
+        "kind": "store",
+        "assetId": 15858943169,
+        "name": "FlowZone TYPHOON 3 Backpack Sprayer",
+        "creator": "CarwashJack"
+      },
+      "facing": "-Z",
+      "up": "+Y",
+      "fit": {
+        "axis": "height",
+        "studs": 2.4
+      },
+      "handle": {
+        "position": [
+          0,
+          1.4,
+          0.2
+        ],
+        "size": [
+          0.3,
+          0.3,
+          0.3
+        ]
+      },
+      "grips": {
+        "left": [
+          -0.4,
+          1.3,
+          -0.5
+        ],
+        "right": [
+          0.4,
+          1.2,
+          -0.3
+        ]
+      },
+      "collide": false,
+      "budget": 60
+    },
+    {
+      "id": "SingleWheelbarrow",
+      "folder": "Tools",
+      "source": {
+        "kind": "store",
+        "assetId": 8823211368,
+        "name": "Wheelbarrow",
+        "creator": "daon2000"
+      },
+      "facing": "-Z",
+      "up": "+Y",
+      "fit": {
+        "axis": "length",
+        "studs": 5.5
+      },
+      "handle": {
+        "position": [
+          0,
+          2.2,
+          2.4
+        ],
+        "size": [
+          1.8,
+          0.2,
+          0.2
+        ]
+      },
+      "grips": {
+        "left": [
+          -0.8,
+          2.25,
+          2.4
+        ],
+        "right": [
+          0.8,
+          2.25,
+          2.4
+        ]
+      },
+      "collide": false,
+      "budget": 40
+    },
+    {
+      "id": "SingleWheelbarrowFlatFree",
+      "folder": "Tools",
+      "source": {
+        "kind": "store",
+        "assetId": 15996349648,
+        "name": "wheelbarrow",
+        "creator": "Skylitze"
+      },
+      "facing": "+Z",
+      "up": "+Y",
+      "fit": {
+        "axis": "length",
+        "studs": 5.5
+      },
+      "handle": {
+        "position": [
+          0,
+          2.2,
+          2.4
+        ],
+        "size": [
+          1.8,
+          0.2,
+          0.2
+        ]
+      },
+      "grips": {
+        "left": [
+          -0.8,
+          2.25,
+          2.4
+        ],
+        "right": [
+          0.8,
+          2.25,
+          2.4
+        ]
+      },
+      "collide": false,
+      "budget": 40
+    },
+    {
+      "id": "DualWheelbarrow",
+      "folder": "Tools",
+      "source": {
+        "kind": "store",
+        "assetId": 16037703402,
+        "name": "Wheelbarrow",
+        "creator": "itsthles"
+      },
+      "facing": "-X",
+      "up": "+Y",
+      "fit": {
+        "axis": "length",
+        "studs": 5.5
+      },
+      "handle": {
+        "position": [
+          0,
+          2.2,
+          2.4
+        ],
+        "size": [
+          1.8,
+          0.2,
+          0.2
+        ]
+      },
+      "grips": {
+        "left": [
+          -0.8,
+          2.25,
+          2.4
+        ],
+        "right": [
+          0.8,
+          2.25,
+          2.4
+        ]
+      },
+      "collide": false,
+      "budget": 40
+    },
+    {
+      "id": "GasCan",
+      "folder": "Tools",
+      "source": {
+        "kind": "store",
+        "assetId": 8679995948,
+        "name": "Gas Can",
+        "creator": "Wxteringflower"
+      },
+      "facing": "-Z",
+      "up": "+Y",
+      "fit": {
+        "axis": "height",
+        "studs": 1.3
+      },
+      "handle": {
+        "position": [
+          0,
+          1.2,
+          0
+        ],
+        "size": [
+          0.4,
+          0.15,
+          0.15
+        ]
+      },
+      "grips": {
+        "left": [
+          -0.1,
+          1.25,
+          0
+        ],
+        "right": [
+          0.1,
+          1.25,
+          0
+        ]
+      },
+      "collide": false,
+      "budget": 12
+    },
+    {
+      "id": "MixGasCan",
+      "folder": "Tools",
+      "source": {
+        "kind": "store",
+        "assetId": 8679995948,
+        "name": "Gas Can",
+        "creator": "Wxteringflower"
+      },
+      "facing": "-Z",
+      "up": "+Y",
+      "fit": {
+        "axis": "height",
+        "studs": 1.3
+      },
+      "handle": {
+        "position": [
+          0,
+          1.2,
+          0
+        ],
+        "size": [
+          0.4,
+          0.15,
+          0.15
+        ]
+      },
+      "grips": {
+        "left": [
+          -0.1,
+          1.25,
+          0
+        ],
+        "right": [
+          0.1,
+          1.25,
+          0
+        ]
+      },
+      "collide": false,
+      "budget": 12
+    },
+    {
+      "id": "PolyCart",
+      "folder": "Tools",
+      "source": {
+        "kind": "kept"
+      }
+    },
+    {
+      "id": "ToolBucket",
+      "folder": "Tools",
+      "source": {
+        "kind": "kept"
+      }
+    },
+    {
+      "id": "HalfMoonEdger",
+      "folder": "Tools",
+      "source": {
+        "kind": "kept"
+      }
+    },
+    {
+      "id": "ElectricEdger",
+      "folder": "Tools",
+      "source": {
+        "kind": "kept"
+      }
+    },
+    {
+      "id": "WalkBehindEdger",
+      "folder": "Tools",
+      "source": {
+        "kind": "kept"
+      }
+    },
+    {
+      "id": "GasStickEdger",
+      "folder": "Tools",
+      "source": {
+        "kind": "kept"
+      }
+    },
+    {
+      "id": "ElectricHedgeTrimmer",
+      "folder": "Tools",
+      "source": {
+        "kind": "kept"
+      }
+    },
+    {
+      "id": "CordlessHedgeTrimmer",
+      "folder": "Tools",
+      "source": {
+        "kind": "kept"
+      }
+    },
+    {
+      "id": "GasHedgeTrimmer",
+      "folder": "Tools",
+      "source": {
+        "kind": "kept"
+      }
+    },
+    {
+      "id": "RustyPickup",
+      "folder": "Trucks",
+      "source": {
+        "kind": "store",
+        "assetId": 8178175195,
+        "name": "apocalypse pickup decor",
+        "creator": "fgfgfggfgfg7447"
+      },
+      "facing": "-Z",
+      "up": "+Y",
+      "fit": {
+        "axis": "length",
+        "studs": 17
+      },
+      "parts": {
+        "apocalypse pickup decor": {
+          "rename": "RustyPickup__Body"
+        }
+      },
+      "boxes": [
+        {
+          "name": "BedArea",
+          "position": [
+            0,
+            3.0,
+            4.5
+          ],
+          "size": [
+            5.5,
+            0.2,
+            6.5
+          ]
+        }
+      ],
+      "markers": [
+        {
+          "name": "DriverSeat",
+          "position": [
+            -1.6,
+            4.4,
+            -0.5
+          ],
+          "orientation": [
+            0,
+            0,
+            0
+          ],
+          "attributes": {}
+        }
+      ],
+      "collide": true,
+      "budget": 160
+    },
+    {
+      "id": "WorkPickup",
+      "folder": "Trucks",
+      "source": {
+        "kind": "store",
+        "assetId": 4734214382,
+        "name": "Pickup Truck 2004",
+        "creator": "DIMA_RUDYT"
+      },
+      "facing": "+X",
+      "up": "+Y",
+      "fit": {
+        "axis": "length",
+        "studs": 17
+      },
+      "parts": {
+        "Pickup Truck 2004": {
+          "rename": "WorkPickup__Body"
+        },
+        "Pickup Truck 2004 Glass": {
+          "rename": "WorkPickup__Glass"
+        }
+      },
+      "boxes": [
+        {
+          "name": "BedArea",
+          "position": [
+            0,
+            3.2,
+            4.5
+          ],
+          "size": [
+            5.5,
+            0.2,
+            6.5
+          ]
+        }
+      ],
+      "markers": [
+        {
+          "name": "DriverSeat",
+          "position": [
+            -1.6,
+            4.6,
+            -0.5
+          ],
+          "orientation": [
+            0,
+            0,
+            0
+          ],
+          "attributes": {}
+        }
+      ],
+      "collide": true,
+      "budget": 160
+    },
+    {
+      "id": "HeavyDutyPickup",
+      "folder": "Trucks",
+      "source": {
+        "kind": "store",
+        "assetId": 13686849133,
+        "name": "Ford F350 super duty dually",
+        "creator": "AgpFan5"
+      },
+      "facing": "-Z",
+      "up": "+Y",
+      "fit": {
+        "axis": "length",
+        "studs": 19
+      },
+      "body": [
+        [
+          111,
+          0,
+          0
+        ]
+      ],
+      "boxes": [
+        {
+          "name": "BedArea",
+          "position": [
+            0,
+            3.6,
+            5
+          ],
+          "size": [
+            6,
+            0.2,
+            7
+          ]
+        }
+      ],
+      "markers": [
+        {
+          "name": "DriverSeat",
+          "position": [
+            -1.7,
+            5.0,
+            -0.8
+          ],
+          "orientation": [
+            0,
+            0,
+            0
+          ],
+          "attributes": {}
+        }
+      ],
+      "collide": true,
+      "budget": 160
+    },
+    {
+      "id": "LandscapingTruck",
+      "folder": "Trucks",
+      "source": {
+        "kind": "store",
+        "assetId": 8879010037,
+        "name": "Dump Truck",
+        "creator": "bxfire404"
+      },
+      "facing": "-Z",
+      "up": "+Y",
+      "fit": {
+        "axis": "length",
+        "studs": 20
+      },
+      "parts": {
+        "MeshPart": {
+          "rename": "LandscapingTruck__Body"
+        }
+      },
+      "boxes": [
+        {
+          "name": "BedArea",
+          "position": [
+            0,
+            4.5,
+            4
+          ],
+          "size": [
+            6,
+            0.2,
+            9
+          ]
+        }
+      ],
+      "markers": [
+        {
+          "name": "DriverSeat",
+          "position": [
+            -1.7,
+            6.0,
+            -6
+          ],
+          "orientation": [
+            0,
+            0,
+            0
+          ],
+          "attributes": {}
+        }
+      ],
+      "collide": true,
+      "budget": 160
+    },
+    {
+      "id": "UtilityTrailer",
+      "folder": "Trailers",
+      "source": {
+        "kind": "store",
+        "assetId": 138954779159496,
+        "name": "open trailer",
+        "creator": "LoginSighnup45"
+      },
+      "facing": "+Z",
+      "up": "+Y",
+      "fit": {
+        "axis": "length",
+        "studs": 13
+      },
+      "boxes": [
+        {
+          "name": "BedArea",
+          "position": [
+            0,
+            2.2,
+            1
+          ],
+          "size": [
+            4,
+            0.2,
+            9
+          ]
+        }
+      ],
+      "collide": true,
+      "budget": 80
+    },
+    {
+      "id": "LandscapeTrailer",
+      "folder": "Trailers",
+      "source": {
+        "kind": "store",
+        "assetId": 597217414,
+        "name": "Dump Trailer",
+        "creator": "Noah_Chapman"
+      },
+      "facing": "+Z",
+      "up": "+Y",
+      "fit": {
+        "axis": "length",
+        "studs": 15
+      },
+      "boxes": [
+        {
+          "name": "BedArea",
+          "position": [
+            0,
+            2.6,
+            1
+          ],
+          "size": [
+            5,
+            0.2,
+            10
+          ]
+        }
+      ],
+      "collide": true,
+      "budget": 100
+    },
+    {
+      "id": "EquipmentTrailer",
+      "folder": "Trailers",
+      "source": {
+        "kind": "store",
+        "assetId": 104058257925305,
+        "name": "flat deck trailer",
+        "creator": "toyota10111"
+      },
+      "facing": "+X",
+      "turn": -45,
+      "up": "+Y",
+      "fit": {
+        "axis": "length",
+        "studs": 18
+      },
+      "boxes": [
+        {
+          "name": "BedArea",
+          "position": [
+            0,
+            2.0,
+            1
+          ],
+          "size": [
+            6,
+            0.2,
+            13
+          ]
+        },
+        {
+          "name": "BaySpot",
+          "position": [
+            0,
+            2.0,
+            -2
+          ],
+          "size": [
+            1,
+            0.2,
+            1
+          ]
+        },
+        {
+          "name": "BaySpot",
+          "position": [
+            0,
+            2.0,
+            4
+          ],
+          "size": [
+            1,
+            0.2,
+            1
+          ]
+        }
+      ],
+      "synth": [
+        {
+          "name": "EquipmentTrailer__Ramp",
+          "position": [
+            0,
+            1.9,
+            8.6
+          ],
+          "size": [
+            5.5,
+            0.2,
+            3.2
+          ],
+          "material": "DiamondPlate",
+          "color": [
+            120,
+            120,
+            125
+          ],
+          "hinge": [
+            0,
+            1.9,
+            7.0
+          ]
+        }
+      ],
+      "collide": true,
+      "budget": 80
+    },
+    {
+      "id": "House",
+      "folder": "Props",
+      "source": {
+        "kind": "store",
+        "assetId": 77726082290440,
+        "name": "Small House Modern Exterior Furnished",
+        "creator": "nov4_gg2010"
+      },
+      "facing": "-Z",
+      "up": "+Y",
+      "fit": {
+        "axis": "width",
+        "studs": 34
+      },
+      "strip": [
+        "*:Metal Chair",
+        "*:Metal Table",
+        "*:Shower",
+        "*:FlatLight",
+        "*:Toilet",
+        "*:Mouse",
+        "*:Wooden Chair",
+        "*:Sofa",
+        "*:Sink",
+        "*:Bed (Queen Size)"
+      ],
+      "markers": [
+        {
+          "name": "Porch",
+          "position": [
+            7,
+            1,
+            -14.5
+          ],
+          "orientation": [
+            0,
+            0,
+            0
+          ],
+          "attributes": {}
+        },
+        {
+          "name": "Driveway",
+          "position": [
+            -14,
+            0,
+            -15
+          ],
+          "orientation": [
+            0,
+            0,
+            0
+          ],
+          "attributes": {}
+        }
+      ],
+      "collide": true,
+      "budget": 360
+    }
+  ]
+}

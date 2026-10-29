@@ -4,10 +4,18 @@
 -- fire when docs/STORY.md says they should (src/shared/Config/Story.luau), TurfKing's rules for
 -- taking jobs and winning customers back (src/shared/Config/TurfKing.luau), and the Best Yard
 -- contest's scoring, Gloria's bar and when judging day comes round
--- (src/shared/Config/Contest.luau). Exits with an error if anything's off.
+-- (src/shared/Config/Contest.luau), and the nine people's catalog outfits
+-- (src/shared/Config/Cast.luau; scripts/cast-check.py asks the catalog about their ids), and where
+-- CastService puts a rig's Root so it stands on the spot a statue did (src/shared/CastRig.luau), and
+-- which pose NpcAnimator picks for a person and how fast the judges' walk plays
+-- (src/shared/NpcAnimator.luau). Exits with an error if anything's off.
 
+local fs = require("@lune/fs")
+local luau = require("@lune/luau")
 local process = require("@lune/process")
 
+local Cast = require("../src/shared/Config/Cast")
+local CastRig = require("../src/shared/CastRig")
 local Contest = require("../src/shared/Config/Contest")
 local Story = require("../src/shared/Config/Story")
 local TurfKing = require("../src/shared/Config/TurfKing")
@@ -417,6 +425,229 @@ check(
 	not string.find(Story.juneLine(4, 1, { appeal = 80, contest = "Waiting" }), "{", 1, true),
 	"June still has something to say about the contest without the jobs left"
 )
+
+-- The cast's outfits --------------------------------------------------------------------------
+
+-- Every person in Cast.People, and which of Story.Cast they are (for their name).
+local castPeople = {
+	NPC_Gloria = "Gloria",
+	NPC_Chad = "Chad",
+	NPC_Edna = "Edna",
+	NPC_June_Sitting = "June",
+	NPC_June_Standing = "June",
+	NPC_Sam_Casual = "Sam",
+	NPC_Sam_TurfKing = "Sam",
+	NPC_Judge1 = "Judge1",
+	NPC_Judge2 = "Judge2",
+}
+-- Enum.AccessoryType names a layered garment can have (asset types 64 to 72).
+local layeredTypes = {
+	TShirt = true,
+	Shirt = true,
+	Pants = true,
+	Jacket = true,
+	Sweater = true,
+	Shorts = true,
+	LeftShoe = true,
+	RightShoe = true,
+	DressSkirt = true,
+}
+
+-- Lune has no Color3 or Vector3, so Cast.luau keeps colors as { r, g, b } and seats as { x, y, z }.
+local function isColor(color): boolean
+	if typeof(color) ~= "table" then
+		return false
+	end
+	for _, key in { "r", "g", "b" } do
+		local channel = color[key]
+		if typeof(channel) ~= "number" or channel < 0 or channel > 255 or channel % 1 ~= 0 then
+			return false
+		end
+	end
+	return true
+end
+local function isAssetId(id: any): boolean
+	return typeof(id) == "number" and id >= 0 and id % 1 == 0
+end
+local function sameColor(a, b): boolean
+	return (a == nil and b == nil) or (a ~= nil and b ~= nil and a.r == b.r and a.g == b.g and a.b == b.b)
+end
+
+for id, who in castPeople do
+	local person = Cast.People[id]
+	check(person ~= nil, `the cast has no {id}`)
+	if person then
+		local where = `cast {id}`
+		check(Cast.Poses[person.pose] ~= nil, `{where}: no pose {person.pose}`)
+		check(person.name == Story.Cast[who].name, `{where} is called {person.name}, not {Story.Cast[who].name}`)
+		check(isColor(person.body.skin), `{where}: skin is not an {"{ r, g, b }"} color`)
+		for _, scale in { "heightScale", "widthScale", "headScale" } do
+			local value = person.body[scale]
+			check(
+				typeof(value) == "number" and value >= 0.9 and value <= 1.1,
+				`{where}: {scale} {value} is not 0.9 to 1.1`
+			)
+		end
+		check(person.body.proportion >= 0 and person.body.proportion <= 1, `{where}: proportion is not 0 to 1`)
+		for _, slot in { "hair", "hat", "face", "shirt", "pants", "tshirt" } do
+			check(person[slot] == nil or isAssetId(person[slot]), `{where}: {slot} is not a catalog id`)
+		end
+		check(
+			person.hairColor == nil or isColor(person.hairColor),
+			`{where}: hairColor is not an {"{ r, g, b }"} color`
+		)
+		check(person.hairColor == nil or person.hair ~= nil, `{where}: hairColor without hair`)
+		local orders = {}
+		for index, garment in person.layered do
+			check(isAssetId(garment.id) and garment.id > 0, `{where}: layered {index} has no catalog id`)
+			check(layeredTypes[garment.type] == true, `{where}: layered {index} is a {garment.type}`)
+			check(not orders[garment.order], `{where}: two layered garments at order {garment.order}`)
+			orders[garment.order] = true
+		end
+		-- A sitting person has somewhere to sit; no one else does.
+		local seat = person.seat
+		check((person.pose == "Sit") == (seat ~= nil), `{where}: a seat goes with the Sit pose and nothing else`)
+		if seat then
+			check(
+				typeof(seat.x) == "number" and typeof(seat.y) == "number" and typeof(seat.z) == "number",
+				`{where}: seat is not an {"{ x, y, z }"} table`
+			)
+		end
+		-- The description is what CastService hands the HumanoidDescription: strings and numbers only.
+		local description = Cast.describe(person)
+		for property, value in description do
+			check(typeof(value) == "string" or typeof(value) == "number", `{where}: {property} is a {typeof(value)}`)
+		end
+		check(description.HeightScale == person.body.heightScale, `{where}: describe loses the height`)
+		check(description.Shirt == (person.shirt or 0), `{where}: describe loses the shirt`)
+		check(
+			description.HairAccessory == (if person.hair and person.hair > 0 then tostring(person.hair) else ""),
+			`{where}: describe's hair`
+		)
+	end
+end
+for id in Cast.People do
+	check(castPeople[id] ~= nil, `{id} is in the cast but not a story person`)
+end
+check(typeof(Cast.People.NPC_June_Sitting.seat) == "table", "June's rocker seat is a table")
+check(Cast.describe(Cast.People.NPC_Chad).HatAccessory == "607702162", "Chad wears the baseball cap")
+check(Cast.describe(Cast.People.NPC_Gloria).HairAccessory == "376526888", "Gloria has the straight blonde hair")
+check(Cast.describe(Cast.People.NPC_Gloria).HatAccessory == "", "Gloria wears no hat")
+-- An id of 0 means nothing, as it does for the tshirt, so it never becomes the string "0".
+local noHairOrHat = table.clone(Cast.People.NPC_Chad)
+noHairOrHat.hair = 0
+noHairOrHat.hat = 0
+local noHairOrHatDescription = Cast.describe(noHairOrHat)
+check(
+	noHairOrHatDescription.HairAccessory == "" and noHairOrHatDescription.HatAccessory == "",
+	"describe turns a hair or hat id of 0 into no accessory, not the string 0"
+)
+
+-- The free catalog has no grey hair, so the older people get theirs from `hairColor`.
+for _, id in { "NPC_Gloria", "NPC_June_Sitting", "NPC_June_Standing", "NPC_Edna", "NPC_Judge1" } do
+	local color = Cast.People[id].hairColor
+	check(
+		color ~= nil and color.r >= 150 and math.abs(color.r - color.g) <= 12 and math.abs(color.g - color.b) <= 12,
+		`{id}'s hair is not grey`
+	)
+end
+
+-- The same person is the same person in both poses and both outfits.
+for _, pair in { { "NPC_June_Sitting", "NPC_June_Standing" }, { "NPC_Sam_Casual", "NPC_Sam_TurfKing" } } do
+	local a, b = Cast.People[pair[1]], Cast.People[pair[2]]
+	check(
+		a.hair == b.hair and sameColor(a.hairColor, b.hairColor) and sameColor(a.body.skin, b.body.skin),
+		`{pair[1]} and {pair[2]} have different faces`
+	)
+	check(
+		a.body.heightScale == b.body.heightScale and a.body.widthScale == b.body.widthScale,
+		`{pair[1]} and {pair[2]} are different sizes`
+	)
+end
+-- Chad and Sam read as TurfKing: the same top (or the same crown graphic) and a cap or visor each.
+local chad, turfKingSam = Cast.People.NPC_Chad, Cast.People.NPC_Sam_TurfKing
+check(chad.shirt == turfKingSam.shirt and chad.tshirt == turfKingSam.tshirt, "Chad and Sam wear the same TurfKing top")
+check(chad.hat ~= nil and turfKingSam.hat ~= nil, "Chad and Sam each wear a cap or visor")
+check(Cast.People.NPC_Sam_Casual.shirt ~= turfKingSam.shirt, "Sam is out of the TurfKing top after quitting")
+
+-- A rig's Root sits 0.5 above its feet, like every other model's. The feet are a Humanoid's HipHeight
+-- plus half the HumanoidRootPart's height below the HumanoidRootPart's centre.
+check(CastRig.feetOffset(2, 2) == 3, "the feet are 3 below a 2-tall root with 2 of hip height")
+check(CastRig.rootPlacement(2, 2) == 2.5, "Root sits 2.5 below that root's centre")
+for _, hip in { 0, 1.35, 2, 2.6 } do
+	for _, size in { 1, 2, 2.2 } do
+		local gap = CastRig.feetOffset(hip, size) - CastRig.rootPlacement(hip, size)
+		check(math.abs(gap - 0.5) < 1e-9, `hip {hip} root {size}: Root is {gap} above the feet, not 0.5`)
+	end
+end
+
+-- Roblox's own animations, each looping.
+local expectedPoses = {
+	Idle = "rbxassetid://507766666",
+	Walk = "rbxassetid://507777826",
+	Sit = "rbxassetid://2506281703",
+	Wave = "rbxassetid://507770239",
+	Point = "rbxassetid://507770453",
+	Inspect = "rbxassetid://507770453",
+	Note = "rbxassetid://507766666",
+}
+for name, id in expectedPoses do
+	local pose = Cast.Poses[name]
+	check(pose ~= nil and pose.id == id and pose.looped == true, `pose {name} is {id}, looping`)
+end
+for name in Cast.Poses do
+	check(expectedPoses[name] ~= nil, `pose {name} isn't in the brief`)
+end
+
+-- Which pose a person plays. NpcAnimator reaches Cast through `script`, which Lune doesn't have, so
+-- it is loaded with `script` stood in for and Cast handed to its require. It touches nothing
+-- from Roblox until it plays. Run from the repo root, like the command at the top.
+local stub = {}
+setmetatable(stub, {
+	__index = function()
+		return stub
+	end,
+})
+local NpcAnimator = luau.load(fs.readFile("src/shared/NpcAnimator.luau"), {
+	debugName = "NpcAnimator",
+	environment = {
+		script = stub,
+		require = function()
+			return Cast
+		end,
+	},
+})()
+check(typeof(NpcAnimator.play) == "function", "NpcAnimator.play is there")
+check(typeof(NpcAnimator.stop) == "function", "NpcAnimator.stop is there")
+check(NpcAnimator.resolve("Idle", "Walk") == "Walk", "a requested pose wins over the Pose attribute")
+check(NpcAnimator.resolve(nil, "Walk") == "Walk", "a requested pose needs no attribute")
+check(NpcAnimator.resolve("Sit", nil) == "Sit", "the Pose attribute is the fallback")
+check(NpcAnimator.resolve(nil, nil) == nil, "no pose asked for and no attribute is no pose")
+check(NpcAnimator.resolve("Dance", nil) == nil, "an attribute that is not in Cast.Poses is no pose")
+check(NpcAnimator.resolve(nil, "Dance") == nil, "a requested pose that is not in Cast.Poses is no pose")
+check(NpcAnimator.resolve("Idle", "Dance") == nil, "a pose that is not in Cast.Poses is not swapped for the attribute")
+check(NpcAnimator.resolve(nil, "") == nil, "an empty pose name is no pose")
+check(NpcAnimator.resolve(12 :: any, nil) == nil, "a Pose attribute that is not text is no pose")
+for name in Cast.Poses do
+	check(NpcAnimator.resolve(nil, name) == name, `{name} can be asked for`)
+	check(NpcAnimator.resolve(name, nil) == name, `{name} can be a Pose attribute`)
+end
+-- What CastService sets as each rig's Pose attribute is what plays.
+for id, person in Cast.People do
+	check(NpcAnimator.resolve(person.pose, nil) == person.pose, `{id}'s pose plays as it is`)
+end
+-- The judges walk and stop.
+check(NpcAnimator.resolve(Cast.People.NPC_Judge1.pose, "Walk") == "Walk", "a judge can be asked to walk")
+check(NpcAnimator.resolve(Cast.People.NPC_Judge1.pose, "Idle") == "Idle", "a judge can be asked to stand")
+-- The judges' walk plays at the pace they cross the yard: Roblox's R15 walk is made for 14.5
+-- studs a second, so a slower glide plays it slower, in step with the ground.
+check(NpcAnimator.WALK_STUDS_PER_SECOND == 14.5, "the R15 walk is made for 14.5 studs a second")
+check(NpcAnimator.walkSpeed(14.5) == 1, "walking at the pace the animation is made for plays it at full speed")
+check(
+	math.abs(NpcAnimator.walkSpeed(3.2) - 3.2 / 14.5) < 1e-9,
+	"a slower walk plays the animation slower, in proportion"
+)
+check(NpcAnimator.walkSpeed(0) == 0, "standing still plays the walk at no speed")
 
 -- Lines ---------------------------------------------------------------------------------------
 

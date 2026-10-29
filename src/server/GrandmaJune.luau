@@ -2,8 +2,10 @@
 -- at her and press E (or tap the button) to talk: StoryService picks what she says, and her
 -- speech bubble shows on your screen (DialogueController). WorldService puts her on each plot.
 --
--- The models are Story/PorchRockingChair and Story/NPC_June_Sitting, falling back to the block
--- placeholders Props/PorchRockingChair and Props/GrandmaJune, both standing on the same spot.
+-- The chair is Story/PorchRockingChair. June herself is her rig, NPC_June_Sitting: CastService
+-- builds the people from Config/Cast.luau when the server starts, and she sits in the chair with
+-- the Sit animation (NpcAnimator). Either one falls back to the block placeholders
+-- Props/PorchRockingChair and Props/GrandmaJune, both standing on the same spot.
 -- Where there's room, they stand on her porch, Story/PorchDeck, at its ChairSpot marker. The deck
 -- is a model of its own, so looking at it doesn't offer to talk to her.
 -- The scenes' markers are attachments on an invisible Anchor part, worked out from June's size, so
@@ -13,7 +15,11 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Assets = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Assets"))
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Assets = require(Shared:WaitForChild("Assets"))
+local Cast = require(Shared:WaitForChild("Config"):WaitForChild("Cast"))
+local CastRig = require(Shared:WaitForChild("CastRig"))
+local NpcAnimator = require(Shared:WaitForChild("NpcAnimator"))
 
 -- Where the camera looks at her from: this far in front of her, a little to one side, about her
 -- eye height.
@@ -22,9 +28,10 @@ local VIEW_SIDE = 2.5
 
 local GrandmaJune = {}
 
--- Each piece: the real model's id in Story/ (alphainstructions/instructions37.md), and the block
--- placeholder used until it's in the game. June's model is made to sit with her origin on the
--- rocker's, so both stand on the same spot.
+-- Each piece: the real model's id (in Story/, or for June the rig CastService builds), and the
+-- block placeholder used until it's in the game. The placeholders and the chair stand with their
+-- origin on the rocker's, so they are on the same spot. June's rig goes where her `seat` in
+-- Config/Cast.luau says, in the chair's frame (see `seatedAt`).
 local PIECES = {
 	{ story = "PorchRockingChair", placeholder = "PorchRockingChair", name = "PorchRockingChair" },
 	{ story = "NPC_June_Sitting", placeholder = "GrandmaJune", name = "GrandmaJune" },
@@ -32,6 +39,19 @@ local PIECES = {
 
 -- The rocker's footprint (studs, across and deep), for when there's no porch.
 local ROCKER_FOOTPRINT = Vector2.new(2.4, 3)
+
+-- The frame to give Assets.placeAt so a rig's Root lands on its seat in the chair's frame (the
+-- chair's CFrame times Cast.People[id].seat), not the origin that is 0.5 under Root. nil for
+-- someone with no seat.
+local function seatedAt(chair: CFrame, id: string): CFrame?
+	local person = Cast.People[id]
+	local offset = person and person.seat
+	if not offset then
+		return nil
+	end
+	local root = chair * CFrame.new(Vector3.new(offset.x, offset.y, offset.z))
+	return root * CFrame.new(0, -CastRig.ROOT_RISE, 0)
+end
 
 -- Whether her porch model is in the game.
 function GrandmaJune.hasPorch(): boolean
@@ -73,8 +93,14 @@ function GrandmaJune.build(ground: CFrame, withPorch: boolean?): (Model, Model?)
 		local part = Assets.storyModel(piece.story) or Assets.prop(piece.placeholder)
 		part.Name = piece.name
 		Assets.anchor(part)
-		Assets.placeAt(part, seat)
+		-- Her rig sits with its Root on her seat. The block placeholder, like the chair, stands on
+		-- the chair's origin.
+		local seated = if part:FindFirstChildOfClass("Humanoid") then seatedAt(seat, piece.story) else nil
+		Assets.placeAt(part, seated or seat)
 		part.Parent = model
+		-- A rig plays its Pose attribute (June's is Sit); the chair and the placeholder have no
+		-- Humanoid, so this does nothing for them.
+		NpcAnimator.play(part)
 	end
 
 	local june = model:FindFirstChild("GrandmaJune") :: Model
