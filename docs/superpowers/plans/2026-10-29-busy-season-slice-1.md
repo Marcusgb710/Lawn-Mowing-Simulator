@@ -55,8 +55,8 @@ check(Milestones.List[2].id == "Jobs:3" and Milestones.List[2].cash == 30, "3 jo
 check(Milestones.List[9].cash == 2500, "500 jobs is capped at $2500")
 check(Milestones.List[10].kind == "Earned" and Milestones.List[10].cash == 0, "earned milestones pay nothing")
 check(Milestones.List[18].id == "Stars:100" and Milestones.List[18].cash == 2500, "100 three-star jobs pays $2500")
-local next = Milestones.next({ jobs = 2, earned = 400, stars = 0 }, { ["Jobs:1"] = true }, 2)
-check(next[1].id == "Earned:500" and next[2].id == "Jobs:3", "nearest first: $500 at 4/5 (0.2 away), then 3 jobs at 2/3 (0.33 away)")
+local nearest = Milestones.next({ jobs = 2, earned = 400, stars = 0 }, { ["Jobs:1"] = true }, 2)
+check(nearest[1].id == "Earned:500" and nearest[2].id == "Jobs:3", "nearest first: $500 at 4/5 (0.2 away), then 3 jobs at 2/3 (0.33 away)")
 check(#Milestones.next({ jobs = 2, earned = 400, stars = 0 }, { ["Jobs:1"] = true, ["Jobs:3"] = true }, 1) == 1, "a reached milestone is never offered again")
 local reached = Milestones.reachedBy({ jobs = 3, earned = 600, stars = 1 }, { ["Jobs:1"] = true })
 check(#reached == 3 and reached[1].id == "Jobs:3" and reached[2].id == "Earned:500" and reached[3].id == "Stars:1", "everything met and unreached, in list order")
@@ -110,11 +110,11 @@ check(fresh.earned == 0 and next(fresh.levelRewards) == nil and fresh.firstJob =
 local old = { money = 1234.5, xp = 1800, jobsCompleted = 30 }  -- level 7
 Season.upgradeSave(old)
 check(old.earned == 1234 and old.firstJob == true, "an old save keeps its money as earned and is not a first-timer")
-for level = 2, 7 do check(old.levelRewards[level] == true, `old save has claimed level {level}`) end
-check(old.levelRewards[8] == nil, "nothing above its level is claimed")
-local kept = { money = 10, xp = 0, jobsCompleted = 0, earned = 99, stars = { QuickMow = 2 }, milestones = { ["Jobs:1"] = true }, levelRewards = { [2] = true }, firstJob = true }
+for level = 2, 7 do check(old.levelRewards[tostring(level)] == true, `old save has claimed level {level}`) end
+check(old.levelRewards["8"] == nil, "nothing above its level is claimed")
+local kept = { money = 10, xp = 0, jobsCompleted = 0, earned = 99, stars = { QuickMow = 2 }, milestones = { ["Jobs:1"] = true }, levelRewards = { ["2"] = true }, firstJob = true }
 Season.upgradeSave(kept)
-check(kept.earned == 99 and kept.stars.QuickMow == 2 and kept.milestones["Jobs:1"] and kept.levelRewards[2] and kept.firstJob == true, "upgrade keeps what is there")
+check(kept.earned == 99 and kept.stars.QuickMow == 2 and kept.milestones["Jobs:1"] and kept.levelRewards["2"] and kept.firstJob == true, "upgrade keeps what is there")
 check(Season.isFirstTimer({ firstJob = false, jobsCompleted = 0 }, false) == true, "fresh and idle is a first-timer")
 check(Season.isFirstTimer({ firstJob = false, jobsCompleted = 0 }, true) == false, "with a job accepted it is not")
 check(Season.isFirstTimer({ firstJob = true, jobsCompleted = 0 }, false) == false, "once started it is not")

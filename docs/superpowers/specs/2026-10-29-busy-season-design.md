@@ -128,11 +128,11 @@ New: every completed job gets **stars** from the pay formula's own performance f
 
 Today: five sounds, no floating numbers.
 
-New: a small `src/client/FloatingText.luau` draws "+$12" and "+40 XP" rising from the pay panel and from pickups; `UI.moment` gains a Stars variant. `src/shared/Sounds.luau` gains six ids: Cash, LevelUp, GoalDone, Star, Find, Streak. They come from Roblox-owned public audio (the builder searches the audio catalog for Roblox-created cash register, chime, stamp and pickup sounds and records the ids and names in the file; `check-story` asserts the six are non-empty). Levels of the existing LawnDone chime stay.
+New: a small `src/client/FloatingText.luau` draws "+$12" and "+40 XP" rising from the pay panel and from pickups; the job's stars stamp in on the pay panel instead of a card of their own. `src/shared/Sounds.luau` gains six ids: Cash, LevelUp, GoalDone, Star, Find, Streak. They come from Roblox-owned public audio (the builder searches the audio catalog for Roblox-created cash register, chime, stamp and pickup sounds and records the ids and names in the file; `check-season` asserts the six are `rbxassetid://` ids). Levels of the existing LawnDone chime stay.
 
 ### Slice 1 data and checks
 
-- Data version 13: `earned` (number, backfilled from `money` as a floor), `stars` (table), `milestones` (table of reached ids), `levelRewards` (table of claimed levels; an existing save claims every level at or below its current one on first load after the migration, without paying, so old players are not showered with back pay), `firstJob` (boolean, true once the first-timer flow has run; existing saves get true).
+- Data version 13: `earned` (number, backfilled from `money` as a floor), `stars` (table), `milestones` (table of reached ids), `levelRewards` (table of claimed levels; an existing save claims every level at or below its current one on first load after the migration, without paying, so old players are not showered with back pay), `firstJob` (boolean, true once the first-timer flow has run; a save with a finished job gets `firstJob` true, and one with none stays a first-timer).
 - `check-season`: Milestones and Levels tables well-formed (ascending, unique, rewards non-negative, every slice-1 level present), `Milestones.next(stats)` pure and deterministic, star thresholds, tip percentages.
 - Studio: the first-timer flow on PC and phone (time from tap to first snip under ten seconds), the rail on a phone, a level-up with the panel, a 3-star job's tip, every sound audible.
 

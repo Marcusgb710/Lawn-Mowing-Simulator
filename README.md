@@ -241,6 +241,10 @@ src/shared/                  -> ReplicatedStorage.Shared   code used by both ser
   Config/Story.luau             the story (docs/STORY.md): every line, beat and act gate
   Config/TurfKing.luau          TurfKing taking jobs off your board, and customers won back from it
   Config/Contest.luau           the Best Yard contest: scoring, Gloria's bar, rewards, when it's on
+  Config/Milestones.luau        the goals rail's milestones (jobs, money earned, three-star jobs) and what each pays
+  Config/Levels.luau            what each level pays: cash, a truck tint, the gold sign, a HUD stamp
+  Config/Stars.luau             how a job's performance earns one to three stars, and the tip they bring
+  Config/Season.luau            the Busy Season's part of the save, and who still counts as a first-timer
   Config/GuiArt.luau            GENERATED: the GUI art's image ids, slices, palette and bitmap fonts
                                 (scripts/gui-art-ids.py; see HANDOFF.md, "GUI art")
   GuiLayout.luau                the GUI's layout maths: bitmap text, the hold ring, striped fills
@@ -265,18 +269,21 @@ src/server/                  -> ServerScriptService.Server
   Services/GloriaService        Gloria's house across the street, and her yard for every act
   Services/TurfKingService      TurfKing taking jobs off your board, and the won-back bonus
   Services/ContestService       the Best Yard contest: judging your yard, the result and rewards
+  Services/SeasonService        paying each milestone and level reward once, and telling the screen
 src/client/                  -> StarterPlayer.StarterPlayerScripts.Client
   init.client.luau              starts every controller
   Controllers/                  HUD, shop computer (jobs, orders, business), truck checklist, carrying tools, crew menu,
                                 drive cutscene, first-person camera and arms, the story's dialogue,
                                 the Messages app, Gloria's yard as your act has it, and the Best
                                 Yard contest's judges and results screen
+  Controllers/LevelsController  the Levels panel: your level, and what the next five levels pay
   UI.luau                       the look: colours, fonts, windows, cards, buttons, bars, prompts
   UiLayout.luau                 where everything on the play screen goes, as plain data for the
                                 layout editor (lune run scripts/ui-layout-json prints it as JSON)
   Art.luau                      the GUI art by name (plain frames wherever an id is still "")
   BitmapText.luau               money, scores, timers and headlines in the display font's atlases
   Goal.luau                     your story goal, for the Messages app and Grandma's sticky note
+  FloatingText.luau             a few words that lift off a piece of the HUD and fade: "+$30", "+40 XP"
   StoryArt.luau                 the story's art: portraits by mood, dialogue box, bubbles, contest
 ```
 
