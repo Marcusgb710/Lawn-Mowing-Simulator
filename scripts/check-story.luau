@@ -6,9 +6,12 @@
 -- contest's scoring, Gloria's bar and when judging day comes round
 -- (src/shared/Config/Contest.luau), and the nine people's catalog outfits
 -- (src/shared/Config/Cast.luau; scripts/cast-check.py asks the catalog about their ids), and where
--- CastService puts a rig's Root so it stands on the spot a statue did (src/shared/CastRig.luau). Exits
--- with an error if anything's off.
+-- CastService puts a rig's Root so it stands on the spot a statue did (src/shared/CastRig.luau), and
+-- which pose NpcAnimator picks for a person (src/shared/NpcAnimator.luau). Exits with an error if
+-- anything's off.
 
+local fs = require("@lune/fs")
+local luau = require("@lune/luau")
 local process = require("@lune/process")
 
 local Cast = require("../src/shared/Config/Cast")
@@ -586,6 +589,47 @@ end
 for name in Cast.Poses do
 	check(expectedPoses[name] ~= nil, `pose {name} isn't in the brief`)
 end
+
+-- Which pose a person plays. NpcAnimator reaches Cast through `script`, which Lune doesn't have, so
+-- it is loaded with `script` stood in for and Cast handed to its require. It touches nothing
+-- from Roblox until it plays. Run from the repo root, like the command at the top.
+local stub = {}
+setmetatable(stub, {
+	__index = function()
+		return stub
+	end,
+})
+local NpcAnimator = luau.load(fs.readFile("src/shared/NpcAnimator.luau"), {
+	debugName = "NpcAnimator",
+	environment = {
+		script = stub,
+		require = function()
+			return Cast
+		end,
+	},
+})()
+check(typeof(NpcAnimator.play) == "function", "NpcAnimator.play is there")
+check(typeof(NpcAnimator.stop) == "function", "NpcAnimator.stop is there")
+check(NpcAnimator.resolve("Idle", "Walk") == "Walk", "a requested pose wins over the Pose attribute")
+check(NpcAnimator.resolve(nil, "Walk") == "Walk", "a requested pose needs no attribute")
+check(NpcAnimator.resolve("Sit", nil) == "Sit", "the Pose attribute is the fallback")
+check(NpcAnimator.resolve(nil, nil) == nil, "no pose asked for and no attribute is no pose")
+check(NpcAnimator.resolve("Dance", nil) == nil, "an attribute that is not in Cast.Poses is no pose")
+check(NpcAnimator.resolve(nil, "Dance") == nil, "a requested pose that is not in Cast.Poses is no pose")
+check(NpcAnimator.resolve("Idle", "Dance") == nil, "a pose that is not in Cast.Poses is not swapped for the attribute")
+check(NpcAnimator.resolve(nil, "") == nil, "an empty pose name is no pose")
+check(NpcAnimator.resolve(12 :: any, nil) == nil, "a Pose attribute that is not text is no pose")
+for name in Cast.Poses do
+	check(NpcAnimator.resolve(nil, name) == name, `{name} can be asked for`)
+	check(NpcAnimator.resolve(name, nil) == name, `{name} can be a Pose attribute`)
+end
+-- What CastService sets as each rig's Pose attribute is what plays.
+for id, person in Cast.People do
+	check(NpcAnimator.resolve(person.pose, nil) == person.pose, `{id}'s pose plays as it is`)
+end
+-- The judges walk and stop.
+check(NpcAnimator.resolve(Cast.People.NPC_Judge1.pose, "Walk") == "Walk", "a judge can be asked to walk")
+check(NpcAnimator.resolve(Cast.People.NPC_Judge1.pose, "Idle") == "Idle", "a judge can be asked to stand")
 
 -- Lines ---------------------------------------------------------------------------------------
 

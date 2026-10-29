@@ -11,7 +11,9 @@
 -- workspace.GloriasHouse is the same for everyone:
 --   Lot       the ground, in the placeholder town (a GloriasLot part is its own ground)
 --   House     Story/GloriaHouse (until it's in the game, the block Props/GloriasHouse)
---   Gloria    Story/NPC_Gloria (or the block Props/GloriaPemberton), on the house's "Porch" marker
+--   Gloria    her rig (CastService builds the people from Config/Cast.luau when the server starts,
+--             and the block Props/GloriaPemberton stands in if it couldn't), on the house's "Porch"
+--             marker, idling (NpcAnimator)
 --   Yard      her driveway (with the block house), and her path, picket fence and mailbox (while
 --             her yards are block placeholders). Each screen puts its player's yard in here.
 --   Anchor    an invisible part with the scenes' markers: Bubble (over Gloria's head, for her
@@ -26,11 +28,14 @@
 --                           placeholder of decorations and blocks
 --   TurfKing                Truck, TurfKing's purple truck in her drive (on the house's "Driveway"
 --                           marker, if it has one), with an ArriveFrom attribute: where it backs
---                           in from in the intro. Chad beside it, and a ChadBubble marker over him.
+--                           in from in the intro. Chad beside it (a rig too; each screen poses its
+--                           own copy of him, GloriaController), and a ChadBubble marker over him.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Assets = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Assets"))
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Assets = require(Shared:WaitForChild("Assets"))
+local NpcAnimator = require(Shared:WaitForChild("NpcAnimator"))
 
 local DecorService = require(script.Parent.DecorService)
 
@@ -116,10 +121,11 @@ local function kit(parent: Instance, name: string, frame: CFrame, scale: number)
 	return piece
 end
 
--- Where a speech bubble goes over someone standing in the world: over their real model's "Head"
--- marker, or over the top of them.
+-- Where a speech bubble goes over someone standing in the world: over their rig's "Head" marker
+-- (an attachment under Root, since the rig's own Head is the body part), or over the top of them.
 local function bubbleSpot(person: Model): Vector3
-	local head = person:FindFirstChild("Head", true)
+	local root = person:FindFirstChild("Root")
+	local head = root and root:FindFirstChild("Head")
 	local box, size = person:GetBoundingBox()
 	if head and head:IsA("Attachment") then
 		return head.WorldPosition + Vector3.new(0, 1.2 + BUBBLE_RISE, 0)
@@ -331,6 +337,7 @@ local function buildTurfKing(lot: CFrame, building: Model): Model
 	Assets.anchor(chad)
 	local _, truckSize = truck:GetBoundingBox()
 	Assets.placeAt(chad, parked * CFrame.new(-truckSize.X / 2, 0, 0) * CHAD_SPOT)
+	NpcAnimator.play(chad)
 	chad.Name = "Chad"
 	chad.Parent = model
 	local anchor = part(model, {
@@ -381,6 +388,7 @@ local function build(lot: CFrame, withGround: boolean, stages: Folder): Model
 	Assets.anchor(gloria)
 	local porch = building:FindFirstChild("Porch", true)
 	Assets.placeAt(gloria, if porch and porch:IsA("Attachment") then porch.WorldCFrame else at(-7, 1.2, HOUSE_Z - 3.5))
+	NpcAnimator.play(gloria)
 	gloria.Name = "Gloria"
 	gloria.Parent = model
 

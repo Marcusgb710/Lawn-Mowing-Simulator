@@ -19,6 +19,7 @@ local Contest = require(Shared.Config.Contest)
 local Format = require(Shared.Format)
 local Items = require(Shared.Config.Items)
 local Net = require(Shared.Net)
+local NpcAnimator = require(Shared.NpcAnimator)
 local Story = require(Shared.Config.Story)
 
 local ClientState = require(script.Parent.Parent.ClientState)
@@ -33,11 +34,9 @@ local player = Players.LocalPlayer
 local RESULTS_SIZE = UI.layout("ContestResults").size :: UDim2
 local LAYOUT = Vector2.new(RESULTS_SIZE.X.Offset, RESULTS_SIZE.Y.Offset)
 local FIT = UI.Layout.__screen.scaling.ContestResults
--- How fast the judges walk (studs a second), how far behind the first the second one follows,
--- and how much they bob.
+-- How fast the judges walk (studs a second), and how far behind the first the second one follows.
 local WALK_SPEED = 3.2
 local FOLLOW = 3
-local BOB = 0.12
 -- Where the judges walk in Gloria's yard, in her lot's space (the street toward -Z), in view of
 -- the "Gloria" shot.
 local GLORIA_WALK = {
@@ -119,7 +118,8 @@ local function along(path: { Vector3 }, distance: number): (Vector3, Vector3)
 	return last, if heading.Magnitude > 0 then heading.Unit else Vector3.new(0, 0, -1)
 end
 
--- Walks the two judges along `path`, the second a little behind the first.
+-- Walks the two judges along `path`, the second a little behind the first. They play the Walk
+-- animation while they're on their way and Idle while they wait their turn or have got there.
 local function walkJudges(path: { Vector3 })
 	stopJudges()
 	if #path < 2 then
@@ -136,6 +136,7 @@ local function walkJudges(path: { Vector3 })
 			end
 		end
 		model.Parent = workspace
+		NpcAnimator.play(model, "Walk")
 		table.insert(judges, model)
 	end
 	local total = 0
@@ -143,6 +144,11 @@ local function walkJudges(path: { Vector3 })
 		total += (path[index + 1] - path[index]).Magnitude
 	end
 	local started = os.clock()
+	-- What each judge is playing, so a pose is only started when it changes.
+	local poses: { [Model]: string } = {}
+	for _, model in judges do
+		poses[model] = "Walk"
+	end
 	walking = RunService.RenderStepped:Connect(function()
 		local walked = (os.clock() - started) * WALK_SPEED
 		for index, model in judges do
@@ -150,9 +156,13 @@ local function walkJudges(path: { Vector3 })
 			local position, heading = along(path, distance)
 			local flat = Vector3.new(heading.X, 0, heading.Z)
 			local moving = distance > 0 and distance < total
-			local bob = if moving then math.abs(math.sin(os.clock() * 7 + index)) * BOB else 0
+			local pose = if moving then "Walk" else "Idle"
+			if poses[model] ~= pose then
+				poses[model] = pose
+				NpcAnimator.play(model, pose)
+			end
 			local facing = if flat.Magnitude > 0 then flat.Unit else Vector3.new(0, 0, -1)
-			Assets.placeAt(model, CFrame.lookAt(position + Vector3.new(0, bob, 0), position + facing))
+			Assets.placeAt(model, CFrame.lookAt(position, position + facing))
 		end
 	end)
 end

@@ -13,7 +13,9 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 
-local Story = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Config"):WaitForChild("Story"))
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+local NpcAnimator = require(Shared:WaitForChild("NpcAnimator"))
+local Story = require(Shared:WaitForChild("Config"):WaitForChild("Story"))
 
 local ClientState = require(script.Parent.Parent.ClientState)
 local ComputerController = require(script.Parent.ComputerController)
@@ -73,6 +75,12 @@ local function show(act: number)
 		if template then
 			turfKingCopy = template:Clone()
 			turfKingCopy.Parent = yard
+			-- Chad's rig is a copy of the one in ReplicatedStorage, which the server posed
+			-- where nobody sees it, so this screen poses its own.
+			local chad = turfKingCopy:FindFirstChild("Chad")
+			if chad and chad:IsA("Model") then
+				NpcAnimator.play(chad)
+			end
 		end
 	elseif not turfKing and turfKingCopy then
 		turfKingCopy:Destroy()

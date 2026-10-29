@@ -67,6 +67,7 @@ local function describe(person: Cast.Person): HumanoidDescription
 			AssetId = garment.id,
 			AccessoryType = Enum.AccessoryType[garment.type],
 			Order = garment.order,
+			IsLayered = true,
 		})
 	end
 	-- `false`: this list is only the layered clothing. The hair and hat come from the description.
