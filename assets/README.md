@@ -71,12 +71,16 @@ holds:
   Model the mesh already calls `Handle` (or `Root`) is renamed `Handle_mesh` (`Root_mesh`) first,
   and the import says how many it renamed.
 - `parts`: `{ "<mesh name>": { "rename", "collide" } }`, by the names the mesh arrives with.
-- `body` (`"largest"` or `"all"`, Trucks only): after the `parts` renames, names parts `<id>__Body`,
-  for a mesh whose parts are all called `Part`. `largest` names the largest visible part. `all`
-  names every visible part except wheels, tires, rims and glass (any name with `Wheel`, `Tire`,
-  `Rim`, `Glass` or `Window` in it, whatever the case), so a truck of dozens of loose parts takes
-  its livery everywhere; a part already named `<id>__Body`, `__DriverDoor`, `__Tailgate` or
-  `__RearDoor` keeps its name, and the import says how many parts it renamed.
+- `body` (`"largest"`, `"all"` or a list of colours, Trucks only): after the `parts` renames, names
+  parts `<id>__Body`, for a mesh whose parts are all called `Part`. `largest` names the largest
+  visible part. `all` names every visible part except wheels, tires, rims and glass (any name with
+  `Wheel`, `Tire`, `Rim`, `Glass` or `Window` in it, whatever the case), so a truck of dozens of
+  loose parts takes its livery everywhere. A list of `[r, g, b]` colours (whole numbers from 0 to
+  255, such as `[[111, 0, 0]]`) names every fully opaque part that is neither `Glass` nor `Neon` and
+  whose colour is within 8 of a listed one on each channel, for a mesh that has no names to tell
+  its painted panels apart, and the import fails if no part matches. With `all` or a list, a part
+  already named `<id>__Body`, `__DriverDoor`, `__Tailgate` or `__RearDoor` keeps its name, and the
+  import says how many parts it renamed.
 - `markers`: `[{ "name", "position", "orientation" (degrees), "attributes" }]`, attachments on the
   `Handle` or `Root`. `boxes`: `[{ "name", "position", "size" }]`, invisible parts that don't
   collide (`BedArea`, `BaySpot`).

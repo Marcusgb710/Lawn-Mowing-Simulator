@@ -152,6 +152,16 @@ class GenerateTest(unittest.TestCase):
                 self.assertIn(f'body = "{body}",', lua)
         self.assertNotIn("body =", generate_import.generate(manifest_of(truck_entry()), TEMPLATE))
 
+    def test_renders_a_list_of_body_colours_as_integer_triples(self):
+        cases = {
+            "one colour": ([[111, 0, 0]], "body = { { 111, 0, 0 } },"),
+            "two colours": ([[111, 0, 0], [0, 80, 255]], "body = { { 111, 0, 0 }, { 0, 80, 255 } },"),
+        }
+        for label, (colours, fragment) in cases.items():
+            with self.subTest(label):
+                lua = generate_import.generate(manifest_of({**truck_entry(), "body": colours}), TEMPLATE)
+                self.assertIn(fragment, lua)
+
     def test_a_strip_by_name_renders_an_empty_class(self):
         entry = {**store_entry(), "strip": ["*:Seat", "Decal:Logo"]}
         lua = generate_import.generate(manifest_of(entry), TEMPLATE)
@@ -255,21 +265,36 @@ class ValidateTest(unittest.TestCase):
         entry = {**store_entry(), "strip": ["*:Seat", "Model:Bed (Queen Size)", "Decal:Logo"]}
         self.assertEqual(generate_import.validate(manifest_of(entry)), [])
 
-    def test_body_is_for_trucks_and_is_largest_or_all(self):
+    def test_body_is_for_trucks_and_is_largest_all_or_colours(self):
         truck = {**truck_entry(), "body": "largest"}
-        for body in ("largest", "all"):
+        for body in ("largest", "all", [[111, 0, 0]], [[111, 0, 0], [0, 80, 255]], [[0, 0, 0], [255, 255, 255]]):
             with self.subTest(body):
                 self.assertEqual(generate_import.validate(manifest_of({**truck, "body": body})), [])
+        maroon = [[111, 0, 0]]
         cases = {
             "a Tools entry": {**store_entry(), "body": "largest"},
             "a Tools entry that asks for all": {**store_entry(), "body": "all"},
+            "a Tools entry that gives colours": {**store_entry(), "body": maroon},
             "a Trailers entry": {**truck, "folder": "Trailers"},
             "a Trailers entry that asks for all": {**truck, "folder": "Trailers", "body": "all"},
+            "a Trailers entry that gives colours": {**truck, "folder": "Trailers", "body": maroon},
             "a Props entry": {**truck, "folder": "Props"},
             "a body that is neither largest nor all": {**truck, "body": "some"},
             "a body that is a different case": {**truck, "body": "All"},
             "a body that is a list": {**truck, "body": ["largest"]},
             "a body that is a list of all": {**truck, "body": ["all"]},
+            "a body that is an empty list": {**truck, "body": []},
+            "a body that is one colour, not a list of them": {**truck, "body": [111, 0, 0]},
+            "a body that is a table of channels": {**truck, "body": {"r": 111, "g": 0, "b": 0}},
+            "a colour above 255": {**truck, "body": [[300, 0, 0]]},
+            "a colour below 0": {**truck, "body": [[-1, 0, 0]]},
+            "a colour of two numbers": {**truck, "body": [[1, 2]]},
+            "a colour of four numbers": {**truck, "body": [[1, 2, 3, 4]]},
+            "a colour with a fractional channel": {**truck, "body": [[111.5, 0, 0]]},
+            "a colour with a true channel": {**truck, "body": [[True, 0, 0]]},
+            "a colour with a text channel": {**truck, "body": [["111", "0", "0"]]},
+            "one good colour and one bad": {**truck, "body": [[111, 0, 0], [1, 2]]},
+            "two bad colours are still one error": {**truck, "body": [[300, 0, 0], [1, 2]]},
         }
         for label, entry in cases.items():
             with self.subTest(label):

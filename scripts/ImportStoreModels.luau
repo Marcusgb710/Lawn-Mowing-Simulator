@@ -13,13 +13,14 @@
 --      * fits       anchors everything, turns the front to -Z, then by the entry's turn, scales to
 --                   the entry's fit, and puts the bottom centre on the origin
 --      * adds       the Handle and grips (tools) or the Root, the renames and collision, a truck's body
---                   (its largest part, or every part that takes paint, named <id>__Body), markers, boxes
---                   and synthesised parts. Anything the mesh already calls Handle (or Root) is renamed
---                   Handle_mesh (Root_mesh) first, so the added one is the only one.
+--                   (its largest part, every part that takes paint, or every part of the colours the
+--                   entry lists, named <id>__Body), markers, boxes and synthesised parts. Anything the
+--                   mesh already calls Handle (or Root) is renamed Handle_mesh (Root_mesh) first, so
+--                   the added one is the only one.
 --      * stages     ServerStorage.ModelImport.<Folder>.<id>, replacing an older copy
 --    Each entry prints "ok <id> parts=<n> size=<x>x<y>x<z>" or "FAIL <id> <reason>" (a truck that
---    takes paint on every part adds "(body: <n> parts)"); a name the manifest gives that isn't in
---    the model is a FAIL, so a stale entry never ships quietly.
+--    names its body by "all" or by colour adds "(body: <n> parts)"); a name the manifest gives that
+--    isn't in the model is a FAIL, so a stale entry never ships quietly.
 -- 2. Right-click ServerStorage.ModelImport > Save / Export > Save to File, and run
 --    `lune run scripts/export-models <file> --overwrite` to write assets/<Folder>/<id>.rbxm.
 -- 3. Delete ServerStorage.ModelImport.
@@ -303,7 +304,7 @@ local MODELS = {
 		up = "+Y",
 		fit = { axis = "length", studs = 19 },
 		collide = true,
-		body = "all",
+		body = { { 111, 0, 0 } },
 		markers = {
 			{ name = "DriverSeat", position = Vector3.new(-1.7, 5, -0.8), orientation = Vector3.new(0, 0, 0), attributes = {} },
 		},
@@ -429,6 +430,10 @@ local KEEPS_LOOK = { "wheel", "tire", "rim", "glass", "window" }
 -- The names the game already paints and opens by (Premium.PAINTED, Openings): a part the entry
 -- gave one of these keeps it, so naming the body never takes a door's name away.
 local OPENING_SUFFIXES = { "__DriverDoor", "__Tailgate", "__RearDoor" }
+
+-- How far (out of 255) each of red, green and blue may be from a listed colour for a part to count as
+-- that colour in a truck's colour-listed body.
+local BODY_COLOUR_TOLERANCE = 8
 
 local function fail(message: string)
 	error(message, 0)
@@ -661,9 +666,29 @@ local function hasOpeningName(part: BasePart): boolean
 	return false
 end
 
+-- A mesh with no names to go by can only tell its painted panels from its tires, glass and lamps by
+-- colour. A part is of the listed colours if it is fully opaque, is neither Glass nor Neon (a lamp's
+-- glow is not livery), and is within the tolerance of one of them on every channel.
+local function hasBodyColour(part: BasePart, colours): boolean
+	if part.Transparency ~= 0 or part.Material == Enum.Material.Glass or part.Material == Enum.Material.Neon then
+		return false
+	end
+	local color = part.Color
+	for _, listed in colours do
+		if
+			math.abs(color.R * 255 - listed[1]) <= BODY_COLOUR_TOLERANCE
+			and math.abs(color.G * 255 - listed[2]) <= BODY_COLOUR_TOLERANCE
+			and math.abs(color.B * 255 - listed[3]) <= BODY_COLOUR_TOLERANCE
+		then
+			return true
+		end
+	end
+	return false
+end
+
 -- What the game expects of a model (src/shared/Assets.luau): the Handle or Root, and the entry's extras.
 -- Returns how many things the mesh already had under the Handle or Root name, which it renamed, and
--- how many parts the entry's "all" body named.
+-- how many parts the entry's "all" or colour-listed body named.
 local function contract(entry, model: Model): (number, number)
 	local list = partsOf(model)
 	local handleName = contractName(entry)
@@ -758,6 +783,27 @@ local function contract(entry, model: Model): (number, number)
 			fail("body: no visible part to name")
 		end
 		bodyParts = named
+	elseif type(entry.body) == "table" then
+		-- Where the parts have no names to tell them apart (every one is "Part"), the entry lists the
+		-- colour its painted panels are and every part of it is the body. A part already named
+		-- <id>__Body, or given a door's name, stays as it is and isn't counted, as with "all". One
+		-- the manifest named still counts as a match, so a list that only finds named parts isn't a FAIL.
+		local bodyName = entry.id .. "__Body"
+		local named, kept = 0, 0
+		for _, part in list do
+			if hasBodyColour(part, entry.body) then
+				if part.Name == bodyName or hasOpeningName(part) then
+					kept += 1
+				else
+					part.Name = bodyName
+					named += 1
+				end
+			end
+		end
+		if named + kept == 0 then
+			fail("body: no part matches the listed colours")
+		end
+		bodyParts = named
 	end
 	-- A Store mesh often has its own Handle (a handlebar group, say), and the game finds ours with
 	-- FindFirstChild, so two would be a coin toss. Whatever is left with the name moves aside.
@@ -841,7 +887,7 @@ for _, entry in MODELS do
 		local low, high = bounds(list)
 		local size = high - low
 		local line = string.format("ok %s parts=%d size=%.1fx%.1fx%.1f", entry.id, #list, size.X, size.Y, size.Z)
-		if entry.body == "all" then
+		if entry.body == "all" or type(entry.body) == "table" then
 			line ..= ` (body: {bodyParts} parts)`
 		end
 		if clashes > 0 then

@@ -86,6 +86,14 @@ def is_color(value) -> bool:
     )
 
 
+def is_colours(value) -> bool:
+    return isinstance(value, list) and value != [] and all(is_color(v) for v in value)
+
+
+def is_body(value) -> bool:
+    return value in BODIES if isinstance(value, str) else is_colours(value)
+
+
 def is_name(value) -> bool:
     return isinstance(value, str) and value != ""
 
@@ -115,7 +123,11 @@ SINGLE_FIELDS = {
     "turn": (is_number, "a number of degrees"),
     "up": (lambda v: v == "+Y", '"+Y", the only up there is so far'),
     "handlePart": NAME,
-    "body": (lambda v: v in BODIES, '"largest" (the biggest part) or "all" (every part that takes paint)'),
+    "body": (
+        is_body,
+        '"largest" (the biggest part), "all" (every part that takes paint) or a list of [r, g, b] colours '
+        "(every part painted one of them), each three whole numbers from 0 to 255",
+    ),
     "collide": BOOL,
     "budget": (is_whole, "a whole number above zero"),
     "strip": (
@@ -286,6 +298,13 @@ def synth_lua(part: dict) -> str:
     return "{ " + ", ".join(fields) + " }"
 
 
+def body_lua(body) -> str:
+    """The word "largest" or "all" as it is, a list of colours as a table of { r, g, b } integer triples."""
+    if isinstance(body, str):
+        return lua_value(body)
+    return "{ " + ", ".join("{ " + ", ".join(str(c) for c in colour) + " }" for colour in body) + " }"
+
+
 def block(name: str, rows: list) -> str:
     return f"{name} = {{\n" + "".join(f"\t\t\t{row},\n" for row in rows) + "\t\t}"
 
@@ -324,7 +343,7 @@ def render_entry(entry: dict) -> str:
     if entry.get("parts"):
         fields.append(block("parts", [f"[{lua_value(name)}] = {part_lua(info)}" for name, info in entry["parts"].items()]))
     if "body" in entry:
-        fields.append(f"body = {lua_value(entry['body'])}")
+        fields.append(f"body = {body_lua(entry['body'])}")
     for field, render in (("markers", marker_lua), ("boxes", box_lua), ("synth", synth_lua)):
         if entry.get(field):
             fields.append(block(field, [render(item) for item in entry[field]]))

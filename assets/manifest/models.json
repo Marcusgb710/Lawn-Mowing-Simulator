@@ -1000,7 +1000,13 @@
         "axis": "length",
         "studs": 19
       },
-      "body": "all",
+      "body": [
+        [
+          111,
+          0,
+          0
+        ]
+      ],
       "boxes": [
         {
           "name": "BedArea",
