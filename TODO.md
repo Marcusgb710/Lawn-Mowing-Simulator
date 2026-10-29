@@ -71,7 +71,7 @@ has the steps, and HANDOFF.md has the short version. The older route for ChatGPT
 
 - [x] **High-poly pass (instructions 24–34): imported.** All 115 models are in `assets/` (85 replaced,
       30 new, including the new `Decorations` folder). Still to check in Play: the walk-in buildings,
-      truck doors and tailgates, desks, boxes and decorations.
+      truck doors and tailgates (the Store trucks have none), desks, boxes and decorations.
       How it was done: ChatGPT's 115 models are on the
       `codex/high-detail-models` branch. The 11 combined files are copied to
       `~/Desktop/LawnModelsImport/HighPoly/ALL` (textures in `../Textures`), and
@@ -319,7 +319,9 @@ One PR per phase, each stacked on the one before. Every phase still needs a Stud
       - a Quality job with a 90%+ finish in act 2+: the customer's text, the "Won from TurfKing"
         line in the pay breakdown, and only once per customer;
       - the real models dropping in (`Assets/Story/<id>`) with no code change once they're
-        imported (instructions37): the house, the three yards, the truck, the sign, Gloria, Chad.
+        imported (instructions37): the house, the three yards, the porch deck, the rocker and the
+        sign. Gloria and Chad are `CastService` rigs, not files, and the truck is the heavy-duty
+        pickup in the purple livery.
 - [ ] **Story 5: the Best Yard contest.** To check in Studio, with API access on so it saves (to
       get to act 4 quickly, raise curb appeal to 75 or give yourself level 10's xp), on PC and on
       a phone:
@@ -474,7 +476,8 @@ T-shirt.
 ### Playtest checklist
 
 - [ ] Every tool on the shop racks and in the truck bed, held in first person: grips on the
-      handles, nothing clipping the camera, wheels spinning on mowers.
+      handles, nothing clipping the camera, wheels spinning on mowers (where the mesh has separate
+      wheel parts).
 - [ ] A job start to finish with the new truck and trailer: loading, the drive, the house and shed
       in view, the customer's porch.
 - [ ] Gloria's porch scene, June on her rocker, Chad by the TurfKing truck, the judges' walk:
@@ -512,8 +515,9 @@ for (the tables under "New item ids for modelers" in docs/GAME_DESIGN.md list it
       `DebrisFrisbee`. Nothing taller than about 0.6 studs, no collision, `<Id>__Body` parts.
 - [ ] **The trophy:** `BestYardTrophy`. Keep `BestYardTrophy__Cup`, which `DecorService` looks for.
 - [ ] **Gloria's set:** `GloriaHouse`, `GloriaYard_Stage1` to `GloriaYard_Stage3`, `PorchDeck`,
-      `PorchRockingChair`, and the `TurfKingSign` that stands in her yard from stage 2. They are a
-      matched set built to one footprint, so swap them together or not at all.
+      `PorchRockingChair`, and the `TurfKingSign` that stands in her yard from stage 2 (when a stage
+      has no model of its own). They are a matched set built to one footprint, so swap them
+      together or not at all.
 
 ### Batches 5 to 7
 
@@ -562,21 +566,25 @@ import, one batch at a time, with `lune run scripts/check-models` and a Play che
       `Lawn_Mown_Color.png`, `Lawn_Uncut_Color.png` and `Soil_Color.png` (from
       `art-source/GUI/Source/RenderOnly/Textures/`) and `art-source/Grass/Grass_Tufts.png`, copy
       each image's id and write it as a plain number into `Mown`, `Uncut`, `Soil` and `Tufts`.
-      The lawn already uses them (`GrassController` lays the mown map as a tiling Texture, one tile
-      per `TileStuds` = 8 studs, and `GrassPaint` paints the stripes over it and stamps tufts on
-      the shells). But the textured path has only been seen as flat colours on this branch,
-      because the ids are 0. Once they are in, look at a lawn in Studio with Allow Mesh / Image
-      APIs on: stripes as tints on the texture, tufts from eye level, a far lawn from the road, and
-      the flat colours coming back if an id is set to 0 again. When the textures are first seen,
-      also look for cross lines at the trailing edge of stripes (Overwrite also writes the stamp's
-      soft rim), seams in the mottle every 16 studs, and sparkle on the tufts; the mitigations are a
-      `Pixelated` `SamplingMode` on the tint brushes, a box-downscaled mottle and pre-shrunk tufts.
+      The lawn already uses three of them, `Mown`, `Uncut` and `Tufts` (`GrassController` lays the
+      mown map as a tiling Texture, one tile per `TileStuds` = 8 studs, and `GrassPaint` paints the
+      stripes over it and stamps tufts on the shells). `Soil` is uploaded for later; nothing reads
+      it yet. But the textured path has only been seen as flat colours on this branch, because the
+      ids are 0. Once they are in, look at a lawn in Studio with Allow Mesh / Image APIs on:
+      stripes as tints on the texture, tufts from eye level, a far lawn from the road, and the flat
+      colours coming back if the mown, uncut or tuft id is set to 0 again. When the textures are
+      first seen, also look for cross lines at the trailing edge of stripes (Overwrite also writes
+      the stamp's soft rim), seams in the mottle every 16 studs, and sparkle on the tufts; the
+      mitigations are a `Pixelated` `SamplingMode` on the tint brushes, a box-downscaled mottle and
+      pre-shrunk tufts.
 - [ ] **TurfKing T-shirt**: create the T-shirt from `art-source/Cast/TurfKing_Tee.png` on the Create
       page (Avatar items, T-shirt). It isn't free: Roblox's classic clothing docs list a Robux
       upload fee (80 at last check), so look at the price before paying. Open Cloud can't make one.
       Then put its id in `tshirt` for Chad and Sam_TurfKing in `src/shared/Config/Cast.luau` (both
-      0 now) and run `lune run scripts/check-story`. `python scripts/make-turfking-tee.py` redraws
-      the image.
+      0 now) and run `lune run scripts/check-story` and `python -I scripts/cast-check.py`. The cast
+      check accepts an item the Big Dink Studios group made whatever its sale state, because the
+      group's own items are always usable by its experience. `python scripts/make-turfking-tee.py`
+      redraws the image.
 - [ ] **Store art**: put `art-source/GUI/Store/` on the Roblox page (game icon, 5 thumbnails, the
       pass and product icons) on the Creator Dashboard. The in-game GUI art is under **GUI
       overhaul** above.

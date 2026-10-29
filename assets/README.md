@@ -82,9 +82,10 @@ To run a batch:
    markers) and stages it in `ServerStorage.ModelImport`. It prints `ok <id> parts=... size=...` or
    `FAIL <id> <reason>` per model. A name the manifest gives that isn't in the model (a `keep`, a
    `parts` key, a `strip` item) is a `FAIL`, so nothing ships on a guess.
-4. Save the place (Ctrl+S) and run `lune run scripts/export-models <place.rbxl> --overwrite`. It
-   writes `assets/<Folder>/<Id>.rbxm`. Saving `ModelImport` on its own (right-click, Save / Export,
-   Save to File) and passing that `.rbxm` works too. Then delete `ModelImport` from the place.
+4. Save the place (Ctrl+S; a scratch place that was never saved needs Save to File) and run
+   `lune run scripts/export-models <place.rbxl> --overwrite`. It writes `assets/<Folder>/<Id>.rbxm`.
+   Saving `ModelImport` on its own (right-click, Save / Export, Save to File) and passing that
+   `.rbxm` works too. Then delete `ModelImport` from the place.
 5. Run `lune run scripts/check-models`. For every entry that isn't `kept` it checks a `Handle` with
    `GripLeft` and `GripRight` (tools) or the invisible `Root` at (0, 0.5, 0) (everything else), the
    lowest visible point on the ground, the `fit` side of the box within 10% of `fit.studs`, no
@@ -94,15 +95,16 @@ To run a batch:
    per problem. `--self-test` checks the gate itself.
 6. Play it. A tool is held with its grips on the handles, a truck takes its trailer and its load, the
    house stands with its porch and driveway, and nothing is the wrong size next to the kit.
-7. Commit the manifest, `ImportStoreModels.luau` and the `.rbxm` files together.
+7. Commit the manifest, `ImportStoreModels.luau` and the `.rbxm` files together. Each batch is
+   its own PR.
 
 ## The manifest entry
 
-The file is `{ "version": 1, "complete": false, "models": [...] }`. `complete` stays false until
-every tool, truck, trailer, building and decoration id in the game (`Config/Tools.luau`,
-`Items.luau`, `Decorations.luau`) has a model file or a `kept` entry. While it is false,
-`check-models` lists a store entry with no file as `pending <id>`; once it is true, that is a
-failure, and the coverage of those ids is checked too. An entry holds:
+The file is `{ "version": 1, "complete": false, "models": [...] }`. Set `complete` to true after
+the last batch is in. Until then `check-models` lists a store entry with no file as `pending <id>`.
+From then on a store entry with no file fails, and `check-models` also checks that every tool,
+truck, trailer, building and decoration id in the game (`Config/Tools.luau`, `Items.luau`,
+`Decorations.luau`) has a model file or a `kept` entry. An entry holds:
 - `id`, `folder` (`Tools`, `Trucks`, `Trailers`, `Buildings`, `Props`, `Decorations`, `Story`).
 - `source`: `{ "kind": "store", "assetId", "name", "creator" }`, `{ "kind": "blender", "file" }`
   (a GLB brought in with File > Import 3D first, found in Workspace by its file name) or

@@ -303,8 +303,10 @@ flowers, the turf-renovation steps) keeps the **4-stud tile** (`GameConfig.TileS
   map, and mown grass is a translucent tint of its stripe shade (35% light, 45% dark) that lets the
   texture show through. Each shell stamps one of eight tufts from the tuft sheet, about a stud
   across, at every blade dot instead of drawing a circle. A lawn too far away to draw keeps its bare
-  turf with the same texture, so it still reads as lawn. If any of the images is missing or won't
-  load, the lawn is painted in flat colours and dots as before, with one warning, for the session.
+  turf, which shows the uncut texture when most of the lawn is still tall at the moment it goes
+  far and the mown one otherwise, so it still reads as lawn. If any of the images is missing or
+  won't load, the lawn is painted in flat colours and dots as before, with one warning, for the
+  session.
 - **Your own mower doesn't wait.** Work ticks are coarser than frames, so a swath that only showed
   up on each tick would appear in chunks behind the deck. The client paints its own mower's strip
   every frame, from where the deck is on screen. The server's swath for it lands on the same
@@ -1154,8 +1156,9 @@ correct proportion, next to people who look like the avatars every player alread
    a sharpening stone, a patch kit). The manifest lists it as `kept`, so the decision is on record.
 
 **The contract** is what makes the source not matter. Whoever made a model, it ends up the same
-shape, and `scripts/check-models.luau` fails one that isn't (the per-folder details are in
-`assets/README.md`):
+shape, and `scripts/check-models.luau` fails one that breaks the parts a file can show (the
+per-folder details are in `assets/README.md`). Branding, which way a mesh faces, the openings and
+the phone test are judged in Studio and Play. The contract:
 - Built at the origin, standing on the ground, front toward -Z, +Y up, at the game's scale: one
   stud is 0.28 m, so a person is about 5.5 studs tall, a push mower is 3.7 studs tall and a pickup
   is 17 to 20 studs long. Each manifest entry has one target size (`fit`), and the importer scales
@@ -1203,15 +1206,16 @@ where `Assets.story` finds them on the server and on every client. If a rig can'
 taken down, Roblox unreachable), that id logs a warning and shows its block placeholder.
 `NpcAnimator` plays Roblox's own Idle, Walk, Sit, Wave and Point animations (`Cast.Poses`), so
 nothing has to be uploaded: the person's `pose` picks one, June sits in her rocker and the judges
-walk the yard and stop. Every id must be free, public and not a limited collectible, and `scripts/cast-check.py`
-asks the catalog (it needs the network, so it isn't one of the Lune checks). Roblox's own items
-are preferred, but identity wins: Chad and Sam wear TurfKing's purple with a stand-in top until
-its T-shirt graphic is made (`tshirt` is 0 for both).
+walk the yard and stop. Every id must be free, public and not a limited collectible, and
+`scripts/cast-check.py` asks the catalog (it needs the network, so it isn't one of the Lune
+checks). Roblox's own items are preferred, but identity wins: Chad and Sam wear TurfKing's purple
+with a stand-in top until its T-shirt graphic is made (`tshirt` is 0 for both).
 
 **The lawn** uses real art the same way. `Config/GrassArt.luau` holds the ids of the kit's mown,
 uncut and soil textures and of a sheet of grass tufts. With them the lawn is painted over a tiling
-texture and its shells stamp tufts (see "Mowing: cells, swaths and shells"). While an id is 0, the
-lawn is painted in flat colours and dots, as it was before, with one warning.
+texture and its shells stamp tufts (see "Mowing: cells, swaths and shells"). It reads three of the
+four ids, mown, uncut and tufts; the soil id is uploaded for later. While the mown, uncut or tuft
+id is 0, the lawn is painted in flat colours and dots, as it was before, with one warning.
 
 ## New item ids for modelers
 

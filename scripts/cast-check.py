@@ -8,7 +8,9 @@ public. So every id in Cast.luau has to be free, not limited, and the kind of it
 It reads `hair`, `hat`, `face`, `shirt`, `pants`, `tshirt` and each `id` in a `layered` list, and for
 every id above 0 (a `tshirt = 0` is the crown graphic that isn't uploaded yet) it asks
 https://economy.roblox.com/v2/assets/<id>/details (no key) and checks:
-  * IsForSale or IsPublicDomain is true, so the item can be used;
+  * IsForSale or IsPublicDomain is true, so the item can be used (an item the Big Dink Studios
+    group made passes whatever its sale state: the group's own items are always usable by its
+    experience);
   * PriceInRobux is 0 or missing;
   * IsLimited and IsLimitedUnique are false, and it isn't a collectible with a limited quantity;
   * AssetTypeId fits the slot: hair 41, hat 8, face 18, shirt 11, pants 12, tshirt 2, and a layered
@@ -42,6 +44,8 @@ ECONOMY_URL = "https://economy.roblox.com/v2/assets/{}/details"
 CATALOG_URL = "https://catalog.roblox.com/v1/catalog/items/details"
 PAUSE = 0.3  # seconds between calls
 RETRIES = 4
+# The Big Dink Studios group. What it made is always usable by its own experience, on sale or not.
+OWN_GROUP_ID = 1060015801
 
 # AssetTypeId of each slot.
 SLOTS = {"hair": 41, "hat": 8, "face": 18, "shirt": 11, "pants": 12, "tshirt": 2}
@@ -194,12 +198,14 @@ def request(url, body=None, token=None):
 def from_economy(asset_id):
     data, _ = request(ECONOMY_URL.format(asset_id))
     collectible = data.get("CollectiblesItemDetails") or {}
+    creator = data.get("Creator") or {}
+    ours = creator.get("CreatorType") == "Group" and creator.get("Id") == OWN_GROUP_ID
     return {
         "source": "economy",
         "name": data.get("Name") or "?",
-        "creator": (data.get("Creator") or {}).get("Name") or "?",
+        "creator": creator.get("Name") or "?",
         "type": data.get("AssetTypeId"),
-        "usable": bool(data.get("IsForSale") or data.get("IsPublicDomain")),
+        "usable": bool(data.get("IsForSale") or data.get("IsPublicDomain") or ours),
         "price": data.get("PriceInRobux"),
         "limited": bool(data.get("IsLimited") or data.get("IsLimitedUnique")),
         "limited_quantity": (collectible.get("TotalQuantity") or 0) > 0,

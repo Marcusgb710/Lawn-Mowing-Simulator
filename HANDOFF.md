@@ -21,7 +21,8 @@ Written 2026-10-19 for whoever takes over from here. Read this first. Then use
   - your own lawn;
   - decorations;
   - the title card.
-- **Models:** every item has a model in `assets/`, and they come from three places.
+- **Models:** every item has a model in `assets/`, and they come from two places: the Creator
+  Store pipeline and ChatGPT's older high-poly packs.
   - 26 are free Creator Store models fitted by the manifest pipeline: the mowers, trimmers,
     blowers, barrows, hedge shears, spreader, sprayer and gas cans (18 tools), the 4 trucks, the 3
     trailers and the customer's house.
@@ -206,7 +207,9 @@ overhaul: what is left** and **Before release**. In order:
 2. **Make the TurfKing T-shirt.** Create it on the Create page from
    `art-source/Cast/TurfKing_Tee.png`. It carries a Robux upload fee, so look at the price first;
    spending it is the owner's call. Put the id in `tshirt` for Chad and Sam_TurfKing in
-   `src/shared/Config/Cast.luau`, then run `lune run scripts/check-story`.
+   `src/shared/Config/Cast.luau`, then run `lune run scripts/check-story` and
+   `python -I scripts/cast-check.py`. The cast check accepts an item the Big Dink Studios group made
+   whatever its sale state, because the group's own items are always usable by its experience.
 3. **Work through the model playtest checklist** in TODO.md (tools in hand, a job with the new
    truck and trailer, the story scenes, the grass, and the Galaxy A06 preset for frame time).
 4. **Do batches 5 to 7** (hand and long tools, pro machines, then the four business buildings
@@ -245,18 +248,22 @@ overhaul: what is left** and **Before release**. In order:
   To run a batch:
   1. Pick the ids (the order is in the spec, section 6; TODO.md says which are left) and, if you
      need to choose, run the `scripts/studio/` lineup.
-  2. Add or edit their entries in the manifest. Run `python -I scripts/generate-import.py`, then
+  2. Add or edit their entries in the manifest (the fields are listed under "The manifest entry"
+     in `assets/README.md`). Run `python -I scripts/generate-import.py`, then
      `python -m unittest scripts/test_generate_import.py`.
   3. In Studio, open a scratch place (not the Team Create game) and paste
      `scripts/ImportStoreModels.luau` into the command bar. It stages each model in
      `ServerStorage.ModelImport` and prints `ok <id> ...` or `FAIL <id> <reason>`. Fix every `FAIL`
      in the manifest and run it again. The one-liner in `scripts/studio/README.md` fetches only
      `lineup.lua` and `camera.lua` from that folder, so it doesn't run the importer: paste this one.
-  4. Save the place with Ctrl+S and run `lune run scripts/export-models <place.rbxl> --overwrite`.
-     Then delete `ModelImport` from the place.
+  4. Save the place with Ctrl+S (a scratch place that was never saved needs Save to File) and run
+     `lune run scripts/export-models <place.rbxl> --overwrite`. Or right-click
+     `ServerStorage.ModelImport`, Save to File, and pass that `.rbxm` instead. Then delete
+     `ModelImport` from the place.
   5. Run `lune run scripts/check-models`, then look at the new models in Play (grips in first
      person, truck loading, the house's porch, scale next to the kit).
-  6. Commit the manifest, the generated importer and the `.rbxm` files together.
+  6. Commit the manifest, the generated importer and the `.rbxm` files together. Each batch is
+     its own PR.
 - **ChatGPT/Codex makes the art, and made the mesh packs the older models came from.**
   - Write a self-contained spec as `alphainstructions/instructionsN.md`; **N is one past the
     highest number already in that folder**.
