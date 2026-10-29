@@ -12,6 +12,9 @@
 --     fuel" by the fuel can), or what you're doing to one at the workbench;
 --   * the pay breakdown when a job's done, and the big moments: Level Up! (when the server says
 --     what the level paid, LevelReward) and New Tool!
+--   * cash and XP coming in lift off the piece of the HUD they came from (FloatingText) and ring
+--     (Sounds.playUi): the pay panel's total and tip, a goal's row or the Next chip, the level line
+--     and the XP bar.
 -- On a keyboard V switches camera motion on and off. Where each piece goes is in UiLayout.luau,
 -- which can also take any of the columns' pieces out of its column to go anywhere on the screen.
 
@@ -35,6 +38,7 @@ local Tools = require(Shared.Config.Tools)
 
 local Art = require(script.Parent.Parent.Art)
 local ClientState = require(script.Parent.Parent.ClientState)
+local FloatingText = require(script.Parent.Parent.FloatingText)
 local Goal = require(script.Parent.Parent.Goal)
 local UI = require(script.Parent.Parent.UI)
 local CameraController = require(script.Parent.CameraController)
@@ -70,6 +74,11 @@ local RAIL_HOLD = 1.2
 local STAR_GLYPH = "★"
 local STAR_SIZE = 44
 local STAR_STEP = 0.35
+-- The cash pops on the pay panel come this long after it opens, once it has been laid out and
+-- scaled to fit (where its total and tip are is only known then). The tip's and the XP's are this
+-- many pixels tall, under the cash's.
+local PAY_POP_DELAY = 0.25
+local SMALL_POP = 16
 -- The columns down each side are full size on screens at least `fullHeight` tall (in pixels), and
 -- shrink on shorter ones (phones held sideways), down to `minScale`, or further (to `tightScale`)
 -- if that's what it takes to fit everything in a column on the screen. A piece taken out of its
@@ -91,6 +100,8 @@ local levelLabel: TextLabel
 local levelLabelLeft = 0
 local goldStamp: TextLabel
 local xpBar: UI.Bar
+-- The XP the last profile had (nil before the first), so a rise can be shown as "+40 XP".
+local lastXp: number? = nil
 local curbPanel: GuiObject
 local curbValue: TextLabel
 local curbBar: UI.Bar
@@ -731,9 +742,9 @@ end
 -- A milestone's reached: sparkles and a DONE stamp land on the row it was on, or on the chip on a
 -- short screen, and that shows it done for RAIL_HOLD seconds, about as long as the stamp lasts,
 -- before the rail goes on to the next. The art has no stamp that says DONE yet, so it's the Job
--- Complete one, with DONE where there's no art. The caller redraws.
-local function celebrateMilestone(milestone: Milestone)
-	-- Sounds.playUi("GoalDone") goes here once Sounds has playUi and a GoalDone sound.
+-- Complete one, with DONE where there's no art. The caller redraws. Returns what the stamp landed
+-- on (the row's frame, or the chip), or nil where it landed on nothing.
+local function celebrateMilestone(milestone: Milestone): GuiObject?
 	if shortScreen() then
 		chipHeld = milestone
 		local stamp = chipStamp or UI.stamp(nextChip, { JobComplete = "DONE" }, RAIL_STAMP_HEIGHT)
@@ -746,7 +757,7 @@ local function celebrateMilestone(milestone: Milestone)
 				updateMilestones()
 			end
 		end)
-		return
+		return nextChip
 	end
 	local row = railRowOf(milestone.id)
 	if row and row.held then
@@ -760,7 +771,7 @@ local function celebrateMilestone(milestone: Milestone)
 		end
 	end
 	if not row then
-		return
+		return nil
 	end
 	row.held = milestone
 	row.shown = milestone
@@ -777,6 +788,7 @@ local function celebrateMilestone(milestone: Milestone)
 			updateMilestones()
 		end
 	end)
+	return row.frame
 end
 
 local function milestoneById(id: string): Milestone?
@@ -788,16 +800,18 @@ local function milestoneById(id: string): Milestone?
 	return nil
 end
 
--- The server's told us a milestone's reached (`info`: its id, its words and the cash it paid).
+-- The server's told us a milestone's reached (`info`: its id, its words and the cash it paid). It
+-- rings, and the cash it paid lifts off the row (or the chip) the stamp landed on, or off the money
+-- counter where there was no row to land on.
 local function onMilestoneReached(info: { id: string, text: string, cash: number })
 	pending[info.id] = true
 	local milestone = milestoneById(info.id)
-	if milestone then
-		celebrateMilestone(milestone)
-	end
+	local on = if milestone then celebrateMilestone(milestone) else nil
 	leftRail[info.id] = nil
-	-- FloatingText.show lifts "+$30" off the row once Task 7 adds it; until then a toast says it.
-	UI.notify(if info.cash > 0 then `{info.text} +{Format.money(info.cash)}` else info.text)
+	Sounds.playUi("GoalDone")
+	if info.cash > 0 then
+		FloatingText.show(on or money.Frame, `+{Format.money(info.cash)}`)
+	end
 	updateMilestones()
 end
 
@@ -1235,6 +1249,8 @@ local function showPay(job)
 		LayoutOrder = 2,
 		Parent = payPanel,
 	})
+	-- The tip's amount, where its pop lifts off: the tip is the last line, when there is one.
+	local tipAmount: TextLabel? = nil
 	for index, line in lines do
 		local row = UI.new("Frame", {
 			Size = UDim2.new(1, 0, 0, 26),
@@ -1247,7 +1263,7 @@ local function showPay(job)
 			{ Size = UDim2.new(1, -110, 1, 0), TextSize = 18, FontFace = UI.Fonts.Medium, Parent = row }
 		)
 		local sign = if line.amount < 0 then "-" else "+"
-		UI.label(`{sign}{Format.money(math.abs(line.amount))}`, {
+		local amount = UI.label(`{sign}{Format.money(math.abs(line.amount))}`, {
 			AnchorPoint = Vector2.new(1, 0),
 			Position = UDim2.fromScale(1, 0),
 			Size = UDim2.new(0, 110, 1, 0),
@@ -1257,6 +1273,9 @@ local function showPay(job)
 			TextXAlignment = Enum.TextXAlignment.Right,
 			Parent = row,
 		})
+		if index == #lines and (result.tip or 0) > 0 then
+			tipAmount = amount
+		end
 	end
 	local rule = UI.bar({ Size = UDim2.new(1, 0, 0, 6), LayoutOrder = 50, Parent = payPanel })
 	rule.set(1)
@@ -1267,7 +1286,7 @@ local function showPay(job)
 		Parent = payPanel,
 	})
 	UI.heading("TOTAL EARNED", { Size = UDim2.fromScale(0.5, 1), TextSize = 24, Parent = totalRow })
-	UI.display(
+	local totalDisplay = UI.display(
 		"Numbers",
 		Format.money(total),
 		{ TextSize = 54, Color = UI.Colors.Money, XAlignment = "Right", Fit = true },
@@ -1323,8 +1342,20 @@ local function showPay(job)
 				Scale = 1,
 			}):Play()
 			UI.sparkle(slot, 3, 26)
-			-- Sounds.playUi("Star") goes here once Sounds has playUi and a Star sound.
+			Sounds.playUi("Star")
 		end
+	end)
+	-- The cash lands: it rings and "+$142" lifts off the total, and "+$12 tip" off the tip line,
+	-- unless the panel's been closed by then or the job paid nothing.
+	task.delay(PAY_POP_DELAY, function()
+		if payPanel ~= thisPanel or total <= 0 then
+			return
+		end
+		Sounds.playUi("Cash")
+		if tipAmount then
+			FloatingText.show(tipAmount, `+{Format.money(result.tip)} tip`, nil, SMALL_POP)
+		end
+		FloatingText.show(totalDisplay.Frame, `+{Format.money(total)}`)
 	end)
 	-- What the customer wanted, the tools and the junk, in words.
 	local notes = { `The customer wanted {WANTED[result.preference] or WANTED.Balanced}.` }
@@ -1384,9 +1415,10 @@ end
 -- cash). Level Up! is announced here and only here, with the reward under it.
 local function onLevelReward(info: { level: number, text: string, cash: number })
 	UI.moment("LevelUp", `Level {info.level}!`, if info.text ~= "" then info.text else nil)
-	-- Sounds.playUi("LevelUp") goes here once Sounds has playUi and a LevelUp sound (Task 7).
-	-- FloatingText.show lifts "+$250" (info.cash) off the level line once Task 7 adds it; until then
-	-- the reward line under Level Up! says the cash.
+	Sounds.playUi("LevelUp")
+	if info.cash > 0 then
+		FloatingText.show(levelLabel, `+{Format.money(info.cash)}`)
+	end
 end
 
 local function updateProfile()
@@ -1400,6 +1432,11 @@ local function updateProfile()
 	local from = GameConfig.xpForLevel(profile.level)
 	local to = GameConfig.xpForLevel(profile.level + 1)
 	xpBar.set((profile.xp - from) / (to - from))
+	-- XP that came in lifts off the bar (not on the first profile, which is only what you had).
+	if lastXp and profile.xp > lastXp then
+		FloatingText.show(xpBar.frame, `+{profile.xp - lastXp} XP`, UI.Colors.Accent, SMALL_POP)
+	end
+	lastXp = profile.xp
 	moments(profile)
 	updateGoal()
 end

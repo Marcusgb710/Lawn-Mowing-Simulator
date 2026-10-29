@@ -4,7 +4,9 @@
 -- (src/shared/Config/Milestones.luau), the level rewards and what comes next
 -- (src/shared/Config/Levels.luau), and how a job's performance becomes stars and tips
 -- (src/shared/Config/Stars.luau), and how a save becomes a version 13 save and who is still a
--- first-timer (src/shared/Config/Season.luau). Exits with an error if anything's off.
+-- first-timer (src/shared/Config/Season.luau), and that the six sounds the Busy Season rings
+-- (cash, level up, goal done, star, find, streak) have ids (src/shared/Sounds.luau). Exits with an
+-- error if anything's off.
 
 local fs = require("@lune/fs")
 local luau = require("@lune/luau")
@@ -13,6 +15,7 @@ local roblox = require("@lune/roblox")
 
 local Levels = require("../src/shared/Config/Levels")
 local Milestones = require("../src/shared/Config/Milestones")
+local Sounds = require("../src/shared/Sounds")
 local Stars = require("../src/shared/Config/Stars")
 
 local failures = 0
@@ -148,6 +151,15 @@ check(Stars.of(Stars.round(1.0999999), false) == 3, "the rounded 1.0999999 earns
 check(Stars.of(Stars.round(0.8999999), false) == 2, "the rounded 0.8999999 earns two stars")
 check(Stars.of(Stars.round(1.0994), false) == 2, "1.0994 rounds down to 1.099: two stars")
 check(Stars.round(1) == 1 and Stars.round(0) == 0, "whole factors stay as they are")
+
+-- Sounds --------------------------------------------------------------------------------------
+
+-- Find and Streak are for the slices after this one; they are set now so this holds from the start.
+for _, name in { "Cash", "LevelUp", "GoalDone", "Star", "Find", "Streak" } do
+	local id = Sounds.Ids[name]
+	check(typeof(id) == "string" and string.sub(id, 1, 13) == "rbxassetid://", `{name} has an rbxassetid:// id`)
+	check(typeof(id) == "string" and tonumber(string.sub(id, 14)) ~= nil, `{name}'s id ends in a number`)
+end
 
 -- The save ------------------------------------------------------------------------------------
 
