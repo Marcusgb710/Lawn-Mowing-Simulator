@@ -12,7 +12,7 @@
 -- (GetSwaths). Your own mower doesn't wait for its swaths: it paints its strip every frame, and
 -- whatever the server never confirms grows back. Lawns far away have no images, to keep phones
 -- happy: they aren't drawn at all, or with the lawn art they're left as a bare turf plate and its
--- texture, so they still read as lawn.
+-- texture (the uncut one when the lawn was mostly uncut as it was let go), so they still read as lawn.
 -- Without EditableImages (the Mesh / Image API toggle is off in a published game, or the device's
 -- memory budget is spent) lawns are drawn the simple way instead, for the rest of the session (see
 -- GrassFallback).
@@ -26,6 +26,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local GameConfig = require(Shared.Config.GameConfig)
 local GrassArt = require(Shared.Config.GrassArt)
 local GrassImages = require(Shared.GrassImages)
+local LawnGrid = require(Shared.LawnGrid)
 local Net = require(Shared.Net)
 local Swath = require(Shared.Swath)
 local Tools = require(Shared.Config.Tools)
@@ -126,8 +127,8 @@ end
 -- Lays the mown lawn texture over a turf plate's top face, tiling every GrassArt.TileStuds studs, under
 -- its Decal if it has one (a lower ZIndex is drawn first, and the Decal's picture is see-through where
 -- the lawn is mown). The part keeps its plain colour, and the warning is said once, if the texture
--- can't be set.
-local function addTexture(part: Part, decal: Decal?)
+-- can't be set. It gives the Texture, or nil when that happened.
+local function addTexture(part: Part, decal: Decal?): Texture?
 	local texture = Instance.new("Texture")
 	local ok, problem = pcall(function()
 		texture.Face = Enum.NormalId.Top
@@ -141,12 +142,35 @@ local function addTexture(part: Part, decal: Decal?)
 	end)
 	if ok then
 		texture.Parent = part
-		return
+		return texture
 	end
 	texture:Destroy()
 	if not textureWarned then
 		textureWarned = true
 		warn(`[Grass] Couldn't lay the lawn texture on the turf: {problem}`)
+	end
+	return nil
+end
+
+-- Sets the texture a far lawn's bare turf keeps, from the ledger as it stands when the lawn is let go
+-- (a snapshot: a far lawn gets no swaths): the uncut texture when more than half of the cells that
+-- have grass are still tall, and the mown one it was drawn with otherwise.
+local function showFarLawn(lawn)
+	local texture, cells = lawn.turfTexture, lawn.cells
+	if not texture or not cells then
+		return
+	end
+	local grass, tall = 0, 0
+	for _, state in cells do
+		if state ~= LawnGrid.EMPTY then
+			grass += 1
+			if state == LawnGrid.TALL then
+				tall += 1
+			end
+		end
+	end
+	if tall * 2 > grass then
+		texture.ColorMapContent = Content.fromAssetId(GrassArt.Uncut)
 	end
 end
 
@@ -169,7 +193,7 @@ local function clearContainer(lawn)
 		lawn.container:Destroy()
 		lawn.container = nil
 	end
-	lawn.turfPart, lawn.turfDecal = nil, nil
+	lawn.turfPart, lawn.turfDecal, lawn.turfTexture = nil, nil, nil
 end
 
 -- Makes a lawn's images and parts, all tall: the turf plate, and the shells stacked by
@@ -199,7 +223,7 @@ local function buildSurface(lawn): boolean
 	turf.Color = GrassPaint.UNCUT
 	lawn.turfPart, lawn.turfDecal = turf, turfDecal
 	if GrassPaint.textured() then
-		addTexture(turf, turfDecal)
+		lawn.turfTexture = addTexture(turf, turfDecal)
 	end
 	for index, shell in plan do
 		local part, decal = surfacePart(lawn, "Shell" .. index, shell.height, lawn.shells[index])
@@ -303,6 +327,10 @@ local function hide(lawn)
 	end
 	stopHighlight(lawn)
 	unconfirmed[lawn] = nil
+	if keepsTurf then
+		-- Before destroyImages clears the ledger: the bare turf shows the lawn as it stands.
+		showFarLawn(lawn)
+	end
 	destroyImages(lawn)
 	if keepsTurf then
 		for _, child in lawn.container:GetChildren() do
@@ -373,10 +401,12 @@ local function track(folder: Instance, regrows: boolean)
 		-- "Surface" or "Fallback" while drawn, nil while not.
 		mode = nil,
 		container = nil,
-		-- The turf's image, then the turf plate's part and its Decal, which are all a far lawn keeps.
+		-- The turf's image, then the turf plate's part, its Decal and its lawn Texture (when it has
+		-- one), which are all a far lawn keeps.
 		turf = nil,
 		turfPart = nil,
 		turfDecal = nil,
+		turfTexture = nil,
 		shells = {},
 		-- The ledger as this client has it, while drawn as a surface (see GrassPaint).
 		cells = nil,

@@ -12,9 +12,9 @@
 -- Given the lawn art (GrassArt) the pictures hold other things. The turf image is painted over a
 -- tiling texture on its part: uncut grass is an opaque mottle sampled from the uncut texture, and
 -- mown grass a see-through tint of its shade, so the mown texture shows through. A shell's blades
--- are tufts from the tuft sheet. Without the art (an image is missing or won't load) it paints the
--- flat colours and dots it always did. load finds out which, once a session, and says so when it's
--- the flat one.
+-- are tufts from the tuft sheet, shaded darker the lower the shell. Without the art (an image is
+-- missing or won't load) it paints the flat colours and dots it always did. load finds out which, once
+-- a session, and says so when it's the flat one.
 
 local AssetService = game:GetService("AssetService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -35,6 +35,8 @@ local RAGGED_BLOCK = 2
 -- The uncut mottle is this many pixels a side, repeated across the turf: a multiple of every
 -- pixels-per-stud too.
 local MOTTLE = 64
+-- load waits this many seconds, in all, for the lawn art before painting flat colours instead.
+local LOAD_SECONDS = 10
 
 -- What load found: the pixels the textured brushes are made from, as RGBA bytes. The mottle is
 -- MOTTLE pixels a side and each tuft GrassArt.TuftSheet.size, in the order GrassImages.tuftFor counts.
@@ -77,6 +79,10 @@ local CELL_COLORS = {
 -- The blades' two greens: each dot falls between them by its tone, and higher shells lean lighter.
 local BLADE_DARK = Color3.fromRGB(58, 112, 40)
 local BLADE_LIGHT = Color3.fromRGB(98, 160, 60)
+-- Over the lawn art a shell's finished tile is shaded by its height: the lowest shell shows this much
+-- of its brightness and the highest all of it, so the lower shells read darker as BLADE_DARK to
+-- BLADE_LIGHT makes the flat dots.
+local SHELL_SHADE_LOW = 0.7
 -- Wheel tracks are this much darker than the stripe, this many pixels in from its long edges.
 local TRACK_DARKEN = 0.1
 local TRACK_INSET = 1
@@ -115,12 +121,15 @@ end
 
 -- Reads the lawn art's pixels, or gives nil, with nothing left behind, when any of it can't be had:
 -- an id that isn't uploaded yet (0), an image that won't load or is too small, or the API being off
--- or the memory budget spent. The mown texture is only checked here (it's the part's own Texture);
--- the mottle is the corner of the uncut texture, and each tuft a cell of the sheet.
-local function readArt(): Art?
+-- or the memory budget spent. Then it also says why, for the first of those that went wrong, unless
+-- it's the ids. The mown texture is only checked here (it's the part's own Texture); the mottle is the
+-- corner of the uncut texture, and each tuft a cell of the sheet. It loads the images one after
+-- another, and gives up between them once `abandoned` says load has stopped waiting.
+local function readArt(abandoned: () -> boolean): (Art?, string?)
 	local images: { EditableImage } = {}
 	local found: Art? = nil
-	pcall(function()
+	local reason: string? = nil
+	local ok, problem = pcall(function()
 		local ids = { GrassArt.Mown, GrassArt.Uncut, GrassArt.Tufts }
 		for _, id in ids do
 			if id <= 0 then
@@ -131,16 +140,22 @@ local function readArt(): Art?
 			-- This yields, and throws when the image won't load; it returns nil with no memory to spare.
 			local image = AssetService:CreateEditableImageAsync(Content.fromAssetId(id))
 			if not image then
+				reason = "no EditableImage: is the memory budget spent?"
 				return
 			end
 			table.insert(images, image)
+			if abandoned() then
+				return
+			end
 		end
 		local uncut, sheet = images[2], images[3]
 		local columns, rows, cell = GrassArt.TuftSheet.columns, GrassArt.TuftSheet.rows, GrassArt.TuftSheet.size
 		if uncut.Size.X < MOTTLE or uncut.Size.Y < MOTTLE then
+			reason = "the uncut texture is smaller than the mottle"
 			return
 		end
 		if sheet.Size.X < columns * cell or sheet.Size.Y < rows * cell then
+			reason = "the tuft sheet is smaller than its grid"
 			return
 		end
 
@@ -156,22 +171,52 @@ local function readArt(): Art?
 		end
 		found = { mottle = mottle, tufts = tufts }
 	end)
+	if not ok then
+		reason = tostring(problem)
+	end
 	for _, image in images do
 		image:Destroy()
 	end
-	return found
+	return found, reason
 end
 
 -- Finds out, once a session, whether the lawns can be painted over the lawn art, and says so (once)
--- when they can't. It waits on the asset loads, so GrassController holds its lawns until it's done.
+-- when they can't. It waits on the asset loads, so GrassController holds its lawns until it's done,
+-- but only for LOAD_SECONDS: then the lawns are flat, and the art, when it does come in, is dropped.
 function GrassPaint.load()
 	if started then
 		return
 	end
 	started = true
-	art = readArt()
-	if not art then
-		warn(UNAVAILABLE)
+	local finished, gaveUp = false, false
+	local found: Art?, why: string? = nil, nil
+	task.spawn(function()
+		local ok, result, reason = pcall(readArt, function()
+			return gaveUp
+		end)
+		if gaveUp then
+			-- Too late: readArt has destroyed what it loaded, and the lawns are already flat.
+			return
+		end
+		if ok then
+			found, why = result, reason
+		else
+			why = tostring(result)
+		end
+		finished = true
+	end)
+	local deadline = os.clock() + LOAD_SECONDS
+	while not finished and os.clock() < deadline do
+		task.wait()
+	end
+	if finished then
+		art = found
+		if not art then
+			warn(if why then `{UNAVAILABLE} ({why})` else UNAVAILABLE)
+		end
+	else
+		gaveUp = true
+		warn(`{UNAVAILABLE} (timed out)`)
 	end
 	loaded = true
 end
@@ -186,9 +231,25 @@ function GrassPaint.textured(): boolean
 	return brushes ~= nil and brushes.mottle ~= nil
 end
 
+-- Shades a finished tile by its shell's `lift`, 0 for the lowest shell and 1 for the highest, the
+-- same lift that leans the flat dots lighter (see drawTile): red, green and blue are scaled by a
+-- factor from SHELL_SHADE_LOW up to 1, and alpha is left alone.
+local function shadeTile(tile: EditableImage, lift: number)
+	local factor = SHELL_SHADE_LOW + (1 - SHELL_SHADE_LOW) * lift
+	local size = tile.Size
+	local pixels = tile:ReadPixelsBuffer(Vector2.zero, size)
+	for offset = 0, buffer.len(pixels) - 4, 4 do
+		for channel = offset, offset + 2 do
+			buffer.writeu8(pixels, channel, math.floor(buffer.readu8(pixels, channel) * factor + 0.5))
+		end
+	end
+	tile:WritePixelsBuffer(Vector2.zero, size, pixels)
+end
+
 -- A shell's grass tile: its blade dots (the same on every client), with each dot that runs over an
 -- edge drawn again past the opposite one, so tiles laid side by side meet without a seam. With
--- `tufts` a dot is the tuft GrassImages.tuftFor picks, a stud across, and not a coloured circle.
+-- `tufts` a dot is the tuft GrassImages.tuftFor picks, a stud across, and not a coloured circle, and
+-- the finished tile is shaded by its shell's height (shadeTile).
 local WRAPS = { -TILE, 0, TILE }
 local function drawTile(tile: EditableImage, plan: { GrassImages.Shell }, index: number, tufts: { EditableImage }?)
 	local lift = if #plan > 1 then (index - 1) / (#plan - 1) else 0
@@ -214,6 +275,9 @@ local function drawTile(tile: EditableImage, plan: { GrassImages.Shell }, index:
 				end
 			end
 		end
+	end
+	if tufts then
+		shadeTile(tile, lift)
 	end
 end
 

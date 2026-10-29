@@ -567,7 +567,10 @@ import, one batch at a time, with `lune run scripts/check-models` and a Play che
       the shells). But the textured path has only been seen as flat colours on this branch,
       because the ids are 0. Once they are in, look at a lawn in Studio with Allow Mesh / Image
       APIs on: stripes as tints on the texture, tufts from eye level, a far lawn from the road, and
-      the flat colours coming back if an id is set to 0 again.
+      the flat colours coming back if an id is set to 0 again. When the textures are first seen,
+      also look for cross lines at the trailing edge of stripes (Overwrite also writes the stamp's
+      soft rim), seams in the mottle every 16 studs, and sparkle on the tufts; the mitigations are a
+      `Pixelated` `SamplingMode` on the tint brushes, a box-downscaled mottle and pre-shrunk tufts.
 - [ ] **TurfKing T-shirt**: create the T-shirt from `art-source/Cast/TurfKing_Tee.png` on the Create
       page (Avatar items, T-shirt). It isn't free: Roblox's classic clothing docs list a Robux
       upload fee (80 at last check), so look at the price before paying. Open Cloud can't make one.

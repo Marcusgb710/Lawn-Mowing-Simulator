@@ -97,8 +97,7 @@ function GrassImages.bladeDots(widthPx: number, heightPx: number, density: numbe
 end
 
 -- Which of the sheet's tufts (1 to TUFTS) a dot is drawn as. It comes from the dot's own numbers, so
--- the same dot is the same tuft on every client, however often it's drawn. The tone has the most
--- range, so it does most of the choosing, and the spot and radius shift it.
+-- the same dot is the same tuft on every client, however often it's drawn.
 function GrassImages.tuftFor(dot: Dot): number
 	return 1 + math.floor(dot.x * 7 + dot.y * 13 + dot.r * 101 + dot.tone * 1009) % GrassImages.TUFTS
 end
