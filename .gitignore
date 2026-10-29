@@ -22,3 +22,8 @@ tools/hud-editor/hud-editor.html
 
 # Local git worktrees (superpowers)
 .worktrees/
+
+# Studio curation tools: runtime files (see scripts/studio/README.md)
+scripts/studio/log.txt
+scripts/studio/pairs.json
+scripts/studio/mode.txt
