@@ -4,10 +4,13 @@
 -- fire when docs/STORY.md says they should (src/shared/Config/Story.luau), TurfKing's rules for
 -- taking jobs and winning customers back (src/shared/Config/TurfKing.luau), and the Best Yard
 -- contest's scoring, Gloria's bar and when judging day comes round
--- (src/shared/Config/Contest.luau). Exits with an error if anything's off.
+-- (src/shared/Config/Contest.luau), and the nine people's catalog outfits
+-- (src/shared/Config/Cast.luau; scripts/cast-check.py asks the catalog about their ids). Exits with an
+-- error if anything's off.
 
 local process = require("@lune/process")
 
+local Cast = require("../src/shared/Config/Cast")
 local Contest = require("../src/shared/Config/Contest")
 local Story = require("../src/shared/Config/Story")
 local TurfKing = require("../src/shared/Config/TurfKing")
@@ -417,6 +420,159 @@ check(
 	not string.find(Story.juneLine(4, 1, { appeal = 80, contest = "Waiting" }), "{", 1, true),
 	"June still has something to say about the contest without the jobs left"
 )
+
+-- The cast's outfits --------------------------------------------------------------------------
+
+-- Every person in Cast.People, and which of Story.Cast they are (for their name).
+local castPeople = {
+	NPC_Gloria = "Gloria",
+	NPC_Chad = "Chad",
+	NPC_Edna = "Edna",
+	NPC_June_Sitting = "June",
+	NPC_June_Standing = "June",
+	NPC_Sam_Casual = "Sam",
+	NPC_Sam_TurfKing = "Sam",
+	NPC_Judge1 = "Judge1",
+	NPC_Judge2 = "Judge2",
+}
+-- Enum.AccessoryType names a layered garment can have (asset types 64 to 72).
+local layeredTypes = {
+	TShirt = true,
+	Shirt = true,
+	Pants = true,
+	Jacket = true,
+	Sweater = true,
+	Shorts = true,
+	LeftShoe = true,
+	RightShoe = true,
+	DressSkirt = true,
+}
+
+-- Lune has no Color3 or Vector3, so Cast.luau keeps colors as { r, g, b } and seats as { x, y, z }.
+local function isColor(color): boolean
+	if typeof(color) ~= "table" then
+		return false
+	end
+	for _, key in { "r", "g", "b" } do
+		local channel = color[key]
+		if typeof(channel) ~= "number" or channel < 0 or channel > 255 or channel % 1 ~= 0 then
+			return false
+		end
+	end
+	return true
+end
+local function isAssetId(id: any): boolean
+	return typeof(id) == "number" and id >= 0 and id % 1 == 0
+end
+local function sameColor(a, b): boolean
+	return (a == nil and b == nil) or (a ~= nil and b ~= nil and a.r == b.r and a.g == b.g and a.b == b.b)
+end
+
+for id, who in castPeople do
+	local person = Cast.People[id]
+	check(person ~= nil, `the cast has no {id}`)
+	if person then
+		local where = `cast {id}`
+		check(Cast.Poses[person.pose] ~= nil, `{where}: no pose {person.pose}`)
+		check(person.name == Story.Cast[who].name, `{where} is called {person.name}, not {Story.Cast[who].name}`)
+		check(isColor(person.body.skin), `{where}: skin is not an {"{ r, g, b }"} color`)
+		for _, scale in { "heightScale", "widthScale", "headScale" } do
+			local value = person.body[scale]
+			check(
+				typeof(value) == "number" and value >= 0.9 and value <= 1.1,
+				`{where}: {scale} {value} is not 0.9 to 1.1`
+			)
+		end
+		check(person.body.proportion >= 0 and person.body.proportion <= 1, `{where}: proportion is not 0 to 1`)
+		for _, slot in { "hair", "hat", "face", "shirt", "pants", "tshirt" } do
+			check(person[slot] == nil or isAssetId(person[slot]), `{where}: {slot} is not a catalog id`)
+		end
+		check(
+			person.hairColor == nil or isColor(person.hairColor),
+			`{where}: hairColor is not an {"{ r, g, b }"} color`
+		)
+		check(person.hairColor == nil or person.hair ~= nil, `{where}: hairColor without hair`)
+		local orders = {}
+		for index, garment in person.layered do
+			check(isAssetId(garment.id) and garment.id > 0, `{where}: layered {index} has no catalog id`)
+			check(layeredTypes[garment.type] == true, `{where}: layered {index} is a {garment.type}`)
+			check(not orders[garment.order], `{where}: two layered garments at order {garment.order}`)
+			orders[garment.order] = true
+		end
+		-- A sitting person has somewhere to sit; no one else does.
+		local seat = person.seat
+		check((person.pose == "Sit") == (seat ~= nil), `{where}: a seat goes with the Sit pose and nothing else`)
+		if seat then
+			check(
+				typeof(seat.x) == "number" and typeof(seat.y) == "number" and typeof(seat.z) == "number",
+				`{where}: seat is not an {"{ x, y, z }"} table`
+			)
+		end
+		-- The description is what CastService hands the HumanoidDescription: strings and numbers only.
+		local description = Cast.describe(person)
+		for property, value in description do
+			check(typeof(value) == "string" or typeof(value) == "number", `{where}: {property} is a {typeof(value)}`)
+		end
+		check(description.HeightScale == person.body.heightScale, `{where}: describe loses the height`)
+		check(description.Shirt == (person.shirt or 0), `{where}: describe loses the shirt`)
+		check(
+			description.HairAccessory == (if person.hair then tostring(person.hair) else ""),
+			`{where}: describe's hair`
+		)
+	end
+end
+for id in Cast.People do
+	check(castPeople[id] ~= nil, `{id} is in the cast but not a story person`)
+end
+check(typeof(Cast.People.NPC_June_Sitting.seat) == "table", "June's rocker seat is a table")
+check(Cast.describe(Cast.People.NPC_Chad).HatAccessory == "607702162", "Chad wears the baseball cap")
+check(Cast.describe(Cast.People.NPC_Gloria).HairAccessory == "376526888", "Gloria has the straight blonde hair")
+check(Cast.describe(Cast.People.NPC_Gloria).HatAccessory == "", "Gloria wears no hat")
+
+-- The free catalog has no grey hair, so the older people get theirs from `hairColor`.
+for _, id in { "NPC_Gloria", "NPC_June_Sitting", "NPC_June_Standing", "NPC_Edna", "NPC_Judge1" } do
+	local color = Cast.People[id].hairColor
+	check(
+		color ~= nil and color.r >= 150 and math.abs(color.r - color.g) <= 12 and math.abs(color.g - color.b) <= 12,
+		`{id}'s hair is not grey`
+	)
+end
+
+-- The same person is the same person in both poses and both outfits.
+for _, pair in { { "NPC_June_Sitting", "NPC_June_Standing" }, { "NPC_Sam_Casual", "NPC_Sam_TurfKing" } } do
+	local a, b = Cast.People[pair[1]], Cast.People[pair[2]]
+	check(
+		a.hair == b.hair and sameColor(a.hairColor, b.hairColor) and sameColor(a.body.skin, b.body.skin),
+		`{pair[1]} and {pair[2]} have different faces`
+	)
+	check(
+		a.body.heightScale == b.body.heightScale and a.body.widthScale == b.body.widthScale,
+		`{pair[1]} and {pair[2]} are different sizes`
+	)
+end
+-- Chad and Sam read as TurfKing: the same top (or the same crown graphic) and a cap or visor each.
+local chad, turfKingSam = Cast.People.NPC_Chad, Cast.People.NPC_Sam_TurfKing
+check(chad.shirt == turfKingSam.shirt and chad.tshirt == turfKingSam.tshirt, "Chad and Sam wear the same TurfKing top")
+check(chad.hat ~= nil and turfKingSam.hat ~= nil, "Chad and Sam each wear a cap or visor")
+check(Cast.People.NPC_Sam_Casual.shirt ~= turfKingSam.shirt, "Sam is out of the TurfKing top after quitting")
+
+-- Roblox's own animations, each looping.
+local expectedPoses = {
+	Idle = "rbxassetid://507766666",
+	Walk = "rbxassetid://507777826",
+	Sit = "rbxassetid://2506281703",
+	Wave = "rbxassetid://507770239",
+	Point = "rbxassetid://507770453",
+	Inspect = "rbxassetid://507770453",
+	Note = "rbxassetid://507766666",
+}
+for name, id in expectedPoses do
+	local pose = Cast.Poses[name]
+	check(pose ~= nil and pose.id == id and pose.looped == true, `pose {name} is {id}, looping`)
+end
+for name in Cast.Poses do
+	check(expectedPoses[name] ~= nil, `pose {name} isn't in the brief`)
+end
 
 -- Lines ---------------------------------------------------------------------------------------
 
