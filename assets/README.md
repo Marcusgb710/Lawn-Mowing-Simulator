@@ -41,3 +41,40 @@ client code clones are copied to `ReplicatedStorage.Assets` too, and that list i
 Save models from Studio with right-click → *Save to File* as `.rbxm` into the right folder, or
 just drop them into `ServerStorage.Assets` in Studio. Rojo won't delete models added that
 way.
+
+Store models: `manifest/models.json` records every model that comes from the Creator Store (or our
+own Blender work) instead of the ChatGPT packs: where it came from and how it is made to fit.
+`python scripts/generate-import.py` turns it into `scripts/ImportStoreModels.luau` (`--check`
+validates the manifest and writes nothing). Paste that into Studio's command bar: it inserts each
+asset, cleans it, fits it and stages it in `ServerStorage.ModelImport`, printing `ok <id> ...` or
+`FAIL <id> <reason>` per model. Then save `ModelImport` to a file and run
+`lune run scripts/export-models <file> --overwrite` to write the `.rbxm` files in this folder. A
+name the manifest gives that isn't in the model (a `keep`, a `parts` key, a `strip` item) is a
+`FAIL`, so nothing ships on a guess. The file is `{ "version": 1, "complete": false, "models": [...] }`
+(`complete` stays false until every id in the game has a model file or a `kept` entry), and an entry
+holds:
+- `id`, `folder` (`Tools`, `Trucks`, `Trailers`, `Buildings`, `Props`, `Decorations`, `Story`).
+- `source`: `{ "kind": "store", "assetId", "name", "creator" }`, `{ "kind": "blender", "file" }`
+  (a GLB brought in with File > Import 3D first, found in Workspace by its file name) or
+  `{ "kind": "kept" }`: the current model stays, nothing else is listed and it gets no code.
+- `keep`: the child Model to keep from a Store "set"; the rest is deleted.
+- `facing` (`+X`, `-X`, `+Z`, `-Z`; default `-Z`): the world axis the inserted model's front points
+  along, as you see it in Studio. The importer turns it to -Z. `up` is `+Y` (the only one so far).
+- `fit`: `{ "axis": "height" | "width" | "length", "studs": n }`. The model is scaled evenly until
+  that side of its box is `studs` long, then its bottom centre goes on the origin. Every position
+  below is in that frame: +Y up, front toward -Z.
+- Tools only: `handle` (`{ "position", "size" }`, an invisible `Handle` part) or `handlePart` (the
+  mesh to rename `Handle`), and `grips` (`{ "left", "right" }`, the `GripLeft`/`GripRight`
+  attachments on it). Everything else gets the invisible `Root` part at (0, 0.5, 0).
+- `parts`: `{ "<mesh name>": { "rename", "collide" } }`, by the names the mesh arrives with.
+- `markers`: `[{ "name", "position", "orientation" (degrees), "attributes" }]`, attachments on the
+  `Handle` or `Root`. `boxes`: `[{ "name", "position", "size" }]`, invisible parts that don't
+  collide (`BedArea`, `BaySpot`).
+- `synth`: `[{ "name", "position", "size", "material", "color": [r, g, b], "hinge" }]`, plain parts
+  for what a fused mesh lacks, such as the equipment trailer's ramp. `material` is an
+  `Enum.Material` name, and `hinge` (optional) is where the part pivots.
+- `collide`: the mesh parts' `CanCollide`. Without it, `Trucks`, `Trailers` and `Buildings` collide
+  and the rest don't.
+- `strip`: `["Class:Name"]`, instances to delete besides the scripts, sounds, effects, GUIs,
+  humanoids, constraints, motors and body movers every model loses (a baked-in logo decal, say).
+- `budget`: how many parts the model may have; the import says so when it goes over.
