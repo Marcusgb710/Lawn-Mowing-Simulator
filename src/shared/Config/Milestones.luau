@@ -78,14 +78,16 @@ end
 
 -- The `count` milestones nearest to done that are not in `reached` ({ [id] = true }), nearest
 -- first. Nearness is the share still to go, (at - have) / at, so $400 of $500 beats 2 jobs of 3.
--- A tie keeps the list's order. `List` is never reordered: this sorts its own copy.
+-- One already met but not yet marked reached has nothing to go (not less than nothing), so those
+-- tie like any other. A tie keeps the list's order. `List` is never reordered: this sorts its own
+-- copy.
 function Milestones.next(stats: Stats, reached: { [string]: boolean }, count: number): { Milestone }
 	local open = {}
 	for index, milestone in Milestones.List do
 		if not reached[milestone.id] then
 			table.insert(open, {
 				index = index,
-				togo = (milestone.at - have(stats, milestone.kind)) / milestone.at,
+				togo = math.max(0, (milestone.at - have(stats, milestone.kind)) / milestone.at),
 				milestone = milestone,
 			})
 		end

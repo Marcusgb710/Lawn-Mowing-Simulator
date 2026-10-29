@@ -753,6 +753,14 @@ do
 	end
 	check(sum == total, `with a tip the lines add up to {sum}, not the total {total}`)
 
+	-- No customer on the result: the tip's line names "the customer", with the same amount.
+	local nameless = table.clone(tipped)
+	nameless.customer = nil
+	local namelessLines, namelessTotal = PayBreakdown.lines(nameless, weights)
+	local namelessLast = namelessLines[#namelessLines]
+	check(namelessLast.label == "Tip from the customer", `a tip with no customer reads "{namelessLast.label}"`)
+	check(namelessLast.amount == 12 and namelessTotal == total, "a tip with no customer is still $12 in the total")
+
 	local noTips = { { "a tip of 0", 0 }, { "no tip", false } }
 	for _, case in noTips do
 		local quiet = table.clone(base)

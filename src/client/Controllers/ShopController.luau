@@ -331,7 +331,7 @@ local function cardButton(
 	UI.new("UIPadding", { PaddingLeft = UDim.new(0, 8), PaddingRight = UDim.new(0, 8), Parent = button })
 	if price then
 		local dollars = typeof(price) == "number"
-		UI.priceTag(if dollars then Format.money(price) else price, {
+		UI.priceTag(if typeof(price) == "number" then Format.money(price) else price, {
 			AnchorPoint = Vector2.new(0.5, 1),
 			Position = UDim2.new(1, -12 - BUTTON_WIDTH / 2, 0.5, -6),
 			Size = UDim2.fromOffset(0, 34),

@@ -3,7 +3,8 @@
 -- It checks the milestone rail's list and which milestones are nearest to done
 -- (src/shared/Config/Milestones.luau), the level rewards and what comes next
 -- (src/shared/Config/Levels.luau), and how a job's performance becomes stars and tips
--- (src/shared/Config/Stars.luau), and how a save becomes a version 13 save and who is still a
+-- (src/shared/Config/Stars.luau) and that the pay is built on that same factor
+-- (GameConfig.performance), and how a save becomes a version 13 save and who is still a
 -- first-timer (src/shared/Config/Season.luau), and that the six sounds the Busy Season rings
 -- (cash, level up, goal done, star, find, streak) have ids (src/shared/Sounds.luau). Exits with an
 -- error if anything's off.
@@ -13,6 +14,7 @@ local luau = require("@lune/luau")
 local process = require("@lune/process")
 local roblox = require("@lune/roblox")
 
+local Format = require("../src/shared/Format")
 local Levels = require("../src/shared/Config/Levels")
 local Milestones = require("../src/shared/Config/Milestones")
 local Sounds = require("../src/shared/Sounds")
@@ -60,9 +62,19 @@ local nearest = Milestones.next({ jobs = 2, earned = 400, stars = 0 }, { ["Jobs:
 check(nearest[1].id == "Earned:500" and nearest[2].id == "Jobs:3", "nearest first: $500 at 4/5, then 3 jobs at 2/3")
 nearest = Milestones.next({ jobs = 2, earned = 300, stars = 0 }, { ["Jobs:1"] = true }, 2)
 check(nearest[1].id == "Jobs:3" and nearest[2].id == "Earned:500", "nearest first: 3 jobs at 2/3, then $500 at 3/5")
+local tied = Milestones.next({ jobs = 0, earned = 0, stars = 0 }, {}, 3)
 check(
-	Milestones.next({ jobs = 0, earned = 0, stars = 0 }, {}, 3)[3].id == "Jobs:5",
+	tied[1].id == "Jobs:1" and tied[2].id == "Jobs:3" and tied[3].id == "Jobs:5",
 	"a tie keeps the list's order: all at 0, the first three are 1, 3 and 5 jobs"
+)
+-- Milestones already met but not yet marked reached (the rail can draw in between) have nothing to
+-- go and tie, however far they were passed, so they keep the list's order too: 5 stars pass the
+-- 1-star milestone by more of its size than $1,000 passes $500, and would lead if that counted, but
+-- the $500 is listed first.
+local overmet = Milestones.next({ jobs = 0, earned = 1000, stars = 5 }, {}, 3)
+check(
+	overmet[1].id == "Earned:500" and overmet[2].id == "Stars:1" and overmet[3].id == "Stars:5",
+	"milestones already met tie at nothing to go and keep the list's order"
 )
 check(#Milestones.next({ jobs = 0, earned = 0, stars = 0 }, {}, 0) == 0, "asking for none gives none")
 check(#Milestones.next({ jobs = 0, earned = 0, stars = 0 }, {}, 99) == 18, "asking for more gives what there is")
@@ -112,6 +124,23 @@ for level = 2, 40 do
 end
 check(table.concat(tints, " ") == "RacingRed:3 ForestGreen:6 SkyBlue:9 MidnightBlack:12", "four tints, in order")
 check(Levels.rewardFor(0) == nil and Levels.rewardFor(-3) == nil, "no reward at or below level 1")
+-- Milestones.luau and Levels.luau each carry their own copy of Format.money (they have no
+-- requires, so Lune can load them). Here is where the copies can't drift: every Earned milestone
+-- says its number the way Format.money does, and every reward that pays cash names it that way.
+for _, milestone in Milestones.List do
+	if milestone.kind == "Earned" then
+		check(milestone.text == "Earn " .. Format.money(milestone.at), `{milestone.id}'s text isn't Format.money's`)
+	end
+end
+for level = 2, 40 do
+	local reward = Levels.rewardFor(level)
+	if reward and reward.cash > 0 then
+		check(
+			string.find(reward.text, Format.money(reward.cash), 1, true) ~= nil,
+			`level {level}'s text doesn't hold {Format.money(reward.cash)} the way Format.money writes it`
+		)
+	end
+end
 check(Levels.rewardFor(2).text == "$100" and Levels.rewardFor(4).text == "$250", "cash text")
 check(Levels.rewardFor(3).text == "Racing Red tint" and Levels.rewardFor(3).cash == 0, "a tint on its own")
 check(Levels.rewardFor(6).text == "Forest Green tint and $400", "a tint with cash")
@@ -180,6 +209,31 @@ local Season = luau.load(fs.readFile("src/shared/Config/Season.luau"), {
 		end,
 	},
 })()
+
+-- Pay and stars come from one blend of finish and speed: GameConfig.performance, which jobPay
+-- multiplies in and JobService's completeJob rounds (Stars.round) and rates. So the pay is the
+-- base pay x tool fit x that blend x the bonuses, less the penalty.
+local sample = {
+	basePay = 100,
+	toolFit = 0.9,
+	quality = 0.82,
+	elapsed = 120,
+	parTime = 150,
+	weights = { quality = 0.5, time = 0.5 },
+	bonus = 1.1,
+	penalty = 7,
+}
+local blend = GameConfig.performance(sample.quality, sample.elapsed, sample.parTime, sample.weights)
+check(
+	blend
+		== sample.weights.quality * GameConfig.qualityMultiplier(sample.quality)
+			+ sample.weights.time * GameConfig.speedMultiplier(sample.elapsed, sample.parTime),
+	"performance is the weights' blend of the finish and speed multipliers"
+)
+check(
+	GameConfig.jobPay(sample) == math.floor(sample.basePay * sample.toolFit * blend * sample.bonus - sample.penalty),
+	"jobPay is floor(basePay * toolFit * performance * bonus - penalty)"
+)
 
 local fresh = { money = 0, xp = 0, jobsCompleted = 0 }
 Season.upgradeSave(fresh)

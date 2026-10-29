@@ -185,7 +185,10 @@ local MIGRATIONS = {
 	-- 12 -> 13, the Busy Season's ladder (see Season.upgradeSave): `earned` starts out as the money
 	-- they have, `stars` and `milestones` start empty, `levelRewards` has every level they've
 	-- reached already claimed (so nobody is paid back pay for the past) and `firstJob` is true for
-	-- anyone who has finished a job.
+	-- anyone who has finished a job. GameConfig.levelFromXp is the one live read, to find the level
+	-- they've reached. That's fine: it's a pure formula of their xp, not a table that gets retuned,
+	-- so a save migrated later reads the same as one migrated now. If the formula is ever changed,
+	-- a step of its own has to write the old one down first.
 	[13] = function(data)
 		Season.upgradeSave(data)
 	end,
@@ -299,6 +302,10 @@ local function reconcile(data)
 		if data.premium[key] == nil then
 			data.premium[key] = value
 		end
+	end
+	-- The paints given as level rewards must be a table: GrantPaint writes into it.
+	if typeof(data.premium.earnedPaints) ~= "table" then
+		data.premium.earnedPaints = {}
 	end
 	for _, category in Items.Categories do
 		data.owned[category] = data.owned[category] or {}

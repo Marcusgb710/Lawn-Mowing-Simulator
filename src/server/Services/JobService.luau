@@ -686,12 +686,13 @@ local function completeJob(job)
 	end
 	local share = math.floor(total / #members)
 
-	-- Stars: how the job did against what the customer wanted, the same blend GameConfig.jobPay
-	-- pays by. A flower or gnome wrecked (damageCount), or junk left or chewed up, keeps it from
-	-- three. The customer tips each of the crew a share of their share by the stars.
+	-- Stars: how the job did against what the customer wanted, by GameConfig.performance, the same
+	-- blend GameConfig.jobPay pays by. A flower or gnome wrecked (damageCount), or junk left or
+	-- chewed up, keeps it from three. The customer tips each of the crew a share of their share by
+	-- the stars.
 	local qualityMultiplier = GameConfig.qualityMultiplier(quality)
 	local speedMultiplier = GameConfig.speedMultiplier(elapsed, job.offer.parTime)
-	local performance = Stars.round(weights.quality * qualityMultiplier + weights.time * speedMultiplier)
+	local performance = Stars.round(GameConfig.performance(quality, elapsed, job.offer.parTime, weights))
 	local penalized = (debris.left + debris.hit) > 0 or job.damageCount > 0
 	local stars = Stars.of(performance, penalized)
 	local tip = math.floor(share * Stars.tipRate(stars))
