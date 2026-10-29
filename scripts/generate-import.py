@@ -32,8 +32,8 @@ SOLID_PROPS = ("House",)
 FACINGS = ("+X", "-X", "+Z", "-Z")
 AXES = ("height", "width", "length")
 ENTRY_FIELDS = (
-    "id", "folder", "source", "keep", "facing", "up", "fit", "handle", "handlePart", "grips",
-    "parts", "markers", "boxes", "synth", "collide", "strip", "budget",
+    "id", "folder", "source", "keep", "facing", "turn", "up", "fit", "handle", "handlePart", "grips",
+    "parts", "body", "markers", "boxes", "synth", "collide", "strip", "budget",
 )
 
 
@@ -111,11 +111,16 @@ SOURCE_FIELDS = {
 SINGLE_FIELDS = {
     "keep": NAME,
     "facing": (lambda v: v in FACINGS, f"one of {', '.join(FACINGS)}"),
+    "turn": (is_number, "a number of degrees"),
     "up": (lambda v: v == "+Y", '"+Y", the only up there is so far'),
     "handlePart": NAME,
+    "body": (lambda v: v == "largest", '"largest", the only body there is so far'),
     "collide": BOOL,
     "budget": (is_whole, "a whole number above zero"),
-    "strip": (lambda v: isinstance(v, list) and all(is_strip(s) for s in v), 'a list of "Class:Name" strings'),
+    "strip": (
+        lambda v: isinstance(v, list) and all(is_strip(s) for s in v),
+        'a list of "Class:Name" strings ("*:Name" for any class)',
+    ),
 }
 # Lists of tables: field -> (required, optional).
 LIST_FIELDS = {
@@ -189,6 +194,8 @@ def entry_problems(entry: dict) -> list:
             problems.append("use handle or handlePart, not both")
     elif holders or "grips" in entry:
         problems.append("handle, handlePart and grips only apply to Tools")
+    if "body" in entry and entry.get("folder") != "Trucks":
+        problems.append("body only applies to Trucks")
     if "handle" in entry:
         problems += record_problems("handle", entry["handle"], {"position": VEC, "size": SIZE}, {})
     if "grips" in entry:
@@ -295,8 +302,11 @@ def render_entry(entry: dict) -> str:
     ]
     if "keep" in entry:
         fields.append(f"keep = {lua_value(entry['keep'])}")
+    fields.append(f"facing = {lua_value(entry.get('facing', '-Z'))}")
+    # Only when the entry has one: the template reads a missing turn as 0.
+    if "turn" in entry:
+        fields.append(f"turn = {lua_value(entry['turn'])}")
     fields += [
-        f"facing = {lua_value(entry.get('facing', '-Z'))}",
         f"up = {lua_value(entry.get('up', '+Y'))}",
         f"fit = {{ axis = {lua_value(fit['axis'])}, studs = {lua_value(fit['studs'])} }}",
     ]
@@ -312,12 +322,19 @@ def render_entry(entry: dict) -> str:
     fields.append(f"collide = {lua_value(entry.get('collide', solid_by_default(entry)))}")
     if entry.get("parts"):
         fields.append(block("parts", [f"[{lua_value(name)}] = {part_lua(info)}" for name, info in entry["parts"].items()]))
+    if "body" in entry:
+        fields.append(f"body = {lua_value(entry['body'])}")
     for field, render in (("markers", marker_lua), ("boxes", box_lua), ("synth", synth_lua)):
         if entry.get(field):
             fields.append(block(field, [render(item) for item in entry[field]]))
     if entry.get("strip"):
+        # "*:Name" has no class to test: an empty one tells the template to match by name alone.
         pairs = (item.split(":") for item in entry["strip"])
-        fields.append("strip = { " + ", ".join(f"{{ class = {lua_value(c)}, name = {lua_value(n)} }}" for c, n in pairs) + " }")
+        fields.append(
+            "strip = { "
+            + ", ".join(f"{{ class = {lua_value('' if c == '*' else c)}, name = {lua_value(n)} }}" for c, n in pairs)
+            + " }"
+        )
     if "budget" in entry:
         fields.append(f"budget = {lua_value(entry['budget'])}")
     return "\t{\n" + "".join(f"\t\t{field},\n" for field in fields) + "\t},"

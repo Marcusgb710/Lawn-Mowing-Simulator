@@ -60,6 +60,8 @@ holds:
 - `keep`: the child Model to keep from a Store "set"; the rest is deleted.
 - `facing` (`+X`, `-X`, `+Z`, `-Z`; default `-Z`): the world axis the inserted model's front points
   along, as you see it in Studio. The importer turns it to -Z. `up` is `+Y` (the only one so far).
+- `turn` (degrees, negative allowed; default 0): added to the turn `facing` makes about Y, positive
+  counterclockwise seen from above, for a model drawn on a diagonal (`"facing": "-X", "turn": -45`).
 - `fit`: `{ "axis": "height" | "width" | "length", "studs": n }`. The model is scaled evenly until
   that side of its box is `studs` long, then its bottom centre goes on the origin. Every position
   below is in that frame: +Y up, front toward -Z.
@@ -69,6 +71,8 @@ holds:
   Model the mesh already calls `Handle` (or `Root`) is renamed `Handle_mesh` (`Root_mesh`) first,
   and the import says how many it renamed.
 - `parts`: `{ "<mesh name>": { "rename", "collide" } }`, by the names the mesh arrives with.
+- `body` (`"largest"`, Trucks only): after the `parts` renames, names the largest visible part
+  `<id>__Body`, for a mesh whose parts are all called `Part`.
 - `markers`: `[{ "name", "position", "orientation" (degrees), "attributes" }]`, attachments on the
   `Handle` or `Root`. `boxes`: `[{ "name", "position", "size" }]`, invisible parts that don't
   collide (`BedArea`, `BaySpot`).
@@ -78,6 +82,7 @@ holds:
 - `collide`: the mesh parts' `CanCollide`. Without it, `Trucks`, `Trailers`, `Buildings` and
   `Props/House` collide and the rest don't. Either way the mesh parts get `CanQuery` on and
   `CanTouch` off, so players can still aim at a part that doesn't collide.
-- `strip`: `["Class:Name"]`, instances to delete besides the scripts, sounds, effects, GUIs,
-  humanoids, constraints, motors and body movers every model loses (a baked-in logo decal, say).
+- `strip`: `["Class:Name"]`, instances to delete besides the scripts, sounds, effects, cameras, GUIs,
+  humanoids, constraints, motors and body movers every model loses (a baked-in logo decal, say);
+  `"*:Name"` deletes every instance with that name whatever its class (a furnished house's `Sofa`).
 - `budget`: how many parts the model may have; the import says so when it goes over.

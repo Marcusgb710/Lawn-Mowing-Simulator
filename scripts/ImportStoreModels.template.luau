@@ -8,13 +8,14 @@
 --                   Blender model comes in through File > Import 3D first and is found in Workspace
 --                   by its file's name.
 --      * keeps one  the one child Model the entry names out of a "set"; the rest are deleted
---      * cleans     deletes scripts, sounds, effects, GUIs, humanoids, constraints, motors and body movers, turns
---                   seats into parts, then deletes what the entry's strip list names
---      * fits       anchors everything, turns the front to -Z, scales to the entry's fit, and puts
---                   the bottom centre on the origin
---      * adds       the Handle and grips (tools) or the Root, the renames and collision, markers,
---                   boxes and synthesised parts. Anything the mesh already calls Handle (or Root)
---                   is renamed Handle_mesh (Root_mesh) first, so the added one is the only one.
+--      * cleans     deletes scripts, sounds, effects, cameras, GUIs, humanoids, constraints, motors and body
+--                   movers, turns seats into parts, then deletes what the entry's strip list names
+--      * fits       anchors everything, turns the front to -Z (and on by the entry's turn), scales to
+--                   the entry's fit, and puts the bottom centre on the origin
+--      * adds       the Handle and grips (tools) or the Root, the renames and collision, a truck's body
+--                   (its largest part, named <id>__Body), markers, boxes and synthesised parts. Anything
+--                   the mesh already calls Handle (or Root) is renamed Handle_mesh (Root_mesh) first, so
+--                   the added one is the only one.
 --      * stages     ServerStorage.ModelImport.<Folder>.<id>, replacing an older copy
 --    Each entry prints "ok <id> parts=<n> size=<x>x<y>x<z>" or "FAIL <id> <reason>"; a name the
 --    manifest gives that isn't in the model is a FAIL, so a stale entry never ships quietly.
@@ -47,6 +48,8 @@ local UNWANTED = {
 	"Fire",
 	"Smoke",
 	"Sparkles",
+	"PostEffect",
+	"Camera",
 	"LayerCollector",
 	"Humanoid",
 	"Constraint",
@@ -197,15 +200,17 @@ end
 local function clean(entry, model: Model)
 	-- The entry's own list first, so a name it gives is still there to find.
 	for _, item in entry.strip or {} do
+		-- An empty class is the manifest's "*:Name": anything with that name, whatever it is.
+		local byName = item.class == ""
 		local found = 0
 		for _, d in model:GetDescendants() do
-			if d:IsA(item.class) and d.Name == item.name then
+			if (byName or d:IsA(item.class)) and d.Name == item.name then
 				d:Destroy()
 				found += 1
 			end
 		end
 		if found == 0 then
-			fail(`strip: no {item.class} named {item.name}`)
+			fail(`strip: no {if byName then "instance" else item.class} named {item.name}`)
 		end
 	end
 	for _, d in model:GetDescendants() do
@@ -245,8 +250,10 @@ local function normalise(entry, model: Model)
 		part.Anchored = true
 	end
 
-	-- About the world's Y axis, so it doesn't matter where the model's own pivot is.
-	model:PivotTo(CFrame.Angles(0, math.rad(FACING_TURN[entry.facing]), 0) * model:GetPivot())
+	-- About the world's Y axis, so it doesn't matter where the model's own pivot is. The entry's turn
+	-- (for a model drawn on a diagonal, say) goes on top of the one its facing needs.
+	local degrees = FACING_TURN[entry.facing] + (entry.turn or 0)
+	model:PivotTo(CFrame.Angles(0, math.rad(degrees), 0) * model:GetPivot())
 
 	local side, studs = FIT_SIDE[entry.fit.axis], entry.fit.studs
 	local low, high = bounds(list)
@@ -316,6 +323,28 @@ local function contract(entry, model: Model): number
 		if step.info.rename then
 			step.part.Name = step.info.rename
 		end
+	end
+	-- A truck whose parts are all called "Part" has nothing to find its body by, so the entry can ask
+	-- for the largest visible one (by box volume) to be named. After the renames above, so a name the
+	-- entry gave is not undone, and a clash with one of them is a FAIL, not a quiet second Body.
+	if entry.body == "largest" then
+		local bodyName = entry.id .. "__Body"
+		local body, biggest = nil, 0
+		for _, part in list do
+			if part.Name == bodyName then
+				fail(`body: a part is already named {bodyName} (parts renamed one to it?), so "largest" can't take it`)
+			end
+			if part.Transparency < 1 then
+				local volume = part.Size.X * part.Size.Y * part.Size.Z
+				if volume > biggest then
+					body, biggest = part, volume
+				end
+			end
+		end
+		if not body then
+			fail("body: no visible part to name")
+		end
+		body.Name = bodyName
 	end
 	-- A Store mesh often has its own Handle (a handlebar group, say), and the game finds ours with
 	-- FindFirstChild, so two would be a coin toss. Whatever is left with the name moves aside.
