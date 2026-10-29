@@ -464,6 +464,37 @@ Later (known, and left for after this PR):
 - [ ] A respawn within a second of a lawn's first fetch hits the `GetSwaths` limit and shows the lawn tall for 1.5 s until the retry.
 - [ ] Prediction stamps over cut and ragged grass whenever `Mows` is on; watch its cost on phones over a ragged patch.
 
+## Busy Season, slice 1: to check
+
+Slice 1 is the first minute and the ladder (design:
+`docs/superpowers/specs/2026-10-29-busy-season-design.md`, plan:
+`docs/superpowers/plans/2026-10-29-busy-season-slice-1.md`). None of it has been seen or heard in
+Studio yet. The test panel (K) has two shortcuts for this: **Start as a first-timer** puts your save
+back to a brand-new one and drops you on the first lawn with the shears (it calls off any job
+first, and that session stops saving, so a playtest can't wipe a real save), and the **Level** row
+sets your level to 2, 5, 10 or 20 and pays any level reward not yet claimed.
+
+The spec's playtest checklist for slice 1:
+
+- [ ] tap to first snip under ten seconds on PC and phone
+- [ ] a level-up moment with the panel
+- [ ] a 3-star tip
+- [ ] the rail on a phone in landscape
+- [ ] every sound
+
+What the reviews asked to see in Studio:
+
+- [ ] The star pop on the pay panel: each star should grow out of its middle (the anchor was moved
+      there, never seen).
+- [ ] The goal chip against the Snip and look-at buttons on an 844 by 390 phone, with the missed
+      button and the shears up together: it should clear them, and its 10 px text should read.
+- [ ] The Cash and Star sounds together on a paid job (Cash first, then each Star at a lower
+      volume): clear, or a smudge. Star and LevelUp are the likeliest to be swapped.
+- [ ] The Levels panel at phone scale: row text, the Close button and the star by the level line,
+      with and without the gold sign.
+- [ ] The total's "+$" pop on the pay panel: it starts in the middle of the big total, so check it
+      doesn't read as clutter.
+
 ## Model overhaul: what is left
 
 Batches 1 to 4 (the mowers and trimmers; the blowers, barrows and the rest of batch 2; the trucks and

@@ -26,9 +26,8 @@ local function step(job): string
 			return "Edna's front lawn is next, with Grandma's grass shears from the truck. Look at the "
 				.. "computer in your shop, tap the button, then take the Front Lawn job in Jobs."
 		end
-		return "Edna's front lawn is next. You're starting from the bottom: Grandma's grass shears, "
-			.. "already in the truck. Look at the computer in your shop and press E (or tap the button), "
-			.. "then take the Front Lawn job in Jobs."
+		return "Edna's front lawn is next, with Grandma's grass shears from the truck. Look at the "
+			.. "computer in your shop and press E (or tap the button), then take the Front Lawn job in Jobs."
 	elseif job.state == "Working" and job.kind == "First" then
 		-- The first-timer's opening lawn, which they joined standing on: just the snip. Any other
 		-- job at zero jobs (they left it, or it failed to start) gets the full shears lesson below.

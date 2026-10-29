@@ -690,6 +690,29 @@ function DataService:RecordJob(player: Player, xp: number)
 	end
 end
 
+-- For testing in Studio (StudioTestService): puts this player's save back to a brand-new one and
+-- sends their screen the new numbers. It's done in place, so every service that holds their data
+-- table sees the new save, and nothing built from the old one (their business, home lawn and
+-- decor in the world) is rebuilt. Studio only, and the player stops saving for the rest of the
+-- session: Studio can write to the live DataStore, and a test must not wipe a real save. Returns
+-- whether it reset.
+function DataService:ResetForStudio(player: Player): boolean
+	local profile = profiles[player]
+	if not (RunService:IsStudio() and profile) then
+		return false
+	end
+	local data = profile.data
+	for key in data do
+		data[key] = nil
+	end
+	for key, value in defaultData() do
+		data[key] = value
+	end
+	profile.canSave = false
+	self:Changed(player)
+	return true
+end
+
 -- Lifecycle ----------------------------------------------------------------------------------
 
 function DataService:Init()

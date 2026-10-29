@@ -116,7 +116,7 @@ Story.Scenes = {
 			},
 			{
 				speaker = "June",
-				text = "Edna from bridge club needs her front lawn done. Computer's in the shed. Go.",
+				text = "Edna's front lawn is next. Computer's in the shed. Go.",
 			},
 		},
 	},
