@@ -64,7 +64,7 @@ New: a player whose save has `jobsCompleted == 0` and no accepted job is a **fir
 - It sets the job state to Working and arrives the crew at the job site the way `DriveToJob` would at the end of the drive, with the truck parked there and Grandma's shears in the player's hands (owned and equipped already). No pull-out or drive cutscene.
 - The title card waits for `ArrivedAtJob` instead of `ArrivedAtBusiness` for a first-timer, so the first thing after the tap is the lawn, the shears, and the coach banner: "Hold E to snip. Clear the lawn."
 - The Intro scene does not play on join. It plays as **June's welcome** when the truck brings the first-timer home after the first payday: same seven lines, same shears card (which now reads "Grandma's Grass Shears, already yours"), then the existing FirstJob texts. The second job is where the desk, the Jobs app and the truck door are taught; the coach banner stays until the second job is paid instead of the first.
-- A first-timer who leaves mid-job and comes back is no longer a first-timer (the job is accepted); the normal flow resumes.
+- The save's `firstJob` flag is set the moment the first-timer job starts, so a first-timer who leaves mid-job and comes back is no longer a first-timer: they arrive at their business and the normal flow (the board's starter job) resumes.
 
 Why not shorten the intro: the intro is good writing and sets the rival up. It just cannot be the first minute.
 
@@ -96,7 +96,7 @@ New: every level has a named reward in `src/shared/Config/Levels.luau`, shown on
 | Level | Reward |
 |---|---|
 | 2 | $100 |
-| 3 | Serious jobs (today) and a truck paint tint of your choice (the four 49-Robux tints are also earned at 3, 6, 9 and 12; they stay on sale as a shortcut, and the shop shows "Earned" instead of the price once owned; the wraps stay premium only) |
+| 3 | Serious jobs (today) and a truck paint tint (the four 49-Robux tints are also earned, in a fixed order: Racing Red at 3, Forest Green at 6, Sky Blue at 9, Midnight Black at 12; they stay on sale as a shortcut, and the shop shows "Earned" instead of the price once owned; the wraps stay premium only) |
 | 4 | $250 |
 | 5 | $500 (slice 3 adds Buster here) |
 | 6 | second tint and $400 |
