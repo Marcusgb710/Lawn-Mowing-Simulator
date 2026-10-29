@@ -80,10 +80,10 @@ paste `scripts/PrepareChatGPTModels.luau` into the command bar, save
       ChatGPT with notes.
 - [ ] `RidingMower`-style seat offsets for the new ride-on and stand-on machines (Phase F).
 
-Not uploaded yet: `Textures/Lawn_Uncut_Color.png`, `Textures/Lawn_Mown_Color.png` and
-`Textures/Soil_Color.png` from the kit. They're 512×512 tiling lawn and soil color maps, and the
-glTF doesn't reference them, so the importer skipped them. Upload them with **Asset Manager → Bulk
-Import** (as Big Dink Studios), then use them as MaterialVariants or Textures on the lawn's turf.
+The kit's `Textures/Lawn_Uncut_Color.png`, `Textures/Lawn_Mown_Color.png` and
+`Textures/Soil_Color.png` are 512×512 tiling lawn and soil color maps. The glTF doesn't reference
+them, so the importer skipped them; `scripts/upload-grass-art.py` uploads them with the tuft sheet
+and `src/shared/Config/GrassArt.luau` holds their ids (see **Before release**).
 
 ## Code work to use the rest of the kit
 
@@ -472,6 +472,14 @@ Later (known, and left for after this PR):
       down, picking it up, hanging it and dropping it in the bucket (`Thunk`, `Pickup`, `Hang`,
       `Bucket`).
 - [ ] **Animations**: pushing and holding poses for mowers and trimmers.
+- [ ] **Grass art ids**: `python scripts/upload-grass-art.py` answered HTTP 403, so the Open Cloud
+      key has no Assets scope and the four ids in `src/shared/Config/GrassArt.luau` are still 0.
+      Either give the key Assets read and write for Big Dink Studios (Creator Hub → Open Cloud →
+      API Keys) and run the script again, or upload by hand: in Studio, **Asset Manager → Images →
+      Bulk Import** `Lawn_Mown_Color.png`, `Lawn_Uncut_Color.png` and `Soil_Color.png` (from
+      `art-source/GUI/Source/RenderOnly/Textures/`) and `art-source/Grass/Grass_Tufts.png`, copy
+      each image's id and write it as a plain number into `Mown`, `Uncut`, `Soil` and `Tufts`.
+      Then use them on the lawn's turf (MaterialVariants or Textures; `TileStuds` is 8).
 - [ ] **Store art**: put `art-source/GUI/Store/` on the Roblox page (game icon, 5 thumbnails, the
       pass and product icons) on the Creator Dashboard. The in-game GUI art is under **GUI
       overhaul** above.
