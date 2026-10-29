@@ -65,14 +65,16 @@ letterbox, with dialogue at the bottom. It's the "Intro: Grandma's porch" board 
 2. **Gloria** (a speech bubble over her house): *"Morning, June! Lovely… dandelions."*
 3. **June**, from the porch: *"Thirty years. Thirty years I've won Best Yard on this street… and
    Gloria Pemberton goes and hires somebody."*
-4. **June** hands you the shears, and a "New tool: Grandma's Grass Shears" card pops up: *"My
-   mower died in '09. These never did. They won me the trophy in '94, so don't you lose 'em."*
+4. **June** talks about the shears you've been using, and an "Already yours: Grandma's Grass
+   Shears" card pops up: *"My mower died in '09. These never did. They won me the trophy in '94,
+   so don't you lose 'em."*
 5. **June:** *"Contest's end of summer. Make our yard the best on the street, and make some money
    doing it."*
 6. **June:** *"Edna from bridge club needs her front lawn done. Computer's in the shed. Go."*
 
-Control is yours. The first-job coach takes over from here: the shed computer, the "Front Lawn"
-job, snipping, and picking up junk. That's the 5-minute shears job from PR #36.
+Control is yours. The first lesson, "Click and hold to snip. Clear the lawn.", came on the first
+lawn, so the first-job coach picks up from here with the second job: the shed computer, the "Front
+Lawn" job, the truck, and picking up junk. It stays up until that second job is paid.
 
 ## The four acts
 
@@ -217,8 +219,8 @@ This is in rough order, as separate PRs.
        scalped her front lawn this morning. I took pictures."*, after the first job.
    - The small bonus from a customer won over from TurfKing came with item 4.
 2. **`DialogueController`.** The dialogue box from the mock-up. It handles skip, works on phones
-   (44 px+ targets) and hides the HUD while it's up. It plays after the title card on first
-   join. *Built.*
+   (44 px+ targets) and hides the HUD while it's up. It plays as June's welcome after the first
+   payday. *Built.*
    - **The box:** letterbox bars, the round portrait poking above the box, the green name tag,
      line dots, "Click to continue" ("Tap" on a phone, Space or Enter on a keyboard, A on a
      gamepad), and Skip (44 px tall) in the top bar, with the scene's caption in the middle. A
@@ -236,8 +238,9 @@ This is in rough order, as separate PRs.
      outline and the speaker's name in their color. Gloria's lines in scenes and June's porch
      talk use them; customer reactions can later.
    - **The intro hands off to the first-job coach:** `TutorialController` waits while the intro
-     is queued or playing, then shows its first step, now "Edna's front lawn is your first
-     job...".
+     is queued or playing (it comes after the first payday), then shows its next step, now
+     "Edna's front lawn is next...". Its first step, "Click and hold to snip. Clear the lawn.",
+     already showed on the first lawn.
    - **Grandma June** (`src/server/GrandmaJune.luau`) sits on her porch rocker beside the shop on
      every plot, turned toward the driveway. E (or the phone button) on her says a line from
      `Story.JuneTalk`, taking turns between your act's goal and Gloria.

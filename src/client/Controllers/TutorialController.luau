@@ -17,10 +17,9 @@ local TutorialController = {}
 
 local banner: TextLabel
 
--- What to tell a player who's still learning, given where they are and how many jobs they've
--- finished. A phone's is shorter, so it fits at the top of a small screen between the HUD's
--- columns, over the dot.
-local function step(job, jobsCompleted: number): string
+-- What to tell a player who's still learning, given where they are. A phone's is shorter, so it
+-- fits at the top of a small screen between the HUD's columns, over the dot.
+local function step(job): string
 	local touch = UI.isTouch() and not UserInputService.KeyboardEnabled
 	if not job then
 		if touch then
@@ -30,8 +29,9 @@ local function step(job, jobsCompleted: number): string
 		return "Edna's front lawn is next. You're starting from the bottom: Grandma's grass shears, "
 			.. "already in the truck. Look at the computer in your shop and press E (or tap the button), "
 			.. "then take the Front Lawn job in Jobs."
-	elseif job.state == "Working" and jobsCompleted == 0 then
-		-- The very first job, which they joined standing on: just the snip.
+	elseif job.state == "Working" and job.kind == "First" then
+		-- The first-timer's opening lawn, which they joined standing on: just the snip. Any other
+		-- job at zero jobs (they left it, or it failed to start) gets the full shears lesson below.
 		return if touch then "Hold Snip to cut. Clear the lawn." else "Click and hold to snip. Clear the lawn."
 	elseif job.state == "Ready" then
 		if touch then
@@ -69,7 +69,7 @@ local function update()
 	-- it waits for that to go.
 	banner.Visible = learning and not DialogueController.isPending("Intro") and not UI.givesWay("TutorialBanner")
 	if learning then
-		banner.Text = step(job, jobsCompleted)
+		banner.Text = step(job)
 	end
 end
 

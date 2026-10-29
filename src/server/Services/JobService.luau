@@ -323,6 +323,8 @@ local function sendUpdate(job)
 		customer = job.offer.customer,
 		story = job.offer.story,
 		parTime = job.offer.parTime,
+		-- Which kind of offer this is ("First" for the first-timer's opening lawn), for the tutorial.
+		kind = job.offer.kind,
 		-- Server clock time the crew started working, for the HUD timer.
 		startedAt = job.startedServerTime,
 		penalty = job.penalty,
@@ -1138,7 +1140,11 @@ function JobService:StartFirstJob(player: Player)
 		JobService.PlayerStateChanged:Fire(player)
 		-- ...and the shears from there into their hands. ToolService requires this module, so it's
 		-- looked up now rather than at the top (every service has loaded long before anyone joins).
-		require(script.Parent.ToolService):GiveHeld(player, "GardenShears")
+		local ToolService = require(script.Parent.ToolService)
+		-- GiveTools runs here directly as well: the signal's handler only runs to its first yield,
+		-- and GiveHeld builds a second pair if the backpack has none yet. Running it twice is safe.
+		ToolService:GiveTools(player)
+		ToolService:GiveHeld(player, "GardenShears")
 	end)
 	if not ok then
 		warn(`Couldn't start {player.Name}'s first job, so they start at their business: {err}`)

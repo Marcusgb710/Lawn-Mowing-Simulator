@@ -658,13 +658,19 @@ function MessagesController:Start()
 	onStoryChanged()
 
 	-- Waiting toasts show once no scene is playing (and you haven't walked up to the computer).
+	-- They also wait out June's welcome, so her first texts don't land before she has introduced herself.
 	task.spawn(function()
 		while true do
 			task.wait(0.25)
 			local waiting = toastQueue[1]
 			if waiting and UI.hosted() then
 				table.clear(toastQueue)
-			elseif waiting and os.clock() >= waiting.after and not DialogueController.isOpen() then
+			elseif
+				waiting
+				and os.clock() >= waiting.after
+				and not DialogueController.isOpen()
+				and not DialogueController.isPending("Intro")
+			then
 				table.remove(toastQueue, 1)
 				showToast(waiting.text)
 			end
