@@ -124,6 +124,7 @@
 --     way: the first-job coach, and on a touch screen Grandma's goal or a crew invite;
 --   * the dialogue box's width and height, for each line and the screen it's on, and the
 --     dialogue's compact places when the screen turns;
+--   * the Levels panel shrinking to fit the screen, and clear of the move stick on a touch screen;
 --   * a menu's window fills the computer's screen while you're at the computer;
 --   * inside the computer's screen, the taskbar hides the apps' names (and then your money) on
 --     narrower screens;
@@ -240,6 +241,16 @@ return {
 				margin = 24,
 				note = "The smallest of 1, (screen height - margin) / its height and (screen width - margin) / "
 					.. "its width.",
+			},
+			LevelsPanel = {
+				elements = { "LevelsPanel" },
+				margin = 24,
+				touchMargin = 110,
+				scale = 1,
+				note = "The smallest of `scale`, (screen height - margin) / its height and (screen width - "
+					.. "margin) / its width, so it only ever shrinks. On a touch screen the height margin is "
+					.. "touchMargin instead, the way the columns' is, so the centred panel is small enough to "
+					.. "stay above Roblox's move stick and jump button.",
 			},
 			ContestResults = {
 				elements = { "ContestResults" },
@@ -704,6 +715,19 @@ return {
 		note = "Every menu's window, one open at a time: Truck, Guide and Crew, and the computer's Jobs, "
 			.. "Orders, Business and Messages apps. While you're at the computer they fill its screen instead "
 			.. "(ComputerMonitor), however big that is.",
+	},
+	LevelsPanel = {
+		label = "Levels panel",
+		group = "Menus",
+		screen = "LawnUI",
+		anchor = { 0.5, 0.5 },
+		position = { 0.5, 0, 0.5, 0 },
+		size = { 0, 360, 0, 420 },
+		note = "Opened from the XP bar (and L on a keyboard), closed by its Close button or Escape: your level "
+			.. "and the XP to the next, then what the next five levels pay. Its own window, not one of the "
+			.. "menus: it never opens inside the shop computer, and it closes when a job's state changes, a "
+			.. "scene starts or you open a menu. Its UIScale shrinks it to fit the screen "
+			.. "(__screen.scaling.LevelsPanel).",
 	},
 	ComputerMonitor = {
 		label = "Shop computer",

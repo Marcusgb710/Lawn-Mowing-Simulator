@@ -465,6 +465,43 @@ for _, key in { "fullHeight", "minScale", "tightScale", "margin", "touchMargin" 
 end
 check(typeof(UiLayout.__screen.compactHeight) == "number", "__screen has no compactHeight")
 
+-- The Levels panel (Busy Season, slice 1): a centred window of its own on the game's screen, opened
+-- from the XP bar, that shrinks to fit like the pay breakdown does. On a touch screen it keeps a
+-- bigger margin, so it stays clear of Roblox's move stick, and `scale` is the most it's drawn at.
+local levelsPanel = UiLayout.LevelsPanel
+check(levelsPanel ~= nil, "UiLayout has no LevelsPanel")
+if levelsPanel then
+	check(levelsPanel.screen == "LawnUI", `UiLayout's LevelsPanel is on {levelsPanel.screen}, not LawnUI`)
+	check(levelsPanel.parent == nil, "UiLayout's LevelsPanel is in another element: it's a window of its own")
+	check(
+		levelsPanel.size ~= nil and levelsPanel.size[2] == 360 and levelsPanel.size[4] == 420,
+		"UiLayout's LevelsPanel isn't 360 by 420"
+	)
+	check(levelsPanel.autoSize == nil, "UiLayout's LevelsPanel grows with what's in it: it's 420 tall")
+end
+local levelsRule = UiLayout.__screen.scaling.LevelsPanel
+check(levelsRule ~= nil, "__screen.scaling has no LevelsPanel")
+if levelsRule then
+	check(
+		table.find(levelsRule.elements, "LevelsPanel") ~= nil,
+		"__screen.scaling.LevelsPanel doesn't scale the LevelsPanel"
+	)
+	check(
+		typeof(levelsRule.margin) == "number" and levelsRule.margin >= 0,
+		"__screen.scaling.LevelsPanel has no margin"
+	)
+	check(
+		typeof(levelsRule.touchMargin) == "number"
+			and typeof(levelsRule.margin) == "number"
+			and levelsRule.touchMargin >= levelsRule.margin,
+		"__screen.scaling.LevelsPanel has no touchMargin as big as its margin"
+	)
+	check(
+		typeof(levelsRule.scale) == "number" and levelsRule.scale > 0 and levelsRule.scale <= 1,
+		"__screen.scaling.LevelsPanel has no scale from above 0 to 1"
+	)
+end
+
 -- COLUMN_PIECES is what HudController builds into a column: every piece it puts in one with
 -- placeInColumn, and nothing else.
 local hudSource = fs.readFile("src/client/Controllers/HudController.luau")

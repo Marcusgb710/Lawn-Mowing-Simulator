@@ -1,14 +1,17 @@
 -- Always-on screen stuff, laid out like the art's HUD (alphainstructions/instructions38.md):
---   * down the left: money and level (the money counter in the display face), the menu buttons
---     with their glyphs (and on a keyboard their keys: T, G, C), and Grandma's sticky note with
---     your story goal and, under it, the goals rail: your next two milestones;
+--   * down the left: money and level (the money counter in the display face; the level line and
+--     its XP bar are one button that opens the Levels panel, LevelsController, with a gold star
+--     beside the level once you have the gold business sign), the menu buttons with their glyphs
+--     (and on a keyboard their keys: T, G, C), and Grandma's sticky note with your story goal and,
+--     under it, the goals rail: your next two milestones;
 --   * down the right: your business's curb appeal, on a phone the Next chip (the next milestone,
 --     where the rail has no room), the job tracker on the art's GoalTracker card (to-dos, a timer
 --     against par, damage), smaller on a phone, and under it, late in the mowing, the button that
 --     lights up the grass you missed (M on a keyboard);
 --   * the condition of the tool in your hands, a glyph for each thing wrong ("Running low on
 --     fuel" by the fuel can), or what you're doing to one at the workbench;
---   * the pay breakdown when a job's done, and the big moments: Level Up! and New Tool!
+--   * the pay breakdown when a job's done, and the big moments: Level Up! (when the server says
+--     what the level paid, LevelReward) and New Tool!
 -- On a keyboard V switches camera motion on and off. Where each piece goes is in UiLayout.luau,
 -- which can also take any of the columns' pieces out of its column to go anywhere on the screen.
 
@@ -36,6 +39,7 @@ local Goal = require(script.Parent.Parent.Goal)
 local UI = require(script.Parent.Parent.UI)
 local CameraController = require(script.Parent.CameraController)
 local GrassController = require(script.Parent.GrassController)
+local LevelsController = require(script.Parent.LevelsController)
 
 local player = Players.LocalPlayer
 
@@ -73,6 +77,9 @@ local STAR_STEP = 0.35
 local COLUMNS = UI.Layout.__screen.scaling.Columns
 -- Room for the key badge at the left of a menu button.
 local KEY_ROOM = 46
+-- The gold star beside the level (once the business has its gold sign) takes this much of the level
+-- line's width, which is its own size and the gap.
+local GOLD_STAMP_ROOM = 18
 -- On a short screen the job tracker's timer goes beside the job's name, in a box this wide.
 local COMPACT_TIMER = 112
 
@@ -80,6 +87,9 @@ local HudController = {}
 
 local money
 local levelLabel: TextLabel
+-- How far in from the left the level line starts (room for its glyph, when there's art for one).
+local levelLabelLeft = 0
+local goldStamp: TextLabel
 local xpBar: UI.Bar
 local curbPanel: GuiObject
 local curbValue: TextLabel
@@ -154,7 +164,6 @@ local heldCondition = {}
 
 local payPanel: GuiObject
 local payShownFor = nil
-local lastLevel: number? = nil
 local knownTools: { [string]: boolean }? = nil
 
 -- Tool attributes the server keeps up to date (see ToolService), as a condition table.
@@ -384,6 +393,7 @@ local function buildStats()
 	local levelIcon =
 		UI.icon("Level", { Size = UDim2.fromOffset(14, 14), Position = UDim2.fromOffset(2, 32), Parent = frame })
 	local levelX = if levelIcon then 22 else 0
+	levelLabelLeft = levelX
 	levelLabel = UI.label("Level 1", {
 		Position = UDim2.fromOffset(levelX, 30),
 		Size = UDim2.new(1, -levelX, 0, 18),
@@ -397,6 +407,49 @@ local function buildStats()
 		Size = UDim2.new(1, -levelX, 0, 8),
 		Parent = frame,
 	})
+	-- The small gold stamp for the business's gold sign (the GoldSign attribute, updateGoldSign), at
+	-- the end of the level line. No icon is drawn for it yet, so it's a gold star like the job board's.
+	goldStamp = UI.label("★", {
+		Name = "GoldStamp",
+		AnchorPoint = Vector2.new(1, 0),
+		Position = UDim2.new(1, 0, 0, 30),
+		Size = UDim2.fromOffset(16, 18),
+		TextSize = 14,
+		TextColor3 = UI.Colors.Gold,
+		TextXAlignment = Enum.TextXAlignment.Center,
+		Visible = false,
+		Parent = frame,
+	})
+	-- The level line and the XP bar are one button that opens the Levels panel. It's invisible, but
+	-- tall enough to tap on a phone (the bar alone is 8 px), and washes faintly under the mouse.
+	local levelsButton = UI.new("TextButton", {
+		Name = "LevelsButton",
+		Text = "",
+		AutoButtonColor = false,
+		BackgroundColor3 = UI.Colors.Text,
+		BackgroundTransparency = 1,
+		Position = UDim2.fromOffset(-6, 27),
+		Size = UDim2.new(1, 12, 0, 36),
+		ZIndex = 2,
+		Parent = frame,
+	}, { UI.corner(6) })
+	levelsButton.Activated:Connect(LevelsController.toggle)
+	if UserInputService.MouseEnabled then
+		levelsButton.MouseEnter:Connect(function()
+			levelsButton.BackgroundTransparency = 0.9
+		end)
+		levelsButton.MouseLeave:Connect(function()
+			levelsButton.BackgroundTransparency = 1
+		end)
+	end
+end
+
+-- Shows the gold stamp beside the level while the player has the gold business sign (the server
+-- sets GoldSign at level 20), and makes room for it on the level line.
+local function updateGoldSign()
+	local gold = player:GetAttribute("GoldSign") == true
+	goldStamp.Visible = gold
+	levelLabel.Size = UDim2.new(1, -levelLabelLeft - (if gold then GOLD_STAMP_ROOM else 0), 0, 18)
 end
 
 -- Your crew's business's curb appeal (see HomeLawnService), which pays a bonus on jobs.
@@ -1314,12 +1367,9 @@ end
 
 -- Updating it all ----------------------------------------------------------------------------------
 
--- The big moments: a new level, a new tool (not the ones you had when you joined).
+-- The big moment for a new tool (not the ones you had when you joined). A new level's is
+-- onLevelReward, from the server, which knows what the level paid.
 local function moments(profile)
-	if lastLevel and profile.level > lastLevel then
-		UI.moment("LevelUp", "Level Up!", `Level {profile.level}`)
-	end
-	lastLevel = profile.level
 	local now = {}
 	for _, item in Items.ownedTools(profile.owned) do
 		now[item.id] = true
@@ -1328,6 +1378,15 @@ local function moments(profile)
 		end
 	end
 	knownTools = now
+end
+
+-- The server's paid a level's reward (`info`: the level, the line that names what it paid, and the
+-- cash). Level Up! is announced here and only here, with the reward under it.
+local function onLevelReward(info: { level: number, text: string, cash: number })
+	UI.moment("LevelUp", `Level {info.level}!`, if info.text ~= "" then info.text else nil)
+	-- Sounds.playUi("LevelUp") goes here once Sounds has playUi and a LevelUp sound (Task 7).
+	-- FloatingText.show lifts "+$250" (info.cash) off the level line once Task 7 adds it; until then
+	-- the reward line under Level Up! says the cash.
 end
 
 local function updateProfile()
@@ -1452,6 +1511,8 @@ function HudController:Start()
 		end
 	end)
 	player:GetAttributeChangedSignal("CurbAppeal"):Connect(updateGoal)
+	player:GetAttributeChangedSignal("GoldSign"):Connect(updateGoldSign)
+	updateGoldSign()
 	UI.onGiveWay("GrandmaGoal", updateGoal)
 	UI.onGiveWay("JobTracker", updateJob)
 	-- The rail hides and the Next chip shows when the screen turns short, and the other way (a window
@@ -1462,6 +1523,7 @@ function HudController:Start()
 		end
 	end)
 	Net.event("MilestoneReached").OnClientEvent:Connect(onMilestoneReached)
+	Net.event("LevelReward").OnClientEvent:Connect(onLevelReward)
 	updateGoal()
 
 	task.spawn(function()
