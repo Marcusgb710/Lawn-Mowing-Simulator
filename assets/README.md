@@ -71,8 +71,12 @@ holds:
   Model the mesh already calls `Handle` (or `Root`) is renamed `Handle_mesh` (`Root_mesh`) first,
   and the import says how many it renamed.
 - `parts`: `{ "<mesh name>": { "rename", "collide" } }`, by the names the mesh arrives with.
-- `body` (`"largest"`, Trucks only): after the `parts` renames, names the largest visible part
-  `<id>__Body`, for a mesh whose parts are all called `Part`.
+- `body` (`"largest"` or `"all"`, Trucks only): after the `parts` renames, names parts `<id>__Body`,
+  for a mesh whose parts are all called `Part`. `largest` names the largest visible part. `all`
+  names every visible part except wheels, tires, rims and glass (any name with `Wheel`, `Tire`,
+  `Rim`, `Glass` or `Window` in it, whatever the case), so a truck of dozens of loose parts takes
+  its livery everywhere; a part already named `<id>__Body`, `__DriverDoor`, `__Tailgate` or
+  `__RearDoor` keeps its name, and the import says how many parts it renamed.
 - `markers`: `[{ "name", "position", "orientation" (degrees), "attributes" }]`, attachments on the
   `Handle` or `Root`. `boxes`: `[{ "name", "position", "size" }]`, invisible parts that don't
   collide (`BedArea`, `BaySpot`).

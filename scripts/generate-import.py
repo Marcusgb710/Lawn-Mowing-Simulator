@@ -31,6 +31,7 @@ SOLID_FOLDERS = ("Trucks", "Trailers", "Buildings")
 SOLID_PROPS = ("House",)
 FACINGS = ("+X", "-X", "+Z", "-Z")
 AXES = ("height", "width", "length")
+BODIES = ("largest", "all")
 ENTRY_FIELDS = (
     "id", "folder", "source", "keep", "facing", "turn", "up", "fit", "handle", "handlePart", "grips",
     "parts", "body", "markers", "boxes", "synth", "collide", "strip", "budget",
@@ -114,7 +115,7 @@ SINGLE_FIELDS = {
     "turn": (is_number, "a number of degrees"),
     "up": (lambda v: v == "+Y", '"+Y", the only up there is so far'),
     "handlePart": NAME,
-    "body": (lambda v: v == "largest", '"largest", the only body there is so far'),
+    "body": (lambda v: v in BODIES, '"largest" (the biggest part) or "all" (every part that takes paint)'),
     "collide": BOOL,
     "budget": (is_whole, "a whole number above zero"),
     "strip": (

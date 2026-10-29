@@ -146,8 +146,10 @@ class GenerateTest(unittest.TestCase):
         self.assertIn("turn = 22.5,", generate_import.generate(manifest_of(entry), TEMPLATE))
 
     def test_renders_the_body_only_when_the_entry_has_one(self):
-        lua = generate_import.generate(manifest_of({**truck_entry(), "body": "largest"}), TEMPLATE)
-        self.assertIn('body = "largest",', lua)
+        for body in ("largest", "all"):
+            with self.subTest(body):
+                lua = generate_import.generate(manifest_of({**truck_entry(), "body": body}), TEMPLATE)
+                self.assertIn(f'body = "{body}",', lua)
         self.assertNotIn("body =", generate_import.generate(manifest_of(truck_entry()), TEMPLATE))
 
     def test_a_strip_by_name_renders_an_empty_class(self):
@@ -253,15 +255,21 @@ class ValidateTest(unittest.TestCase):
         entry = {**store_entry(), "strip": ["*:Seat", "Model:Bed (Queen Size)", "Decal:Logo"]}
         self.assertEqual(generate_import.validate(manifest_of(entry)), [])
 
-    def test_body_is_for_trucks_and_means_largest(self):
+    def test_body_is_for_trucks_and_is_largest_or_all(self):
         truck = {**truck_entry(), "body": "largest"}
-        self.assertEqual(generate_import.validate(manifest_of(truck)), [])
+        for body in ("largest", "all"):
+            with self.subTest(body):
+                self.assertEqual(generate_import.validate(manifest_of({**truck, "body": body})), [])
         cases = {
             "a Tools entry": {**store_entry(), "body": "largest"},
+            "a Tools entry that asks for all": {**store_entry(), "body": "all"},
             "a Trailers entry": {**truck, "folder": "Trailers"},
+            "a Trailers entry that asks for all": {**truck, "folder": "Trailers", "body": "all"},
             "a Props entry": {**truck, "folder": "Props"},
-            "a body that isn't largest": {**truck, "body": "biggest"},
+            "a body that is neither largest nor all": {**truck, "body": "some"},
+            "a body that is a different case": {**truck, "body": "All"},
             "a body that is a list": {**truck, "body": ["largest"]},
+            "a body that is a list of all": {**truck, "body": ["all"]},
         }
         for label, entry in cases.items():
             with self.subTest(label):

@@ -13,12 +13,13 @@
 --      * fits       anchors everything, turns the front to -Z, then by the entry's turn, scales to
 --                   the entry's fit, and puts the bottom centre on the origin
 --      * adds       the Handle and grips (tools) or the Root, the renames and collision, a truck's body
---                   (its largest part, named <id>__Body), markers, boxes and synthesised parts. Anything
---                   the mesh already calls Handle (or Root) is renamed Handle_mesh (Root_mesh) first, so
---                   the added one is the only one.
+--                   (its largest part, or every part that takes paint, named <id>__Body), markers, boxes
+--                   and synthesised parts. Anything the mesh already calls Handle (or Root) is renamed
+--                   Handle_mesh (Root_mesh) first, so the added one is the only one.
 --      * stages     ServerStorage.ModelImport.<Folder>.<id>, replacing an older copy
---    Each entry prints "ok <id> parts=<n> size=<x>x<y>x<z>" or "FAIL <id> <reason>"; a name the
---    manifest gives that isn't in the model is a FAIL, so a stale entry never ships quietly.
+--    Each entry prints "ok <id> parts=<n> size=<x>x<y>x<z>" or "FAIL <id> <reason>" (a truck that
+--    takes paint on every part adds "(body: <n> parts)"); a name the manifest gives that isn't in
+--    the model is a FAIL, so a stale entry never ships quietly.
 -- 2. Right-click ServerStorage.ModelImport > Save / Export > Save to File, and run
 --    `lune run scripts/export-models <file> --overwrite` to write assets/<Folder>/<id>.rbxm.
 -- 3. Delete ServerStorage.ModelImport.
@@ -302,7 +303,7 @@ local MODELS = {
 		up = "+Y",
 		fit = { axis = "length", studs = 19 },
 		collide = true,
-		body = "largest",
+		body = "all",
 		markers = {
 			{ name = "DriverSeat", position = Vector3.new(-1.7, 5, -0.8), orientation = Vector3.new(0, 0, 0), attributes = {} },
 		},
@@ -419,6 +420,15 @@ local UNWANTED = {
 	"WeldConstraint",
 	"BodyMover",
 }
+
+-- A truck's "all" body is every visible part but these, which keep their own look under paint. The
+-- game skips Glass, Wheel and Tire (Premium.keepsLook); Rim and Window go with them. Matched
+-- ignoring case, as a part of a Store mesh is as likely to be "wheel_fl" as "Wheel".
+local KEEPS_LOOK = { "wheel", "tire", "rim", "glass", "window" }
+
+-- The names the game already paints and opens by (Premium.PAINTED, Openings): a part the entry
+-- gave one of these keeps it, so naming the body never takes a door's name away.
+local OPENING_SUFFIXES = { "__DriverDoor", "__Tailgate", "__RearDoor" }
 
 local function fail(message: string)
 	error(message, 0)
@@ -632,9 +642,29 @@ local function normalise(entry, model: Model)
 	model:PivotTo(CFrame.new(-Vector3.new((low.X + high.X) / 2, low.Y, (low.Z + high.Z) / 2)) * model:GetPivot())
 end
 
+local function keepsLook(part: BasePart): boolean
+	local name = string.lower(part.Name)
+	for _, word in KEEPS_LOOK do
+		if string.find(name, word, 1, true) then
+			return true
+		end
+	end
+	return false
+end
+
+local function hasOpeningName(part: BasePart): boolean
+	for _, suffix in OPENING_SUFFIXES do
+		if string.sub(part.Name, -#suffix) == suffix then
+			return true
+		end
+	end
+	return false
+end
+
 -- What the game expects of a model (src/shared/Assets.luau): the Handle or Root, and the entry's extras.
--- Returns how many things the mesh already had under the Handle or Root name, which it renamed.
-local function contract(entry, model: Model): number
+-- Returns how many things the mesh already had under the Handle or Root name, which it renamed, and
+-- how many parts the entry's "all" body named.
+local function contract(entry, model: Model): (number, number)
 	local list = partsOf(model)
 	local handleName = contractName(entry)
 
@@ -689,6 +719,7 @@ local function contract(entry, model: Model): number
 	-- A truck whose parts are all called "Part" has nothing to find its body by, so the entry can ask
 	-- for the largest visible one (by box volume) to be named. After the renames above, so a name the
 	-- entry gave is not undone, and a clash with one of them is a FAIL, not a quiet second Body.
+	local bodyParts = 0
 	if entry.body == "largest" then
 		local bodyName = entry.id .. "__Body"
 		local body, biggest = nil, 0
@@ -707,6 +738,26 @@ local function contract(entry, model: Model): number
 			fail("body: no visible part to name")
 		end
 		body.Name = bodyName
+	elseif entry.body == "all" then
+		-- A truck made of a hundred parts takes its paint on all of them, so every visible part that
+		-- keeps no look of its own is the body. One the manifest already named <id>__Body stays (the
+		-- game paints it as it is), and so does one it gave a door's name.
+		local bodyName = entry.id .. "__Body"
+		local named, kept = 0, 0
+		for _, part in list do
+			if part.Transparency < 1 and not keepsLook(part) then
+				if part.Name == bodyName or hasOpeningName(part) then
+					kept += 1
+				else
+					part.Name = bodyName
+					named += 1
+				end
+			end
+		end
+		if named + kept == 0 then
+			fail("body: no visible part to name")
+		end
+		bodyParts = named
 	end
 	-- A Store mesh often has its own Handle (a handlebar group, say), and the game finds ours with
 	-- FindFirstChild, so two would be a coin toss. Whatever is left with the name moves aside.
@@ -761,7 +812,7 @@ local function contract(entry, model: Model): number
 		end
 		part.Parent = model
 	end
-	return clashes
+	return clashes, bodyParts
 end
 
 local function stage(entry, model: Model)
@@ -785,11 +836,14 @@ for _, entry in MODELS do
 		model = keepOne(entry, model)
 		clean(entry, model)
 		normalise(entry, model)
-		local clashes = contract(entry, model)
+		local clashes, bodyParts = contract(entry, model)
 		local list = partsOf(model)
 		local low, high = bounds(list)
 		local size = high - low
 		local line = string.format("ok %s parts=%d size=%.1fx%.1fx%.1f", entry.id, #list, size.X, size.Y, size.Z)
+		if entry.body == "all" then
+			line ..= ` (body: {bodyParts} parts)`
+		end
 		if clashes > 0 then
 			line ..= ` (renamed {clashes} {contractName(entry)} clashes)`
 		end
