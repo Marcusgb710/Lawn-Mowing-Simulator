@@ -15,16 +15,20 @@ local Items = require(Shared.Config.Items)
 local Maintenance = require(Shared.Config.Maintenance)
 local Net = require(Shared.Net)
 local Premium = require(Shared.Config.Premium)
+local Season = require(Shared.Config.Season)
 local Signal = require(Shared.Signal)
 local Storage = require(Shared.Config.Storage)
 
 local DataService = {}
 -- Fired with (player, new level) when a finished job takes them up a level.
 DataService.LeveledUp = Signal.new()
+-- Fired with (player, amount) after Earn has added money they made (not a sale or a refund) and
+-- sent their screen the new totals.
+DataService.Earned = Signal.new()
 
 -- Bump this whenever the save format changes, and add a step to MIGRATIONS that turns the
 -- previous version into the new one. Never delete a step: old saves still need it.
-local DATA_VERSION = 12
+local DATA_VERSION = 13
 
 -- MIGRATIONS[n] turns a version n - 1 save into version n. Steps must keep money, xp and every
 -- owned item. Don't use the live config to read an old save: write down what it looked like.
@@ -177,6 +181,14 @@ local MIGRATIONS = {
 	-- tile of grass. HomeLawnService reads those flags per cell when it builds the lawn (and saves
 	-- it per cell from then on), so nothing in the save changes here.
 	[12] = function(_data) end,
+
+	-- 12 -> 13, the Busy Season's ladder (see Season.upgradeSave): `earned` starts out as the money
+	-- they have, `stars` and `milestones` start empty, `levelRewards` has every level they've
+	-- reached already claimed (so nobody is paid back pay for the past) and `firstJob` is true for
+	-- anyone who has finished a job.
+	[13] = function(data)
+		Season.upgradeSave(data)
+	end,
 }
 
 local store: DataStore? = nil
@@ -235,6 +247,9 @@ local function defaultData()
 		-- What they've bought with Robux (see Premium.luau and PremiumService)
 		premium = Premium.empty(),
 	}
+	-- The Busy Season's fields (`earned`, `stars`, `milestones`, `levelRewards` and `firstJob`, see
+	-- Config/Season.luau), filled in the way the 12 -> 13 migration does, from the numbers above.
+	Season.upgradeSave(data)
 	for _, category in Items.Categories do
 		data.owned[category] = {}
 		local starter = Items.starter(category)
@@ -474,6 +489,13 @@ local function snapshot(data)
 		xp = data.xp,
 		level = GameConfig.levelFromXp(data.xp),
 		jobsCompleted = data.jobsCompleted,
+		-- The Busy Season: money made so far, their best stars on each job, the milestone ids they've
+		-- reached, the levels whose reward they've claimed, and whether the first-job opening has run.
+		earned = data.earned,
+		stars = data.stars,
+		milestones = data.milestones,
+		levelRewards = data.levelRewards,
+		firstJob = data.firstJob,
 		owned = data.owned,
 		equipped = data.equipped,
 		loadout = data.loadout,
@@ -610,6 +632,19 @@ function DataService:AddMoney(player: Player, amount: number)
 	if data then
 		data.money += amount
 		self:Changed(player)
+	end
+end
+
+-- Money they made: job pay, tips and rewards. It counts toward `earned` (the Earned milestones)
+-- as well as their money; AddMoney is for sales and refunds, which don't. Callers pass whole
+-- dollars, nothing is rounded here.
+function DataService:Earn(player: Player, amount: number)
+	local data = self:Get(player)
+	if data then
+		data.money += amount
+		data.earned += amount
+		self:Changed(player)
+		DataService.Earned:Fire(player, amount)
 	end
 end
 

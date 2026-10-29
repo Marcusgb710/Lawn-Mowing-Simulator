@@ -3,9 +3,13 @@
 -- It checks the milestone rail's list and which milestones are nearest to done
 -- (src/shared/Config/Milestones.luau), the level rewards and what comes next
 -- (src/shared/Config/Levels.luau), and how a job's performance becomes stars and tips
--- (src/shared/Config/Stars.luau). Exits with an error if anything's off.
+-- (src/shared/Config/Stars.luau), and how a save becomes a version 13 save and who is still a
+-- first-timer (src/shared/Config/Season.luau). Exits with an error if anything's off.
 
+local fs = require("@lune/fs")
+local luau = require("@lune/luau")
 local process = require("@lune/process")
+local roblox = require("@lune/roblox")
 
 local Levels = require("../src/shared/Config/Levels")
 local Milestones = require("../src/shared/Config/Milestones")
@@ -49,10 +53,10 @@ check(Milestones.List[10].kind == "Earned" and Milestones.List[10].cash == 0, "e
 check(Milestones.List[18].id == "Stars:100" and Milestones.List[18].cash == 2500, "100 three-star jobs pays $2500")
 -- Nearest is the smallest share still to go, (at - have) / at: $500 at 4/5 has 1/5 to go, 3 jobs at
 -- 2/3 has 1/3, so the $500 comes first. With $300 earned ($500 at 3/5, 2/5 to go) the jobs lead.
-local next = Milestones.next({ jobs = 2, earned = 400, stars = 0 }, { ["Jobs:1"] = true }, 2)
-check(next[1].id == "Earned:500" and next[2].id == "Jobs:3", "nearest first: $500 at 4/5, then 3 jobs at 2/3")
-next = Milestones.next({ jobs = 2, earned = 300, stars = 0 }, { ["Jobs:1"] = true }, 2)
-check(next[1].id == "Jobs:3" and next[2].id == "Earned:500", "nearest first: 3 jobs at 2/3, then $500 at 3/5")
+local nearest = Milestones.next({ jobs = 2, earned = 400, stars = 0 }, { ["Jobs:1"] = true }, 2)
+check(nearest[1].id == "Earned:500" and nearest[2].id == "Jobs:3", "nearest first: $500 at 4/5, then 3 jobs at 2/3")
+nearest = Milestones.next({ jobs = 2, earned = 300, stars = 0 }, { ["Jobs:1"] = true }, 2)
+check(nearest[1].id == "Jobs:3" and nearest[2].id == "Earned:500", "nearest first: 3 jobs at 2/3, then $500 at 3/5")
 check(
 	Milestones.next({ jobs = 0, earned = 0, stars = 0 }, {}, 3)[3].id == "Jobs:5",
 	"a tie keeps the list's order: all at 0, the first three are 1, 3 and 5 jobs"
@@ -135,6 +139,101 @@ check(
 )
 check(Stars.of(0.89, true) == 1 and Stars.of(1.09, false) == 2, "just under a threshold is the star below")
 check(Stars.tipRate(0) == 0 and Stars.tipRate(4) == 0.15, "stars out of range are held to 1 and 3")
+
+-- The save ------------------------------------------------------------------------------------
+
+-- Season reaches GameConfig through `script`, which Lune doesn't have, and GameConfig builds a
+-- Vector3 as it loads. So GameConfig is loaded here with Lune's Vector3 and handed to Season as
+-- its sibling: levelFromXp below is the real one. Run from the repo root, like the command at
+-- the top.
+local GameConfig = luau.load(fs.readFile("src/shared/Config/GameConfig.luau"), {
+	debugName = "GameConfig",
+	environment = { Vector3 = roblox.Vector3 },
+})()
+local Season = luau.load(fs.readFile("src/shared/Config/Season.luau"), {
+	debugName = "Season",
+	environment = {
+		script = { Parent = { GameConfig = GameConfig } },
+		require = function(module)
+			return module
+		end,
+	},
+})()
+
+local fresh = { money = 0, xp = 0, jobsCompleted = 0 }
+Season.upgradeSave(fresh)
+check(
+	fresh.earned == 0 and next(fresh.levelRewards) == nil and fresh.firstJob == false,
+	"a fresh save is a first-timer with nothing claimed"
+)
+local old = { money = 1234.5, xp = 1800, jobsCompleted = 30 } -- level 7
+Season.upgradeSave(old)
+check(old.earned == 1234 and old.firstJob == true, "an old save keeps its money as earned and is not a first-timer")
+for level = 2, 7 do
+	check(old.levelRewards[level] == true, `old save has claimed level {level}`)
+end
+check(old.levelRewards[8] == nil, "nothing above its level is claimed")
+local kept = {
+	money = 10,
+	xp = 0,
+	jobsCompleted = 0,
+	earned = 99,
+	stars = { QuickMow = 2 },
+	milestones = { ["Jobs:1"] = true },
+	levelRewards = { [2] = true },
+	firstJob = true,
+}
+Season.upgradeSave(kept)
+check(
+	kept.earned == 99
+		and kept.stars.QuickMow == 2
+		and kept.milestones["Jobs:1"]
+		and kept.levelRewards[2]
+		and kept.firstJob == true,
+	"upgrade keeps what is there"
+)
+check(Season.isFirstTimer({ firstJob = false, jobsCompleted = 0 }, false) == true, "fresh and idle is a first-timer")
+check(Season.isFirstTimer({ firstJob = false, jobsCompleted = 0 }, true) == false, "with a job accepted it is not")
+check(Season.isFirstTimer({ firstJob = true, jobsCompleted = 0 }, false) == false, "once started it is not")
+
+-- Past the brief: the upgrade is idempotent, leaves money, xp and jobs alone, fills in a field of
+-- the wrong type again, and never starts anyone with negative earnings.
+local twice = { money = 1234.5, xp = 1800, jobsCompleted = 30 }
+Season.upgradeSave(twice)
+Season.upgradeSave(twice)
+local sameAsOnce = twice.earned == old.earned and twice.firstJob == old.firstJob
+for level = 2, 8 do
+	sameAsOnce = sameAsOnce and twice.levelRewards[level] == old.levelRewards[level]
+end
+check(sameAsOnce, "upgrading twice is upgrading once")
+check(old.money == 1234.5 and old.xp == 1800 and old.jobsCompleted == 30, "the upgrade leaves money, xp and jobs alone")
+local broken = {
+	money = 50,
+	xp = 0,
+	jobsCompleted = 2,
+	earned = "lots",
+	stars = 3,
+	milestones = false,
+	levelRewards = 7,
+	firstJob = "yes",
+}
+Season.upgradeSave(broken)
+check(
+	broken.earned == 50
+		and typeof(broken.stars) == "table"
+		and typeof(broken.milestones) == "table"
+		and next(broken.levelRewards) == nil
+		and broken.firstJob == true,
+	"a field of the wrong type is filled in again"
+)
+local owing = { money = -40, xp = 0, jobsCompleted = 0 }
+Season.upgradeSave(owing)
+check(owing.earned == 0, "no one starts with negative earnings")
+check(Season.isFirstTimer({ firstJob = false }, false) == true, "a save with no job count has done none")
+check(
+	Season.isFirstTimer({ firstJob = false, jobsCompleted = 1 }, false) == false,
+	"a finished job is not a first-timer"
+)
 
 if failures > 0 then
 	print(`{failures} check(s) failed`)
