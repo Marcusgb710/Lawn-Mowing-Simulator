@@ -38,6 +38,30 @@ local GameConfig = {
 
 	-- Lawn generation
 	TileSize = 4,
+	-- A lawn's grass is kept in cells this many studs wide.
+	CellSize = 1,
+	-- Pixels per stud in the mowed picture (halved for a lawn too big to fit one image).
+	PixelsPerStud = 4,
+	-- Mowing on a job counts as done at this share of the cells it requires: a lawn's mowable cells,
+	-- less the optional ones beside flowers and trees (other tasks, and a home lawn's grass, use
+	-- CompletionThreshold).
+	MowCompletionThreshold = 0.99,
+	-- How far in front of the player a mower's deck sits, in studs.
+	DeckOffset = 2,
+	-- A snip of the shears clears a circle of grass this many studs round (their own snip.radius
+	-- still covers everything else they cut).
+	SnipRadius = 1,
+	-- How far from a lawn (studs) a client may still be drawing it: lawns within 200 studs of its
+	-- camera, plus 30 of slack before it stops.
+	GrassDrawDistance = 230,
+	-- Walk speed is multiplied by this while a mower is cutting.
+	CuttingSlowdown = 0.85,
+	-- Camera shake is multiplied by this while a mower is cutting.
+	CuttingShake = 1.5,
+	-- From this share of what the mowing requires, the "Show what I missed" button appears...
+	MissedSpotsFrom = 0.9,
+	-- ...and the uncut spots stay lit for this many seconds.
+	MissedSpotsSeconds = 3,
 	TallGrassHeight = 1.5,
 	MowedGrassHeight = 0.3,
 

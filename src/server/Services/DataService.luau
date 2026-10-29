@@ -24,7 +24,7 @@ DataService.LeveledUp = Signal.new()
 
 -- Bump this whenever the save format changes, and add a step to MIGRATIONS that turns the
 -- previous version into the new one. Never delete a step: old saves still need it.
-local DATA_VERSION = 11
+local DATA_VERSION = 12
 
 -- MIGRATIONS[n] turns a version n - 1 save into version n. Steps must keep money, xp and every
 -- owned item. Don't use the live config to read an old save: write down what it looked like.
@@ -172,6 +172,11 @@ local MIGRATIONS = {
 			discount = if typeof(saved.discount) == "string" then saved.discount else false,
 		}
 	end,
+
+	-- 11 -> 12, the lawn's grass in one-stud cells. A home lawn used to save one flag per 4 x 4 stud
+	-- tile of grass. HomeLawnService reads those flags per cell when it builds the lawn (and saves
+	-- it per cell from then on), so nothing in the save changes here.
+	[12] = function(_data) end,
 }
 
 local store: DataStore? = nil

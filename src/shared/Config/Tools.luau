@@ -216,8 +216,9 @@ Tools.List = {
 		price = 0,
 		power = 1,
 		radius = 3,
-		-- On a small lawn (a good fit, x0.8) a snip does 0.18 of a tile, so a tile takes 6 snips and
-		-- a weed 12. A dull pair takes a snip more.
+		-- A snip cuts every tall cell of grass within GameConfig.SnipRadius of where you aim, in one
+		-- go (about 3 cells). On anything else it does 0.18 work where they're a good fit (x0.8), so
+		-- a weed (2 work) takes 12 snips, and a dull pair a snip more.
 		snip = { interval = 0.5, work = 0.225, reach = 7.5, radius = 1.5 },
 		quality = 0.9,
 		engine = "None",

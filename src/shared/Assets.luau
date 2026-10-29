@@ -4,12 +4,12 @@
 -- server builds the world from and clients never download, so joining doesn't wait on them.
 -- What the server puts in Workspace streams to the screens near it as usual. Client code that
 -- clones models itself finds them in ReplicatedStorage.Assets, which holds copies of just those
--- (listed in default.project.json): the kit's grass clumps (GrassController), the decorations and
--- the gnome and flower patch (DecorController) and the judges (ContestController). New client code
--- that clones a model needs it added to that list, or it gets the placeholder. Each screen also
--- gets its own copies of what only it needs (see Assets.shareWith): its player's tools, for laying
--- them out in storage (CarryController, from DataService), and the crew's truck and trailer, for
--- the drive (CutsceneController, from JobService).
+-- (listed in default.project.json): the decorations and the gnome and flower patch
+-- (DecorController) and the judges (ContestController). New client code that clones a model needs
+-- it added to that list, or it gets the placeholder. Each screen also gets its own copies of what
+-- only it needs (see Assets.shareWith): its player's tools, for laying them out in storage
+-- (CarryController, from DataService), and the crew's truck and trailer, for the drive
+-- (CutsceneController, from JobService).
 --
 -- Where real models go (in assets/, so in ServerStorage.Assets):
 --   Tools/<item id>     e.g. Tools/GasPushMower       a Tool with a Handle, or a Model/Part (we wrap it in a Tool).

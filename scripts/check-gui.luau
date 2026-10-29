@@ -248,6 +248,7 @@ local COLUMN_PIECES = {
 	GrandmaGoal = "LeftColumn",
 	CurbAppeal = "RightColumn",
 	JobTracker = "RightColumn",
+	MissedButton = "RightColumn",
 }
 -- How big or small a `scale` can be.
 local SMALLEST_SCALE, BIGGEST_SCALE = 0.25, 3

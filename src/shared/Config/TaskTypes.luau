@@ -21,7 +21,9 @@
 --   rocky        [tool id] = speed multiplier on targets in rocky ground (a job sets how many
 --                with `rocky` on the task)
 --   heavy        hauling tasks whose loads can tip a one-wheeled barrow
---   tight        lawns full of obstacles and banks: speed scales with the mower's maneuverability
+--   tight        lawns full of obstacles and banks: the fit's speed scales with the mower's
+--                maneuverability. A mower's sweep cuts everything under its deck whatever its
+--                speed, so on the grass this does nothing for now (the trees still go in).
 --   step         the task's place in a turf renovation (1 probe, 2 dethatch, 3 aerate, 4 overseed,
 --                5 fertilize, 6 water); doing them out of order lowers the finish (LawnService)
 --   phase        when the task's yard targets arrive, for tasks not used yet

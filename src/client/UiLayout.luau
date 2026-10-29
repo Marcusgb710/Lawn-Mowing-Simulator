@@ -353,9 +353,10 @@ return {
 		autoSize = "Y",
 		list = { direction = "Vertical", padding = 10, align = "Right" },
 		typical = { 280, 330 },
-		note = "Curb appeal over the job tracker, down the right. Its UIScale shrinks it to fit like the left "
-			.. "column's, toward its top right corner. Typical is during a job on a phone, where curb appeal "
-			.. "hides. Each of the two can be taken out of it (their detach) and put anywhere on the screen.",
+		note = "Curb appeal over the job tracker, then the Show what I missed button late in the mowing, down "
+			.. "the right. Its UIScale shrinks it to fit like the left column's, toward its top right corner. "
+			.. "Typical is during a job on a phone, where curb appeal hides. Each of the three can be taken out "
+			.. "of it (their detach) and put anywhere on the screen.",
 	},
 	CurbAppeal = {
 		label = "Curb appeal panel",
@@ -386,6 +387,22 @@ return {
 			.. "button sharing a row at the bottom. Typical is during a job with two to-dos and the junk; "
 			.. "compact's is that on a short screen. It steps aside while you're putting a decoration down on a "
 			.. "phone, for the decorating buttons (and curb appeal shows again).",
+	},
+	MissedButton = {
+		label = "Show what I missed button",
+		group = "HUD",
+		parent = "RightColumn",
+		detach = "RightColumn",
+		order = 3,
+		size = { 0, 280, 0, 44 },
+		touch = { size = { 0, 280, 0, 52 } },
+		note = "Under the job tracker, once the mowing's percent (how much of what the job requires is cut, "
+			.. "not counting the optional grass beside flowers and trees) reaches GameConfig.MissedSpotsFrom "
+			.. "(90%) and until the mowing counts as done: lights up all the grass that's left, red, for "
+			.. "GameConfig.MissedSpotsSeconds. With a keyboard its key (M) is on it, as on the menu buttons. "
+			.. "Taller on a touch screen, to be easy to tap. It's hidden whenever the job tracker is, and "
+			.. "unless a job site's lawn near you is drawn as a surface (the simple renderer has nothing to "
+			.. "light up, and a lawn far off isn't drawn). Nothing takes its spot.",
 	},
 	ToolCondition = {
 		label = "Tool condition",

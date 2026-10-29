@@ -19,3 +19,6 @@ Thumbs.db
 
 # The HUD editor page, built from src/client/UiLayout.luau by scripts/build-hud-editor.py
 tools/hud-editor/hud-editor.html
+
+# Local git worktrees (superpowers)
+.worktrees/

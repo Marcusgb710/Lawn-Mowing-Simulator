@@ -2,8 +2,9 @@
 --   * down the left: money and level (the money counter in the display face), the menu buttons
 --     with their glyphs (and on a keyboard their keys: T, G, C), and Grandma's sticky note with
 --     your story goal;
---   * down the right: your business's curb appeal, and the job tracker on the art's GoalTracker
---     card (to-dos, a timer against par, damage), smaller on a phone;
+--   * down the right: your business's curb appeal, the job tracker on the art's GoalTracker
+--     card (to-dos, a timer against par, damage), smaller on a phone, and under it, late in the
+--     mowing, the button that lights up the grass you missed (M on a keyboard);
 --   * the condition of the tool in your hands, a glyph for each thing wrong ("Running low on
 --     fuel" by the fuel can), or what you're doing to one at the workbench;
 --   * the pay breakdown when a job's done, and the big moments: Level Up! and New Tool!
@@ -23,6 +24,7 @@ local Jobs = require(Shared.Config.Jobs)
 local Maintenance = require(Shared.Config.Maintenance)
 local Net = require(Shared.Net)
 local PayBreakdown = require(Shared.PayBreakdown)
+local Sounds = require(Shared.Sounds)
 local Tools = require(Shared.Config.Tools)
 
 local Art = require(script.Parent.Parent.Art)
@@ -30,6 +32,7 @@ local ClientState = require(script.Parent.Parent.ClientState)
 local Goal = require(script.Parent.Parent.Goal)
 local UI = require(script.Parent.Parent.UI)
 local CameraController = require(script.Parent.CameraController)
+local GrassController = require(script.Parent.GrassController)
 
 local player = Players.LocalPlayer
 
@@ -42,6 +45,12 @@ local MENUS = {
 	{ name = "Crew", key = Enum.KeyCode.C, layout = "CrewButton" },
 }
 local MOTION_KEY = Enum.KeyCode.V
+-- The key for the "Show what I missed" button (see buildMissedButton).
+local MISSED_KEY = Enum.KeyCode.M
+-- A finished mowing row gets a stamp over it (the art's "Job Complete!", the only stamp that says
+-- done), this tall, with this many sparkles round it.
+local DONE_STAMP_HEIGHT = 40
+local DONE_SPARKLES = 5
 -- The columns down each side are full size on screens at least `fullHeight` tall (in pixels), and
 -- shrink on shorter ones (phones held sideways), down to `minScale`, or further (to `tightScale`)
 -- if that's what it takes to fit everything in a column on the screen. A piece taken out of its
@@ -388,11 +397,35 @@ local function updateCurbAppeal()
 	end
 end
 
+-- Makes room at the left of a Menu-style button with a glyph for the key that does the same, and on
+-- a keyboard shows the key there, in a badge (the glyph goes after it).
+local function addKeyBadge(button: TextButton, key: Enum.KeyCode)
+	local keyboard = UserInputService.KeyboardEnabled
+	local iconRoom = if button:FindFirstChild("Icon") then 26 else 0
+	local left = if keyboard then KEY_ROOM else 10
+	UI.new("UIPadding", { PaddingLeft = UDim.new(0, left), PaddingRight = UDim.new(0, 8), Parent = button })
+	if keyboard then
+		local badge = UI.sliced("KeyBadge", {
+			AnchorPoint = Vector2.new(0, 0.5),
+			Position = UDim2.new(0, 6 - left - iconRoom, 0.5, 0),
+			Size = UDim2.fromOffset(32, 32),
+			ZIndex = 3,
+			Parent = button,
+		}, { color = UI.Colors.Ink, transparency = 0.3, radius = 6 })
+		UI.heading(UserInputService:GetStringForKeyCode(key), {
+			Size = UDim2.fromScale(1, 1),
+			TextXAlignment = Enum.TextXAlignment.Center,
+			TextSize = 18,
+			ZIndex = 3,
+			Parent = badge,
+		})
+	end
+end
+
 local function buildMenuButtons()
 	local frame = UI.new("Frame", { Name = "Menu", BackgroundTransparency = 1 })
 	placeInColumn(frame, "MenuButtons")
 
-	local keyboard = UserInputService.KeyboardEnabled
 	for _, menu in MENUS do
 		local button = UI.button(menu.name, function()
 			UI.toggle(menu.name)
@@ -403,28 +436,9 @@ local function buildMenuButtons()
 			Parent = frame,
 		})
 		UI.keepPlaced(button, menu.layout)
-		-- Room for the key badge on the left (the glyph goes after it).
-		local iconRoom = if button:FindFirstChild("Icon") then 26 else 0
-		local left = if keyboard then KEY_ROOM else 10
-		UI.new("UIPadding", { PaddingLeft = UDim.new(0, left), PaddingRight = UDim.new(0, 8), Parent = button })
-		if keyboard then
-			local badge = UI.sliced("KeyBadge", {
-				AnchorPoint = Vector2.new(0, 0.5),
-				Position = UDim2.new(0, 6 - left - iconRoom, 0.5, 0),
-				Size = UDim2.fromOffset(32, 32),
-				ZIndex = 3,
-				Parent = button,
-			}, { color = UI.Colors.Ink, transparency = 0.3, radius = 6 })
-			UI.heading(UserInputService:GetStringForKeyCode(menu.key), {
-				Size = UDim2.fromScale(1, 1),
-				TextXAlignment = Enum.TextXAlignment.Center,
-				TextSize = 18,
-				ZIndex = 3,
-				Parent = badge,
-			})
-		end
+		addKeyBadge(button, menu.key)
 	end
-	if keyboard then
+	if UserInputService.KeyboardEnabled then
 		-- The mouse is locked to the middle of the screen in first person.
 		local hint = UI.label("Hold Alt for the mouse", {
 			TextSize = 13,
@@ -513,6 +527,32 @@ local function updateGoal()
 	goalBar.set(if goal.need > 0 then have / goal.need else 1)
 end
 
+-- "Show what I missed" -------------------------------------------------------------------------
+
+local missedButton: TextButton
+
+-- Lights up the grass that's still tall on the job's lawn for a few seconds.
+local function showMissed()
+	local folder = GrassController.jobLawnFolder()
+	if folder then
+		GrassController.highlightUncut(folder, GameConfig.MissedSpotsSeconds)
+	end
+end
+
+-- The button under the job tracker, with its key on a keyboard. It's only there late in the
+-- mowing (see updateMissedButton).
+local function buildMissedButton()
+	missedButton = UI.button("Show what I missed", showMissed, {
+		Name = "MissedButton",
+		Style = "Menu",
+		Icon = "Goal",
+		TextXAlignment = Enum.TextXAlignment.Left,
+		Visible = false,
+	})
+	placeInColumn(missedButton, "MissedButton")
+	addKeyBadge(missedButton, MISSED_KEY)
+end
+
 local function onKey(input: InputObject, processed: boolean)
 	-- `processed` is set while typing in chat or a text box. While a scene or the drive cutscene
 	-- has the screen, the HUD is hidden and its keys do nothing.
@@ -524,6 +564,10 @@ local function onKey(input: InputObject, processed: boolean)
 			UI.toggle(menu.name)
 			return
 		end
+	end
+	if input.KeyCode == MISSED_KEY and missedButton.Visible then
+		showMissed()
+		return
 	end
 	if input.KeyCode == MOTION_KEY and CameraController.hasMotion() then
 		local on = not CameraController.isMotionOn()
@@ -770,6 +814,8 @@ local function getTaskRow(taskName: string, order: number)
 	})
 	local bar = UI.bar({ Position = UDim2.fromOffset(x, 22), Size = UDim2.new(1, -x, 0, 12), Parent = frame })
 
+	-- updateJob adds `fraction` (how done it was at the last update, so it can tell when it's just
+	-- been finished) and celebrate adds `stamp`.
 	row = { frame = frame, label = label, bar = bar, flag = flag }
 	taskRows[taskName] = row
 	layoutTaskRow(row)
@@ -794,6 +840,40 @@ local function clearTaskRows()
 		row.frame:Destroy()
 	end
 	table.clear(taskRows)
+end
+
+-- A share (0-1) as a whole percent, rounded down so 100% means all of it. The nudge keeps a share
+-- like 0.29, which times 100 comes to 28.999999999999996, from reading 28.
+local function percentText(share: number): string
+	return `{math.floor(share * 100 + 1e-6)}%`
+end
+
+-- Chimes, and thumps the "done" stamp down over a to-do's row (it fades by itself).
+local function celebrate(row)
+	Sounds.play(workspace.CurrentCamera, "LawnDone", 0.8)
+	if not row.stamp then
+		row.stamp = UI.stamp(row.frame, { JobComplete = "Job Complete!" }, DONE_STAMP_HEIGHT)
+	end
+	row.stamp.flash("JobComplete", nil, DONE_SPARKLES)
+end
+
+-- Whether the "Show what I missed" button shows: while the job tracker does, from the time a
+-- mowing to-do (the one with a percent, of what the job requires) is MissedSpotsFrom done until it
+-- counts as finished, and only while there's a lawn to light up: one on a job site, near you and
+-- drawn as a surface (the simple renderer has nothing to tint). Where you are and what's drawn
+-- change without a job update, so the 0.25 s loop in Start checks again.
+local function updateMissedButton()
+	local job = ClientState.job
+	local show = false
+	if job and job.tasks and tracker.Visible and GrassController.jobLawnFolder() then
+		for _, info in job.tasks do
+			if info.percent and info.percent >= GameConfig.MissedSpotsFrom and info.done < info.needed then
+				show = true
+				break
+			end
+		end
+	end
+	missedButton.Visible = show
 end
 
 -- The pay breakdown ------------------------------------------------------------------------------
@@ -977,6 +1057,7 @@ local function updateJob()
 	if not job then
 		tracker.Visible = false
 		clearTaskRows()
+		updateMissedButton()
 		updateCurbAppeal()
 		return
 	end
@@ -1025,13 +1106,23 @@ local function updateJob()
 
 	if not job.tasks then
 		clearTaskRows()
+		updateMissedButton()
 		return
 	end
 	for order, info in job.tasks do
 		local row = getTaskRow(info.task, order)
 		local fraction = if info.needed > 0 then info.done / info.needed else 1
-		setTaskRow(row, `{info.label}  {info.done}/{info.needed}`, fraction, if fraction >= 1 then "Money" else "Grass")
+		-- Mowing says how much of the lawn is cut; the other to-dos count what's done.
+		local progress = if info.percent then percentText(info.percent) else `{info.done}/{info.needed}`
+		setTaskRow(row, `{info.label}  {progress}`, fraction, if fraction >= 1 then "Money" else "Grass")
+		-- Finishing the mowing gets a chime and a stamp, once. A row that's first seen finished (you
+		-- joined a job that was already there) doesn't: it has to be seen not done first.
+		if info.percent and row.fraction and row.fraction < 1 and fraction >= 1 then
+			celebrate(row)
+		end
+		row.fraction = fraction
 	end
+	updateMissedButton()
 	-- Junk hidden in the grass: how much has been found (it costs if it's left, or run over).
 	local debris = job.debris
 	if debris and debris.total > 0 then
@@ -1054,6 +1145,7 @@ function HudController:Start()
 	buildGoal()
 	buildCurbAppeal()
 	buildTracker()
+	buildMissedButton()
 	buildCondition()
 
 	ClientState.Changed:Connect(function(key)
@@ -1076,6 +1168,7 @@ function HudController:Start()
 			updateTimer()
 			updateCondition()
 			updateCurbAppeal()
+			updateMissedButton()
 		end
 	end)
 

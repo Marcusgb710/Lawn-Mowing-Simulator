@@ -11,7 +11,11 @@
 -- Riding mowers aren't held at all: they're welded under the player, who sits on them and
 -- drives them around like walking. Push mowers and other walk-behind machines are held low
 -- enough that their wheels touch the ground. Tools say whether they're working with a "Working"
--- attribute, so ToolFxController can spin blades and spools.
+-- attribute, so ToolFxController can spin blades and spools. A mower cuts grass by sweeping its
+-- deck from where it was last tick to where it is now (see Lawn:Sweep), and says whether that
+-- cut any with a "Cutting" attribute: its clippings fly, and it slows down, only then. Its "Mows"
+-- attribute says whether it could cut where it is, cut or not: its player's client paints ahead
+-- of the server's swaths while it's set (see GrassController).
 --
 -- Tools wear out as they work (fuel, tires, blades, trimmer line; see Maintenance.luau). Their
 -- condition is copied onto the Tool as attributes (Fuel, Pressure, Flat, Sharpness, Line,
@@ -37,8 +41,6 @@ local DataService = require(script.Parent.DataService)
 local HomeLawnService = require(script.Parent.HomeLawnService)
 local JobService = require(script.Parent.JobService)
 
--- How far in front of the player a tool does its work.
-local REACH_OFFSET = 2
 -- Machines that roll on the ground: held so their lowest point sits on it.
 local GROUNDED = { FloorManual = true, FloorEngine = true, Bay = true }
 -- How far behind the rider a towed attachment works.
@@ -46,7 +48,7 @@ local TOW_DISTANCE = 6
 
 -- Particle color by what the tool does (its first verb).
 local FX_COLORS = {
-	Mow = Color3.fromRGB(110, 190, 70),
+	Mow = Color3.fromRGB(196, 240, 120),
 	Trim = Color3.fromRGB(150, 170, 50),
 	Edge = Color3.fromRGB(110, 80, 50),
 	Rake = Color3.fromRGB(210, 120, 40),
@@ -62,6 +64,9 @@ local FX_COLORS = {
 	Seed = Color3.fromRGB(200, 180, 120),
 }
 local DEFAULT_FX_COLOR = Color3.fromRGB(120, 90, 60)
+-- Where a reel mower's clippings come out of it: just behind. A motorized mower throws them out
+-- the right side of its deck instead (see addFx).
+local REAR_CHUTE = Vector3.new(0, 0, 0.5)
 
 local ToolService = {}
 
@@ -77,6 +82,29 @@ local withheld = {}
 local RAGGED_BELOW = 0.8
 -- [Tool] = os.clock() a mower that hit something hidden in the grass starts again
 local stalledUntil = setmetatable({}, { __mode = "k" })
+-- [Tool] = where a mower's deck was at its last tick, for as long as it has run without a break:
+-- its next sweep goes from there to where the deck is now.
+local lastDeck = setmetatable({}, { __mode = "k" })
+-- [Tool] = true while lastDeck is held where it is because junk stopped the mower's sweep
+local deckHeld = setmetatable({}, { __mode = "k" })
+-- A deck that moved less than this since the last tick (studs along the ground) is standing still.
+-- Sweeping a sliver that short would turn the deck to face wherever the jitter pointed, and flip
+-- its orientation every tick.
+local STANDING_DECK = 0.05
+-- A mower starting afresh or standing still cuts as if it had just come this far (studs) the way
+-- its player faces, so the deck's rectangle lies along that way and not along +Z, as a sweep that
+-- went nowhere does (see LawnGrid.heading).
+local START_SLIVER = 0.1
+-- A mower's deck can't have gone further in one tick than the mower can walk: its walk speed times
+-- the time since the last tick, SWEEP_SLACK times over, plus SWEEP_GRACE studs. (A lag spike is
+-- still bounded: the time since the last tick grows with it.) A deck that is further than that
+-- from where it was has jumped: a client owns where its character is, and could teleport it.
+local SWEEP_SLACK = 3
+local SWEEP_GRACE = 2
+-- A deck held at junk lets go once it is this far (studs along the ground) from where it was held,
+-- and starts afresh where it is, without sweeping back across the junk: the junk costs about its
+-- own width of uncut grass, not as much as the player keeps walking.
+local HOLD_RELEASE = 1.5
 
 -- Snips of hand shears land where your aim crosses this high above your feet (about the top of
 -- tall grass, which is what you see when you aim at it).
@@ -109,6 +137,16 @@ local function syncCondition(tool: Instance, condition)
 	end
 end
 
+-- Copies onto a mower whether its blade is dull enough to tear the grass (RAGGED_BELOW), so its
+-- player's client leaves that cut to the server's swaths instead of painting a clean strip ahead of
+-- them (see GrassController). Only moves when it changes.
+local function syncRagged(tool: Instance, quality: number)
+	local ragged = quality < RAGGED_BELOW
+	if tool:GetAttribute("Ragged") ~= ragged then
+		tool:SetAttribute("Ragged", ragged)
+	end
+end
+
 local function getHumanoid(player: Player): Humanoid?
 	local character = player.Character
 	return character and character:FindFirstChildOfClass("Humanoid")
@@ -120,33 +158,94 @@ local function toolBase(tool: Tool): BasePart?
 	return if base and base:IsA("BasePart") then base else nil
 end
 
-local function setFx(tool: Tool, enabled: boolean)
+local function isMower(tool: Tool): boolean
+	return tool:GetAttribute("Category") == "Mower"
+end
+
+-- Turns the tool's clippings (its WorkFx emitter) on or off.
+local function setEmitter(tool: Tool, enabled: boolean)
 	local base = toolBase(tool)
-	local emitter = base and base:FindFirstChild("WorkFx")
+	-- A mower's hangs off its Chute attachment (see addFx); everything else's is on the base.
+	local holder = base and (base:FindFirstChild("Chute") or base)
+	local emitter = holder and holder:FindFirstChild("WorkFx")
 	if emitter and emitter:IsA("ParticleEmitter") and emitter.Enabled ~= enabled then
 		emitter.Enabled = enabled
+	end
+end
+
+-- Whether a mower's last sweep cut any grass: its clippings fly only then, so it's the mowers'
+-- WorkFx that follows "Cutting" instead of "Working". Only mowers have it.
+local function setCutting(tool: Tool, cutting: boolean)
+	if not isMower(tool) then
+		return
+	end
+	if tool:GetAttribute("Cutting") ~= cutting then
+		tool:SetAttribute("Cutting", cutting)
+	end
+	setEmitter(tool, cutting)
+end
+
+-- Whether a mower's deck is on a lawn it can mow and this tick's sweep went ahead, whether or not
+-- it cut anything: its player's client paints ahead of the server while it is (see
+-- GrassController), so a pass shows from its first stud. Only mowers have it.
+local function setMows(tool: Tool, mows: boolean)
+	if isMower(tool) and tool:GetAttribute("Mows") ~= mows then
+		tool:SetAttribute("Mows", mows)
+	end
+end
+
+local function setFx(tool: Tool, enabled: boolean)
+	if not isMower(tool) then
+		setEmitter(tool, enabled)
 	end
 	if tool:GetAttribute("Working") ~= enabled then
 		tool:SetAttribute("Working", enabled)
 	end
+	if not enabled then
+		setCutting(tool, false)
+		setMows(tool, false)
+	end
 end
 
-local function addFx(tool: Tool, verb: string?)
+-- The tool stopped working, or can't right now: its effects go off, and a mower doesn't mow (both
+-- through setFx). A mower forgets where its deck was, so when it starts again it doesn't cut a line
+-- across the gap.
+local function stopWork(tool: Tool)
+	lastDeck[tool] = nil
+	deckHeld[tool] = nil
+	setFx(tool, false)
+end
+
+local function addFx(tool: Tool, item)
 	local handle = toolBase(tool)
-	if not handle or handle:FindFirstChild("WorkFx") then
+	if not handle or handle:FindFirstChild("WorkFx", true) then
 		return
 	end
 	local emitter = Instance.new("ParticleEmitter")
 	emitter.Name = "WorkFx"
 	emitter.Enabled = false
-	emitter.Color = ColorSequence.new(verb and FX_COLORS[verb] or DEFAULT_FX_COLOR)
+	emitter.Color = ColorSequence.new(item.verbs[1] and FX_COLORS[item.verbs[1]] or DEFAULT_FX_COLOR)
 	emitter.Size = NumberSequence.new(0.25)
 	emitter.Lifetime = NumberRange.new(0.3, 0.6)
 	emitter.Rate = 40
 	emitter.Speed = NumberRange.new(4, 8)
 	emitter.SpreadAngle = Vector2.new(60, 60)
 	emitter.Acceleration = Vector3.new(0, -30, 0)
-	emitter.Parent = handle
+	if item.category == "Mower" then
+		-- The clippings leave where the deck throws them, and only a short way: out the right side of
+		-- a motorized mower's deck, just behind a reel mower.
+		local behind = item.motorized == false
+		local chute = Instance.new("Attachment")
+		chute.Name = "Chute"
+		chute.Position = if behind then REAR_CHUTE else Vector3.new(item.radius, 0, 0)
+		chute.Parent = handle
+		emitter.Speed = NumberRange.new(6, 10)
+		emitter.SpreadAngle = Vector2.new(20, 20)
+		emitter.EmissionDirection = if behind then Enum.NormalId.Back else Enum.NormalId.Right
+		emitter.Parent = chute
+	else
+		emitter.Parent = handle
+	end
 end
 
 -- Lowest point of a tool, in studs below `frame`.
@@ -302,7 +401,7 @@ local function hookTool(player: Player, tool: Tool, item)
 
 	tool.Unequipped:Connect(function()
 		running[tool] = nil
-		setFx(tool, false)
+		stopWork(tool)
 		if Tools.hasVerb(item, "Haul") then
 			JobService:PutAway(player)
 		end
@@ -320,7 +419,7 @@ local function hookTool(player: Player, tool: Tool, item)
 		end)
 		tool.Deactivated:Connect(function()
 			running[tool] = nil
-			setFx(tool, false)
+			stopWork(tool)
 		end)
 	end
 
@@ -370,7 +469,7 @@ local function makeTool(player: Player, data, item, height: number?, atJob: bool
 	elseif height and GROUNDED[item.sizeClass] then
 		groundGrip(tool, height)
 	end
-	addFx(tool, item.verbs[1])
+	addFx(tool, item)
 	hookTool(player, tool, item)
 	return tool
 end
@@ -521,6 +620,42 @@ local function applyWork(
 	return HomeLawnService:ApplyWork(player, position, radius, toolId, amount, options)
 end
 
+-- A mower's deck, `halfWidth` studs either side, sweeping from one spot to another this tick (world
+-- studs). Says whether it cut any grass, what junk hidden in it the mower chewed up, whether junk
+-- stopped it short, and whether the mower can mow the lawn at all.
+local function sweep(
+	player: Player,
+	atJob: boolean,
+	fromX: number,
+	fromZ: number,
+	toX: number,
+	toZ: number,
+	halfWidth: number,
+	toolId: string,
+	options
+): (boolean, { any }?, boolean, boolean)
+	if atJob then
+		return JobService:Sweep(player, fromX, fromZ, toX, toZ, halfWidth, toolId, options)
+	end
+	return HomeLawnService:Sweep(player, fromX, fromZ, toX, toZ, halfWidth, toolId, options)
+end
+
+-- A snip of hand shears on the grass within `radius` of (x, z), in world studs.
+local function snipAt(
+	player: Player,
+	atJob: boolean,
+	x: number,
+	z: number,
+	radius: number,
+	toolId: string,
+	options
+): (boolean, { any }?)
+	if atJob then
+		return JobService:SnipAt(player, x, z, radius, toolId, options)
+	end
+	return HomeLawnService:SnipAt(player, x, z, radius, toolId, options)
+end
+
 -- The Truck menu reads the profile, so send it when something new goes wrong with a tool.
 local function noteWarnings(player: Player, tool: Tool, item, condition, data)
 	local warnings = table.concat(Maintenance.warnings(item, condition), ",")
@@ -555,7 +690,8 @@ end
 -- One snip of hand shears, aimed along `direction`: which way the player's looking, the only thing
 -- the client says. The server checks they're holding shears, that it isn't sooner than the shears'
 -- rhythm allows, and where the snip lands: where their aim crosses grass-top height, within the
--- shears' reach of their eyes, with nothing solid in the way. Then the one thing nearest there
+-- shears' reach of their eyes, with nothing solid in the way. Then the grass within a stud of
+-- there is snipped (see Lawn:SnipAt) or, where there's none left to cut, the one thing nearest
 -- gets cut (see Lawn:ApplyWork), and the shears wear as they cut.
 local function snip(player: Player, direction: unknown)
 	if typeof(direction) ~= "Vector3" then
@@ -620,13 +756,19 @@ local function snip(player: Player, direction: unknown)
 	local point = eyes + direction * distance
 
 	local speed, quality = Maintenance.effects(condition)
-	local cut = applyWork(player, atJob, point, config.radius, item.id, config.work * speed, {
+	local options = {
 		damagesHazards = Tools.damagesHazards(item),
 		snip = true,
 		seconds = config.interval,
 		qualityScale = quality,
 		ragged = quality < RAGGED_BELOW,
-	})
+	}
+	-- The grass around the snip goes first. Where there's none left to cut, the snip goes to
+	-- whatever else the shears reach (a weed, a flower), the one thing nearest.
+	local cut = snipAt(player, atJob, point.X, point.Z, GameConfig.SnipRadius, item.id, options)
+	if not cut then
+		cut = applyWork(player, atJob, point, config.radius, item.id, config.work * speed, options)
+	end
 	local perks = Premium.perksFor(data.premium, item.id)
 	Maintenance.wear(item, condition, config.interval, false, false, cut == true, rng:NextNumber(), perks)
 	syncCondition(tool, condition)
@@ -646,6 +788,27 @@ local function snip(player: Player, direction: unknown)
 	end
 end
 
+-- Your walk speed while you hold a tool: soft tires slow you down, and so does a mower cutting
+-- through grass. Only moves once it's off by enough to matter.
+local function applyWalkSpeed(tool: Tool, humanoid: Humanoid, item, condition, cutting: boolean)
+	if not item.walkSpeed or tool.Parent ~= humanoid.Parent then
+		return
+	end
+	local walkSpeed = item.walkSpeed
+		* Maintenance.tireFactor(condition)
+		* (if cutting then GameConfig.CuttingSlowdown else 1)
+	if math.abs(humanoid.WalkSpeed - walkSpeed) > 0.1 then
+		humanoid.WalkSpeed = walkSpeed
+	end
+end
+
+-- The tool can't work right now (broken down, stalled, or off the job): its effects go off, and so
+-- does the slowdown from cutting, since it isn't.
+local function haltWork(tool: Tool, humanoid: Humanoid, item, condition)
+	stopWork(tool)
+	applyWalkSpeed(tool, humanoid, item, condition, false)
+end
+
 local function workTick(elapsed: number)
 	for tool in running do
 		local character = tool.Parent
@@ -654,20 +817,22 @@ local function workTick(elapsed: number)
 		local root = character and character:FindFirstChild("HumanoidRootPart")
 		if not (player and humanoid and root and root:IsA("BasePart")) or humanoid.Health <= 0 then
 			running[tool] = nil
+			lastDeck[tool] = nil
+			deckHeld[tool] = nil
 			continue
 		end
-		-- Off the job, tools only work on your own lawn: driving a ride-on or carrying a mower
-		-- around the business does no work and no wear.
-		local atJob = JobService:IsAtJobSite(player)
-		if not (atJob or HomeLawnService:CanWork(player, tool:GetAttribute("ItemId"))) then
-			setFx(tool, false)
-			continue
-		end
-
 		local itemId = tool:GetAttribute("ItemId")
 		local item = Tools.get(itemId)
 		local data = DataService:Get(player)
 		local condition = data and data.condition[itemId] or {}
+		-- Off the job, tools only work on your own lawn: driving a ride-on or carrying a mower
+		-- around the business does no work and no wear.
+		local atJob = JobService:IsAtJobSite(player)
+		if not (atJob or HomeLawnService:CanWork(player, itemId)) then
+			haltWork(tool, humanoid, item, condition)
+			continue
+		end
+
 		local moving = humanoid.MoveDirection.Magnitude > 0.1
 
 		-- Out of fuel, a flat, no line or a wrecked engine: it just won't go. Say so once.
@@ -679,34 +844,30 @@ local function workTick(elapsed: number)
 			end
 		end
 		if blocker then
-			setFx(tool, false)
+			haltWork(tool, humanoid, item, condition)
 			continue
 		end
 		-- It hit something hidden in the grass: it catches again in a moment.
 		if isStalled(tool) then
-			setFx(tool, false)
+			haltWork(tool, humanoid, item, condition)
 			continue
 		end
 		if item.motorized == false and not moving then
-			setFx(tool, false)
+			haltWork(tool, humanoid, item, condition)
 			continue
 		end
 
-		-- Soft tires slow you down; a dull blade cuts slower and rougher.
+		-- Soft tires slow you down, and so does cutting through grass; a dull blade cuts slower and
+		-- rougher.
 		local speed, quality = Maintenance.effects(condition)
-		if item.walkSpeed and tool.Parent == character then
-			local walkSpeed = item.walkSpeed * Maintenance.tireFactor(condition)
-			if math.abs(humanoid.WalkSpeed - walkSpeed) > 0.1 then
-				humanoid.WalkSpeed = walkSpeed
-			end
-		end
+		applyWalkSpeed(tool, humanoid, item, condition, tool:GetAttribute("Cutting") == true)
 
 		-- While it tows, a ride-on's own deck is up: the attachment behind does the work.
 		local towedId = tool:GetAttribute("Towing")
-		local cut, hits = false, nil
+		local cut, hits, mows = false, nil, false
 		if not towedId then
-			local position = root.Position + root.CFrame.LookVector * REACH_OFFSET
-			cut, hits = applyWork(player, atJob, position, item.radius, itemId, item.power * elapsed * speed, {
+			local front = root.Position + root.CFrame.LookVector * GameConfig.DeckOffset
+			local options = {
 				damagesHazards = Tools.damagesHazards(item),
 				quiet = item.use == "Passive" and not moving,
 				moving = moving,
@@ -715,12 +876,57 @@ local function workTick(elapsed: number)
 				ragged = quality < RAGGED_BELOW,
 				-- An engine-driven blade runs over junk in the grass instead of stopping at it.
 				strikes = item.motorized == true,
-			})
+			}
+			if item.category == "Mower" then
+				-- The deck sweeps from where it was last tick to where it is now, so nothing between
+				-- the two is skipped however fast it goes. One that has barely moved stands where it
+				-- was (and keeps standing until it has really gone somewhere). One that has jumped
+				-- further than the mower can walk, or has been held at junk and then gone on, starts afresh
+				-- instead of cutting across the gap.
+				local previous = lastDeck[tool]
+				local step = if previous then Vector2.new(front.X - previous.X, front.Z - previous.Z).Magnitude else 0
+				local farthest = (item.walkSpeed or GameConfig.DefaultWalkSpeed) * elapsed * SWEEP_SLACK + SWEEP_GRACE
+				if step > farthest or (deckHeld[tool] and step > HOLD_RELEASE) then
+					previous = nil
+				end
+				local from = previous or front
+				local to = if previous and step < STANDING_DECK then previous else front
+				if not previous or step < STANDING_DECK then
+					-- A fresh start, or standing still: a sliver of a sweep up to where the deck is, the
+					-- way the player faces.
+					local look = root.CFrame.LookVector
+					local flat = Vector3.new(look.X, 0, look.Z)
+					if flat.Magnitude > 1e-3 then
+						from = to - flat.Unit * START_SLIVER
+					end
+				end
+				local stopped, fits
+				cut, hits, stopped, fits =
+					sweep(player, atJob, from.X, from.Z, to.X, to.Z, item.radius, itemId, options)
+				-- Junk holding the deck stops it as surely as a stall: nothing to paint ahead.
+				mows = fits == true and not stopped
+				-- Junk stopped the sweep short: the deck is held where it began, so the next tick sweeps
+				-- from there and is stopped by the same junk, instead of starting past it and leaving
+				-- the cells in between uncut. Until it has gone HOLD_RELEASE from there (above).
+				if not previous or (step >= STANDING_DECK and not stopped) then
+					lastDeck[tool] = front
+					deckHeld[tool] = nil
+				elseif stopped then
+					deckHeld[tool] = true
+				end
+			else
+				cut, hits = applyWork(player, atJob, front, item.radius, itemId, item.power * elapsed * speed, options)
+			end
 		end
+		setCutting(tool, cut == true)
+		setMows(tool, mows)
 		local premium = data and data.premium
 		local perks = Premium.perksFor(premium, itemId)
 		Maintenance.wear(item, condition, elapsed, true, moving, cut == true, rng:NextNumber(), perks)
 		strike(tool, condition, hits, perks)
+		if isMower(tool) then
+			syncRagged(tool, quality)
+		end
 		syncCondition(tool, condition)
 		noteWarnings(player, tool, item, condition, data)
 

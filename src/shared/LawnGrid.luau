@@ -1,13 +1,16 @@
--- How a lawn's grass tiles are laid out and shared between server and client.
+-- How a lawn's grass cells are laid out and shared between server and client.
 --
--- The server decides which tiles are mowed and keeps that in a "Grass" folder inside each job
--- site, as attributes:
---   Origin    Vector3  front-left corner of the lawn
---   TileSize  number   studs per tile
---   Columns   number
---   Rows      number
---   State     string   one character per tile (see below), column by column
--- Each client draws the grass itself (see GrassController), so the server never makes grass parts.
+-- A lawn is a grid of square cells, one stud on a side, kept in a "Grass" folder inside each job
+-- site. Its Origin (Vector3), CellSize, Columns and Rows attributes place the grid in the world, and
+-- TallScale says how tall the uncut grass stands. The cells' states stay on the server (see
+-- LawnService): clients draw the grass themselves (see GrassController) from the swaths the server
+-- sends, so the server never makes grass parts.
+--
+-- Cells are counted column by column. In lawn-local studs (the origin is the lawn's front-left
+-- corner), the cell at (column, row) covers x from column to column + 1 and z from row to row + 1,
+-- so its center is (column + 0.5, row + 0.5). A cell is cut when its center is under the mower.
+--
+-- Each cell is one of the states below, written as a single character.
 
 local LawnGrid = {}
 
@@ -15,28 +18,15 @@ LawnGrid.TALL = "0"
 LawnGrid.MOWED = "1"
 -- Mowed with a dull blade: short, but torn and ragged.
 LawnGrid.RAGGED = "2"
--- No grass here (a flower patch or gnome sits on this tile).
+-- No grass here (a flower patch or gnome sits on this cell).
 LawnGrid.EMPTY = "-"
--- Tall grass partly cut (a mower working over a tile, or shears snipping it a bit at a time): a
--- quarter, half and three quarters of the way down.
-LawnGrid.PARTLY_CUT = { "3", "4", "5" }
 
--- The state for tall grass `fraction` (0-1) of the way cut, in quarters: tall until the first
--- quarter's done.
-function LawnGrid.partlyCut(fraction: number): string
-	local quarters = math.clamp(math.floor(fraction * 4), 0, 3)
-	return if quarters == 0 then LawnGrid.TALL else LawnGrid.PARTLY_CUT[quarters]
-end
-
--- How much of a tile's tall grass is still standing: 1 when it's uncut, down to 0.25 when it's
--- three quarters cut. Nil when it isn't tall grass.
-function LawnGrid.standing(state: string): number?
-	if state == LawnGrid.TALL then
-		return 1
-	end
-	local quarters = table.find(LawnGrid.PARTLY_CUT, state)
-	return if quarters then 1 - quarters / 4 else nil
-end
+-- A deck that has barely moved has no direction to speak of: treat it as standing still.
+local BARELY_MOVED = 1e-6
+-- The deck's cut reaches this far past where it started and where it ended, so a mower standing
+-- still cuts a deck-wide strip two studs long, along the way it faces (+Z).
+-- Clients extend the swaths they paint by the same amount at each end.
+LawnGrid.DeckReach = 1
 
 function LawnGrid.index(column: number, row: number, rows: number): number
 	return column * rows + row + 1
@@ -46,9 +36,118 @@ function LawnGrid.cell(index: number, rows: number): (number, number)
 	return (index - 1) // rows, (index - 1) % rows
 end
 
--- Center of a tile, on the ground.
-function LawnGrid.center(origin: Vector3, tileSize: number, column: number, row: number): Vector3
-	return origin + Vector3.new(column * tileSize + tileSize / 2, 0, row * tileSize + tileSize / 2)
+-- Center of a cell, on the ground.
+function LawnGrid.center(origin: Vector3, cellSize: number, column: number, row: number): Vector3
+	return origin + Vector3.new(column * cellSize + cellSize / 2, 0, row * cellSize + cellSize / 2)
+end
+
+-- Which way a deck moving from one spot to another is going, as a unit vector, and how far it
+-- went. One that has barely moved is standing still: it faces +Z and went nowhere.
+function LawnGrid.heading(fromX: number, fromZ: number, toX: number, toZ: number): (number, number, number)
+	local moveX, moveZ = toX - fromX, toZ - fromZ
+	local length = math.sqrt(moveX * moveX + moveZ * moveZ)
+	if length > BARELY_MOVED then
+		return moveX / length, moveZ / length, length
+	end
+	return 0, 1, 0
+end
+
+-- The cells a mower's deck cuts moving in a straight line from one spot to another in a tick, as
+-- indexes in ascending order. The deck is 2 x halfWidth wide, across the way it moves, and a cell
+-- is cut when its center is strictly inside the strip it sweeps. Spots off the lawn are fine: only
+-- cells on the lawn come back.
+function LawnGrid.cellsUnderSweep(
+	columns: number,
+	rows: number,
+	fromX: number,
+	fromZ: number,
+	toX: number,
+	toZ: number,
+	halfWidth: number
+): { number }
+	-- The way the deck is going (a unit vector), and the one across it.
+	local alongX, alongZ, length = LawnGrid.heading(fromX, fromZ, toX, toZ)
+	local acrossX, acrossZ = -alongZ, alongX
+
+	-- The strip's four corners, only to find which cells are worth testing.
+	local minX, maxX, minZ, maxZ = math.huge, -math.huge, math.huge, -math.huge
+	for _, distance in { -LawnGrid.DeckReach, length + LawnGrid.DeckReach } do
+		for _, side in { -halfWidth, halfWidth } do
+			local x = fromX + alongX * distance + acrossX * side
+			local z = fromZ + alongZ * distance + acrossZ * side
+			minX, maxX = math.min(minX, x), math.max(maxX, x)
+			minZ, maxZ = math.min(minZ, z), math.max(maxZ, z)
+		end
+	end
+
+	local found = {}
+	for column = math.max(0, math.floor(minX)), math.min(columns - 1, math.floor(maxX)) do
+		local x = column + 0.5 - fromX
+		for row = math.max(0, math.floor(minZ)), math.min(rows - 1, math.floor(maxZ)) do
+			local z = row + 0.5 - fromZ
+			local along = x * alongX + z * alongZ
+			local across = x * acrossX + z * acrossZ
+			if along > -LawnGrid.DeckReach and along < length + LawnGrid.DeckReach and math.abs(across) < halfWidth then
+				table.insert(found, LawnGrid.index(column, row, rows))
+			end
+		end
+	end
+	return found
+end
+
+-- How far along a sweep from one spot towards another (see heading) a cell's center lies, from
+-- where the deck started.
+function LawnGrid.along(rows: number, fromX: number, fromZ: number, toX: number, toZ: number, index: number): number
+	local alongX, alongZ = LawnGrid.heading(fromX, fromZ, toX, toZ)
+	local column, row = LawnGrid.cell(index, rows)
+	return (column + 0.5 - fromX) * alongX + (row + 0.5 - fromZ) * alongZ
+end
+
+-- Where a sweep from one spot towards another ends when its deck stops at something `stopAt`
+-- studs along the way (see along): short enough that every cell it cuts (cellsUnderSweep to there,
+-- which reaches DeckReach further) has its center more than half a cell before that point. Nil
+-- when the deck can't move before it gets there, so it cuts nothing.
+function LawnGrid.stopBefore(fromX: number, fromZ: number, toX: number, toZ: number, stopAt: number): (number?, number?)
+	local alongX, alongZ, length = LawnGrid.heading(fromX, fromZ, toX, toZ)
+	local reached = math.min(stopAt - 0.5 - LawnGrid.DeckReach, length)
+	-- Any less and it would count as standing still, which cuts the deck's own rectangle along +Z.
+	if reached <= BARELY_MOVED then
+		return nil, nil
+	end
+	return fromX + alongX * reached, fromZ + alongZ * reached
+end
+
+-- The cells a round snip (a pair of shears) cuts: those whose center is within radius of the spot,
+-- as indexes in ascending order.
+function LawnGrid.cellsInCircle(columns: number, rows: number, x: number, z: number, radius: number): { number }
+	local found = {}
+	for column = math.max(0, math.floor(x - radius)), math.min(columns - 1, math.floor(x + radius)) do
+		local dx = column + 0.5 - x
+		for row = math.max(0, math.floor(z - radius)), math.min(rows - 1, math.floor(z + radius)) do
+			local dz = row + 0.5 - z
+			if dx * dx + dz * dz < radius * radius then
+				table.insert(found, LawnGrid.index(column, row, rows))
+			end
+		end
+	end
+	return found
+end
+
+-- A new lawn's cells, all tall except the `blocked` ones (by index), where nothing grows.
+function LawnGrid.mowableMask(columns: number, rows: number, blocked: { [number]: boolean }): { string }
+	local cells = table.create(columns * rows, LawnGrid.TALL)
+	for index, isBlocked in blocked do
+		if isBlocked then
+			cells[index] = LawnGrid.EMPTY
+		end
+	end
+	return cells
+end
+
+-- How many of a task's `total` targets must be done to finish it: `threshold` (0-1) of the ones
+-- that aren't `optional`, rounded up so a share is never finished early.
+function LawnGrid.needed(total: number, optional: number, threshold: number): number
+	return math.ceil((total - optional) * threshold)
 end
 
 return LawnGrid

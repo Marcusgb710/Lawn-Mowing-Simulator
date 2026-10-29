@@ -7,8 +7,8 @@
 --     it's on something you can use, or something that won't work there), and around it the hold
 --     ring that fills while you hold E to work on a tool
 --   * bobs the camera a little as you walk and shakes it slightly while a gas engine you're using
---     is running, unless camera motion is switched off (GameConfig.Camera, or the player's
---     "Camera motion" switch in the Guide, or V)
+--     is running (harder while a mower is cutting thick grass), unless camera motion is switched
+--     off (GameConfig.Camera, or the player's "Camera motion" switch in the Guide, or V)
 --   * turns the camera the way the server says to face after it moves you (back at the shop after
 --     a respawn or a job, at the house on a job, at a new crew's shop): first person would keep
 --     looking wherever it was, and turn your character back to match
@@ -212,6 +212,10 @@ local function updateMotion(deltaTime: number)
 		then
 			local time = os.clock() * SHAKE_SPEED
 			local strength = if riding then SHAKE_RIDING else SHAKE_ON_FOOT
+			-- The engine labours harder in thick grass.
+			if tool:GetAttribute("Cutting") == true then
+				strength *= GameConfig.CuttingShake
+			end
 			offset += Vector3.new(math.noise(time, 0.5), math.noise(0.5, time), 0) * 2 * strength
 		end
 	end
