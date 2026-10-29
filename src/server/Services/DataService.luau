@@ -249,6 +249,8 @@ local function defaultData()
 	}
 	-- The Busy Season's fields (`earned`, `stars`, `milestones`, `levelRewards` and `firstJob`, see
 	-- Config/Season.luau), filled in the way the 12 -> 13 migration does, from the numbers above.
+	-- `levelRewards` is keyed by the level as a string (Season.levelKey), so the save stays a
+	-- dictionary rather than an array with holes.
 	Season.upgradeSave(data)
 	for _, category in Items.Categories do
 		data.owned[category] = {}

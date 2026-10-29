@@ -56,7 +56,7 @@ check(Milestones.List[9].cash == 2500, "500 jobs is capped at $2500")
 check(Milestones.List[10].kind == "Earned" and Milestones.List[10].cash == 0, "earned milestones pay nothing")
 check(Milestones.List[18].id == "Stars:100" and Milestones.List[18].cash == 2500, "100 three-star jobs pays $2500")
 local next = Milestones.next({ jobs = 2, earned = 400, stars = 0 }, { ["Jobs:1"] = true }, 2)
-check(next[1].id == "Jobs:3" and next[2].id == "Earned:500", "nearest first: 3 jobs at 2/3, then $500 at 4/5")
+check(next[1].id == "Earned:500" and next[2].id == "Jobs:3", "nearest first: $500 at 4/5 (0.2 away), then 3 jobs at 2/3 (0.33 away)")
 check(#Milestones.next({ jobs = 2, earned = 400, stars = 0 }, { ["Jobs:1"] = true, ["Jobs:3"] = true }, 1) == 1, "a reached milestone is never offered again")
 local reached = Milestones.reachedBy({ jobs = 3, earned = 600, stars = 1 }, { ["Jobs:1"] = true })
 check(#reached == 3 and reached[1].id == "Jobs:3" and reached[2].id == "Earned:500" and reached[3].id == "Stars:1", "everything met and unreached, in list order")
@@ -96,7 +96,7 @@ Expected: `Season checks passed`, exit 0.
 - Modify: `scripts/check-season.luau` (Season assertions)
 
 **Interfaces:**
-- Produces `Season.upgradeSave(data): nil`, pure, idempotent: fills `data.earned` (number; when missing, `math.max(0, math.floor(data.money or 0))`), `data.stars` (table), `data.milestones` (table), `data.levelRewards` (table; when missing, `{ [level] = true }` for every level from 2 to `GameConfig.levelFromXp(data.xp or 0)`), `data.firstJob` (boolean; when missing, `true` if `(data.jobsCompleted or 0) > 0`, else `false`). Existing values with the right `typeof` are kept.
+- Produces `Season.upgradeSave(data): nil`, pure, idempotent: fills `data.earned` (number; when missing, `math.max(0, math.floor(data.money or 0))`), `data.stars` (table), `data.milestones` (table), `data.levelRewards` (table keyed by string, so the save stays a dictionary; when missing, `levelRewards[Season.levelKey(level)] = true` for every level from 2 to `GameConfig.levelFromXp(data.xp or 0)`, where `Season.levelKey(level: number): string` returns `tostring(level)` and every reader and writer of the table uses it), `data.firstJob` (boolean; when missing, `true` if `(data.jobsCompleted or 0) > 0`, else `false`). Existing values with the right `typeof` are kept.
 - Produces `Season.isFirstTimer(data, hasJob: boolean): boolean`: `data.firstJob == false and (data.jobsCompleted or 0) == 0 and not hasJob`.
 - Produces `DataService:Earn(player, amount: number)`: adds `amount` to `money` and to `earned`, then `Changed`. `AddMoney` stays for sales and refunds and does not touch `earned`.
 - Produces in `snapshot()`: `earned`, `stars`, `milestones`, `levelRewards`, `firstJob`.
@@ -144,7 +144,7 @@ check(Season.isFirstTimer({ firstJob = true, jobsCompleted = 0 }, false) == fals
 **Interfaces:**
 - Consumes `Milestones.reachedBy`, `Levels.rewardFor`, `DataService:Earn`, `DataService.LeveledUp`, `JobService.JobFinished` (its payload gains `stars` in Task 4; until then stars count 0).
 - Produces `SeasonService:CheckMilestones(player)`: builds `stats` from the save (`jobs = jobsCompleted`, `earned`, `stars = number of templates with best 3`), for each `Milestones.reachedBy` result sets `milestones[id] = true`, saves (`DataService:Changed`), pays `cash` with `Earn` when above 0, then fires `MilestoneReached` to the client with `{ id, text, cash }`. Called after every `JobFinished` and after every `Earn` (through a `DataService.Earned` signal fired by `Earn`, so tips and level cash count too), with a re-entrancy guard per player so a pay inside a check does not recurse.
-- Produces `SeasonService:ClaimLevels(player)`: for every level from 2 to the current one not in `levelRewards`, in order: mark claimed, save, pay `cash`, grant `paint` through `PremiumService:GrantPaint`, set the `GoldSign` attribute on the player for `sign` (Task 6 reads it for the stamp; the sign model is slice 2's), fire `LevelReward` with `{ level, text, cash }`. Called on `LeveledUp` and once on join after the data is loaded (`DataService:WaitForData`), which is how old saves and later slices claim.
+- Produces `SeasonService:ClaimLevels(player)`: for every level from 2 to the current one not in `levelRewards` (keyed `levelRewards[Season.levelKey(level)]`), in order: mark claimed, save, pay `cash`, grant `paint` through `PremiumService:GrantPaint`, set the `GoldSign` attribute on the player for `sign` (Task 6 reads it for the stamp; the sign model is slice 2's), fire `LevelReward` with `{ level, text, cash }`. Called on `LeveledUp` and once on join after the data is loaded (`DataService:WaitForData`), which is how old saves and later slices claim.
 
 - [ ] **Step 1: Write the service** following `ContestService.luau`'s shape (Init connects signals, Start does nothing yet).
 - [ ] **Step 2: Wire the load order and the two events.**
@@ -207,7 +207,7 @@ check(Season.isFirstTimer({ firstJob = true, jobsCompleted = 0 }, false) == fals
 - Modify: `src/client/init.client.luau` if controllers are registered there
 
 **Interfaces:**
-- Consumes `Levels.nextRewards`, the profile (`level`, `levelRewards`), the `LevelReward` event, `UI.moment`, the `GoldSign` attribute.
+- Consumes `Levels.nextRewards`, the profile (`level`, `levelRewards`, read through `Season.levelKey`), the `LevelReward` event, `UI.moment`, the `GoldSign` attribute.
 - Produces the panel: a centred `UI.sliced("Panel")` 360 by 420 (scaled by `UI.scaler` to fit a phone like the pay panel does), titled "Levels", with the current level and XP to the next, then the next five rewards as rows ("Level 4   $250"), a close button, key L on keyboard, Escape closes; `LevelsPanel` layout entry with `margin` like `PayBreakdown`.
 - Produces the moment: on `LevelReward`, `UI.moment("LevelUp", "Level {level}!", reward.text)` with the `LevelUp` sound, and `FloatingText` for the cash (Task 7); the old `moments()` Level Up card is removed so a level is announced once.
 

@@ -11,13 +11,23 @@ local GameConfig = require(script.Parent.GameConfig)
 
 local Season = {}
 
+-- The key a level goes under in `levelRewards`. Every reader and writer uses this.
+function Season.levelKey(level: number): string
+	return tostring(level)
+end
+
 -- Fills in what a version 13 save carries and keeps whatever is already there with the right
 -- type, so it is safe on any save and safe to run twice.
 --   earned        what they've made from jobs and rewards; an old save counts the money it has
 --   stars         [job template id] = their best star count on that job
 --   milestones    [milestone id] = true for each one reached
---   levelRewards  [level] = true for each level's reward claimed; an old save has claimed every
---                 level it has reached, so nobody is paid back pay for the past
+--   levelRewards  [Season.levelKey(level)] = true for each level's reward claimed; an old save has
+--                 claimed every level it has reached, so nobody is paid back pay for the past.
+--                 The keys are strings on purpose: levels start at 2, and a table with integer
+--                 keys that don't start at 1 is a sparse array, which the DataStore's JSON turns
+--                 into an array with holes. String keys keep it a dictionary, the way
+--                 story.read keys its threads. Read and write it through levelKey so there is one
+--                 spelling.
 --   firstJob      true once the first-timer opening has run; a save that has finished jobs is
 --                 already past it
 function Season.upgradeSave(data: { [string]: any })
@@ -33,7 +43,7 @@ function Season.upgradeSave(data: { [string]: any })
 	if typeof(data.levelRewards) ~= "table" then
 		local claimed = {}
 		for level = 2, GameConfig.levelFromXp(data.xp or 0) do
-			claimed[level] = true
+			claimed[Season.levelKey(level)] = true
 		end
 		data.levelRewards = claimed
 	end

@@ -170,9 +170,10 @@ local old = { money = 1234.5, xp = 1800, jobsCompleted = 30 } -- level 7
 Season.upgradeSave(old)
 check(old.earned == 1234 and old.firstJob == true, "an old save keeps its money as earned and is not a first-timer")
 for level = 2, 7 do
-	check(old.levelRewards[level] == true, `old save has claimed level {level}`)
+	check(old.levelRewards[tostring(level)] == true, `old save has claimed level {level}`)
 end
-check(old.levelRewards[8] == nil, "nothing above its level is claimed")
+check(old.levelRewards["8"] == nil, "nothing above its level is claimed")
+check(Season.levelKey(12) == "12", "level keys are strings")
 local kept = {
 	money = 10,
 	xp = 0,
@@ -180,7 +181,7 @@ local kept = {
 	earned = 99,
 	stars = { QuickMow = 2 },
 	milestones = { ["Jobs:1"] = true },
-	levelRewards = { [2] = true },
+	levelRewards = { ["2"] = true },
 	firstJob = true,
 }
 Season.upgradeSave(kept)
@@ -188,7 +189,7 @@ check(
 	kept.earned == 99
 		and kept.stars.QuickMow == 2
 		and kept.milestones["Jobs:1"]
-		and kept.levelRewards[2]
+		and kept.levelRewards["2"]
 		and kept.firstJob == true,
 	"upgrade keeps what is there"
 )
@@ -203,7 +204,7 @@ Season.upgradeSave(twice)
 Season.upgradeSave(twice)
 local sameAsOnce = twice.earned == old.earned and twice.firstJob == old.firstJob
 for level = 2, 8 do
-	sameAsOnce = sameAsOnce and twice.levelRewards[level] == old.levelRewards[level]
+	sameAsOnce = sameAsOnce and twice.levelRewards[tostring(level)] == old.levelRewards[tostring(level)]
 end
 check(sameAsOnce, "upgrading twice is upgrading once")
 check(old.money == 1234.5 and old.xp == 1800 and old.jobsCompleted == 30, "the upgrade leaves money, xp and jobs alone")
