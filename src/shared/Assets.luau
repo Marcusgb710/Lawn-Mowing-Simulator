@@ -507,6 +507,7 @@ end
 
 -- Moves a model so its origin lands on `frame`. The origin is 0.5 studs below its "Root" part
 -- (how the model specs build them: Root at (0, 0.5, 0), never rotated), or its pivot without one.
+-- The 0.5 must match CastRig.ROOT_RISE, which GrandmaJune.seatedAt cancels to seat a rig.
 function Assets.placeAt(model: Model, frame: CFrame)
 	local root = model:FindFirstChild("Root")
 	local origin = if root and root:IsA("BasePart") then root.CFrame * CFrame.new(0, -0.5, 0) else model:GetPivot()

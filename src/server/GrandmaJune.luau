@@ -93,14 +93,14 @@ function GrandmaJune.build(ground: CFrame, withPorch: boolean?): (Model, Model?)
 		local part = Assets.storyModel(piece.story) or Assets.prop(piece.placeholder)
 		part.Name = piece.name
 		Assets.anchor(part)
-		-- Her rig sits with its Root on her seat, and plays the Sit animation (its Pose attribute).
-		-- The block placeholder, like the chair, stands on the chair's origin.
+		-- Her rig sits with its Root on her seat. The block placeholder, like the chair, stands on
+		-- the chair's origin.
 		local seated = if part:FindFirstChildOfClass("Humanoid") then seatedAt(seat, piece.story) else nil
 		Assets.placeAt(part, seated or seat)
 		part.Parent = model
-		if seated then
-			NpcAnimator.play(part)
-		end
+		-- A rig plays its Pose attribute (June's is Sit); the chair and the placeholder have no
+		-- Humanoid, so this does nothing for them.
+		NpcAnimator.play(part)
 	end
 
 	local june = model:FindFirstChild("GrandmaJune") :: Model

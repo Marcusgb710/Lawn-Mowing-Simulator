@@ -337,7 +337,6 @@ local function buildTurfKing(lot: CFrame, building: Model): Model
 	Assets.anchor(chad)
 	local _, truckSize = truck:GetBoundingBox()
 	Assets.placeAt(chad, parked * CFrame.new(-truckSize.X / 2, 0, 0) * CHAD_SPOT)
-	NpcAnimator.play(chad)
 	chad.Name = "Chad"
 	chad.Parent = model
 	local anchor = part(model, {

@@ -75,8 +75,8 @@ local function show(act: number)
 		if template then
 			turfKingCopy = template:Clone()
 			turfKingCopy.Parent = yard
-			-- Chad's rig is a copy of the one in ReplicatedStorage, which the server posed
-			-- where nobody sees it, so this screen poses its own.
+			-- Chad's rig is a copy of the one in ReplicatedStorage, which the server doesn't
+			-- pose, so each screen poses its own.
 			local chad = turfKingCopy:FindFirstChild("Chad")
 			if chad and chad:IsA("Model") then
 				NpcAnimator.play(chad)

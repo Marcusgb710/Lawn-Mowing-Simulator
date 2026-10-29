@@ -119,7 +119,8 @@ local function along(path: { Vector3 }, distance: number): (Vector3, Vector3)
 end
 
 -- Walks the two judges along `path`, the second a little behind the first. They play the Walk
--- animation while they're on their way and Idle while they wait their turn or have got there.
+-- animation while they're on their way, at the speed that keeps their legs in step with how fast
+-- they glide (WALK_SPEED), and Idle while they wait their turn or have got there.
 local function walkJudges(path: { Vector3 })
 	stopJudges()
 	if #path < 2 then
@@ -136,7 +137,6 @@ local function walkJudges(path: { Vector3 })
 			end
 		end
 		model.Parent = workspace
-		NpcAnimator.play(model, "Walk")
 		table.insert(judges, model)
 	end
 	local total = 0
@@ -144,11 +144,10 @@ local function walkJudges(path: { Vector3 })
 		total += (path[index + 1] - path[index]).Magnitude
 	end
 	local started = os.clock()
-	-- What each judge is playing, so a pose is only started when it changes.
+	-- What each judge is playing, so a pose is only started when it changes. Nothing at first, so
+	-- the first frame starts the pose each one is in then (the second waits her turn) and no Walk
+	-- is played just to be replaced.
 	local poses: { [Model]: string } = {}
-	for _, model in judges do
-		poses[model] = "Walk"
-	end
 	walking = RunService.RenderStepped:Connect(function()
 		local walked = (os.clock() - started) * WALK_SPEED
 		for index, model in judges do
@@ -159,7 +158,7 @@ local function walkJudges(path: { Vector3 })
 			local pose = if moving then "Walk" else "Idle"
 			if poses[model] ~= pose then
 				poses[model] = pose
-				NpcAnimator.play(model, pose)
+				NpcAnimator.play(model, pose, if moving then NpcAnimator.walkSpeed(WALK_SPEED) else nil)
 			end
 			local facing = if flat.Magnitude > 0 then flat.Unit else Vector3.new(0, 0, -1)
 			Assets.placeAt(model, CFrame.lookAt(position, position + facing))

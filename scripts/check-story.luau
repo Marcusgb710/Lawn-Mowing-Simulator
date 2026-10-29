@@ -7,8 +7,8 @@
 -- (src/shared/Config/Contest.luau), and the nine people's catalog outfits
 -- (src/shared/Config/Cast.luau; scripts/cast-check.py asks the catalog about their ids), and where
 -- CastService puts a rig's Root so it stands on the spot a statue did (src/shared/CastRig.luau), and
--- which pose NpcAnimator picks for a person (src/shared/NpcAnimator.luau). Exits with an error if
--- anything's off.
+-- which pose NpcAnimator picks for a person and how fast the judges' walk plays
+-- (src/shared/NpcAnimator.luau). Exits with an error if anything's off.
 
 local fs = require("@lune/fs")
 local luau = require("@lune/luau")
@@ -630,6 +630,15 @@ end
 -- The judges walk and stop.
 check(NpcAnimator.resolve(Cast.People.NPC_Judge1.pose, "Walk") == "Walk", "a judge can be asked to walk")
 check(NpcAnimator.resolve(Cast.People.NPC_Judge1.pose, "Idle") == "Idle", "a judge can be asked to stand")
+-- The judges' walk plays at the pace they cross the yard: Roblox's R15 walk is made for 14.5
+-- studs a second, so a slower glide plays it slower, in step with the ground.
+check(NpcAnimator.WALK_STUDS_PER_SECOND == 14.5, "the R15 walk is made for 14.5 studs a second")
+check(NpcAnimator.walkSpeed(14.5) == 1, "walking at the pace the animation is made for plays it at full speed")
+check(
+	math.abs(NpcAnimator.walkSpeed(3.2) - 3.2 / 14.5) < 1e-9,
+	"a slower walk plays the animation slower, in proportion"
+)
+check(NpcAnimator.walkSpeed(0) == 0, "standing still plays the walk at no speed")
 
 -- Lines ---------------------------------------------------------------------------------------
 
