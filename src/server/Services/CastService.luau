@@ -8,13 +8,15 @@
 --   Head      an attachment on Root at the middle of the head, for the speech bubbles
 --   Talk      an attachment on Root at the chest, half a stud forward
 -- The name and the health bar are off, the Humanoid doesn't run its state machine, and only the
--- HumanoidRootPart is anchored: the rest stays free so animations can move it (Assets.anchor knows
--- to leave a rig's limbs alone). The rig is named after its id (NPC_Gloria and so on), has a Pose
--- attribute (a key of Cast.Poses, for NpcAnimator), and goes in ReplicatedStorage.Assets.Story,
--- where Assets.story finds it on the server and on every client (the judges are cloned there).
+-- HumanoidRootPart (and, once placed, Root) is anchored: the rest stays free so animations can move
+-- it (Assets.anchor knows to leave a rig's limbs alone). The rig is named after its id (NPC_Gloria
+-- and so on), has a Pose attribute (a key of Cast.Poses, for NpcAnimator), and goes in
+-- ReplicatedStorage.Assets.Story, where Assets.story finds it on the server and on every client (the
+-- judges are cloned there).
 --
 -- Building one needs the catalog, so it can fail (an item taken down, Roblox unreachable): that id
--- gets a warning and no rig, and Assets.story gives its block placeholder instead.
+-- gets a warning and no rig, and Assets.story gives its block placeholder instead. The nine are built
+-- at the same time, since each is a wait on the catalog.
 -- CastService.rig(id) is the finished rig, to clone.
 
 local Players = game:GetService("Players")
@@ -191,8 +193,9 @@ local function build(id: string, person: Cast.Person): Model
 	return rig
 end
 
--- Builds every person's rig, one after the other, before anything that places them runs. Calling
--- it again builds only the ones that don't have a rig yet.
+-- Builds every person's rig, all nine at once, before anything that places them runs. Each one
+-- waits on the catalog, so they are started together and Init returns when the last is done: the
+-- wait is one round trip, not nine. Calling it again builds only the ones that don't have a rig yet.
 function CastService:Init()
 	local ids = {}
 	for id in Cast.People do
@@ -200,15 +203,28 @@ function CastService:Init()
 	end
 	table.sort(ids)
 
+	-- Made here, before any build starts. A build yields only inside CreateHumanoidModelFromDescription,
+	-- and nothing between that call's return and the rig going into this folder yields, so no two
+	-- builds can be in the folder at the same moment.
+	folderIn(folderIn(ReplicatedStorage, "Assets"), "Story")
+
+	local pending = 0
 	for _, id in ids do
 		if not rigs[id] then
-			local ok, result = pcall(build, id, Cast.People[id])
-			if ok then
-				rigs[id] = result
-			else
-				warn(`CastService: {id} could not be built ({result}), so it stays a placeholder`)
-			end
+			pending += 1
+			task.spawn(function()
+				local ok, result = pcall(build, id, Cast.People[id])
+				if ok then
+					rigs[id] = result
+				else
+					warn(`CastService: {id} could not be built ({result}), so it stays a placeholder`)
+				end
+				pending -= 1
+			end)
 		end
+	end
+	while pending > 0 do
+		task.wait()
 	end
 end
 

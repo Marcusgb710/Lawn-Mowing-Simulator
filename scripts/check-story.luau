@@ -521,7 +521,7 @@ for id, who in castPeople do
 		check(description.HeightScale == person.body.heightScale, `{where}: describe loses the height`)
 		check(description.Shirt == (person.shirt or 0), `{where}: describe loses the shirt`)
 		check(
-			description.HairAccessory == (if person.hair then tostring(person.hair) else ""),
+			description.HairAccessory == (if person.hair and person.hair > 0 then tostring(person.hair) else ""),
 			`{where}: describe's hair`
 		)
 	end
@@ -533,6 +533,15 @@ check(typeof(Cast.People.NPC_June_Sitting.seat) == "table", "June's rocker seat 
 check(Cast.describe(Cast.People.NPC_Chad).HatAccessory == "607702162", "Chad wears the baseball cap")
 check(Cast.describe(Cast.People.NPC_Gloria).HairAccessory == "376526888", "Gloria has the straight blonde hair")
 check(Cast.describe(Cast.People.NPC_Gloria).HatAccessory == "", "Gloria wears no hat")
+-- An id of 0 means nothing, as it does for the tshirt, so it never becomes the string "0".
+local noHairOrHat = table.clone(Cast.People.NPC_Chad)
+noHairOrHat.hair = 0
+noHairOrHat.hat = 0
+local noHairOrHatDescription = Cast.describe(noHairOrHat)
+check(
+	noHairOrHatDescription.HairAccessory == "" and noHairOrHatDescription.HatAccessory == "",
+	"describe turns a hair or hat id of 0 into no accessory, not the string 0"
+)
 
 -- The free catalog has no grey hair, so the older people get theirs from `hairColor`.
 for _, id in { "NPC_Gloria", "NPC_June_Sitting", "NPC_June_Standing", "NPC_Edna", "NPC_Judge1" } do

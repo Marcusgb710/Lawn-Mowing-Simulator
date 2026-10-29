@@ -196,18 +196,28 @@ Cast.People = {
 	},
 }
 
+-- An optional id as the description takes it: only an id above 0 is an item, so nil and 0 both
+-- mean nothing (a number for the clothes and the face, a string for the hair and the hat).
+local function idNumber(id: number?): number
+	return if id and id > 0 then id else 0
+end
+
+local function idString(id: number?): string
+	return if id and id > 0 then tostring(id) else ""
+end
+
 -- What to hand a HumanoidDescription for this person: its property names with strings and
 -- numbers, so nothing in it needs Roblox (an id is "" or 0 for nothing). Colors and layered
 -- clothing aren't here: CastService sets them from `person.body.skin`, `person.hairColor` and
 -- `person.layered` once the description exists.
 function Cast.describe(person: Person): { [string]: any }
 	return {
-		HairAccessory = if person.hair then tostring(person.hair) else "",
-		HatAccessory = if person.hat then tostring(person.hat) else "",
-		Face = person.face or 0,
-		Shirt = person.shirt or 0,
-		Pants = person.pants or 0,
-		GraphicTShirt = person.tshirt or 0,
+		HairAccessory = idString(person.hair),
+		HatAccessory = idString(person.hat),
+		Face = idNumber(person.face),
+		Shirt = idNumber(person.shirt),
+		Pants = idNumber(person.pants),
+		GraphicTShirt = idNumber(person.tshirt),
 		HeightScale = person.body.heightScale,
 		WidthScale = person.body.widthScale,
 		HeadScale = person.body.headScale,

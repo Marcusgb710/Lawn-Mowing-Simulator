@@ -304,9 +304,9 @@ flowers, the turf-renovation steps) keeps the **4-stud tile** (`GameConfig.TileS
   texture show through. Each shell stamps one of eight tufts from the tuft sheet, about a stud
   across, at every blade dot instead of drawing a circle. A lawn too far away to draw keeps its bare
   turf, which shows the uncut texture when most of the lawn is still tall at the moment it goes
-  far and the mown one otherwise, so it still reads as lawn. If any of the images is missing or
-  won't load, the lawn is painted in flat colours and dots as before, with one warning, for the
-  session.
+  far and the mown one otherwise, so it still reads as lawn. If the mown, uncut or tuft image is
+  missing or won't load, the lawn is painted in flat colours and dots as before, with one warning,
+  for the session.
 - **Your own mower doesn't wait.** Work ticks are coarser than frames, so a swath that only showed
   up on each tick would appear in chunks behind the deck. The client paints its own mower's strip
   every frame, from where the deck is on screen. The server's swath for it lands on the same

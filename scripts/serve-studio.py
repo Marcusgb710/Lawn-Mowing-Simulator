@@ -40,7 +40,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.send_error(404)
             return
         raw = self.headers.get("Content-Length", "0")
-        if not (raw.isascii() and raw.isdigit()) or int(raw) > MAX_LOG_BYTES:
+        # More than seven digits is over the cap already, and int() refuses a string of thousands.
+        if not (raw.isascii() and raw.isdigit()) or len(raw) > 7 or int(raw) > MAX_LOG_BYTES:
             self.send_error(400, "Bad or oversized Content-Length")
             return
         body = self.rfile.read(int(raw))

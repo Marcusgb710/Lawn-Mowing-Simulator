@@ -205,11 +205,12 @@ overhaul: what is left** and **Before release**. In order:
    steps). The ids go in `src/shared/Config/GrassArt.luau`. Then look at a lawn in Studio with the
    textured path on. It has only been seen in flat colours, because the ids are still 0.
 2. **Make the TurfKing T-shirt.** Create it on the Create page from
-   `art-source/Cast/TurfKing_Tee.png`. It carries a Robux upload fee, so look at the price first;
-   spending it is the owner's call. Put the id in `tshirt` for Chad and Sam_TurfKing in
-   `src/shared/Config/Cast.luau`, then run `lune run scripts/check-story` and
-   `python -I scripts/cast-check.py`. The cast check accepts an item the Big Dink Studios group made
-   whatever its sale state, because the group's own items are always usable by its experience.
+   `art-source/Cast/TurfKing_Tee.png`, as Big Dink Studios (the group). It carries a Robux upload
+   fee, so look at the price first; spending it is the owner's call. Put the id in `tshirt` for
+   Chad and Sam_TurfKing in `src/shared/Config/Cast.luau`, then run
+   `lune run scripts/check-story` and `python -I scripts/cast-check.py`. The cast check accepts an
+   item the Big Dink Studios group made whatever its sale state, because the group's own items are
+   always usable by its experience.
 3. **Work through the model playtest checklist** in TODO.md (tools in hand, a job with the new
    truck and trailer, the story scenes, the grass, and the Galaxy A06 preset for frame time).
 4. **Do batches 5 to 7** (hand and long tools, pro machines, then the four business buildings

@@ -486,6 +486,9 @@ T-shirt.
       road, and the no-image fallback still playable.
 - [ ] Galaxy A06 preset: the shop with every rack full, and a job with everything in view, with the
       frame time next to today's.
+- [ ] A paint job on RustyPickup, WorkPickup and LandscapingTruck, whose body is one mesh, so
+      `Premium.applyPaint` recolours the whole truck. If the tires or the glass take the paint, the
+      remedy is curation (a `parts` rename or a colour-list `body` in the manifest entry), not code.
 
 What to change when one of those fails:
 - A tool's grips or hold: `handle` and `grips` in its manifest entry, then a re-import. Seen
@@ -551,7 +554,10 @@ import, one batch at a time, with `lune run scripts/check-models` and a Play che
 - [ ] Set max players to 12 or fewer (Game Settings → Places). The placeholder town has 12 plots.
 - [ ] **Test on a real phone.** Prompts and tools already use ProximityPrompts and
       `Tool.Activated`, so touch should work, but hold-to-use tools and the carry/load flow need
-      checking. Profile frame rate with grass on screen. The kit makes no device FPS promise.
+      checking. Profile frame rate with grass on screen. The kit makes no device FPS promise. Some
+      manifest entries carry part budgets above the spec's defaults, pending the Galaxy A06 check:
+      GasTrimmer 160, ElectricTrimmer and Brushcutter 200 (the machine default is 120),
+      LandscapeTrailer 100 (80) and House 360 (300).
 - [ ] **Sounds**: the kit has none. The mowers' engine, pull-start and reel whirr and the lawn-done
       chime use free Creator Store ids in `src/shared/Sounds.luau`. Still empty: trimmer, rake and
       blower, cash register, UI clicks, the shears' snip, a blade hitting junk, and setting a tool
@@ -578,8 +584,9 @@ import, one batch at a time, with `lune run scripts/check-models` and a Play che
       mitigations are a `Pixelated` `SamplingMode` on the tint brushes, a box-downscaled mottle and
       pre-shrunk tufts.
 - [ ] **TurfKing T-shirt**: create the T-shirt from `art-source/Cast/TurfKing_Tee.png` on the Create
-      page (Avatar items, T-shirt). It isn't free: Roblox's classic clothing docs list a Robux
-      upload fee (80 at last check), so look at the price before paying. Open Cloud can't make one.
+      page (Avatar items, T-shirt), as Big Dink Studios (the group). It isn't free: Roblox's
+      classic clothing docs list a Robux upload fee (80 at last check), so look at the price before
+      paying. Open Cloud can't make one.
       Then put its id in `tshirt` for Chad and Sam_TurfKing in `src/shared/Config/Cast.luau` (both
       0 now) and run `lune run scripts/check-story` and `python -I scripts/cast-check.py`. The cast
       check accepts an item the Big Dink Studios group made whatever its sale state, because the
@@ -595,6 +602,10 @@ import, one batch at a time, with `lune run scripts/check-models` and a Play che
   `[Rojo-Warn] Ignoring change for instance … as it is unknown to Rojo` every time you change
   something. These come from the MeshPart models Rojo syncs through its fallback path, and they're
   harmless.
+- Two Output warnings show up in every Studio run on this branch: `ContentId rbxassetid://203785492`
+  (asset type does not match) and `rbxassetid://4617908416` (not found). A Lune scan of `assets/`
+  found neither id, so which model, kit piece or part of Studio carries them is unknown. To trace
+  when someone has Studio time.
 - Rojo drops `Model.PrimaryPart` on synced MeshPart models, so code shouldn't rely on it for kit
   assets. Use the pivot, which is set, or find parts by name.
 
