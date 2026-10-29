@@ -9,8 +9,8 @@
 --                   by its file's name.
 --      * keeps one  the one child Model the entry names out of a "set"; the rest are deleted
 --      * cleans     deletes scripts, sounds, effects, cameras, GUIs, humanoids, constraints, motors and body
---                   movers, turns seats into parts, then deletes what the entry's strip list names
---      * fits       anchors everything, turns the front to -Z (and on by the entry's turn), scales to
+--                   movers, and turns seats into parts, after deleting what the entry's strip list names
+--      * fits       anchors everything, turns the front to -Z, then by the entry's turn, scales to
 --                   the entry's fit, and puts the bottom centre on the origin
 --      * adds       the Handle and grips (tools) or the Root, the renames and collision, a truck's body
 --                   (its largest part, named <id>__Body), markers, boxes and synthesised parts. Anything
