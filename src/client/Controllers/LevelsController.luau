@@ -7,8 +7,8 @@
 -- the lawn done), when a scene, the drive or the contest takes the screen, when you sit down at the
 -- shop computer, and when you open one of the menus, since only one window is up at a time. It's
 -- scaled down to fit the screen the way the pay breakdown is (UiLayout's
--- __screen.scaling.LevelsPanel), and on a touch screen it keeps a bigger margin below it, so it
--- stays above Roblox's move stick.
+-- __screen.scaling.LevelsPanel). Centred, it's already clear of Roblox's move stick and jump
+-- button, so a touch screen gets the same margin.
 
 local GuiService = game:GetService("GuiService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -124,8 +124,8 @@ local function render()
 end
 
 -- Sizes the panel to the screen (__screen.scaling.LevelsPanel): the smallest of its biggest scale
--- and what fits the screen's height and width less their margins, with the bigger margin below it
--- on a touch screen, times its own scale in UiLayout.
+-- and what fits the screen's height and width less their margins (the touch height margin is the
+-- same as the other), times its own scale in UiLayout.
 local function fit()
 	local screen = UI.getScreen().AbsoluteSize
 	if screen.X <= 0 or screen.Y <= 0 then

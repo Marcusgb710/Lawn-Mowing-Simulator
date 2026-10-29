@@ -69,16 +69,24 @@ local RAIL_ROWS = 2
 local RAIL_ROW_HEIGHT = 32
 local RAIL_STAMP_HEIGHT = 24
 local RAIL_HOLD = 1.2
+-- The Next chip's line is one line of 10 to 14 px words; past this many characters it drops its
+-- "Next: " so the rest can stay readable.
+local CHIP_LONG_LINE = 24
 -- The pay breakdown's three star slots (a job's stars): each is this big, and the stars it earned
 -- fill in gold one every STAR_STEP seconds, each landing over that time.
 local STAR_GLYPH = "★"
 local STAR_SIZE = 44
 local STAR_STEP = 0.35
+-- Each star's chime is quieter than the default, so up to three ringing together aren't a smudge.
+local STAR_VOLUME = 0.35
 -- The cash pops on the pay panel come this long after it opens, once it has been laid out and
--- scaled to fit (where its total and tip are is only known then). The tip's and the XP's are this
--- many pixels tall, under the cash's.
+-- scaled to fit (where its total and tip are is only known then); its chime doesn't wait. The
+-- tip's and the XP's are this many pixels tall, under the cash's.
 local PAY_POP_DELAY = 0.25
 local SMALL_POP = 16
+-- A level's cash lifts off the level line this long after the level-up arrives, so it doesn't ride
+-- the XP pop off the bar just under it (and lines up with the Level Up moment).
+local LEVEL_POP_DELAY = 0.3
 -- The columns down each side are full size on screens at least `fullHeight` tall (in pixels), and
 -- shrink on shorter ones (phones held sideways), down to `minScale`, or further (to `tightScale`)
 -- if that's what it takes to fit everything in a column on the screen. A piece taken out of its
@@ -628,7 +636,7 @@ local function buildGoal()
 			TextColor3 = UI.Colors.Ink,
 			Parent = frame,
 		})
-		UI.new("UITextSizeConstraint", { MaxTextSize = 15, Parent = label })
+		UI.new("UITextSizeConstraint", { MaxTextSize = 15, MinTextSize = 10, Parent = label })
 		local bar = UI.bar({ Position = UDim2.fromOffset(0, 26), Size = UDim2.new(1, 0, 0, 6), Parent = frame })
 		railRows[index] = { frame = frame, label = label, bar = bar }
 	end
@@ -657,7 +665,7 @@ local function buildNextChip()
 		TextXAlignment = Enum.TextXAlignment.Center,
 		Parent = nextChip,
 	})
-	UI.new("UITextSizeConstraint", { MaxTextSize = 14, Parent = nextChipLabel })
+	UI.new("UITextSizeConstraint", { MaxTextSize = 14, MinTextSize = 10, Parent = nextChipLabel })
 end
 
 -- The `count` milestones nearest to done, never one MilestoneReached has said is reached, which a
@@ -724,7 +732,12 @@ local function updateMilestones()
 	nextChip.Visible = compact and chipMilestone ~= nil
 	if chipMilestone then
 		local _, progress = Goal.milestoneProgress(chipMilestone, if chipHeld then chipMilestone.at else nil)
-		nextChipLabel.Text = `{if chipHeld then "Done" else "Next"}: {chipMilestone.text} {progress}`
+		local line = `{if chipHeld then "Done" else "Next"}: {chipMilestone.text} {progress}`
+		-- A long line would shrink past reading on a phone, so "Next: " goes (the chip says what it is).
+		if not chipHeld and #line > CHIP_LONG_LINE then
+			line = `{chipMilestone.text} {progress}`
+		end
+		nextChipLabel.Text = line
 	end
 end
 
@@ -741,16 +754,17 @@ end
 
 -- A milestone's reached: sparkles and a DONE stamp land on the row it was on, or on the chip on a
 -- short screen, and that shows it done for RAIL_HOLD seconds, about as long as the stamp lasts,
--- before the rail goes on to the next. The art has no stamp that says DONE yet, so it's the Job
--- Complete one, with DONE where there's no art. The caller redraws. Returns what the stamp landed
--- on (the row's frame, or the chip), or nil where it landed on nothing.
+-- before the rail goes on to the next. The stamp is only the words DONE (UI.stampText): the art's
+-- Job Complete stamp would say "Job Complete!" on a milestone like "Earn $500". The caller
+-- redraws. Returns what the stamp landed on (the row's frame, or the chip), or nil where it landed
+-- on nothing.
 local function celebrateMilestone(milestone: Milestone): GuiObject?
 	if shortScreen() then
 		chipHeld = milestone
-		local stamp = chipStamp or UI.stamp(nextChip, { JobComplete = "DONE" }, RAIL_STAMP_HEIGHT)
+		local stamp = chipStamp or UI.stampText(nextChip, "DONE", RAIL_STAMP_HEIGHT)
 		chipStamp = stamp
 		UI.sparkle(nextChip, 5, 22)
-		stamp.flash("JobComplete")
+		stamp.flash("Text")
 		task.delay(RAIL_HOLD, function()
 			if chipHeld == milestone then
 				chipHeld = nil
@@ -777,10 +791,10 @@ local function celebrateMilestone(milestone: Milestone): GuiObject?
 	row.shown = milestone
 	fillRailRow(row, milestone, true)
 	row.frame.Visible = true
-	local stamp = row.stamp or UI.stamp(row.frame, { JobComplete = "DONE" }, RAIL_STAMP_HEIGHT)
+	local stamp = row.stamp or UI.stampText(row.frame, "DONE", RAIL_STAMP_HEIGHT)
 	row.stamp = stamp
 	UI.sparkle(row.frame, 6, 24)
-	stamp.flash("JobComplete")
+	stamp.flash("Text")
 	task.delay(RAIL_HOLD, function()
 		if row.held == milestone then
 			row.held = nil
@@ -802,7 +816,8 @@ end
 
 -- The server's told us a milestone's reached (`info`: its id, its words and the cash it paid). It
 -- rings, and the cash it paid lifts off the row (or the chip) the stamp landed on, or off the money
--- counter where there was no row to land on.
+-- counter where there was no row to land on or it's hidden (on a touch screen the goal's note waits
+-- for the first-job coach and a crew invite).
 local function onMilestoneReached(info: { id: string, text: string, cash: number })
 	pending[info.id] = true
 	local milestone = milestoneById(info.id)
@@ -810,7 +825,10 @@ local function onMilestoneReached(info: { id: string, text: string, cash: number
 	leftRail[info.id] = nil
 	Sounds.playUi("GoalDone")
 	if info.cash > 0 then
-		FloatingText.show(on or money.Frame, `+{Format.money(info.cash)}`)
+		local cash = `+{Format.money(info.cash)}`
+		if not (on and FloatingText.show(on, cash)) then
+			FloatingText.show(money.Frame, cash)
+		end
 	end
 	updateMilestones()
 end
@@ -1314,17 +1332,27 @@ local function showPay(job)
 			SortOrder = Enum.SortOrder.LayoutOrder,
 		}),
 	})
+	-- Each star is a label in the middle of a plain slot: a UIScale grows from the anchor point of
+	-- what it's on, so the pop is on the label, and grows from the star's middle.
 	local slots: { TextLabel } = {}
 	for index = 1, 3 do
+		local slot = UI.new("Frame", {
+			Name = `Slot{index}`,
+			Size = UDim2.fromOffset(STAR_SIZE, STAR_SIZE),
+			BackgroundTransparency = 1,
+			LayoutOrder = index,
+			Parent = starRow,
+		})
 		slots[index] = UI.label(STAR_GLYPH, {
 			Name = `Star{index}`,
-			Size = UDim2.fromOffset(STAR_SIZE, STAR_SIZE),
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Position = UDim2.fromScale(0.5, 0.5),
+			Size = UDim2.fromScale(1, 1),
 			TextSize = 40,
 			FontFace = UI.Fonts.Heavy,
 			TextColor3 = UI.Colors.Disabled,
 			TextXAlignment = Enum.TextXAlignment.Center,
-			LayoutOrder = index,
-			Parent = starRow,
+			Parent = slot,
 		})
 	end
 	local thisPanel = payPanel
@@ -1342,16 +1370,19 @@ local function showPay(job)
 				Scale = 1,
 			}):Play()
 			UI.sparkle(slot, 3, 26)
-			Sounds.playUi("Star")
+			Sounds.playUi("Star", STAR_VOLUME)
 		end
 	end)
-	-- The cash lands: it rings and "+$142" lifts off the total, and "+$12 tip" off the tip line,
-	-- unless the panel's been closed by then or the job paid nothing.
+	-- The cash lands: it rings the instant the panel opens (not when the pop does, so it's clear of
+	-- the first star's sound), and "+$142" lifts off the total, and "+$12 tip" off the tip line,
+	-- once the panel's laid out, unless it's been closed by then. A job that paid nothing is silent.
+	if total > 0 then
+		Sounds.playUi("Cash")
+	end
 	task.delay(PAY_POP_DELAY, function()
 		if payPanel ~= thisPanel or total <= 0 then
 			return
 		end
-		Sounds.playUi("Cash")
 		if tipAmount then
 			FloatingText.show(tipAmount, `+{Format.money(result.tip)} tip`, nil, SMALL_POP)
 		end
@@ -1414,10 +1445,13 @@ end
 -- The server's paid a level's reward (`info`: the level, the line that names what it paid, and the
 -- cash). Level Up! is announced here and only here, with the reward under it.
 local function onLevelReward(info: { level: number, text: string, cash: number })
-	UI.moment("LevelUp", `Level {info.level}!`, if info.text ~= "" then info.text else nil)
+	-- The art's wordmark has no number in it, so the subtitle carries the level too.
+	UI.moment("LevelUp", `Level {info.level}!`, if info.text ~= "" then `Level {info.level}: {info.text}` else nil)
 	Sounds.playUi("LevelUp")
 	if info.cash > 0 then
-		FloatingText.show(levelLabel, `+{Format.money(info.cash)}`)
+		task.delay(LEVEL_POP_DELAY, function()
+			FloatingText.show(levelLabel, `+{Format.money(info.cash)}`)
+		end)
 	end
 end
 
@@ -1482,7 +1516,7 @@ local function updateJob()
 		setCallOffText(if isLeader then "Call off job" else "Leave job")
 	elseif job.state == "Complete" then
 		trackerHint.Text = if job.result
-			then `You earned {Format.money(job.result.share)}! Heading back soon...`
+			then `You earned {Format.money(job.result.share + (job.result.tip or 0))}! Heading back soon...`
 			else "Job done!"
 		callOffShown = false
 		if job.result and payShownFor ~= job.id then

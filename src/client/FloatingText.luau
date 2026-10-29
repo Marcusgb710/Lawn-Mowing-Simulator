@@ -34,11 +34,28 @@ local function forget(label: TextLabel)
 	end
 end
 
+-- Whether `from` is drawn: it's in the game, it and every GuiObject it's inside are Visible, and it
+-- has a width. A hidden piece's AbsolutePosition can be stale or zero, so a pop off one would float
+-- over nothing.
+local function isShowing(from: GuiObject): boolean
+	if not from:IsDescendantOf(game) or from.AbsoluteSize.X == 0 then
+		return false
+	end
+	local piece: Instance? = from
+	while piece and piece:IsA("GuiObject") do
+		if not piece.Visible then
+			return false
+		end
+		piece = piece.Parent
+	end
+	return true
+end
+
 -- Lifts `text` off the middle of `from` (gold unless `color` says otherwise, TEXT_SIZE pixels tall
 -- unless `size` says) and returns its label. Nothing shows, and nothing comes back, if `from` has
--- gone from the screen.
+-- gone from the screen or is hidden, so a caller can pop off something else.
 function FloatingText.show(from: GuiObject, text: string, color: Color3?, size: number?): TextLabel?
-	if not from:IsDescendantOf(game) then
+	if not isShowing(from) then
 		return nil
 	end
 	local screen = UI.getScreen()

@@ -35,6 +35,7 @@ local StoryArt = require(script.Parent.Parent.StoryArt)
 local UI = require(script.Parent.Parent.UI)
 local CameraController = require(script.Parent.CameraController)
 local ComputerController = require(script.Parent.ComputerController)
+local LevelsController = require(script.Parent.LevelsController)
 
 local player = Players.LocalPlayer
 
@@ -831,6 +832,7 @@ local function goodMoment(): boolean
 		and ClientState.job == nil
 		and not ComputerController.isUsing()
 		and not UI.anyOpen()
+		and not LevelsController.isOpen()
 		and UI.getScreen().Enabled
 		and CameraController.isFirstPerson()
 		and player:GetAttribute("PlacingDecor") == nil

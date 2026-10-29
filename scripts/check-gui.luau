@@ -151,7 +151,8 @@ local function scan(folder: string)
 					check(GuiArt.Images[image] ~= nil, `{path} asks for {image}, which isn't in GuiArt`)
 				end
 			end
-			-- Wordmarks: UI.wordmark("JobComplete", ...), and the stamps in UI.stamp(parent, { ... }).
+			-- Wordmarks: UI.wordmark("JobComplete", ...), and the stamps in UI.stamp(parent, { ... }), not
+			-- UI.stampText(parent, text, height), which is words only and asks for no art.
 			local wordmarks = {}
 			for name in string.gmatch(source, 'UI%.wordmark%(%s*"([%w_]+)"') do
 				table.insert(wordmarks, name)
@@ -398,6 +399,18 @@ for id, entry in UiLayout do
 		check(table.find({ "Left", "Center", "Right" }, list.align) ~= nil, `{where}: odd list align`)
 	end
 end
+-- No two pieces of a HUD column have the same order: the column's list sorts by LayoutOrder, and a
+-- tie falls to the order the pieces were made in, which nothing here says.
+for _, column in { "LeftColumn", "RightColumn" } do
+	local taken: { [number]: string } = {}
+	for id, entry in UiLayout do
+		if id ~= "__screen" and entry.parent == column and typeof(entry.order) == "number" then
+			local other = taken[entry.order]
+			check(other == nil, `UiLayout's {id} and {other} are both order {entry.order} in {column}`)
+			taken[entry.order] = id
+		end
+	end
+end
 -- Nothing gives way to something that gives way to it (one of them would never show).
 local function givesWayTo(id: string): { [string]: boolean }
 	local entry = UiLayout[id]
@@ -433,6 +446,14 @@ if nextChip then
 	check(nextChip.detach == "RightColumn", "UiLayout's NextChip can't be taken out of and put back in the RightColumn")
 	check(nextChip.compactOnly == true, "UiLayout's NextChip isn't compactOnly: it would show on a tall screen too")
 	check(nextChip.hideWhile == nil, "UiLayout's NextChip gives way to something: it has to show during a job")
+	-- Not in its touch or compact places either: the editor reads those too (the game would never
+	-- honour them, since the HUD doesn't call UI.givesWay("NextChip")).
+	for place, places in { touch = nextChip.touch or {}, compact = nextChip.compact or {} } do
+		check(
+			(places :: any).hideWhile == nil,
+			`UiLayout's NextChip gives way to something on {place} screens: it has to show during a job`
+		)
+	end
 end
 for id, entry in UiLayout do
 	if id ~= "__screen" then
@@ -466,8 +487,9 @@ end
 check(typeof(UiLayout.__screen.compactHeight) == "number", "__screen has no compactHeight")
 
 -- The Levels panel (Busy Season, slice 1): a centred window of its own on the game's screen, opened
--- from the XP bar, that shrinks to fit like the pay breakdown does. On a touch screen it keeps a
--- bigger margin, so it stays clear of Roblox's move stick, and `scale` is the most it's drawn at.
+-- from the XP bar, that shrinks to fit like the pay breakdown does. Centred, it's already clear of
+-- Roblox's move stick and jump button, so a touch screen has the same height margin (a bigger one
+-- would only make its words small), and `scale` is the most it's drawn at.
 local levelsPanel = UiLayout.LevelsPanel
 check(levelsPanel ~= nil, "UiLayout has no LevelsPanel")
 if levelsPanel then
@@ -491,10 +513,8 @@ if levelsRule then
 		"__screen.scaling.LevelsPanel has no margin"
 	)
 	check(
-		typeof(levelsRule.touchMargin) == "number"
-			and typeof(levelsRule.margin) == "number"
-			and levelsRule.touchMargin >= levelsRule.margin,
-		"__screen.scaling.LevelsPanel has no touchMargin as big as its margin"
+		typeof(levelsRule.touchMargin) == "number" and levelsRule.touchMargin == levelsRule.margin,
+		"__screen.scaling.LevelsPanel's touchMargin isn't its margin: it's centred, clear of the thumb zones"
 	)
 	check(
 		typeof(levelsRule.scale) == "number" and levelsRule.scale > 0 and levelsRule.scale <= 1,
@@ -513,6 +533,13 @@ end
 for id in COLUMN_PIECES do
 	check(inColumns[id] == true, `HudController doesn't build {id} into a column (with placeInColumn)`)
 end
+-- The goals rail's DONE stamp is words only (UI.stampText): asked of UI.stamp it would be the art's
+-- "Job Complete!" once that's uploaded. The stamp scan above doesn't read UI.stampText, which asks
+-- for no art.
+check(
+	string.find(hudSource, 'JobComplete%s*=%s*"DONE"') == nil,
+	'HudController stamps "DONE" with UI.stamp, which draws the JobComplete art: use UI.stampText'
+)
 
 -- Every element the client places by name (UI.place, UI.keepPlaced, UI.layout) is in UiLayout,
 -- and every one in it is named somewhere in the client, so none are left over.
