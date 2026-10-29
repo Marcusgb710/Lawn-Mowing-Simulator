@@ -140,6 +140,15 @@ check(
 check(Stars.of(0.89, true) == 1 and Stars.of(1.09, false) == 2, "just under a threshold is the star below")
 check(Stars.tipRate(0) == 0 and Stars.tipRate(4) == 0.15, "stars out of range are held to 1 and 3")
 
+-- A blend that lands a hair under a line in floating point still counts: JobService rounds the
+-- factor to three decimals (Stars.round) before it asks for the stars.
+check(Stars.of(1.0999999, false) == 2, "1.0999999 as it stands is under the three-star line")
+check(Stars.round(1.0999999) == 1.1, "1.0999999 rounds to 1.1")
+check(Stars.of(Stars.round(1.0999999), false) == 3, "the rounded 1.0999999 earns three stars")
+check(Stars.of(Stars.round(0.8999999), false) == 2, "the rounded 0.8999999 earns two stars")
+check(Stars.of(Stars.round(1.0994), false) == 2, "1.0994 rounds down to 1.099: two stars")
+check(Stars.round(1) == 1 and Stars.round(0) == 0, "whole factors stay as they are")
+
 -- The save ------------------------------------------------------------------------------------
 
 -- Season reaches GameConfig through `script`, which Lune doesn't have, and GameConfig builds a

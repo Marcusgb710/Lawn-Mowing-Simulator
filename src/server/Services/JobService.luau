@@ -30,6 +30,7 @@ local Items = require(Shared.Config.Items)
 local Jobs = require(Shared.Config.Jobs)
 local Net = require(Shared.Net)
 local Premium = require(Shared.Config.Premium)
+local Stars = require(Shared.Config.Stars)
 local Story = require(Shared.Config.Story)
 local TaskTypes = require(Shared.Config.TaskTypes)
 local Tools = require(Shared.Config.Tools)
@@ -55,7 +56,9 @@ local JobService = {}
 JobService.PlayerStateChanged = Signal.new()
 -- Fired with (player, info) for each of the crew once a job's been paid: info is { customer,
 -- pay (their share), quality (the finish, 0-1), preference, crew (how many of them), wonBack
--- (the customer was won back from TurfKing and paid a bonus) }.
+-- (the customer was won back from TurfKing and paid a bonus), stars (1-3), tip (what the customer
+-- tipped them on top of their share, 0 for none) }. Their best stars for the job are in their
+-- save by then (SeasonService counts the three-star jobs from it).
 JobService.JobFinished = Signal.new()
 
 local rng = Random.new()
@@ -609,14 +612,24 @@ local function completeJob(job)
 	end
 	local share = math.floor(total / #members)
 
+	-- Stars: how the job did against what the customer wanted, the same blend GameConfig.jobPay
+	-- pays by. A flower or gnome wrecked (damageCount), or junk left or chewed up, keeps it from
+	-- three. The customer tips each of the crew a share of their share by the stars.
+	local qualityMultiplier = GameConfig.qualityMultiplier(quality)
+	local speedMultiplier = GameConfig.speedMultiplier(elapsed, job.offer.parTime)
+	local performance = Stars.round(weights.quality * qualityMultiplier + weights.time * speedMultiplier)
+	local penalized = (debris.left + debris.hit) > 0 or job.damageCount > 0
+	local stars = Stars.of(performance, penalized)
+	local tip = math.floor(share * Stars.tipRate(stars))
+
 	job.result = {
 		basePay = job.offer.payout,
 		time = elapsed,
 		preference = job.preference,
 		toolFit = toolFit,
 		quality = quality,
-		qualityMultiplier = GameConfig.qualityMultiplier(quality),
-		speedMultiplier = GameConfig.speedMultiplier(elapsed, job.offer.parTime),
+		qualityMultiplier = qualityMultiplier,
+		speedMultiplier = speedMultiplier,
 		crewBonus = crewBonus,
 		truckBonus = truckBonus,
 		businessBonus = businessBonus,
@@ -630,12 +643,35 @@ local function completeJob(job)
 		wonBack = wonBack,
 		total = total,
 		share = share,
+		-- What the job's stars came from, the stars, and what the customer tipped each of the crew
+		-- on top of the share (PayBreakdown shows it).
+		performance = performance,
+		stars = stars,
+		tip = tip,
+		customer = job.offer.customer,
 	}
 
 	for _, member in members do
-		DataService:AddMoney(member, share)
+		-- Their best stars on this kind of job, in the save before anything else hears the job is done.
+		local data = DataService:Get(member)
+		if data then
+			local templateId = job.offer.templateId
+			data.stars[templateId] = math.max(data.stars[templateId] or 0, stars)
+		end
+		-- Job pay and the tip are money they earned (it counts toward the Earned milestones), each paid
+		-- only when there's something to pay.
+		if share > 0 then
+			DataService:Earn(member, share)
+		end
+		if tip > 0 then
+			DataService:Earn(member, tip)
+		end
 		DataService:RecordJob(member, job.offer.xp)
-		notify(member, `Job done! You earned {Format.money(share)}.`)
+		local message = `Job done! You earned {Format.money(share)}.`
+		if tip > 0 then
+			message ..= ` {job.offer.customer} tipped you {Format.money(tip)}.`
+		end
+		notify(member, message)
 	end
 	sendUpdate(job)
 	for _, member in members do
@@ -646,6 +682,8 @@ local function completeJob(job)
 			preference = job.preference,
 			crew = #members,
 			wonBack = wonBack > 0,
+			stars = stars,
+			tip = tip,
 		})
 	end
 

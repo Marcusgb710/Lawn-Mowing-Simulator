@@ -2,7 +2,8 @@
 -- Each job shows what the customer says and wants done, never which tools to use. From act 2,
 -- TurfKing now and then takes a job off your board (TurfKingService): its card gets the "Taken by
 -- TurfKing" stamp (landing with a thump if you're looking) and TurfKing's gold crown, and can't be
--- accepted. Each card has a badge with the job's tier.
+-- accepted. Each card has a badge with the job's tier, and under the pay the best stars you've
+-- earned on that kind of job (nothing for one you haven't done).
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -20,6 +21,11 @@ local player = Players.LocalPlayer
 
 -- How long the stamp takes to land on a card TurfKing just took.
 local STAMP_TIME = 0.35
+-- The best-stars mark under the pay: three glyphs this big, `STARS_Y` down the card, with the
+-- button below it.
+local STARS_SIZE = 14
+local STARS_Y = 48
+local BUTTON_Y = 66
 
 local JobBoardController = {}
 
@@ -69,6 +75,36 @@ local function stamp(card: GuiObject, landing: boolean)
 		TweenService:Create(scale, TweenInfo.new(STAMP_TIME, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
 			Scale = 1,
 		}):Play()
+	end
+end
+
+-- A "★★★" under the pay: gold for each of the `best` stars you've earned on this kind of job, grey
+-- for the rest.
+local function bestStars(card: GuiObject, best: number)
+	local row = UI.new("Frame", {
+		Name = "BestStars",
+		AnchorPoint = Vector2.new(1, 0),
+		Position = UDim2.new(1, -12, 0, STARS_Y),
+		Size = UDim2.fromOffset(126, STARS_SIZE + 2),
+		BackgroundTransparency = 1,
+		Parent = card,
+	}, {
+		UI.new("UIListLayout", {
+			FillDirection = Enum.FillDirection.Horizontal,
+			HorizontalAlignment = Enum.HorizontalAlignment.Right,
+			VerticalAlignment = Enum.VerticalAlignment.Center,
+			SortOrder = Enum.SortOrder.LayoutOrder,
+		}),
+	})
+	for index = 1, 3 do
+		UI.label("★", {
+			Size = UDim2.fromOffset(STARS_SIZE + 1, STARS_SIZE + 2),
+			TextSize = STARS_SIZE,
+			TextXAlignment = Enum.TextXAlignment.Center,
+			TextColor3 = if index <= best then UI.Colors.Gold else UI.Colors.Disabled,
+			LayoutOrder = index,
+			Parent = row,
+		})
 	end
 end
 
@@ -215,6 +251,13 @@ local function render()
 			}
 		)
 
+		local best = if ClientState.profile and ClientState.profile.stars
+			then ClientState.profile.stars[offer.templateId]
+			else nil
+		if best and best > 0 then
+			bestStars(card, math.min(best, 3))
+		end
+
 		local canAccept = leader and not locked and not taken and ClientState.job == nil
 		local button = UI.button(if taken then "Taken" elseif locked then "Locked" else "Take job", function()
 			if canAccept then
@@ -222,7 +265,7 @@ local function render()
 			end
 		end, {
 			AnchorPoint = Vector2.new(1, 0),
-			Position = UDim2.new(1, -12, 0, 54),
+			Position = UDim2.new(1, -12, 0, BUTTON_Y),
 			Size = UDim2.fromOffset(126, 40),
 			Style = if canAccept then "Primary" else "Disabled",
 			Icon = if taken then "Crown" elseif locked then "Lock" else nil,
@@ -235,8 +278,8 @@ local function render()
 		if crown and crown:IsA("ImageLabel") then
 			crown.ImageColor3 = UI.Colors.Gold
 		end
-		-- The card's at least as tall as the pay and the button.
-		UI.new("Frame", { Size = UDim2.fromOffset(1, 106), BackgroundTransparency = 1, Parent = card })
+		-- The card's at least as tall as the pay, the stars and the button.
+		UI.new("Frame", { Size = UDim2.fromOffset(1, BUTTON_Y + 52), BackgroundTransparency = 1, Parent = card })
 		if taken then
 			stamp(card, shownOpen[offer.id] == true)
 			shownOpen[offer.id] = nil

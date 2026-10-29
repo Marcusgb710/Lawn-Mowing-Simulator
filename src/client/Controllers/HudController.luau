@@ -14,6 +14,7 @@
 local Players = game:GetService("Players")
 local ProximityPromptService = game:GetService("ProximityPromptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -51,6 +52,11 @@ local MISSED_KEY = Enum.KeyCode.M
 -- done), this tall, with this many sparkles round it.
 local DONE_STAMP_HEIGHT = 40
 local DONE_SPARKLES = 5
+-- The pay breakdown's three star slots (a job's stars): each is this big, and the stars it earned
+-- fill in gold one every STAR_STEP seconds, each landing over that time.
+local STAR_GLYPH = "★"
+local STAR_SIZE = 44
+local STAR_STEP = 0.35
 -- The columns down each side are full size on screens at least `fullHeight` tall (in pixels), and
 -- shrink on shorter ones (phones held sideways), down to `minScale`, or further (to `tightScale`)
 -- if that's what it takes to fit everything in a column on the screen. A piece taken out of its
@@ -892,8 +898,8 @@ local function hidePay()
 	end
 end
 
--- After a job: Job Complete!, a line for what each part was worth, and what you earned, until you
--- close it (or the next job starts).
+-- After a job: Job Complete!, a line for what each part was worth (the customer's tip last), what
+-- you earned, and the job's stars filling in under it, until you close it (or the next job starts).
 local function showPay(job)
 	hidePay()
 	local result = job.result
@@ -980,6 +986,54 @@ local function showPay(job)
 			Parent = totalRow,
 		}
 	)
+	-- The job's stars: three slots, grey until the stars it earned fill in gold, one by one.
+	local earnedStars = math.clamp(result.stars or 0, 0, 3)
+	local starRow = UI.new("Frame", {
+		Name = "Stars",
+		Size = UDim2.new(1, 0, 0, STAR_SIZE),
+		BackgroundTransparency = 1,
+		LayoutOrder = 52,
+		Parent = payPanel,
+	}, {
+		UI.new("UIListLayout", {
+			FillDirection = Enum.FillDirection.Horizontal,
+			HorizontalAlignment = Enum.HorizontalAlignment.Center,
+			VerticalAlignment = Enum.VerticalAlignment.Center,
+			Padding = UDim.new(0, 10),
+			SortOrder = Enum.SortOrder.LayoutOrder,
+		}),
+	})
+	local slots: { TextLabel } = {}
+	for index = 1, 3 do
+		slots[index] = UI.label(STAR_GLYPH, {
+			Name = `Star{index}`,
+			Size = UDim2.fromOffset(STAR_SIZE, STAR_SIZE),
+			TextSize = 40,
+			FontFace = UI.Fonts.Heavy,
+			TextColor3 = UI.Colors.Disabled,
+			TextXAlignment = Enum.TextXAlignment.Center,
+			LayoutOrder = index,
+			Parent = starRow,
+		})
+	end
+	local thisPanel = payPanel
+	task.spawn(function()
+		for index = 1, earnedStars do
+			task.wait(STAR_STEP)
+			-- Closed (or a newer job's panel up) in the meantime.
+			if payPanel ~= thisPanel then
+				return
+			end
+			local slot = slots[index]
+			slot.TextColor3 = UI.Colors.Gold
+			local pop = UI.new("UIScale", { Scale = 1.7, Parent = slot })
+			TweenService:Create(pop, TweenInfo.new(STAR_STEP, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+				Scale = 1,
+			}):Play()
+			UI.sparkle(slot, 3, 26)
+			-- Sounds.playUi("Star") goes here once Sounds has playUi and a Star sound.
+		end
+	end)
 	-- What the customer wanted, the tools and the junk, in words.
 	local notes = { `The customer wanted {WANTED[result.preference] or WANTED.Balanced}.` }
 	if result.toolFit < 0.995 then
@@ -999,13 +1053,13 @@ local function showPay(job)
 		TextSize = 15,
 		FontFace = UI.Fonts.Body,
 		TextColor3 = UI.Colors.SubText,
-		LayoutOrder = 52,
+		LayoutOrder = 53,
 		Parent = payPanel,
 	})
 	local buttonRow = UI.new("Frame", {
 		Size = UDim2.new(1, 0, 0, 48),
 		BackgroundTransparency = 1,
-		LayoutOrder = 53,
+		LayoutOrder = 54,
 		Parent = payPanel,
 	})
 	UI.button("Nice!", hidePay, {

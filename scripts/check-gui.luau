@@ -619,6 +619,54 @@ for _, case in cases do
 	check(lines[1].label == "Job pay" and lines[1].amount ~= 0, `{case[1]}: the job pay doesn't come first`)
 end
 
+-- A customer's tip comes after the share and the total counts it: a line "Tip from <customer>"
+-- worth the tip, and no line at all when there's no tip.
+do
+	local base, weights = job({
+		basePay = 66,
+		toolFit = 1,
+		qualityMultiplier = 1.2,
+		speedMultiplier = 1,
+		preference = "Balanced",
+		crewBonus = 1,
+		truckBonus = 1,
+		businessBonus = 1,
+		curbBonus = 1,
+		penalty = 0,
+		wonBack = 0,
+		crew = 2,
+	})
+	local baseLines, baseTotal = PayBreakdown.lines(base, weights)
+
+	local tipped = table.clone(base)
+	tipped.tip = 12
+	tipped.customer = "Mrs. Alvarez"
+	local lines, total = PayBreakdown.lines(tipped, weights)
+	local last = lines[#lines]
+	check(last.label == "Tip from Mrs. Alvarez", `the last line is "{last.label}", not the tip`)
+	check(last.amount == 12, `the tip line is worth {last.amount}, not 12`)
+	check(#lines == #baseLines + 1, "a tip adds exactly one line")
+	check(total == baseTotal + 12, `a $12 tip makes the total {baseTotal + 12}, not {total}`)
+	local sum = 0
+	for _, payLine in lines do
+		sum += payLine.amount
+	end
+	check(sum == total, `with a tip the lines add up to {sum}, not the total {total}`)
+
+	local noTips = { { "a tip of 0", 0 }, { "no tip", false } }
+	for _, case in noTips do
+		local quiet = table.clone(base)
+		quiet.tip = if case[2] then case[2] else nil
+		quiet.customer = "Mrs. Alvarez"
+		local quietLines, quietTotal = PayBreakdown.lines(quiet, weights)
+		check(#quietLines == #baseLines, `{case[1]} still adds a line`)
+		check(quietTotal == baseTotal, `{case[1]} changes the total to {quietTotal}`)
+		for _, payLine in quietLines do
+			check(string.find(payLine.label, "Tip", 1, true) == nil, `{case[1]} still shows "{payLine.label}"`)
+		end
+	end
+end
+
 -- The art's own files, when there's a copy to read ------------------------------------------------
 
 local guiFolder = process.args[1] or "art-source/GUI"

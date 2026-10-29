@@ -15,6 +15,13 @@ Stars.TwoStarAt = 0.9
 -- The share of a job's pay the customer tips, indexed by stars (one, two, three).
 Stars.TipRates = { 0, 0.05, 0.15 }
 
+-- The performance factor to three decimals. The blend is floating point, so a job that should land
+-- exactly on a line can come out a hair under it (1.0999999 for 1.1): JobService rounds with this
+-- before it asks for the stars.
+function Stars.round(performance: number): number
+	return math.floor(performance * 1000 + 0.5) / 1000
+end
+
 -- 1 to 3 stars for a job's performance. A penalty keeps it from three, never from two.
 function Stars.of(performance: number, penalized: boolean): number
 	if performance >= Stars.ThreeStarAt and not penalized then

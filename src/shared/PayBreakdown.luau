@@ -1,7 +1,7 @@
 -- The pay breakdown after a job, in dollars: what the job paid, then what the finish, speed, crew,
--- curb appeal, a customer won back from TurfKing and the damage each added or took off, adding up
--- to what you earned. JobService works the pay out as one sum (GameConfig.jobPay); this splits
--- its result back into lines for the screen (HudController).
+-- curb appeal, a customer won back from TurfKing and the damage each added or took off, then the
+-- customer's tip, adding up to what you earned. JobService works the pay out as one sum
+-- (GameConfig.jobPay); this splits its result back into lines for the screen (HudController).
 -- No Roblox requires, so scripts/check-gui.luau can test it with Lune.
 
 local PayBreakdown = {}
@@ -14,7 +14,7 @@ end
 
 -- `result` is a finished job's result (JobService), `weights` how much that customer cared about
 -- the finish and about speed (Jobs.Preferences). Returns the lines and the total they add up to:
--- your share, which is what you were paid.
+-- your share, which is what you were paid, and the tip the customer left on top of it, if any.
 function PayBreakdown.lines(result, weights: { quality: number, time: number }): ({ Line }, number)
 	local base = result.basePay
 	local fit = base * result.toolFit
@@ -64,6 +64,13 @@ function PayBreakdown.lines(result, weights: { quality: number, time: number }):
 		if index == 1 or line.amount ~= 0 then
 			table.insert(shown, line)
 		end
+	end
+	-- The customer's tip, on top of the share (the stars set it, JobService pays it separately), and
+	-- in the total: it's money you earned too.
+	local tip = result.tip or 0
+	if tip > 0 then
+		table.insert(shown, { label = `Tip from {result.customer or "the customer"}`, amount = tip })
+		share += tip
 	end
 	return shown, share
 end
