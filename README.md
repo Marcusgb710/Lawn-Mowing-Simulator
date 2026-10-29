@@ -53,6 +53,7 @@ Other useful commands:
 | `stylua src` | Auto-formats the code |
 | `selene src` | Lints the code |
 | `lune run scripts/check-mowing` | Checks the lawn's cell maths: which cells a mower's deck cuts, and the cell counts |
+| `lune run scripts/check-season` | Checks the season's tables: the goals rail's milestones, what each level pays, and how a job earns its stars and tip |
 
 **Testing saves in Studio:** Game Settings → Security → turn on *Enable Studio Access to API
 Services*. Without it the game still runs, it just doesn't save progress.
