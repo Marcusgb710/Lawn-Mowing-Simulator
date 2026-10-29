@@ -191,8 +191,8 @@ Reel mowers cut cleanest but are slow and can't take tall grass. Rotary mowers h
 with a medium cut. Blade sharpness (phase E) will multiply cut quality.
 
 A mower's deck is twice its **Width (radius)**, and how fast it clears a lawn is its deck width
-and its walk speed: **Power** no longer meters mowing (it still meters every other task). See
-"Mowing: cells, swaths and shells" in section 4.
+and its walk speed. A mower's **Power** does nothing now, and the shop no longer shows it; other
+tools still use theirs. See "Mowing: cells, swaths and shells" in section 4.
 
 Each job offer gets a **customer preference**, hinted only in the story text
 (`Jobs.Stories`): "Wedding photos in the backyard Saturday, it has to look immaculate" is
@@ -1079,9 +1079,8 @@ phase that gives them work.
 - **Version 6 (the shop as the hub)** adds `deliveries`, the orders still in their box. Everything
   bought before is already unpacked.
 - **Version 7 (your own lawn)** adds `homeLawn`: which parts of the lawn are done, one character
-  per target and task, when the last tidy tip was paid, and whether another is due. Existing players' lawns start
-  overgrown. A grass target is a 1-stud cell now: a save from before has one flag per 4 x 4 stud
-  tile and loads spread over the cells (`HomeLawn.decode`), so a tidy lawn stays tidy.
+  per target and task, when the last tidy tip was paid, and whether another is due. Existing
+  players' lawns start overgrown.
 - **Version 8 (decorations)** adds `decor`: the decorations `placed` in the yard (id, where in
   plot space, and a shrub's trim state) and those still in their `boxes`. Nobody has any yet.
 - **`premium`** (Robux purchases) holds `owned`, `passes`, `truckPaint` and `receipts`. It needs
@@ -1112,6 +1111,10 @@ phase that gives them work.
   `flippedAt` (how many jobs you'd done when it last took one of yours) and `flips` (how many
   it's taken). A customer won back from it is remembered as the beat `QualityWin:<customer>` in
   `seen`. Loading fills in nothing: a save without them has never had a job taken.
+- **Version 12 (fluid mowing)** keeps the home lawn's grass flags per 1-stud cell, since a grass
+  target is a cell now. Its migration changes nothing: an older save's flags are one per 4 x 4 stud
+  tile, and `HomeLawn.decode` spreads each over its tile's cells when the lawn is built, so a tidy
+  lawn stays tidy. From then on it saves per cell.
 
 ## New item ids for modelers
 

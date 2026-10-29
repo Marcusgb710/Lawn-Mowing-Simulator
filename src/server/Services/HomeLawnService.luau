@@ -39,7 +39,8 @@ local GROW_CLEARANCE = 10
 -- How often the lawns grow (seconds).
 local GROW_TICK = 1
 -- Saves from before the grass was cut into one-stud cells keep one flag for each 4 x 4 stud tile
--- of it, so a flag stands for this many cells (written down, as the tiles are gone from the config).
+-- of it, so a flag stands for this many cells (written down, not worked out from
+-- GameConfig.TileSize, since those saves keep their 4 x 4 tiles whatever that becomes).
 local CELLS_PER_SAVED_TILE = 16
 local HURT_MESSAGES = {
 	Thorns = "Ouch! Those thorns shred your bare hands.",

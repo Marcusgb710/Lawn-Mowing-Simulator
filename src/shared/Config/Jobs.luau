@@ -74,9 +74,10 @@ Jobs.Customers = {
 Jobs.Templates = {
 	-- Every new player's first job (the board's first slot is always one the free gear can do),
 	-- done with grass shears in about 5 minutes (docs/GAME_DESIGN.md, "Starting out"): it's done at
-	-- 52 of its 62 grass tiles (the 8 by the flowers are optional, then 95%), at 6 snips a tile and
-	-- 2 snips a second, with 4 bits of junk to find in the grass (Debris.countFor). A reel mower does
-	-- it in about a minute, and 2-3 of these with shears pay for one.
+	-- 856 of its 992 grass cells (the 128 by the flowers are optional, then 99% of the rest), at
+	-- about 3 cells a snip and 2 snips a second, with 4 bits of junk to find in the grass
+	-- (Debris.countFor). A reel mower does it in about a minute, and 2-3 of these with shears pay
+	-- for one.
 	{
 		id = "QuickMow",
 		name = "Front Lawn",

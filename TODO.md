@@ -94,9 +94,10 @@ Yards (`src/server/Services/LawnService.luau`) now use the kit, falling back to 
       (`src/shared/LawnGrid.luau`, `LawnService.luau`) and logs every sweep of a mower's deck as a
       swath (`src/shared/Swath.luau`). Each client paints the swaths into EditableImages
       (`GrassController.luau`, `GrassPaint.luau`): a turf plate with 6 grass shells on PC and 4 on
-      phones, and nothing at all for lawns more than 200 studs away. Without EditableImages (Allow
-      Mesh / Image APIs is off, or a phone's memory is spent) `GrassFallback.luau` draws plain parts
-      instead. The kit's `Grass_Tall_*` and `Grass_Short_*` clumps are no longer used for lawns.
+      phones, and nothing at all for lawns more than 200 studs away. Still to do: use the lawn
+      texture for distant ground once it's uploaded. Without EditableImages (Allow Mesh / Image
+      APIs is off, or a phone's memory is spent) `GrassFallback.luau` draws plain parts instead.
+      The kit's `Grass_Tall_*` and `Grass_Short_*` clumps are no longer used for lawns.
 - [x] **Weeds**: random `Weed_*` models, scaled up 1.6–2.2× (life-size weeds are tiny next to a
       player), shrinking toward the ground as they're whacked. `OriginalSize` is set too.
 - [x] **Hedges**: `Shrub_Rounded` stretched to the overgrown size and shrunk to the trimmed size.
@@ -420,7 +421,8 @@ new palette and fonts (DenkOne headings, Nunito text). To switch the art on, see
 ## Fluid mowing: to check
 
 The lawn is carved as you mow (see docs/GAME_DESIGN.md, "Mowing: cells, swaths and shells"). Play it
-with Allow Mesh / Image APIs on (Studio needs it too), and the last item with it off.
+with Allow Mesh / Image APIs on (Studio needs it too), and the tenth item, the toggle-off one, with
+it off.
 
 - [ ] Mow a straight pass with the reel mower: one clean strip, deck-wide, crisp edges, no seams.
 - [ ] Mow a curve and a figure-eight: the shape follows the deck.
@@ -432,16 +434,29 @@ with Allow Mesh / Image APIs on (Studio needs it too), and the last item with it
 - [ ] Home lawn: leave for a job, come back, patches have grown back and mow again.
 - [ ] Phone (landscape): the big lawn draws, holds frame rate, and the HUD pieces fit.
 - [ ] Toggle off Mesh / Image APIs in a test copy: the fallback draws and the job still completes.
-- [ ] Reel mower stops dead at junk hidden in the grass (needs real walking)
-- [ ] Phone preset: the 28×22 lawn mows and finishes with the F9 memory panel open
-- [ ] A second player hears the first's mower and sees their swaths
+- [ ] Reel mower stops dead at junk hidden in the grass (needs real walking).
+- [ ] Phone preset: the 28×22 lawn mows and finishes with the F9 memory panel open.
+- [ ] A second player hears the first's mower and sees their swaths.
+
+Later (known, and left for after this PR):
+
+- [ ] One image-budget miss sends every lawn to the fallback for the rest of the session.
+- [ ] The fallback builds every block of tall grass before the lawn's ledger arrives.
+- [ ] Making the blade dots for the first lawn drawn hitches on phones.
+- [ ] Prediction leaves slivers past junk that stopped the deck, until they grow back.
+- [ ] `wreckHazards` only checks where a sweep ends, not the strip it covered.
+- [ ] A snip that junk in the grass stops goes on to snip the nearest weed.
+- [ ] The HUD editor's template doesn't know `MissedButton`.
+- [ ] A home lawn grows back in single-cell speckles (2 x 2 blocks instead?).
+- [ ] Apply maneuverability to walk speed on tight lawns (`fit.speed`, which sweeps ignore).
+- [ ] Stripe shade for ride-on decks.
 
 ## Before release
 
 - [ ] Turn on Allow Mesh / Image APIs (Experience Settings → Security) before publishing; without
       it the lawn uses the plain-part fallback.
-- [ ] Turn on *Game Settings → Security → Enable Studio Access to API Services* so progress saves
-      when testing in Studio. The game is already published under Big Dink Studios.
+- [ ] Turn on *Experience Settings → Security → Enable Studio Access to API Services* so progress
+      saves when testing in Studio. The game is already published under Big Dink Studios.
 - [ ] Make the experience public when it's ready to play.
 - [ ] Set max players to 12 or fewer (Game Settings → Places). The placeholder town has 12 plots.
 - [ ] **Test on a real phone.** Prompts and tools already use ProximityPrompts and
@@ -449,7 +464,9 @@ with Allow Mesh / Image APIs on (Studio needs it too), and the last item with it
       checking. Profile frame rate with grass on screen. The kit makes no device FPS promise.
 - [ ] **Sounds**: the kit has none. The mowers' engine, pull-start and reel whirr and the lawn-done
       chime use free Creator Store ids in `src/shared/Sounds.luau`. Still empty: trimmer, rake and
-      blower, cash register, UI clicks, the shears' snip and a blade hitting junk.
+      blower, cash register, UI clicks, the shears' snip, a blade hitting junk, and setting a tool
+      down, picking it up, hanging it and dropping it in the bucket (`Thunk`, `Pickup`, `Hang`,
+      `Bucket`).
 - [ ] **Animations**: pushing and holding poses for mowers and trimmers.
 - [ ] **Store art**: put `art-source/GUI/Store/` on the Roblox page (game icon, 5 thumbnails, the
       pass and product icons) on the Creator Dashboard. The in-game GUI art is under **GUI

@@ -125,7 +125,11 @@ local function statsText(item): string
 		else `{size.space} truck space`
 	-- The tier is on the card's badge.
 	local parts = { `{size.label}, {string.lower(Storage.Spots[size.spot].name)}, {truck}` }
-	if item.power then
+	-- A mower's power no longer meters its mowing (its deck cuts everything under it), so it only
+	-- shows how far its deck reaches.
+	if item.power and item.category == "Mower" then
+		table.insert(parts, `Reach {item.radius}`)
+	elseif item.power then
 		table.insert(parts, `Power {item.power}  ·  Reach {item.radius}`)
 	end
 	if item.cutQuality then

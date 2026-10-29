@@ -6,7 +6,7 @@
 --  garden      |   [  hedges in the flower bed   ]
 --  plots       |   +-----------------------------+ +------+
 --  (pots,      |   |                             | |      |
---  bulbs,   weeds  |   grass tiles to mow,       | | drive|
+--  bulbs,   weeds  |   grass cells to mow,       | | drive|
 --  roses,   along  |   leaf piles to rake,       |e| way  |
 --  beds...) side   |   flowers/gnomes to AVOID   |d|      |
 --                  +-----------edge--------------+ +------+
@@ -2181,7 +2181,8 @@ export type WorkResult = {
 
 -- Who's doing the work and how, for things that depend on it.
 --   protections  hazards their gloves protect from
---   holder       whose barrow a load is in (one load per player)
+--   holder       whose barrow a load is in (one load per player), and whose swath a sweep
+--                stretches (see _logSwath)
 --   moving       whether they're walking
 --   seconds      how long this bit of work took
 --   ragged       a dull blade: mowed grass is left torn
