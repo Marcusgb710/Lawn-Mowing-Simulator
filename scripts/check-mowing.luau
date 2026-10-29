@@ -136,42 +136,46 @@ local function seg(fromX: number, fromZ: number, toX: number, toZ: number): Swat
 	}
 end
 
+-- Each append says which entry the segment ended up in, and the next of the same mower's is
+-- offered that one to stretch.
 local log: { Swath.Segment } = {}
-check(Swath.append(log, seg(0, 0, 0, 2)) == false and #log == 1, "first segment is added")
+check(Swath.append(log, seg(0, 0, 0, 2)) == 1 and #log == 1, "first segment is added")
 check(
-	Swath.append(log, seg(0, 2, 0, 4)) == true and #log == 1 and log[1].toZ == 4,
+	Swath.append(log, seg(0, 2, 0, 4), 1) == 1 and #log == 1 and log[1].toZ == 4,
 	"collinear same-shade segments merge"
 )
 check(log[1].fromX == 0 and log[1].fromZ == 0 and log[1].toX == 0, "a merge only moves the end")
-check(Swath.append(log, seg(0, 4, 0, 2)) == false and #log == 2, "a turn starts a new segment")
+check(Swath.append(log, seg(0, 4, 0, 2), 1) == 2 and #log == 2, "a turn starts a new segment")
 check(
 	Swath.append(
 		log,
-		{ fromX = 1, fromZ = 1, toX = 1, toZ = 1, halfWidth = 0, radius = 1, shade = "Flat", ragged = false }
+		{ fromX = 1, fromZ = 1, toX = 1, toZ = 1, halfWidth = 0, radius = 1, shade = "Flat", ragged = false },
+		2
 	)
-			== false
+			== 3
 		and #log == 3,
 	"snips never merge"
 )
 check(
-	Swath.append(log, seg(5, 5, 5, 5)) == false and #log == 4,
+	Swath.append(log, seg(5, 5, 5, 5), 3) == 4 and #log == 4,
 	"an empty sweep (a mower standing still) is its own entry"
 )
 check(
-	Swath.append(log, seg(5, 5, 5, 7)) == false and #log == 5,
+	Swath.append(log, seg(5, 5, 5, 7), 4) == 5 and #log == 5,
 	"a sweep carrying on from a standing one doesn't merge into it"
 )
+check(Swath.append({}, seg(0, 0, 0, 2), 7) == 1, "with no entry at the index given, the segment is added")
 
 -- What does and doesn't carry on from the sweep before it, each against a fresh log.
 local function continuesOn(first: Swath.Segment, second: Swath.Segment): boolean
 	local pass: { Swath.Segment } = {}
-	Swath.append(pass, first)
-	return Swath.append(pass, second) == true and #pass == 1
+	local index = Swath.append(pass, first)
+	return Swath.append(pass, second, index) == index and #pass == 1
 end
 local function startsAnew(first: Swath.Segment, second: Swath.Segment): boolean
 	local pass: { Swath.Segment } = {}
-	Swath.append(pass, first)
-	return Swath.append(pass, second) == false and #pass == 2
+	local index = Swath.append(pass, first)
+	return Swath.append(pass, second, index) == 2 and #pass == 2
 end
 -- A 2 stud sweep from where seg(0, 0, 0, 2) ends, bent `degrees` off its heading.
 local function bent(degrees: number): Swath.Segment
@@ -207,12 +211,63 @@ local lined: Swath.Segment =
 check(startsAnew(seg(0, 0, 0, 2), lined), "a snip never merges into a sweep")
 check(startsAnew(seg(0, 0, 0, 2), seg(0, 2, 0, 2)), "a mower stopping at the end of a pass is its own entry")
 check(startsAnew(lined, seg(0, 4, 0, 6)), "a sweep never merges into a snip")
+local function raggedSeg(fromX: number, fromZ: number, toX: number, toZ: number): Swath.Segment
+	local sweep = seg(fromX, fromZ, toX, toZ)
+	sweep.shade, sweep.ragged = Swath.RAGGED, true
+	return sweep
+end
+check(continuesOn(raggedSeg(0, 0, 0, 2), raggedSeg(0, 2, 0, 4)), "two ragged sweeps the same way merge")
 
 local drive: { Swath.Segment } = {}
+local driving = nil
 for step = 0, 9 do
-	Swath.append(drive, seg(0, step, 0, step + 1))
+	driving = Swath.append(drive, seg(0, step, 0, step + 1), driving)
 end
 check(#drive == 1 and drive[1].toZ == 10, "a long straight run, tick by tick, stays one segment")
+
+-- Two mowers side by side, their ticks taking turns in the log: each stretches its own entry.
+local pair: { Swath.Segment } = {}
+local mowerA, mowerB = nil, nil
+for step = 0, 1 do
+	mowerA = Swath.append(pair, seg(0, step, 0, step + 1), mowerA)
+	mowerB = Swath.append(pair, seg(10, step, 10, step + 1), mowerB)
+end
+check(
+	#pair == 2 and pair[mowerA].toZ == 2 and pair[mowerB].toZ == 2 and pair[mowerA].toX == 0,
+	"two mowers taking turns stay two entries, each still growing"
+)
+
+-- A slow curve, half a degree more each tick: the pass's heading drifts away from its first
+-- stretch, so by 5 degrees it has started a second entry.
+local curve: { Swath.Segment } = {}
+local curving = nil
+local atX, atZ = 0, 0
+local atOneDegree = 0
+for tick = 0, 10 do
+	local stepX, stepZ = heading(tick * 0.5, 1)
+	curving = Swath.append(curve, seg(atX, atZ, atX + stepX, atZ + stepZ), curving)
+	atX, atZ = atX + stepX, atZ + stepZ
+	if tick == 2 then
+		atOneDegree = #curve
+	end
+end
+check(
+	atOneDegree == 1 and #curve == 2,
+	"a slow curve is one pass at first, and two by the time it has turned 5 degrees"
+)
+
+-- The cap: past MAX_LOG entries, the oldest go, and trim says how many.
+local long: { Swath.Segment } = {}
+local longIndex = nil
+local trimmed = 0
+for count = 1, Swath.MAX_LOG + 5 do
+	-- Each heads its own way (a new entry every time); its fromX says which one it was.
+	local toX, toZ = heading(count * 7 % 360, 2)
+	longIndex = Swath.append(long, seg(count, 0, count + toX, toZ), longIndex)
+	trimmed += Swath.trim(long)
+end
+check(Swath.MAX_LOG == 1024 and #long == 1024 and trimmed == 5, "the log keeps 1024 entries")
+check(long[1].fromX == 6 and long[#long].fromX == Swath.MAX_LOG + 5, "the first five appended are the ones gone")
 
 local reused = seg(0, 0, 0, 2)
 local copies: { Swath.Segment } = {}

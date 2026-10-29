@@ -36,6 +36,9 @@ local DRAW_SLACK = 30
 -- sends swaths out to GrassDrawDistance, the furthest a drawn lawn can be.
 local DRAW_DISTANCE = GameConfig.GrassDrawDistance - DRAW_SLACK
 local UPDATE_INTERVAL = 0.5
+-- The server sends a lawn's swaths at most once a second to each player, and nil when asked again
+-- sooner: then we ask again after this many seconds.
+local REFETCH_DELAY = 1.5
 
 -- How high the turf plate's top face sits above the ground (studs). The server lays its own plain
 -- Turf plate on every lawn, topping out 0.02 above the ground (LawnService's _buildGround), so ours
@@ -168,15 +171,28 @@ local function redraw(lawn, cells: string, log: { { number | string | boolean } 
 end
 
 -- Asks the server for everything cut on a drawn lawn and redraws it, unless it's been hidden or
--- asked again since.
+-- asked again since. A nil answer (we asked for it too soon after the last) is asked again shortly.
 local function fetch(lawn)
 	lawn.fetches += 1
 	local ticket = lawn.fetches
 	task.spawn(function()
 		local getSwaths = Net.func("GetSwaths")
-		local ok, cells, log = pcall(getSwaths.InvokeServer, getSwaths, lawn.folder)
-		if ok and typeof(cells) == "string" and lawn.mode and lawn.fetches == ticket then
-			redraw(lawn, cells, if typeof(log) == "table" then log else {})
+		while true do
+			local ok, cells, log = pcall(getSwaths.InvokeServer, getSwaths, lawn.folder)
+			if not (ok and lawn.mode and lawn.fetches == ticket) then
+				return
+			end
+			if typeof(cells) == "string" then
+				redraw(lawn, cells, if typeof(log) == "table" then log else {})
+				return
+			end
+			if cells ~= nil then
+				return
+			end
+			task.wait(REFETCH_DELAY)
+			if not (lawn.mode and lawn.fetches == ticket) then
+				return
+			end
 		end
 	end)
 end

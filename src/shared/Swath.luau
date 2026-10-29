@@ -3,8 +3,9 @@
 -- Every sweep of a mower's deck and every snip of the shears is a Segment, in lawn-local studs (the
 -- same space as LawnGrid: the origin is the lawn's front-left corner, X runs across and Z along).
 -- The server keeps a log per lawn and sends new segments to the clients, which paint them onto the
--- lawn. Sweeps that carry straight on from the one before are merged, so a long pass is one entry
--- however many ticks it took.
+-- lawn. Sweeps that carry straight on from the same mower's one before are merged, so a long pass
+-- is one entry however many ticks it took, even with another mower at work on the lawn. The log
+-- keeps the newest MAX_LOG entries (see Swath.trim).
 --
 -- This needs nothing from Roblox, so it loads in Lune too: colours are plain { r, g, b } tables
 -- for the client to turn into Color3.
@@ -47,6 +48,9 @@ local STRIPE_DOT = 0.5
 local JOIN_DISTANCE = 0.25
 local JOIN_COS = math.cos(math.rad(2))
 
+-- A lawn's log keeps no more entries than this: the oldest go first (see Swath.trim).
+Swath.MAX_LOG = 1024
+
 -- The stripe a mower leaves going this way: light going up the lawn (+Z), dark coming back down,
 -- flat across it, like the stripes a real mower rolls into the grass. A mower not going anywhere
 -- leaves flat grass.
@@ -64,7 +68,7 @@ function Swath.shade(dx: number, dz: number): string
 	return "Flat"
 end
 
--- Whether `segment` carries straight on from `last`, the end of the log, so they can be one.
+-- Whether `segment` carries straight on from `last`, so they can be one.
 local function carriesOn(last: Segment, segment: Segment): boolean
 	if last.radius ~= nil or segment.radius ~= nil then
 		return false
@@ -89,18 +93,35 @@ local function carriesOn(last: Segment, segment: Segment): boolean
 	return (lastX * newX + lastZ * newZ) / (lastLength * newLength) >= JOIN_COS
 end
 
--- Adds a segment to the end of the log, or stretches the last one when this carries straight on
--- from it. Returns whether it stretched the last one. A snip, and a sweep that went nowhere (a
--- mower standing still cuts once, under its deck), always stand alone: they never stretch the last
--- one and nothing stretches them. The log keeps its own copy, so the caller may reuse the table.
-function Swath.append(log: { Segment }, segment: Segment): boolean
-	local last = log[#log]
+-- Adds a segment to the end of the log, or stretches the entry at `mergeIndex` (the one this
+-- mower added last) when this carries straight on from it. Returns the index the segment ended up
+-- in: `mergeIndex` when it stretched that entry, the log's new last one otherwise, and so always
+-- when there is no entry at `mergeIndex`. A snip, and a sweep that went nowhere (a mower standing
+-- still cuts once, under its deck), always stand alone: they never stretch an entry and nothing
+-- stretches them. The log keeps its own copy, so the caller may reuse the table.
+function Swath.append(log: { Segment }, segment: Segment, mergeIndex: number?): number
+	local last = if mergeIndex ~= nil then log[mergeIndex] else nil
 	if last ~= nil and carriesOn(last, segment) then
 		last.toX, last.toZ = segment.toX, segment.toZ
-		return true
+		return mergeIndex :: number
 	end
 	table.insert(log, table.clone(segment))
-	return false
+	return #log
+end
+
+-- Drops the log's oldest entries past MAX_LOG. Returns how many went, so the caller can move the
+-- indexes it keeps (see append) down by as many.
+function Swath.trim(log: { Segment }): number
+	local count = #log
+	local extra = count - Swath.MAX_LOG
+	if extra <= 0 then
+		return 0
+	end
+	table.move(log, extra + 1, count, 1)
+	for index = count, count - extra + 1, -1 do
+		log[index] = nil
+	end
+	return extra
 end
 
 -- A segment as a flat array, for sending to clients: from, to, half width, radius (0 for a sweep),

@@ -396,7 +396,7 @@ end
 -- log. The ledger is the truth for every cell: the mown cells go first, the log's clean cuts are
 -- stamped over them for the stripes and smooth edges, and then the cells a stamp mustn't change
 -- (empty and ragged) are drawn over those. A home lawn's log keeps swaths over grass that has grown
--- back since, so cells a clean swath cut that the ledger says are tall grow back.
+-- back since, so there every cell the ledger says is tall grows back, a column's run at a time.
 function GrassPaint.redraw(lawn, cells: string, log: { { number | string | boolean } })
 	GrassPaint.reset(lawn)
 	local ledger = lawn.cells
@@ -405,7 +405,6 @@ function GrassPaint.redraw(lawn, cells: string, log: { { number | string | boole
 	end
 	drawCells(lawn, { [LawnGrid.MOWED] = true })
 
-	local regrown, seen = {}, {}
 	for _, packed in log do
 		local segment = Swath.unpack(packed)
 		if segment.ragged then
@@ -413,17 +412,9 @@ function GrassPaint.redraw(lawn, cells: string, log: { { number | string | boole
 			continue
 		end
 		stamp(lawn, segment)
-		if lawn.regrows then
-			for _, index in cutCells(lawn, segment) do
-				if not seen[index] and ledger[index] == LawnGrid.TALL then
-					seen[index] = true
-					table.insert(regrown, index)
-				end
-			end
-		end
 	end
-	for _, index in regrown do
-		drawCell(lawn, index, LawnGrid.TALL)
+	if lawn.regrows then
+		drawCells(lawn, { [LawnGrid.TALL] = true })
 	end
 	drawCells(lawn, { [LawnGrid.EMPTY] = true, [LawnGrid.RAGGED] = true })
 end

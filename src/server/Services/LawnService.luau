@@ -90,6 +90,11 @@ local lawnsByGrass = {}
 -- Clients draw lawns by how far their camera is from them, and the server only knows where
 -- characters are: this much past GameConfig.GrassDrawDistance covers the gap between the two.
 local CAMERA_SLACK = 32
+-- A player gets a lawn's swaths (GetSwaths) at most once in this many seconds; asked again sooner,
+-- the answer is nil and their client asks again in a moment.
+local SWATHS_COOLDOWN = 1
+-- [Player] = { [Grass folder] = os.clock() they were last sent its swaths }
+local lastAnswer = {}
 
 local Lawn = {}
 Lawn.__index = Lawn
@@ -514,6 +519,8 @@ end
 
 function Lawn:_setGrass(index: number, state: string)
 	self.grassState[index] = state
+	-- GetSwaths packs the cells afresh next time.
+	self.packedCells = nil
 end
 
 function Lawn:_buildHazards(rng: Random, hazardTiles)
@@ -2049,6 +2056,12 @@ function LawnService:Build(template, origin: Vector3, address: string, condition
 		debrisByCell = {},
 		-- What's been cut on the lawn, as swath segments (see Swath and Lawn:Sweep).
 		swaths = {},
+		-- [holder] = the index in `swaths` of the entry they added last, for the next to stretch
+		-- (see _logSwath).
+		lastSwathIndex = setmetatable({}, { __mode = "k" }),
+		-- What GetSwaths last sent, until the cells or the log change.
+		packedCells = nil,
+		packedSwaths = nil,
 		debrisCounts = { total = 0, picked = 0, hit = 0 },
 		rng = rng,
 	}, Lawn)
@@ -2410,10 +2423,23 @@ function Lawn:_cutGrass(target, fit, ragged: boolean, result)
 end
 
 -- Adds what a sweep or snip cut to the swath log and sends it to everyone drawing the lawn, saying
--- whether it stretched the log's last segment.
-function Lawn:_logSwath(segment: Swath.Segment)
-	local merged = Swath.append(self.swaths, segment)
-	self:FireNearby("Swath", Swath.pack(segment), merged)
+-- whether it stretched the entry its holder (the player whose tool it is) added last. Each holder
+-- stretches only their own, so two mowers on one lawn still make one entry a pass each. The log
+-- keeps the newest Swath.MAX_LOG entries: the ledger stays the truth for the cells, and a cut whose
+-- entry has gone just shows flat turf when the lawn is drawn afresh.
+function Lawn:_logSwath(segment: Swath.Segment, context: WorkContext?)
+	local holder = if context and context.holder ~= nil then context.holder else "server"
+	local mergeIndex = self.lastSwathIndex[holder]
+	local index = Swath.append(self.swaths, segment, mergeIndex)
+	self.lastSwathIndex[holder] = index
+	local dropped = Swath.trim(self.swaths)
+	if dropped > 0 then
+		for key, kept in self.lastSwathIndex do
+			self.lastSwathIndex[key] = if kept - dropped >= 1 then kept - dropped else nil
+		end
+	end
+	self.packedSwaths = nil
+	self:FireNearby("Swath", Swath.pack(segment), index == mergeIndex)
 end
 
 -- Fires a grass event (`eventName`, with the lawn's Grass folder first) to every player who may be
@@ -2520,7 +2546,7 @@ function Lawn:Sweep(
 		halfWidth = halfWidth,
 		shade = if ragged then Swath.RAGGED else Swath.shade(toX - fromX, toZ - fromZ),
 		ragged = ragged,
-	})
+	}, context)
 	return result
 end
 
@@ -2561,18 +2587,25 @@ function Lawn:SnipAt(x: number, z: number, radius: number, toolId: string, conte
 		radius = radius,
 		shade = if ragged then Swath.RAGGED else Swath.shade(0, 0),
 		ragged = ragged,
-	})
+	}, context)
 	return result
 end
 
 -- Everything cut on the lawn so far, for a client that's starting to draw it: the cells' states
--- (one character each, see LawnGrid) and the swath log, packed (see Swath.pack).
+-- (one character each, see LawnGrid) and the swath log, packed (see Swath.pack). Both are kept
+-- until the cells or the log change, so a crowd of clients asking at once packs them once.
 function Lawn:GetSwaths(): (string, { { number | string | boolean } })
-	local packed = table.create(#self.swaths)
-	for index, segment in self.swaths do
-		packed[index] = Swath.pack(segment)
+	if not self.packedSwaths then
+		local packed = table.create(#self.swaths)
+		for index, segment in self.swaths do
+			packed[index] = Swath.pack(segment)
+		end
+		self.packedSwaths = packed
 	end
-	return table.concat(self.grassState), packed
+	if not self.packedCells then
+		self.packedCells = table.concat(self.grassState)
+	end
+	return self.packedCells, self.packedSwaths
 end
 
 -- Hauling: fill your barrow at the pile, push it to the bed and dump it. Each player carries one
@@ -2823,14 +2856,29 @@ end
 
 function LawnService:Init()
 	-- A client that starts drawing a lawn asks for everything cut on it so far, by its Grass folder.
-	-- Anything that isn't one gets nothing.
-	Net.func("GetSwaths").OnServerInvoke = function(_player, grassFolder)
+	-- Anything that isn't one gets nothing, and so does a player who was sent that lawn under
+	-- SWATHS_COOLDOWN ago (their client asks again shortly).
+	Net.func("GetSwaths").OnServerInvoke = function(player, grassFolder)
 		local lawn = lawnsByGrass[grassFolder]
 		if not lawn then
 			return nil
 		end
+		local answered = lastAnswer[player]
+		if not answered then
+			answered = setmetatable({}, { __mode = "k" })
+			lastAnswer[player] = answered
+		end
+		local now = os.clock()
+		local last = answered[grassFolder]
+		if last and now - last < SWATHS_COOLDOWN then
+			return nil
+		end
+		answered[grassFolder] = now
 		return lawn:GetSwaths()
 	end
+	Players.PlayerRemoving:Connect(function(player)
+		lastAnswer[player] = nil
+	end)
 end
 
 return LawnService
