@@ -1131,6 +1131,88 @@ phase that gives them work.
   tile, and `HomeLawn.decode` spreads each over its tile's cells when the lawn is built, so a tidy
   lawn stays tidy. From then on it saves per cell.
 
+## Models
+
+Every id has a model in `assets/`, named after the id, and the game uses it in place of the block
+placeholder. `assets/manifest/models.json` records where each one came from and how it was made to
+fit; the design is `docs/superpowers/specs/2026-10-28-model-overhaul-design.md`, and the steps for
+adding or replacing a model are in `assets/README.md` ("Adding or replacing a model"). The aim is
+real hardware and Roblox people: mowers, trucks and buildings that look like the real thing, in
+correct proportion, next to people who look like the avatars every player already is.
+
+**Three sources**, tried in this order for every id:
+
+1. **A free Creator Store model.** One object, not a set; unbranded, or with a logo that can be
+   stripped; within its part budget once cleaned; and in step with the kit's look. One creator's
+   family is preferred within a category, so a rack of mowers doesn't look like thirty hands made
+   it. The game doesn't own a Store mesh. The manifest keeps its asset id, name and creator, so one
+   that a creator takes down (the model goes blank in the game) can be found and swapped.
+2. **A model built in hosted Blender**, from primitives with PBR materials, exported as GLB and
+   brought in with File > Import 3D as Big Dink Studios. It is for the ids the Store has nothing
+   good for. No model has been made this way yet.
+3. **The current model, kept.** When neither beats it, or it is too small to matter (a blade file,
+   a sharpening stone, a patch kit). The manifest lists it as `kept`, so the decision is on record.
+
+**The contract** is what makes the source not matter. Whoever made a model, it ends up the same
+shape, and `scripts/check-models.luau` fails one that isn't (the per-folder details are in
+`assets/README.md`):
+- Built at the origin, standing on the ground, front toward -Z, +Y up, at the game's scale: one
+  stud is 0.28 m, so a person is about 5.5 studs tall, a push mower is 3.7 studs tall and a pickup
+  is 17 to 20 studs long. Each manifest entry has one target size (`fit`), and the importer scales
+  the model to it.
+- Tools: a part named `Handle`, with `GripLeft` and `GripRight` attachments where the hands go.
+  Wheels, rotors and spools named `<Id>__Wheel`, `<Id>__CutterRotor` and `<Id>__Spool` spin. A mesh
+  that has them fused in just leaves them still.
+- Everything else: an invisible `Root` part as the PrimaryPart, at (0, 0.5, 0).
+- Trucks: a `BedArea` part where loaded tools lie, `<Id>__Body` on the body (the part a paint job
+  and the TurfKing livery tint) and a `DriverSeat` attachment. When the mesh has them as separate
+  parts, `<Id>__DriverDoor`, `<Id>__DriverDoorGlass` and `<Id>__Tailgate` are pivoted on their
+  hinges for `Openings`. A pickup that is one fused mesh loses the door and tailgate swing and
+  keeps everything else.
+- Trailers: a `BedArea` part. The equipment trailer also has `EquipmentTrailer__Ramp` (ride-ons
+  need it; its Store mesh has none, so it is a plain slab from the entry's `synth` list) and two
+  `BaySpot` parts where they park.
+- The customer's house: `Porch` and `Driveway` attachments. The business buildings keep the
+  interior markers described under "Walk-in buildings" and "The shop as the hub".
+- Nothing branded, and no script or sound in any model.
+- A part budget per category, because phones are the reason for it. Triangles can't be counted from
+  Luau, so the phone test is frame time: on the Galaxy A06 preset, the shop with every rack full and
+  a job with the truck, trailer and house in view must average within 10% of the build before the
+  overhaul. A model that misses is trimmed with its entry's `strip` list first, then swapped for
+  another candidate, then kept as the old model.
+
+**Batches.** Models are replaced in an order, each batch imported and checked before the next:
+mowers and trimmers; blowers, edgers, hedge trimmers, barrows and carts, the spreader and sprayer,
+gas cans and the bucket; the trucks and trailers; the customer's house; then the hand and
+long-handled tools; the pro machines; and last the four business buildings together (Shed, Garage,
+SmallOffice, EquipmentYard). The buildings change in one batch or not at all, because players
+upgrade through them in that order and a new shed beside the old garage would mix looks. All four
+current ones stay until all four new ones pass `check-models` and a walk-through in Play. The first
+four batches are imported; the rest, and the things that are kept on purpose (decorations, storage
+fixtures, delivery boxes, the junk in the grass, the trophy, Gloria's house with her yard stages,
+porch, rocker and sign), are listed in TODO.md.
+
+**The story's people** are not one of the three sources, and not model files. `Config/Cast.luau`
+describes each of the nine as free catalog items (hair, hat, face, shirt, pants, layered clothes, a
+T-shirt graphic, and a body scale), and `CastService` builds every one as an R15 rig when the
+server starts, with `Players:CreateHumanoidModelFromDescription`. Each rig gets the contract too:
+an invisible `Root` PrimaryPart 0.5 studs above the feet, so `Assets.placeAt` stands the person
+where a statue used to stand, a `Head` attachment at eye level and a `Talk` attachment at the
+chest, for speech bubbles and prompts. The rigs are parked under `ReplicatedStorage.Assets.Story`,
+where `Assets.story` finds them on the server and on every client. If a rig can't be built (an item
+taken down, Roblox unreachable), that id logs a warning and shows its block placeholder.
+`NpcAnimator` plays Roblox's own Idle, Walk, Sit, Wave and Point animations (`Cast.Poses`), so
+nothing has to be uploaded: the person's `pose` picks one, June sits in her rocker and the judges
+walk the yard and stop. Every id must be free, public and not a limited collectible, and `scripts/cast-check.py`
+asks the catalog (it needs the network, so it isn't one of the Lune checks). Roblox's own items
+are preferred, but identity wins: Chad and Sam wear TurfKing's purple with a stand-in top until
+its T-shirt graphic is made (`tshirt` is 0 for both).
+
+**The lawn** uses real art the same way. `Config/GrassArt.luau` holds the ids of the kit's mown,
+uncut and soil textures and of a sheet of grass tufts. With them the lawn is painted over a tiling
+texture and its shells stamp tufts (see "Mowing: cells, swaths and shells"). While an id is 0, the
+lawn is painted in flat colours and dots, as it was before, with one warning.
+
 ## New item ids for modelers
 
 Every id below needs a model. Until then each one shows a block placeholder. All models: built at

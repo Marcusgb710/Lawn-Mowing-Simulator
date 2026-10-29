@@ -21,8 +21,16 @@ Written 2026-10-19 for whoever takes over from here. Read this first. Then use
   - your own lawn;
   - decorations;
   - the title card.
-- **Models:** all 115 items have ChatGPT-made high-poly models, imported and synced from
-  `assets/`.
+- **Models:** every item has a model in `assets/`, and they come from three places.
+  - 26 are free Creator Store models fitted by the manifest pipeline: the mowers, trimmers,
+    blowers, barrows, hedge shears, spreader, sprayer and gas cans (18 tools), the 4 trucks, the 3
+    trailers and the customer's house.
+  - 13 are ChatGPT's high-poly models, kept on purpose and recorded as `kept` in the manifest.
+  - The rest are still ChatGPT's high-poly models, imported and synced from `assets/`.
+  - The story's nine people are not model files. They are Roblox avatars built from the catalog
+    when the server starts.
+  - The pipeline was built on the branch `bentenavery/model-overhaul`. Until that is merged, the
+    files named below exist only there. What's left is step 7.
 - **The last publish to Roblox** came before the three open PRs below, so phones don't have them
   yet.
 
@@ -186,20 +194,77 @@ Work through it in Play mode, and with 2–4 players (Test → Clients and Serve
 - animations;
 - the game icon and thumbnails.
 
+### 7. Finish the model overhaul
+
+The pipeline is built and batches 1 to 4 are in. [TODO.md](TODO.md) has the rest under **Model
+overhaul: what is left** and **Before release**. In order:
+
+1. **Upload the four lawn images.** Use Asset Manager under Big Dink Studios, or give the Open
+   Cloud key the Assets scope and run `python scripts/upload-grass-art.py` again (TODO.md has the
+   steps). The ids go in `src/shared/Config/GrassArt.luau`. Then look at a lawn in Studio with the
+   textured path on. It has only been seen in flat colours, because the ids are still 0.
+2. **Make the TurfKing T-shirt.** Create it on the Create page from
+   `art-source/Cast/TurfKing_Tee.png`. It carries a Robux upload fee, so look at the price first;
+   spending it is the owner's call. Put the id in `tshirt` for Chad and Sam_TurfKing in
+   `src/shared/Config/Cast.luau`, then run `lune run scripts/check-story`.
+3. **Work through the model playtest checklist** in TODO.md (tools in hand, a job with the new
+   truck and trailer, the story scenes, the grass, and the Galaxy A06 preset for frame time).
+4. **Do batches 5 to 7** (hand and long tools, pro machines, then the four business buildings
+   together) and the swap list (decorations, storage, boxes, junk, the trophy, Gloria's set). Each
+   is a manifest addition plus a Studio import: see "Models: the manifest pipeline" below.
+
 ## How work gets done here
 
 - **Branches and PRs:** never commit straight to `main` for code. Make a branch, open a PR, merge
   with `--merge`. Before PRs, run `lune run scripts/check-mowing`, `lune run scripts/check-gui`,
-  `lune run scripts/check-story`, `selene src`, `stylua --check src` (`stylua src` fixes what it
-  finds) and `rojo build -o /tmp/check.rbxl`.
-- **ChatGPT/Codex makes the models and art.**
-  - Write a self-contained spec as `alphainstructions/instructionsN.md`; **the next one is
-    `instructions37.md`**.
+  `lune run scripts/check-story`, `lune run scripts/check-models`, `selene src`,
+  `stylua --check src` (`stylua src` fixes what it finds) and `rojo build -o /tmp/check.rbxl`.
+  When `Config/Cast.luau` changes, also run `python scripts/cast-check.py`. It asks Roblox's catalog
+  about every item the cast wears, so it needs the network and isn't one of the Lune checks.
+- **Models: the manifest pipeline.** New and replaced models go through one list,
+  `assets/manifest/models.json`, instead of a spec for ChatGPT. The steps are in
+  [assets/README.md](assets/README.md) ("Adding or replacing a model") and the design is in
+  `docs/superpowers/specs/2026-10-28-model-overhaul-design.md` (the plan is next to it, in
+  `docs/superpowers/plans/`). Where the pieces live:
+  - `assets/manifest/models.json`: one entry per model, from the Creator Store, Blender or kept.
+  - `scripts/generate-import.py` renders `scripts/ImportStoreModels.luau` from
+    `scripts/ImportStoreModels.template.luau` and the manifest. `scripts/test_generate_import.py`
+    tests the validator and that the committed script is up to date.
+  - `scripts/export-models.luau` writes `assets/<Folder>/<Id>.rbxm` from Studio's staged models, and
+    `scripts/check-models.luau` is the gate on the result.
+  - `scripts/serve-studio.py` and `scripts/studio/` stand each current model beside its Store
+    candidates in Studio, so you can choose (the README there says how).
+  - The cast: `src/shared/Config/Cast.luau` (who wears what), `src/server/Services/CastService.luau`
+    (builds the rigs), `src/shared/CastRig.luau`, `src/shared/NpcAnimator.luau` (the poses) and
+    `scripts/cast-check.py`.
+  - The grass art: `src/shared/Config/GrassArt.luau` (the four image ids),
+    `scripts/make-grass-tufts.py` (draws the tuft sheet), `scripts/upload-grass-art.py`,
+    `src/client/GrassPaint.luau` and `src/client/Controllers/GrassController.luau`. The TurfKing
+    T-shirt image comes from `scripts/make-turfking-tee.py`.
+
+  To run a batch:
+  1. Pick the ids (the order is in the spec, section 6; TODO.md says which are left) and, if you
+     need to choose, run the `scripts/studio/` lineup.
+  2. Add or edit their entries in the manifest. Run `python -I scripts/generate-import.py`, then
+     `python -m unittest scripts/test_generate_import.py`.
+  3. In Studio, open a scratch place (not the Team Create game) and paste
+     `scripts/ImportStoreModels.luau` into the command bar. It stages each model in
+     `ServerStorage.ModelImport` and prints `ok <id> ...` or `FAIL <id> <reason>`. Fix every `FAIL`
+     in the manifest and run it again. The one-liner in `scripts/studio/README.md` fetches only
+     `lineup.lua` and `camera.lua` from that folder, so it doesn't run the importer: paste this one.
+  4. Save the place with Ctrl+S and run `lune run scripts/export-models <place.rbxl> --overwrite`.
+     Then delete `ModelImport` from the place.
+  5. Run `lune run scripts/check-models`, then look at the new models in Play (grips in first
+     person, truck loading, the house's porch, scale next to the kit).
+  6. Commit the manifest, the generated importer and the `.rbxm` files together.
+- **ChatGPT/Codex makes the art, and made the mesh packs the older models came from.**
+  - Write a self-contained spec as `alphainstructions/instructionsN.md`; **N is one past the
+    highest number already in that folder**.
   - Push it to `main`. A push touching `alphainstructions/` triggers the "Work on Alpha
     instructions" GitHub Action (Codex, with OpenAI billing). You can also point ChatGPT at the
     file yourself.
   - Models come back as glTF plus `model_manifest.json` in `model-source/HighPoly/NN_*`.
-- **Importing models:**
+- **Importing mesh packs** (the older route, for packs that arrive like that):
   1. Run `python3 scripts/generate-prepare.py` to regenerate `scripts/PrepareChatGPTModels.luau`
      from the manifests.
   2. In Studio, use File → Import 3D with:
@@ -258,3 +323,11 @@ Work through it in Play mode, and with 2–4 players (Test → Clients and Serve
   top of `GrassController.luau` (and put it back). `lune run scripts/check-mowing` is the fast check
   for the mowing math (cells, sweeps, snips, shade, the needed-count arithmetic, line clipping): it
   needs no Studio. The design is `docs/superpowers/specs/2026-10-28-fluid-mowing-design.md`.
+- **A Store model that goes blank in the game** means its creator deleted the mesh or Roblox
+  moderated it: the game doesn't own Store meshes, and `check-models` can't see it, because the
+  file still has its parts. Find the entry by id in `assets/manifest/models.json` (it keeps the
+  asset id, name and creator), choose another candidate and run a batch for that id.
+- **The story's people need the catalog.** `CastService` builds them with
+  `Players:CreateHumanoidModelFromDescription` when the server starts, so a catalog item taken down
+  (or Roblox being unreachable) leaves that person as a block placeholder and logs a warning.
+  `python scripts/cast-check.py` finds the item.

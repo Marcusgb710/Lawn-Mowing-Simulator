@@ -1,6 +1,6 @@
-# What's left — Lawn Mowing Simulator
+# What's left: Lawn Mowing Simulator
 
-Last updated: 2026-10-28
+Last updated: 2026-10-29
 
 ## Done so far
 
@@ -57,11 +57,17 @@ Every item now has a real model. ChatGPT built mesh sources from `alphainstructi
 to `instructions23.md`, kept in `model-source/`. They were imported into Studio as Big Dink Studios
 and exported to `assets/` (85 models: 67 tools, 7 props, 4 buildings, 4 trucks, 3 trailers).
 
-To re-import or add models: in Studio use File → Import 3D with Creator Big Dink Studios, Scale Unit
-Meter and **World Forward: Back**, because these packs are authored with their front at −Z. Then
-paste `scripts/PrepareChatGPTModels.luau` into the command bar, save
-`ServerStorage.ModelImport` with right-click → Save / Export → Save to File, and run
-`lune run scripts/export-models <file>.rbxm` (add `--overwrite` to replace existing models).
+The model overhaul (design: `docs/superpowers/specs/2026-10-28-model-overhaul-design.md`) has
+replaced the first four batches with free Creator Store models, fitted by the manifest in
+`assets/manifest/models.json`: 18 tools (the mowers, trimmers, blowers, barrows, hedge shears,
+spreader, sprayer and gas cans), the 4 trucks, the 3 trailers and the customer's house. Another 13
+are recorded as kept. The story's people are Roblox avatars now (`CastService`), and the lawn is
+ready for its texture and tufts. What is left is under **Model overhaul: what is left**, below.
+
+To add or replace a model, use the manifest: `assets/README.md` ("Adding or replacing a model")
+has the steps, and HANDOFF.md has the short version. The older route for ChatGPT's mesh packs
+(File → Import 3D with Creator Big Dink Studios, Scale Unit Meter and **World Forward: Back**, then
+`scripts/PrepareChatGPTModels.luau`) is kept under "Importing mesh packs" in `assets/README.md`.
 
 - [x] **High-poly pass (instructions 24–34): imported.** All 115 models are in `assets/` (85 replaced,
       30 new, including the new `Decorations` folder). Still to check in Play: the walk-in buildings,
@@ -77,7 +83,8 @@ paste `scripts/PrepareChatGPTModels.luau` into the command bar, save
 
 - [ ] Visual review. These are simpler low-poly models than the original kit; the trucks
       especially are boxy. Check grips, scale and colors in Play and send weak ones back to
-      ChatGPT with notes.
+      ChatGPT with notes. (The models the manifest lists as Store models are no longer these;
+      this is for the rest.)
 - [ ] `RidingMower`-style seat offsets for the new ride-on and stand-on machines (Phase F).
 
 The kit's `Textures/Lawn_Uncut_Color.png`, `Textures/Lawn_Mown_Color.png` and
@@ -455,6 +462,81 @@ Later (known, and left for after this PR):
 - [ ] A respawn within a second of a lawn's first fetch hits the `GetSwaths` limit and shows the lawn tall for 1.5 s until the retry.
 - [ ] Prediction stamps over cut and ragged grass whenever `Mows` is on; watch its cost on phones over a ragged patch.
 
+## Model overhaul: what is left
+
+Batches 1 to 4 (the mowers and trimmers; the blowers, barrows and the rest of batch 2; the trucks and
+trailers; the customer's house) are imported and `lune run scripts/check-models` passes. The
+pipeline is described in `assets/README.md`, HANDOFF.md says how to run a batch, and the design is
+`docs/superpowers/specs/2026-10-28-model-overhaul-design.md` (its section 6 gives the batch order).
+Two things in **Before release** belong to this work too: the four lawn images and the TurfKing
+T-shirt.
+
+### Playtest checklist
+
+- [ ] Every tool on the shop racks and in the truck bed, held in first person: grips on the
+      handles, nothing clipping the camera, wheels spinning on mowers.
+- [ ] A job start to finish with the new truck and trailer: loading, the drive, the house and shed
+      in view, the customer's porch.
+- [ ] Gloria's porch scene, June on her rocker, Chad by the TurfKing truck, the judges' walk:
+      bubbles over heads, prompts at chests, idle and sit playing, nobody floating or sunk.
+- [ ] Grass: stripes on the texture at a job and at home, tufts from eye level, far lawns from the
+      road, and the no-image fallback still playable.
+- [ ] Galaxy A06 preset: the shop with every rack full, and a job with everything in view, with the
+      frame time next to today's.
+
+What to change when one of those fails:
+- A tool's grips or hold: `handle` and `grips` in its manifest entry, then a re-import. Seen
+  already in a Play check on this branch: the handheld trimmers hang below the camera in hand.
+- A truck that won't load, or a door or paint job that is wrong: `markers`, `boxes` and `body` in
+  its entry (`<Id>__Body` is what paint and the TurfKing livery tint).
+- A person floating, sunk or sitting wrong: their `body` scales in `src/shared/Config/Cast.luau`,
+  and for June `seat`, which is an estimate.
+- A frame time worse than today's by more than 10%: the entry's `strip` list first, then another
+  candidate, then `kept`.
+
+### Kept for now: the swap list
+
+These stay as they are this round (the spec's non-goals, its section 6 and its ruling 2). Each
+swap is a manifest entry plus a Studio import, and the new model has to keep what the code looks
+for (the tables under "New item ids for modelers" in docs/GAME_DESIGN.md list it).
+
+- [ ] **Decorations:** the yard decorations in `assets/Decorations/` (22, besides the trophy) and
+      `GardenGnome` and `FlowerPatch` in `assets/Props/`. Keep the `Root` part, the `SnapL` and
+      `SnapR`, `Light`, `Fire`, `Spout`, `Water` and `Seat` markers, and the moving pieces
+      (`<Id>__Overgrowth`, `Mailbox__Door`, `Mailbox__Flag`, `GardenWindmill__Spinner`).
+- [ ] **Storage:** `StoragePegboard`, `StorageWallRack`, `StorageWallHooks` and `StorageShelf`.
+      Keep the `Slot1`, `Slot2`... attachments.
+- [ ] **Delivery boxes:** `DeliveryBoxSmall`, `DeliveryBoxLong`, `DeliveryBoxLarge` and
+      `DeliveryCrate`. Keep the flaps, lids and front panel on their hinges, and `Contents`.
+- [ ] **Junk in the grass:** `DebrisStick`, `DebrisRock`, `DebrisDogBall`, `DebrisToyTruck` and
+      `DebrisFrisbee`. Nothing taller than about 0.6 studs, no collision, `<Id>__Body` parts.
+- [ ] **The trophy:** `BestYardTrophy`. Keep `BestYardTrophy__Cup`, which `DecorService` looks for.
+- [ ] **Gloria's set:** `GloriaHouse`, `GloriaYard_Stage1` to `GloriaYard_Stage3`, `PorchDeck`,
+      `PorchRockingChair`, and the `TurfKingSign` that stands in her yard from stage 2. They are a
+      matched set built to one footprint, so swap them together or not at all.
+
+### Batches 5 to 7
+
+Not started. Each id is a manifest entry (a Store model, a Blender model or `kept`) and a Studio
+import, one batch at a time, with `lune run scripts/check-models` and a Play check before the next.
+
+- [ ] **Batch 5, hand and long-handled tools:** `RoundPointShovel`, `GardenSpade`, `DiggingFork`,
+      `Broadfork`, `OldRake`, `WideRake`, `BowRake`, `StirrupHoe`, `Mattock`, `Loppers`,
+      `PruningSaw`, `BypassPruners`, `AnvilPruners`, `FloralSnips`, `HandTrowel`,
+      `HandTransplanter`, `DandelionWeeder`, `Dibber`, `HandCultivator`, `GardenHoseWand`,
+      `WateringCan`, `NitrileGloves` and `ChemicalGloves`.
+- [ ] **Batch 6, pro machines:** `StandOnAerator`, `TowBehindAerator`, `SlitOverseeder`,
+      `PowerRakeDethatcher`, `RideOnSpreaderSprayer` and `SoilProbe`. The design expects this long
+      tail to be mostly Blender work.
+- [ ] **Batch 7, the business buildings, all four together:** `Shed`, `Garage`, `SmallOffice` and
+      `EquipmentYard`. Players upgrade through them in that order, so they change in one batch or
+      not at all, and the old four stay until all four new ones pass `check-models` and a
+      walk-through in Play. They carry the most markers (see "Walk-in buildings").
+- [ ] **Named by no batch:** `GardenShears`, `ArticulatingHedgeTrimmer` and the supplies
+      (`AirCompressor`, `BenchGrinder`, `BladeFile`, `ElectricInflator`, `FootPump`,
+      `SharpeningStone`, `SpareMowerBlade`, `SpareTire`, `TirePatchKit`, `TrimmerLine`,
+      `WrenchSet`) have no manifest entry yet. The small ones can simply be recorded as `kept`.
+
 ## Before release
 
 - [ ] Turn on Allow Mesh / Image APIs (Experience Settings → Security) before publishing; without
@@ -472,15 +554,20 @@ Later (known, and left for after this PR):
       down, picking it up, hanging it and dropping it in the bucket (`Thunk`, `Pickup`, `Hang`,
       `Bucket`).
 - [ ] **Animations**: pushing and holding poses for mowers and trimmers.
-- [ ] **Grass art ids**: `python scripts/upload-grass-art.py` answered HTTP 403, so the Open Cloud
-      key most likely has no Assets scope and the four ids in `src/shared/Config/GrassArt.luau` are
-      still 0. Either give the key Assets read and write for Big Dink Studios (Creator Hub → Open
-      Cloud → API Keys) and run the script again, or upload by hand: in Studio, with the Big Dink
-      Studios game open, **Asset Manager → Images → Bulk Import** `Lawn_Mown_Color.png`,
-      `Lawn_Uncut_Color.png` and `Soil_Color.png` (from
+- [ ] **The four lawn images, then the textured lawn**: `python scripts/upload-grass-art.py`
+      answered HTTP 403, so the Open Cloud key most likely has no Assets scope and the four ids in
+      `src/shared/Config/GrassArt.luau` are still 0. Either give the key Assets read and write for
+      Big Dink Studios (Creator Hub → Open Cloud → API Keys) and run the script again, or upload by
+      hand: in Studio, with the Big Dink Studios game open, **Asset Manager → Images → Bulk Import**
+      `Lawn_Mown_Color.png`, `Lawn_Uncut_Color.png` and `Soil_Color.png` (from
       `art-source/GUI/Source/RenderOnly/Textures/`) and `art-source/Grass/Grass_Tufts.png`, copy
       each image's id and write it as a plain number into `Mown`, `Uncut`, `Soil` and `Tufts`.
-      Then use them on the lawn's turf (MaterialVariants or Textures; `TileStuds` is 8).
+      The lawn already uses them (`GrassController` lays the mown map as a tiling Texture, one tile
+      per `TileStuds` = 8 studs, and `GrassPaint` paints the stripes over it and stamps tufts on
+      the shells). But the textured path has only been seen as flat colours on this branch,
+      because the ids are 0. Once they are in, look at a lawn in Studio with Allow Mesh / Image
+      APIs on: stripes as tints on the texture, tufts from eye level, a far lawn from the road, and
+      the flat colours coming back if an id is set to 0 again.
 - [ ] **TurfKing T-shirt**: create the T-shirt from `art-source/Cast/TurfKing_Tee.png` on the Create
       page (Avatar items, T-shirt). It isn't free: Roblox's classic clothing docs list a Robux
       upload fee (80 at last check), so look at the price before paying. Open Cloud can't make one.
