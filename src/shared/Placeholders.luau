@@ -1418,6 +1418,24 @@ PROP_BUILDERS.NPC_Judge2 = function(model: Model)
 	)
 end
 
+-- The rest of the cast (Config/Cast.luau), for when CastService can't build a rig and warns. Each
+-- is a plain standing figure like the judges, in the colors of what they wear and with nothing in
+-- their hands, except June in her rocker, who is the sitting one above.
+local function standing(top: Color3, trousers: Color3, hair: Color3)
+	return function(model: Model)
+		judge(model, top, trousers, hair, function() end)
+	end
+end
+
+PROP_BUILDERS.NPC_Edna =
+	standing(Color3.fromRGB(80, 120, 190), Color3.fromRGB(240, 238, 230), Color3.fromRGB(178, 178, 184))
+PROP_BUILDERS.NPC_June_Sitting = PROP_BUILDERS.GrandmaJune
+PROP_BUILDERS.NPC_June_Standing =
+	standing(Color3.fromRGB(215, 195, 160), Color3.fromRGB(50, 80, 55), Color3.fromRGB(200, 200, 205))
+PROP_BUILDERS.NPC_Sam_Casual =
+	standing(Color3.fromRGB(60, 140, 80), Color3.fromRGB(35, 35, 40), Color3.fromRGB(110, 80, 55))
+PROP_BUILDERS.NPC_Sam_TurfKing = standing(TURFKING_PURPLE, Color3.fromRGB(35, 35, 40), Color3.fromRGB(110, 80, 55))
+
 -- Junk hidden in the grass (Config/Debris.luau), built like the decorations: origin on the ground
 -- at the centre, front toward -Z, a "Root" part and `<Id>__Body` parts. All of it lies low, so it
 -- hides in tall grass.

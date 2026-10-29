@@ -5,12 +5,14 @@
 -- taking jobs and winning customers back (src/shared/Config/TurfKing.luau), and the Best Yard
 -- contest's scoring, Gloria's bar and when judging day comes round
 -- (src/shared/Config/Contest.luau), and the nine people's catalog outfits
--- (src/shared/Config/Cast.luau; scripts/cast-check.py asks the catalog about their ids). Exits with an
--- error if anything's off.
+-- (src/shared/Config/Cast.luau; scripts/cast-check.py asks the catalog about their ids), and where
+-- CastService puts a rig's Root so it stands on the spot a statue did (src/shared/CastRig.luau). Exits
+-- with an error if anything's off.
 
 local process = require("@lune/process")
 
 local Cast = require("../src/shared/Config/Cast")
+local CastRig = require("../src/shared/CastRig")
 local Contest = require("../src/shared/Config/Contest")
 local Story = require("../src/shared/Config/Story")
 local TurfKing = require("../src/shared/Config/TurfKing")
@@ -555,6 +557,17 @@ local chad, turfKingSam = Cast.People.NPC_Chad, Cast.People.NPC_Sam_TurfKing
 check(chad.shirt == turfKingSam.shirt and chad.tshirt == turfKingSam.tshirt, "Chad and Sam wear the same TurfKing top")
 check(chad.hat ~= nil and turfKingSam.hat ~= nil, "Chad and Sam each wear a cap or visor")
 check(Cast.People.NPC_Sam_Casual.shirt ~= turfKingSam.shirt, "Sam is out of the TurfKing top after quitting")
+
+-- A rig's Root sits 0.5 above its feet, like every other model's. The feet are a Humanoid's HipHeight
+-- plus half the HumanoidRootPart's height below the HumanoidRootPart's centre.
+check(CastRig.feetOffset(2, 2) == 3, "the feet are 3 below a 2-tall root with 2 of hip height")
+check(CastRig.rootPlacement(2, 2) == 2.5, "Root sits 2.5 below that root's centre")
+for _, hip in { 0, 1.35, 2, 2.6 } do
+	for _, size in { 1, 2, 2.2 } do
+		local gap = CastRig.feetOffset(hip, size) - CastRig.rootPlacement(hip, size)
+		check(math.abs(gap - 0.5) < 1e-9, `hip {hip} root {size}: Root is {gap} above the feet, not 0.5`)
+	end
+end
 
 -- Roblox's own animations, each looping.
 local expectedPoses = {

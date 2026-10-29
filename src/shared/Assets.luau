@@ -5,8 +5,9 @@
 -- What the server puts in Workspace streams to the screens near it as usual. Client code that
 -- clones models itself finds them in ReplicatedStorage.Assets, which holds copies of just those
 -- (listed in default.project.json): the decorations and the gnome and flower patch
--- (DecorController) and the judges (ContestController). New client code that clones a model needs
--- it added to that list, or it gets the placeholder. Each screen also gets its own copies of what
+-- (DecorController), and Story, where CastService puts the people's rigs when the server starts
+-- (the judges, for ContestController). New client code that clones a model needs it added to that
+-- list, or it gets the placeholder. Each screen also gets its own copies of what
 -- only it needs (see Assets.shareWith): its player's tools, for laying them out in storage
 -- (CarryController, from DataService), and the crew's truck and trailer, for the drive
 -- (CutsceneController, from JobService).
@@ -26,8 +27,10 @@
 --                                                     toward -Z, with their markers on "Root"
 --   Props/StoragePegboard, StorageWallRack,           storage at the business, back flat on Z = 0 with
 --         StorageWallHooks, StorageShelf              "Slot1", "Slot2"... attachments where tools go
---   Story/<id>          e.g. Story/GloriaHouse        the story's people, places and props
---                                                     (alphainstructions/instructions37.md)
+--   Story/<id>          e.g. Story/GloriaHouse        the story's places and props
+--                                                     (alphainstructions/instructions37.md). Its
+--                                                     people (NPC_<name>) aren't files: they are
+--                                                     rigs CastService builds at startup.
 --
 -- New models have an invisible "Root" part as their PrimaryPart, 0.5 studs above the model's
 -- origin (see Assets.placeAt).
@@ -380,7 +383,9 @@ local STORY_STAND_INS = {
 }
 
 -- A story model, or its block placeholder: one built like the real model (front toward -Z, a
--- Root 0.5 above the origin), so the real one drops in with no code change.
+-- Root 0.5 above the origin), so the real one drops in with no code change. The people (NPC_<name>)
+-- are rigs CastService builds from Config/Cast.luau at startup, in ReplicatedStorage.Assets.Story;
+-- one it couldn't build (it warns) is a placeholder here.
 function Assets.story(id: string): Model
 	local found = Assets.storyModel(id)
 	if found then
@@ -535,7 +540,19 @@ function Assets.placeOnGround(model: Model, ground: CFrame)
 	model:PivotTo(ground + Vector3.new(0, ground.Position.Y - bottom, 0))
 end
 
+-- Anchors a model so it stays where it is put. A person (a rig with a Humanoid, from CastService)
+-- is the exception: only its HumanoidRootPart and Root are anchored, since anchored limbs would
+-- not move for its animations.
 function Assets.anchor(model: Instance)
+	if model:FindFirstChildOfClass("Humanoid") then
+		for _, name in { "HumanoidRootPart", "Root" } do
+			local part = model:FindFirstChild(name)
+			if part and part:IsA("BasePart") then
+				part.Anchored = true
+			end
+		end
+		return
+	end
 	for _, descendant in model:GetDescendants() do
 		if descendant:IsA("BasePart") then
 			descendant.Anchored = true
