@@ -144,31 +144,6 @@ function LawnGrid.mowableMask(columns: number, rows: number, blocked: { [number]
 	return cells
 end
 
--- How many cells of the string have a character that passes `counts`.
-local function countCells(cells: string, counts: (string) -> boolean): number
-	local total = 0
-	for position = 1, #cells do
-		if counts(string.sub(cells, position, position)) then
-			total += 1
-		end
-	end
-	return total
-end
-
--- How many cells have grass on them, cut or not.
-function LawnGrid.mowableCount(cells: string): number
-	return countCells(cells, function(state)
-		return state ~= LawnGrid.EMPTY
-	end)
-end
-
--- How many cells have been cut, cleanly or raggedly.
-function LawnGrid.cutCount(cells: string): number
-	return countCells(cells, function(state)
-		return state == LawnGrid.MOWED or state == LawnGrid.RAGGED
-	end)
-end
-
 -- How many of a task's `total` targets must be done to finish it: `threshold` (0-1) of the ones
 -- that aren't `optional`, rounded up so a share is never finished early.
 function LawnGrid.needed(total: number, optional: number, threshold: number): number

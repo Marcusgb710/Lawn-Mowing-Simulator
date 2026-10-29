@@ -1,8 +1,12 @@
--- Checks the lawn's cell maths outside Roblox:
+-- Checks the mowing maths outside Roblox:
 --   lune run scripts/check-mowing
--- It checks which cells a mower's deck sweeps over (src/shared/LawnGrid.luau) and the counts the
--- job's progress is built from. Exits with an error if anything's off.
+-- It checks which cells a mower's deck sweeps over and a snip cuts, and how many cells finish a
+-- task (src/shared/LawnGrid.luau); the swath log's shades, merging, cap and packing
+-- (src/shared/Swath.luau); the grass pictures' sums and line clipping (src/shared/GrassImages.luau);
+-- and how home lawn saves from before cells are read (src/shared/HomeLawn.luau). Exits with an
+-- error if anything's off.
 
+local fs = require("@lune/fs")
 local process = require("@lune/process")
 
 local LawnGrid = require("../src/shared/LawnGrid")
@@ -33,6 +37,10 @@ end
 -- straight pass from z=-1 to z=11
 local cells = LawnGrid.cellsUnderSweep(10, 10, 5.5, -1, 5.5, 11, 2.5)
 check(#cells == 50, "a straight 5-wide pass over a 10-deep lawn cuts 50 cells")
+check(
+	#LawnGrid.cellsUnderSweep(10, 10, -1, 5.5, 11, 5.5, 2.5) == 50,
+	"the same pass across the lawn (+X), at z=5.5, cuts 50 cells too"
+)
 check(table.find(cells, LawnGrid.index(2, 0, 10)) == nil, "cells left of the deck stay tall")
 check(table.find(cells, LawnGrid.index(3, 0, 10)) ~= nil, "the deck's left edge cuts column 3")
 check(#LawnGrid.cellsUnderSweep(10, 10, 50, 50, 60, 60, 2.5) == 0, "sweep clamps to the lawn")
@@ -46,7 +54,7 @@ check(
 -- At z=5.5 the deck's ends land exactly on cell centres, and a center on the edge isn't under it.
 check(#LawnGrid.cellsUnderSweep(10, 10, 5.5, 5.5, 5.5, 5.5, 2.5) == 5, "a cell center on the deck's edge isn't cut")
 local diagonal = LawnGrid.cellsUnderSweep(10, 10, 0, 0, 10, 10, 1)
-check(#diagonal > 10 and #diagonal < 40, "a diagonal cuts a band, not a column")
+check(#diagonal == 28, "a 2-wide diagonal corner to corner cuts a band of 28 cells")
 local ascending = true
 for position = 2, #diagonal do
 	ascending = ascending and diagonal[position] > diagonal[position - 1]
@@ -87,10 +95,6 @@ check(diagonalShort, "on a diagonal, every cell the swath covers is over half a 
 check(#LawnGrid.cellsInCircle(10, 10, 5, 5, 1) == 4, "a 1-stud snip touches the 4 cells round its point")
 check(#LawnGrid.cellsInCircle(10, 10, -5, -5, 1) == 0, "a snip off the lawn cuts nothing")
 
--- Counts ----------------------------------------------------------------------------------------
-
-check(LawnGrid.mowableCount("0011--2") == 5 and LawnGrid.cutCount("0011--2") == 3, "counts")
-
 -- The lawn as it's built ------------------------------------------------------------------------
 
 local mask = LawnGrid.mowableMask(4, 4, { [LawnGrid.index(1, 1, 4)] = true })
@@ -101,7 +105,7 @@ check(#mask == 16 and mask[LawnGrid.index(1, 1, 4)] == "-" and mask[1] == "0", "
 local Swath = require("../src/shared/Swath")
 
 check(Swath.shade(0, 1) == "Light" and Swath.shade(0, -1) == "Dark" and Swath.shade(1, 0) == "Flat", "shade by travel")
-check(Swath.shade(0.7, 0.71) == "Light", "just past 45 degrees away is still light")
+check(Swath.shade(0.7, 0.71) == "Light", "45 degrees away is still light: it holds to 60 degrees")
 -- A direction `degreesFromZ` off +Z, `scale` long (negative scale points it along -Z instead). The
 -- stripe turns from light or dark to flat 60 degrees off, which the checks below sit either side of.
 local function heading(degreesFromZ: number, scale: number): (number, number)
@@ -401,10 +405,15 @@ check(clipsTo(200, 200, 300, 250), "a segment far away has nothing inside")
 check(clipsTo(7, 7, 7, 7, 7, 7, 7, 7), "a point inside stays")
 check(clipsTo(-1, 7, -1, 7), "a point outside is gone")
 check(clipsTo(0, 5, 143, 5, 0, 5, 143, 5), "a segment exactly on the box's edges stays")
+check(clipsTo(400, 40, -50, 40, 143, 40, 0, 40), "a segment going the other way is cut at both ends, its way round")
+
+-- GrassImages can't load GameConfig, so it keeps its own copy of the pixels per stud: they must agree.
+local imagesPixels = string.match(fs.readFile("src/shared/GrassImages.luau"), "local PIXELS_PER_STUD = (%d+)")
+local configPixels = string.match(fs.readFile("src/shared/Config/GameConfig.luau"), "PixelsPerStud = (%d+)")
+check(imagesPixels ~= nil and imagesPixels == configPixels, "GrassImages' PIXELS_PER_STUD is GameConfig.PixelsPerStud")
 
 -- Home lawn saves from before cells ---------------------------------------------------------------
 
-local fs = require("@lune/fs")
 local luau = require("@lune/luau")
 
 -- HomeLawn reaches its sibling configs through `script`, which Lune doesn't have (and GameConfig

@@ -20,21 +20,6 @@
         "Decorations": {
           "$path": "assets/Decorations"
         },
-        "Kit": {
-          "$className": "Folder",
-          "Grass_Short_A": {
-            "$path": "assets/Kit/Grass_Short_A.rbxm"
-          },
-          "Grass_Short_B": {
-            "$path": "assets/Kit/Grass_Short_B.rbxm"
-          },
-          "Grass_Tall_A": {
-            "$path": "assets/Kit/Grass_Tall_A.rbxm"
-          },
-          "Grass_Tall_B": {
-            "$path": "assets/Kit/Grass_Tall_B.rbxm"
-          }
-        },
         "Props": {
           "$className": "Folder",
           "FlowerPatch": {
