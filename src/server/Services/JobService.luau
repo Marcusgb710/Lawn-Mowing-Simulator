@@ -4,7 +4,7 @@
 --   Working    the crew is at the house doing yard work (the clock is running)
 --   Complete   everyone got paid, the truck heads back to the business in a few seconds
 -- A brand-new player's very first job starts at Working, with them already on the lawn (see
--- StartFirstJob).
+-- StartFirstJob), and its clock starts at their first snip (SnipAt).
 --
 -- Nothing here tells players which tools to bring: offers carry the customer's story and to-do
 -- list, and a tool that can't do a task just gets "That won't work here".
@@ -945,6 +945,14 @@ function JobService:SnipAt(
 	if not job or job.state ~= "Working" then
 		return false, nil
 	end
+	if job.firstTimer and not job.snipped then
+		-- The first-timer's job starts at the title card, so the par clock starts again here, at
+		-- their first snip: the time it took to tap past the card doesn't count against par.
+		job.snipped = true
+		job.startedAt = os.clock()
+		job.startedServerTime = workspace:GetServerTimeNow()
+		sendUpdate(job)
+	end
 	if options.damagesHazards then
 		wreckHazards(job, player, Vector3.new(x, 0, z), SNIP_HAZARD_REACH)
 	end
@@ -1053,8 +1061,9 @@ end
 -- A brand-new player (Season.isFirstTimer) starts on a lawn, not at the computer: as they join,
 -- this gives them the first-timer's job (Jobs FirstMow), already Working, and stands them on it
 -- with Grandma's shears in their hands and their truck parked out front. No board, no loading, no
--- drive: the title card lifts on the grass. From there it's a job like any other, and the truck
--- brings them home after the payday (completeJob, sendHome), where the story's intro plays.
+-- drive: the title card lifts on the grass. From there it's a job like any other (but its par
+-- clock starts again at their first snip, in SnipAt), and the truck brings them home after the
+-- payday (completeJob, sendHome), where the story's intro plays.
 -- Their save's firstJob is set before anything else, so a crash or a rejoin never runs this
 -- twice: they start at their business after that. If any of it fails, it's cleared away and they
 -- start at their business now, so nobody is left stranded.
@@ -1093,6 +1102,8 @@ function JobService:StartFirstJob(player: Player)
 			qualityWork = 0,
 			-- No pull-out to call off: they're there already (sendHome and a respawn read this).
 			tripStarted = true,
+			-- SnipAt starts their par clock again at the first snip (see there).
+			firstTimer = true,
 		}
 		activeJobs[job] = true
 		playerJobs[player] = job

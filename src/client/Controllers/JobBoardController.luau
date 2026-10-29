@@ -189,8 +189,9 @@ local function render()
 			TextSize = 21,
 			Parent = title,
 		})
-		-- Point brand-new players at the job their free gear can do.
-		local newPlayer = ClientState.profile and ClientState.profile.jobsCompleted == 0
+		-- Point brand-new players at the job their free gear can do. They've done one job (the
+		-- strip they start on) by the time they first see the board.
+		local newPlayer = ClientState.profile and ClientState.profile.jobsCompleted <= 1
 		if newPlayer and offer.kind == "StarterGear" then
 			line("Good first job: you already have what it takes.", {
 				TextSize = 15,

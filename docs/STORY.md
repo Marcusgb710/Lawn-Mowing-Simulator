@@ -55,10 +55,11 @@ nobody is broke; you're doing this for Grandma, and because Gloria is insufferab
 June's name went on the trophy. They haven't really spoken since. Nobody brings it up until the
 finale.
 
-## The intro (first join, about 60 seconds, skippable)
+## The intro (June's welcome after the first payday, about 60 seconds, skippable)
 
-It plays after the title card lifts, in letterbox, with dialogue at the bottom. It's the
-"Intro: Grandma's porch" board in the mock-up.
+A new player starts on their first lawn with her shears already in hand, so the intro isn't the
+first thing they see: it plays when the truck brings them home from that first payday, in
+letterbox, with dialogue at the bottom. It's the "Intro: Grandma's porch" board in the mock-up.
 
 1. Sunrise over Maple Grove. A purple TurfKing truck pulls into the drive next door.
 2. **Gloria** (a speech bubble over her house): *"Morning, June! Lovely… dandelions."*
