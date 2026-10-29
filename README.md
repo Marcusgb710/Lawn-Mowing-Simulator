@@ -308,7 +308,7 @@ the world streams to the players near it. Clients get two kinds of copies:
 | `Assets/Buildings` | `Shed`, `Garage`, `SmallOffice`, `EquipmentYard` | A Model with the front door facing forward |
 | `Assets/Props` | `House`, `FlowerPatch`, `GardenGnome` | Models for the customer's yard |
 | `Assets/Props` | `StoragePegboard`, `StorageWallRack`, `StorageWallHooks`, `StorageShelf` | Storage at the business: back flat on Z = 0, front toward -Z, with `Slot1`, `Slot2`... attachments where tools go |
-| `Assets/Story` | e.g. `GloriaHouse`, `GloriaYard_Stage1`, `TurfKingTruck`, `NPC_Chad` | The story's people, places and props (ids in alphainstructions/instructions37.md): origin on the ground, front toward -Z, a `Root` part |
+| `Assets/Story` | e.g. `GloriaHouse`, `GloriaYard_Stage1`, `PorchRockingChair` | The story's places and props (ids in alphainstructions/instructions37.md): origin on the ground, front toward -Z, a `Root` part. The people are not files: `CastService` builds them as Roblox rigs |
 
 There are two ways to add them:
 

@@ -1,9 +1,11 @@
--- Copies models staged by scripts/PrepareChatGPTModels.luau into assets/<Folder>/<id>.rbxm so Rojo
--- syncs them into ServerStorage.Assets.
+-- Copies models staged under ServerStorage.ModelImport into assets/<Folder>/<id>.rbxm so Rojo
+-- syncs them into ServerStorage.Assets. scripts/ImportStoreModels.luau stages them, generated from
+-- assets/manifest/models.json (its header says how); the older ChatGPT mesh packs are staged the
+-- same way by scripts/PrepareChatGPTModels.luau.
 --
 --   lune run scripts/export-models [file] [--overwrite]
 --
--- Run PrepareChatGPTModels.luau in Studio first. Then either save ServerStorage.ModelImport with
+-- Run ImportStoreModels.luau in Studio first. Then either save ServerStorage.ModelImport with
 -- right-click > Save / Export > Save to File (works in Team Create) and pass that .rbxm, or save a
 -- local copy of the place and pass the .rbxl. Existing asset files are kept unless you pass
 -- --overwrite (for a pass that replaces models, like the high-poly one).
@@ -29,7 +31,7 @@ if path:match("%.rbxm$") then
 else
 	staging = roblox.deserializePlace(fs.readFile(path)):GetService("ServerStorage"):FindFirstChild("ModelImport")
 end
-assert(staging and staging.Name == "ModelImport", `{path} has no ModelImport folder. Run PrepareChatGPTModels.luau first.`)
+assert(staging and staging.Name == "ModelImport", `{path} has no ModelImport folder. Run ImportStoreModels.luau in Studio first.`)
 
 local written, replaced, skipped = 0, 0, 0
 for _, folder in staging:GetChildren() do

@@ -328,12 +328,10 @@ This is in rough order, as separate PRs.
      job's pay, from $10 to $100, rounded to $5. It's split with the crew like the rest of the
      pay, and shows as a "Won from TurfKing" line in the pay breakdown. It's the business of the
      leader who drove out that wins the customer.
-   - **Models** use the instructions37 ids in `Assets/Story/<id>` (`Props/<id>` works too, where
-     instructions37 files the sign): `GloriaHouse`, `GloriaYard_Stage1..3`, `TurfKingTruck`,
-     `TurfKingSign`, `NPC_Gloria` and `NPC_Chad`. Until they're in, `Assets.story` falls back to
-     block placeholders built to the same conventions (`Placeholders.luau`: the older
-     `GloriasHouse` and `GloriaPemberton` blocks, and new ones for Chad and the sign). A real
-     model's `Head` marker places the speech bubbles.
+   - **Models:** `GloriaHouse` and `GloriaYard_Stage1..3` are files in `Assets/Story`,
+     `TurfKingSign` is one in `Props`, and Gloria and Chad are rigs that `CastService` builds, like
+     every other person in the story. A block placeholder from `Placeholders.luau` stands in only
+     when one is missing, and the `Head` marker on a model or rig places the speech bubbles.
    - Not built: TurfKing's truck at the job sites it's taken (the taken job never happens
      anywhere you can go).
 5. **The contest:** `ContestService` (scoring from home lawn, edges and decorations against
@@ -362,8 +360,8 @@ This is in rough order, as separate PRs.
      goes to June, the champion. (Not the same as `Story.ContestBar`, the curb appeal of 75 that
      starts act 4.)
    - **Judging day** (`ContestJudging`): a "Yard" shot of your front lawn with the two judges
-     (`NPC_Judge1` Judge Pruitt and `NPC_Judge2` Judge Marigold, block placeholders until the
-     models are in) walking it, then the same across the street at Gloria's. Gloria says *"Half
+     (`NPC_Judge1` Judge Pruitt and `NPC_Judge2` Judge Marigold, rigs that `CastService` builds)
+     walking it, then the same across the street at Gloria's. Gloria says *"Half
      that trophy's always been mine, June. You know it."*, June goes quiet, and the narrator tells
      the 1994 secret. Later summers play a shorter `ContestJudgingAgain` without the secret.
      `DialogueController` gained `addShot` (named camera shots from other controllers) and
@@ -398,14 +396,9 @@ This is in rough order, as separate PRs.
    - **Art slots** in `StoryArt.Contest`: the title wordmark and ribbon, the Winner and So Close
      wordmarks, the trophy, the score track and both fills, the four category icons and the
      confetti sheet. Plus `Judge1` and `Judge2` portraits.
-6. **Models for ChatGPT** (the next instructions file is `instructions37.md`):
-   - Grandma June, Gloria, Chad and Sam (simple stylized NPCs, R15-compatible or static);
-   - a porch rocking chair;
-   - The block placeholders are `Props/GrandmaJune` (sitting, on a seat 1.8 studs up),
-     `Props/PorchRockingChair`, `Props/GloriaPemberton` and `Props/GloriasHouse` (front wall at
-     Z = 0, porch in front, a `Porch` attachment where she stands). Real models with those names
-     drop in; the markers the scenes need are worked out from their size.
-   - TurfKing truck livery;
-   - the Best Yard Trophy;
-   - Gloria's house (three tidiness stages).
+6. **Models.** Gloria's house and its three yards, the porch deck and rocking chair, the TurfKing
+   sign and the Best Yard Trophy are model files, and the story's people are rigs that `CastService`
+   builds. The block placeholders (`Props/GrandmaJune`, `Props/PorchRockingChair`,
+   `Props/GloriaPemberton`, `Props/GloriasHouse` and the `NPC_*` blocks) show only when a model or
+   rig is missing.
 7. **Sounds:** a dialogue blip, a text-message ping and a trophy fanfare.
