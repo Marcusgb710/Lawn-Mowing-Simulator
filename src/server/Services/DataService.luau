@@ -508,8 +508,14 @@ local function snapshot(data)
 		-- Their own truck and trailer (in a crew, PartyUpdated has the leader's truck instead).
 		truck = { used = usedSpace, space = space, baysUsed = usedBays, bays = bays },
 		trailerUnlocked = data.trailerUnlocked,
-		-- What they own with Robux, for the Premium tab and their tools' looks (not the receipts).
-		premium = { owned = data.premium.owned, passes = data.premium.passes, truckPaint = data.premium.truckPaint },
+		-- What they own with Robux, for the Premium tab and their tools' looks (not the receipts), and
+		-- which of the paints in `owned` they earned as level rewards instead (PremiumService:GrantPaint).
+		premium = {
+			owned = data.premium.owned,
+			passes = data.premium.passes,
+			truckPaint = data.premium.truckPaint,
+			earnedPaints = data.premium.earnedPaints or {},
+		},
 		-- The building a Best Yard win took half off, for the Business app (see Shop.price).
 		discount = if typeof(data.contest) == "table" and typeof(data.contest.discount) == "string"
 			then data.contest.discount

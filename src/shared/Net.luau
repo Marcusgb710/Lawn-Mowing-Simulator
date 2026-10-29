@@ -18,6 +18,8 @@ local EVENTS = {
 	"Notify",
 	"StoryUpdated",
 	"ContestUpdated",
+	"MilestoneReached",
+	"LevelReward",
 	"Swath",
 	"Regrow",
 	-- client -> server
