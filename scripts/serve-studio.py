@@ -9,19 +9,29 @@ scripts/studio/log.txt, which is where those scripts leave their report. The one
 rest of the workflow are in scripts/studio/README.md.
 
 The server listens on the loopback address only, so nothing outside this machine can reach it. The
-scripts in scripts/studio/ call port 8765, so change them too if you pass a different --port.
-mode.txt, pairs.json and log.txt are local to each run and git-ignored. Stop the server with Ctrl+C.
+scripts in scripts/studio/ call port 8765, so change them too if you pass a different --port. It
+refuses to start when the port is already taken. mode.txt, pairs.json and log.txt are local to each
+run and git-ignored. Stop the server with Ctrl+C.
 """
 
 import argparse
 import functools
 import http.server
 import os
+import sys
 
 FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), "studio")
 LOG = os.path.join(FOLDER, "log.txt")
 HOST = "127.0.0.1"
 DEFAULT_PORT = 8765
+# The most a /log body may be (bytes): a report is a few kilobytes.
+MAX_LOG_BYTES = 1024 * 1024
+
+
+class Server(http.server.ThreadingHTTPServer):
+    # http.server turns address reuse on, and on Windows that lets a second server bind a port that
+    # is already in use, so either copy might answer. Off, the second one fails to start.
+    allow_reuse_address = False
 
 
 class Handler(http.server.SimpleHTTPRequestHandler):
@@ -29,8 +39,11 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         if self.path != "/log":
             self.send_error(404)
             return
-        length = int(self.headers.get("Content-Length", 0))
-        body = self.rfile.read(length)
+        raw = self.headers.get("Content-Length", "0")
+        if not (raw.isascii() and raw.isdigit()) or int(raw) > MAX_LOG_BYTES:
+            self.send_error(400, "Bad or oversized Content-Length")
+            return
+        body = self.rfile.read(int(raw))
         with open(LOG, "ab") as f:
             f.write(body + b"\n---\n")
         self.send_response(200)
@@ -48,8 +61,13 @@ def main():
     parser.add_argument("--port", type=int, default=DEFAULT_PORT, help=f"port to listen on (default {DEFAULT_PORT})")
     args = parser.parse_args()
     handler = functools.partial(Handler, directory=FOLDER)
-    server = http.server.ThreadingHTTPServer((HOST, args.port), handler)
-    print(f"Serving {FOLDER} on http://{HOST}:{args.port}/ (Ctrl+C to stop)", flush=True)
+    try:
+        server = Server((HOST, args.port), handler)
+    except OSError as error:
+        print(f"Port {args.port} is already in use. Is another copy of this server running?", file=sys.stderr)
+        print(f"({error})", file=sys.stderr)
+        sys.exit(1)
+    print(f"Serving {FOLDER} on http://{HOST}:{server.server_address[1]}/ (Ctrl+C to stop)", flush=True)
     try:
         server.serve_forever()
     except KeyboardInterrupt:

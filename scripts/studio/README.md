@@ -8,13 +8,13 @@ From the repo root, start the server and leave it running:
 
     python -I scripts/serve-studio.py
 
-It serves this folder on `127.0.0.1:8765`. Nothing outside your machine can reach it. Stop it with Ctrl+C. The scripts and the one-liner below call port 8765. If you start the server with `--port`, change the port in them too.
+It serves this folder on `127.0.0.1:8765`. If something already answers on 8765, stop it first. Nothing outside your machine can reach it. Stop it with Ctrl+C. The scripts and the one-liner below call port 8765. If you start the server with `--port`, search the two Lua scripts and the one-liner for 8765 and change it in each.
 
-Studio has to allow HTTP requests for the place (Game Settings, Security, Allow HTTP Requests), or the one-liner fails on its first fetch.
+The one-liner turns on `HttpService.HttpEnabled` itself, so there is no Game Settings step.
 
 Then paste this into the Studio command bar:
 
-    local H=game:GetService("HttpService");local n=(H:GetAsync("http://127.0.0.1:8765/mode.txt"):gsub("%s",""));local f,e=loadstring(H:GetAsync("http://127.0.0.1:8765/"..n..".lua"));if f then f() else warn(e) end
+    local H=game:GetService("HttpService");H.HttpEnabled=true;local n=(H:GetAsync("http://127.0.0.1:8765/mode.txt"):gsub("%s",""));local f,e=loadstring(H:GetAsync("http://127.0.0.1:8765/"..n..".lua"));if f then f() else warn(e) end
 
 The one-liner never changes. It reads `mode.txt`, fetches the script that file names, and runs it.
 
