@@ -91,9 +91,9 @@ local deckHeld = setmetatable({}, { __mode = "k" })
 -- Sweeping a sliver that short would turn the deck to face wherever the jitter pointed, and flip
 -- its orientation every tick.
 local STANDING_DECK = 0.05
--- A mower starting afresh cuts as if it had just come this far (studs) the way its player faces,
--- so the deck's rectangle lies along that way and not along +Z, as a sweep that went nowhere does
--- (see LawnGrid.heading).
+-- A mower starting afresh or standing still cuts as if it had just come this far (studs) the way
+-- its player faces, so the deck's rectangle lies along that way and not along +Z, as a sweep that
+-- went nowhere does (see LawnGrid.heading).
 local START_SLIVER = 0.1
 -- A mower's deck can't have gone further in one tick than the mower can walk: its walk speed times
 -- the time since the last tick, SWEEP_SLACK times over, plus SWEEP_GRACE studs. (A lag spike is
@@ -891,12 +891,13 @@ local function workTick(elapsed: number)
 				end
 				local from = previous or front
 				local to = if previous and step < STANDING_DECK then previous else front
-				if not previous then
-					-- A fresh start: a sliver of a sweep up to the deck, the way the player faces.
+				if not previous or step < STANDING_DECK then
+					-- A fresh start, or standing still: a sliver of a sweep up to where the deck is, the
+					-- way the player faces.
 					local look = root.CFrame.LookVector
 					local flat = Vector3.new(look.X, 0, look.Z)
 					if flat.Magnitude > 1e-3 then
-						from = front - flat.Unit * START_SLIVER
+						from = to - flat.Unit * START_SLIVER
 					end
 				end
 				local stopped, fits
