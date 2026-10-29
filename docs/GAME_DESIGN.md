@@ -266,9 +266,12 @@ flowers, the turf-renovation steps) keeps the **4-stud tile** (`GameConfig.TileS
   and the finish.
 - **The swath log.** A sweep or snip that cut something is logged as a segment (where the deck
   went, how wide, its shade, whether it was ragged; `src/shared/Swath.luau`) and sent to the
-  players in range as a `Swath` event. A sweep that carries straight on from the last one (same
-  width, shade and ragging, starting within a quarter stud of where it ended and within 2 degrees
-  of its heading) stretches that entry, so a straight pass is one entry however long it takes.
+  players in range as a `Swath` event. A sweep that carries straight on from that mower's last one
+  (same width, shade and ragging, starting within a quarter stud of where it ended and within 2
+  degrees of its heading) stretches that entry, so a straight pass is one entry however long it
+  takes, and two mowers on one lawn don't break each other's passes. The log keeps the newest
+  **1024** entries (`Swath.MAX_LOG`); the ledger is the truth, so a cut older than that only loses
+  its stripe on a fresh draw.
 - **Shade.** Stripes come from how you drive, against the lawn's local +Z ("away from the
   street"). Travel whose direction has a dot product with +Z above **0.5** cuts a **Light** stripe
   (heading away from the street), below **-0.5** a **Dark** one (coming back), and anything between
@@ -280,7 +283,8 @@ flowers, the turf-renovation steps) keeps the **4-stud tile** (`GameConfig.TileS
   to cells.
 - **Drawn on the client.** The ledger is never sent every tick (at 1-stud cells it's 16 times what
   tiles were). A client that starts drawing a lawn (or respawns) asks for the ledger and the log
-  once (`GetSwaths`), then follows `Swath` events, and `Regrow` events on a home lawn. Lawns more
+  (`GetSwaths`, answered at most once a second per lawn; a refused ask is tried again after 1.5 s),
+  then follows `Swath` events, and `Regrow` events on a home lawn. Lawns more
   than **200** studs from the camera aren't drawn (30 studs of slack before one is dropped), and
   their images are destroyed.
 - **A turf plate and grass shells.** A drawn lawn is one flat plate of turf plus a few thin
@@ -319,7 +323,10 @@ flowers, the turf-renovation steps) keeps the **4-stud tile** (`GameConfig.TileS
   and the job goes on as before.
 - **Feel.** The server sets the tool's `Cutting` attribute when a tick's sweep cut a cell, and
   clears it when it didn't. While it's set: walk speed x**0.85** (`CuttingSlowdown`), camera shake
-  x**1.5** while a gas engine runs (`CuttingShake`), and clippings fly from the mower's chute.
+  x**1.5** while a gas engine runs (`CuttingShake`), and clippings fly from the mower's chute. It
+  also sets `Mows` whenever the mower fits the lawn under its deck and nothing holds it (junk, a
+  stall, being off the job), cut or not: your own mower's swath is painted locally from the first
+  stud while `Mows` is on, and the server's swath confirms it within **0.5 s**.
 - **Sound** (`EngineAudioController`, ids in `Sounds.Ids`). A petrol mower idles on `EngineIdle`
   and crossfades to a lower `EngineLoad` while it cuts, with its pitch down to **0.85** (nudged up
   a touch while you move). `PullStart` plays the first time it runs after you equip it. A reel

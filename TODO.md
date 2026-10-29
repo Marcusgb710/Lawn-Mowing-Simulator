@@ -450,6 +450,10 @@ Later (known, and left for after this PR):
 - [ ] A home lawn grows back in single-cell speckles (2 x 2 blocks instead?).
 - [ ] Apply maneuverability to walk speed on tight lawns (`fit.speed`, which sweeps ignore).
 - [ ] Stripe shade for ride-on decks.
+- [ ] Prediction keeps last frame's deck, so above about 200 fps no frame moves 0.05 studs and your own mower's swath waits for the server.
+- [ ] A dead character's tool keeps `Working`, `Cutting` and `Mows` set until it's unequipped (the client guards on health).
+- [ ] A respawn within a second of a lawn's first fetch hits the `GetSwaths` limit and shows the lawn tall for 1.5 s until the retry.
+- [ ] Prediction stamps over cut and ragged grass whenever `Mows` is on; watch its cost on phones over a ragged patch.
 
 ## Before release
 
