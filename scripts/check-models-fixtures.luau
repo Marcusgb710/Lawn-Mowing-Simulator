@@ -46,13 +46,29 @@ local function model(name: string, children: { Instance }, primary: string?): Mo
 	return made
 end
 
--- The invisible Handle a tool is held by, and the Root everything else is found by.
-local function handle(at: Vector3?): Part
-	return part("Handle", at or v(0, 1.5, 0), v(0.5, 0.5, 0.5), true)
+local function inside(parent: Instance, child: Instance): Instance
+	child.Parent = parent
+	return child
 end
 
+-- The invisible Handle a tool is held by, with the grips on it (both, unless `grips` lists others).
+local function handle(at: Vector3?, grips: { string }?): Part
+	local made = part("Handle", at or v(0, 1.5, 0), v(0.5, 0.5, 0.5), true)
+	for _, grip in grips or { "GripLeft", "GripRight" } do
+		inside(made, attachment(grip))
+	end
+	return made
+end
+
+-- The invisible Root everything else is found by, where the importer puts it.
 local function root(at: Vector3?): Part
 	return part("Root", at or v(0, 0.5, 0), v(1, 1, 1), true)
+end
+
+-- A truck's Root with its DriverSeat on it.
+local function seated(made: Part): Part
+	inside(made, attachment("DriverSeat"))
+	return made
 end
 
 -- A visible block with its bottom `bottom` studs up, at x = z = 0.
@@ -62,11 +78,6 @@ end
 
 local function hidden(name: string, at: Vector3?): Part
 	return part(name, at or v(0, 1, 2), v(1, 1, 1), true)
-end
-
-local function inside(parent: Instance, child: Instance): Instance
-	child.Parent = parent
-	return child
 end
 
 local function store(id: string, folder: string, extra: { [string]: any }?)
@@ -81,15 +92,21 @@ local function store(id: string, folder: string, extra: { [string]: any }?)
 	return made
 end
 
--- Writes `files` ({ folder, model }) under `<dir>/assets` and the manifest of `entries` to
--- `<dir>/models.json`. Returns the assets folder and the manifest file.
+-- Writes `files` under `<dir>/assets` and the manifest of `entries` to `<dir>/models.json`, and
+-- returns the assets folder and the manifest file. A file is { folder, model }, { folder, model,
+-- "xml" } for an .rbxmx, or { folder, "Name" } for a file that isn't a model at all.
 local function write(dir: string, files: { { any } }, entries: { any }): (string, string)
 	local assets, manifest = `{dir}/assets`, `{dir}/models.json`
 	fs.writeDir(assets)
 	for _, file in files do
-		local folder, made = file[1], file[2]
+		local folder, made, xml = file[1], file[2], file[3] == "xml"
 		fs.writeDir(`{assets}/{folder}`)
-		fs.writeFile(`{assets}/{folder}/{made.Name}.rbxm`, roblox.serializeModel({ made }))
+		if type(made) == "string" then
+			fs.writeFile(`{assets}/{folder}/{made}.rbxm`, "not a model")
+		else
+			local extension = if xml then "rbxmx" else "rbxm"
+			fs.writeFile(`{assets}/{folder}/{made.Name}.{extension}`, roblox.serializeModel({ made }, xml))
+		end
 	end
 	fs.writeFile(manifest, serde.encode("json", { version = 1, complete = false, models = entries }, true))
 	return assets, manifest
@@ -103,7 +120,7 @@ function Fixtures.basic(dir: string): (string, string)
 	return write(dir, {
 		{ "Tools", model("GoodTool", { block("Body", v(2, 3, 4)), handle() }, "Handle") },
 		{ "Tools", model("NoHandle", { block("Body", v(2, 3, 4)) }) },
-		{ "Trucks", model("NoBody", { block("Chassis", v(4, 2, 8)), root(), hidden("BedArea") }, "Root") },
+		{ "Trucks", model("NoBody", { block("Chassis", v(4, 2, 8)), seated(root()), hidden("BedArea") }, "Root") },
 		{ "Props", scripted },
 		{ "Tools", model("Floating", { block("Body", v(2, 2, 2), 2), handle(v(0, 3, 0)) }, "Handle") },
 	}, {
@@ -116,42 +133,62 @@ function Fixtures.basic(dir: string): (string, string)
 end
 
 -- One model per rule the five don't reach, a few that must pass, a store entry with no file, a
--- kept entry, and a file the manifest doesn't list.
+-- kept entry, and files the manifest doesn't list.
 function Fixtures.more(dir: string): (string, string)
 	local noisy = model("Noisy", { block("Body", v(2, 2, 2)), handle() }, "Handle")
 	inside(noisy, Instance.new("Script"))
 	inside(noisy:FindFirstChild("Body"), Instance.new("Script"))
 	inside(noisy, Instance.new("Sound"))
 
+	-- Saved as XML: found by its entry all the same, and its Script is seen.
+	local xmlTool = model("XmlTool", { block("Body", v(2, 2, 2)), handle() }, "Handle")
+	inside(xmlTool, Instance.new("Script"))
+
 	local kept = model("Kept", { block("Body", v(2, 2, 2), 3) })
 	inside(kept, Instance.new("Script"))
 
 	local loud = model("Loud", { block("Body", v(2, 2, 2)) })
 	inside(loud, Instance.new("Sound"))
+	local xmlLoud = model("XmlLoud", { block("Body", v(2, 2, 2)) })
+	inside(xmlLoud, Instance.new("Sound"))
 
-	-- The Porch is an attachment in a folder, as markers may be anywhere below the model.
-	local house = model("House", { block("Body", v(8, 6, 8)), root() }, "Root")
+	local turned = root()
+	turned.CFrame = CFrame.new(0, 0.5, 0) * CFrame.Angles(0, math.rad(45), 0)
+
+	-- The Porch is an attachment in a folder, as markers may be anywhere below the model. The
+	-- Driveway is a part, which the game ignores.
+	local house = model("House", { block("Body", v(8, 6, 8)), root(), hidden("Driveway") }, "Root")
 	inside(inside(house, Instance.new("Folder")), attachment("Porch"))
 
 	return write(dir, {
 		{ "Tools", model("Hollow", { handle() }, "Handle") },
 		{ "Tools", model("TooTall", { block("Body", v(2, 4, 4)), handle() }, "Handle") },
 		{ "Tools", model("NearFit", { block("Body", v(2, 3.2, 4)), handle() }, "Handle") },
+		{ "Tools", model("HalfGripped", { block("Body", v(2, 2, 2)), handle(nil, { "GripLeft" }) }, "Handle") },
+		{ "Tools", model("NoGrips", { block("Body", v(2, 2, 2)), handle(nil, {}) }, "Handle") },
 		{ "Tools", noisy },
+		{ "Tools", xmlTool, "xml" },
 		{ "Tools", kept },
 		{ "Kit", loud },
+		{ "Kit", xmlLoud, "xml" },
+		{ "Kit", "Garbled" },
 		{ "Props", model("Sunk", { block("Body", v(2, 2, 2), -0.5), root() }, "Root") },
-		{ "Props", model("Moved", { block("Body", v(2, 2, 2), 10), root(v(30, 10.5, 5)) }, "Root") },
-		{ "Props", model("Lifted", { block("Body", v(2, 2, 2), 10), root(v(0, 12.5, 0)) }, "Root") },
+		{ "Props", model("RootHigh", { block("Body", v(2, 2, 2)), root(v(0, 5, 0)) }, "Root") },
+		{ "Props", model("RootDrift", { block("Body", v(2, 2, 2)), root(v(3, 0.5, 0)) }, "Root") },
+		{ "Props", model("RootShown", { block("Body", v(2, 2, 2)), part("Root", v(0, 0.5, 0), v(1, 1, 1)) }, "Root") },
+		{ "Props", model("RootTurned", { block("Body", v(2, 2, 2)), turned }, "Root") },
+		{ "Props", model("RootLoose", { block("Body", v(2, 2, 2)), root() }) },
 		{ "Props", house },
+		{ "Props", "Corrupt" },
 		{
 			"Trucks",
 			model(
 				"Heavy",
-				{ block("Heavy__Body", v(4, 2, 8)), block("Wheel", v(1, 1, 1)), root(), hidden("BedArea") },
+				{ block("Heavy__Body", v(4, 2, 8)), block("Wheel", v(1, 1, 1)), seated(root()), hidden("BedArea") },
 				"Root"
 			),
 		},
+		{ "Trucks", model("NoSeat", { block("NoSeat__Body", v(4, 2, 8)), root(), hidden("BedArea") }, "Root") },
 		{ "Trailers", model("NoBed", { block("Frame", v(4, 1, 8)), root() }, "Root") },
 		{
 			"Trailers",
@@ -165,13 +202,22 @@ function Fixtures.more(dir: string): (string, string)
 		store("Hollow", "Tools"),
 		store("TooTall", "Tools", { fit = { axis = "height", studs = 3 } }),
 		store("NearFit", "Tools", { fit = { axis = "height", studs = 3 } }),
+		store("HalfGripped", "Tools"),
+		store("NoGrips", "Tools"),
 		store("Noisy", "Tools"),
+		store("XmlTool", "Tools"),
 		{ id = "Kept", folder = "Tools", source = { kind = "kept" } },
+		{ id = "KeptGhost", folder = "Tools", source = { kind = "kept" } },
 		store("Sunk", "Props"),
-		store("Moved", "Props"),
-		store("Lifted", "Props"),
+		store("RootHigh", "Props"),
+		store("RootDrift", "Props"),
+		store("RootShown", "Props"),
+		store("RootTurned", "Props"),
+		store("RootLoose", "Props"),
 		store("House", "Props"),
+		store("Corrupt", "Props"),
 		store("Heavy", "Trucks", { budget = 3 }),
+		store("NoSeat", "Trucks"),
 		store("NoBed", "Trailers"),
 		store("EquipmentTrailer", "Trailers"),
 		store("Ghost", "Tools"),

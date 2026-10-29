@@ -5,19 +5,23 @@
 -- problem and exits with an error. `--self-test` builds small broken models in a temp folder and
 -- checks the gate finds exactly the problems they have.
 --
--- For every manifest entry that isn't `kept` it reads assets/<Folder>/<id>.rbxm and checks:
+-- For every manifest entry that isn't `kept` it reads assets/<Folder>/<id>.rbxm (or .rbxmx) and
+-- checks:
 --   * the file is there (until `complete` is true, a store entry without one is `pending <id>`);
---   * a `Handle` (Tools) or `Root` (everything else), at least one visible part, and the lowest
---     visible point on the ground, within 0.1 stud;
+--   * Tools: a `Handle` part with `GripLeft` and `GripRight` attachments on it. Everything else: a
+--     `Root` part that is the model's PrimaryPart, invisible, unturned and at (0, 0.5, 0), where
+--     Assets.placeAt expects it (it puts the model's origin 0.5 below the Root);
+--   * at least one visible part, and the lowest visible point on the ground (y = 0 in the file),
+--     within 0.1 stud;
 --   * the `fit` side of the visible parts' box is within 10% of `fit.studs`;
 --   * no scripts or sounds, and no more parts than the entry's `budget` (or the folder's);
---   * the markers the folder needs: Trucks `BedArea` and `<id>__Body`, Trailers `BedArea`,
---     `EquipmentTrailer` its `EquipmentTrailer__Ramp` and two `BaySpot`, `Props/House` its `Porch`
---     and `Driveway`.
--- Every other .rbxm under assets/ is only checked for scripts and sounds. Then it checks that
+--   * the markers the folder needs: Trucks `BedArea`, `<id>__Body` and a `DriverSeat` attachment,
+--     Trailers `BedArea`, `EquipmentTrailer` its `EquipmentTrailer__Ramp` and two `BaySpot`,
+--     `Props/House` its `Porch` and `Driveway` attachments.
+-- Every other model file under assets/ is only checked for scripts and sounds. Then it checks that
 -- scripts/ImportStoreModels.luau compiles and, once `complete` is true, that every id in
 -- Config/Tools.luau, Items.luau (trucks, trailers, buildings) and Decorations.luau has a model
--- file or a `kept` entry.
+-- file or a `kept` entry in one of its folders.
 
 local fs = require("@lune/fs")
 local luau = require("@lune/luau")
@@ -25,7 +29,6 @@ local process = require("@lune/process")
 local roblox = require("@lune/roblox")
 local serde = require("@lune/serde")
 
-local CFrame = roblox.CFrame
 local Vector3 = roblox.Vector3
 
 type Report = { failures: { string }, pending: { string } }
@@ -44,6 +47,10 @@ local DEFAULT_BUDGET = {
 }
 local GROUND_TOLERANCE = 0.1 -- studs
 local FIT_TOLERANCE = 0.1 -- share of `fit.studs`
+local ROOT_AT = Vector3.new(0, 0.5, 0)
+local ROOT_TOLERANCE = 0.1 -- studs
+local ROOT_TURN = 0.01 -- how far the Root's look and up vectors may stray from -Z and +Y
+local EPSILON = 0.0001 -- slack for the float32 maths in the file
 -- Which side of the box each fit axis measures, with the front toward -Z (as in ImportStoreModels).
 local FIT_SIDE = { height = "Y", width = "X", length = "Z" }
 -- What no model may hold. Script and LocalScript are BaseScripts.
@@ -73,18 +80,16 @@ local function everything(roots: { Instance }): { Instance }
 	return list
 end
 
--- The box round these parts' corners, as seen from `frame` (the file's own origin if none).
-local function bounds(list: { BasePart }, frame: CFrame?): (Vector3, Vector3)
-	local into = if frame then frame:Inverse() else CFrame.identity
+-- The box round these parts' corners, in the file's own frame.
+local function bounds(list: { BasePart }): (Vector3, Vector3)
 	local low = Vector3.new(math.huge, math.huge, math.huge)
 	local high = Vector3.new(-math.huge, -math.huge, -math.huge)
 	for _, part in list do
 		local half = part.Size / 2
-		local place = into * part.CFrame
 		for _, sx in { -1, 1 } do
 			for _, sy in { -1, 1 } do
 				for _, sz in { -1, 1 } do
-					local corner = place * Vector3.new(sx * half.X, sy * half.Y, sz * half.Z)
+					local corner = part.CFrame * Vector3.new(sx * half.X, sy * half.Y, sz * half.Z)
 					low = low:Min(corner)
 					high = high:Max(corner)
 				end
@@ -94,20 +99,33 @@ local function bounds(list: { BasePart }, frame: CFrame?): (Vector3, Vector3)
 	return low, high
 end
 
--- How far the lowest visible point is above the ground (negative: below it), and a note on the
--- frame it was measured in. Models are saved at the origin, so the file's own y = 0 is the ground.
--- One saved elsewhere is measured from where the game puts its origin (Assets.placeAt: 0.5 below
--- the Root's centre) and the note says so.
-local function groundGap(model: Instance, visible: { BasePart }): (number, string)
-	local gap = bounds(visible).Y
+-- The ways a model's Root (the part Assets.placeAt finds its origin by: 0.5 below the Root's
+-- centre) isn't the one the importer makes: an invisible PrimaryPart at (0, 0.5, 0), unturned.
+-- With the Root there, the file's own y = 0 is the ground the game stands the model on.
+local function rootProblems(model: Instance, root: BasePart): { string }
+	local reasons = {}
 	local primary = if model:IsA("Model") then model.PrimaryPart else nil
-	if math.abs(gap) > GROUND_TOLERANCE and primary and primary.Name == "Root" then
-		local fromRoot = bounds(visible, primary.CFrame * CFrame.new(0, -0.5, 0)).Y
-		if math.abs(fromRoot - gap) > 0.001 then
-			return fromRoot, " (measured from Root)"
+	if primary ~= root then
+		table.insert(reasons, "Root is not the PrimaryPart")
+	end
+	if root.Transparency < 1 then
+		table.insert(reasons, "Root is visible")
+	end
+	local at = root.CFrame.Position
+	local off = at - ROOT_AT
+	if off.Magnitude > ROOT_TOLERANCE + EPSILON then
+		if math.abs(off.X) <= ROOT_TOLERANCE and math.abs(off.Z) <= ROOT_TOLERANCE then
+			table.insert(reasons, `Root is at y {string.format("%.1f", at.Y)}, not {ROOT_AT.Y}`)
+		else
+			local where = string.format("%.1f, %.1f, %.1f", at.X, at.Y, at.Z)
+			table.insert(reasons, `Root is at ({where}), not (0, {ROOT_AT.Y}, 0)`)
 		end
 	end
-	return gap, ""
+	local look, up = root.CFrame.LookVector, root.CFrame.UpVector
+	if (look - Vector3.new(0, 0, -1)).Magnitude > ROOT_TURN or (up - Vector3.new(0, 1, 0)).Magnitude > ROOT_TURN then
+		table.insert(reasons, "Root is rotated")
+	end
+	return reasons
 end
 
 -- One reason for each kind of script or sound in these, such as "has 2 Scripts".
@@ -156,28 +174,46 @@ local function problemsWith(entry: any, roots: { Instance }): { string }
 			end
 		end
 	end
-	-- How many things have this name (only parts, if `partsOnly`).
-	local function count(name: string, partsOnly: boolean): number
+	-- How many things of this class have this name, anywhere in the file.
+	local function count(name: string, class: string): number
 		local n = 0
 		for _, instance in instances do
-			if instance.Name == name and (not partsOnly or instance:IsA("BasePart")) then
+			if instance.Name == name and instance:IsA(class) then
 				n += 1
 			end
 		end
 		return n
 	end
 
-	local markerName = if entry.folder == "Tools" then "Handle" else "Root"
-	local marker = model:FindFirstChild(markerName)
-	need(marker ~= nil and marker:IsA("BasePart"), `no {markerName}`)
+	if entry.folder == "Tools" then
+		local handle = model:FindFirstChild("Handle")
+		if handle and handle:IsA("BasePart") then
+			for _, grip in { "GripLeft", "GripRight" } do
+				local found = handle:FindFirstChild(grip)
+				need(found ~= nil and found:IsA("Attachment"), `no {grip} on the Handle`)
+			end
+		else
+			need(false, "no Handle")
+		end
+	else
+		local root = model:FindFirstChild("Root")
+		if root and root:IsA("BasePart") then
+			for _, reason in rootProblems(model, root) do
+				table.insert(reasons, reason)
+			end
+		else
+			need(false, "no Root")
+		end
+	end
 
 	if #visible == 0 then
 		need(false, "no visible parts")
 	else
-		local gap, note = groundGap(model, visible)
+		-- Where the lowest visible point is, so how far the file's origin (the ground) is below it.
+		local gap = bounds(visible).Y
 		need(
-			math.abs(gap) <= GROUND_TOLERANCE + 0.0001,
-			`pivot is {string.format("%.1f", math.abs(gap))} {if gap > 0 then "above" else "below"} the ground{note}`
+			math.abs(gap) <= GROUND_TOLERANCE + EPSILON,
+			`pivot is {string.format("%.1f", math.abs(gap))} {if gap > 0 then "above" else "below"} the ground`
 		)
 		if entry.fit then
 			local side = FIT_SIDE[entry.fit.axis]
@@ -201,23 +237,42 @@ local function problemsWith(entry: any, roots: { Instance }): { string }
 	end
 
 	if entry.folder == "Trucks" then
-		need(count("BedArea", true) > 0, "no BedArea")
-		need(count(`{entry.id}__Body`, true) > 0, `no {entry.id}__Body`)
+		need(count("BedArea", "BasePart") > 0, "no BedArea")
+		need(count(`{entry.id}__Body`, "BasePart") > 0, `no {entry.id}__Body`)
+		need(count("DriverSeat", "Attachment") > 0, "no DriverSeat attachment")
 	elseif entry.folder == "Trailers" then
-		need(count("BedArea", true) > 0, "no BedArea")
+		need(count("BedArea", "BasePart") > 0, "no BedArea")
 		if entry.id == "EquipmentTrailer" then
-			need(count("EquipmentTrailer__Ramp", true) > 0, "no EquipmentTrailer__Ramp")
-			local spots = count("BaySpot", true)
+			need(count("EquipmentTrailer__Ramp", "BasePart") > 0, "no EquipmentTrailer__Ramp")
+			local spots = count("BaySpot", "BasePart")
 			need(spots == 2, `has {spots} BaySpot{if spots == 1 then "" else "s"}, wants 2`)
 		end
 	elseif entry.folder == "Props" and entry.id == "House" then
-		need(count("Porch", false) > 0, "no Porch")
-		need(count("Driveway", false) > 0, "no Driveway")
+		-- Attachments, as GloriaService only takes the house's Porch and Driveway if they are.
+		need(count("Porch", "Attachment") > 0, "no Porch attachment")
+		need(count("Driveway", "Attachment") > 0, "no Driveway attachment")
 	end
 	return reasons
 end
 
--- Every .rbxm below `dir`, as paths from it ("Tools/GasPushMower.rbxm"), in order.
+-- The first line of an error, without the traceback Lune adds.
+local function firstLine(err: any): string
+	local text = tostring(err)
+	return text:match("[^\n]+") or text
+end
+
+-- A model's file, as a path from the assets folder: its .rbxm, or its .rbxmx if it is saved as XML.
+local function findModel(assetsDir: string, folder: string, id: string): string?
+	for _, extension in { "rbxm", "rbxmx" } do
+		local file = `{folder}/{id}.{extension}`
+		if fs.isFile(`{assetsDir}/{file}`) then
+			return file
+		end
+	end
+	return nil
+end
+
+-- Every .rbxm and .rbxmx below `dir`, as paths from it ("Tools/GasPushMower.rbxm"), in order.
 local function modelFiles(dir: string, prefix: string?): { string }
 	local found = {}
 	local names = fs.readDir(dir)
@@ -228,7 +283,7 @@ local function modelFiles(dir: string, prefix: string?): { string }
 			for _, inner in modelFiles(`{dir}/{name}`, `{path}/`) do
 				table.insert(found, inner)
 			end
-		elseif name:match("%.rbxm$") then
+		elseif name:match("%.rbxmx?$") then
 			table.insert(found, path)
 		end
 	end
@@ -247,13 +302,15 @@ local function checkModels(assetsDir: string, manifest: any): Report
 		if entry.source and entry.source.kind == "kept" then
 			continue
 		end
-		local file = `{entry.folder}/{entry.id}.rbxm`
-		checked[file] = true
+		local file = findModel(assetsDir, entry.folder, entry.id)
+		if file then
+			checked[file] = true
+		end
 		if not DEFAULT_BUDGET[entry.folder] then
 			fail(entry.id, `folder {entry.folder} isn't one of {FOLDERS}`)
-		elseif not fs.isFile(`{assetsDir}/{file}`) then
+		elseif not file then
 			if manifest.complete then
-				fail(entry.id, `no file {file}`)
+				fail(entry.id, `no file {entry.folder}/{entry.id}.rbxm`)
 			else
 				table.insert(report.pending, entry.id)
 			end
@@ -264,21 +321,21 @@ local function checkModels(assetsDir: string, manifest: any): Report
 					fail(entry.id, reason)
 				end
 			else
-				fail(entry.id, `can't read {file}: {roots}`)
+				fail(entry.id, `can't read {file}: {firstLine(roots)}`)
 			end
 		end
 	end
 
 	for _, file in modelFiles(assetsDir) do
 		if not checked[file] then
-			local label = file:gsub("%.rbxm$", "")
+			local label = file:gsub("%.rbxmx?$", "")
 			local ok, roots = pcall(readModel, `{assetsDir}/{file}`)
 			if ok then
 				for _, reason in unwanted(everything(roots)) do
 					fail(label, reason)
 				end
 			else
-				fail(label, `can't read {file}: {roots}`)
+				fail(label, `can't read {file}: {firstLine(roots)}`)
 			end
 		end
 	end
@@ -306,24 +363,23 @@ local function compileError(source: string): string?
 	if ok then
 		return nil
 	end
-	local text = tostring(err)
-	return text:match("syntax error[^\n]*") or text:match("[^\n]+") or text
+	return tostring(err):match("syntax error[^\n]*") or firstLine(err)
 end
 
--- Each id needs a file in one of its group's folders or a `kept` manifest entry.
+-- Each id needs a file in one of its group's folders, or a `kept` manifest entry in one of them.
 local function checkCoverage(assetsDir: string, manifest: any, groups: { IdGroup }): { string }
 	local kept = {}
 	for _, entry in manifest.models do
 		if entry.source and entry.source.kind == "kept" then
-			kept[entry.id] = true
+			kept[`{entry.folder}/{entry.id}`] = true
 		end
 	end
 	local failures = {}
 	for _, group in groups do
 		for _, id in group.ids do
-			local covered = kept[id] == true
+			local covered = false
 			for _, folder in group.folders do
-				covered = covered or fs.isFile(`{assetsDir}/{folder}/{id}.rbxm`)
+				covered = covered or findModel(assetsDir, folder, id) ~= nil or kept[`{folder}/{id}`] == true
 			end
 			if not covered then
 				local where = table.concat(group.folders, "/")
@@ -392,43 +448,77 @@ local function selfTest()
 	})
 	expect("basic pending", report.pending, {})
 
-	-- One model for each other rule, and the ones that must pass (NearFit is 7% over its fit, Moved
-	-- stands on its own origin, Kept is left alone but for its Script).
+	-- A file Lune can't read is reported on one line, whatever Lune says; its reason isn't ours to
+	-- assert, so these lines are set aside and only their start is checked.
+	local function withoutUnreadable(lines: { string }): { string }
+		local rest, starts = {}, {}
+		for _, line in lines do
+			if line:find(": can't read ", 1, true) then
+				check(not line:find("\n"), `unreadable: {line} runs over several lines`)
+				check(line:match(": can't read [^:]+: .") ~= nil, `unreadable: {line} gives no reason`)
+				table.insert(starts, (line:match("^(.-: can't read [^:]+: )")))
+			else
+				table.insert(rest, line)
+			end
+		end
+		expect("unreadable", starts, {
+			"FAIL Corrupt: can't read Props/Corrupt.rbxm: ",
+			"FAIL Kit/Garbled: can't read Kit/Garbled.rbxm: ",
+		})
+		return rest
+	end
+
+	-- One model for each other rule, and the ones that must pass (NearFit is 7% over its fit, Kept is
+	-- left alone but for its Script).
 	assets, manifestFile = Fixtures.more(`{dir}/more`)
 	local manifest = loadManifest(manifestFile)
 	local expected = {
 		"FAIL Hollow: no visible parts",
 		"FAIL TooTall: height is 4.0 studs, but fit wants 3 (10% allowed)",
+		"FAIL HalfGripped: no GripRight on the Handle",
+		"FAIL NoGrips: no GripLeft on the Handle",
+		"FAIL NoGrips: no GripRight on the Handle",
 		"FAIL Noisy: has 2 Scripts",
 		"FAIL Noisy: has a Sound",
+		"FAIL XmlTool: has a Script",
 		"FAIL Tools/Kept: has a Script",
 		"FAIL Kit/Loud: has a Sound",
+		"FAIL Kit/XmlLoud: has a Sound",
 		"FAIL Sunk: pivot is 0.5 below the ground",
-		"FAIL Lifted: pivot is 2.0 below the ground (measured from Root)",
-		"FAIL House: no Driveway",
+		"FAIL RootHigh: Root is at y 5.0, not 0.5",
+		"FAIL RootDrift: Root is at (3.0, 0.5, 0.0), not (0, 0.5, 0)",
+		"FAIL RootShown: Root is visible",
+		"FAIL RootTurned: Root is rotated",
+		"FAIL RootLoose: Root is not the PrimaryPart",
+		"FAIL House: no Driveway attachment",
 		"FAIL Heavy: has 4 parts, over its budget of 3",
+		"FAIL NoSeat: no DriverSeat attachment",
 		"FAIL NoBed: no BedArea",
 		"FAIL EquipmentTrailer: no EquipmentTrailer__Ramp",
 		"FAIL EquipmentTrailer: has 1 BaySpot, wants 2",
 	}
 	report = checkModels(assets, manifest)
-	expect("more", report.failures, expected)
+	expect("more", withoutUnreadable(report.failures), expected)
 	expect("more pending", report.pending, { "Ghost" })
 
 	-- A store entry with no file stops being pending once the manifest is complete.
 	manifest.complete = true
 	report = checkModels(assets, manifest)
 	table.insert(expected, "FAIL Ghost: no file Tools/Ghost.rbxm")
-	expect("complete", report.failures, expected)
+	expect("complete", withoutUnreadable(report.failures), expected)
 	expect("complete pending", report.pending, {})
 
-	-- Every id needs a file or a kept entry.
+	-- Every id needs a file (.rbxm or .rbxmx) or a kept entry, in a folder of its group.
 	expect(
 		"coverage",
-		checkCoverage(assets, manifest, { { ids = { "Kept", "NearFit", "Ghost", "Nothing" }, folders = { "Tools" } } }),
+		checkCoverage(assets, manifest, {
+			{ ids = { "KeptGhost", "NearFit", "XmlTool", "Ghost", "Nothing" }, folders = { "Tools" } },
+			{ ids = { "KeptGhost" }, folders = { "Props", "Trucks" } },
+		}),
 		{
 			"FAIL Ghost: no model file in Tools and no kept entry",
 			"FAIL Nothing: no model file in Tools and no kept entry",
+			"FAIL KeptGhost: no model file in Props/Trucks and no kept entry",
 		}
 	)
 	expect(
