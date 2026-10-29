@@ -57,6 +57,9 @@
 --   device    "touch": it only ever shows on a touch screen; "keyboard": only with a keyboard
 --   fixed     true for something drawn only so the rest can be placed around it: the game decides
 --             where it goes (the dot is where the camera aims), so the editor shouldn't move it
+--   compactOnly  true for a piece that only shows on a short screen, the way the HUD counts one for
+--             its columns: shorter than __screen.scaling.Columns.fullHeight, not compactHeight. The
+--             editor draws it on the phone screens and leaves it out of the tall ones
 --   note      when it shows, what decides its size, and anything else the editor should know
 --
 -- The screens. Each element is on one of these ScreenGuis (its `screen`, or its parent's), and
@@ -110,6 +113,8 @@
 -- Worked out while playing, from the values here (each one's note has the rule):
 --   * the columns' scale (above), and curb appeal hiding on a short screen while the job tracker
 --     shows;
+--   * the goals rail under Grandma's goal (its next two milestones, from Config/Milestones.luau), which
+--     hides on a short screen, where NextChip shows the next one instead, through a job too;
 --   * what gives way to what (each piece's hideWhile): on a touch screen Grandma's goal, the
 --     first-job coach and a crew invite share the top of the screen, one at a time, and the job
 --     tracker steps aside for the decorating buttons;
@@ -339,9 +344,13 @@ return {
 			hideWhile = { "TutorialBanner", "CrewInvite" },
 		},
 		note = "Grandma's sticky note with your story goal and how close you are, while you have one. As "
-			.. "tall as its words. On a touch screen it's out of the column, at the top in the middle between "
-			.. "the HUD's columns, away from your thumb on the move stick, and the toasts start under it. The "
-			.. "first-job coach and a crew invite go there too, and it waits while either shows.",
+			.. "tall as its words. Under the goal's bar is the goals rail: the next two milestones (the ones "
+			.. "nearest to done), each a line of words over a thin bar, until the screen is shorter than "
+			.. "__screen.scaling.Columns.fullHeight, where the rail is hidden and NextChip says the next one "
+			.. "instead (typical is that short screen, so it has no rail). On a touch screen it's out of the "
+			.. "column, at the top in the middle between the HUD's columns, away from your thumb on the move "
+			.. "stick, and the toasts start under it. The first-job coach and a crew invite go there too, and "
+			.. "it waits while either shows.",
 	},
 	RightColumn = {
 		label = "Right HUD column",
@@ -353,10 +362,11 @@ return {
 		autoSize = "Y",
 		list = { direction = "Vertical", padding = 10, align = "Right" },
 		typical = { 280, 330 },
-		note = "Curb appeal over the job tracker, then the Show what I missed button late in the mowing, down "
-			.. "the right. Its UIScale shrinks it to fit like the left column's, toward its top right corner. "
-			.. "Typical is during a job on a phone, where curb appeal hides. Each of the three can be taken out "
-			.. "of it (their detach) and put anywhere on the screen.",
+		note = "Curb appeal, then on a short screen the Next chip, over the job tracker, then the Show what I "
+			.. "missed button late in the mowing, down the right. Its UIScale shrinks it to fit like the left "
+			.. "column's, toward its top right corner. Typical is during a job on a phone, where curb appeal "
+			.. "hides and the chip stays. Each of the four can be taken out of it (their detach) and put "
+			.. "anywhere on the screen.",
 	},
 	CurbAppeal = {
 		label = "Curb appeal panel",
@@ -367,6 +377,20 @@ return {
 		size = { 0, 220, 0, 78 },
 		note = "Your crew's curb appeal out of 100, once there is one. Hidden during a job on a screen "
 			.. "shorter than __screen.scaling.Columns.fullHeight, where the job tracker needs the room.",
+	},
+	NextChip = {
+		label = "Next milestone chip",
+		group = "Trackers",
+		parent = "RightColumn",
+		detach = "RightColumn",
+		order = 2,
+		size = { 0, 220, 0, 28 },
+		compactOnly = true,
+		note = "The goals rail's next milestone on one line ('Next: Finish 3 jobs 1/3'), under curb appeal, "
+			.. "while there is one left. Only on a screen shorter than __screen.scaling.Columns.fullHeight (a "
+			.. "phone held sideways), where Grandma's goal has no room for the rail's two rows. Nothing takes "
+			.. "its spot, so it stays up during a job, when curb appeal hides. Its words shrink to fit the "
+			.. "line, and it gets the stamp and the sparkles when the milestone's reached.",
 	},
 	JobTracker = {
 		label = "Job tracker",

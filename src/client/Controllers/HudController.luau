@@ -1,10 +1,11 @@
 -- Always-on screen stuff, laid out like the art's HUD (alphainstructions/instructions38.md):
 --   * down the left: money and level (the money counter in the display face), the menu buttons
 --     with their glyphs (and on a keyboard their keys: T, G, C), and Grandma's sticky note with
---     your story goal;
---   * down the right: your business's curb appeal, the job tracker on the art's GoalTracker
---     card (to-dos, a timer against par, damage), smaller on a phone, and under it, late in the
---     mowing, the button that lights up the grass you missed (M on a keyboard);
+--     your story goal and, under it, the goals rail: your next two milestones;
+--   * down the right: your business's curb appeal, on a phone the Next chip (the next milestone,
+--     where the rail has no room), the job tracker on the art's GoalTracker card (to-dos, a timer
+--     against par, damage), smaller on a phone, and under it, late in the mowing, the button that
+--     lights up the grass you missed (M on a keyboard);
 --   * the condition of the tool in your hands, a glyph for each thing wrong ("Running low on
 --     fuel" by the fuel can), or what you're doing to one at the workbench;
 --   * the pay breakdown when a job's done, and the big moments: Level Up! and New Tool!
@@ -23,6 +24,7 @@ local GameConfig = require(Shared.Config.GameConfig)
 local Items = require(Shared.Config.Items)
 local Jobs = require(Shared.Config.Jobs)
 local Maintenance = require(Shared.Config.Maintenance)
+local Milestones = require(Shared.Config.Milestones)
 local Net = require(Shared.Net)
 local PayBreakdown = require(Shared.PayBreakdown)
 local Sounds = require(Shared.Sounds)
@@ -52,6 +54,13 @@ local MISSED_KEY = Enum.KeyCode.M
 -- done), this tall, with this many sparkles round it.
 local DONE_STAMP_HEIGHT = 40
 local DONE_SPARKLES = 5
+-- The goals rail under the story goal: this many milestones, each in a row this tall (its words over
+-- a thin bar). A milestone just reached stays on its row, done, under a stamp this tall, for
+-- RAIL_HOLD seconds before the rail moves on to the next.
+local RAIL_ROWS = 2
+local RAIL_ROW_HEIGHT = 32
+local RAIL_STAMP_HEIGHT = 24
+local RAIL_HOLD = 1.2
 -- The pay breakdown's three star slots (a job's stars): each is this big, and the stars it earned
 -- fill in gold one every STAR_STEP seconds, each landing over that time.
 local STAR_GLYPH = "★"
@@ -80,6 +89,34 @@ local goalNote: GuiObject
 local goalText: TextLabel
 local goalValue: TextLabel
 local goalBar: UI.Bar
+
+-- The goals rail's rows, in order: what each shows now (nil while it's empty) and, while its
+-- milestone's being celebrated, that one, which keeps the row until the celebration's over.
+type Milestone = Milestones.Milestone
+type RailRow = {
+	frame: Frame,
+	label: TextLabel,
+	bar: UI.Bar,
+	shown: Milestone?,
+	held: Milestone?,
+	stamp: UI.Stamp?,
+}
+local railRows: { RailRow } = {}
+-- The Next chip, its label and stamp, and the milestone being celebrated on it, if one is.
+local nextChip: GuiObject
+local nextChipLabel: TextLabel
+local chipStamp: UI.Stamp?
+local chipHeld: Milestone?
+-- Milestones MilestoneReached has said are reached that the profile doesn't have yet. The server
+-- sends the profile first, so this is normally empty; it keeps a late profile from drawing a
+-- reached milestone as still to do.
+local pending: { [string]: boolean } = {}
+-- Where the rail had a milestone the profile says is reached, by its id: the row's index. The
+-- profile comes before MilestoneReached and moves the rail on, so this is how the celebration
+-- finds the row the milestone was on.
+local leftRail: { [string]: number } = {}
+-- Whether the rail was last drawn for a short screen, so a window turning short or tall redraws it.
+local railCompact: boolean? = nil
 
 local tracker: GuiObject
 local trackerPadding: UIPadding
@@ -506,11 +543,213 @@ local function buildGoal()
 		Parent = goalNote,
 	})
 	goalBar = UI.bar({ Size = UDim2.new(1, 0, 0, 10), LayoutOrder = 4, Parent = goalNote })
+	-- The goals rail under the bar (updateMilestones fills it in): a row for each milestone, one line
+	-- of words (they shrink to fit it, up to 15 px) over a thin bar. A row has no list in it, so its
+	-- stamp and sparkles go where they're put.
+	for index = 1, RAIL_ROWS do
+		local frame = UI.new("Frame", {
+			Name = `Milestone{index}`,
+			Size = UDim2.new(1, 0, 0, RAIL_ROW_HEIGHT),
+			BackgroundTransparency = 1,
+			Visible = false,
+			LayoutOrder = 4 + index,
+			Parent = goalNote,
+		})
+		local label = UI.label("", {
+			Position = UDim2.fromOffset(0, 6),
+			Size = UDim2.new(1, 0, 0, 18),
+			TextScaled = true,
+			TextSize = 15,
+			FontFace = UI.Fonts.Bold,
+			TextColor3 = UI.Colors.Ink,
+			Parent = frame,
+		})
+		UI.new("UITextSizeConstraint", { MaxTextSize = 15, Parent = label })
+		local bar = UI.bar({ Position = UDim2.fromOffset(0, 26), Size = UDim2.new(1, 0, 0, 6), Parent = frame })
+		railRows[index] = { frame = frame, label = label, bar = bar }
+	end
 	-- Out of its column at the top of the screen (on a touch screen), the toasts keep below it.
 	UI.keepToastsBelow(goalNote)
 end
 
+-- The Next chip: the rail's next milestone on one line in the right column, under curb appeal, on a
+-- short screen (a phone held sideways), where the note has no room for the rail. Nothing hides it:
+-- it stays up through a job, which curb appeal doesn't.
+local function buildNextChip()
+	nextChip = UI.sliced("Tooltip", {
+		Name = "NextChip",
+		Visible = false,
+	}, { color = UI.Colors.Background, transparency = 0.25, radius = 8 })
+	placeInColumn(nextChip, "NextChip")
+	UI.new("UIPadding", {
+		PaddingLeft = UDim.new(0, 10),
+		PaddingRight = UDim.new(0, 10),
+		Parent = nextChip,
+	})
+	nextChipLabel = UI.label("", {
+		Size = UDim2.fromScale(1, 1),
+		TextScaled = true,
+		TextSize = 14,
+		TextXAlignment = Enum.TextXAlignment.Center,
+		Parent = nextChip,
+	})
+	UI.new("UITextSizeConstraint", { MaxTextSize = 14, Parent = nextChipLabel })
+end
+
+-- The `count` milestones nearest to done, never one MilestoneReached has said is reached, which a
+-- profile that's behind would still list.
+local function nextMilestones(count: number): { Milestone }
+	local late = 0
+	for _ in pending do
+		late += 1
+	end
+	local nearest = {}
+	for _, milestone in Goal.milestones(count + late) do
+		if #nearest < count and not pending[milestone.id] then
+			table.insert(nearest, milestone)
+		end
+	end
+	return nearest
+end
+
+-- Draws `milestone` on a rail row: its words and how far along you are, over the bar, or done.
+local function fillRailRow(row: RailRow, milestone: Milestone, done: boolean)
+	local have, progress = Goal.milestoneProgress(milestone, if done then milestone.at else nil)
+	row.label.Text = `{milestone.text}   {progress}`
+	row.bar.fill(if done then "Money" else "Grass")
+	row.bar.set(have / milestone.at)
+end
+
+-- The goals rail and the Next chip, from the profile (Goal.milestones). The rows are hidden on a
+-- short screen (shortScreen, the test that hides curb appeal during a job), where the chip shows
+-- instead, whenever there's a milestone left. A row that's celebrating keeps its milestone, and
+-- the rows after it take the next ones.
+local function updateMilestones()
+	local compact = shortScreen()
+	railCompact = compact
+	local profile = ClientState.profile
+	local reached = if profile and profile.milestones then profile.milestones else {}
+	for id in pending do
+		if reached[id] then
+			pending[id] = nil
+		end
+	end
+	local free = {}
+	for index, row in railRows do
+		if not row.held then
+			table.insert(free, index)
+		end
+	end
+	local nearest = nextMilestones(#free)
+	for place, index in free do
+		local row = railRows[index]
+		local milestone = nearest[place]
+		local before = row.shown
+		-- The profile comes before MilestoneReached, so a row can give up a milestone here that
+		-- the event hasn't said is reached yet: keep where it was.
+		if before and not (milestone and milestone.id == before.id) and (reached[before.id] or pending[before.id]) then
+			leftRail[before.id] = index
+		end
+		row.shown = milestone
+		row.frame.Visible = milestone ~= nil and not compact
+		if milestone then
+			fillRailRow(row, milestone, false)
+		end
+	end
+	local chipMilestone = chipHeld or nextMilestones(1)[1]
+	nextChip.Visible = compact and chipMilestone ~= nil
+	if chipMilestone then
+		local _, progress = Goal.milestoneProgress(chipMilestone, if chipHeld then chipMilestone.at else nil)
+		nextChipLabel.Text = `{if chipHeld then "Done" else "Next"}: {chipMilestone.text} {progress}`
+	end
+end
+
+-- The row that has the milestone `id` on the rail, or just had it (see leftRail).
+local function railRowOf(id: string): RailRow?
+	for _, row in railRows do
+		if row.shown and row.shown.id == id then
+			return row
+		end
+	end
+	local index = leftRail[id]
+	return if index then railRows[index] else nil
+end
+
+-- A milestone's reached: sparkles and a DONE stamp land on the row it was on, or on the chip on a
+-- short screen, and that shows it done for RAIL_HOLD seconds, about as long as the stamp lasts,
+-- before the rail goes on to the next. The art has no stamp that says DONE yet, so it's the Job
+-- Complete one, with DONE where there's no art. The caller redraws.
+local function celebrateMilestone(milestone: Milestone)
+	-- Sounds.playUi("GoalDone") goes here once Sounds has playUi and a GoalDone sound.
+	if shortScreen() then
+		chipHeld = milestone
+		local stamp = chipStamp or UI.stamp(nextChip, { JobComplete = "DONE" }, RAIL_STAMP_HEIGHT)
+		chipStamp = stamp
+		UI.sparkle(nextChip, 5, 22)
+		stamp.flash("JobComplete")
+		task.delay(RAIL_HOLD, function()
+			if chipHeld == milestone then
+				chipHeld = nil
+				updateMilestones()
+			end
+		end)
+		return
+	end
+	local row = railRowOf(milestone.id)
+	if row and row.held then
+		-- Another milestone reached with this one has its row: this one takes the next row that's free.
+		row = nil
+		for _, other in railRows do
+			if not other.held then
+				row = other
+				break
+			end
+		end
+	end
+	if not row then
+		return
+	end
+	row.held = milestone
+	row.shown = milestone
+	fillRailRow(row, milestone, true)
+	row.frame.Visible = true
+	local stamp = row.stamp or UI.stamp(row.frame, { JobComplete = "DONE" }, RAIL_STAMP_HEIGHT)
+	row.stamp = stamp
+	UI.sparkle(row.frame, 6, 24)
+	stamp.flash("JobComplete")
+	task.delay(RAIL_HOLD, function()
+		if row.held == milestone then
+			row.held = nil
+			row.shown = nil
+			updateMilestones()
+		end
+	end)
+end
+
+local function milestoneById(id: string): Milestone?
+	for _, milestone in Milestones.List do
+		if milestone.id == id then
+			return milestone
+		end
+	end
+	return nil
+end
+
+-- The server's told us a milestone's reached (`info`: its id, its words and the cash it paid).
+local function onMilestoneReached(info: { id: string, text: string, cash: number })
+	pending[info.id] = true
+	local milestone = milestoneById(info.id)
+	if milestone then
+		celebrateMilestone(milestone)
+	end
+	leftRail[info.id] = nil
+	-- FloatingText.show lifts "+$30" off the row once Task 7 adds it; until then a toast says it.
+	UI.notify(if info.cash > 0 then `{info.text} +{Format.money(info.cash)}` else info.text)
+	updateMilestones()
+end
+
 local function updateGoal()
+	updateMilestones()
 	local goal = Goal.current()
 	-- Where it gives way to something else that takes its spot (on a touch screen, the first-job
 	-- coach and a crew invite at the top of the screen), it hides while that shows.
@@ -1198,6 +1437,7 @@ function HudController:Start()
 	buildMenuButtons()
 	buildGoal()
 	buildCurbAppeal()
+	buildNextChip()
 	buildTracker()
 	buildMissedButton()
 	buildCondition()
@@ -1214,6 +1454,14 @@ function HudController:Start()
 	player:GetAttributeChangedSignal("CurbAppeal"):Connect(updateGoal)
 	UI.onGiveWay("GrandmaGoal", updateGoal)
 	UI.onGiveWay("JobTracker", updateJob)
+	-- The rail hides and the Next chip shows when the screen turns short, and the other way (a window
+	-- resized).
+	UI.getScreen():GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+		if shortScreen() ~= railCompact then
+			updateMilestones()
+		end
+	end)
+	Net.event("MilestoneReached").OnClientEvent:Connect(onMilestoneReached)
 	updateGoal()
 
 	task.spawn(function()

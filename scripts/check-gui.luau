@@ -237,6 +237,7 @@ local LAYOUT_FIELDS = {
 	hideWhile = "table",
 	device = "string",
 	fixed = "boolean",
+	compactOnly = "boolean",
 	note = "string",
 }
 -- The pieces HudController builds straight into one of the HUD columns (placeInColumn), and the
@@ -247,6 +248,7 @@ local COLUMN_PIECES = {
 	MenuButtons = "LeftColumn",
 	GrandmaGoal = "LeftColumn",
 	CurbAppeal = "RightColumn",
+	NextChip = "RightColumn",
 	JobTracker = "RightColumn",
 	MissedButton = "RightColumn",
 }
@@ -417,6 +419,40 @@ for id in UiLayout do
 		end
 	end
 end
+
+-- The goals rail's Next chip (Busy Season, slice 1): the rail's next milestone on one line, in the
+-- right column, for the short screens where the rail itself is hidden. Curb appeal hides during a
+-- job on a short screen, but the chip is its own piece and nothing hides it, so no entry's
+-- hideWhile (in its place, its touch ones or its compact ones) names it. Grandma's goal, which
+-- carries the rail on a tall screen, still gives way to the first-job coach and a crew invite on a
+-- touch screen.
+local nextChip = UiLayout.NextChip
+check(nextChip ~= nil, "UiLayout has no NextChip")
+if nextChip then
+	check(nextChip.parent == "RightColumn", `UiLayout's NextChip is in {nextChip.parent}, not the RightColumn`)
+	check(nextChip.detach == "RightColumn", "UiLayout's NextChip can't be taken out of and put back in the RightColumn")
+	check(nextChip.compactOnly == true, "UiLayout's NextChip isn't compactOnly: it would show on a tall screen too")
+	check(nextChip.hideWhile == nil, "UiLayout's NextChip gives way to something: it has to show during a job")
+end
+for id, entry in UiLayout do
+	if id ~= "__screen" then
+		for place, places in { whole = entry, touch = entry.touch or {}, compact = entry.compact or {} } do
+			check(
+				table.find((places :: any).hideWhile or {}, "NextChip") == nil,
+				`UiLayout's {id} ({place}) hides while NextChip shows, which would hide it during a job`
+			)
+		end
+	end
+end
+local grandmaWaits = UiLayout.GrandmaGoal.touch.hideWhile
+check(
+	grandmaWaits ~= nil and table.find(grandmaWaits, "TutorialBanner") ~= nil,
+	"UiLayout's GrandmaGoal doesn't wait for the TutorialBanner on a touch screen"
+)
+check(
+	grandmaWaits ~= nil and table.find(grandmaWaits, "CrewInvite") ~= nil,
+	"UiLayout's GrandmaGoal doesn't wait for the CrewInvite on a touch screen"
+)
 
 for name, rule in UiLayout.__screen.scaling do
 	for _, id in rule.elements do
