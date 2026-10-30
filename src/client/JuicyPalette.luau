@@ -29,6 +29,7 @@ local Palette = {
 	Cream = face(Color3.fromRGB(255, 255, 255), Color3.fromRGB(255, 241, 194)), -- #FFFFFF / #FFF1C2
 	Danger = face(Color3.fromRGB(255, 122, 107), Color3.fromRGB(224, 85, 63)), -- #FF7A6B / #E0553F
 	Gold = face(Color3.fromRGB(255, 224, 102), Color3.fromRGB(242, 185, 47)), -- #FFE066 / #F2B92F, bars and titles
+	Muted = face(Color3.fromRGB(92, 107, 97), Color3.fromRGB(63, 76, 67)), -- #5C6B61 / #3F4C43, the choices not taken in Settings
 }
 
 return Palette

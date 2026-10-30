@@ -32,7 +32,7 @@
 --   * cash and XP coming in lift off the piece of the HUD they came from (FloatingText) and ring
 --     (Sounds.playUi): the pay panel's total and tip, a goal's row or the Next chip, the Contracts
 --     square (ContractDone), the money counter (the streak's gift), the level pill and the XP bar.
--- On a keyboard V switches camera motion on and off. Where each piece goes is in UiLayout.luau,
+-- On a keyboard V switches camera motion on and off (saved, through SettingsController). Where each piece goes is in UiLayout.luau,
 -- which can also take any of the columns' pieces out of its column to go anywhere on the screen.
 
 local Players = game:GetService("Players")
@@ -66,6 +66,7 @@ local UI = require(script.Parent.Parent.UI)
 local CameraController = require(script.Parent.CameraController)
 local GrassController = require(script.Parent.GrassController)
 local LevelsController = require(script.Parent.LevelsController)
+local SettingsController = require(script.Parent.SettingsController)
 local ShopController = require(script.Parent.ShopController)
 
 local player = Players.LocalPlayer
@@ -1238,8 +1239,9 @@ local function buildRightButtons()
 
 	-- Where each button goes: the Shop opens the Orders window (or puts it away when it is up), Gifts
 	-- claims the day's gift (or shows the contracts panel's streak card when none waits), Top Lawns the
-	-- leaderboards, and Settings says they are coming. Opening one closes any other menu, since only
-	-- one is up at a time (UI.open).
+	-- leaderboards, and Settings the Settings window (SettingsController gives it that when it starts,
+	-- through setRightAction). Opening one closes any other menu, since only one is up at a time
+	-- (UI.open).
 	rightActions.Shop = function()
 		if UI.isOpen("Shop") then
 			UI.close("Shop")
@@ -1251,11 +1253,9 @@ local function buildRightButtons()
 	rightActions.TopLawns = function()
 		UI.toggle("TopLawns")
 	end
-	rightActions.Settings = function()
-		UI.notify("Settings are coming in the next update.")
-	end
+	rightActions.Settings = function() end
 
-	-- A later task builds on the Gifts and Settings buttons (a tag on Gifts, the window behind Settings).
+	-- Other controllers build on the Gifts and Settings buttons (a tag on Gifts, the window behind Settings).
 	HudController.giftsButton = rightPieces[2].button
 	HudController.giftsFace = rightPieces[2].face
 	HudController.settingsButton = rightPieces[4].button
@@ -1810,7 +1810,7 @@ local function onKey(input: InputObject, processed: boolean)
 	end
 	if input.KeyCode == MOTION_KEY and CameraController.hasMotion() then
 		local on = not CameraController.isMotionOn()
-		CameraController.setMotion(on)
+		SettingsController.setMotion(on)
 		UI.notify(if on then "Camera motion on" else "Camera motion off")
 	end
 end

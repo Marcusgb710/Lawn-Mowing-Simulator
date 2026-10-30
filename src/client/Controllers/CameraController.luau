@@ -8,7 +8,9 @@
 --     ring that fills while you hold E to work on a tool
 --   * bobs the camera a little as you walk and shakes it slightly while a gas engine you're using
 --     is running (harder while a mower is cutting thick grass), unless camera motion is switched
---     off (GameConfig.Camera, or the player's "Camera motion" switch in the Guide, or V)
+--     off (GameConfig.Camera, or the player's "Camera motion" setting: in the Settings window, the
+--     Guide's switch or V, which all save it through SettingsController). It starts from the saved
+--     setting when the profile arrives, and follows it if the saved value changes
 --   * turns the camera the way the server says to face after it moves you (back at the shop after
 --     a respawn or a job, at the house on a job, at a new crew's shop): first person would keep
 --     looking wherever it was, and turn your character back to match
@@ -23,14 +25,16 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local GameConfig = require(Shared.Config.GameConfig)
 local GuiLayout = require(Shared.GuiLayout)
 local Maintenance = require(Shared.Config.Maintenance)
+local Settings = require(Shared.Config.Settings)
 local Signal = require(Shared.Signal)
 local Tools = require(Shared.Config.Tools)
 
 local Art = require(script.Parent.Parent.Art)
+local ClientState = require(script.Parent.Parent.ClientState)
 local UI = require(script.Parent.Parent.UI)
 
 local player = Players.LocalPlayer
-local Settings = GameConfig.Camera
+local CameraConfig = GameConfig.Camera
 
 -- The camera counts as first person while it's this close to your head.
 local FIRST_PERSON_RANGE = 1.5
@@ -52,6 +56,10 @@ local CameraController = {}
 CameraController.MotionChanged = Signal.new()
 
 local motionOn = true
+-- The camera motion the profile last said (nil before it arrives). Only a change in it moves the
+-- camera, so a profile that comes in while a new choice is on its way to the server (a money update,
+-- say) does not put the old one back.
+local savedMotion: boolean? = nil
 local altHeld = false
 local cursorButton: TextButton
 local crosshair: ScreenGui
@@ -74,7 +82,7 @@ end
 
 -- Whether the game has any camera motion at all (GameConfig.Camera), for the switch to show.
 function CameraController.hasMotion(): boolean
-	return Settings.HeadBob or Settings.EngineShake
+	return CameraConfig.HeadBob or CameraConfig.EngineShake
 end
 
 function CameraController.isMotionOn(): boolean
@@ -85,6 +93,20 @@ function CameraController.setMotion(on: boolean)
 	if CameraController.hasMotion() and motionOn ~= on then
 		motionOn = on
 		CameraController.MotionChanged:Fire(on)
+	end
+end
+
+-- Takes camera motion from the saved settings in the profile, when that is different from what the
+-- profile said before.
+local function readSetting()
+	local profile = ClientState.profile
+	if not profile then
+		return
+	end
+	local motion = Settings.clean(profile.settings).motion
+	if motion ~= savedMotion then
+		savedMotion = motion
+		CameraController.setMotion(motion)
 	end
 end
 
@@ -191,7 +213,7 @@ local function updateMotion(deltaTime: number)
 		local riding = tool ~= nil and tool:GetAttribute("Ride") == true
 		local velocity = root.AssemblyLinearVelocity
 		local speed = Vector3.new(velocity.X, 0, velocity.Z).Magnitude
-		local walking = Settings.HeadBob
+		local walking = CameraConfig.HeadBob
 			and not riding
 			and humanoid.MoveDirection.Magnitude > 0.1
 			and humanoid.FloorMaterial ~= Enum.Material.Air
@@ -204,7 +226,7 @@ local function updateMotion(deltaTime: number)
 
 		local item = tool and Tools.get(tool:GetAttribute("ItemId"))
 		if
-			Settings.EngineShake
+			CameraConfig.EngineShake
 			and tool
 			and item
 			and tool:GetAttribute("Working") == true
@@ -272,7 +294,7 @@ end
 local function setUpCamera()
 	local camera = workspace.CurrentCamera
 	if camera then
-		camera.FieldOfView = Settings.FieldOfView
+		camera.FieldOfView = CameraConfig.FieldOfView
 	end
 end
 
@@ -281,6 +303,13 @@ function CameraController:Start()
 	setUpCamera()
 	workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(setUpCamera)
 	motionOn = CameraController.hasMotion()
+	-- The profile may already be here, and it comes again whenever it changes.
+	readSetting()
+	ClientState.Changed:Connect(function(key)
+		if key == "profile" then
+			readSetting()
+		end
+	end)
 
 	cursorButton = UI.new("TextButton", {
 		Name = "FreeCursor",

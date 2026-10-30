@@ -28,9 +28,11 @@ local GrassArt = require(Shared.Config.GrassArt)
 local GrassImages = require(Shared.GrassImages)
 local LawnGrid = require(Shared.LawnGrid)
 local Net = require(Shared.Net)
+local Settings = require(Shared.Config.Settings)
 local Swath = require(Shared.Swath)
 local Tools = require(Shared.Config.Tools)
 
+local ClientState = require(script.Parent.Parent.ClientState)
 local GrassPaint = require(script.Parent.Parent.GrassPaint)
 local GrassFallback = require(script.Parent.GrassFallback)
 
@@ -51,9 +53,18 @@ local REFETCH_DELAY = 1.5
 local TURF_HEIGHT = 0.1
 local PLATE_THICKNESS = 0.1
 
--- A phone (touch and no keyboard) gets fewer shells. Decided once: GrassPaint makes the session's
--- grass tiles for one shell count, so a keyboard plugged in later mustn't ask for more.
+-- A phone (touch and no keyboard) gets fewer shells with the Auto grass detail. Decided once:
+-- GrassPaint makes the session's grass tiles for one shell count, so a keyboard plugged in later
+-- mustn't ask for more.
 local TOUCH = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
+-- How long the first lawn waits for the profile (and so the player's Grass detail setting), in seconds,
+-- before it is drawn with Auto.
+local PROFILE_WAIT = 10
+
+-- How many shells every lawn is drawn with this session: from the player's Grass detail setting (the
+-- Settings window), chosen once, the first time grass is prepared (see Start). nil until then, and no
+-- lawn is drawn before. Changing the setting takes effect when the player rejoins.
+local shellCount: number? = nil
 
 local WHITE = Color3.new(1, 1, 1)
 -- "Show what I missed": the shells' tint. A Decal's tint multiplies the picture, so red goes past 1
@@ -200,7 +211,9 @@ end
 -- GrassImages.shellPlan. False, with whatever was made left for show to clear away, when an image
 -- can't be made.
 local function buildSurface(lawn): boolean
-	local plan = GrassImages.shellPlan(GrassImages.shellCount(TOUCH), GameConfig.TallGrassHeight * lawn.tallScale)
+	-- (update draws nothing until shellCount is chosen, so the fallback is only for safety.)
+	local count = shellCount or GrassImages.shellCount(TOUCH)
+	local plan = GrassImages.shellPlan(count, GameConfig.TallGrassHeight * lawn.tallScale)
 	if not GrassPaint.prepare(plan) then
 		return false
 	end
@@ -357,8 +370,9 @@ end
 local function update()
 	local camera = workspace.CurrentCamera
 	-- No lawn is drawn until GrassPaint knows whether it has the lawn art: it waits on the asset
-	-- loads, and drawing a lawn in the meantime would settle the session on flat colours.
-	if not camera or not GrassPaint.loaded() then
+	-- loads, and drawing a lawn in the meantime would settle the session on flat colours. Nor before the
+	-- shell count is chosen: it is one count for the whole session.
+	if not camera or not GrassPaint.loaded() or not shellCount then
 		return
 	end
 	local cameraPosition = camera.CFrame.Position
@@ -710,6 +724,14 @@ function GrassController:Start()
 	end
 	task.spawn(function()
 		GrassPaint.load()
+		-- The Grass detail setting is in the profile, which may not have come yet (the first lawn waits
+		-- for it, up to PROFILE_WAIT seconds). The count is then fixed for the session.
+		local giveUp = os.clock() + PROFILE_WAIT
+		while not ClientState.profile and os.clock() < giveUp do
+			task.wait(0.1)
+		end
+		local profile = ClientState.profile
+		shellCount = Settings.shells(Settings.clean(profile and profile.settings).grass, TOUCH)
 		update()
 		while true do
 			task.wait(UPDATE_INTERVAL)

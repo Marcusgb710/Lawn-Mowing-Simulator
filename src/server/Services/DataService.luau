@@ -16,6 +16,7 @@ local Maintenance = require(Shared.Config.Maintenance)
 local Net = require(Shared.Net)
 local Premium = require(Shared.Config.Premium)
 local Season = require(Shared.Config.Season)
+local Settings = require(Shared.Config.Settings)
 local Signal = require(Shared.Signal)
 local Storage = require(Shared.Config.Storage)
 
@@ -29,6 +30,9 @@ DataService.Earned = Signal.new()
 -- Bump this whenever the save format changes, and add a step to MIGRATIONS that turns the
 -- previous version into the new one. Never delete a step: old saves still need it.
 local DATA_VERSION = 14
+
+-- How soon a player can save their Settings again, in seconds (like the shop's cooldown).
+local SETTINGS_COOLDOWN = 0.5
 
 -- MIGRATIONS[n] turns a version n - 1 save into version n. Steps must keep money, xp and every
 -- owned item. Don't use the live config to read an old save: write down what it looked like.
@@ -208,6 +212,8 @@ local MIGRATIONS = {
 local store: DataStore? = nil
 -- [Player] = { data = {...}, canSave = boolean }
 local profiles = {}
+-- [Player] = os.clock() of their last SaveSettings (a player who leaves takes their entry with them).
+local lastSettingsSave: { [Player]: number } = setmetatable({}, { __mode = "k" }) :: any
 
 local function defaultData()
 	local data = {
@@ -260,6 +266,8 @@ local function defaultData()
 		trailerUnlocked = false,
 		-- What they've bought with Robux (see Premium.luau and PremiumService)
 		premium = Premium.empty(),
+		-- Their Settings window's choices: { sound, motion, grass } (see Config/Settings.luau)
+		settings = Settings.clean(nil),
 	}
 	-- The Busy Season's fields (`earned`, `stars`, `milestones`, `levelRewards` and `firstJob`, then
 	-- `daily`, `streak` and `flags` and the `lastJudged`, `saturdays` and `offeredDay` of the contest above, see
@@ -310,6 +318,9 @@ local function reconcile(data)
 			data[key] = value
 		end
 	end
+	-- The Settings choices: an old save has none (filled above), and one that was tampered with or
+	-- holds something the window no longer offers becomes the nearest good one.
+	data.settings = Settings.clean(data.settings)
 	for key, value in Premium.empty() do
 		if data.premium[key] == nil then
 			data.premium[key] = value
@@ -531,6 +542,8 @@ local function snapshot(data)
 		daily = data.daily,
 		streak = data.streak,
 		flags = data.flags,
+		-- Their Settings window's choices (sound, camera motion, grass detail).
+		settings = data.settings,
 		owned = data.owned,
 		equipped = data.equipped,
 		loadout = data.loadout,
@@ -752,6 +765,28 @@ function DataService:Init()
 	Net.func("GetProfile").OnServerInvoke = function(player)
 		local data = self:WaitForData(player)
 		return data and snapshot(data)
+	end
+
+	-- The Settings window saves its three choices here. Only a table is taken, and only the three
+	-- known keys of it, each checked by Settings.clean (anything else is dropped or made the
+	-- default), so a tampered call can change nothing but those. Answers the saved choices, or nil
+	-- when it refuses (not a table, too soon after the last, or no save loaded yet).
+	Net.func("SaveSettings").OnServerInvoke = function(player, value)
+		if typeof(value) ~= "table" then
+			return nil
+		end
+		local data = self:Get(player)
+		if not data then
+			return nil
+		end
+		local now = os.clock()
+		if now - (lastSettingsSave[player] or -SETTINGS_COOLDOWN) < SETTINGS_COOLDOWN then
+			return nil
+		end
+		lastSettingsSave[player] = now
+		data.settings = Settings.clean(value)
+		self:Changed(player)
+		return Settings.clean(data.settings)
 	end
 end
 

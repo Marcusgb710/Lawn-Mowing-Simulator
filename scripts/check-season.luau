@@ -14,7 +14,10 @@
 -- three contracts by level band with how far along each is (src/shared/Config/Contracts.luau), and
 -- the streak's rewards and when a day adds to it (src/shared/Config/Streak.luau), and that the
 -- streak's pennant goes on a truck once, with or without a bed, anchored and out of the way of the aim
--- (Assets.addPennant, src/shared/Assets.luau). Exits with an error if anything's off.
+-- (Assets.addPennant, src/shared/Assets.luau), and the Settings window's three choices (what
+-- Settings.clean keeps, fills in and drops, the sound volumes and grass shell counts, the Effects
+-- volume in src/shared/Sounds.luau, and that the save and the SaveSettings handler use the rule).
+-- Exits with an error if anything's off.
 
 local fs = require("@lune/fs")
 local luau = require("@lune/luau")
@@ -1044,6 +1047,163 @@ do
 	check(pieces == 2, "the stand-in model is the pennant that was put on the truck")
 	check(loose == 0, "every part of the pennant comes back anchored and out of the way of the aim (CanQuery off)")
 end
+
+-- Settings -----------------------------------------------------------------------------------------
+
+-- The three choices a player saves (src/shared/Config/Settings.luau, which has no requires so Lune can
+-- load it). `clean` is the one rule everything trusts: the server runs it on a SaveSettings call and on
+-- a save as it loads, the client on the profile, so a tampered or old value never gets further.
+local Settings = require("../src/shared/Config/Settings")
+local GrassImages = require("../src/shared/GrassImages")
+
+check(Settings.Defaults.sound == "High", "the default sound is High")
+check(Settings.Defaults.grass == "Auto", "the default grass detail is Auto")
+-- Settings has no requires, so its motion default is a copy of what GameConfig.Camera says: a player
+-- who never touches Settings keeps today's behaviour, camera motion as the game's config has it.
+check(
+	Settings.Defaults.motion == (GameConfig.Camera.HeadBob or GameConfig.Camera.EngineShake),
+	"the default for camera motion is what GameConfig.Camera says"
+)
+for key, options in Settings.Options do
+	check(table.find(options, Settings.Defaults[key]) ~= nil, `the default for {key} is one of its options`)
+end
+check(
+	#Settings.Options.sound == 3 and #Settings.Options.motion == 2 and #Settings.Options.grass == 3,
+	"Sound has three options, Camera motion two and Grass detail three"
+)
+
+-- Good values are kept, whatever they are.
+local liked = { sound = "Low", motion = not Settings.Defaults.motion, grass = "High" }
+check(sameTable(Settings.clean(liked), liked), "clean keeps good values")
+for _, sound in Settings.Options.sound do
+	check(Settings.clean({ sound = sound }).sound == sound, `clean keeps the sound {sound}`)
+end
+for _, grass in Settings.Options.grass do
+	check(Settings.clean({ grass = grass }).grass == grass, `clean keeps the grass detail {grass}`)
+end
+for _, motion in Settings.Options.motion do
+	check(Settings.clean({ motion = motion }).motion == motion, `clean keeps motion {motion}`)
+end
+check(sameTable(Settings.clean(Settings.Defaults), Settings.Defaults), "cleaning the defaults changes nothing")
+
+-- Bad or missing values become the defaults, one at a time (a good one beside a bad one stays).
+check(sameTable(Settings.clean({}), Settings.Defaults), "an empty table is the defaults")
+local mixed = Settings.clean({ sound = "Low", motion = "yes", grass = 3 })
+check(
+	mixed.sound == "Low" and mixed.motion == Settings.Defaults.motion and mixed.grass == "Auto",
+	"a bad value is replaced and the good one beside it stays"
+)
+local wrongCase = Settings.clean({ sound = "low", grass = "HIGH" })
+check(wrongCase.sound == "High" and wrongCase.grass == "Auto", "values are matched exactly, not by case")
+check(Settings.clean({ sound = 1 }).sound == "High", "a number is not a sound")
+check(Settings.clean({ sound = { "Low" } }).sound == "High", "a table is not a sound")
+check(Settings.clean({ motion = 1 }).motion == Settings.Defaults.motion, "1 is not true")
+check(Settings.clean({ motion = "false" }).motion == Settings.Defaults.motion, '"false" is not false')
+check(Settings.clean({ grass = "" }).grass == "Auto", "an empty string is not a grass detail")
+check(Settings.clean({ sound = 0 / 0 }).sound == "High", "NaN is not a sound")
+
+-- Anything that is not a table gives the defaults, and never errors.
+for _, junk in { 5, "Low", true, false } do
+	local ok, result = pcall(Settings.clean, junk)
+	check(ok and sameTable(result, Settings.Defaults), `clean({tostring(junk)}) gives the defaults`)
+end
+local okNil, fromNil = pcall(Settings.clean, nil)
+check(okNil and sameTable(fromNil, Settings.Defaults), "clean(nil) gives the defaults")
+local okFn, fromFn = pcall(Settings.clean, print)
+check(okFn and sameTable(fromFn, Settings.Defaults), "clean(a function) gives the defaults")
+
+-- Unknown keys are dropped, whatever they hold, and only the three known keys come out.
+local noisy = Settings.clean({ sound = "Low", cheat = true, money = 1e9, [1] = "x", [true] = "y" })
+local keyCount = 0
+for _ in noisy do
+	keyCount += 1
+end
+check(keyCount == 3 and noisy.cheat == nil and noisy.money == nil and noisy[1] == nil, "clean drops unknown keys")
+check(noisy.sound == "Low", "clean keeps the good value beside unknown keys")
+
+-- It hands back a table of its own: the caller's table is not touched and the defaults cannot be
+-- changed through the result.
+local given = { sound = "Low", extra = 1 }
+local cleaned = Settings.clean(given)
+check(cleaned ~= given and given.extra == 1 and given.sound == "Low", "clean leaves the table it is given alone")
+cleaned.sound = "Off"
+check(
+	Settings.Defaults.sound == "High" and Settings.clean({}).sound == "High",
+	"the defaults cannot be changed through clean"
+)
+check(Settings.clean({}) ~= Settings.clean({}), "every clean is a new table")
+
+-- Sound is a volume on the Effects group: Off 0, Low 0.5, High 1 (a bad name is the default's).
+check(
+	Settings.volume("Off") == 0 and Settings.volume("Low") == 0.5 and Settings.volume("High") == 1,
+	"the sound volumes"
+)
+check(Settings.volume("Loud") == 1 and Settings.volume(nil :: any) == 1, "an unknown sound is the default volume")
+
+-- Grass detail is a shell count: Auto is today's rule (GrassImages.shellCount: 4 on touch, 6
+-- otherwise), High is the full 6 and Low the touch 4, on any device.
+check(
+	Settings.shells("Auto", true) == 4 and Settings.shells("Auto", false) == 6,
+	"Auto is 4 shells on touch and 6 otherwise"
+)
+check(Settings.shells("High", true) == 6 and Settings.shells("High", false) == 6, "High is 6 shells everywhere")
+check(Settings.shells("Low", true) == 4 and Settings.shells("Low", false) == 4, "Low is 4 shells everywhere")
+check(Settings.shells("Fancy", false) == 6 and Settings.shells("Fancy", true) == 4, "an unknown grass detail is Auto")
+check(
+	Settings.shells("Auto", true) == GrassImages.shellCount(true)
+		and Settings.shells("Auto", false) == GrassImages.shellCount(false),
+	"Auto is GrassImages.shellCount"
+)
+check(
+	Settings.shells("High", true) == GrassImages.shellCount(false)
+		and Settings.shells("Low", false) == GrassImages.shellCount(true),
+	"High and Low are the two shell counts GrassImages has"
+)
+
+-- Sounds keeps the level for the Effects group (the group itself is made on first use, in a client,
+-- so none of this touches `game`): it is held between 0 and 1 and starts at full volume.
+check(
+	typeof(Sounds.setVolume) == "function" and typeof(Sounds.getVolume) == "function",
+	"Sounds has setVolume and getVolume"
+)
+if typeof(Sounds.setVolume) == "function" and typeof(Sounds.getVolume) == "function" then
+	check(Sounds.getVolume() == 1, "the Effects volume starts at full")
+	Sounds.setVolume(0.5)
+	check(Sounds.getVolume() == 0.5, "setVolume sets the level")
+	Sounds.setVolume(7)
+	check(Sounds.getVolume() == 1, "the level is held at 1")
+	Sounds.setVolume(-3)
+	check(Sounds.getVolume() == 0, "the level is held at 0")
+	Sounds.setVolume(1)
+end
+
+-- The save and the server: the wiring is checked in the text, as DataService cannot load here.
+local function source(path: string): string
+	return if fs.isFile(path) then fs.readFile(path) else ""
+end
+local function has(text: string, wanted: string): boolean
+	return string.find(text, wanted, 1, true) ~= nil
+end
+local dataService = source("src/server/Services/DataService.luau")
+check(has(source("src/shared/Net.luau"), '"SaveSettings"'), "Net has the SaveSettings function")
+local fromDefault = string.match(dataService, "local function defaultData%(%).-\nend\n") or ""
+check(has(fromDefault, "settings = Settings.clean("), "defaultData has the top-level settings key")
+local fromReconcile = string.match(dataService, "local function reconcile%(data%).-\nend\n") or ""
+check(
+	has(fromReconcile, "data.settings = Settings.clean(data.settings)"),
+	"reconcile fills the settings key and cleans a tampered or old value on load"
+)
+local fromSnapshot = string.match(dataService, "local function snapshot%(data%).-\nend\n") or ""
+check(has(fromSnapshot, "settings = data.settings"), "snapshot sends the settings")
+local fromHandler = string.match(dataService, 'Net.func%("SaveSettings"%).-\n\tend\n') or ""
+check(fromHandler ~= "", "DataService answers SaveSettings")
+check(has(fromHandler, 'typeof(value) ~= "table"'), "SaveSettings refuses anything that is not a table")
+check(has(fromHandler, "Settings.clean(value)"), "SaveSettings cleans what it is sent")
+check(has(fromHandler, "SETTINGS_COOLDOWN"), "SaveSettings is rate limited")
+check(has(fromHandler, "self:Changed(player)"), "SaveSettings pushes the profile")
+check(has(dataService, "DATA_VERSION = 14"), "no version bump for the settings key")
+local soundsSource = source("src/shared/Sounds.luau")
+check(has(soundsSource, "SoundGroup") and has(soundsSource, '"Effects"'), "Sounds has the Effects SoundGroup")
 
 if failures > 0 then
 	print(`{failures} check(s) failed`)

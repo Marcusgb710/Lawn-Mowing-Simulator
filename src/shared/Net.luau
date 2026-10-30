@@ -45,6 +45,7 @@ local FUNCTIONS = {
 	"GetContest",
 	"GetContracts",
 	"ClaimStreak",
+	"SaveSettings",
 	"StartJudging",
 	"StudioTest",
 	"CollectContest",

@@ -1183,7 +1183,6 @@ do
 		'ShopController.openApp("Orders")',
 		'UI.toggle("TopLawns")',
 		'UI.toggle("Contracts")',
-		"Settings are coming in the next update.",
 		"Enum.KeyCode.B",
 		"Enum.KeyCode.F",
 		"Enum.KeyCode.Comma",
@@ -1231,6 +1230,67 @@ do
 			"DailyService doesn't answer ClaimStreak with a cooldown"
 		)
 	end
+
+	-- Settings (ruling 9): SettingsController is the window and the one writer of the three choices;
+	-- the Settings button opens it (setRightAction), the V key and the Guide's switch choose camera
+	-- motion through it, the camera starts from the saved setting, sounds go through the Effects
+	-- group, and the grass takes its shell count from the setting once. Config/Settings.luau and the
+	-- server's side are checked in check-season.
+	local settingsSource = if fs.isFile("src/client/Controllers/SettingsController.luau")
+		then fs.readFile("src/client/Controllers/SettingsController.luau")
+		else ""
+	check(settingsSource ~= "", "there is no SettingsController")
+	local settingsWants = {
+		'UI.panel("Settings", "Settings")',
+		'setRightAction("Settings"',
+		'Net.func("SaveSettings"):InvokeServer(',
+		"SAVE_DELAY = 0.3",
+		"Settings.clean(profile.settings)",
+		"Sounds.setVolume(Settings.volume(",
+		"CameraController.setMotion(current.motion)",
+		"Takes effect when you rejoin.",
+		"function SettingsController.setMotion",
+		"Juicy.button(",
+	}
+	for _, wanted in settingsWants do
+		check(string.find(settingsSource, wanted, 1, true) ~= nil, `SettingsController doesn't have {wanted}`)
+	end
+	check(
+		string.find(hudSource, "Settings are coming", 1, true) == nil,
+		"HudController still says Settings are coming: the button opens the window"
+	)
+	check(
+		string.find(hudSource, "SettingsController.setMotion(on)", 1, true) ~= nil
+			and string.find(hudSource, "CameraController.setMotion(", 1, true) == nil,
+		"the V key doesn't choose camera motion through SettingsController"
+	)
+	local guideSource = fs.readFile("src/client/Controllers/GuideController.luau")
+	check(
+		string.find(guideSource, "SettingsController.setMotion(", 1, true) ~= nil
+			and string.find(guideSource, "CameraController.setMotion(", 1, true) == nil,
+		"the Guide's camera switch doesn't choose camera motion through SettingsController"
+	)
+	local cameraSource = fs.readFile("src/client/Controllers/CameraController.luau")
+	check(
+		string.find(cameraSource, "Settings.clean(profile.settings).motion", 1, true) ~= nil
+			and string.find(cameraSource, "ClientState.Changed:Connect", 1, true) ~= nil,
+		"CameraController doesn't start from the saved camera motion"
+	)
+	local grassSource = fs.readFile("src/client/Controllers/GrassController.luau")
+	check(
+		string.find(grassSource, "Settings.shells(", 1, true) ~= nil
+			and string.find(grassSource, "GrassImages.shellCount(TOUCH), GameConfig", 1, true) == nil,
+		"GrassController doesn't take its shell count from the Grass detail setting"
+	)
+	check(
+		string.find(fs.readFile("src/client/init.client.luau"), '"SettingsController"', 1, true) ~= nil,
+		"init.client doesn't start SettingsController"
+	)
+	local soundsSource = fs.readFile("src/shared/Sounds.luau")
+	check(
+		select(2, string.gsub(soundsSource, "route%(sound%)", "")) == 3,
+		"Sounds.play, playUi and loop don't all send their sound through the Effects group"
+	)
 
 	-- Shop anywhere (ruling 6): the shop's Buy, Sell and Equip and the decorations' Buy don't ask where
 	-- the player stands. Taking a job and TurfKing's visit stay at the desk.
@@ -1534,7 +1594,8 @@ end
 -- src/client/JuicyPalette.luau is the front-page HUD's colours with nothing else in it, so it loads
 -- here with Lune's Color3 (Juicy itself builds Instances and stays out of Lune). Each face is a
 -- gradient from a lighter top to a darker bottom, the ink outline is darker than every bottom, and
--- the colours are the ones the plan's first ruling names (plus Danger and Gold, which the HUD adds).
+-- the colours are the ones the plan's first ruling names (plus Danger and Gold, which the HUD adds, and
+-- Muted, the Settings window's choices not taken).
 local juicyPalette = luau.load(fs.readFile("src/client/JuicyPalette.luau"), {
 	chunkName = "JuicyPalette",
 	environment = { Color3 = roblox.Color3 },
@@ -1574,6 +1635,7 @@ local JUICY_FACES = {
 	Cream = { "#FFFFFF", "#FFF1C2" },
 	Danger = { "#FF7A6B", "#E0553F" },
 	Gold = { "#FFE066", "#F2B92F" },
+	Muted = { "#5C6B61", "#3F4C43" },
 }
 
 local ink = juicyPalette.Ink
@@ -1611,7 +1673,7 @@ for name, value in juicyPalette do
 	if typeof(value) == "table" then
 		check(
 			JUICY_FACES[name] ~= nil,
-			`JuicyPalette.{name} isn't one of the first ruling's faces, nor Danger or Gold`
+			`JuicyPalette.{name} isn't one of the first ruling's faces, nor Danger, Gold or Muted`
 		)
 	end
 end

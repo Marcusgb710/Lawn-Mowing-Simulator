@@ -3,13 +3,79 @@
 
 -- The services are fetched where they're used, not as the module loads, so scripts/check-season can
 -- load this file under Lune (which has no `game`) and read Ids.
+--
+-- Every sound made here goes through the "Effects" SoundGroup, which the player's Sound setting (the
+-- Settings window) turns up or down with setVolume. The group is made on a client the first time a
+-- sound is made, and sounds are put in it by their SoundGroup property, not by parenting them under
+-- it, so a sound on a tool or a part keeps its place in the world. A sound the server makes (the
+-- server plays some, and its ids are all still empty) carries a tag, and `watch`, which a client runs
+-- once, puts those in the group as they arrive.
 
 -- How far away a sound can still be heard, in studs.
 local ROLL_OFF_DISTANCE = 60
 -- A UI sound that never ends (an id that fails to load never fires Ended) is cleaned up after this.
 local UI_SOUND_LIMIT = 30
+-- The tag on a sound the server made, for `watch`.
+local EFFECTS_TAG = "EffectsSound"
 
 local Sounds = {}
+
+-- The Effects group's volume, 0 to 1, and the group once a client has made it. The level is kept
+-- here so a group made later starts at it.
+local level = 1
+local effects: SoundGroup? = nil
+
+-- The Effects SoundGroup, under SoundService, made when it is first wanted. Only a client has one.
+local function effectsGroup(): SoundGroup
+	local group = effects
+	if group and group.Parent then
+		return group
+	end
+	local made = Instance.new("SoundGroup")
+	made.Name = "Effects"
+	made.Volume = level
+	made.Parent = game:GetService("SoundService")
+	effects = made
+	return made
+end
+
+-- Sends `sound` through the Effects group: a client's own sounds now, a server's sounds by their tag.
+local function route(sound: Sound)
+	if game:GetService("RunService"):IsClient() then
+		sound.SoundGroup = effectsGroup()
+	else
+		game:GetService("CollectionService"):AddTag(sound, EFFECTS_TAG)
+	end
+end
+
+-- Sets how loud every sound made here is, 0 (silent) to 1 (full). The player's Sound setting calls
+-- this. It makes no group: one made later starts at this level.
+function Sounds.setVolume(newLevel: number)
+	level = math.clamp(newLevel, 0, 1)
+	local group = effects
+	if group and group.Parent then
+		group.Volume = level
+	end
+end
+
+function Sounds.getVolume(): number
+	return level
+end
+
+-- Puts the sounds the server makes (tagged in `route`) through this client's Effects group, the ones
+-- already here and each one that arrives. A client calls this once.
+function Sounds.watch()
+	local collection = game:GetService("CollectionService")
+	local function adopt(instance: Instance)
+		if instance:IsA("Sound") then
+			instance.SoundGroup = effectsGroup()
+		end
+	end
+	collection:GetInstanceAddedSignal(EFFECTS_TAG):Connect(adopt)
+	for _, instance in collection:GetTagged(EFFECTS_TAG) do
+		adopt(instance)
+	end
+end
 
 Sounds.Ids = {
 	Thunk = "", -- a tool set down in the truck bed or on the floor
@@ -49,6 +115,7 @@ function Sounds.play(parent: Instance, name: string, volume: number?)
 	sound.SoundId = id
 	sound.Volume = volume or 0.6
 	sound.RollOffMaxDistance = ROLL_OFF_DISTANCE
+	route(sound)
 	sound.Parent = parent
 	sound:Play()
 	game:GetService("Debris"):AddItem(sound, 5)
@@ -66,6 +133,7 @@ function Sounds.playUi(name: string, volume: number?)
 	sound.Name = name
 	sound.SoundId = id
 	sound.Volume = volume or 0.5
+	route(sound)
 	sound.Parent = game:GetService("SoundService")
 	sound.Ended:Once(function()
 		sound:Destroy()
@@ -87,6 +155,7 @@ function Sounds.loop(parent: Instance, name: string): Sound?
 	sound.Looped = true
 	sound.Volume = 0
 	sound.RollOffMaxDistance = ROLL_OFF_DISTANCE
+	route(sound)
 	sound.Parent = parent
 	return sound
 end
