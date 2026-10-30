@@ -1238,7 +1238,7 @@ phase that gives them work.
   - `pending`, the result waiting to be collected, with both sides' scores and the rewards. It's
     decided when the judges are called, so leaving before collecting changes nothing;
   - `nextAt`, the jobs done when the first judging day comes round (after it, judging day is every
-    Saturday and nothing reads this);
+    Saturday and it gates nothing);
   - `offered`, how many judging days there had been when June last texted that it's open;
   - `discount`, the building a win took half off, until it's bought.
 

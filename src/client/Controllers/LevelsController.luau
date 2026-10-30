@@ -173,6 +173,9 @@ local function open()
 	-- One window at a time: it takes the place of an open menu.
 	UI.closeAll()
 	render()
+	-- Put where UiLayout says now, so a change since it was built (a touch screen turning up, a short
+	-- one) is what it opens on.
+	UI.place(panel, "LevelsPanel")
 	fit()
 	panel.Visible = true
 	UI.holdCursor(CURSOR_HOLDER, true)

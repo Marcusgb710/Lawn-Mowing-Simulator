@@ -490,7 +490,7 @@ check(typeof(UiLayout.__screen.compactHeight) == "number", "__screen has no comp
 -- The Levels panel (Busy Season, slice 1): a centred window of its own on the game's screen, opened
 -- from the XP bar, that shrinks to fit like the pay breakdown does. Centred, it's already clear of
 -- Roblox's move stick and jump button, so a touch screen has the same top margin, and `scale` is the
--- most it's drawn at. (On a touch screen it also stands above the hotbar: see HOTBAR_BAND below.)
+-- most it's drawn at. (On a touch screen it also stands above the hotbar: see HOTBAR_BAND_TOUCH below.)
 local levelsPanel = UiLayout.LevelsPanel
 check(levelsPanel ~= nil, "UiLayout has no LevelsPanel")
 if levelsPanel then
@@ -525,10 +525,10 @@ end
 
 -- The contracts panel and its chip (Busy Season, slice 2). The panel is the Levels panel's twin: a
 -- centred window of its own that shrinks to fit by the same rule (the same margins, a touch screen's
--- top margin the same as any other's, and the same place above the hotbar there). The chip is the left column's last piece, under
--- Grandma's goal, and it shows on every screen, through a job too: nothing hides it and it isn't
--- compactOnly, so no entry's hideWhile (in its place, its touch ones or its compact ones) names it,
--- and it has an order of its own in the column.
+-- top margin the same as any other's, and the same place above the hotbar there). The chip is the
+-- left column's last piece, under Grandma's goal, and it shows on every screen, through a job too:
+-- nothing hides it and it isn't compactOnly, so no entry's hideWhile (in its place, its touch ones
+-- or its compact ones) names it, and it has an order of its own in the column.
 do
 	local panel = UiLayout.ContractsPanel
 	check(panel ~= nil, "UiLayout has no ContractsPanel")
@@ -597,33 +597,42 @@ do
 	end
 end
 
--- Roblox's hotbar sits in a band along the bottom middle of a phone (48 px slots), and the tool
--- condition chips keep 66 px clear of the bottom on a short screen. Both windows stand above that
--- band on a touch screen, bottom edge anchored, so a tap on their Close button never lands on a slot
--- (it did, on the Grass Shears slot). Anywhere else they stay centred.
-local HOTBAR_BAND = 66
+-- Roblox's hotbar sits in a band along the bottom middle of the screen (48 px slots on a phone, 60
+-- on a tablet), and the tool condition chips keep clear of it: 78 px up on a touch screen and 66 on
+-- a short one. Both windows stand above the same band, bottom edge anchored, so a tap on their Close
+-- button never lands on a slot (it did, on the Grass Shears slot). A short screen's place carries its
+-- own anchor, since a short screen that isn't a touch screen has no touch place to give it one. The
+-- whole place stays centred.
+local HOTBAR_BAND_TOUCH = 78
+local HOTBAR_BAND_COMPACT = 66
 do
-	local chips = UiLayout.ToolCondition.compact
+	local chips = UiLayout.ToolCondition
 	check(
-		chips ~= nil and chips.position ~= nil and chips.position[4] == -HOTBAR_BAND,
-		"UiLayout's ToolCondition isn't HOTBAR_BAND above the bottom on a short screen: update HOTBAR_BAND"
+		chips.touch ~= nil and chips.touch.position ~= nil and chips.touch.position[4] == -HOTBAR_BAND_TOUCH,
+		"UiLayout's ToolCondition isn't HOTBAR_BAND_TOUCH above the bottom on a touch screen: update HOTBAR_BAND_TOUCH"
+	)
+	check(
+		chips.compact ~= nil and chips.compact.position ~= nil and chips.compact.position[4] == -HOTBAR_BAND_COMPACT,
+		"UiLayout's ToolCondition isn't HOTBAR_BAND_COMPACT above the bottom on a short screen: update it"
 	)
 	for _, id in { "LevelsPanel", "ContractsPanel" } do
 		local entry = UiLayout[id]
-		local touch = entry.touch
-		check(
-			touch ~= nil and touch.anchor ~= nil and touch.anchor[1] == 0.5 and touch.anchor[2] == 1,
-			`UiLayout's {id} isn't anchored at its bottom edge on a touch screen`
-		)
-		check(
-			touch ~= nil
-				and touch.position ~= nil
-				and touch.position[1] == 0.5
-				and touch.position[2] == 0
-				and touch.position[3] == 1
-				and touch.position[4] <= -HOTBAR_BAND,
-			`UiLayout's {id} isn't at least {HOTBAR_BAND} px above the bottom on a touch screen: Close is under the hotbar`
-		)
+		for which, band in { touch = HOTBAR_BAND_TOUCH, compact = HOTBAR_BAND_COMPACT } do
+			local place = entry[which]
+			check(
+				place ~= nil and place.anchor ~= nil and place.anchor[1] == 0.5 and place.anchor[2] == 1,
+				`UiLayout's {id} isn't anchored at its bottom edge in its {which} place`
+			)
+			check(
+				place ~= nil
+					and place.position ~= nil
+					and place.position[1] == 0.5
+					and place.position[2] == 0
+					and place.position[3] == 1
+					and place.position[4] <= -band,
+				`UiLayout's {id} isn't at least {band} px above the bottom in its {which} place: Close is under the hotbar`
+			)
+		end
 		check(
 			entry.anchor[1] == 0.5
 				and entry.anchor[2] == 0.5
@@ -631,7 +640,7 @@ do
 				and entry.position[3] == 0.5
 				and entry.position[2] == 0
 				and entry.position[4] == 0,
-			`UiLayout's {id} isn't centred off a touch screen: nothing changes on a PC`
+			`UiLayout's {id} isn't centred on a screen that is neither touch nor short`
 		)
 	end
 end

@@ -73,9 +73,8 @@ at the town spawn: front toward -Z, origin on the ground, with an invisible `Roo
 is on the ground, two boards named `LawnsBoard` (on the left as you face the sign) and `MoneyBoard`,
 each about 8 by 16 studs, which fits 25 rows at 40 pixels a stud (the client draws as many rows as
 a board's size allows), and a `LeaderboardSign__Header` above the boards, which the server stamps
-with the sign's name). Until a
-model is in, the game stands in block placeholders for all three, built to the same rules (an
-invisible `Root`, front toward -Z).
+with the sign's name). Until a model is in, the game stands in block placeholders for all three,
+built to the same rules (an invisible `Root`, front toward -Z).
 
 To run a batch:
 

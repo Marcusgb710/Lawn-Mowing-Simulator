@@ -516,8 +516,11 @@ What the reviews asked to see in Studio:
 Slice 2 is Tomorrow (design: `docs/superpowers/specs/2026-10-29-busy-season-design.md`, plan:
 `docs/superpowers/plans/2026-10-29-busy-season-slice-2.md`): the daily contracts and the mailbox,
 the login streak, the leaderboards and judging day every Saturday. The Lune checks cover the tables
-and the rules (`check-season`, `check-story`, `check-gui`); nothing here has been seen or heard in
-Studio yet. The test panel (K) has three shortcuts for it, all Studio only: **Next day** moves the
+and the rules (`check-season`, `check-story`, `check-gui`). In Studio only the phone layout has
+been looked at (the contracts chip and panel and the Levels panel on the device emulator, which is
+how the Close button under the hotbar was found); the PC shortcuts, the leaderboard sign, the streak
+and Bonus Day moments and the pennant have not been seen or heard yet. The test panel (K) has three
+shortcuts for it, all Studio only: **Next day** moves the
 server's clock a day on and turns every player's day over (a new three contracts, the streak and its
 cash), **Jump to Saturday** moves it to noon on the next Saturday UTC (never today, so it always
 moves, and a judging mark saved for that day is cleared) and **Refresh the boards** reads both
@@ -530,13 +533,14 @@ The spec's playtest checklist for slice 2, with what to expect:
 
 - [ ] A fresh day's contracts: open them from the mailbox at the curb (E) and from the "Contracts
       0/3" chip under the goals rail. Both show "Today's contracts": a Mow, an Earn and a Junk or
-      Stars contract for your level band, each with its pay. Finish a job: a row's count moves
-      (Mow 1/2, say) and the chip stays 0/3, because one job meets none of them at level 1 or 2.
-      To see one complete, press the test panel's Level 5 jump: its $850 across levels 2 to 5
-      counts as earned, so the Earn row completes with the goal chime, a "+$" pop off the chip and
-      a DONE stamp on its row, and the chip reads 1/3.
-- [ ] The Bonus Day: finish all three. The Level 5 jump does Earn, two jobs do Mow, and the Junk
-      or Stars one (the pieces picked up on the lawn, or a three-star job) is the third. A Payday
+      Stars contract for your level band, each with its pay. Finish a job: Mow reads 1/2, and on
+      day 1 of the streak the Earn row completes (the day 1 streak cash counts toward it, and the
+      job's $60 and the $10 first-job milestone take it past $150), with the goal chime, a "+$" pop
+      off the chip and a DONE stamp on its row; the chip reads 1/3, or 2/3 if the job earned three
+      stars on a Stars day. On a later day, press the test panel's Level 5 jump to finish Earn: its
+      $850 across levels 2 to 5 counts as earned.
+- [ ] The Bonus Day: finish all three. Earn completes as above, two jobs do Mow, and the Junk or
+      Stars one (the pieces picked up on the lawn, or a three-star job) is the third. A Payday
       moment whose subtitle reads "Bonus Day: +$500" plays with the cash sound, and the panel's
       line reads "Bonus Day collected".
 - [ ] The streak card: press **Next day**. A Payday moment whose subtitle reads "Day 2 of 7: +$150
