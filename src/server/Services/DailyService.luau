@@ -5,10 +5,10 @@
 --   Refresh   is the one place a day turns over. If the save's day is not today it makes today's
 --             contracts (Config/Contracts.luau) with the counts at zero, then moves the streak on
 --             (Config/Streak.luau) and pays that day's cash and, on day 7, gives the pennant flag.
---             It runs when a player joins and again every minute for everyone online, and it
---             changes nothing a second time on the same day. When the day turns it also pushes
---             the player's contest view (ContestService): judging day is a day of the week, and
---             nothing else wakes the contest when midnight UTC comes.
+--             It runs when a player joins and again every minute for everyone online, and a
+--             second Refresh on the same day only pays a contract that was met but not yet paid.
+--             When the day turns it also wakes the player's contest (ContestService): judging day
+--             is a day of the week, and nothing else wakes the contest when midnight UTC comes.
 --   Counting  a finished job adds a job, a three-star job when it got three stars, and the junk
 --             picked up on the lawn; any money they earn (DataService.Earned) adds to the dollars
 --             earned. Then every contract that is met is paid, and when all three are paid the
@@ -197,8 +197,8 @@ end
 
 -- Turns the day over if it is a new one, and keeps the streak: on a new UTC day it makes the day's
 -- contracts for their level with every count at zero, and a streak that grew or started again pays
--- that day's cash, gives the flag day 7 has and tells the screen, and a new day also pushes their
--- contest view, since judging day is a day of the week. Then it pays anything met and still unpaid
+-- that day's cash, gives the flag day 7 has and tells the screen, and a new day also wakes their
+-- contest, since judging day is a day of the week. Then it pays anything met and still unpaid
 -- (so the minute's look is a safety net for a pay that failed) and sends the view. Safe to call as
 -- often as you like: on the day the save already has, nothing changes but the view sent. A call that
 -- comes in the middle of a pay (settle's, or this one's) does nothing, the next one will.

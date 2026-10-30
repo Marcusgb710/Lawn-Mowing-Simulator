@@ -753,6 +753,7 @@ do
 	for name, value in roblox do
 		standIns[name] = value
 	end
+	local serverStorage = roblox.Instance.new("Folder")
 	standIns.game = {
 		GetService = function(_, name)
 			if name == "RunService" then
@@ -761,6 +762,8 @@ do
 						return true
 					end,
 				}
+			elseif name == "ServerStorage" then
+				return serverStorage
 			end
 			return roblox.Instance.new("Folder")
 		end,
@@ -818,8 +821,32 @@ do
 	local ok = pcall(Assets.addPennant, noBed)
 	check(ok and pennantsOn(noBed) == 1, "a truck with no BedArea does not error and still gets the pennant")
 
+	-- The placeholder pennant is built anchored, so it cannot show that addPennant anchors. A real
+	-- Props/TruckPennant model comes in loose: stand one in (ServerStorage.Assets.Props.TruckPennant,
+	-- where Assets.prop looks first) with two unanchored parts that the aim can hit, and check the
+	-- pennant on a truck comes back anchored and out of the aim's way.
+	local assets = roblox.Instance.new("Folder")
+	assets.Name = "Assets"
+	local props = roblox.Instance.new("Folder")
+	props.Name = "Props"
+	props.Parent = assets
+	local standIn = roblox.Instance.new("Model")
+	standIn.Name = "TruckPennant"
+	for _, name in { "Root", "Pole" } do
+		local loosePart = roblox.Instance.new("Part")
+		loosePart.Name = name
+		loosePart.Anchored = false
+		loosePart.CanQuery = true
+		loosePart.Parent = standIn
+	end
+	standIn.PrimaryPart = standIn.Root
+	standIn.Parent = props
+	assets.Parent = serverStorage
+
+	local real = truck(true)
+	Assets.addPennant(real)
 	local pieces, loose = 0, 0
-	for _, descendant in withBed.Pennant:GetDescendants() do
+	for _, descendant in real.Pennant:GetDescendants() do
 		if descendant:IsA("BasePart") then
 			pieces += 1
 			if not descendant.Anchored or descendant.CanQuery then
@@ -827,7 +854,8 @@ do
 			end
 		end
 	end
-	check(pieces > 0 and loose == 0, "the pennant's parts are anchored and out of the way of the aim (CanQuery off)")
+	check(pieces == 2, "the stand-in model is the pennant that was put on the truck")
+	check(loose == 0, "every part of the pennant comes back anchored and out of the way of the aim (CanQuery off)")
 end
 
 if failures > 0 then

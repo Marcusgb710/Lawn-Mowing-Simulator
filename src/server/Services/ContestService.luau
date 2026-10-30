@@ -174,9 +174,12 @@ end
 
 -- Public API ---------------------------------------------------------------------------------
 
--- Sends the client where their contest stands now. DailyService calls it when the UTC day turns:
--- judging day is a day of the week, and nothing else wakes the contest at midnight.
+-- Wakes their contest: June's text if judging day has come round (once for each judging day, so
+-- calling this again does not repeat it), then where the contest stands, sent to the client.
+-- DailyService calls it when the UTC day turns: judging day is a day of the week, and nothing else
+-- wakes the contest at midnight.
 function ContestService:Update(player: Player)
+	offer(player)
 	update(player)
 end
 

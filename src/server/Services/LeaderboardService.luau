@@ -310,6 +310,13 @@ end
 
 -- Public API ---------------------------------------------------------------------------------
 
+-- Whether the leaderboards are working this session: their stores were made, and nothing has
+-- switched them off since (Studio refusing DataStore access, say). A read that failed for another
+-- reason does not count: the next tick tries again.
+function LeaderboardService:IsAvailable(): boolean
+	return available
+end
+
 -- Writes a player's lawns mowed and money earned to the boards, unless they were written less than
 -- LeaderboardWriteInterval seconds ago (a crew's jobs finishing together write once each): then the
 -- player is marked, and the next Refresh or their leaving writes them. A save that isn't being kept

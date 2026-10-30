@@ -90,8 +90,8 @@ local SMALL_POP = 16
 -- A level's cash lifts off the level line this long after the level-up arrives, so it doesn't ride
 -- the XP pop off the bar just under it (and lines up with the Level Up moment).
 local LEVEL_POP_DELAY = 0.3
--- Contracts paid in the same moment (one job can meet two) ring and pop this far apart, so each one
--- is heard and seen on its own.
+-- Contracts paid in the same moment (one job can meet two) ring and pop this far apart, and the Bonus
+-- Day after them, so each one is heard and seen on its own and the payoff comes last.
 local CONTRACT_GAP = 0.6
 -- The columns down each side are full size on screens at least `fullHeight` tall (in pixels), and
 -- shrink on shorter ones (phones held sideways), down to `minScale`, or further (to `tightScale`)
@@ -1531,6 +1531,21 @@ local function onLevelReward(info: { level: number, text: string, cash: number }
 	end
 end
 
+-- When the next paid contract (or the Bonus Day) may ring and pop (os.clock seconds).
+local contractFreeAt = 0
+
+-- Runs `play(info)` now, or when the one before it has had its turn, and books the turn after it
+-- CONTRACT_GAP later.
+local function inTurn(play: (info: any) -> (), info: any)
+	local wait = math.max(0, contractFreeAt - os.clock())
+	contractFreeAt = os.clock() + wait + CONTRACT_GAP
+	if wait > 0 then
+		task.delay(wait, play, info)
+	else
+		play(info)
+	end
+end
+
 -- The goal chime and the cash for a paid contract: the cash lifts off the contracts chip, or off the
 -- money counter where the chip isn't showing.
 local function showContractDone(info: { id: string, text: string, reward: number })
@@ -1543,27 +1558,24 @@ local function showContractDone(info: { id: string, text: string, reward: number
 	end
 end
 
--- When the next paid contract may ring and pop (os.clock seconds).
-local contractFreeAt = 0
-
 -- The server's paid a contract (`info`: its id, its words and its cash). Two paid in one frame
 -- (one job can meet two) don't play on top of each other: each waits its turn, CONTRACT_GAP after the
 -- one before. The chip's count follows with the view, which the server sends once it has paid.
 local function onContractDone(info: { id: string, text: string, reward: number })
-	local wait = math.max(0, contractFreeAt - os.clock())
-	contractFreeAt = os.clock() + wait + CONTRACT_GAP
-	if wait > 0 then
-		task.delay(wait, showContractDone, info)
-	else
-		showContractDone(info)
-	end
+	inTurn(showContractDone, info)
 end
 
--- All three contracts are paid and so is the Bonus Day (`info`: its cash): a Payday moment and the
--- cash register. The art's wordmark reads Payday! and nothing else, so the subtitle carries the name.
-local function onBonusDay(info: { cash: number })
+-- The Bonus Day's Payday moment and the cash register. The art's wordmark reads Payday! and nothing
+-- else, so the subtitle carries the name.
+local function showBonusDay(info: { cash: number })
 	UI.moment("Payday", "Bonus Day!", `Bonus Day: +{Format.money(info.cash)}`, 3)
 	Sounds.playUi("Cash")
+end
+
+-- All three contracts are paid and so is the Bonus Day (`info`: its cash). It comes in the same frame
+-- as the last contract, and takes its turn behind that contract's chime, so the payoff is last.
+local function onBonusDay(info: { cash: number })
+	inTurn(showBonusDay, info)
 end
 
 -- The streak grew (`info`: the days in a row, what today paid, the flag today gave if it gave one,

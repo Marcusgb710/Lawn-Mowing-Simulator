@@ -5,7 +5,6 @@
 -- test): the next day, the next Saturday, and the leaderboards read again. The server only runs
 -- them in Studio, so in a live game the remote does nothing.
 
-local DataStoreService = game:GetService("DataStoreService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -74,16 +73,6 @@ local function judgingNote(player: Player): string
 		return `Saturday {key}. Your last result is still waiting to be collected.`
 	end
 	return `Saturday {key}. Judging day is in act {Contest.FromAct}.`
-end
-
--- Whether a DataStore answers right now. LeaderboardService keeps no flag to ask, so this asks the
--- first board's store the way it reads it, inside a pcall: Studio without API access (or a place
--- that isn't published) throws.
-local function dataStoresAnswer(): boolean
-	local ok = pcall(function()
-		DataStoreService:GetOrderedDataStore(GameConfig.LeaderboardStores.Lawns):GetSortedAsync(false, 1)
-	end)
-	return ok
 end
 
 -- Each test: (player, value) -> (whether it worked, what to tell them).
@@ -224,7 +213,7 @@ local TESTS = {
 	-- Reads both boards now and sends them to every screen, instead of in a couple of minutes.
 	Leaderboard = function()
 		LeaderboardService:Refresh()
-		if not dataStoresAnswer() then
+		if not LeaderboardService:IsAvailable() then
 			return false, "Leaderboards are off in this place."
 		end
 		return true, "Boards refreshed."
