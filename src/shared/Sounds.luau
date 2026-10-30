@@ -33,6 +33,9 @@ Sounds.Ids = {
 	Star = "rbxassetid://15675055424", -- Roblox_UI_Cute_Pop (Roblox): a star landing on the pay panel
 	Find = "rbxassetid://17208319162", -- Roblox GUI - Pickup (Roblox): finding something in a yard
 	Streak = "rbxassetid://15675043410", -- Roblox_UI_Tonal_Stinger (Roblox): a streak growing
+	-- The front-page HUD's button sound (Juicy.button plays it on every press). Found the same way:
+	-- the toolbox search for "Roblox UI click", kept to audio whose creator is Roblox (id 1).
+	Click = "rbxassetid://15675032796", -- Roblox_UI_Small_Click (Roblox): a HUD button pressed
 }
 
 -- Plays `name` from `parent` (a part or attachment), if it has an id.

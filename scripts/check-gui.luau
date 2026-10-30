@@ -13,13 +13,17 @@
 -- its touch and compact places only places, and nothing giving way to what gives way to it), only
 -- the pieces HudController builds straight into a HUD column can leave it, and those are in their
 -- column or have a place of their own on the screen (a touch screen's too), every element the
--- client places by name is in it, and every one in it is placed somewhere.
+-- client places by name is in it, and every one in it is placed somewhere. And src/client/
+-- JuicyPalette.luau, the front-page HUD's colours: each face lighter at the top, the ink darker
+-- than all of them.
 -- Given the art's GUI folder (or with art-source/GUI in this repo), it also reads the manifest
 -- and the .fnt files again and checks GuiArt matches them exactly. Exits with an error if
 -- anything's off.
 
 local fs = require("@lune/fs")
+local luau = require("@lune/luau")
 local process = require("@lune/process")
+local roblox = require("@lune/roblox")
 local serde = require("@lune/serde")
 
 local GuiArt = require("../src/shared/Config/GuiArt")
@@ -895,6 +899,85 @@ do
 		for _, payLine in quietLines do
 			check(string.find(payLine.label, "Tip", 1, true) == nil, `{case[1]} still shows "{payLine.label}"`)
 		end
+	end
+end
+
+-- Juicy's palette ---------------------------------------------------------------------------------
+
+-- src/client/JuicyPalette.luau is the front-page HUD's colours with nothing else in it, so it loads
+-- here with Lune's Color3 (Juicy itself builds Instances and stays out of Lune). Each face is a
+-- gradient from a lighter top to a darker bottom, the ink outline is darker than every bottom, and
+-- the colours are the ones the plan's first ruling names.
+local juicyPalette = luau.load(fs.readFile("src/client/JuicyPalette.luau"), {
+	chunkName = "JuicyPalette",
+	environment = { Color3 = roblox.Color3 },
+})()
+
+-- How bright a colour looks: the standard sRGB relative luminance.
+local function luminance(color: any): number
+	local function linear(channel: number): number
+		if channel <= 0.04045 then
+			return channel / 12.92
+		end
+		return ((channel + 0.055) / 1.055) ^ 2.4
+	end
+	return 0.2126 * linear(color.R) + 0.7152 * linear(color.G) + 0.0722 * linear(color.B)
+end
+
+local function hex(color: any): string
+	local function byte(channel: number): number
+		return math.floor(channel * 255 + 0.5)
+	end
+	return string.format("#%02X%02X%02X", byte(color.R), byte(color.G), byte(color.B))
+end
+
+local JUICY_FACES = {
+	Money = { "#69E25A", "#3DAE38" },
+	Level = { "#8FD8FF", "#3D9BE8" },
+	Streak = { "#FFB347", "#F0661D" },
+	Countdown = { "#B48CFF", "#6B4FBF" },
+	Truck = { "#74C0FF", "#2D7FE0" },
+	Guide = { "#FFC85C", "#F08A1D" },
+	Crew = { "#C9A6FF", "#8A5BE8" },
+	Contracts = { "#FF9A7A", "#E8553A" },
+	Shop = { "#5EE0C8", "#1FA98F" },
+	Gifts = { "#FF9AC9", "#E8459A" },
+	TopLawns = { "#FFE066", "#E8A61E" },
+	Settings = { "#C9D3CC", "#8A9A8E" },
+	Cream = { "#FFFFFF", "#FFF1C2" },
+	Danger = { "#FF7A6B", "#E0553F" },
+	Gold = { "#FFE066", "#F2B92F" },
+}
+
+local ink = juicyPalette.Ink
+check(typeof(ink) == "Color3", "JuicyPalette.Ink is a Color3")
+check(typeof(ink) == "Color3" and hex(ink) == "#1B2A1E", "JuicyPalette.Ink is #1B2A1E")
+check(typeof(juicyPalette.Badge) == "Color3" and hex(juicyPalette.Badge) == "#FFE066", "JuicyPalette.Badge is #FFE066")
+check(typeof(juicyPalette.Glass) == "Color3" and hex(juicyPalette.Glass) == "#1B2A1E", "JuicyPalette.Glass is #1B2A1E")
+check(juicyPalette.GlassTransparency == 0.12, "JuicyPalette.GlassTransparency is 0.12 (rgba .88)")
+
+for name, hexes in JUICY_FACES do
+	local face = juicyPalette[name]
+	check(typeof(face) == "table", `JuicyPalette has no {name} face`)
+	if typeof(face) == "table" then
+		check(
+			typeof(face.top) == "Color3" and typeof(face.bottom) == "Color3",
+			`JuicyPalette.{name} needs a top and a bottom Color3`
+		)
+		if typeof(face.top) == "Color3" and typeof(face.bottom) == "Color3" then
+			check(hex(face.top) == hexes[1], `JuicyPalette.{name}.top is {hex(face.top)}, not {hexes[1]}`)
+			check(hex(face.bottom) == hexes[2], `JuicyPalette.{name}.bottom is {hex(face.bottom)}, not {hexes[2]}`)
+			check(luminance(face.top) > luminance(face.bottom), `JuicyPalette.{name}: the top isn't lighter than the bottom`)
+			if typeof(ink) == "Color3" then
+				check(luminance(ink) < luminance(face.bottom), `JuicyPalette.{name}: the ink isn't darker than the bottom`)
+			end
+		end
+	end
+end
+-- No face outside the ruling: a new colour is added to the plan's first ruling and to JUICY_FACES.
+for name, value in juicyPalette do
+	if typeof(value) == "table" then
+		check(JUICY_FACES[name] ~= nil, `JuicyPalette.{name} isn't a colour the first ruling names`)
 	end
 end
 
