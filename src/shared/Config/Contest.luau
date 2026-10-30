@@ -3,7 +3,11 @@
 -- the results screen (ContestController) only shows what it decided. The lines are in
 -- Config/Story.luau (the Contest scenes, and June's porch talk).
 --
--- This file has no requires, so scripts/check-story.luau can test it with Lune.
+-- After the first judging day the contest goes by the calendar: judging day is every Saturday (UTC),
+-- worked out with Daily (the one pure require here, which has no requires of its own), so
+-- scripts/check-story.luau can test this file with Lune by handing Daily in.
+
+local Daily = require(script.Parent.Parent.Daily)
 
 local Contest = {}
 
@@ -57,8 +61,13 @@ Contest.DiscountOn = { "SmallOffice", "EquipmentYard" }
 
 -- When judging day comes round again, in jobs finished: after a loss you can try again after
 -- `RetryJobs`; after a win, next summer's contest (with Gloria's bar higher) after `SummerJobs`.
+-- That is for the first judging day only; from the second on it is every Saturday (calendarState).
 Contest.RetryJobs = 4
 Contest.SummerJobs = 12
+
+-- How many Saturdays judged without a win it takes to start a new summer anyway (Gloria's bar goes
+-- up a step): the fourth loss does it. A Saturday you miss isn't counted.
+Contest.SaturdaysPerSummer = 4
 
 -- June has won Best Yard this many times before you start.
 Contest.JuneWins = 30
@@ -127,9 +136,11 @@ function Contest.won(yours, hers): boolean
 	return yours.total >= hers.total
 end
 
--- Where the contest is for a player: "Locked" (before act 4), "Results" (judged, and the results
--- are waiting to be collected), "Waiting" (judging day comes round again in a few jobs) or
--- "Open" (ready when you are). `contest` is their saved contest ({ pending, nextAt }).
+-- Where the contest is for a player by the jobs rule, which is how the first judging day works:
+-- "Locked" (before act 4), "Results" (judged, and the results are waiting to be collected),
+-- "Waiting" (judging day comes round in a few jobs) or "Open" (ready when you are). `contest` is
+-- their saved contest ({ pending, nextAt }). Once a judging day has been played, calendarState
+-- takes over.
 function Contest.state(contest, act: number, jobsCompleted: number): string
 	if act < Contest.FromAct then
 		return "Locked"
@@ -139,6 +150,38 @@ function Contest.state(contest, act: number, jobsCompleted: number): string
 		return "Waiting"
 	end
 	return "Open"
+end
+
+-- Whether judging day is open on the day `now` is in, for someone who has been through the first
+-- one: it is a Saturday (UTC) and they haven't judged on it yet. `contest.lastJudged` is the day
+-- key of their last judging ("" for none).
+local function openToday(contest, now: number): boolean
+	return Daily.isSaturday(now) and (contest.lastJudged or "") ~= Daily.dayKey(now)
+end
+
+-- Where the contest is for a player at the moment `now` (unix seconds): the same four words as
+-- state. Until the first judging day has been played (`contest.judged` is 0) it is state, the jobs
+-- rule, so the story lands the first time. After that, judging day is every Saturday: "Open" on
+-- one they haven't judged on, "Waiting" every other day. "Locked" and "Results" are as in state.
+-- `contest` is their saved contest ({ judged, pending, nextAt, lastJudged }).
+function Contest.calendarState(contest, act: number, jobsCompleted: number, now: number): string
+	local state = Contest.state(contest, act, jobsCompleted)
+	if state == "Locked" or state == "Results" or (contest.judged or 0) == 0 then
+		return state
+	end
+	return if openToday(contest, now) then "Open" else "Waiting"
+end
+
+-- How many days from the day `now` is in to their next judging day: 0 when it is open today, 7 when
+-- today is a Saturday they have already judged on, else the days to the coming Saturday (2 from a
+-- Thursday, 6 from a Sunday). Only meant for someone on the calendar (`contest.judged` above 0).
+function Contest.daysUntilJudging(contest, now: number): number
+	if openToday(contest, now) then
+		return 0
+	elseif Daily.isSaturday(now) then
+		return 7
+	end
+	return Daily.daysUntil(now, Daily.nextSaturday(now))
 end
 
 -- When judging day comes round again (in jobs finished) after one ends.

@@ -12,7 +12,8 @@
 --   {appeal}    your business's curb appeal
 --   {bar}       the contest bar (ContestBar)
 --   {rival}     Gloria's score this summer (Config/Contest.luau), while the contest is open
---   {jobs}      how many jobs until judging day comes round again
+--   {jobs}      how many jobs until judging day comes round again (the first one only)
+--   {days}      how long until Saturday's judging day, in words ("2 days"), once the first is done
 -- A line with a placeholder that has no value right then is skipped.
 -- `*word*` in a line is shown in the highlight color.
 --
@@ -504,7 +505,10 @@ Story.JuneTalk = {
 			"Gloria's yard'd score about {rival}. Ours has to beat it. Text me when you're ready and I'll call the judges.",
 			"Judges are in town. Mow, edge, trim. Then text me.",
 		},
+		-- The jobs line is for the first judging day's wait, and the days line for every Saturday
+		-- after it; each is skipped while its number isn't there (Story.fill).
 		Waiting = {
+			"Saturday's the day. {days} to go.",
 			"The judges come back in {jobs} jobs. Mow every Tuesday.",
 			"Next time: edges. Then shrubs. Then we'll see.",
 		},

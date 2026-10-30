@@ -1,7 +1,8 @@
 -- Your story goal right now (docs/STORY.md), for the Messages app's goal card and Grandma's sticky
 -- note on the HUD: the act's goal from the server (StoryService), or in act 4 the Best Yard
--- contest's (ContestService): calling the judges, the jobs until they come round again, or the
--- results. The goals rail under the goal on the note has its milestones from here too.
+-- contest's (ContestService): calling the judges, the jobs until the first judging day, the days
+-- until Saturday's after it, or the results. The goals rail under the goal on the note has its
+-- milestones from here too.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -18,8 +19,8 @@ local STAT = { Jobs = "jobs", Earned = "earned", Stars = "stars" }
 
 local Goal = {}
 
--- The goal: { text, kind = "Money" | "CurbAppeal" | "Jobs", need, have? }, or one with a `button`
--- (and its `action`, "Start" or "Results") instead of a bar. Nil before the story's arrived.
+-- The goal: { text, kind = "Money" | "CurbAppeal" | "Jobs" | "Days", need, have? }, or one with a
+-- `button` (and its `action`, "Start" or "Results") instead of a bar. Nil before the story's arrived.
 function Goal.current()
 	local story = ClientState.story
 	local goal = story and story.goal
@@ -30,15 +31,27 @@ function Goal.current()
 		return { text = `Beat Gloria's {contest.bar} on judging day`, button = "Call the judges", action = "Start" }
 	elseif contest.state == "Results" then
 		return { text = "The judges have been", button = "See the results", action = "Results" }
+	elseif contest.calendar then
+		-- After the first judging day it is every Saturday: a week's bar that fills as it nears.
+		local days = math.clamp(contest.daysLeft or 7, 0, 7)
+		local text = if days == 0
+			then "Judging day is today"
+			elseif days == 1 then "Judging day is tomorrow"
+			else `Judging day in {days} days`
+		return { text = text, kind = "Days", need = 7, have = 7 - days }
 	end
 	local length = math.max(1, contest.jobsWait or 1)
 	return { text = "Best Yard comes round again", kind = "Jobs", need = length, have = length - contest.jobsLeft }
 end
 
--- How far along a goal is: your money toward a price, your curb appeal, or the jobs done toward
--- the judges coming back, and that in words ("$66 / $150").
+-- How far along a goal is: your money toward a price, your curb appeal, the jobs done toward the
+-- first judging day, or the days of the week gone toward Saturday's, and that in words
+-- ("$66 / $150", "2 jobs to go", "2 days to go").
 function Goal.progress(goal): (number, string)
-	if goal.kind == "Jobs" then
+	if goal.kind == "Days" then
+		local left = goal.need - goal.have
+		return goal.have, if left == 0 then "today" elseif left == 1 then "tomorrow" else `{left} days to go`
+	elseif goal.kind == "Jobs" then
 		local left = goal.need - goal.have
 		return goal.have, `{left} {if left == 1 then "job" else "jobs"} to go`
 	elseif goal.kind == "Money" then

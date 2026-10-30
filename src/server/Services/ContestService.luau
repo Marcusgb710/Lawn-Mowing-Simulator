@@ -9,32 +9,39 @@
 --   3. After the scene the results screen shows (ContestController). Collect (CollectContest)
 --      pays out and plays the ending: June scratches Gloria's name onto the trophy, or Gloria
 --      wins, insufferably.
---   4. A loss can be tried again after a few jobs; a win brings next summer's contest after more,
---      with Gloria's bar a little higher.
+--   4. The first judging day comes by the jobs (Contest.state), so the story lands the first time.
+--      After it, judging day is every Saturday (UTC, by the server's Clock; Contest.calendarState):
+--      the judges can be called once on each. A win starts next summer, with Gloria's bar a little
+--      higher, and so do four Saturdays without one; a Saturday you miss changes nothing.
 -- Winning pays Contest.Prize, and the first win also brings the Best Yard Trophy (a decoration,
 -- delivered in a box like an order) and half off the Small Office (or the Equipment Yard, if you
 -- have the office). The server decides all of it; the client only asks to start and to collect.
 --
--- Saved in the player's data as `contest` (DataService, version 11):
---   summer    which summer it is (1 at first; a win starts the next one)
+-- Saved in the player's data as `contest` (DataService, version 11, and version 14 for the last two):
+--   summer    which summer it is (1 at first; a win starts the next one, and so do four Saturdays
+--             without a win)
 --   wins      how many times you've won, and `judged`, how many judging days you've had
 --   last      the last result: { summer, won, you, gloria } (totals), or false
 --   pending   the result waiting to be collected: { summer, first, won, you, gloria, rewards,
 --             scene }, or false. It's decided when judging starts, so leaving doesn't change it.
---   nextAt    the jobs done when judging day comes round again
+--   nextAt    the jobs done when the first judging day comes round (it gates nothing after it)
 --   offered   how many judging days there had been when June last texted it's open (-1: never)
 --   discount  the building a win took half off, until it's bought (Shop.price), or false
+--   lastJudged  the day key (Daily.dayKey) of the last time the judges were called ("" for never)
+--   saturdays   the Saturdays judged without a win since the last new summer
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Contest = require(Shared.Config.Contest)
+local Daily = require(Shared.Daily)
 local Format = require(Shared.Format)
 local Items = require(Shared.Config.Items)
 local Net = require(Shared.Net)
 local Story = require(Shared.Config.Story)
 
+local Clock = require(script.Parent.Parent.Clock)
 local DataService = require(script.Parent.DataService)
 local DecorService = require(script.Parent.DecorService)
 local HomeLawnService = require(script.Parent.HomeLawnService)
@@ -68,8 +75,13 @@ local function stateOf(data)
 		data.contest = contest
 	end
 	contest.summer = if typeof(contest.summer) == "number" then math.max(1, math.floor(contest.summer)) else 1
-	for _, key in { "wins", "judged", "nextAt" } do
+	for _, key in { "wins", "judged", "nextAt", "saturdays" } do
 		contest[key] = if typeof(contest[key]) == "number" then math.max(0, math.floor(contest[key])) else 0
+	end
+	-- The day key of the last judging ("" for never). A contest rebuilt from {} (OpenForTesting's
+	-- reset) has neither this nor `saturdays` until here.
+	if typeof(contest.lastJudged) ~= "string" then
+		contest.lastJudged = ""
 	end
 	if typeof(contest.offered) ~= "number" then
 		contest.offered = -1
@@ -85,27 +97,39 @@ local function stateOf(data)
 	return contest
 end
 
-local function stateFor(player: Player, data, contest): string
-	return Contest.state(contest, StoryService:GetAct(player), data.jobsCompleted or 0)
+-- Where their contest is at `now` (the server's Clock unless a caller already has the moment):
+-- the jobs rule for the first judging day, Saturdays after it (Contest.calendarState).
+local function stateFor(player: Player, data, contest, now: number?): string
+	return Contest.calendarState(contest, StoryService:GetAct(player), data.jobsCompleted or 0, now or Clock.now())
 end
 
--- How many jobs until judging day comes round again, and how many the wait was.
+-- How many jobs until the first judging day comes round, and how many the wait was. Once that
+-- day's been played the jobs count for nothing and the calendar says when it is.
 local function jobsUntil(data, contest): (number, number)
 	local length = if contest.last and contest.last.won then Contest.SummerJobs else Contest.RetryJobs
 	return math.max(0, contest.nextAt - (data.jobsCompleted or 0)), length
 end
 
--- What the client is sent: everything it shows, nothing it decides.
+-- "1 day", "2 days".
+local function inDays(days: number): string
+	return `{days} {if days == 1 then "day" else "days"}`
+end
+
+-- What the client is sent: everything it shows, nothing it decides. `calendar` says judging day
+-- is on Saturdays now (the first has been played), so `daysLeft` is the wait and not `jobsLeft`.
 local function view(player: Player, data)
 	local contest = stateOf(data)
+	local now = Clock.now()
 	local jobsLeft, jobsWait = jobsUntil(data, contest)
 	return {
-		state = stateFor(player, data, contest),
+		state = stateFor(player, data, contest, now),
 		summer = contest.summer,
 		bar = Contest.bar(contest.summer),
 		wins = contest.wins,
 		jobsLeft = jobsLeft,
 		jobsWait = jobsWait,
+		daysLeft = Contest.daysUntilJudging(contest, now),
+		calendar = contest.judged > 0,
 		result = if contest.pending then contest.pending else nil,
 	}
 end
@@ -158,12 +182,17 @@ function ContestService:StartJudging(player: Player): (boolean, string)
 		return false, "Try again in a moment."
 	end
 	local contest = stateOf(data)
-	local state = stateFor(player, data, contest)
+	-- One moment for the whole call, so the day it's allowed on is the day it's marked judged.
+	local now = Clock.now()
+	local state = stateFor(player, data, contest, now)
 	if state == "Locked" then
 		return false, "The contest isn't till the end of summer."
 	elseif state == "Results" then
 		return false, "The judges have been. Go and see the results."
 	elseif state == "Waiting" then
+		if contest.judged > 0 then
+			return false, `Judging day is Saturday. {inDays(Contest.daysUntilJudging(contest, now))} to go.`
+		end
 		local jobsLeft = jobsUntil(data, contest)
 		return false, `The judges come back in {jobsLeft} {if jobsLeft == 1 then "job" else "jobs"}.`
 	end
@@ -193,6 +222,9 @@ function ContestService:StartJudging(player: Player): (boolean, string)
 		scene = scene,
 	}
 	contest.judged += 1
+	-- Today's judging, so this Saturday can't be judged twice. Set on the first day too, whatever
+	-- day it falls on: it only matters once the calendar takes over, and then it's harmless.
+	contest.lastJudged = Daily.dayKey(now)
 	StoryService:SendTexts(player, Story.ContestTexts.Start)
 	StoryService:PlayScene(player, scene)
 	update(player)
@@ -219,6 +251,8 @@ function ContestService:Collect(player: Player): (boolean, string)
 		you = pending.you and pending.you.total,
 		gloria = pending.gloria and pending.gloria.total,
 	}
+	-- Collecting comes after the judges have been, so `judged` is already 1 or more and the calendar
+	-- has taken over: this wait in jobs no longer gates anything. It is still set, which is harmless.
 	contest.nextAt = Contest.nextAt(won, jobs)
 
 	local message
@@ -226,6 +260,7 @@ function ContestService:Collect(player: Player): (boolean, string)
 		local rewards = pending.rewards or Contest.rewards(contest.wins, data.owned.Business)
 		contest.wins += 1
 		contest.summer += 1
+		contest.saturdays = 0
 		-- The prize is money they made, so it counts toward `earned`.
 		local prize = rewards.money or 0
 		if prize > 0 then
@@ -245,8 +280,17 @@ function ContestService:Collect(player: Player): (boolean, string)
 			message ..= " The trophy's on its way to your shop."
 		end
 	else
+		-- Every Saturday after the first judging day that goes by without a win counts; the
+		-- fourth starts a new summer anyway, and Gloria's bar goes up a step.
+		if contest.judged > 1 then
+			contest.saturdays = (contest.saturdays or 0) + 1
+			if contest.saturdays >= Contest.SaturdaysPerSummer then
+				contest.summer += 1
+				contest.saturdays = 0
+			end
+		end
 		StoryService:PlayScene(player, "ContestLose")
-		message = `Gloria wins this one. The judges come back in {Contest.RetryJobs} jobs.`
+		message = "Gloria wins this one. The judges come back on Saturday."
 	end
 	update(player)
 	return true, message
@@ -283,19 +327,25 @@ function ContestService:Init()
 			return nil
 		end
 		local contest = stateOf(data)
-		local state = stateFor(player, data, contest)
-		local jobsLeft = jobsUntil(data, contest)
+		local now = Clock.now()
+		local state = stateFor(player, data, contest, now)
+		-- While judging day is waiting, June counts the jobs to the first one and the days to each
+		-- Saturday after it (Story.JuneTalk.Contest.Waiting has a line for each).
+		local waiting = state == "Waiting"
+		local calendar = contest.judged > 0
 		return {
 			contest = state,
 			rival = if state == "Open" then Contest.bar(contest.summer) else nil,
-			jobs = if state == "Waiting" then jobsLeft else nil,
+			jobs = if waiting and not calendar then jobsUntil(data, contest) else nil,
+			days = if waiting and calendar then inDays(Contest.daysUntilJudging(contest, now)) else nil,
 		}
 	end)
 end
 
--- For testing in Studio (StudioTestService): judging day is open now, whatever the wait, and any
--- result waiting to be collected is dropped. `reset` starts the contest over from the first
--- summer.
+-- For testing in Studio (StudioTestService): the first judging day's wait in jobs is over, so it is
+-- open now, and any result waiting to be collected is dropped. Once a judging day has been played
+-- it is a Saturday by the Clock that opens it, not this. `reset` starts the contest over from the
+-- first summer.
 function ContestService:OpenForTesting(player: Player, reset: boolean?): boolean
 	local data = DataService:Get(player)
 	if not data then
