@@ -2,8 +2,9 @@
 -- Saturday's judging (docs/superpowers/specs/2026-10-29-busy-season-design.md). A day here is a UTC
 -- day, the same for every player and every server wherever they are: it runs from 00:00 UTC to the
 -- next 00:00 UTC, 86400 seconds later (unix time has no leap seconds). A moment is a unix time in
--- seconds, which is what the server's Clock hands out. Nothing here keeps state or reads the clock;
--- each function is told the moment.
+-- seconds at or after 1970, which is what the server's Clock hands out (os.date can fail or misread
+-- before that on some runtimes). Nothing here keeps state or reads the clock; each function is told
+-- the moment.
 --
 -- The calendar parts come from os.date("!*t", unix), the UTC form, whose `wday` counts from 1 on
 -- Sunday, so Saturday is 7. It reads the same under Roblox and under Lune. The midnights are plain

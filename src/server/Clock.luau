@@ -7,8 +7,9 @@
 -- so a test can reach tomorrow or judging day without waiting for either. It can never apply live:
 -- setOffset only takes a value when RunService:IsStudio() is true, and anywhere else it warns and
 -- leaves the clock alone. Server only: it sits under src/server and the client has no copy.
-
-local RunService = game:GetService("RunService")
+--
+-- Nothing runs when this loads but the table (RunService is only looked up inside setOffset), so
+-- scripts/check-season can require it under Lune and check now() and offset().
 
 local Clock = {}
 
@@ -22,10 +23,11 @@ end
 -- Moves the clock `seconds` from the real time (negative is the past). Studio only: live it warns
 -- and changes nothing. The check is made here, when it is called, so no caller can skip it.
 function Clock.setOffset(seconds: number)
-	if not RunService:IsStudio() then
+	if not game:GetService("RunService"):IsStudio() then
 		warn("Clock.setOffset is for Studio testing only; the clock was left alone")
 		return
 	end
+	assert(typeof(seconds) == "number" and seconds == seconds, "Clock.setOffset needs a number of seconds")
 	offsetSeconds = seconds
 end
 

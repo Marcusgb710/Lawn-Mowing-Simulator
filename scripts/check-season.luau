@@ -9,14 +9,16 @@
 -- first-timer, without back pay for the milestones or levels it has already passed
 -- (src/shared/Config/Season.luau), and that the six sounds the Busy Season rings
 -- (cash, level up, goal done, star, find, streak) have ids (src/shared/Sounds.luau), and how a
--- moment becomes a UTC day key, a Saturday and the midnight after it (src/shared/Daily.luau). Exits
--- with an error if anything's off.
+-- moment becomes a UTC day key, a Saturday and the midnight after it (src/shared/Daily.luau), and
+-- that the server's clock loads and starts at the real time (src/server/Clock.luau). Exits with an
+-- error if anything's off.
 
 local fs = require("@lune/fs")
 local luau = require("@lune/luau")
 local process = require("@lune/process")
 local roblox = require("@lune/roblox")
 
+local Clock = require("../src/server/Clock")
 local Daily = require("../src/shared/Daily")
 local Format = require("../src/shared/Format")
 local Levels = require("../src/shared/Config/Levels")
@@ -193,16 +195,24 @@ check(
 	Daily.dayKey(1793232000) == "20261029" and Daily.dayKey(1793232000 + 86399) == "20261029",
 	"a day key covers the whole UTC day"
 )
-check(Daily.dayKey(1793232000 + 86400) == "20261030", "the next second is the next day")
+check(Daily.dayKey(1793232000 + 86400) == "20261030", "one day later is the next day")
+check(Daily.dayKey(1767571200) == "20260105", "months and days are zero-padded")
 check(Daily.isSaturday(1793404800) and not Daily.isSaturday(1793232000), "Saturdays")
 check(Daily.nextSaturday(1793232000) == 1793404800, "Thursday's next Saturday is in two days")
 check(Daily.nextSaturday(1793404800 + 3600) == 1793404800, "a Saturday morning is still judging day")
+check(Daily.nextSaturday(1793404800 - 1) == 1793404800, "late Friday is still the day before judging day")
 check(Daily.nextSaturday(1793404800 + 86400) == 1794009600, "Sunday waits a week")
 check(
 	Daily.daysUntil(1793232000 + 3600, 1793404800) == 2 and Daily.daysUntil(1793404800, 1793404800) == 0,
 	"days until"
 )
 check(Daily.midnightAfter(1793232000 + 100) == 1793232000 + 86400, "midnight after")
+
+-- The Clock loads with nothing but its table (it looks RunService up only inside setOffset, and Lune
+-- has no `game`), so it can be required here. Outside Studio the offset stays 0 and now() is the
+-- real time.
+check(Clock.offset() == 0, "the clock starts with no offset")
+check(math.abs(Clock.now() - os.time()) <= 2, "the clock reads the real time while the offset is 0")
 
 -- Sounds --------------------------------------------------------------------------------------
 
