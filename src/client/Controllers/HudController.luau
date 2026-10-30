@@ -1074,13 +1074,18 @@ local function showPay(job)
 		LayoutOrder = 54,
 		Parent = payPanel,
 	})
-	Juicy.juice(UI.button("Nice!", hidePay, {
+	-- Its handler destroys the panel, and so the button, so it plays its own click first (silent).
+	local niceButton = UI.button("Nice!", function()
+		Juicy.click()
+		hidePay()
+	end, {
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.fromScale(0.5, 0.5),
 		Size = UDim2.fromOffset(220, 46),
 		TextSize = 20,
 		Parent = buttonRow,
-	}))
+	})
+	Juicy.juice(niceButton, nil, true)
 	fit()
 	UI.holdCursor("PayBreakdown", true)
 end

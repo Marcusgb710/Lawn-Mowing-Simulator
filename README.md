@@ -252,6 +252,7 @@ src/shared/                  -> ReplicatedStorage.Shared   code used by both ser
                                 allowed, what a bad value becomes, and the shell count for each grass detail
   Config/GuiArt.luau            GENERATED: the GUI art's image ids, slices, palette and bitmap fonts
                                 (scripts/gui-art-ids.py; see HANDOFF.md, "GUI art")
+  Strip.luau                    the maths of a clean stripe (the pass that makes the HUD's NICE STRIPE! splash)
   Daily.luau                    what day it is in UTC: the day key, Saturday and the midnights, told the moment
   GuiLayout.luau                the GUI's layout maths: bitmap text, the hold ring, striped fills
   PayBreakdown.luau             a finished job's pay split into dollar lines for the pay breakdown

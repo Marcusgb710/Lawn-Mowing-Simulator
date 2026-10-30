@@ -607,21 +607,36 @@ Access to API Services), so turn that on where an item says so.
 
 Each step reads "do this, expect that".
 
-Layout (look at each piece, then check nothing overlaps):
+Layout (each step is one window size; look at each piece, then check nothing overlaps):
 
-- [ ] PC, a 1280 by 720 window. Expect, down the left: the money pill with a gold coin, the level pill
-      and the streak pill side by side (the streak pill only once you have a streak), the purple
-      countdown pill (only when judging day is on the calendar), then four squares (Truck, Guide,
-      Crew, Contracts) with their names under them and T, G, C on their corners. At the top in the
-      middle: Grandma's cream banner, clear of both columns. Down the right, inside the edge strip:
-      curb appeal, and during a job the dark job card with the timer, then the boost pills, then (late
-      in the mowing) the missed button. Against the right edge: Shop, Gifts, Top Lawns and Settings
-      squares. Also look at 1024 by 768 and 1024 by 600.
+- [ ] PC, a 1280 by 720 window, the left. Expect, top to bottom: the money pill with a gold coin, the
+      level pill (LVL and an XP bar) with the streak pill beside it, then four squares (Truck, Guide,
+      Crew, Contracts) with their names under them and T, G, C on their corners.
+- [ ] Same window, the streak pill and the countdown pill. The streak pill ("DAY 3" with a flame) is
+      not there at all while you have no streak (day 0). The purple countdown pill is only there when
+      judging day is on the calendar, and reads "Judging day in 2d 5h" while it is coming and "Judging
+      day is today!" while it is open (the test panel's Jump to Saturday).
+- [ ] Same window, the Contracts square. Its tilted yellow badge shows the contracts left today (3 at
+      first), counts down as they are done, and is gone at 0.
+- [ ] Same window, the top and the right. At the top in the middle: Grandma's cream banner, clear of both
+      columns. Down the right, inside the edge strip: curb appeal, and during a job the dark job card
+      with the timer, then the boost pills, then (late in the mowing) the missed button. Against the
+      right edge: Shop, Gifts, Top Lawns and Settings squares.
+- [ ] 1024 by 768 and 1024 by 600 (the window resized). Expect the same PC layout as 1280 by 720: names
+      under the squares, the banner clear of both columns, the right column just inside the strip. At
+      600 tall the columns are at full size (they only shrink under 560); nothing overlaps.
 - [ ] The phone emulator at 844 by 390, landscape. Expect the four left squares in a 2 by 2 grid, the
       right strip's squares bare (no names, 56 px, Settings smaller), the left column about 0.7
       scale when the countdown pill is up, and every square at least 40 px across (44 px expected).
       Nothing under the move stick (bottom left) or the jump button (bottom right), and the banner not
       touching either column.
+- [ ] Studio probe, the GuiInset, on the same phone emulator at 844 by 390 with the countdown pill
+      showing (judging day on the calendar, so the purple pill is up). LawnUI
+      is not IgnoreGuiInset, so the HUD may see 390 minus the top bar (about 58 px) and not 390. Read
+      `LawnUI.AbsoluteSize.Y`, the left column's `AbsoluteSize` and `UIScale.Scale`, and one grid
+      square's `Face` `AbsoluteSize`. Expect the face at least 40 px and the countdown pill still on the
+      screen. If the inset is taken off and a face is under 40 px, say what you see: the 2 by 2 grid
+      wins over the column (ruling 4), so the column's scale should shrink further, not the grid.
 - [ ] The phone emulator at 667 by 375. Same checks; the squares are about 42 px. The banner and the
       first-job coach move left to clear the right column.
 - [ ] The Next chip (a phone only, in the right column) shows the next milestone on one line. It only
@@ -648,11 +663,25 @@ The tool hotbar:
 
 The money, the squares and the buttons:
 
-- [ ] Finish a job: the money counts up over about 0.4 s and the pill pulses once. Hover a square, a pill
-      and a window's Close button with the mouse: each grows a little; press and hold: it squashes;
-      let go: it springs back; a soft click plays on each. On a phone nothing grows under a finger,
-      but the press and the click still happen. Press and drag off a button with a finger, then lift:
-      the button must still spring back (it must not stay squashed).
+- [ ] Finish a job: the money counts up over about 0.4 s and the pill pulses once.
+- [ ] Hover a square, the Levels pill and the Gifts button with the mouse: each grows a little; press
+      and hold: it squashes; let go: it springs back; a soft click plays on each. On a phone nothing
+      grows under a finger, but the press and the click still happen. Press and drag off a button
+      with a finger, then lift: the button must still spring back (it must not stay squashed).
+- [ ] Which buttons have the feel (hover, squash, click): the squares, the pills, Shop, Gifts, Top
+      Lawns and Settings, the Levels pill, the missed button, Call off, the pay panel's Nice!, the crew
+      invite's Join and No thanks, the Top Lawns tabs, the Contracts window's and Levels window's Close
+      buttons, and the X on every window made with `UI.panel` (the Truck, Guide, Crew, Shop, Orders,
+      Top Lawns, Settings and Contracts windows). Not the hotbar slots (their own pop and click), the
+      Next chip and the other chips (they only show), or the buttons inside the shop computer's apps.
+      A button drawn without its kit art (before the art has downloaded) clicks but does not squash.
+- [ ] Neighbours stay put. Hover each Top Lawns tab and the missed button, and press one without
+      letting go: the other tab, the button above and below, and the card around them do not move or
+      resize. The button's own outline does not shrink either: a press at its very edge still
+      activates it.
+- [ ] A reopened window's X is at rest. Hover the X of Top Lawns (or Contracts), click it, open the
+      window again with its key without moving the mouse: the X is its normal size, not grown. Do the
+      same with the Contracts window's Close button.
 - [ ] The Heartbeat pulses. Watch the Gifts button (while a gift waits), the money pill and the badges
       for a minute: nothing flickers or ends up a size it was not (a pulse that lands while the
       pointer is over the button should end at the hover size).
@@ -706,6 +735,15 @@ The stripe splash:
       "NICE STRIPE!" again. Two passes within 8 seconds: only the first cheers.
 - [ ] Turn round after 40 studs and come back: the cheer comes at the turn (the way back is a pass of
       its own), not at the end of the way back.
+- [ ] A reel mower pass: it ends whenever you stop pushing it, and on a touch stick a drift under 0.1 ends
+      it, so cheers come rarer than with a gas mower. A clean 30 stud push and a stop cheers; no stall
+      counts against a reel mower.
+- [ ] The home lawn: mow your own lawn from the shop door out 30 studs or more in a straight line;
+      the splash shows there too.
+- [ ] A Level Up moment over a splash: finish a pass that cheers just as a level comes in (or press the
+      test panel's Level jump during the splash). The moment's wordmark (higher up, at 0.3 of the screen)
+      and the splash (0.42) may touch at the top of the splash; they must stay readable and nothing
+      else breaks.
 - [ ] No splash for: a pass under 30 studs (a U-turn after 15 studs and back counts as two short
       passes); a pass that hit junk (the engine stalls for a moment, so the pass ends there); a pass
       with a dull blade or no fuel; any pass finished while a menu or the pay panel is up. Money and XP
@@ -803,6 +841,10 @@ import, one batch at a time, with `lune run scripts/check-models` and a Play che
 
 ## Before release
 
+- [ ] Publish the front-page HUD with **"Shut down all servers"**: the streak gift changed how the day
+      turn pays (it moves the streak and leaves the cash for the Gifts button), and old and new servers
+      together across a UTC midnight can skip one day's gift and pay another twice. Details in
+      HANDOFF.md, "4. Publish to Roblox".
 - [ ] Turn on Allow Mesh / Image APIs (Experience Settings → Security) before publishing; without
       it the lawn uses the plain-part fallback.
 - [ ] Turn on *Experience Settings → Security → Enable Studio Access to API Services* so progress

@@ -30,6 +30,7 @@ local LawnGrid = require(Shared.LawnGrid)
 local Net = require(Shared.Net)
 local Settings = require(Shared.Config.Settings)
 local Signal = require(Shared.Signal)
+local Strip = require(Shared.Strip)
 local Swath = require(Shared.Swath)
 local Tools = require(Shared.Config.Tools)
 
@@ -86,22 +87,11 @@ local CONFIRM_SECONDS = 0.5
 -- Seconds between looks for cells that waited too long: the ledger copy is the server's truth, and decides.
 local RECONCILE_INTERVAL = 0.1
 
--- A clean stripe: a mower pass that went at least this many studs along its heading ...
-local STRIP_LENGTH = 30
--- ... where the heading is the way the first this many seconds went (so a U-turn is two passes, not one
--- long one) ...
-local STRIP_HEADING_SECONDS = 2
--- ... once it has moved at least this far from where it started (a mower that sat still at first waits
--- until it has gone somewhere before the way it goes counts).
-local STRIP_HEADING_MIN_MOVE = 4
--- A mower that has come back this many studs from the furthest it got along its heading has turned back:
--- that pass ends there (and is cheered if it was a stripe), and the way back is a pass of its own.
-local STRIP_TURN_BACK = 8
-
 local GrassController = {}
 
--- Fired with the length (studs) when your mower finishes a clean stripe: a pass of at least STRIP_LENGTH
--- studs one way with nothing bad in it (see trackPass). The HUD cheers it; nothing is paid.
+-- Fired with the length (studs) when your mower finishes a clean stripe: a pass of at least Strip.LENGTH
+-- studs one way with nothing bad in it (see trackPass and Shared/Strip). The HUD cheers it; nothing is
+-- paid.
 GrassController.StripDone = Signal.new()
 
 -- [Grass folder] = everything we know about that lawn
@@ -596,8 +586,7 @@ end
 -- now, on the lawn under it. The deck is where the server puts it (see ToolService's workTick). A
 -- frame with no previous deck (the mower just started mowing, or was swapped) paints the deck's
 -- own rectangle, the way you face, as the server's fresh start does.
-local function paintOwnMower(now: number)
-	local tool, root = cuttingMower()
+local function paintOwnMower(now: number, tool: Tool?, root: BasePart?)
 	local itemId = if tool then tool:GetAttribute("ItemId") else nil
 	local item = if typeof(itemId) == "string" then Tools.get(itemId) else nil
 	if not (tool and root and item) then
@@ -654,102 +643,56 @@ local function reconcile(now: number)
 end
 
 -- The stripe your mower is cutting now, from the moment cuttingMower gives a tool until it gives none (or
--- another tool): the tool, where it started and when, its heading (the way the first STRIP_HEADING_SECONDS
--- went, nil until then), how far it has gone along that heading, and where it was last frame.
-type Pass = {
-	tool: Tool,
-	start: Vector3,
-	startedAt: number,
-	heading: Vector3?,
-	furthest: number,
-	last: Vector3,
-}
-local pass: Pass? = nil
+-- another tool): the tool and the pass's numbers (Shared/Strip: where it started, its heading and how far
+-- it has gone along it).
+local pass: Strip.Pass? = nil
+local passTool: Tool? = nil
 
--- A position on the ground: without its height.
-local function flat(position: Vector3): Vector3
-	return Vector3.new(position.X, 0, position.Z)
-end
-
--- Whether a pass that has just ended was clean. A pass ends when you put the mower away (clean), the
--- deck leaves the lawn or a push mower stops (clean), or the mower stops working: a blade hit (the
--- server stalls the engine and clears "Working"; the BladeHit sound has no id yet and `result.struck`
--- never leaves the server, so the stall is what a client sees), the engine will not go ("Blocked"), the
--- blade has torn ("Ragged"), or you fell. Only a push mower stops working when it is not pushed, and it
--- runs over nothing, so for any other "Working" off on a mower still in your hands means it was hit.
-local function passWasClean(finished: Pass): boolean
-	local tool = finished.tool
+-- What can be read about a mower whose pass has just ended, for Strip.clean. A pass ends when you put
+-- the mower away (clean), the deck leaves the lawn or a push mower stops (clean), or the mower stops
+-- working: a blade hit (the server stalls the engine and clears "Working"; the BladeHit sound has no id
+-- yet and `result.struck` never leaves the server, so the stall is what a client sees), the engine will
+-- not go ("Blocked"), the blade has torn ("Ragged"), or you fell.
+local function factsOf(tool: Tool): Strip.Facts
 	local character = Players.LocalPlayer.Character
 	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
-	if not (character and humanoid and tool.Parent == character) then
-		return true
-	end
-	if humanoid.Health <= 0 or tool:GetAttribute("Blocked") ~= nil or tool:GetAttribute("Ragged") == true then
-		return false
-	end
 	local itemId = tool:GetAttribute("ItemId")
 	local item = if typeof(itemId) == "string" then Tools.get(itemId) else nil
-	if item and item.motorized ~= false and tool:GetAttribute("Working") ~= true then
-		return false
-	end
-	return true
+	return {
+		held = character ~= nil and humanoid ~= nil and tool.Parent == character,
+		dead = humanoid ~= nil and humanoid.Health <= 0,
+		blocked = tool:GetAttribute("Blocked") ~= nil,
+		ragged = tool:GetAttribute("Ragged") == true,
+		motorized = item ~= nil and item.motorized ~= false,
+		working = tool:GetAttribute("Working") == true,
+	}
 end
 
--- Ends the pass, and says so if it was a clean stripe: at least STRIP_LENGTH studs along its heading and
--- nothing bad in it. A pass that ended before it had a heading goes by how far it got from its start.
+-- Ends the pass, and says so if it was a clean stripe (Strip.cheers).
 local function endPass()
-	local finished = pass
-	pass = nil
-	if not finished then
-		return
-	end
-	local length = finished.furthest
-	if not finished.heading then
-		length = (finished.last - finished.start).Magnitude
-	end
-	if length >= STRIP_LENGTH and passWasClean(finished) then
-		GrassController.StripDone:Fire(length)
+	local finished, tool = pass, passTool
+	pass, passTool = nil, nil
+	if finished and tool and Strip.cheers(finished, factsOf(tool)) then
+		GrassController.StripDone:Fire(Strip.length(finished))
 	end
 end
 
--- A new pass of `tool` that starts at `here` (a position on the ground) at `now`.
-local function startPass(tool: Tool, here: Vector3, now: number): Pass
-	return { tool = tool, start = here, startedAt = now, heading = nil, furthest = 0, last = here }
-end
-
--- Follows your mower pass by pass (every frame). Cosmetic: it fires StripDone and nothing else, and the
--- server hears nothing of it.
-local function trackPass(now: number)
-	local tool, root = cuttingMower()
-	if pass and pass.tool ~= tool then
+-- Follows your mower pass by pass (every frame, given the mower paintOwnMower paints). Cosmetic: it
+-- fires StripDone and nothing else, and the server hears nothing of it.
+local function trackPass(now: number, tool: Tool?, root: BasePart?)
+	if pass and passTool ~= tool then
 		endPass()
 	end
 	if not (tool and root) then
 		return
 	end
-	local here = flat(root.Position)
-	local current = pass
-	if not current then
-		pass = startPass(tool, here, now)
-		return
-	end
-	current.last = here
-	local offset = here - current.start
-	local heading = current.heading
-	if not heading then
-		if now - current.startedAt < STRIP_HEADING_SECONDS or offset.Magnitude < STRIP_HEADING_MIN_MOVE then
-			return
-		end
-		heading = offset.Unit
-		current.heading = heading
-	end
-	local along = offset:Dot(heading)
-	if current.furthest - along > STRIP_TURN_BACK then
+	local position = root.Position
+	if pass and Strip.move(pass, position.X, position.Z, now) then
 		endPass()
-		pass = startPass(tool, here, now)
-		return
 	end
-	current.furthest = math.max(current.furthest, along)
+	if not pass then
+		pass, passTool = Strip.start(position.X, position.Z, now), tool
+	end
 end
 
 -- Tints a drawn lawn's uncut grass red for `seconds`, with a soft pulse, then puts it back. Calling
@@ -820,8 +763,9 @@ function GrassController:Start()
 
 	RunService.RenderStepped:Connect(function()
 		local now = os.clock()
-		trackPass(now)
-		paintOwnMower(now)
+		local tool, root = cuttingMower()
+		trackPass(now, tool, root)
+		paintOwnMower(now, tool, root)
 		if now - lastReconcile >= RECONCILE_INTERVAL then
 			lastReconcile = now
 			reconcile(now)

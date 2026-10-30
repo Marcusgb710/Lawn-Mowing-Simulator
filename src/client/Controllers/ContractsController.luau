@@ -268,8 +268,6 @@ end
 local function build()
 	local content: Frame
 	panel, content = UI.panel(PANEL, "Today's contracts")
-	-- The window's X and its Close button feel like the HUD's buttons (Juicy.juice).
-	Juicy.juice(panel:FindFirstChild("Close") :: GuiButton)
 	-- Over the pay breakdown (5) should the two ever be up together, like the Levels panel.
 	panel.ZIndex = 6
 	UI.keepPlaced(panel, "ContractsPanel")

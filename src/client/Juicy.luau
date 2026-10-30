@@ -313,23 +313,81 @@ end
 -- The buttons already given the feel, so a second call does nothing.
 local juiced: { [GuiButton]: boolean } = setmetatable({}, { __mode = "k" }) :: any
 
+-- The name of the full-size inner frame a button's looks are moved into (see juice).
+local FACE_NAME = "JuiceFace"
+
+-- The inner frame `button`'s looks live in, made the first time: every GuiObject in it (the kit
+-- button's Skin, Label and Icon) moves into a transparent full-size frame, which is what grows and
+-- squashes. The button's own Size, Position and place in a list never change, nor does its hit area.
+-- (A button that draws itself with its own BackgroundColor3 and Text, before the art has loaded,
+-- shows no squash: only the kit pieces inside it move.)
+local function faceOf(button: GuiButton): Frame
+	local existing = button:FindFirstChild(FACE_NAME)
+	if existing and existing:IsA("Frame") then
+		return existing
+	end
+	local face = UI.new("Frame", {
+		Name = FACE_NAME,
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		Position = UDim2.fromScale(0.5, 0.5),
+		Size = UDim2.fromScale(1, 1),
+	})
+	for _, child in button:GetChildren() do
+		if child:IsA("GuiObject") then
+			child.Parent = face
+		end
+	end
+	face.Parent = button
+	return face
+end
+
+-- Whether `gui` is on screen now: it and everything above it is visible, under an enabled ScreenGui.
+local function isShown(gui: GuiObject): boolean
+	local current: Instance? = gui
+	while current do
+		if current:IsA("GuiObject") and not current.Visible then
+			return false
+		end
+		if current:IsA("LayerCollector") then
+			return current.Enabled
+		end
+		current = current.Parent
+	end
+	return false
+end
+
+-- The soft click every Juicy button plays, for a handler that plays it itself.
+function Juicy.click()
+	Sounds.playUi("Click", CLICK_VOLUME)
+end
+
 -- Gives any GuiButton the front-page feel: it grows 6 percent while the pointer is over it (not on a
 -- touch screen), squashes to 92 percent while it is held, springs back with a Back/Out rebound when it
 -- lets go, and plays the Click sound when it is activated. The button's own action stays wherever it
--- was connected: this only adds the feel. `target` is the GuiObject that grows and squashes, the button
--- itself unless you say (a transparent button laid over a pill gives the pill). It animates the target's
+-- was connected: this only adds the feel.
+--
+-- What grows is never the button, whose hit area must not change. `target` is the GuiObject that does
+-- (a transparent button laid over a pill gives the pill); with none, the looks inside the button move
+-- into an inner "JuiceFace" frame (faceOf) and that grows. Either way the button's own Size, Position and
+-- place in a list stay as they were, so nothing beside it shifts. It animates the scale object's
 -- UIScale: the one it has (the LayoutScale UI.place gives, and then it rests at that scale), else a
--- "JuicyScale" it makes, so call it after the target is placed. Like every UIScale it grows about the
--- target's AnchorPoint, so a button anchored at its top left grows towards the bottom right; it is
--- 6 percent, so the shift is a few pixels on a control of the HUD's size. A list the target is in does
--- not make room for the growth. A press that starts on the button ends when that same finger or mouse
--- button lifts, wherever it is by then, so a touch dragged off the button still lets it go.
-function Juicy.juice(button: GuiButton, target: GuiObject?)
+-- "JuicyScale" it makes, so call it after the target is placed. Like every UIScale it grows about its
+-- AnchorPoint (a JuiceFace is centred). A press that starts on the button ends when that same finger
+-- or mouse button lifts, wherever it is by then, so a touch dragged off the button still lets it go.
+--
+-- The Click plays when the button is activated, after any handler connected before this call: a
+-- button whose handler destroys it (so it is gone before the click is heard) is given `silent` and
+-- plays Juicy.click() first thing in its own handler. A window that hides under the pointer while the
+-- button is hovered gets no MouseLeave, so after every activation (and release) the button checks it
+-- is still on screen, and if not it lets go of hover and press and rests.
+function Juicy.juice(button: GuiButton, target: GuiObject?, silent: boolean?)
 	if juiced[button] then
 		return
 	end
 	juiced[button] = true
-	local scale = scaleOf(target or button)
+	local scale = scaleOf(target or faceOf(button))
 	-- Where the scale rests: what it was when the pointer arrived, so a layout's scale is honoured.
 	local rest = scale.Scale
 	local hovered = false
@@ -360,6 +418,29 @@ function Juicy.juice(button: GuiButton, target: GuiObject?)
 			rest = if animation then animation.base else scale.Scale
 		end
 	end
+	-- Lets go of hover and press and rests, for a button that is no longer on screen.
+	local function letGo()
+		hovered = false
+		pressed = false
+		if pressEnded then
+			pressEnded:Disconnect()
+			pressEnded = nil
+		end
+		if running then
+			running:Cancel()
+			running = nil
+		end
+		moving = false
+		scale.Scale = rest
+	end
+	-- One frame later, if the button was hidden by what it did (a window closing), it rests.
+	local function settle()
+		task.defer(function()
+			if not isShown(button) then
+				letGo()
+			end
+		end)
+	end
 	local function release()
 		if not pressed then
 			return
@@ -373,6 +454,7 @@ function Juicy.juice(button: GuiButton, target: GuiObject?)
 			if hovered then HOVER_SCALE else 1,
 			TweenInfo.new(RELEASE_TIME, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
 		)
+		settle()
 	end
 	button.MouseEnter:Connect(function()
 		if not hasPointer() then
@@ -410,7 +492,10 @@ function Juicy.juice(button: GuiButton, target: GuiObject?)
 		end)
 	end)
 	button.Activated:Connect(function()
-		Sounds.playUi("Click", CLICK_VOLUME)
+		if not silent then
+			Juicy.click()
+		end
+		settle()
 	end)
 	button.Destroying:Once(function()
 		if running then

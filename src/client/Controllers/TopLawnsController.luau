@@ -134,8 +134,7 @@ end
 function TopLawnsController:Start()
 	local content
 	window, content = UI.panel("TopLawns", "Top Lawns")
-	-- The window's X and the tabs feel like the HUD's buttons (Juicy.juice).
-	Juicy.juice(window:FindFirstChild("Close") :: GuiButton)
+	-- The tabs feel like the HUD's buttons (Juicy.juice); the window's X does through UI.panel.
 
 	local tabs = UI.new("Frame", {
 		Name = "Tabs",

@@ -143,12 +143,17 @@ local function showInvite(from: Player, timeout: number)
 			UI.notify(message)
 		end
 	end
-	Juicy.juice(UI.button("Join", function()
+	-- Each answer destroys the popup, and the button with it, so each plays its own click first (silent).
+	local join = UI.button("Join", function()
+		Juicy.click()
 		respond(true)
-	end, { Position = UDim2.new(0.5, -115, 0, 32), Parent = popup }))
-	Juicy.juice(UI.button("No thanks", function()
+	end, { Position = UDim2.new(0.5, -115, 0, 32), Parent = popup })
+	Juicy.juice(join, nil, true)
+	local decline = UI.button("No thanks", function()
+		Juicy.click()
 		respond(false)
-	end, { Position = UDim2.new(0.5, 5, 0, 32), BackgroundColor3 = UI.Colors.Danger, Parent = popup }))
+	end, { Position = UDim2.new(0.5, 5, 0, 32), BackgroundColor3 = UI.Colors.Danger, Parent = popup })
+	Juicy.juice(decline, nil, true)
 
 	task.delay(timeout, function()
 		if popup.Parent then

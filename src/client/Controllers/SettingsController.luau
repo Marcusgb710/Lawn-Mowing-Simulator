@@ -210,8 +210,6 @@ end
 function SettingsController:Start()
 	local content
 	window, content = UI.panel("Settings", "Settings")
-	-- The window's X feels like the HUD's buttons, as the choices (Juicy buttons) do.
-	Juicy.juice(window:FindFirstChild("Close") :: GuiButton)
 
 	local list = UI.scrollingList(content, {})
 	for index, row in ROWS do

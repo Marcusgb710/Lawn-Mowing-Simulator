@@ -1434,7 +1434,7 @@ function UI.panel(name: string, title: string)
 	})
 
 	local closeArt = Art.icon("Close") ~= ""
-	UI.button(if closeArt then "" else "X", function()
+	local closeButton = UI.button(if closeArt then "" else "X", function()
 		UI.close(name)
 	end, {
 		Name = "Close",
@@ -1446,6 +1446,9 @@ function UI.panel(name: string, title: string)
 		Size = UDim2.fromOffset(36, 36),
 		Parent = window,
 	})
+	-- Every window's X has the front-page feel (hover, press, click). Juicy needs UI, so it is asked for
+	-- here, when a window is built and UI is whole, and not when this file loads.
+	require(script.Parent.Juicy).juice(closeButton)
 
 	local top = panelTop(false)
 	local content = UI.new("Frame", {

@@ -1222,8 +1222,11 @@ that opens a tray of the rest.
 
 **Every button feels the same.** Over a button the pointer grows it a little, a press squashes it, it
 springs back and a soft click plays (nothing grows under a finger on a phone). This is one helper
-(`Juicy.juice`), used by the squares, the pills, the windows' Close buttons, the Top Lawns tabs and the
-rest of the HUD's buttons.
+(`Juicy.juice`). It grows the button's looks, never the button, so its hit area and its neighbours stay
+where they are. The squares, the pills, the Levels pill, the missed button, Call off, the pay panel's
+Nice!, the crew invite's buttons, the Top Lawns tabs, the Contracts and Levels windows' Close buttons and
+the X of every window made with `UI.panel` have it. The hotbar slots have their own pop and click, and
+the buttons inside the shop computer's apps keep the plain kit look.
 
 **The stripe splash.** Mow a straight pass of 30 studs or more without the blade hitting anything
 (and without the mower stalling, running out of fuel or going dull) and, when the pass ends, gold

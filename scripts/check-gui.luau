@@ -1989,22 +1989,31 @@ do
 	)
 
 	-- The clean-stripe splash (ruling 11): GrassController follows each mower pass and fires StripDone
-	-- (a Signal) once, when the pass ends, if it went STRIP_LENGTH studs or more along the way its first
-	-- seconds went and nothing bad happened in it (a stalled blade, Blocked, Ragged, a fall); HudController
+	-- (a Signal) once, when the pass ends, if it went Strip.LENGTH studs or more along the way its first
+	-- seconds went and nothing bad happened in it (a stalled blade, Blocked, Ragged, a fall); the pass
+	-- maths is src/shared/Strip.luau, run by behaviour in check-mowing; HudController
 	-- connects StripDone and shows it, at most once every SPLASH_COOLDOWN seconds, never over a menu, the
 	-- pay panel or a scene, and tells the server nothing (it is cosmetic: no XP).
 	check(
 		string.find(grassSource, "GrassController.StripDone = Signal.new()", 1, true) ~= nil
 			and select(2, string.gsub(grassSource, "StripDone:Fire%(", "")) == 1
 			and string.find(grassSource, "local function trackPass", 1, true) ~= nil
-			and string.find(grassSource, "trackPass(now)", 1, true) ~= nil,
+			and string.find(grassSource, "trackPass(now, tool, root)", 1, true) ~= nil
+			and string.find(grassSource, "Strip.cheers(finished, factsOf(tool))", 1, true) ~= nil,
 		"GrassController doesn't follow mower passes and fire StripDone once, from endPass"
 	)
-	local stripLength = tonumber(string.match(grassSource, "local STRIP_LENGTH = (%d+)"))
-	check(stripLength ~= nil and stripLength >= 30, "GrassController's STRIP_LENGTH is under 30 studs")
-	local passBody = string.match(grassSource, "local function passWasClean.-\nend\n") or ""
+	-- cuttingMower is asked once a frame and handed to the pass tracker and the painter.
+	check(
+		select(2, string.gsub(grassSource, "= cuttingMower%(%)", "")) == 1
+			and string.find(grassSource, "paintOwnMower(now, tool, root)", 1, true) ~= nil,
+		"GrassController asks cuttingMower() more than once a frame"
+	)
+	local stripSource = fs.readFile("src/shared/Strip.luau")
+	local stripLength = tonumber(string.match(stripSource, "Strip%.LENGTH = (%d+)"))
+	check(stripLength ~= nil and stripLength >= 30, "Strip.LENGTH is under 30 studs")
+	local factsBody = string.match(grassSource, "local function factsOf.-\nend\n") or ""
 	for _, bad in { '"Blocked"', '"Ragged"', '"Working"', "Health" } do
-		check(string.find(passBody, bad, 1, true) ~= nil, `GrassController's clean-pass rule doesn't look at {bad}`)
+		check(string.find(factsBody, bad, 1, true) ~= nil, `GrassController's pass facts don't read {bad}`)
 	end
 	check(
 		string.find(hudSource, "GrassController.StripDone:Connect(showSplash)", 1, true) ~= nil,
@@ -2067,25 +2076,61 @@ do
 	-- is not itself). A Juicy button runs the same helper, and plays no Click of its own.
 	local juiceSource = fs.readFile("src/client/Juicy.luau")
 	check(
-		string.find(juiceSource, "function Juicy.juice(button: GuiButton, target: GuiObject?)", 1, true) ~= nil
+		string.find(
+			juiceSource,
+			"function Juicy.juice(button: GuiButton, target: GuiObject?, silent: boolean?)",
+			1,
+			true
+		)
+				~= nil
 			and string.find(juiceSource, "Juicy.juice(button, content)", 1, true) ~= nil
 			and select(2, string.gsub(juiceSource, 'Sounds.playUi%("Click"', "")) == 1,
 		"Juicy.button doesn't get its feel from Juicy.juice (or plays Click more than once)"
 	)
+	-- A button given no target is never scaled itself (its hit area would shrink and a list would shift
+	-- its neighbours): its looks move into a JuiceFace and that is scaled. A button hidden by its own
+	-- click (a window closing) lets go of hover afterwards, and one that destroys itself plays Juicy.click()
+	-- in its handler and is juiced silent.
+	check(
+		string.find(juiceSource, "scaleOf(target or faceOf(button))", 1, true) ~= nil
+			and string.find(juiceSource, "scaleOf(target or button)", 1, true) == nil
+			and string.find(juiceSource, 'FACE_NAME = "JuiceFace"', 1, true) ~= nil,
+		"Juicy.juice scales the button itself instead of an inner JuiceFace"
+	)
+	check(
+		string.find(juiceSource, "task.defer(function()", 1, true) ~= nil
+			and string.find(juiceSource, "if not isShown(button) then", 1, true) ~= nil,
+		"Juicy.juice doesn't let go of hover when the button is hidden by its own click"
+	)
+	for _, silentUser in
+		{
+			{ "src/client/Controllers/HudController.luau", "Juicy.juice(niceButton, nil, true)" },
+			{ "src/client/Controllers/PartyController.luau", "Juicy.juice(join, nil, true)" },
+			{ "src/client/Controllers/PartyController.luau", "Juicy.juice(decline, nil, true)" },
+		}
+	do
+		check(
+			string.find(fs.readFile(silentUser[1]), silentUser[2], 1, true) ~= nil,
+			`{silentUser[1]} doesn't have {silentUser[2]}: a button that destroys itself clicks in its handler`
+		)
+	end
+	check(
+		string.find(uiSource, "require(script.Parent.Juicy).juice(closeButton)", 1, true) ~= nil,
+		"UI.panel doesn't give every window's X the Juicy feel"
+	)
 	local juiceUsers = {
 		{
 			"src/client/Controllers/HudController.luau",
-			{ "Juicy.juice(missedButton)", 'Juicy.juice(UI.button("Nice!"' },
+			{ "Juicy.juice(missedButton)", "Juicy.juice(niceButton, nil, true)" },
 		},
 		{ "src/client/Hud/StatPills.luau", { "Juicy.juice(levelsButton, levelHolder)" } },
 		{
 			"src/client/Controllers/TopLawnsController.luau",
-			{ "Juicy.juice(tab)", 'Juicy.juice(window:FindFirstChild("Close")' },
+			{ "Juicy.juice(tab)" },
 		},
-		{ "src/client/Controllers/SettingsController.luau", { 'Juicy.juice(window:FindFirstChild("Close")' } },
 		{
 			"src/client/Controllers/ContractsController.luau",
-			{ 'Juicy.juice(panel:FindFirstChild("Close")', 'Juicy.juice(UI.button("Close"' },
+			{ 'Juicy.juice(UI.button("Close"' },
 		},
 		{
 			"src/client/Controllers/LevelsController.luau",
@@ -2093,7 +2138,7 @@ do
 		},
 		{
 			"src/client/Controllers/PartyController.luau",
-			{ 'Juicy.juice(UI.button("Join"', 'Juicy.juice(UI.button("No thanks"' },
+			{ "Juicy.juice(join, nil, true)", "Juicy.juice(decline, nil, true)" },
 		},
 	}
 	for _, user in juiceUsers do
