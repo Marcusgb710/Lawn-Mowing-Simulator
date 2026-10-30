@@ -2,27 +2,36 @@
 -- (the Backpack, which UI.luau keeps off for good). Front-page HUD, ruling 10.
 --
 -- It shows exactly when Roblox's used to: on a job site, while nothing hides the game's screen
--- (UI.setHotbar and UI.hideGame decide, and UI.HotbarChanged says). A slot for each of your tools
--- (a Tool with an ItemId, in your Backpack or in your hands), at least five drawn and at most nine,
--- in the order you first got them this session: a tool keeps its place when it goes into your hands
--- and back, or is handed out again (a new loadout, a tool picked up from a service spot), and one
--- taken away (set down to be worked on, sold) leaves, the rest closing up. The held tool's slot is
--- a cream face; the others are dark glass, the empty ones dimmer. Each shows the item's picture, or
--- its category's glyph while that isn't uploaded, or its name; with a keyboard, its key on its top
--- left corner. The tool condition chips above it already say what's wrong with the held tool, so
--- the slots don't repeat it.
+-- (UI.setHotbar and UI.hideGame decide, and UI.HotbarChanged says). Every tool you have gets a slot
+-- (a Tool with an ItemId, in your Backpack or in your hands), and at least five are drawn, in the
+-- order you first got them this session: a tool keeps its place when it goes into your hands and
+-- back, or is handed out again (a new loadout, a tool picked up from a service spot). A tool set
+-- down on a service spot to be worked on (your Servicing attribute) keeps an empty slot at its place,
+-- so the keys after it don't shift; one taken away for good (sold) leaves, the rest closing up. The
+-- held tool's slot is a cream face; the others are dark glass, the empty ones dimmer. Each shows the
+-- item's picture, or its category's glyph while that isn't uploaded, or its name; with a keyboard,
+-- its key on its top left corner. The tool condition chips above it already say what's wrong with the
+-- held tool, so the slots don't repeat it.
 --
--- Keys 1 to 9 and a click or tap on a slot take that tool out (or put it away, if it's the one in
--- your hands), as Roblox's did; a gamepad's L1 and R1 step to the tool before or after. It equips
--- through your own Humanoid (EquipTool, UnequipTools), which Roblox replicates to the server for
--- your own character's tools, exactly as Roblox's Backpack did: the server's Tool.Equipped and
--- Tool.Unequipped handlers (ToolService, TruckService) see the same thing either way. It never
--- fights the game holding something on purpose: it does nothing off a job (where a tool from
--- storage is in your hands by the server's say) or while the screen is taken (a scene, the drive, a
--- dialogue), while a menu, the shop computer or Roblox's own menu is up, while you type, while you
--- place a decoration, for the few seconds you're working on a tool, or while your character is
--- dead. Carrying a supply off the tailgate on a job doesn't stop it, as it never stopped Roblox's:
--- taking a tool out puts the supply back (MaintenanceService).
+-- It fits the screen's width: the row is drawn smaller (a UIScale on the Row frame inside the placed
+-- bar) when it would reach the move stick or the jump button (120 px in from each side on a touch
+-- screen, 24 on a PC), but never so small that a slot's face is under 40 px on a touch screen (48 on
+-- a PC). When even that doesn't fit, it shows as many slots as fit with the last one a gold "+N" (the
+-- tools that didn't fit), which opens a tray of them just above the bar; the held tool is never one
+-- of them. The tray closes on any other press, when a tool comes out or goes away, and when the bar
+-- hides. While it's open it can cover the tool condition chips.
+--
+-- Keys 1 to 9 and 0 take out the first ten tools (or put one away, if it's the one in your hands),
+-- as Roblox's did; a click or tap on any slot does the same for its tool, and a gamepad's L1 and R1
+-- step through every tool. It equips through your own Humanoid (EquipTool, UnequipTools), which
+-- Roblox replicates to the server for your own character's tools, exactly as Roblox's Backpack did:
+-- the server's Tool.Equipped and Tool.Unequipped handlers (ToolService, TruckService) see the same
+-- thing either way. It never fights the game holding something on purpose: it does nothing off a job
+-- (where a tool from storage is in your hands by the server's say) or while the screen is taken (a
+-- scene, the drive, a dialogue), while a menu, the shop computer or Roblox's own menu is up, while you
+-- type, while you place a decoration, for the few seconds you're working on a tool, or while your
+-- character is dead. Carrying a supply off the tailgate on a job doesn't stop it, as it never stopped
+-- Roblox's: taking a tool out puts the supply back (MaintenanceService).
 
 local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
@@ -40,14 +49,21 @@ local player = Players.LocalPlayer
 
 local HotbarController = {}
 
--- How many slots are drawn: as many as there are tools, but at least this many and at most that.
+-- At least this many slots are drawn (empty ones when you have fewer tools). There is no most.
 local MIN_SLOTS = 5
-local MAX_SLOTS = 9
 -- Round a slot's face: its ink outline (each side) and, under the held one, its lip. UiLayout's
--- Hotbar is a face tall plus ROOM, so the face is worked out from it.
+-- Hotbar is a face tall plus ROOM, so the face is worked out from it. Slots are GAP apart.
 local STROKE = 4
 local LIP = 6
 local ROOM = STROKE * 2 + LIP
+local GAP = 8
+-- Fitting the width: how far in from each side of the screen the row may reach, and the smallest a
+-- slot's face may be drawn, on a touch screen (clear of the move stick and the jump button) and
+-- elsewhere.
+local TOUCH_SIDE = 120
+local PC_SIDE = 24
+local TOUCH_FLOOR = 40
+local PC_FLOOR = 48
 -- A face's corners, as a share of its size (14 px on a 60 px face, 12 on 48).
 local RADIUS_SHARE = 0.24
 -- The item's picture fills this much of the face, a category glyph this much.
@@ -63,10 +79,12 @@ local GLASS_EMPTY_OUTLINE = 0.3
 local KEY_SIZE = 20
 local KEY_INSET = 6
 local KEY_TEXT_SIZE = 14
--- A tool shown by its name (no picture or glyph uploaded).
+-- A tool shown by its name (no picture or glyph uploaded), and the "+N" slot's count.
 local NAME_TEXT_SIZE = 11
+local MORE_TEXT_SIZE = 22
 local CLICK_VOLUME = 0.4
 
+-- The keys, by the place in the order they take out: 1 to 9, then 0 for the tenth.
 local KEYS = {
 	[Enum.KeyCode.One] = 1,
 	[Enum.KeyCode.Two] = 2,
@@ -77,7 +95,12 @@ local KEYS = {
 	[Enum.KeyCode.Seven] = 7,
 	[Enum.KeyCode.Eight] = 8,
 	[Enum.KeyCode.Nine] = 9,
+	[Enum.KeyCode.Zero] = 10,
 }
+local KEY_COUNT = 10
+
+-- One place in the order: a tool, or (tool nil) the empty place of one set down to be worked on.
+type Entry = { id: string, tool: Tool? }
 
 type Slot = {
 	button: TextButton,
@@ -89,13 +112,25 @@ type Slot = {
 	glyph: ImageLabel,
 	name: TextLabel,
 	key: GuiObject?,
+	keyLabel: TextLabel?,
+	-- The place in the order it shows, as last drawn (nil for an empty filler slot).
+	place: number?,
 }
 
+-- The placed bar (UiLayout's Hotbar), the Row inside it that is scaled to fit, and the tray.
 local bar: Frame
+local row: Frame
+local rowScale: UIScale
+local tray: Frame
+local more: TextButton
+local moreLabel: TextLabel
 local face = 60
-local slots: { Slot } = {}
--- The tools in the slots as last drawn, by slot.
-local shown: { Tool } = {}
+local rowSlots: { Slot } = {}
+local traySlots: { Slot } = {}
+-- The order as last drawn: every place, by its number (keys and L1/R1 go by these).
+local entries: { Entry } = {}
+local trayOpen = false
+local lastHeld: Tool? = nil
 -- Each tool's place in the order, by its ItemId: the order they were first seen in this session.
 local rankOf: { [string]: number } = {}
 local lastRank = 0
@@ -124,57 +159,75 @@ local function remember(tool: Instance)
 	end
 end
 
--- Your game tools (Backpack, then hands), in the order.
-local function gather(): { Tool }
-	local tools: { Tool } = {}
-	local ids: { [Tool]: string } = {}
+-- Your game tools (Backpack, then hands) and the place of one set down to be worked on, in the order.
+local function gather(): { Entry }
+	local list: { Entry } = {}
 	for _, container in { backpack, character } do
 		if container and container.Parent then
 			for _, child in container:GetChildren() do
 				local id = itemIdOf(child)
 				if id then
 					remember(child)
-					table.insert(tools, child :: Tool)
-					ids[child :: Tool] = id
+					table.insert(list, { id = id, tool = child :: Tool })
 				end
 			end
 		end
 	end
-	local found: { [Tool]: number } = {}
-	for index, tool in tools do
-		found[tool] = index
+	-- A tool on a service spot (MaintenanceService sets Servicing to its id) keeps its place, empty,
+	-- if it had one.
+	local servicing = player:GetAttribute("Servicing")
+	if typeof(servicing) == "string" and rankOf[servicing] then
+		local present = false
+		for _, entry in list do
+			present = present or entry.id == servicing
+		end
+		if not present then
+			table.insert(list, { id = servicing, tool = nil })
+		end
 	end
-	table.sort(tools, function(a: Tool, b: Tool): boolean
-		local rankA, rankB = rankOf[ids[a]], rankOf[ids[b]]
+	local found: { [Entry]: number } = {}
+	for index, entry in list do
+		found[entry] = index
+	end
+	table.sort(list, function(a: Entry, b: Entry): boolean
+		local rankA, rankB = rankOf[a.id], rankOf[b.id]
 		if rankA ~= rankB then
 			return rankA < rankB
 		end
 		return found[a] < found[b]
 	end)
-	return tools
+	return list
 end
 
 -- Slots -------------------------------------------------------------------------------------------
 
--- Takes out the tool in slot `index`, or puts it away (under Equipping, below).
-local press: (index: number) -> ()
+-- Takes out the tool at place `place` in the order, or puts it away (under Equipping, below).
+local press: (place: number) -> ()
+local toggleTray: () -> ()
 
-local function makeSlot(index: number): Slot
+local function cellWidth(): number
+	return face + STROKE * 2
+end
+local function cellHeight(): number
+	return face + ROOM
+end
+-- How wide `count` slots are, side by side, before any scale.
+local function rowWidth(count: number): number
+	return count * cellWidth() + math.max(count - 1, 0) * GAP
+end
+
+local function makeSlot(parent: Instance, name: string): Slot
 	local radius = math.floor(face * RADIUS_SHARE + 0.5)
 	local button = UI.new("TextButton", {
-		Name = `Slot{index}`,
+		Name = name,
 		AutoButtonColor = false,
 		BackgroundTransparency = 1,
 		BorderSizePixel = 0,
+		Selectable = false,
 		Text = "",
-		Size = UDim2.fromOffset(face + STROKE * 2, face + ROOM),
-		LayoutOrder = index,
-		Parent = bar,
+		Size = UDim2.fromOffset(cellWidth(), cellHeight()),
+		Parent = parent,
 	})
-	-- A click or a tap. The slot is pressed by its place, so whatever tool is in it then.
-	button.Activated:Connect(function()
-		press(index)
-	end)
 	-- What pops when it's pressed, so the button keeps one hit area.
 	local content = UI.new("Frame", {
 		Name = "Content",
@@ -234,7 +287,7 @@ local function makeSlot(index: number): Slot
 		ZIndex = 6,
 		Parent = content,
 	})
-	local name = Juicy.text("", {
+	local toolName = Juicy.text("", {
 		Name = "ToolName",
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = middle,
@@ -248,6 +301,7 @@ local function makeSlot(index: number): Slot
 	})
 	-- The key, with a keyboard (like the HUD squares' keys).
 	local key: GuiObject? = nil
+	local keyLabel: TextLabel? = nil
 	if UserInputService.KeyboardEnabled then
 		key = UI.sliced("KeyBadge", {
 			Name = "Key",
@@ -258,7 +312,7 @@ local function makeSlot(index: number): Slot
 			ZIndex = 8,
 			Parent = content,
 		}, { color = Juicy.Palette.Ink, transparency = 0.3, radius = 6 })
-		UI.heading(tostring(index), {
+		keyLabel = UI.heading("", {
 			Size = UDim2.fromScale(1, 1),
 			TextXAlignment = Enum.TextXAlignment.Center,
 			TextSize = KEY_TEXT_SIZE,
@@ -274,23 +328,37 @@ local function makeSlot(index: number): Slot
 		held = held,
 		picture = picture,
 		glyph = glyph,
-		name = name,
+		name = toolName,
 		key = key,
+		keyLabel = keyLabel,
+		place = nil,
 	}
+	-- A click or a tap: the tool at the place it shows now.
+	button.Activated:Connect(function()
+		if slot.place then
+			press(slot.place)
+		end
+	end)
 	return slot
 end
 
--- Draws `tool` (or nothing) in a slot, held or not.
-local function drawSlot(slot: Slot, tool: Tool?, isHeld: boolean)
+-- Draws the place `place` (or an empty filler slot, place nil) in a slot.
+local function drawSlot(slot: Slot, place: number?)
+	local entry = if place then entries[place] else nil
+	local tool = entry and entry.tool
+	local isHeld = tool ~= nil and character ~= nil and tool.Parent == character
+	slot.place = place
 	slot.held.Visible = isHeld
 	slot.glass.Visible = not isHeld
 	slot.glass.BackgroundTransparency = if tool then GLASS_FULL else GLASS_EMPTY
 	slot.glassOutline.Transparency = if tool then 0 else GLASS_EMPTY_OUTLINE
-	if slot.key then
-		slot.key.Visible = tool ~= nil
+	if slot.key and slot.keyLabel then
+		local keyed = tool ~= nil and place ~= nil and place <= KEY_COUNT
+		slot.key.Visible = keyed
+		slot.keyLabel.Text = if keyed then tostring((place :: number) % 10) else ""
 	end
 
-	local id = tool and itemIdOf(tool)
+	local id = tool and entry.id
 	local picture = if id then Art.item(id) else ""
 	local category = tool and tool:GetAttribute("Category")
 	local glyph = if picture == "" and typeof(category) == "string" then Art.icon(`Cat_{category}`) else ""
@@ -303,29 +371,145 @@ local function drawSlot(slot: Slot, tool: Tool?, isHeld: boolean)
 	slot.name.Text = if tool then tool.Name else ""
 end
 
+-- The slot at `index` (1 up) of a pool, made the first time, at its spot in its frame.
+local function slotAt(pool: { Slot }, parent: Instance, index: number, name: string): Slot
+	local slot = pool[index]
+	if not slot then
+		slot = makeSlot(parent, `{name}{index}`)
+		pool[index] = slot
+	end
+	slot.button.Visible = true
+	return slot
+end
+
+local function hideFrom(pool: { Slot }, first: number)
+	for index = first, #pool do
+		pool[index].button.Visible = false
+		pool[index].place = nil
+	end
+end
+
+-- Fitting the width ---------------------------------------------------------------------------------
+
+-- How the row fits `count` slots on this screen: the scale to draw it at, and how many slots show
+-- (all of them, or fewer with the last a "+N" when even the smallest scale is too wide).
+local function fit(count: number): (number, number)
+	local touch = UI.isTouch()
+	local screenWidth = UI.getScreen().AbsoluteSize.X
+	if screenWidth <= 0 then
+		return 1, count
+	end
+	local room = screenWidth - 2 * (if touch then TOUCH_SIDE else PC_SIDE)
+	local smallest = math.min(1, (if touch then TOUCH_FLOOR else PC_FLOOR) / face)
+	local scale = math.min(1, room / rowWidth(count))
+	if scale >= smallest then
+		return scale, count
+	end
+	-- As many as fit at the smallest scale (two at least: one tool and the "+N").
+	local fits = math.floor((room / smallest + GAP) / (cellWidth() + GAP))
+	return smallest, math.clamp(fits, 2, count)
+end
+
+-- Drawing -------------------------------------------------------------------------------------------
+
+local function closeTray()
+	trayOpen = false
+	if tray then
+		tray.Visible = false
+	end
+end
+
 local function render()
 	queued = false
-	bar.Visible = UI.hotbarShown()
-	local tools = gather()
-	local count = math.clamp(#tools, MIN_SLOTS, MAX_SLOTS)
-	shown = {}
-	for index = 1, MAX_SLOTS do
-		local tool = tools[index]
-		if index <= count then
-			local slot = slots[index]
-			if not slot then
-				slot = makeSlot(index)
-				slots[index] = slot
-			end
-			slot.button.Visible = true
-			drawSlot(slot, tool, tool ~= nil and character ~= nil and tool.Parent == character)
-			if tool then
-				shown[index] = tool
-			end
-		elseif slots[index] then
-			slots[index].button.Visible = false
+	local showing = UI.hotbarShown()
+	bar.Visible = showing
+	entries = gather()
+
+	local held: Tool? = nil
+	for _, entry in entries do
+		if entry.tool and character and entry.tool.Parent == character then
+			held = entry.tool
 		end
 	end
+	-- A tool coming out or going away closes the tray, as does the bar hiding.
+	if held ~= lastHeld or not showing then
+		closeTray()
+	end
+	lastHeld = held
+
+	local drawn = math.max(MIN_SLOTS, #entries)
+	local scale, showCount = fit(drawn)
+	local overflow = showCount < drawn
+	-- The places in the row, in order: all of them, or the first ones and then (behind "+N") the rest.
+	local inRow: { number } = {}
+	local hidden: { number } = {}
+	local rowPlaces = if overflow then showCount - 1 else drawn
+	for place = 1, #entries do
+		if place <= rowPlaces then
+			table.insert(inRow, place)
+		else
+			table.insert(hidden, place)
+		end
+	end
+	-- The held tool never hides behind "+N": it takes the row's last place, which goes in the tray.
+	if overflow then
+		for index, place in hidden do
+			if entries[place].tool == held and held ~= nil then
+				local swapped = inRow[#inRow]
+				inRow[#inRow] = place
+				hidden[index] = swapped
+				table.sort(hidden)
+				break
+			end
+		end
+	end
+	-- Only tools go in the tray (an empty place of a tool set down stays out of it).
+	local trayPlaces: { number } = {}
+	for _, place in hidden do
+		if entries[place].tool then
+			table.insert(trayPlaces, place)
+		end
+	end
+
+	-- The row.
+	local count = showCount
+	local width = rowWidth(count)
+	row.Size = UDim2.fromOffset(width, cellHeight())
+	rowScale.Scale = scale
+	bar.Size = UDim2.new(0, math.ceil(width * scale), bar.Size.Y.Scale, bar.Size.Y.Offset)
+	local slotCount = if overflow then count - 1 else count
+	for index = 1, slotCount do
+		local slot = slotAt(rowSlots, row, index, "Slot")
+		slot.button.Position = UDim2.fromOffset((index - 1) * (cellWidth() + GAP), 0)
+		drawSlot(slot, inRow[index])
+	end
+	hideFrom(rowSlots, slotCount + 1)
+
+	-- The "+N" slot and its tray.
+	more.Visible = overflow and #trayPlaces > 0
+	if overflow then
+		more.Position = UDim2.fromOffset((count - 1) * (cellWidth() + GAP), 0)
+		moreLabel.Text = `+{#trayPlaces}`
+	end
+	if #trayPlaces == 0 then
+		closeTray()
+	end
+	local perRow = math.max(count, 1)
+	local trayRows = math.ceil(#trayPlaces / perRow)
+	local trayWidth = rowWidth(math.min(#trayPlaces, perRow))
+	local trayHeight = trayRows * cellHeight() + math.max(trayRows - 1, 0) * GAP
+	tray.Size = UDim2.fromOffset(trayWidth, trayHeight)
+	for index, place in trayPlaces do
+		local slot = slotAt(traySlots, tray, index, "TraySlot")
+		local column = (index - 1) % perRow
+		local line = (index - 1) // perRow
+		-- The first line sits at the tray's bottom, nearest the bar.
+		slot.button.Position =
+			UDim2.fromOffset(column * (cellWidth() + GAP), trayHeight - (line + 1) * cellHeight() - line * GAP)
+		drawSlot(slot, place)
+	end
+	hideFrom(traySlots, #trayPlaces + 1)
+	tray.Visible = trayOpen and showing
 end
 
 -- Several changes come together (a new loadout is a tool at a time, an equip is a remove and an
@@ -337,18 +521,70 @@ local function queueRender()
 	end
 end
 
+-- The "+N" slot: a gold face with the count of the tools that didn't fit.
+local function makeMore()
+	local radius = math.floor(face * RADIUS_SHARE + 0.5)
+	more = UI.new("TextButton", {
+		Name = "More",
+		AutoButtonColor = false,
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		Selectable = false,
+		Text = "",
+		Size = UDim2.fromOffset(cellWidth(), cellHeight()),
+		Visible = false,
+		Parent = row,
+	})
+	local content = UI.new("Frame", {
+		Name = "Content",
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		Position = UDim2.fromScale(0.5, 0.5),
+		Size = UDim2.fromScale(1, 1),
+		Parent = more,
+	})
+	local _holder, goldFace = Juicy.face("Gold", {
+		Name = "Gold",
+		Position = UDim2.fromOffset(STROKE, STROKE),
+		Size = UDim2.fromOffset(face, face),
+		Radius = radius,
+		Stroke = STROKE,
+		Lip = LIP,
+		Parent = content,
+	})
+	moreLabel = Juicy.text("+0", {
+		Name = "Count",
+		Size = UDim2.fromScale(1, 1),
+		TextSize = MORE_TEXT_SIZE,
+		TextXAlignment = Enum.TextXAlignment.Center,
+		ZIndex = 6,
+		Parent = goldFace,
+	})
+	more.Activated:Connect(function()
+		toggleTray()
+		Juicy.pop(content)
+	end)
+end
+
 -- Lays the bar out for the screen: its place, and the face size its height gives. The slots are
 -- made again when that changes (a window turning short or tall).
 local function layOut()
 	UI.place(bar, "Hotbar")
 	local height = (UI.layout("Hotbar").size :: UDim2).Y.Offset
 	local newFace = math.max(height - ROOM, 1)
-	if newFace ~= face then
+	if newFace ~= face or not more then
 		face = newFace
-		for _, slot in slots do
-			slot.button:Destroy()
+		for _, pool in { rowSlots, traySlots } do
+			for _, slot in pool do
+				slot.button:Destroy()
+			end
+			table.clear(pool)
 		end
-		slots = {}
+		if more then
+			more:Destroy()
+		end
+		makeMore()
 	end
 end
 
@@ -385,12 +621,26 @@ local function blocked(): boolean
 	return humanoidOf() == nil
 end
 
--- Takes out the tool in slot `index`, or puts it away if it's the one in your hands.
-press = function(index: number)
+-- The slot showing place `place` (in the row or the tray), to pop.
+local function slotShowing(place: number): Slot?
+	for _, pool in { rowSlots, traySlots } do
+		for _, slot in pool do
+			if slot.place == place and slot.button.Visible then
+				return slot
+			end
+		end
+	end
+	return nil
+end
+
+press = function(place: number)
+	-- Any press closes the tray (pressing a tool in it too: it comes out).
+	closeTray()
 	if blocked() then
 		return
 	end
-	local tool = shown[index]
+	local entry = entries[place]
+	local tool = entry and entry.tool
 	local humanoid = humanoidOf()
 	if not (tool and humanoid and character) then
 		return
@@ -403,30 +653,46 @@ press = function(index: number)
 		return
 	end
 	Sounds.playUi("Click", CLICK_VOLUME)
-	local slot = slots[index]
+	local slot = slotShowing(place)
 	if slot then
 		Juicy.pop(slot.content)
 	end
 	queueRender()
 end
 
--- A gamepad's L1 and R1: the tool before or after the one in your hands (the first or last when
--- your hands are empty).
+toggleTray = function()
+	if trayOpen then
+		closeTray()
+		return
+	end
+	if blocked() then
+		return
+	end
+	trayOpen = true
+	Sounds.playUi("Click", CLICK_VOLUME)
+	queueRender()
+end
+
+-- A gamepad's L1 and R1: the tool before or after the one in your hands, through every tool (the
+-- first or last when your hands are empty).
 local function step(by: number)
-	-- The slots with tools are the first ones, with no gaps.
-	local count = #shown
+	local places: { number } = {}
+	local current = 0
+	for place, entry in entries do
+		if entry.tool then
+			table.insert(places, place)
+			if character and entry.tool.Parent == character then
+				current = #places
+			end
+		end
+	end
+	local count = #places
 	if count == 0 then
 		return
 	end
-	local current = 0
-	for index = 1, count do
-		if character and shown[index].Parent == character then
-			current = index
-		end
-	end
 	local target = if current == 0 then (if by > 0 then 1 else count) else (current - 1 + by) % count + 1
 	if target ~= current then
-		press(target)
+		press(places[target])
 	end
 end
 
@@ -482,7 +748,30 @@ function HotbarController:Start()
 		BackgroundTransparency = 1,
 		BorderSizePixel = 0,
 		Visible = false,
+		-- Over the tool condition chips, which an open tray may cover.
+		ZIndex = 2,
 		Parent = UI.getScreen(),
+	})
+	-- The Row holds the slots and is what's scaled to fit (not the placed bar), from its bottom middle,
+	-- so the bar's bottom edge stays where UiLayout puts it.
+	row = UI.new("Frame", {
+		Name = "Row",
+		AnchorPoint = Vector2.new(0.5, 1),
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		Position = UDim2.fromScale(0.5, 1),
+		Parent = bar,
+	})
+	rowScale = UI.new("UIScale", { Name = "FitScale", Scale = 1, Parent = row })
+	-- The tray, just above the row (and scaled with it), for the tools behind "+N".
+	tray = UI.new("Frame", {
+		Name = "Tray",
+		AnchorPoint = Vector2.new(0.5, 1),
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		Position = UDim2.new(0.5, 0, 0, -GAP),
+		Visible = false,
+		Parent = row,
 	})
 	layOut()
 
@@ -491,6 +780,8 @@ function HotbarController:Start()
 		layOut()
 		queueRender()
 	end)
+	UI.getScreen():GetPropertyChangedSignal("AbsoluteSize"):Connect(queueRender)
+	player:GetAttributeChangedSignal("Servicing"):Connect(queueRender)
 
 	player.CharacterAdded:Connect(useCharacter)
 	player.CharacterRemoving:Connect(function(old: Model)
@@ -516,9 +807,9 @@ function HotbarController:Start()
 			return
 		end
 		if input.UserInputType == Enum.UserInputType.Keyboard then
-			local index = KEYS[input.KeyCode]
-			if index then
-				press(index)
+			local place = KEYS[input.KeyCode]
+			if place then
+				press(place)
 			end
 		elseif input.KeyCode == Enum.KeyCode.ButtonL1 then
 			step(-1)

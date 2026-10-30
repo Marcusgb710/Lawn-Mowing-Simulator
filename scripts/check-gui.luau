@@ -743,10 +743,13 @@ end
 
 -- The hotbar (front-page HUD, ruling 10): the game's own (HotbarController), in place of Roblox's
 -- Backpack, which stays off. It stands along the bottom middle of the game's screen, its bottom
--- edge 8 px up: a row of slots 60 px square on a PC and 48 on a touch or short screen, 8 px apart
--- (its list's gap), each with room round it for its ink outline (4 px a side) and the held slot's lip
--- (6 px under it), so 74 or 62 px tall in all. As many slots as there are tools, at least five, so
--- its width grows with them. What stands along the bottom keeps clear of it on every kind of screen
+-- edge 8 px up: a row of slots 60 px square on a PC and 48 on a touch or short screen, 8 px apart,
+-- each with room round it for its ink outline (4 px a side) and the held slot's lip (6 px under it),
+-- so 74 or 62 px tall in all. That is its tallest: HotbarController only ever draws the row smaller,
+-- to fit the screen's width (the tray of tools that didn't fit, open above it, isn't part of the
+-- band and may cover the tool condition chips while it's open). A slot for every tool, at least five,
+-- so its width is the controller's to set: its entry has no list or autoSize, which would fight the
+-- slots the controller places itself. What stands along the bottom keeps clear of it on every kind of screen
 -- (a PC, a touch screen, a short one, a short touch one): the tool condition chips stand above its
 -- top edge with a gap (a wider one on a touch screen, so a tap on a chip never lands on a slot), the
 -- Levels and contracts windows' bottom edges stand above it on a touch or short screen (bottom edge
@@ -782,14 +785,9 @@ do
 	if bar then
 		check(bar.screen == "LawnUI", `UiLayout's Hotbar is on {bar.screen}, not LawnUI, the game's own screen`)
 		check(bar.parent == nil, "UiLayout's Hotbar is in another element: it stands on the screen")
-		check(bar.autoSize == "X", "UiLayout's Hotbar doesn't grow sideways with its slots (autoSize X)")
-		local list = bar.list
 		check(
-			list ~= nil
-				and list.direction == "Horizontal"
-				and list.padding == HOTBAR_GAP_BETWEEN
-				and list.align == "Center",
-			`UiLayout's Hotbar isn't a row of slots {HOTBAR_GAP_BETWEEN} px apart (a Horizontal, Center list)`
+			bar.autoSize == nil and bar.list == nil,
+			"UiLayout's Hotbar has a list or an autoSize: HotbarController places its slots and sets its width"
 		)
 		for _, kind in SCREEN_KINDS do
 			local anchor = placedOn(bar, kind, "anchor")
@@ -878,6 +876,95 @@ do
 			typeof(gives) == "table" and table.find(gives, "Hotbar") ~= nil,
 			`UiLayout's CarryHint doesn't give way to the Hotbar on a {kind} screen (its hideWhile)`
 		)
+	end
+end
+
+-- What HotbarController does with that place (front-page HUD, Task 8 fix 1). Every tool gets a slot:
+-- at least five are drawn and nothing caps them. Keys 1 to 9 and 0 take out the first ten. Its slots
+-- are the band's sizes (the gap, and the outline and lip round a face). The row is fitted to the
+-- screen's width, never drawn bigger than its entry, never with a face under 40 px on a touch screen
+-- or 48 on a PC, kept 120 px in from a touch screen's sides (the move stick and the jump button) and
+-- 24 from a PC's; past that floor the last slot is a gold "+N" that opens a tray of the rest. A tool
+-- set down to be worked on (Servicing) keeps its place, and the slots aren't gamepad-selectable (L1
+-- and R1 are the gamepad's way through them). Then the fit worked out with its numbers on the
+-- narrowest phones it has to serve, with as many tools as a starter truck and a bucket can carry.
+do
+	local path = "src/client/Controllers/HotbarController.luau"
+	local source = fs.readFile(path)
+	local function constant(name: string): number?
+		return tonumber(string.match(source, `\nlocal {name} = (%d+)\n`))
+	end
+	local function has(text: string): boolean
+		return string.find(source, text, 1, true) ~= nil
+	end
+	check(constant("MIN_SLOTS") == 5, `{path}: MIN_SLOTS isn't 5 (at least five slots are drawn)`)
+	check(not has("MAX_SLOTS"), `{path} caps its slots (MAX_SLOTS): every tool gets one`)
+	local stroke, lip, gap = constant("STROKE"), constant("LIP"), constant("GAP")
+	check(gap == HOTBAR_GAP_BETWEEN, `{path}: GAP isn't {HOTBAR_GAP_BETWEEN} px`)
+	check(
+		stroke ~= nil and lip ~= nil and stroke * 2 + lip == HOTBAR_ROOM,
+		`{path}: STROKE twice and LIP aren't the {HOTBAR_ROOM} px round a face that UiLayout's Hotbar allows`
+	)
+	local keyNames = { "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine" }
+	for index, name in keyNames do
+		check(has(`[Enum.KeyCode.{name}] = {index},`), `{path} doesn't bind the {index} key to the slot {index}`)
+	end
+	check(has("[Enum.KeyCode.Zero] = 10,"), `{path} doesn't bind the 0 key to the tenth slot`)
+	local floors = { TOUCH_FLOOR = 40, PC_FLOOR = 48, TOUCH_SIDE = 120, PC_SIDE = 24 }
+	for name, value in floors do
+		check(constant(name) == value, `{path}: {name} isn't {value}`)
+	end
+	check(
+		has("math.min(1, room / rowWidth(count))"),
+		`{path} doesn't fit the row to the room it has, at most its own size`
+	)
+	check(
+		has("math.min(1, (if touch then TOUCH_FLOOR else PC_FLOOR) / face)"),
+		`{path} doesn't floor the fit at TOUCH_FLOOR or PC_FLOOR px a face`
+	)
+	check(
+		has('Juicy.face("Gold"') and has("`+{#trayPlaces}`"),
+		`{path} has no gold "+N" slot for the tools that don't fit`
+	)
+	check(has('Name = "Tray"'), `{path} has no tray for the tools behind "+N"`)
+	check(has('GetAttribute("Servicing")'), `{path} doesn't keep the place of a tool set down to be worked on`)
+	local _, selectable = string.gsub(source, "Selectable = false", "")
+	check(selectable >= 2, `{path}: its slot and "+N" buttons aren't Selectable = false`)
+
+	-- The fit, as HotbarController works it out (its fit function), on a few screens.
+	local touchSide, pcSide = constant("TOUCH_SIDE") or 0, constant("PC_SIDE") or 0
+	local touchFloor, pcFloor = constant("TOUCH_FLOOR") or 0, constant("PC_FLOOR") or 0
+	local function fitOn(width: number, touch: boolean, faceSize: number, count: number): (number, number)
+		local cell = faceSize + (stroke or 0) * 2
+		local function across(n: number): number
+			return n * cell + math.max(n - 1, 0) * (gap or 0)
+		end
+		local room = width - 2 * (if touch then touchSide else pcSide)
+		local smallest = math.min(1, (if touch then touchFloor else pcFloor) / faceSize)
+		local scale = math.min(1, room / across(count))
+		if scale >= smallest then
+			return scale, count
+		end
+		local fits = math.floor((room / smallest + (gap or 0)) / (cell + (gap or 0)))
+		return smallest, math.clamp(fits, 2, count)
+	end
+	-- { screen width, touch, face, tools }: an iPhone SE and a Galaxy S9 held sideways with 14 tools,
+	-- the 844 px phone with 10, and a 1280 px PC with 14.
+	for _, case in { { 667, true, 48, 14 }, { 740, true, 48, 14 }, { 844, true, 48, 10 }, { 1280, false, 60, 14 } } do
+		local width, touch, faceSize, count = case[1], case[2], case[3], case[4]
+		local scale, shown = fitOn(width, touch, faceSize, count)
+		local side = if touch then touchSide else pcSide
+		local drawn = (shown * (faceSize + (stroke or 0) * 2) + (shown - 1) * (gap or 0)) * scale
+		check(scale <= 1, `the hotbar is drawn bigger than its entry on a {width} px screen`)
+		check(
+			faceSize * scale >= (if touch then touchFloor else pcFloor) - 1e-6,
+			`the hotbar's faces are under the floor on a {width} px screen with {count} tools`
+		)
+		check(
+			drawn <= width - 2 * side + 1e-6,
+			`the hotbar is {drawn} px wide on a {width} px screen: it reaches within {side} px of a side`
+		)
+		check(shown >= 2, `the hotbar shows {shown} slots on a {width} px screen: no room for a tool and "+N"`)
 	end
 end
 

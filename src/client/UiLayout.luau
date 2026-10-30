@@ -636,21 +636,24 @@ return {
 		anchor = { 0.5, 1 },
 		position = { 0.5, 0, 1, -8 },
 		size = { 0, 0, 0, 74 },
-		autoSize = "X",
-		list = { direction = "Horizontal", padding = 8, align = "Center" },
 		typical = { 312, 62 },
 		touch = { size = { 0, 0, 0, 62 } },
 		compact = { size = { 0, 0, 0, 62 } },
-		note = "The game's own hotbar, in place of Roblox's (the Backpack, which stays off): a slot for each "
-			.. "tool you have on a job, at least five and at most nine, in the order you got them, shown only "
-			.. "while Roblox's would have been (on a job site, while nothing hides the game's screen). Its "
-			.. "height is a slot's face (60 px on a PC, 48 on a touch or short screen) and 14 px round it for "
-			.. "the ink outline (4 px a side) and the held slot's lip (6 px under it); HotbarController works "
-			.. "the face out from that. Each slot is the face and its outline, 8 px apart, so it is as wide "
-			.. "as its slots. The held tool's slot is a cream face, the others dark glass, the empty ones "
-			.. "dimmer. With a keyboard each slot with a tool has its key (1 to 9) on its top left corner, "
-			.. "inside the outline. The tool condition and the Levels and contracts windows stand above it, "
-			.. "and the carry hint gives way to it.",
+		note = "The game's own hotbar, in place of Roblox's (the Backpack, which stays off): a slot for every "
+			.. "tool you have on a job (at least five drawn), in the order you got them, shown only while "
+			.. "Roblox's would have been (on a job site, while nothing hides the game's screen). Its height is "
+			.. "a slot's face (60 px on a PC, 48 on a touch or short screen) and 14 px round it for the ink "
+			.. "outline (4 px a side) and the held slot's lip (6 px under it); HotbarController works the face "
+			.. "out from that, and sets the width: the slots, each the face and its outline, 8 px apart. That "
+			.. "is the most it is drawn at. When the row would come nearer the screen's sides than 120 px on a "
+			.. "touch screen (the move stick and the jump button) or 24 on a PC, its Row is drawn smaller, but "
+			.. "never so a face is under 40 px on a touch screen (48 on a PC); past that the last slot is a "
+			.. "gold '+N' that opens a tray of the tools that didn't fit just above the bar. The tray isn't "
+			.. "part of the band below: while it is open it may cover the tool condition chips. The held "
+			.. "tool's slot is a cream face, the others dark glass, the empty ones (and a tool set down to "
+			.. "be worked on) dimmer. With a keyboard the first ten tools' slots have their key (1 to 9, "
+			.. "then 0) on the top left corner, inside the outline. The tool condition and the Levels and "
+			.. "contracts windows stand above it, and the carry hint gives way to it.",
 	},
 
 	-- Prompts ------------------------------------------------------------------------------------
