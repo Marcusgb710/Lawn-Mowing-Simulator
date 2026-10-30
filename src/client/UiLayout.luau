@@ -288,10 +288,10 @@ return {
 		position = { 0, 12, 0, 12 },
 		size = { 0, 250, 0, 0 },
 		autoSize = "Y",
-		list = { direction = "Vertical", padding = 18, align = "Left" },
+		list = { direction = "Vertical", padding = 14, align = "Left" },
 		typical = { 250, 480 },
-		note = "The money pill, the level and streak pills, the judging day countdown, the menu buttons, "
-			.. "Grandma's goal and the contracts chip stacked down the "
+		note = "The money pill, the level and streak pills, the judging day countdown, the menu squares "
+			.. "(Contracts among them) and Grandma's goal stacked down the "
 			.. "left, so they can't run into each other on a short screen, far enough apart that the panels "
 			.. "are clear of the menu buttons on a phone. Its UIScale shrinks it to fit "
 			.. "(__screen.scaling.Columns). Each of them can be taken out of it (their detach) and put "
@@ -343,44 +343,62 @@ return {
 		size = { 0, 150, 0, 0 },
 		autoSize = "Y",
 		list = { direction = "Vertical", padding = 12, align = "Left" },
-		typical = { 150, 156 },
-		note = "The Truck, Guide and Crew buttons, far enough apart to tap one at a time on a phone. With a "
-			.. "keyboard each one has its key (T, G, C) and the mouse hint goes under them, which makes it "
-			.. "184 px tall.",
+		typical = { 150, 476 },
+		touch = { size = { 0, 168, 0, 0 }, scale = 0.85, typical = { 168, 228 } },
+		compact = { size = { 0, 168, 0, 0 }, scale = 0.85, typical = { 168, 228 } },
+		note = "The Truck, Guide, Crew and Contracts squares: a column of four on a PC (12 px apart, 476 px tall). "
+			.. "On a touch screen or a short one they are a 2x2 grid instead (two squares and a 16 px gap across, "
+			.. "8 px between the rows, 228 px tall, drawn at 0.85 so the left column still fits at its 0.7 floor "
+			.. "with the countdown showing; HudController swaps the list for a grid), which is what keeps the "
+			.. "squares 44 px or more on a phone held sideways. With a keyboard each has its key (T, G, C) on its corner and, in the "
+			.. "column, the mouse hint goes under them.",
 	},
 	TruckButton = {
 		label = "Truck button",
 		group = "HUD",
 		parent = "MenuButtons",
 		order = 1,
-		size = { 0, 150, 0, 44 },
-		note = "Opens the Truck menu (T).",
+		size = { 0, 76, 0, 110 },
+		note = "A blue square with the Truck glyph and its name under it. Opens the Truck menu (T). 76 px of face "
+			.. "and 34 for the label (its 6 px lip hangs into that room).",
 	},
 	GuideButton = {
 		label = "Guide button",
 		group = "HUD",
 		parent = "MenuButtons",
 		order = 2,
-		size = { 0, 150, 0, 44 },
-		note = "Opens the Tool Guide (G).",
+		size = { 0, 76, 0, 110 },
+		note = "An orange square with the Guide glyph and its name under it. Opens the Tool Guide (G).",
 	},
 	CrewButton = {
 		label = "Crew button",
 		group = "HUD",
 		parent = "MenuButtons",
 		order = 3,
-		size = { 0, 150, 0, 44 },
-		note = "Opens the Crew menu (C).",
+		size = { 0, 76, 0, 110 },
+		note = "A purple square with the Crew glyph and its name under it. Opens the Crew menu (C).",
+	},
+	ContractsButton = {
+		label = "Contracts button",
+		group = "HUD",
+		parent = "MenuButtons",
+		order = 4,
+		size = { 0, 76, 0, 110 },
+		note = "A coral square with the clipboard glyph and 'Contracts' under it, where the Contracts chip was. It "
+			.. "opens the contracts panel, or closes it if it is open. A tilted yellow badge on its top right corner "
+			.. "counts the contracts left today (3 minus the ones done) and is hidden at 0 and before the day's "
+			.. "contracts have arrived. It shows on every screen and stays up during a job (nothing takes its "
+			.. "spot). When a contract is done its cash lifts off it and a chime rings.",
 	},
 	MouseHint = {
 		label = "Hold Alt hint",
 		group = "HUD",
 		parent = "MenuButtons",
-		order = 4,
+		order = 5,
 		size = { 0, 150, 0, 16 },
 		device = "keyboard",
-		note = "'Hold Alt for the mouse', with a keyboard only: in first person the mouse is locked to the "
-			.. "middle of the screen.",
+		note = "'Hold Alt for the mouse', with a keyboard only, under the squares: in first person the mouse is "
+			.. "locked to the middle of the screen. It is left out when the squares are a grid.",
 	},
 	GrandmaGoal = {
 		label = "Grandma's goal",
@@ -405,19 +423,6 @@ return {
 			.. "column, at the top in the middle between the HUD's columns, away from your thumb on the move "
 			.. "stick, and the toasts start under it. The first-job coach and a crew invite go there too, and "
 			.. "it waits while either shows.",
-	},
-	ContractsChip = {
-		label = "Contracts chip",
-		group = "Trackers",
-		parent = "LeftColumn",
-		detach = "LeftColumn",
-		order = 6,
-		size = { 0, 220, 0, 28 },
-		note = "Today's contracts on one line ('Contracts 1/3': how many of the day's three are done), under "
-			.. "Grandma's goal, from the moment the server has sent the day's contracts. It shows on every "
-			.. "screen, tall or short, and stays up during a job (nothing takes its spot); tapping it opens "
-			.. "the contracts panel. Its words shrink to fit the line (to 10 px at the least). When a "
-			.. "contract is done its cash lifts off it and a chime rings.",
 	},
 	RightColumn = {
 		label = "Right HUD column",

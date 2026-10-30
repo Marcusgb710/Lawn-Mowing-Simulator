@@ -3,10 +3,12 @@
 --     counts up when money comes in), under it the level pill (a star, "LVL 3" and the XP bar, one
 --     button that opens the Levels panel, LevelsController, with the star gold once you have the gold
 --     business sign) beside the streak pill ("DAY 3", once there is a streak), the judging day
---     countdown pill (once judging day is on the calendar), the menu buttons with their glyphs
---     (and on a keyboard their keys: T, G, C), Grandma's sticky note with your story goal and,
---     under it, the goals rail: your next two milestones, then the contracts chip ("Contracts 1/3":
---     how many of today's three are done, which opens the contracts panel, ContractsController);
+--     countdown pill (once judging day is on the calendar), the four menu squares (Truck, Guide,
+--     Crew and Contracts: glossy colour squares with their glyphs and names under them, and on a
+--     keyboard their keys, T, G, C, on a corner; a column on a PC and a 2x2 grid on a phone; the
+--     Contracts one opens the contracts panel, ContractsController, and a yellow badge on it counts
+--     the contracts left today), Grandma's sticky note with your story goal and, under it, the goals
+--     rail: your next two milestones;
 --   * down the right: your business's curb appeal, on a phone the Next chip (the next milestone,
 --     where the rail has no room), the job tracker on the art's GoalTracker card (to-dos, a timer
 --     against par, damage), smaller on a phone, and under it, late in the mowing, the button that
@@ -17,8 +19,8 @@
 --     what the level paid, LevelReward), New Tool!, and a Payday for the Bonus Day (BonusDay) and
 --     for each day the streak grows (StreakAdvanced);
 --   * cash and XP coming in lift off the piece of the HUD they came from (FloatingText) and ring
---     (Sounds.playUi): the pay panel's total and tip, a goal's row or the Next chip, the contracts
---     chip (ContractDone), the money counter (the streak's day), the level pill and the XP bar.
+--     (Sounds.playUi): the pay panel's total and tip, a goal's row or the Next chip, the Contracts
+--     square (ContractDone), the money counter (the streak's day), the level pill and the XP bar.
 -- On a keyboard V switches camera motion on and off. Where each piece goes is in UiLayout.luau,
 -- which can also take any of the columns' pieces out of its column to go anywhere on the screen.
 
@@ -58,10 +60,24 @@ local player = Players.LocalPlayer
 -- place in UiLayout.luau. Jobs and orders are on the computer in your shop (see
 -- ComputerController).
 local MENUS = {
-	{ name = "Truck", key = Enum.KeyCode.T, layout = "TruckButton" },
-	{ name = "Guide", key = Enum.KeyCode.G, layout = "GuideButton" },
-	{ name = "Crew", key = Enum.KeyCode.C, layout = "CrewButton" },
+	{ name = "Truck", key = Enum.KeyCode.T, layout = "TruckButton", color = "Truck" },
+	{ name = "Guide", key = Enum.KeyCode.G, layout = "GuideButton", color = "Guide" },
+	{ name = "Crew", key = Enum.KeyCode.C, layout = "CrewButton", color = "Crew" },
 }
+-- The fourth square opens the contracts panel (no key; the mailbox at the curb opens it too).
+local CONTRACTS_SQUARE = { name = "Contracts", layout = "ContractsButton", color = "Contracts", icon = "Jobs" }
+-- The squares are 76 px faces (UiLayout's TruckButton and the rest are that and the label under it).
+-- On a touch or short screen they sit in a 2x2 grid with this much between them across and down; the
+-- grid's scale is MenuButtons' own (UiLayout), and check-gui works out from these that a square is
+-- 44 px or more on a phone.
+local SQUARE_FACE = 76
+local SQUARE_GAP_X = 16
+local SQUARE_GAP_Y = 8
+-- A key badge on a square's top left corner: its size and how far in its middle is.
+local SQUARE_KEY_SIZE = 22
+local SQUARE_KEY_INSET = 8
+-- The Contracts square's count badge hangs this far off its top right corner.
+local COUNT_BADGE_OVERHANG = 8
 local MOTION_KEY = Enum.KeyCode.V
 -- The key for the "Show what I missed" button (see buildMissedButton).
 local MISSED_KEY = Enum.KeyCode.M
@@ -185,9 +201,13 @@ local nextChip: GuiObject
 local nextChipLabel: TextLabel
 local chipStamp: UI.Stamp?
 local chipHeld: Milestone?
--- The contracts chip under Grandma's goal and its words.
-local contractsChip: GuiObject
-local contractsChipLabel: TextLabel
+-- The menu squares' holder, the mouse hint in it (with a keyboard), the Contracts square's face (cash
+-- lifts off it) and the count badge on it, with its number, while there are contracts left today.
+local menuHolder: Frame
+local mouseHint: TextLabel?
+local contractsFace: Frame
+local contractsBadge: Frame?
+local contractsBadgeText: TextLabel?
 -- Milestones MilestoneReached has said are reached that the profile doesn't have yet. The server
 -- sends the profile first, so this is normally empty; it keeps a late profile from drawing a
 -- reached milestone as still to do.
@@ -772,33 +792,106 @@ local function addKeyBadge(button: TextButton, key: Enum.KeyCode)
 	end
 end
 
+-- A key badge on a square's top left corner (the key's name in a small dark square), with a keyboard.
+local function addCornerKey(face: Frame, key: Enum.KeyCode)
+	if not UserInputService.KeyboardEnabled then
+		return
+	end
+	local badge = UI.sliced("KeyBadge", {
+		Name = "Key",
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromOffset(SQUARE_KEY_INSET, SQUARE_KEY_INSET),
+		Size = UDim2.fromOffset(SQUARE_KEY_SIZE, SQUARE_KEY_SIZE),
+		ZIndex = 8,
+		Parent = face,
+	}, { color = UI.Colors.Ink, transparency = 0.3, radius = 6 })
+	UI.heading(UserInputService:GetStringForKeyCode(key), {
+		Size = UDim2.fromScale(1, 1),
+		TextXAlignment = Enum.TextXAlignment.Center,
+		TextSize = 14,
+		ZIndex = 9,
+		Parent = badge,
+	})
+end
+
+-- One menu square: a glossy face in its colour with its glyph and its name under it, placed by its
+-- UiLayout entry in the holder. Returns the button and its face.
+local function buildSquare(spec, onClick: () -> ()): (TextButton, Frame)
+	local button, face = Juicy.button(spec.color, onClick, {
+		Name = spec.name .. "Button",
+		Icon = spec.icon or spec.name,
+		Label = spec.name,
+		Size = UDim2.fromOffset(SQUARE_FACE, SQUARE_FACE),
+		Parent = menuHolder,
+	})
+	UI.keepPlaced(button, spec.layout)
+	return button, face
+end
+
+-- The squares are a column on a PC and a 2x2 grid on a touch screen or a short one (the mouse hint
+-- goes with the column). UI.place gives the holder its list and its touch and compact size and scale,
+-- so this takes the list away for a grid, and gives it back when the screen is tall again.
+local function layoutMenu()
+	local grid = menuHolder:FindFirstChildOfClass("UIGridLayout")
+	local list = menuHolder:FindFirstChildOfClass("UIListLayout")
+	local asGrid = UI.isTouch() or UI.isCompact()
+	if asGrid then
+		if list then
+			list:Destroy()
+		end
+		if not grid then
+			UI.new("UIGridLayout", {
+				CellSize = UI.layout("TruckButton").size,
+				CellPadding = UDim2.fromOffset(SQUARE_GAP_X, SQUARE_GAP_Y),
+				FillDirection = Enum.FillDirection.Horizontal,
+				FillDirectionMaxCells = 2,
+				HorizontalAlignment = Enum.HorizontalAlignment.Left,
+				SortOrder = Enum.SortOrder.LayoutOrder,
+				StartCorner = Enum.StartCorner.TopLeft,
+				VerticalAlignment = Enum.VerticalAlignment.Top,
+				Parent = menuHolder,
+			})
+		end
+	else
+		if grid then
+			grid:Destroy()
+		end
+		if not list then
+			UI.place(menuHolder, "MenuButtons")
+		end
+	end
+	if mouseHint then
+		mouseHint.Visible = not asGrid
+	end
+end
+
 local function buildMenuButtons()
-	local frame = UI.new("Frame", { Name = "Menu", BackgroundTransparency = 1 })
-	placeInColumn(frame, "MenuButtons")
+	menuHolder = UI.new("Frame", { Name = "Menu", BackgroundTransparency = 1 })
+	placeInColumn(menuHolder, "MenuButtons")
 
 	for _, menu in MENUS do
-		local button = UI.button(menu.name, function()
+		local _button, face = buildSquare(menu, function()
 			UI.toggle(menu.name)
-		end, {
-			Style = "Menu",
-			Icon = menu.name,
-			TextXAlignment = Enum.TextXAlignment.Left,
-			Parent = frame,
-		})
-		UI.keepPlaced(button, menu.layout)
-		addKeyBadge(button, menu.key)
+		end)
+		addCornerKey(face, menu.key)
 	end
+	local _contracts, face = buildSquare(CONTRACTS_SQUARE, function()
+		UI.toggle("Contracts")
+	end)
+	contractsFace = face
 	if UserInputService.KeyboardEnabled then
 		-- The mouse is locked to the middle of the screen in first person.
-		local hint = UI.label("Hold Alt for the mouse", {
+		mouseHint = UI.label("Hold Alt for the mouse", {
 			TextSize = 13,
 			FontFace = UI.Fonts.Medium,
 			TextColor3 = UI.Colors.SubText,
 			TextStrokeTransparency = 0.6,
-			Parent = frame,
+			Parent = menuHolder,
 		})
-		UI.keepPlaced(hint, "MouseHint")
+		UI.keepPlaced(mouseHint, "MouseHint")
 	end
+	layoutMenu()
+	UI.CompactChanged:Connect(layoutMenu)
 end
 
 -- Grandma's sticky note: your story goal, and how close you are.
@@ -903,71 +996,42 @@ local function buildNextChip()
 	UI.new("UITextSizeConstraint", { MaxTextSize = 14, MinTextSize = 10, Parent = nextChipLabel })
 end
 
--- The contracts chip: how many of today's contracts are done ("Contracts 1/3") in the left column,
--- under Grandma's goal. Unlike the Next chip it shows on every screen, tall or short, and nothing
--- hides it, a job included. It's a button too: tapping it opens the contracts panel
--- (ContractsController), or closes it if it's open.
-local function buildContractsChip()
-	contractsChip = UI.sliced("Tooltip", {
-		Name = "ContractsChip",
-		Visible = false,
-	}, { color = UI.Colors.Background, transparency = 0.25, radius = 8 })
-	placeInColumn(contractsChip, "ContractsChip")
-	UI.new("UIPadding", {
-		PaddingLeft = UDim.new(0, 10),
-		PaddingRight = UDim.new(0, 10),
-		Parent = contractsChip,
-	})
-	contractsChipLabel = UI.label("", {
-		Size = UDim2.fromScale(1, 1),
-		TextScaled = true,
-		TextSize = 14,
-		TextXAlignment = Enum.TextXAlignment.Center,
-		Parent = contractsChip,
-	})
-	UI.new("UITextSizeConstraint", { MaxTextSize = 14, MinTextSize = 10, Parent = contractsChipLabel })
-	-- The whole chip is the button (past the padding, which only keeps the words in), and it washes
-	-- faintly under the mouse like the level line's.
-	local button = UI.new("TextButton", {
-		Name = "ContractsButton",
-		Text = "",
-		AutoButtonColor = false,
-		BackgroundColor3 = UI.Colors.Text,
-		BackgroundTransparency = 1,
-		Position = UDim2.fromOffset(-10, 0),
-		Size = UDim2.new(1, 20, 1, 0),
-		ZIndex = 2,
-		Parent = contractsChip,
-	}, { UI.corner(8) })
-	button.Activated:Connect(function()
-		UI.toggle("Contracts")
-	end)
-	if UserInputService.MouseEnabled then
-		button.MouseEnter:Connect(function()
-			button.BackgroundTransparency = 0.9
-		end)
-		button.MouseLeave:Connect(function()
-			button.BackgroundTransparency = 1
-		end)
-	end
-end
-
--- The chip's words from the day's view (ClientState.contracts): the contracts done out of the day's
--- three. It's hidden until the server has sent the day's contracts.
-local function updateContractsChip()
+-- The Contracts square's count badge: how many of today's contracts are left (the day's three less
+-- the ones done), a tilted yellow tag on the square's top right corner. It is not there at 0 and
+-- before the server has sent the day's contracts. It is built when the count comes from 0 and
+-- destroyed when it goes to 0; any other change only sets its number.
+local function updateContractsBadge()
 	local view = ClientState.contracts
-	local total = if view then #view.contracts else 0
-	contractsChip.Visible = total > 0
-	if not view or total == 0 then
-		return
-	end
-	local done = 0
-	for _, contract in view.contracts do
-		if contract.done then
-			done += 1
+	local left = 0
+	if view then
+		left = #view.contracts
+		for _, contract in view.contracts do
+			if contract.done then
+				left -= 1
+			end
 		end
 	end
-	contractsChipLabel.Text = `Contracts {done}/{total}`
+	if left <= 0 then
+		if contractsBadge then
+			contractsBadge:Destroy()
+			contractsBadge = nil
+			contractsBadgeText = nil
+		end
+		return
+	end
+	local text = tostring(left)
+	if contractsBadgeText then
+		contractsBadgeText.Text = text
+		return
+	end
+	local badge, badgeFace = Juicy.badge(text, {
+		AnchorPoint = Vector2.new(1, 0),
+		Position = UDim2.new(1, COUNT_BADGE_OVERHANG, 0, -COUNT_BADGE_OVERHANG),
+		ZIndex = 8,
+		Parent = contractsFace,
+	})
+	contractsBadge = badge
+	contractsBadgeText = badgeFace:FindFirstChild("Text") :: TextLabel
 end
 
 -- The `count` milestones nearest to done, never one MilestoneReached has said is reached, which a
@@ -1775,7 +1839,7 @@ end
 -- Moments the login brings (the streak's day, and a contract or the Bonus Day that its cash meets)
 -- come as soon as the save loads, while the title card is still up over the screen they play on, so
 -- nobody would see or hear them. They wait here for the card to go (UI.titleCardDone), then play in
--- the order they came, each in its turn. The counts, the chip and the panels don't wait: only the
+-- the order they came, each in its turn. The counts, the badge and the panels don't wait: only the
 -- moments and their sounds.
 local held: { { play: (info: any) -> (), info: any } } = {}
 
@@ -1797,13 +1861,13 @@ local function playHeld()
 	end
 end
 
--- The goal chime and the cash for a paid contract: the cash lifts off the contracts chip, or off the
--- money counter where the chip isn't showing.
+-- The goal chime and the cash for a paid contract: the cash lifts off the Contracts square, or off the
+-- money counter where the square isn't showing.
 local function showContractDone(info: { id: string, text: string, reward: number })
 	Sounds.playUi("GoalDone")
 	if info.reward > 0 then
 		local cash = `+{Format.money(info.reward)}`
-		if not FloatingText.show(contractsChip, cash) then
+		if not FloatingText.show(contractsFace, cash) then
 			FloatingText.show(money.Frame, cash)
 		end
 	end
@@ -1974,7 +2038,6 @@ function HudController:Start()
 	buildGoal()
 	buildCurbAppeal()
 	buildNextChip()
-	buildContractsChip()
 	buildTracker()
 	buildMissedButton()
 	buildCondition()
@@ -1990,7 +2053,7 @@ function HudController:Start()
 				updateCountdown()
 			end
 		elseif key == "contracts" then
-			updateContractsChip()
+			updateContractsBadge()
 			updateStreak()
 		end
 	end)
@@ -2013,7 +2076,7 @@ function HudController:Start()
 	Net.event("StreakAdvanced").OnClientEvent:Connect(onStreakAdvanced)
 	UI.TitleCardDone:Connect(playHeld)
 	updateGoal()
-	updateContractsChip()
+	updateContractsBadge()
 	updateStreak()
 	updateCountdown()
 

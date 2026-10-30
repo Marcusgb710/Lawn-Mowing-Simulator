@@ -254,7 +254,6 @@ local COLUMN_PIECES = {
 	Countdown = "LeftColumn",
 	MenuButtons = "LeftColumn",
 	GrandmaGoal = "LeftColumn",
-	ContractsChip = "LeftColumn",
 	CurbAppeal = "RightColumn",
 	NextChip = "RightColumn",
 	JobTracker = "RightColumn",
@@ -565,38 +564,44 @@ do
 		)
 	end
 
-	local chip = UiLayout.ContractsChip
-	check(chip ~= nil, "UiLayout has no ContractsChip")
-	if chip then
-		check(chip.parent == "LeftColumn", `UiLayout's ContractsChip is in {chip.parent}, not the LeftColumn`)
+	-- The Contracts square (front-page HUD, ruling 5) replaced the Contracts chip: it is the fourth menu
+	-- square, inside MenuButtons, and like the chip it shows on every screen and nothing takes its spot,
+	-- a job included. Its order is its own in the MenuButtons list.
+	check(UiLayout.ContractsChip == nil, "UiLayout still has the ContractsChip: the Contracts square replaced it")
+	local contractsButton = UiLayout.ContractsButton
+	check(contractsButton ~= nil, "UiLayout has no ContractsButton")
+	if contractsButton then
 		check(
-			chip.detach == "LeftColumn",
-			"UiLayout's ContractsChip can't be taken out of and put back in the LeftColumn"
+			contractsButton.parent == "MenuButtons",
+			`UiLayout's ContractsButton is in {contractsButton.parent}, not MenuButtons`
 		)
-		check(chip.compactOnly == nil, "UiLayout's ContractsChip is compactOnly: it shows on every screen")
 		check(
-			chip.size ~= nil and chip.size[2] == 220 and chip.size[4] == 28,
-			"UiLayout's ContractsChip isn't 220 by 28, the Next chip's size"
+			contractsButton.detach == nil,
+			"UiLayout's ContractsButton has a detach: it is one of MenuButtons' squares"
 		)
-		check(typeof(chip.order) == "number", "UiLayout's ContractsChip has no order in the LeftColumn")
+		check(contractsButton.compactOnly == nil, "UiLayout's ContractsButton is compactOnly: it shows on every screen")
+		check(typeof(contractsButton.order) == "number", "UiLayout's ContractsButton has no order in MenuButtons")
 		for other, entry in UiLayout do
-			if other ~= "__screen" and other ~= "ContractsChip" and entry.parent == "LeftColumn" then
-				check(entry.order ~= chip.order, `UiLayout's ContractsChip and {other} are both order {chip.order}`)
+			if other ~= "__screen" and other ~= "ContractsButton" and entry.parent == "MenuButtons" then
+				check(
+					entry.order ~= contractsButton.order,
+					`UiLayout's ContractsButton and {other} are both order {contractsButton.order} in MenuButtons`
+				)
 			end
 		end
 	end
 	for id, entry in UiLayout do
 		if id ~= "__screen" then
 			for place, places in { whole = entry, touch = entry.touch or {}, compact = entry.compact or {} } do
-				if id == "ContractsChip" then
+				if id == "ContractsButton" then
 					check(
 						(places :: any).hideWhile == nil,
-						`UiLayout's ContractsChip ({place}) gives way to something: it shows on every screen`
+						`UiLayout's ContractsButton ({place}) gives way to something: it shows on every screen`
 					)
 				end
 				check(
-					table.find((places :: any).hideWhile or {}, "ContractsChip") == nil,
-					`UiLayout's {id} ({place}) hides while ContractsChip shows, which would hide it during a job`
+					table.find((places :: any).hideWhile or {}, "ContractsButton") == nil,
+					`UiLayout's {id} ({place}) hides while ContractsButton shows, which would hide it during a job`
 				)
 			end
 		end
@@ -607,7 +612,7 @@ end
 -- level pill 136 by 36 and the streak pill 106 by 36 side by side (with the 8 px gap that makes the
 -- column's 250), the countdown pill 250 by 34. Each piece's entry is its face plus the 6 px its lip and
 -- outline hang below it, and they come first in the left column, in that order, ahead of the menu
--- buttons, Grandma's goal and the contracts chip.
+-- buttons and Grandma's goal.
 do
 	local LIP_ROOM = 6
 	local PILL_PIECES = {
@@ -722,6 +727,142 @@ for id in string.gmatch(hudSource, 'placeInColumn%(%s*[%w_]+%s*,%s*"([%w_]+)"%s*
 end
 for id in COLUMN_PIECES do
 	check(inColumns[id] == true, `HudController doesn't build {id} into a column (with placeInColumn)`)
+end
+-- The four menu squares (front-page HUD, rulings 3, 4, 5 and 14): Truck, Guide, Crew and Contracts are
+-- 76 px faces with a label under them, 76 by 110 in all (the face, a 12 px gap and a 22 px label), in
+-- MenuButtons in that order and then the mouse hint. On a PC MenuButtons is a column of them; on a
+-- touch or short screen it is a 2x2 grid, wide enough for two squares and the gap HudController puts
+-- between them. HudController draws each with Juicy.button, in the face colour of its name. On the
+-- phone the left column's scale, worked out the way HudController's fitColumn does with everything
+-- that can show in the column at once, leaves a square at least 44 px.
+do
+	local FACE, SQUARE_HEIGHT, MIN_PHONE_FACE = 76, 110, 44
+	local SQUARES = {
+		{ id = "TruckButton", order = 1, color = "Truck" },
+		{ id = "GuideButton", order = 2, color = "Guide" },
+		{ id = "CrewButton", order = 3, color = "Crew" },
+		{ id = "ContractsButton", order = 4, color = "Contracts" },
+	}
+	local menu = UiLayout.MenuButtons
+	check(menu ~= nil, "UiLayout has no MenuButtons")
+	if menu then
+		check(menu.parent == "LeftColumn", `UiLayout's MenuButtons is in {menu.parent}, not the LeftColumn`)
+		check(
+			menu.list ~= nil and menu.list.direction == "Vertical",
+			"UiLayout's MenuButtons isn't a vertical list of squares (a PC's column)"
+		)
+		check(menu.autoSize == "Y", "UiLayout's MenuButtons doesn't grow with its squares")
+	end
+	for _, want in SQUARES do
+		local entry = UiLayout[want.id]
+		check(entry ~= nil, `UiLayout has no {want.id}`)
+		if entry then
+			check(entry.parent == "MenuButtons", `UiLayout's {want.id} is in {entry.parent}, not MenuButtons`)
+			check(entry.order == want.order, `UiLayout's {want.id} is order {entry.order}, not {want.order}`)
+			check(
+				entry.size ~= nil
+					and entry.size[1] == 0
+					and entry.size[2] == FACE
+					and entry.size[3] == 0
+					and entry.size[4] == SQUARE_HEIGHT,
+				`UiLayout's {want.id} isn't {FACE} by {SQUARE_HEIGHT} (a {FACE} px face and its label)`
+			)
+		end
+		check(
+			string.find(hudSource, `color%s*=%s*"{want.color}"`) ~= nil,
+			`HudController doesn't draw {want.id} in the {want.color} face colour`
+		)
+	end
+	local hint = UiLayout.MouseHint
+	check(
+		hint ~= nil and hint.parent == "MenuButtons" and hint.order == 5 and hint.device == "keyboard",
+		"UiLayout's MouseHint isn't the keyboard-only fifth piece of MenuButtons, after the squares"
+	)
+	check(
+		string.find(hudSource, "Juicy%.button%(") ~= nil,
+		"HudController doesn't draw the menu squares with Juicy.button"
+	)
+	check(
+		string.find(hudSource, "UIGridLayout") ~= nil,
+		"HudController has no UIGridLayout: the squares are no 2x2 grid on a touch or short screen"
+	)
+	check(string.find(hudSource, "ContractsChip") == nil, "HudController still mentions the ContractsChip")
+	check(
+		string.find(hudSource, 'UI%.toggle%("Contracts"%)') ~= nil,
+		"HudController's Contracts square doesn't open the contracts panel with UI.toggle"
+	)
+
+	-- The grid: two squares and the gap across, two rows and the gap down, drawn at the touch and compact
+	-- places' scale (a short window on a PC is a grid too).
+	local gapX = tonumber(string.match(hudSource, "SQUARE_GAP_X%s*=%s*(%d+)"))
+	local gapY = tonumber(string.match(hudSource, "SQUARE_GAP_Y%s*=%s*(%d+)"))
+	check(gapX ~= nil and gapY ~= nil, "HudController has no SQUARE_GAP_X and SQUARE_GAP_Y for the squares' grid")
+	local gridHeight, gridScale = 0, 1
+	if menu and gapX and gapY then
+		gridHeight = 2 * SQUARE_HEIGHT + gapY
+		for _, which in { "touch", "compact" } do
+			local place = (menu :: any)[which]
+			check(
+				place ~= nil and place.size ~= nil and place.size[2] == 2 * FACE + gapX and place.size[4] == 0,
+				`UiLayout's MenuButtons has no {which} place {2 * FACE + gapX} wide: two squares and the gap`
+			)
+			check(
+				place ~= nil
+					and place.typical ~= nil
+					and place.typical[1] == 2 * FACE + gapX
+					and place.typical[2] == gridHeight,
+				`UiLayout's MenuButtons {which} place isn't typically {2 * FACE + gapX} by {gridHeight}, the 2x2 grid`
+			)
+			check(
+				place ~= nil and typeof(place.scale) == "number" and place.scale <= 1,
+				`UiLayout's MenuButtons {which} place has no scale to shrink the grid by`
+			)
+			if place and typeof(place.scale) == "number" then
+				gridScale = place.scale
+			end
+		end
+		check(
+			menu.touch ~= nil and menu.compact ~= nil and menu.touch.scale == menu.compact.scale,
+			"UiLayout's MenuButtons touch and compact places draw the grid at different scales"
+		)
+	end
+
+	-- The phone: everything that can show in the left column on a touch screen at once (Grandma's goal
+	-- is out of it there, the mouse hint is keyboard only), stacked with the column's gaps, once with
+	-- the judging day countdown showing (the worst case: it shows for any player with judging day on the
+	-- calendar) and once without. The column must stay at its 0.7 floor or above in both, and a square
+	-- is its face times the grid's scale times the column's.
+	local columns = UiLayout.__screen.scaling.Columns
+	local phone = UiLayout.__screen.phone
+	for _, withCountdown in { true, false } do
+		local content, pieces = 0, 0
+		for id, entry in UiLayout do
+			if id ~= "__screen" and entry.parent == "LeftColumn" then
+				local touchPlace = entry.touch
+				local shows = not (touchPlace and touchPlace.parent == false)
+					and entry.device ~= "keyboard"
+					and (withCountdown or id ~= "Countdown")
+				if shows then
+					content += if id == "MenuButtons" then gridHeight * gridScale else entry.size[4]
+					pieces += 1
+				end
+			end
+		end
+		content += (pieces - 1) * UiLayout.LeftColumn.list.padding
+		local scale = math.min(
+			math.clamp(phone.height / columns.fullHeight, columns.minScale, 1),
+			math.max(columns.tightScale, (phone.height - columns.touchMargin) / content)
+		)
+		local which = if withCountdown then "with the countdown" else "without the countdown"
+		check(
+			scale >= columns.minScale - 1e-9,
+			`the left column is scaled to {scale} {which} on the {phone.width} by {phone.height} phone ({content} px of column), under its {columns.minScale} floor`
+		)
+		check(
+			FACE * gridScale * scale >= MIN_PHONE_FACE,
+			`a menu square is {FACE * gridScale * scale} px {which} on the {phone.width} by {phone.height} phone (column scale {scale} for {content} px of column), under {MIN_PHONE_FACE}`
+		)
+	end
 end
 -- The goals rail's DONE stamp is words only (UI.stampText): asked of UI.stamp it would be the art's
 -- "Job Complete!" once that's uploaded. The stamp scan above doesn't read UI.stampText, which asks
