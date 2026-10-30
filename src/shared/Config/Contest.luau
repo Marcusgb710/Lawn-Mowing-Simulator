@@ -41,7 +41,7 @@ Contest.CharmWeight = 0.7
 Contest.KindsWanted = 8
 
 -- Gloria's bar: her yard's score (TurfKing does it). `First` the first summer, `PerSummer` more
--- every summer after (each one you win), never more than `Max`. `Shares` is how her score splits
+-- every summer after (each new summer), never more than `Max`. `Shares` is how her score splits
 -- over the categories: TurfKing's edges are the sharpest thing on the street.
 Contest.GloriaBar = {
 	First = 88,
@@ -66,7 +66,7 @@ Contest.RetryJobs = 4
 Contest.SummerJobs = 12
 
 -- How many Saturdays judged without a win it takes to start a new summer anyway (Gloria's bar goes
--- up a step): the fourth loss does it. A Saturday you miss isn't counted.
+-- up a step): the fourth loss does it. A Saturday you miss isn't counted (Contest.afterLoss).
 Contest.SaturdaysPerSummer = 4
 
 -- June has won Best Yard this many times before you start.
@@ -182,6 +182,23 @@ function Contest.daysUntilJudging(contest, now: number): number
 		return 7
 	end
 	return Daily.daysUntil(now, Daily.nextSaturday(now))
+end
+
+-- What a lost judging day does to the Saturdays counted toward a new summer. `judged` is how many
+-- judging days there have been, this one included, and `saturdays` how many lost Saturdays this
+-- summer had before it. The first judging day (`judged` 1) goes by the jobs rule and isn't a
+-- Saturday, so it changes nothing. After that each loss adds one, and the one that reaches
+-- SaturdaysPerSummer starts a new summer and the count again from 0. Returns the new count and
+-- whether a new summer starts.
+function Contest.afterLoss(judged: number, saturdays: number): (number, boolean)
+	if judged <= 1 then
+		return saturdays, false
+	end
+	local counted = saturdays + 1
+	if counted >= Contest.SaturdaysPerSummer then
+		return 0, true
+	end
+	return counted, false
 end
 
 -- When judging day comes round again (in jobs finished) after one ends.

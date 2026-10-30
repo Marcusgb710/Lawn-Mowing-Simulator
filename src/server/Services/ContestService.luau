@@ -197,7 +197,7 @@ function ContestService:StartJudging(player: Player): (boolean, string)
 		return false, "The judges have been. Go and see the results."
 	elseif state == "Waiting" then
 		if contest.judged > 0 then
-			return false, `Judging day is Saturday. {inDays(Contest.daysUntilJudging(contest, now))} to go.`
+			return false, `Next judging day is in {inDays(Contest.daysUntilJudging(contest, now))}.`
 		end
 		local jobsLeft = jobsUntil(data, contest)
 		return false, `The judges come back in {jobsLeft} {if jobsLeft == 1 then "job" else "jobs"}.`
@@ -288,12 +288,10 @@ function ContestService:Collect(player: Player): (boolean, string)
 	else
 		-- Every Saturday after the first judging day that goes by without a win counts; the
 		-- fourth starts a new summer anyway, and Gloria's bar goes up a step.
-		if contest.judged > 1 then
-			contest.saturdays = (contest.saturdays or 0) + 1
-			if contest.saturdays >= Contest.SaturdaysPerSummer then
-				contest.summer += 1
-				contest.saturdays = 0
-			end
+		local saturdays, newSummer = Contest.afterLoss(contest.judged, contest.saturdays or 0)
+		contest.saturdays = saturdays
+		if newSummer then
+			contest.summer += 1
 		end
 		StoryService:PlayScene(player, "ContestLose")
 		message = "Gloria wins this one. The judges come back on Saturday."

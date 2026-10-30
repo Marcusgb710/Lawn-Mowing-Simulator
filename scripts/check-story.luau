@@ -532,6 +532,29 @@ check(Contest.calendarState(firstDay, 4, 2, SATURDAY + HOUR) == "Waiting", "...e
 check(Contest.calendarState(firstDay, 4, 5, THURSDAY + HOUR) == "Open", "...and opens when they are done")
 check(Contest.calendarState(firstDay, 3, 9, THURSDAY + HOUR) == "Locked", "the first day is locked before act 4 too")
 
+-- Lost Saturdays count toward a new summer: the first judging day is the jobs rule's and counts for
+-- nothing, then each loss adds one, and the fourth starts a new summer and the count again.
+check(Contest.SaturdaysPerSummer == 4, "four lost Saturdays start a new summer")
+local lostSaturdays, newSummer = Contest.afterLoss(1, 0)
+check(lostSaturdays == 0 and newSummer == false, "losing the first judging day counts no Saturday")
+lostSaturdays, newSummer = Contest.afterLoss(1, 2)
+check(lostSaturdays == 2 and newSummer == false, "...and leaves the count that was there alone")
+lostSaturdays, newSummer = Contest.afterLoss(5, 0)
+check(lostSaturdays == 1 and newSummer == false, "a loss on a later judging day adds one Saturday")
+local counts, summers = {}, {}
+lostSaturdays = 0
+for judged = 2, 5 do
+	lostSaturdays, newSummer = Contest.afterLoss(judged, lostSaturdays)
+	table.insert(counts, lostSaturdays)
+	table.insert(summers, tostring(newSummer))
+end
+check(
+	table.concat(counts, ",") == "1,2,3,0" and table.concat(summers, ",") == "false,false,false,true",
+	"four lost Saturdays in a row count 1, 2, 3, then 0 with a new summer only on the fourth"
+)
+lostSaturdays, newSummer = Contest.afterLoss(6, lostSaturdays)
+check(lostSaturdays == 1 and newSummer == false, "the count starts again after a new summer")
+
 local firstWin = Contest.rewards(0, { Shed = true, Garage = true })
 check(firstWin.money == Contest.Prize and firstWin.money == 2500, "winning pays $2,500")
 check(firstWin.trophy == "BestYardTrophy", "the first win brings the trophy")
