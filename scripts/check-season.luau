@@ -7,14 +7,16 @@
 -- (GameConfig.performance), and how a save becomes a version 13 save and who is still a
 -- first-timer, without back pay for the milestones or levels it has already passed
 -- (src/shared/Config/Season.luau), and that the six sounds the Busy Season rings
--- (cash, level up, goal done, star, find, streak) have ids (src/shared/Sounds.luau). Exits with an
--- error if anything's off.
+-- (cash, level up, goal done, star, find, streak) have ids (src/shared/Sounds.luau), and how a
+-- moment becomes a UTC day key, a Saturday and the midnight after it (src/shared/Daily.luau). Exits
+-- with an error if anything's off.
 
 local fs = require("@lune/fs")
 local luau = require("@lune/luau")
 local process = require("@lune/process")
 local roblox = require("@lune/roblox")
 
+local Daily = require("../src/shared/Daily")
 local Format = require("../src/shared/Format")
 local Levels = require("../src/shared/Config/Levels")
 local Milestones = require("../src/shared/Config/Milestones")
@@ -181,6 +183,25 @@ check(Stars.of(Stars.round(1.0999999), false) == 3, "the rounded 1.0999999 earns
 check(Stars.of(Stars.round(0.8999999), false) == 2, "the rounded 0.8999999 earns two stars")
 check(Stars.of(Stars.round(1.0994), false) == 2, "1.0994 rounds down to 1.099: two stars")
 check(Stars.round(1) == 1 and Stars.round(0) == 0, "whole factors stay as they are")
+
+-- Days ----------------------------------------------------------------------------------------
+
+-- 1793232000 is 00:00 UTC on Thursday 29 October 2026; a day is 86400 seconds, and Saturday the 31st
+-- starts at 1793404800.
+check(
+	Daily.dayKey(1793232000) == "20261029" and Daily.dayKey(1793232000 + 86399) == "20261029",
+	"a day key covers the whole UTC day"
+)
+check(Daily.dayKey(1793232000 + 86400) == "20261030", "the next second is the next day")
+check(Daily.isSaturday(1793404800) and not Daily.isSaturday(1793232000), "Saturdays")
+check(Daily.nextSaturday(1793232000) == 1793404800, "Thursday's next Saturday is in two days")
+check(Daily.nextSaturday(1793404800 + 3600) == 1793404800, "a Saturday morning is still judging day")
+check(Daily.nextSaturday(1793404800 + 86400) == 1794009600, "Sunday waits a week")
+check(
+	Daily.daysUntil(1793232000 + 3600, 1793404800) == 2 and Daily.daysUntil(1793404800, 1793404800) == 0,
+	"days until"
+)
+check(Daily.midnightAfter(1793232000 + 100) == 1793232000 + 86400, "midnight after")
 
 -- Sounds --------------------------------------------------------------------------------------
 
