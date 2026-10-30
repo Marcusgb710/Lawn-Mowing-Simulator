@@ -54,6 +54,7 @@ Other useful commands:
 | `selene src` | Lints the code |
 | `lune run scripts/check-mowing` | Checks the lawn's cell maths: which cells a mower's deck cuts, and the cell counts |
 | `lune run scripts/check-season` | Checks the season's tables: the goals rail's milestones, what each level pays, how a job earns its stars and tip, the day, the clock, the contracts and the streak |
+| `lune run scripts/check-compile` | Compiles every script under `src` with Luau's compiler (the other checks never do), and says how close the fullest file's top level is to Luau's 200 locals |
 
 **Testing saves in Studio:** Game Settings → Security → turn on *Enable Studio Access to API
 Services*. Without it the game still runs, it just doesn't save progress.
@@ -294,6 +295,12 @@ src/client/                  -> StarterPlayer.StarterPlayerScripts.Client
                                 the Top Lawns window: the two leaderboards, from the HUD button or F
   Controllers/SettingsController
                                 the Settings window: sound, camera motion and grass detail, kept in the save
+  Hud/                          the front-page HUD's pieces, which HudController builds and keeps up to date:
+                                Columns (the two columns, placing and fitting pieces in them, hit strips),
+                                Bits (the framed bar and corner key badge they share), StatPills (money,
+                                level, streak and countdown), MenuSquares (the four left squares and the
+                                Contracts badge), RightStrip (Shop, Gifts, Top Lawns, Settings), JobCard
+                                (the job card and boost pills) and Splash (the clean-stripe cheer)
   Juicy.luau                    the front-page HUD's look drawn in code: faces, buttons, pills, badges, text, and
                                 the hover, press and click feel for any button (Juicy.juice)
   JuicyPalette.luau             the colours Juicy draws with (plain data, so scripts/check-gui can read it)

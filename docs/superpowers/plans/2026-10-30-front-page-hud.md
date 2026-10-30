@@ -13,14 +13,14 @@
 ## Global Constraints
 
 - Phone-first: every piece is checked at the phone size `__screen.phone = {844, 390}` and at a 1280x720 PC; touch targets at least 40 px after scaling; nothing overlaps the move stick (bottom-left) or the jump button (bottom-right).
-- The 40 px rule applies to every control that acts (a button, a pill that is pressed, a Call off): its hit area is at least 40 px tall once its column's scale is applied, by a bigger visible face or by invisible hit strips round it (HudController's `addHitStrips`). A chip that only shows something (the Next chip, the boost pills, a condition chip) is exempt.
+- The 40 px rule applies to every control that acts (a button, a pill that is pressed, a Call off): its hit area is at least 40 px tall once its column's scale is applied, by a bigger visible face or by invisible hit strips round it (`Columns.addHitStrips`, in src/client/Hud/Columns.luau). A chip that only shows something (the Next chip, the boost pills, a condition chip) is exempt.
 - No new images: `GuiArt.Images` stays 312 (check-gui line 50). Use existing icons (Truck, Guide, Crew, Jobs, Orders, Crown, Wrench, Money, Level, Goal, Timer, Premium) or inline-drawn frames; existing kit slices (ProgressFill, ProgressFill_Money, KeyBadge) may be reused.
 - Saves: a new field goes through `Season.upgradeSave` or `defaultData` plus `reconcile`, and into `snapshot()` if the client needs it. No `DATA_VERSION` bump in this plan (slice 3 owns version 15).
 - Nothing yields at module load; every remote validates its arguments on the server and has a per-player rate limit like ShopService's COOLDOWN.
 - Lune checks gate everything pure; `check-gui` is updated, never loosened without a replacement rule.
 - Repo voice: plain sentences, no em dashes, headers that say what a thing is for.
 - Commits: one per task, only the task's listed files, never anything under `.superpowers/` or the scratchpad (that folder is NOT git-ignored in this repo), trailer `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
-- Gates per commit: `lune run scripts/check-gui`, `check-season`, `check-story`, `check-mowing`, `check-models`; `selene src`; `stylua --check src` redirected to a file (never piped); `rojo build default.project.json -o <scratchpad>/hud.rbxl`.
+- Gates per commit: `lune run scripts/check-gui`, `check-season`, `check-story`, `check-mowing`, `check-models`, `check-compile` (every script compiles, so none is over Luau's 200 locals); `selene src`; `stylua --check src` redirected to a file (never piped); `rojo build default.project.json -o <scratchpad>/hud.rbxl`.
 
 ## Rulings (the decisions the mock leaves open)
 

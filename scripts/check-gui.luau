@@ -1072,9 +1072,29 @@ do
 	check(switchesItOff, "Nothing in the client turns Roblox's Backpack off (SetCoreGuiEnabled, Backpack, false)")
 end
 
+-- The HUD's code: HudController and the modules it draws the front-page pieces with (src/client/Hud:
+-- the columns, the pills, the squares, the right strip, the job card, the splash and the bits they
+-- share), read as one text, so each rule below about a HUD piece holds wherever in those files the
+-- piece is drawn. "HudController" in a rule's words means this set.
+local HUD_FILES = { "src/client/Controllers/HudController.luau" }
+do
+	local names = fs.readDir("src/client/Hud")
+	table.sort(names)
+	for _, name in names do
+		if string.match(name, "%.luau$") then
+			table.insert(HUD_FILES, `src/client/Hud/{name}`)
+		end
+	end
+end
+check(#HUD_FILES > 1, "src/client/Hud has no modules: HudController draws the front-page pieces with them")
+local hudSources: { string } = {}
+for _, path in HUD_FILES do
+	table.insert(hudSources, fs.readFile(path))
+end
+local hudSource = table.concat(hudSources, "\n")
+
 -- COLUMN_PIECES is what HudController builds into a column: every piece it puts in one with
 -- placeInColumn, and nothing else.
-local hudSource = fs.readFile("src/client/Controllers/HudController.luau")
 local inColumns: { [string]: boolean } = {}
 for id in string.gmatch(hudSource, 'placeInColumn%(%s*[%w_]+%s*,%s*"([%w_]+)"%s*%)') do
 	inColumns[id] = true
@@ -2004,7 +2024,7 @@ do
 	for _, wanted in
 		{
 			"UI.needsCursor()",
-			"payPanel == nil",
+			"not payShown()",
 			"UI.getScreen().Enabled",
 			"UI.titleCardDone()",
 			"Juicy.pop(inner)",
@@ -2017,6 +2037,13 @@ do
 	for _, never in { "FireServer", "InvokeServer", "Net.", "DataService" } do
 		check(string.find(splashBody, never, 1, true) == nil, `HudController's splash reaches the server ({never})`)
 	end
+	-- The splash lives in its own module (Hud/Splash), so what it asks of the pay panel (payShown) is what
+	-- HudController hands it when it starts it: whether its pay panel is up.
+	check(
+		string.find(hudSource, "payShown = isPayShown", 1, true) ~= nil
+			and string.find(hudSource, "Splash%.start%(function%(%)%s*return payPanel ~= nil%s*end%)") ~= nil,
+		"HudController doesn't start the splash with its pay panel (Splash.start, payPanel ~= nil, payShown)"
+	)
 	check(
 		string.find(hudSource, 'SPLASH_WORDS = { "NICE STRIPE!", "CLEAN CUT!", "PERFECT LINE!" }', 1, true) ~= nil
 			and string.find(hudSource, "local SPLASH_TEXT_SIZE = 54", 1, true) ~= nil
@@ -2048,8 +2075,9 @@ do
 	local juiceUsers = {
 		{
 			"src/client/Controllers/HudController.luau",
-			{ "Juicy.juice(levelsButton, levelHolder)", "Juicy.juice(missedButton)", 'Juicy.juice(UI.button("Nice!"' },
+			{ "Juicy.juice(missedButton)", 'Juicy.juice(UI.button("Nice!"' },
 		},
+		{ "src/client/Hud/StatPills.luau", { "Juicy.juice(levelsButton, levelHolder)" } },
 		{
 			"src/client/Controllers/TopLawnsController.luau",
 			{ "Juicy.juice(tab)", 'Juicy.juice(window:FindFirstChild("Close")' },
