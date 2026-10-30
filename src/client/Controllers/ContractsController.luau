@@ -236,8 +236,12 @@ local function fit()
 end
 
 -- Puts the window where UiLayout's ContractsPanel says, if UI.panel's menu place (the same window
--- every menu has) has been put back over it, and fits it to the screen.
+-- every menu has) has been put back over it, and fits it to the screen. Not inside the shop
+-- computer, where the window is closed and docked: it is put back when the computer lets go.
 local function replace()
+	if UI.hosted() then
+		return
+	end
 	local place = UI.layout("ContractsPanel")
 	if panel.Size ~= place.size or panel.Position ~= place.position or panel.AnchorPoint ~= place.anchor then
 		UI.place(panel, "ContractsPanel")
@@ -276,7 +280,7 @@ local function build()
 		AutomaticSize = Enum.AutomaticSize.Y,
 		BackgroundTransparency = 1,
 		Visible = false,
-		LayoutOrder = 1,
+		LayoutOrder = 2,
 		Parent = content,
 	}, { UI.list(ROW_GAP) })
 	bonusLabel = UI.label("", {
@@ -286,7 +290,7 @@ local function build()
 		TextSize = 17,
 		FontFace = UI.Fonts.Heavy,
 		TextXAlignment = Enum.TextXAlignment.Center,
-		LayoutOrder = 2,
+		LayoutOrder = 3,
 		Parent = content,
 	})
 	UI.new("UITextSizeConstraint", { MaxTextSize = 17, MinTextSize = 12, Parent = bonusLabel })
@@ -294,7 +298,7 @@ local function build()
 		Name = "StreakCard",
 		Size = UDim2.new(1, 0, 0, 40),
 		Visible = false,
-		LayoutOrder = 3,
+		LayoutOrder = 4,
 		Parent = content,
 	})
 	streakLabel = UI.label("", {
@@ -311,7 +315,7 @@ local function build()
 		Name = "CloseButton",
 		Size = UDim2.new(1, 0, 0, 40),
 		TextSize = 20,
-		LayoutOrder = 4,
+		LayoutOrder = 5,
 		Parent = content,
 	})
 end

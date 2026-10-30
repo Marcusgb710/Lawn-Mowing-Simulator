@@ -6,7 +6,9 @@
 --             contracts (Config/Contracts.luau) with the counts at zero, then moves the streak on
 --             (Config/Streak.luau) and pays that day's cash and, on day 7, gives the pennant flag.
 --             It runs when a player joins and again every minute for everyone online, and it
---             changes nothing a second time on the same day.
+--             changes nothing a second time on the same day. When the day turns it also pushes
+--             the player's contest view (ContestService): judging day is a day of the week, and
+--             nothing else wakes the contest when midnight UTC comes.
 --   Counting  a finished job adds a job, a three-star job when it got three stars, and the junk
 --             picked up on the lawn; any money they earn (DataService.Earned) adds to the dollars
 --             earned. Then every contract that is met is paid, and when all three are paid the
@@ -18,7 +20,8 @@
 -- the cash goes in before the client is told, so a contract is never paid twice and the screen never
 -- shows one the save doesn't have. If a pay fails part way, the contract stays marked and goes unpaid,
 -- which is the safe side of that. The cash is money earned, so it counts toward the Earn contract
--- like any other pay; it is counted after the pay that caused it, never in the middle of it.
+-- like any other pay; it is added at once, but any contract it meets is paid after the pay that
+-- caused it, never in the middle of it.
 --
 -- Kept in the player's data (DataService, version 14; Config/Season.luau explains the fields):
 --   daily    the day's contracts, what is done and counted toward them, and whether the Bonus Day is paid
@@ -35,6 +38,7 @@ local Net = require(Shared.Net)
 local Streak = require(Shared.Config.Streak)
 
 local Clock = require(script.Parent.Parent.Clock)
+local ContestService = require(script.Parent.ContestService)
 local DataService = require(script.Parent.DataService)
 local JobService = require(script.Parent.JobService)
 local WorldService = require(script.Parent.WorldService)
@@ -159,12 +163,20 @@ local function settle(player: Player)
 end
 
 -- Adds to what the day has counted (`add` is handed the counts), pays whatever that met, and tells
--- the screen where it stands. Inside a pay there is nothing to settle or tell yet: that pay looks
--- again and tells the screen itself when it is done.
+-- the screen where it stands. If the day has turned since the last Refresh (the minute's loop has not
+-- come round yet) it turns first, so what is counted goes to the day it happened on. Inside a pay
+-- there is nothing to settle or tell yet: that pay looks again and tells the screen itself when it is
+-- done.
 local function counted(player: Player, add: (counts: Contracts.Count) -> ())
 	local data = DataService:Get(player)
 	if not data then
 		return
+	end
+	if data.daily.day ~= Daily.dayKey(Clock.now()) then
+		-- Inside a pay Refresh does nothing, so this cannot come back round into itself.
+		guarded("rollover", player, function()
+			DailyService:Refresh(player)
+		end)
 	end
 	add(data.daily.count)
 	local inside = paying[player] == true
@@ -185,9 +197,11 @@ end
 
 -- Turns the day over if it is a new one, and keeps the streak: on a new UTC day it makes the day's
 -- contracts for their level with every count at zero, and a streak that grew or started again pays
--- that day's cash, gives the flag day 7 has and tells the screen. Then it sends the view. Safe to
--- call as often as you like: on the day the save already has, nothing changes but the view sent. A
--- call that comes in the middle of a pay (settle's, or this one's) does nothing, the next one will.
+-- that day's cash, gives the flag day 7 has and tells the screen, and a new day also pushes their
+-- contest view, since judging day is a day of the week. Then it pays anything met and still unpaid
+-- (so the minute's look is a safety net for a pay that failed) and sends the view. Safe to call as
+-- often as you like: on the day the save already has, nothing changes but the view sent. A call that
+-- comes in the middle of a pay (settle's, or this one's) does nothing, the next one will.
 function DailyService:Refresh(player: Player)
 	if paying[player] then
 		return
@@ -209,6 +223,10 @@ function DailyService:Refresh(player: Player)
 		daily.done = {}
 		daily.count = { jobs = 0, earned = 0, junk = 0, stars = 0 }
 		daily.bonus = false
+		-- Judging day may have come round with this one, and nothing else tells the contest.
+		guarded("contest view", player, function()
+			ContestService:Update(player)
+		end)
 	end
 
 	local streak = data.streak
@@ -236,23 +254,25 @@ function DailyService:Refresh(player: Player)
 				tomorrow = Streak.rewardFor(streak.days + 1).cash,
 			})
 		end)
-		local again = recheck[player]
 		paying[player] = nil
 		recheck[player] = nil
-		if not ok then
-			error(err, 0)
-		end
-		if again then
-			settle(player)
-		end
-		-- The world draws the pennant from the flag, once it has a way to be asked.
-		if reward.flag and WorldService.RefreshPennant then
+		-- Puts the pennant on the truck. The flag is saved before the pay, so this comes before
+		-- anything below can rethrow.
+		if reward.flag then
 			guarded("pennant", player, function()
 				WorldService:RefreshPennant(player)
 			end)
 		end
+		if not ok then
+			error(err, 0)
+		end
 	end
 
+	-- Pays what is met and not yet paid: the streak's cash may have met the Earn contract, and a
+	-- contract a failed pass left unpaid is paid by the next look. Guarded so the view still goes out.
+	guarded("streak settle", player, function()
+		settle(player)
+	end)
 	sendView(player, data)
 end
 

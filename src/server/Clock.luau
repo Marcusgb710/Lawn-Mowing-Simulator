@@ -27,7 +27,10 @@ function Clock.setOffset(seconds: number)
 		warn("Clock.setOffset is for Studio testing only; the clock was left alone")
 		return
 	end
-	assert(typeof(seconds) == "number" and seconds == seconds, "Clock.setOffset needs a number of seconds")
+	assert(
+		typeof(seconds) == "number" and math.abs(seconds) < math.huge,
+		"Clock.setOffset needs a finite number of seconds"
+	)
 	offsetSeconds = seconds
 end
 

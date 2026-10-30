@@ -12,8 +12,9 @@
 -- moment becomes a UTC day key, a Saturday and the midnight after it (src/shared/Daily.luau), and
 -- that the server's clock loads and starts at the real time (src/server/Clock.luau), and the day's
 -- three contracts by level band with how far along each is (src/shared/Config/Contracts.luau), and
--- the streak's rewards and when a day adds to it (src/shared/Config/Streak.luau). Exits with an
--- error if anything's off.
+-- the streak's rewards and when a day adds to it (src/shared/Config/Streak.luau), and that the
+-- streak's pennant goes on a truck once, with or without a bed, anchored and out of the way of the aim
+-- (Assets.addPennant, src/shared/Assets.luau). Exits with an error if anything's off.
 
 local fs = require("@lune/fs")
 local luau = require("@lune/luau")
@@ -497,22 +498,9 @@ local function copyOf(value: any): any
 	end
 	return copy
 end
-local sampleSaves = {
-	fresh14,
-	midDay,
-	partial,
-	kept14,
-	{ money = 1234.5, xp = 1800, jobsCompleted = 30, contest = { summer = 2, wins = 1, judged = 3 } },
-	{ money = 50, xp = 0, jobsCompleted = 0, contest = { judged = 1 } },
-}
-for index, save in sampleSaves do
-	Season.upgradeSave(save)
-	local once = copyOf(save)
-	Season.upgradeSave(save)
-	check(sameTable(once, save), `upgrading save {index} twice is upgrading it once`)
-end
 
--- A field of the wrong type is filled in again, the way the version 13 fields are.
+-- Two saves with fields of the wrong type, made here for the list below (the checks on them are after
+-- it). The list holds copies, so those checks still upgrade each of them for the first time.
 local scrambled = {
 	money = 0,
 	xp = 0,
@@ -522,6 +510,26 @@ local scrambled = {
 	flags = true,
 	contest = { lastJudged = 7, saturdays = "two" },
 }
+local noDay = { money = 0, xp = 0, jobsCompleted = 0, daily = 7, streak = "x" }
+local sampleSaves = {
+	fresh14,
+	midDay,
+	partial,
+	kept14,
+	{ money = 1234.5, xp = 1800, jobsCompleted = 30, contest = { summer = 2, wins = 1, judged = 3 } },
+	{ money = 50, xp = 0, jobsCompleted = 0, contest = { judged = 1 } },
+	{ money = 0, xp = 0, jobsCompleted = 0 },
+	copyOf(scrambled),
+	copyOf(noDay),
+}
+for index, save in sampleSaves do
+	Season.upgradeSave(save)
+	local once = copyOf(save)
+	Season.upgradeSave(save)
+	check(sameTable(once, save), `upgrading save {index} twice is upgrading it once`)
+end
+
+-- A field of the wrong type is filled in again, the way the version 13 fields are.
 Season.upgradeSave(scrambled)
 check(
 	scrambled.daily.day == ""
@@ -540,7 +548,6 @@ check(
 		and scrambled.contest.saturdays == 0,
 	"a streak, flags and judging calendar of the wrong types are made again"
 )
-local noDay = { money = 0, xp = 0, jobsCompleted = 0, daily = 7, streak = "x" }
 Season.upgradeSave(noDay)
 check(
 	noDay.daily.day == "" and noDay.daily.count.junk == 0 and noDay.streak.days == 0,
@@ -711,6 +718,117 @@ end
 check(week.days == 8 and week.last == "20261105", "eight days in a row make a streak of 8")
 check(Streak.text(3) == "Day 3 of 7" and Streak.text(7) == "Day 7 of 7", "the streak line reads Day N of 7")
 check(Streak.text(8) == "Day 1 of 7" and Streak.text(14) == "Day 7 of 7", "a second week starts again at day 1")
+
+-- The truck's pennant ---------------------------------------------------------------------------
+
+-- Assets is Roblox code: it asks `game` for services, asks a model for its pivot, and reaches
+-- Placeholders and the Config tables through `script`, none of which Lune has. So it is loaded the
+-- way Season is, with those stood in: `game` hands out empty folders (so every model is its block
+-- placeholder, and the pennant is Placeholders' TruckPennant), a model's pivot is its PrimaryPart's,
+-- and `script` and `require` find the files under src/shared.
+do
+	roblox.implementMethod("Model", "GetPivot", function(model)
+		return model.PrimaryPart.CFrame
+	end)
+	roblox.implementMethod("Model", "PivotTo", function(model, target)
+		local step = target * model.PrimaryPart.CFrame:Inverse()
+		for _, descendant in model:GetDescendants() do
+			if descendant:IsA("BasePart") then
+				descendant.CFrame = step * descendant.CFrame
+			end
+		end
+	end)
+
+	local function located(path: string)
+		return setmetatable({ path = path }, {
+			__index = function(self, key)
+				if key == "Parent" then
+					return located(string.match(self.path, "^(.*)/[^/]+$"))
+				end
+				return located(`{self.path}/{key}`)
+			end,
+		})
+	end
+	local standIns: { [string]: any } = {}
+	for name, value in roblox do
+		standIns[name] = value
+	end
+	standIns.game = {
+		GetService = function(_, name)
+			if name == "RunService" then
+				return {
+					IsServer = function()
+						return true
+					end,
+				}
+			end
+			return roblox.Instance.new("Folder")
+		end,
+	}
+	local loaded = {}
+	local function load(module)
+		if not loaded[module.path] then
+			local environment = table.clone(standIns)
+			environment.script = located(module.path)
+			environment.require = load
+			loaded[module.path] = luau.load(fs.readFile(`{module.path}.luau`), {
+				debugName = module.path,
+				environment = environment,
+			})()
+		end
+		return loaded[module.path]
+	end
+	local Assets = load(located("src/shared/Assets"))
+
+	-- A truck of a root and a body, and a BedArea over its rear when it is to have one.
+	local function truck(withBed: boolean)
+		local model = roblox.Instance.new("Model")
+		local function add(name: string, size, at, transparency: number)
+			local newPart = roblox.Instance.new("Part")
+			newPart.Name = name
+			newPart.Size = size
+			newPart.Position = at
+			newPart.Transparency = transparency
+			newPart.Parent = model
+			return newPart
+		end
+		model.PrimaryPart = add("Root", roblox.Vector3.new(1, 1, 1), roblox.Vector3.new(0, 0.5, 0), 1)
+		add("Body", roblox.Vector3.new(6, 3, 12), roblox.Vector3.new(0, 2, 0), 0)
+		if withBed then
+			add("BedArea", roblox.Vector3.new(6, 0.2, 6), roblox.Vector3.new(0, 2.3, 3), 1)
+		end
+		return model
+	end
+	local function pennantsOn(model): number
+		local count = 0
+		for _, child in model:GetChildren() do
+			if child.Name == "Pennant" then
+				count += 1
+			end
+		end
+		return count
+	end
+
+	local withBed = truck(true)
+	Assets.addPennant(withBed)
+	Assets.addPennant(withBed)
+	check(pennantsOn(withBed) == 1, "a truck that is given the pennant twice has one")
+
+	local noBed = truck(false)
+	local ok = pcall(Assets.addPennant, noBed)
+	check(ok and pennantsOn(noBed) == 1, "a truck with no BedArea does not error and still gets the pennant")
+
+	local pieces, loose = 0, 0
+	for _, descendant in withBed.Pennant:GetDescendants() do
+		if descendant:IsA("BasePart") then
+			pieces += 1
+			if not descendant.Anchored or descendant.CanQuery then
+				loose += 1
+			end
+		end
+	end
+	check(pieces > 0 and loose == 0, "the pennant's parts are anchored and out of the way of the aim (CanQuery off)")
+end
 
 if failures > 0 then
 	print(`{failures} check(s) failed`)

@@ -54,7 +54,7 @@ local function part(parent: Instance, props)
 	return newPart
 end
 
-local function buildScene(truckId: string, trailerId: string?, paintId: string?, roadLength: number)
+local function buildScene(truckId: string, trailerId: string?, paintId: string?, pennant: boolean?, roadLength: number)
 	local folder = Instance.new("Folder")
 	folder.Name = "TruckCutscene"
 	local rng = Random.new(7)
@@ -116,6 +116,10 @@ local function buildScene(truckId: string, trailerId: string?, paintId: string?,
 	local paint = if typeof(paintId) == "string" then Premium.get(paintId) else nil
 	if paint and Premium.isPaint(paint) then
 		Premium.applyPaint(truck, paint)
+	end
+	-- The streak's pennant, if the crew's leader has earned it (the same as on the truck at home).
+	if pennant == true then
+		Assets.addPennant(truck)
 	end
 	Assets.anchor(truck)
 	truck.Parent = folder
@@ -230,7 +234,7 @@ local function play(info)
 
 	local driveTime = math.max(info.duration - FADE_TIME * 2 - 0.2, 1)
 	local distance = DRIVE_SPEED * driveTime
-	local scene, truck = buildScene(info.truckId, info.trailerId, info.paintId, distance)
+	local scene, truck = buildScene(info.truckId, info.trailerId, info.paintId, info.pennant, distance)
 	local startCFrame = CFrame.new(SCENE_ORIGIN + Vector3.new(LANE_OFFSET, 0.2, distance / 2))
 	local endCFrame = CFrame.new(SCENE_ORIGIN + Vector3.new(LANE_OFFSET, 0.2, -distance / 2))
 	Assets.placeOnGround(truck, startCFrame)

@@ -519,6 +519,7 @@ local function sendHome(job, players: { Player })
 		truckId = job.truckId,
 		trailerId = job.trailerId,
 		paintId = job.paintId,
+		pennant = WorldService:HasPennant(job.truckOwner) or nil,
 	}, function(index, player)
 		return WorldService:GetHomeCFrame(player, index)
 	end, function()
@@ -626,6 +627,7 @@ local function startDriving(job)
 		truckId = job.truckId,
 		trailerId = job.trailerId,
 		paintId = job.paintId,
+		pennant = WorldService:HasPennant(job.truckOwner) or nil,
 	}, function(index, player)
 		if playerJobs[player] ~= job then
 			return nil

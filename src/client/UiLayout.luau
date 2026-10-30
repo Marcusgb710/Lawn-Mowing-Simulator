@@ -765,13 +765,13 @@ return {
 		anchor = { 0.5, 0.5 },
 		position = { 0.5, 0, 0.5, 0 },
 		size = { 0, 360, 0, 400 },
-		note = "Opened from the contracts chip (and the mailbox at the curb), closed by its Close button or "
-			.. "Escape: today's three contracts (each with how far along it is and what it pays, and a DONE "
-			.. "stamp once it's paid), the Bonus Day for doing all three, and the streak line ('Day 3 of 7, "
-			.. "next $300'). It's opened by name like the menus (UI.open), but it's a window of its own like "
-			.. "the Levels panel: it never opens inside the shop computer, and it closes when a job's state "
-			.. "changes, a scene starts or you open a menu. Its UIScale shrinks it to fit the screen "
-			.. "(__screen.scaling.ContractsPanel).",
+		note = "Opened from the contracts chip (and the curb mailbox at the street end of the driveway), "
+			.. "closed by its Close button or Escape: today's three contracts (each with how far along it "
+			.. "is and what it pays, and a DONE stamp once it's paid), the Bonus Day for doing all three, "
+			.. "and the streak line ('Day 3 of 7, next $300'). It's opened by name like the menus "
+			.. "(UI.open), but it's a window of its own like the Levels panel: it never opens inside the "
+			.. "shop computer, and it closes when a job's state changes, a scene starts or you open a "
+			.. "menu. Its UIScale shrinks it to fit the screen (__screen.scaling.ContractsPanel).",
 	},
 	ComputerMonitor = {
 		label = "Shop computer",

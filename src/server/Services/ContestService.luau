@@ -174,6 +174,12 @@ end
 
 -- Public API ---------------------------------------------------------------------------------
 
+-- Sends the client where their contest stands now. DailyService calls it when the UTC day turns:
+-- judging day is a day of the week, and nothing else wakes the contest at midnight.
+function ContestService:Update(player: Player)
+	update(player)
+end
+
 -- Calls the judges: scores the player's yard now and queues judging day's scene. The result is
 -- kept until they collect it.
 function ContestService:StartJudging(player: Player): (boolean, string)

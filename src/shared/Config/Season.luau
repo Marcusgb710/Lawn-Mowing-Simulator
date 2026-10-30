@@ -49,8 +49,8 @@ end
 --   contest       gains `lastJudged`, the day key of the last Saturday judged ("" for none), and
 --                 `saturdays`, the Saturdays judged without a win since the last one. The contest
 --                 table itself is made by the 10 -> 11 migration and by DataService's defaultData,
---                 both before this runs, so a save without one is left alone rather than given a
---                 stub that ContestService would take for the whole thing.
+--                 both before this runs, so a save without one is left alone: nothing here makes
+--                 the contest, and a stub would only hide a save that lost it.
 function Season.upgradeSave(data: { [string]: any })
 	if typeof(data.earned) ~= "number" then
 		local jobs = data.jobsCompleted or 0
