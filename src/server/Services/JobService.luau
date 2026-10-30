@@ -549,6 +549,11 @@ local function buildSite(job)
 	-- a spot on the ground behind it and a vise on the tailgate. A supply you took goes back by
 	-- looking at the truck.
 	ServiceSpots.add(job.lawn.folder, ServiceSpots.forTruck(truck))
+	-- The streak's pennant flies on it too, if the leader has earned it (see WorldService). After the
+	-- spots above, which are measured from the bare truck.
+	if WorldService:HasPennant(job.truckOwner) then
+		Assets.addPennant(truck)
+	end
 	truck:SetAttribute("Interact", "Tailgate")
 	truck:SetAttribute("InteractText", "Put it back")
 	truck:SetAttribute("InteractName", "Tailgate")

@@ -511,6 +511,13 @@ What the reviews asked to see in Studio:
 - [ ] The "Level n: text" subtitle against the 720 px level-up moment: it may be too long for
       one line.
 
+## Busy Season, slice 2: to check
+
+- [ ] Model wanted: `Props/CurbMailbox`, the mailbox at the curb by every driveway (a block
+      placeholder until then).
+- [ ] Model wanted: `Props/TruckPennant`, the streak's pennant on the truck bed (a block placeholder
+      until then).
+
 ## Model overhaul: what is left
 
 Batches 1 to 4 (the mowers and trimmers; the blowers, barrows and the rest of batch 2; the trucks and

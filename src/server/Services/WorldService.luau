@@ -39,6 +39,9 @@ local PLOT_SIZE = Vector3.new(90, 1, 90)
 -- How far back the building stands, and how wide the driveway is.
 local BUILDING_Z = 22
 local DRIVEWAY_WIDTH = 10
+-- The curb mailbox stands at the driveway's street end, this far past the driveway's right edge
+-- (the side away from the lawn) and this far in from the plot's street edge.
+local MAILBOX_BESIDE, MAILBOX_FROM_STREET = 1.5, 2
 -- Where the business's own lawn goes (see HomeLawnService), on the left of the driveway, in plot
 -- space: its edge runs a couple of studs from the driveway. Where a building's truck parks further
 -- left, the lawn moves left with the driveway, staying LAWN_GAP from it.
@@ -624,6 +627,18 @@ local function buildPlot(plot)
 	})
 	local lawnRight = math.min(LAWN_CENTER.X + LAWN_SIZE.X / 2, truckAt.X - drivewayWidth / 2 - LAWN_GAP)
 	plot.lawnFrame, plot.lawnSize = at(lawnRight - LAWN_SIZE.X / 2, 0, LAWN_CENTER.Z), LAWN_SIZE
+	-- The curb mailbox, where the day's contracts are (see DailyService): at the driveway's street
+	-- end on the right, facing the street. A plain prop, not a decoration (no DecorId, so nobody
+	-- buys, moves or loses it), though decorations keep clear of it like anything else on the plot.
+	local mailbox = Assets.prop("CurbMailbox")
+	Assets.anchor(mailbox)
+	Assets.placeOnGround(
+		mailbox,
+		at(truckAt.X + drivewayWidth / 2 + MAILBOX_BESIDE, 0, -plot.depth / 2 + MAILBOX_FROM_STREET)
+	)
+	mailbox.Name = "CurbMailbox"
+	mailbox.Parent = model
+	interactable(mailbox, "OpenPanel", "Check the mail", "Mailbox", { OpensPanel = "Contracts" })
 	-- Getting in at the driver's door heads off on the job (see JobService). Carried tools go in
 	-- its bed by looking at the bed (see InteractController).
 	local driverDoor
@@ -638,6 +653,11 @@ local function buildPlot(plot)
 		if descendant:IsA("BasePart") and string.sub(descendant.Name, -17) == "__DriverDoorGlass" then
 			interactable(descendant, "DriveToJob", "Get In", "Crew Truck", { OwnerUserId = owner.UserId })
 		end
+	end
+	-- The streak's pennant, once they've earned it (see RefreshPennant). The truck is measured by
+	-- now, and the pennant leaves its pivot alone.
+	if WorldService:HasPennant(owner) then
+		Assets.addPennant(truck)
 	end
 	decorArea(plot, model)
 	if plot.awayTruck then
@@ -800,6 +820,25 @@ function WorldService:GetPlotTruck(player: Player): Model?
 	local plot = playerPlots[player]
 	local truck = plot and plot.model and plot.model:FindFirstChild("CrewTruck")
 	return if truck and truck:IsA("Model") then truck else nil
+end
+
+-- Whether this player has flown the streak's pennant: day 7 of a streak gives the flag
+-- (Config/Streak, DailyService). Read from the save, so WorldService needs nothing from DailyService.
+function WorldService:HasPennant(player: Player): boolean
+	local data = DataService:Get(player)
+	local flags = data and data.flags
+	return flags ~= nil and flags.TruckPennant == true
+end
+
+-- Puts the pennant on this player's truck if they've earned it, and does nothing if they haven't or
+-- it's there already. DailyService calls this when it pays the flag. The truck out on a trip counts:
+-- it's the one that comes back. (buildPlot and JobService.buildSite add it to a truck as they build it.)
+function WorldService:RefreshPennant(player: Player)
+	local plot = playerPlots[player]
+	local truck = plot and (plot.awayTruck or WorldService:GetPlotTruck(player))
+	if truck and WorldService:HasPennant(player) then
+		Assets.addPennant(truck)
+	end
 end
 
 -- How far a point is from the nearest point of a part.

@@ -65,6 +65,12 @@ sources, tried in this order for every id:
 The story's people are none of these: `CastService` builds them from the catalog when the server
 starts (see "Models" in `docs/GAME_DESIGN.md`).
 
+Wanted next, from the Store or Blender, are `Props/CurbMailbox` (the mailbox at the curb by every
+driveway: a post with a box and a flag, front toward -Z, about 1 by 4.3 by 1.4 studs) and
+`Props/TruckPennant` (the streak's pennant for the truck bed: a thin pole about 3 studs tall with a
+small purple flag, origin at the foot of the pole). Until a model is in, the game stands in block
+placeholders for both, built to the same rules (an invisible `Root`, front toward -Z).
+
 To run a batch:
 
 1. Add or edit the entries in `manifest/models.json` (the fields are under "The manifest entry").

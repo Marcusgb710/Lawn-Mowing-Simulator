@@ -27,6 +27,10 @@
 --                                                     toward -Z, with their markers on "Root"
 --   Props/StoragePegboard, StorageWallRack,           storage at the business, back flat on Z = 0 with
 --         StorageWallHooks, StorageShelf              "Slot1", "Slot2"... attachments where tools go
+--   Props/CurbMailbox                                 the mailbox at the curb by every driveway (opens the
+--                                                     contracts), front toward -Z, a Root part
+--   Props/TruckPennant                                the streak's pennant (Assets.addPennant): origin at the
+--                                                     pole's foot, a Root part
 --   Story/<id>          e.g. Story/GloriaHouse        the story's places and props
 --                                                     (alphainstructions/instructions37.md). Its
 --                                                     people (NPC_<name>) aren't files: they are
@@ -562,6 +566,64 @@ function Assets.anchor(model: Instance)
 	if model:IsA("BasePart") then
 		model.Anchored = true
 	end
+end
+
+-- How far in from the bed's rear and right edges the pennant's pole stands.
+local PENNANT_INSET = 0.25
+
+-- Flies the streak's pennant (Props/TruckPennant) on a truck: on its bed's rear right corner, so it
+-- shows from behind and from the side. The corner is the truck's own `BedArea` (a hitched trailer's
+-- doesn't count), or for a truck without one the same corner halfway up the truck. Trucks face
+-- -Z, so the rear is +Z and the right +X. The pennant is parented to the truck and goes wherever
+-- the truck does. A truck that has one already gets no second, so this can be called any time.
+function Assets.addPennant(truck: Model)
+	if truck:FindFirstChild("Pennant") then
+		return
+	end
+	local pivot = truck:GetPivot()
+	local trailer = truck:FindFirstChild("Trailer")
+	local pieces: { BasePart } = {}
+	local bed: BasePart? = nil
+	for _, descendant in truck:GetDescendants() do
+		if descendant:IsA("BasePart") and not (trailer and descendant:IsDescendantOf(trailer)) then
+			table.insert(pieces, descendant)
+			if descendant.Name == "BedArea" and not bed then
+				bed = descendant
+			end
+		end
+	end
+
+	local corner: Vector3
+	if bed then
+		local _, top = extentIn(bed, pivot)
+		corner = top
+	else
+		local low, high = Vector3.one * math.huge, -Vector3.one * math.huge
+		for _, piece in pieces do
+			if piece.Transparency < 1 then
+				local pieceLow, pieceHigh = extentIn(piece, pivot)
+				low, high = low:Min(pieceLow), high:Max(pieceHigh)
+			end
+		end
+		if low.X > high.X then
+			return
+		end
+		corner = Vector3.new(high.X, (low.Y + high.Y) / 2, high.Z)
+	end
+
+	local pennant = Assets.prop("TruckPennant")
+	Assets.anchor(pennant)
+	-- Only there to look at: it never blocks anyone, or the aim at the bed's tools.
+	for _, descendant in pennant:GetDescendants() do
+		if descendant:IsA("BasePart") then
+			descendant.CanCollide = false
+			descendant.CanTouch = false
+			descendant.CanQuery = false
+		end
+	end
+	Assets.placeAt(pennant, pivot * CFrame.new(corner - Vector3.new(PENNANT_INSET, 0, PENNANT_INSET)))
+	pennant.Name = "Pennant"
+	pennant.Parent = truck
 end
 
 return Assets

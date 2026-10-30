@@ -1293,6 +1293,70 @@ PROP_BUILDERS.TurfKingSign = function(model: Model)
 	end
 end
 
+-- The curb mailbox at the end of every driveway, where the day's contracts are (see WorldService):
+-- a dark wood post with a green box on top and a small red flag on its right, the box's front
+-- toward -Z, the street. Its Root lies on the ground under the box, so it is stood with
+-- Assets.placeOnGround. It has no DecorId: nobody buys, moves or loses it.
+PROP_BUILDERS.CurbMailbox = function(model: Model)
+	local add = propAdder(model)
+	model.PrimaryPart = add({
+		Name = "Root",
+		Size = Vector3.new(1, 0.1, 1.4),
+		Position = Vector3.new(0, 0.05, 0),
+		Transparency = 1,
+		CanCollide = false,
+		CanTouch = false,
+		CanQuery = false,
+	})
+	add({
+		Name = "CurbMailbox__Post",
+		Size = Vector3.new(0.3, 3.5, 0.3),
+		Position = Vector3.new(0, 1.75, 0),
+		Color = Color3.fromRGB(85, 60, 40),
+		Material = Enum.Material.Wood,
+	})
+	add({
+		Name = "CurbMailbox__Box",
+		Size = Vector3.new(1, 0.8, 1.4),
+		Position = Vector3.new(0, 3.9, 0),
+		Color = Color3.fromRGB(40, 90, 60),
+	})
+	add({
+		Name = "CurbMailbox__Flag",
+		Size = Vector3.new(0.06, 0.55, 0.3),
+		Position = Vector3.new(0.53, 4.2, 0.45),
+		Color = Color3.fromRGB(200, 40, 40),
+		CanCollide = false,
+	})
+end
+
+-- The streak's pennant for the truck's bed (Assets.addPennant): a thin pole with a purple flag
+-- streaming back from its top. Built like the real models: origin at the pole's foot, a Root part.
+local PENNANT_PURPLE = Color3.fromRGB(140, 80, 200)
+
+PROP_BUILDERS.TruckPennant = function(model: Model)
+	local add = propAdder(model)
+	rootPart(model, add)
+	add({
+		Name = "TruckPennant__Pole",
+		Size = Vector3.new(0.15, 3, 0.15),
+		Position = Vector3.new(0, 1.5, 0),
+		Color = Color3.fromRGB(190, 190, 195),
+		Material = Enum.Material.Metal,
+		CanCollide = false,
+	})
+	-- A wedge's tall edge is at +Z. Turned half way round, that edge is on the pole and the point
+	-- streams back along +Z, the way a truck's flag does as it drives off.
+	add({
+		ClassName = "WedgePart",
+		Name = "TruckPennant__Flag",
+		Size = Vector3.new(0.1, 0.7, 1),
+		CFrame = CFrame.new(0, 2.65, 0.575) * CFrame.Angles(0, math.pi, 0),
+		Color = PENNANT_PURPLE,
+		CanCollide = false,
+	})
+end
+
 -- A Best Yard judge standing: legs, a jacket, a head and whatever they're carrying (`extras`).
 local function judge(model: Model, jacket: Color3, trousers: Color3, hair: Color3, extras: (any) -> ())
 	local add = propAdder(model)
