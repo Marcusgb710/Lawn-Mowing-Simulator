@@ -1724,10 +1724,9 @@ local function toastStack(): Frame
 	return toastHolder
 end
 
--- Keeps the toasts just below `gui` while it shows at the top of the screen in their way (the
--- first-job coach, and on a touch screen Grandma's goal and a crew invite), so they never sit on
--- top of it. Anything else is left alone: Grandma's goal down the HUD's left column, an invite
--- along the bottom.
+-- Keeps the toasts just below `gui` while it shows at the top of the screen in their way (Grandma's
+-- goal banner on every screen, the first-job coach, and on a touch screen a crew invite), so they
+-- never sit on top of it. Anything else is left alone: an invite along the bottom of a PC's screen.
 function UI.keepToastsBelow(gui: GuiObject)
 	toastsUnder[gui] = true
 	for _, property in { "AbsoluteSize", "AbsolutePosition", "Visible" } do

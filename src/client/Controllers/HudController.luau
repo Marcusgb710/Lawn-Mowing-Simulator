@@ -71,8 +71,8 @@ local ShopController = require(script.Parent.ShopController)
 local player = Players.LocalPlayer
 
 -- The menu buttons down the left, their glyphs, the key that opens each one, and its button's
--- place in UiLayout.luau. Jobs and orders are on the computer in your shop (see
--- ComputerController).
+-- place in UiLayout.luau. Jobs and the Business app are on the computer in your shop (see
+-- ComputerController); the Orders window opens from the Shop button too, wherever you stand.
 local MENUS = {
 	{ name = "Truck", key = Enum.KeyCode.T, layout = "TruckButton", color = "Truck" },
 	{ name = "Guide", key = Enum.KeyCode.G, layout = "GuideButton", color = "Guide" },
@@ -2707,8 +2707,8 @@ end
 
 -- The server's paid a contract (`info`: its id, its words and its cash). Two paid in one frame
 -- (one job can meet two) don't play on top of each other: each waits its turn, CONTRACT_GAP after the
--- one before, and all of them wait for the title card. The chip's count follows with the view, which
--- the server sends once it has paid.
+-- one before, and all of them wait for the title card. The Contracts square's badge follows with the
+-- view, which the server sends once it has paid.
 local function onContractDone(info: { id: string, text: string, reward: number })
 	afterTitleCard(showContractDone, info)
 end

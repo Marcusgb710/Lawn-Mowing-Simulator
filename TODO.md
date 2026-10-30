@@ -517,7 +517,7 @@ Slice 2 is Tomorrow (design: `docs/superpowers/specs/2026-10-29-busy-season-desi
 `docs/superpowers/plans/2026-10-29-busy-season-slice-2.md`): the daily contracts and the mailbox,
 the login streak, the leaderboards and judging day every Saturday. The Lune checks cover the tables
 and the rules (`check-season`, `check-story`, `check-gui`). In Studio, on the phone emulator, the
-phone layout has been looked at (the contracts chip and panel and the Levels panel, which is how the
+phone layout has been looked at (the contracts panel and the Levels panel, which is how the
 Close button under the hotbar was found) and the day 1 Payday card was seen after the tap to start,
 but not heard. Not yet seen or heard: the PC shortcuts, the leaderboard sign, the later streak days
 and the Bonus Day moment, the pennant, and any of the sounds. The test panel (K) has three
@@ -534,13 +534,14 @@ contract; a Level jump's cash and a claimed gift are.
 
 The spec's playtest checklist for slice 2, with what to expect:
 
-- [ ] A fresh day's contracts: open them from the mailbox at the curb (E) and from the "Contracts
-      0/3" chip under the goals rail. Both show "Today's contracts": a Mow, an Earn and a Junk or
+- [ ] A fresh day's contracts: open them from the mailbox at the curb (E) and from the Contracts
+      square on the left, whose yellow badge shows the contracts left today (3 at first). Both show
+      "Today's contracts": a Mow, an Earn and a Junk or
       Stars contract for your level band, each with its pay. Claim day 1's gift (Gifts) and finish
       a job: Mow reads 1/2, and the Earn row completes (the claimed $100 counts toward it, and the
       job's $60 and the $10 first-job milestone take it past $150), with the goal chime, a "+$" pop
-      off the chip and a DONE stamp on its row; the chip reads 1/3, or 2/3 if the job earned three
-      stars on a Stars day. From day 2 the claimed gift ($150 and up) already meets Earn $150 at
+      off the Contracts square and a DONE stamp on its row; the badge reads 2 (contracts left), or
+      1 if the job earned three stars on a Stars day. From day 2 the claimed gift ($150 and up) already meets Earn $150 at
       level 1 or 2, so that row completes as you claim, after the Payday card (its chime and pop
       0.6 s after the card). The test panel's Level 5 jump finishes Earn only on a day whose gift
       falls short or is not claimed yet: day 1 before the first job, or band 2 and up, where Earn
@@ -558,11 +559,12 @@ The spec's playtest checklist for slice 2, with what to expect:
       streak chime and the cash lifting off the money counter; the tag goes, the pulse stops, and
       the Levels panel reads "Streak: Day 2 of 7, next $200". Press Gifts again: the contracts
       panel opens.
-- [ ] A gift left unclaimed: press **Next day** twice without pressing Gifts. The second press pays
-      day 2's gift for you with a "Yesterday's gift: +$150" toast and the cash register, once
-      (the money goes up by $150, not more), and day 3's CLAIM tag is up. The Earn row counts that
-      $150 once.
-- [ ] Day 7: press **Next day** and claim, five more times, one at a time. The day 7 turn puts a
+- [ ] A gift left unclaimed: with day 2 claimed, press **Next day** twice without pressing Gifts.
+      The first press makes day 3 (its CLAIM tag is up) and the second pays day 3's gift for you
+      with a "Yesterday's gift: +$200" toast and the cash register, once (the money goes up by
+      $200, not more), and day 4's CLAIM tag is up. The Earn row counts that $200 once.
+- [ ] Day 7: claim day 4's gift, then press **Next day** and claim, three more times, one at a
+      time (days 5, 6 and 7). The day 7 turn puts a
       purple pennant on the truck's bed at your business (and on the truck in the drive
       cutscene); claiming day 7 shows a Payday moment whose subtitle reads "Day 7: +$1,000 and a
       pennant for the truck".
@@ -583,8 +585,8 @@ The spec's playtest checklist for slice 2, with what to expect:
       day comes round again next Saturday." on the results screen. Four lost Saturdays after the
       first judging day (jump, judge, lose, four times) start a new summer, and the bar goes up 2.
       **Open judging day** now answers "Judging day is every Saturday now; use Jump to Saturday."
-- [ ] On a phone (the device emulator, landscape, say 844 by 390): the contracts panel from the chip
-      (rows, bars and Close all reachable), the Levels panel's streak line, and the sign's 18 px
+- [ ] On a phone (the device emulator, landscape, say 844 by 390): the contracts panel from the
+      Contracts square (rows, bars and Close all reachable), the Levels panel's streak line, and the sign's 18 px
       text readable from a few steps away.
 - [ ] Model wanted: `Props/CurbMailbox`, the mailbox at the curb by every driveway (a block
       placeholder until then).

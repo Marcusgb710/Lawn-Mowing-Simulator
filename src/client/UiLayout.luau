@@ -396,7 +396,7 @@ return {
 		size = { 0, 76, 0, 110 },
 		touch = { size = { 0, 64, 0, 98 } },
 		compact = { size = { 0, 64, 0, 98 } },
-		note = "A coral square with the clipboard glyph and 'Contracts' under it, where the Contracts chip was. It "
+		note = "A coral square with the clipboard glyph and 'Contracts' under it. It "
 			.. "opens the contracts panel, or closes it if it is open. A tilted yellow badge on its top right corner "
 			.. "counts the contracts left today (3 minus the ones done) and is hidden at 0 and before the day's "
 			.. "contracts have arrived. It shows on every screen and stays up during a job (nothing takes its "
@@ -485,8 +485,9 @@ return {
 		size = { 0, 76, 0, 110 },
 		touch = { size = { 0, 56, 0, 56 } },
 		compact = { size = { 0, 56, 0, 56 } },
-		note = "A pink square with a drawn present on it. For now it opens the contracts panel, where the streak "
-			.. "card is. It has no key.",
+		note = "A pink square with a drawn present on it. It claims the day's streak gift while one waits (a "
+			.. "tilted CLAIM tag and a pulse say so), and with nothing waiting it opens the contracts panel, "
+			.. "where the streak line is. It has no key.",
 	},
 	TopLawnsButton = {
 		label = "Top Lawns button",
@@ -506,8 +507,8 @@ return {
 		size = { 0, 56, 0, 90 },
 		touch = { size = { 0, 44, 0, 44 } },
 		compact = { size = { 0, 44, 0, 44 } },
-		note = "A grey square with the Wrench glyph, smaller than the others (56 px, 44 on a phone). For now it "
-			.. "says settings are coming (comma).",
+		note = "A grey square with the Wrench glyph, smaller than the others (56 px, 44 on a phone). It opens "
+			.. "the Settings window: Sound, Camera motion and Grass detail (comma).",
 	},
 	RightColumn = {
 		label = "Right HUD column",
@@ -867,8 +868,9 @@ return {
 		touch = { size = { 0, 320, 0, 200 } },
 		list = { direction = "Vertical", padding = 6, align = "Left" },
 		note = "Where the little messages stack, each fading after a few seconds: a notice is 40 px tall or "
-			.. "as tall as it wraps to, a new text 64 px. While the first-job coach shows, the stack moves down "
-			.. "to start 8 px under it.",
+			.. "as tall as it wraps to, a new text 64 px. While Grandma's goal banner shows (it is a toast "
+			.. "blocker on every screen), or the first-job coach, or on a touch screen a crew invite, the stack "
+			.. "moves down to start 8 px under it.",
 	},
 	Moment = {
 		label = "Big moment",
@@ -949,7 +951,7 @@ return {
 		size = { 0, 360, 0, 400 },
 		touch = { anchor = { 0.5, 1 }, position = { 0.5, 0, 1, -78 } },
 		compact = { anchor = { 0.5, 1 }, position = { 0.5, 0, 1, -78 } },
-		note = "Opened from the contracts chip (and the curb mailbox at the street end of the driveway), "
+		note = "Opened from the Contracts square (and the curb mailbox at the street end of the driveway), "
 			.. "closed by its Close button or Escape: today's three contracts (each with how far along it "
 			.. "is and what it pays, and a DONE stamp once it's paid), the Bonus Day for doing all three, "
 			.. "and the streak line ('Day 3 of 7, next $300'). It's opened by name like the menus "

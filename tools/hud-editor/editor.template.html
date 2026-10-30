@@ -312,8 +312,6 @@ button { cursor: pointer; }
 .core.jump::before { content: ""; width: 0; height: 0; border-left: 9px solid transparent; border-right: 9px solid transparent; border-bottom: 12px solid rgba(255,255,255,0.85); }
 .core.stick { border-radius: 50%; border: 3px solid rgba(255,255,255,0.55); background: rgba(20,22,24,0.18); box-sizing: border-box; }
 .core.stick::before { content: ""; width: 46%; height: 46%; border-radius: 50%; background: rgba(255,255,255,0.55); }
-.core.hotbar { border-radius: 6px; display: flex; gap: 5px; place-items: initial; justify-content: center; }
-.core.hotbar span { flex: 1; border-radius: 6px; background: rgba(20, 22, 24, 0.6); border: 2px solid rgba(255,255,255,0.35); }
 .core-tag {
   position: absolute; pointer-events: none; font: 800 10px/1 var(--font-ui); color: #fff; white-space: nowrap;
   background: rgba(20,22,24,0.7); padding: 3px 5px; border-radius: 5px; transform: translate(-50%, -100%);
@@ -415,6 +413,15 @@ button { cursor: pointer; }
 .k-chips .content { gap: 6px; flex-wrap: wrap; }
 .chip-g { font-weight: 800; font-size: clamp(7px, 36cqh, 14px); color: var(--g-text); background: var(--g-danger); border: 2px solid var(--g-ink); border-radius: 999px; padding: 0.25em 0.7em; white-space: nowrap; }
 .k-pill { border-radius: 999px; }
+.k-pills .fill { display: none; }
+.k-pills .content { gap: 8px; justify-content: flex-start; flex-wrap: wrap; }
+.pill-g { font-weight: 800; font-size: clamp(7px, 40cqh, 15px); color: #fff; background: rgba(27, 42, 30, 0.88); border: 2px solid var(--g-ink); border-radius: 999px; padding: 0.25em 0.8em; white-space: nowrap; }
+.pill-g.level { background: #3D9BE8; }
+.pill-g.streak { background: #F0661D; }
+.k-hotbar .fill { display: none; }
+.k-hotbar .content { gap: 8px; padding: 0; }
+.slot-g { flex: 1; height: 100%; max-height: 62px; border-radius: 9px; background: rgba(27, 42, 30, 0.88); border: 2px solid var(--g-ink); box-sizing: border-box; }
+.slot-g.held { background: #fff1c2; }
 .k-pill .fill { background: rgba(23, 48, 28, 0.85); border: 2px solid rgba(255, 247, 224, 0.2); }
 .k-toasts { pointer-events: none; }
 .k-toasts .toast-g { pointer-events: auto; cursor: grab; }
@@ -780,8 +787,13 @@ const DEVICES = [
 ];
 
 // What shows together in the game, so pieces are only checked against what they can meet.
-const LEFT = ["LeftColumn", "MoneyPanel", "MenuButtons", "TruckButton", "GuideButton", "CrewButton", "MouseHint", "GrandmaGoal"];
-const RIGHT = ["RightColumn", "CurbAppeal"];
+const LEFT = ["LeftColumn", "MoneyPanel", "StatPills", "Countdown", "MenuButtons", "TruckButton", "GuideButton", "CrewButton", "ContractsButton", "MouseHint"];
+// Grandma's goal is out of the columns: a banner at the top in the middle, on every screen.
+const TOP = ["GrandmaGoal"];
+// The right buttons are down the right edge, with the right column just inside them.
+const RIGHT = ["RightColumn", "CurbAppeal", "RightButtons", "ShopButton", "GiftsButton", "TopLawnsButton", "SettingsButton"];
+// The game's own hotbar (HotbarController), along the bottom while there is a job and Roblox's would have shown.
+const HOTBAR = ["Hotbar"];
 const LOOKING = ["Reticle", "InteractPrompt", "InteractButton"];
 const DECOR = ["DecorButtons", "DecorTopRow", "DecorBottomRow", "DecorPlaceButton", "DecorTurnButton", "DecorPutBackButton", "DecorSendBackButton"];
 // Each scene has what shows at that moment (`ids`, drawn), and what can come and go while it's on
@@ -792,22 +804,22 @@ const DECOR = ["DecorButtons", "DecorTopRow", "DecorBottomRow", "DecorPlaceButto
 // hideWhile) and curb appeal hiding on a short screen while the job tracker shows are worked out
 // as the game does, and every scene is checked each way it can be (see waysOf).
 const SCENES = [
-  { id: "shop", name: "At the shop", ids: [...LEFT, ...RIGHT, ...LOOKING, "TutorialBanner", "Toasts"], also: ["HoldRing", "CrewInvite"] },
+  { id: "shop", name: "At the shop", ids: [...LEFT, ...TOP, ...RIGHT, ...LOOKING, "TutorialBanner", "Toasts"], also: ["HoldRing", "CrewInvite"] },
   // a tool you can use comes out of storage in your hands, for your own lawn: shears snip there
-  { id: "ready", name: "Job taken, loading the truck", ids: [...LEFT, ...RIGHT, "JobTracker", ...LOOKING, "InteractSecondButton", "CarryHint", "Toasts"], also: ["SnipButton", "ToolCondition", "TutorialBanner", "HoldRing", "CrewInvite"] },
-  { id: "job", name: "Mowing a job", hotbar: true, ids: [...LEFT, ...RIGHT, "JobTracker", "ToolCondition", ...LOOKING, "HoldRing", "Toasts"], also: ["TutorialBanner", "CrewInvite"] },
-  { id: "shears", name: "Cutting with shears", hotbar: true, ids: [...LEFT, ...RIGHT, "JobTracker", "ToolCondition", ...LOOKING, "SnipButton", "Toasts"], also: ["TutorialBanner", "CrewInvite"] },
-  { id: "decor", name: "Decorating", ids: [...LEFT, ...RIGHT, "JobTracker", "Reticle", "DecorPrompt", ...DECOR, "Toasts"], also: ["CrewInvite"] },
-  { id: "payday", name: "Payday", ids: [...LEFT, ...RIGHT, "JobTracker", "Moment", "PayBreakdown", "Toasts"], also: ["TutorialBanner", "CrewInvite"] },
-  { id: "invite", name: "A crew invite on a job", hotbar: true, ids: [...LEFT, ...RIGHT, "JobTracker", "ToolCondition", ...LOOKING, "SnipButton", "CrewInvite", "Toasts"], also: ["TutorialBanner"] },
-  { id: "menu", name: "A menu open", ids: [...LEFT, ...RIGHT, "MenuWindow", "Toasts"] },
+  { id: "ready", name: "Job taken, loading the truck", ids: [...LEFT, ...TOP, ...RIGHT, "JobTracker", "BoostPills", ...LOOKING, "InteractSecondButton", "CarryHint", "Toasts"], also: ["SnipButton", "ToolCondition", "TutorialBanner", "HoldRing", "CrewInvite"] },
+  { id: "job", name: "Mowing a job", ids: [...LEFT, ...TOP, ...RIGHT, "JobTracker", "BoostPills", "ToolCondition", ...HOTBAR, ...LOOKING, "HoldRing", "Toasts"], also: ["TutorialBanner", "CrewInvite"] },
+  { id: "shears", name: "Cutting with shears", ids: [...LEFT, ...TOP, ...RIGHT, "JobTracker", "BoostPills", "ToolCondition", ...HOTBAR, ...LOOKING, "SnipButton", "Toasts"], also: ["TutorialBanner", "CrewInvite"] },
+  { id: "decor", name: "Decorating", ids: [...LEFT, ...TOP, ...RIGHT, "JobTracker", "BoostPills", "Reticle", "DecorPrompt", ...DECOR, "Toasts"], also: ["CrewInvite"] },
+  { id: "payday", name: "Payday", ids: [...LEFT, ...TOP, ...RIGHT, "JobTracker", "BoostPills", "Moment", "PayBreakdown", "Toasts"], also: ["TutorialBanner", "CrewInvite"] },
+  { id: "invite", name: "A crew invite on a job", ids: [...LEFT, ...TOP, ...RIGHT, "JobTracker", "BoostPills", "ToolCondition", ...HOTBAR, ...LOOKING, "SnipButton", "CrewInvite", "Toasts"], also: ["TutorialBanner"] },
+  { id: "menu", name: "A menu open", ids: [...LEFT, ...TOP, ...RIGHT, "MenuWindow", "Toasts"] },
   { id: "computer", name: "At the shop computer", ids: ["ComputerMonitor", "Toasts"] },
   { id: "dialogue", name: "In a story scene", ids: ["DialogueTopBar", "DialogueBottomBar", "DialogueCaption", "DialogueSkip", "DialogueBox", "DialogueToolCard", "SpeechBubble"] },
   { id: "act", name: "An act's title", ids: ["DialogueTopBar", "DialogueBottomBar", "ActTitle"] },
   { id: "drive", name: "Driving to a job", ids: ["CutsceneTopBar", "CutsceneBottomBar", "CutsceneTitle", "CutsceneSubtitle"] },
   { id: "contest", name: "Best Yard results", ids: ["ContestResults"] },
   // Studio's test panel only ever shows in a playtest, over whatever's there: not checked.
-  { id: "studio", name: "Studio playtest (not checked)", checks: false, ids: [...LEFT, ...RIGHT, ...LOOKING, "StudioTestHint", "StudioTestPanel"] },
+  { id: "studio", name: "Studio playtest (not checked)", checks: false, ids: [...LEFT, ...TOP, ...RIGHT, ...LOOKING, "StudioTestHint", "StudioTestPanel"] },
   // Every piece drawn at once, so some share a spot: it says which of those ever show together.
   { id: "all", name: "Everything at once", checks: false, ids: null },
 ];
@@ -846,13 +858,22 @@ const LOOKS = {
   LeftColumn: { kind: "group" }, RightColumn: { kind: "group" }, MenuButtons: { kind: "group" }, DecorButtons: { kind: "group" },
   DecorTopRow: { kind: "group" }, DecorBottomRow: { kind: "group" },
   MoneyPanel: { kind: "money" },
+  StatPills: { kind: "pills", sample: [["LVL 3", "level"], ["DAY 3", "streak"]] },
+  Countdown: { kind: "pill", text: "Judging day in 2d 5h" },
   TruckButton: { kind: "button", icon: "truck", text: "Truck", key: "T" },
   GuideButton: { kind: "button", icon: "book", text: "Guide", key: "G" },
   CrewButton: { kind: "button", icon: "crew", text: "Crew", key: "C" },
+  ContractsButton: { kind: "button", icon: "box", text: "Contracts" },
+  ShopButton: { kind: "button", icon: "box", text: "Shop", key: "B" },
+  GiftsButton: { kind: "button", text: "Gifts" },
+  TopLawnsButton: { kind: "button", text: "Top Lawns", key: "F" },
+  SettingsButton: { kind: "button", text: "Settings", key: "," },
   MouseHint: { kind: "text", text: "Hold Alt for the mouse" },
-  GrandmaGoal: { kind: "paper", text: "Grandma's goal", sample: "Buy the Reel Push Mower · $0 / $150" },
+  GrandmaGoal: { kind: "paper", text: "Buy the Reel Push Mower", sample: "$0 / $150" },
   CurbAppeal: { kind: "panel", icon: "house", text: "Curb appeal", sample: "62 / 100" },
   JobTracker: { kind: "tracker", text: "Edna's front lawn", sample: ["Pick up the junk", "Mow the lawn", "Trim the edges"] },
+  BoostPills: { kind: "pills", sample: [["Crew +15%", "boost"], ["Truck +10%", "boost"], ["Curb +5%", "boost"]] },
+  Hotbar: { kind: "hotbar", slots: 5 },
   ToolCondition: { kind: "chips", sample: ["Dull blade", "Low fuel"] },
   TutorialBanner: { kind: "banner", sample: "Look at the computer in your shop and press E, then take the Front Lawn job." },
   CarryHint: { kind: "banner", sample: "Walk to your truck and press E to put it in the bed." },
@@ -895,7 +916,7 @@ const store = {
 };
 const DRAFT_KEY = "lms-hud-draft-v2";
 const PREFS_KEY = "lms-hud-prefs-v2";
-const SHOW_DEFAULTS = { names: false, safe: true, core: true, hotbar: false, grid: false, snap: true, warn: true };
+const SHOW_DEFAULTS = { names: false, safe: true, core: true, grid: false, snap: true, warn: true };
 const prefs = Object.assign({ device: "phone", view: "one", scene: "shop" }, store.get(PREFS_KEY) || {});
 prefs.show = Object.assign({}, SHOW_DEFAULTS, prefs.show || {});
 
@@ -1247,8 +1268,8 @@ function layoutAll(dev) {
     if (p && DEFAULTS[p]) continue;
     placeBox(id, rootRect(dev, screenOf(id)), identity);
   }
-  // Toasts start just under what's showing at the top of the screen in their way: the first-job
-  // coach, and on a touch screen Grandma's goal or a crew invite (UI.keepToastsBelow).
+  // Toasts start just under what's showing at the top of the screen in their way: Grandma's goal on
+  // every screen, the first-job coach, and on a touch screen a crew invite (UI.keepToastsBelow).
   const toasts = rects.Toasts;
   if (toasts && shows("Toasts", dev)) {
     let start = toasts.y;
@@ -1279,12 +1300,6 @@ function coreControls(dev) {
     out.push({ kind: "jump", x: dev.w - side - (s * 1.5 - 10), y: small ? dev.h - s - 20 : dev.h - s * 1.75, w: s, h: s, label: "jump button" });
     const t = small ? 72 : 120;
     out.push({ kind: "stick", x: side + 24, y: dev.h - t - 21, w: t, h: t, label: "move stick" });
-  }
-  if ((prefs.show.hotbar || state.scene.hotbar) && gameScreen) {
-    const slot = dev.touch && Math.min(dev.w, dev.h) <= 500 ? 48 : 60;
-    const n = 4;
-    const w = n * slot + (n - 1) * 5;
-    out.push({ kind: "hotbar", x: (dev.w - w) / 2, y: dev.h - slot - 6, w, h: slot, label: "hotbar", slots: n });
   }
   return out;
 }
@@ -1539,7 +1554,13 @@ function pieceHTML(id, r, dev) {
       break;
     case "money":
       cls = "panel";
-      inner = `<span class="ic">${ICONS.coin}</span><div class="stack"><span class="t-money">$1,250</span>${small ? "" : '<span class="t-small">Level 3 · 7 jobs done</span><span class="xp"><i style="width:62%"></i></span>'}</div>`;
+      inner = `<span class="ic">${ICONS.coin}</span><div class="stack"><span class="t-money">$1,250</span></div>`;
+      break;
+    case "pills":
+      inner = (look.sample || []).map(([t, tone]) => `<span class="pill-g ${tone}">${esc(t)}</span>`).join("");
+      break;
+    case "hotbar":
+      inner = Array.from({ length: look.slots || 5 }, (_, i) => `<span class="slot-g${i === 0 ? " held" : ""}"></span>`).join("");
       break;
     case "button": {
       const key = look.key && !dev.touch ? `<span class="kbd">${esc(look.key)}</span>` : "";
@@ -1550,7 +1571,7 @@ function pieceHTML(id, r, dev) {
       inner = `<span class="t-small" style="color:var(--g-text);opacity:.85">${esc(look.text)}</span>`;
       break;
     case "paper":
-      inner = `<div class="stack"><span class="t-head">${esc((look.text || "").toUpperCase())}</span>${small ? "" : `<span class="t-small">${esc(look.sample || "")}</span><span class="xp paper-xp"><i style="width:30%"></i></span>`}</div>`;
+      inner = `<div class="stack"><span class="t-head">${esc(look.text || "")}</span>${small ? "" : `<span class="t-small">${esc(look.sample || "")}</span><span class="xp paper-xp"><i style="width:30%"></i></span>`}</div>`;
       break;
     case "panel":
       inner = `${icon}<div class="stack"><span class="t-body">${esc(look.text || nameOf(id))}</span>${small || !look.sample ? "" : `<span class="t-small">${esc(look.sample)}</span>`}</div>`;
@@ -1822,7 +1843,6 @@ function drawUnder(parts) {
       const el = document.createElement("div");
       el.className = "core " + c.kind;
       Object.assign(el.style, { left: c.x + "px", top: c.y + "px", width: c.w + "px", height: c.h + "px" });
-      if (c.kind === "hotbar") el.innerHTML = "<span></span>".repeat(c.slots);
       under.appendChild(el);
       if (prefs.show.names && parts.interactive) {
         const t = document.createElement("div");
@@ -2799,7 +2819,7 @@ document.addEventListener("keydown", (e) => {
 });
 
 // ================================================================ toolbar
-const CHIPS = [["names", "Names"], ["safe", "Safe areas"], ["core", "Roblox buttons"], ["hotbar", "Hotbar"], ["grid", "Grid"], ["snap", "Snap"], ["warn", "Problems"]];
+const CHIPS = [["names", "Names"], ["safe", "Safe areas"], ["core", "Roblox buttons"], ["grid", "Grid"], ["snap", "Snap"], ["warn", "Problems"]];
 (function buildToolbar() {
   const seg = $("devices");
   const sel = $("deviceSelect");
@@ -2861,7 +2881,7 @@ function syncToolbar() {
   for (const b of $("devices").children) b.setAttribute("aria-pressed", String(b.dataset.id === state.device.id));
   $("deviceSelect").value = state.device.id;
   $("sceneSelect").value = state.scene.id;
-  for (const c of $("chips").children) c.setAttribute("aria-pressed", String(!!prefs.show[c.dataset.key] || (c.dataset.key === "hotbar" && !!state.scene.hotbar)));
+  for (const c of $("chips").children) c.setAttribute("aria-pressed", String(!!prefs.show[c.dataset.key]));
   $("viewOne").setAttribute("aria-pressed", String(state.view === "one"));
   $("viewAll").setAttribute("aria-pressed", String(state.view === "all"));
   $("zoomOut").disabled = $("zoomIn").disabled = $("zoomFit").disabled = state.view === "all";

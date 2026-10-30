@@ -1,5 +1,5 @@
 -- The contracts panel: today's three contracts, the Bonus Day for doing all three, and the streak.
--- The chip under Grandma's goal opens it (HudController), and so will the mailbox at the curb: both
+-- The Contracts square on the HUD opens it (HudController), and so will the mailbox at the curb: both
 -- ask UI.open("Contracts"), so the window is made with UI.panel, the only way UI.open finds one by
 -- name. It's still a window of its own like the Levels panel, not one of the menus: it has a place
 -- and size of its own (UiLayout's ContractsPanel) and shrinks to fit the screen the way the Levels
@@ -329,7 +329,7 @@ local function build()
 	})
 end
 
--- It's been opened (by name, with UI.open, or from the chip): drawn fresh and fitted, unless it
+-- It's been opened (by name, with UI.open, or from the Contracts square): drawn fresh and fitted, unless it
 -- has no room, inside the shop computer's screen or while a scene has the game's.
 local function onVisible()
 	if not panel.Visible then
