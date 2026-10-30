@@ -1,5 +1,6 @@
 -- A panel of shortcuts for testing the story in a Studio playtest (StudioTestService does them):
--- jump to an act, replay the intro, start over, get money, tidy your lawn, open judging day.
+-- jump to an act, replay the intro, start over, start as a first-timer again, get money, set your
+-- level, tidy your lawn, open judging day.
 -- Press K to show or hide it; the mouse is freed while it's up. It's never built outside Studio.
 
 local Players = game:GetService("Players")
@@ -15,6 +16,8 @@ local ClientState = require(script.Parent.Parent.ClientState)
 local UI = require(script.Parent.Parent.UI)
 
 local TOGGLE_KEY = Enum.KeyCode.K
+-- The levels the panel can set.
+local LEVELS = { 2, 5, 10, 20 }
 -- The panel's width (UiLayout.luau), which its buttons are laid out for.
 local WIDTH = (UI.layout("StudioTestPanel").size :: UDim2).X.Offset
 
@@ -23,6 +26,7 @@ local StudioTestController = {}
 local panel: Frame = nil
 local status: TextLabel = nil
 local actLabel: TextLabel = nil
+local levelLabel: TextLabel = nil
 local busy = false
 
 local function setStatus(text: string, ok: boolean)
@@ -131,12 +135,15 @@ local function build()
 	wideButton("Start the story over", 6, function()
 		run("Restart")
 	end).Parent = panel
+	wideButton("Start as a first-timer", 7, function()
+		run("FirstTimer")
+	end).Parent = panel
 
-	heading("Shortcuts", 7).Parent = panel
+	heading("Shortcuts", 8).Parent = panel
 	local money = UI.new("Frame", {
 		Size = UDim2.new(1, 0, 0, 34),
 		BackgroundTransparency = 1,
-		LayoutOrder = 8,
+		LayoutOrder = 9,
 		Parent = panel,
 	}, { UI.list(6, Enum.FillDirection.Horizontal) })
 	for index, amount in { 1000, 10000 } do
@@ -150,10 +157,30 @@ local function build()
 			Parent = money,
 		})
 	end
-	wideButton("Tidy my lawn", 9, function()
+
+	levelLabel = heading("Level", 10)
+	levelLabel.Parent = panel
+	local levels = UI.new("Frame", {
+		Size = UDim2.new(1, 0, 0, 34),
+		BackgroundTransparency = 1,
+		LayoutOrder = 11,
+		Parent = panel,
+	}, { UI.list(6, Enum.FillDirection.Horizontal) })
+	local levelWidth = math.floor((WIDTH - 20 - 6 * (#LEVELS - 1)) / #LEVELS)
+	for index, level in LEVELS do
+		UI.button(tostring(level), function()
+			run("Level", level)
+		end, {
+			Size = UDim2.fromOffset(levelWidth, 34),
+			LayoutOrder = index,
+			Parent = levels,
+		})
+	end
+
+	wideButton("Tidy my lawn", 12, function()
 		run("Tidy")
 	end).Parent = panel
-	wideButton("Open judging day", 10, function()
+	wideButton("Open judging day", 13, function()
 		run("Judging")
 	end).Parent = panel
 
@@ -163,7 +190,7 @@ local function build()
 		TextSize = 14,
 		TextWrapped = true,
 		TextXAlignment = Enum.TextXAlignment.Left,
-		LayoutOrder = 11,
+		LayoutOrder = 14,
 		Parent = panel,
 	})
 	setStatus("Jumping back an act: the story moves on again as soon as your progress passes its gate.", true)
@@ -175,15 +202,24 @@ local function showAct()
 	actLabel.Text = if story then `Act: {story.act} ({story.actName})` else "Act"
 end
 
+-- The level they're at, from the profile the server sent.
+local function showLevel()
+	local profile = ClientState.profile
+	levelLabel.Text = if profile then `Level: {profile.level}` else "Level"
+end
+
 function StudioTestController:Start()
 	if not RunService:IsStudio() then
 		return
 	end
 	build()
 	showAct()
+	showLevel()
 	ClientState.Changed:Connect(function(key)
 		if key == "story" then
 			showAct()
+		elseif key == "profile" then
+			showLevel()
 		end
 	end)
 	UserInputService.InputBegan:Connect(function(input, processed)

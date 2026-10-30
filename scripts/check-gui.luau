@@ -151,7 +151,8 @@ local function scan(folder: string)
 					check(GuiArt.Images[image] ~= nil, `{path} asks for {image}, which isn't in GuiArt`)
 				end
 			end
-			-- Wordmarks: UI.wordmark("JobComplete", ...), and the stamps in UI.stamp(parent, { ... }).
+			-- Wordmarks: UI.wordmark("JobComplete", ...), and the stamps in UI.stamp(parent, { ... }), not
+			-- UI.stampText(parent, text, height), which is words only and asks for no art.
 			local wordmarks = {}
 			for name in string.gmatch(source, 'UI%.wordmark%(%s*"([%w_]+)"') do
 				table.insert(wordmarks, name)
@@ -237,6 +238,7 @@ local LAYOUT_FIELDS = {
 	hideWhile = "table",
 	device = "string",
 	fixed = "boolean",
+	compactOnly = "boolean",
 	note = "string",
 }
 -- The pieces HudController builds straight into one of the HUD columns (placeInColumn), and the
@@ -247,6 +249,7 @@ local COLUMN_PIECES = {
 	MenuButtons = "LeftColumn",
 	GrandmaGoal = "LeftColumn",
 	CurbAppeal = "RightColumn",
+	NextChip = "RightColumn",
 	JobTracker = "RightColumn",
 	MissedButton = "RightColumn",
 }
@@ -396,6 +399,18 @@ for id, entry in UiLayout do
 		check(table.find({ "Left", "Center", "Right" }, list.align) ~= nil, `{where}: odd list align`)
 	end
 end
+-- No two pieces of a HUD column have the same order: the column's list sorts by LayoutOrder, and a
+-- tie falls to the order the pieces were made in, which nothing here says.
+for _, column in { "LeftColumn", "RightColumn" } do
+	local taken: { [number]: string } = {}
+	for id, entry in UiLayout do
+		if id ~= "__screen" and entry.parent == column and typeof(entry.order) == "number" then
+			local other = taken[entry.order]
+			check(other == nil, `UiLayout's {id} and {other} are both order {entry.order} in {column}`)
+			taken[entry.order] = id
+		end
+	end
+end
 -- Nothing gives way to something that gives way to it (one of them would never show).
 local function givesWayTo(id: string): { [string]: boolean }
 	local entry = UiLayout[id]
@@ -418,6 +433,48 @@ for id in UiLayout do
 	end
 end
 
+-- The goals rail's Next chip (Busy Season, slice 1): the rail's next milestone on one line, in the
+-- right column, for the short screens where the rail itself is hidden. Curb appeal hides during a
+-- job on a short screen, but the chip is its own piece and nothing hides it, so no entry's
+-- hideWhile (in its place, its touch ones or its compact ones) names it. Grandma's goal, which
+-- carries the rail on a tall screen, still gives way to the first-job coach and a crew invite on a
+-- touch screen.
+local nextChip = UiLayout.NextChip
+check(nextChip ~= nil, "UiLayout has no NextChip")
+if nextChip then
+	check(nextChip.parent == "RightColumn", `UiLayout's NextChip is in {nextChip.parent}, not the RightColumn`)
+	check(nextChip.detach == "RightColumn", "UiLayout's NextChip can't be taken out of and put back in the RightColumn")
+	check(nextChip.compactOnly == true, "UiLayout's NextChip isn't compactOnly: it would show on a tall screen too")
+	check(nextChip.hideWhile == nil, "UiLayout's NextChip gives way to something: it has to show during a job")
+	-- Not in its touch or compact places either: the editor reads those too (the game would never
+	-- honour them, since the HUD doesn't call UI.givesWay("NextChip")).
+	for place, places in { touch = nextChip.touch or {}, compact = nextChip.compact or {} } do
+		check(
+			(places :: any).hideWhile == nil,
+			`UiLayout's NextChip gives way to something on {place} screens: it has to show during a job`
+		)
+	end
+end
+for id, entry in UiLayout do
+	if id ~= "__screen" then
+		for place, places in { whole = entry, touch = entry.touch or {}, compact = entry.compact or {} } do
+			check(
+				table.find((places :: any).hideWhile or {}, "NextChip") == nil,
+				`UiLayout's {id} ({place}) hides while NextChip shows, which would hide it during a job`
+			)
+		end
+	end
+end
+local grandmaWaits = UiLayout.GrandmaGoal.touch.hideWhile
+check(
+	grandmaWaits ~= nil and table.find(grandmaWaits, "TutorialBanner") ~= nil,
+	"UiLayout's GrandmaGoal doesn't wait for the TutorialBanner on a touch screen"
+)
+check(
+	grandmaWaits ~= nil and table.find(grandmaWaits, "CrewInvite") ~= nil,
+	"UiLayout's GrandmaGoal doesn't wait for the CrewInvite on a touch screen"
+)
+
 for name, rule in UiLayout.__screen.scaling do
 	for _, id in rule.elements do
 		check(UiLayout[id] ~= nil, `__screen.scaling.{name} scales {id}, which isn't in UiLayout`)
@@ -428,6 +485,42 @@ for _, key in { "fullHeight", "minScale", "tightScale", "margin", "touchMargin" 
 	check(typeof(value) == "number" and value >= 0, `__screen.scaling.Columns has no {key}`)
 end
 check(typeof(UiLayout.__screen.compactHeight) == "number", "__screen has no compactHeight")
+
+-- The Levels panel (Busy Season, slice 1): a centred window of its own on the game's screen, opened
+-- from the XP bar, that shrinks to fit like the pay breakdown does. Centred, it's already clear of
+-- Roblox's move stick and jump button, so a touch screen has the same height margin (a bigger one
+-- would only make its words small), and `scale` is the most it's drawn at.
+local levelsPanel = UiLayout.LevelsPanel
+check(levelsPanel ~= nil, "UiLayout has no LevelsPanel")
+if levelsPanel then
+	check(levelsPanel.screen == "LawnUI", `UiLayout's LevelsPanel is on {levelsPanel.screen}, not LawnUI`)
+	check(levelsPanel.parent == nil, "UiLayout's LevelsPanel is in another element: it's a window of its own")
+	check(
+		levelsPanel.size ~= nil and levelsPanel.size[2] == 360 and levelsPanel.size[4] == 420,
+		"UiLayout's LevelsPanel isn't 360 by 420"
+	)
+	check(levelsPanel.autoSize == nil, "UiLayout's LevelsPanel grows with what's in it: it's 420 tall")
+end
+local levelsRule = UiLayout.__screen.scaling.LevelsPanel
+check(levelsRule ~= nil, "__screen.scaling has no LevelsPanel")
+if levelsRule then
+	check(
+		table.find(levelsRule.elements, "LevelsPanel") ~= nil,
+		"__screen.scaling.LevelsPanel doesn't scale the LevelsPanel"
+	)
+	check(
+		typeof(levelsRule.margin) == "number" and levelsRule.margin >= 0,
+		"__screen.scaling.LevelsPanel has no margin"
+	)
+	check(
+		typeof(levelsRule.touchMargin) == "number" and levelsRule.touchMargin == levelsRule.margin,
+		"__screen.scaling.LevelsPanel's touchMargin isn't its margin: it's centred, clear of the thumb zones"
+	)
+	check(
+		typeof(levelsRule.scale) == "number" and levelsRule.scale > 0 and levelsRule.scale <= 1,
+		"__screen.scaling.LevelsPanel has no scale from above 0 to 1"
+	)
+end
 
 -- COLUMN_PIECES is what HudController builds into a column: every piece it puts in one with
 -- placeInColumn, and nothing else.
@@ -440,6 +533,13 @@ end
 for id in COLUMN_PIECES do
 	check(inColumns[id] == true, `HudController doesn't build {id} into a column (with placeInColumn)`)
 end
+-- The goals rail's DONE stamp is words only (UI.stampText): asked of UI.stamp it would be the art's
+-- "Job Complete!" once that's uploaded. The stamp scan above doesn't read UI.stampText, which asks
+-- for no art.
+check(
+	string.find(hudSource, 'JobComplete%s*=%s*"DONE"') == nil,
+	'HudController stamps "DONE" with UI.stamp, which draws the JobComplete art: use UI.stampText'
+)
 
 -- Every element the client places by name (UI.place, UI.keepPlaced, UI.layout) is in UiLayout,
 -- and every one in it is named somewhere in the client, so none are left over.
@@ -617,6 +717,62 @@ for _, case in cases do
 	check(total == result.share, `{case[1]}: the total is {total}, not the share {result.share}`)
 	check(sum == result.share, `{case[1]}: the lines add up to {sum}, not {result.share}`)
 	check(lines[1].label == "Job pay" and lines[1].amount ~= 0, `{case[1]}: the job pay doesn't come first`)
+end
+
+-- A customer's tip comes after the share and the total counts it: a line "Tip from <customer>"
+-- worth the tip, and no line at all when there's no tip.
+do
+	local base, weights = job({
+		basePay = 66,
+		toolFit = 1,
+		qualityMultiplier = 1.2,
+		speedMultiplier = 1,
+		preference = "Balanced",
+		crewBonus = 1,
+		truckBonus = 1,
+		businessBonus = 1,
+		curbBonus = 1,
+		penalty = 0,
+		wonBack = 0,
+		crew = 2,
+	})
+	local baseLines, baseTotal = PayBreakdown.lines(base, weights)
+
+	local tipped = table.clone(base)
+	tipped.tip = 12
+	tipped.customer = "Mrs. Alvarez"
+	local lines, total = PayBreakdown.lines(tipped, weights)
+	local last = lines[#lines]
+	check(last.label == "Tip from Mrs. Alvarez", `the last line is "{last.label}", not the tip`)
+	check(last.amount == 12, `the tip line is worth {last.amount}, not 12`)
+	check(#lines == #baseLines + 1, "a tip adds exactly one line")
+	check(total == baseTotal + 12, `a $12 tip makes the total {baseTotal + 12}, not {total}`)
+	local sum = 0
+	for _, payLine in lines do
+		sum += payLine.amount
+	end
+	check(sum == total, `with a tip the lines add up to {sum}, not the total {total}`)
+
+	-- No customer on the result: the tip's line names "the customer", with the same amount.
+	local nameless = table.clone(tipped)
+	nameless.customer = nil
+	local namelessLines, namelessTotal = PayBreakdown.lines(nameless, weights)
+	local namelessLast = namelessLines[#namelessLines]
+	check(namelessLast.label == "Tip from the customer", `a tip with no customer reads "{namelessLast.label}"`)
+	check(namelessLast.amount == 12 and namelessTotal == total, "a tip with no customer is still $12 in the total")
+
+	local noTips = { { "a tip of 0", 0 }, { "no tip", false } }
+	for _, case in noTips do
+		local quiet = table.clone(base)
+		quiet.tip = if case[2] then case[2] else nil
+		quiet.customer = "Mrs. Alvarez"
+		local quietLines, quietTotal = PayBreakdown.lines(quiet, weights)
+		check(#quietLines == #baseLines, `{case[1]} still adds a line`)
+		check(quietTotal == baseTotal, `{case[1]} changes the total to {quietTotal}`)
+		for _, payLine in quietLines do
+			check(string.find(payLine.label, "Tip", 1, true) == nil, `{case[1]} still shows "{payLine.label}"`)
+		end
+	end
 end
 
 -- The art's own files, when there's a copy to read ------------------------------------------------

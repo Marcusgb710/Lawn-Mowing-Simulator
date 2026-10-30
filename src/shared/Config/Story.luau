@@ -108,7 +108,7 @@ Story.Scenes = {
 				speaker = "June",
 				mood = "Proud",
 				text = "My mower died in '09. These never did. They won me the trophy in '94, so don't you lose 'em.",
-				card = { label = "New tool", name = "Grandma's Grass Shears", icon = "Shears" },
+				card = { label = "Already yours", name = "Grandma's Grass Shears", icon = "Shears" },
 			},
 			{
 				speaker = "June",
@@ -116,7 +116,7 @@ Story.Scenes = {
 			},
 			{
 				speaker = "June",
-				text = "Edna from bridge club needs her front lawn done. Computer's in the shed. Go.",
+				text = "Edna's front lawn is next. Computer's in the shed. Go.",
 			},
 		},
 	},
@@ -393,11 +393,14 @@ Story.Acts = {
 --   perCustomer  fires once for each customer instead of once in all (it's remembered as
 --             "<id>:<customer>", see Story.beatKey)
 Story.Beats = {
+	-- June's welcome. A new player starts on their first lawn with her shears already in hand
+	-- (JobService:StartFirstJob), so it plays when the truck brings them home from that first
+	-- payday, ahead of her texts about it (FirstJob): it's listed first so it comes first.
 	{
 		id = "Intro",
-		on = "Joined",
+		on = "JobFinished",
 		when = function(facts)
-			return facts.jobsCompleted == 0
+			return facts.jobsCompleted == 1 and not facts.seen.Intro
 		end,
 		scene = "Intro",
 	},

@@ -644,6 +644,18 @@ function UI.display(kind: string, text: string, options: BitmapText.Options?, pr
 	return display
 end
 
+-- The words in the display face, `height` tall and as wide as what they sit in: what a wordmark is
+-- drawn as until it's uploaded, and what UI.stampText always draws. Returns its frame.
+local function plainWordmark(name: string, text: string, height: number): GuiObject
+	local headline = UI.display(
+		"Headline",
+		text,
+		{ TextSize = height * 0.95, Color = UI.Colors.Text, XAlignment = "Center", Fit = true },
+		{ Name = name, Size = UDim2.new(1, 0, 0, height) }
+	)
+	return headline.Frame
+end
+
 -- A finished wordmark ("JobComplete", "Act2"...) as tall as `height`, or until it's uploaded the
 -- same words in the display face. Returns its frame.
 function UI.wordmark(name: string, text: string, height: number, props): GuiObject
@@ -658,13 +670,7 @@ function UI.wordmark(name: string, text: string, height: number, props): GuiObje
 			Size = UDim2.fromOffset(math.floor(height * Art.aspect(`Wordmarks/{name}.png`)), height),
 		})
 	else
-		local headline = UI.display(
-			"Headline",
-			text,
-			{ TextSize = height * 0.95, Color = UI.Colors.Text, XAlignment = "Center", Fit = true },
-			{ Name = name, Size = UDim2.new(1, 0, 0, height) }
-		)
-		frame = headline.Frame
+		frame = plainWordmark(name, text, height)
 	end
 	for key, value in props or {} do
 		if key ~= "Parent" then
@@ -1864,16 +1870,15 @@ export type Stamp = {
 local STAMP_HOLD = 0.8
 local STAMP_LAND = TweenInfo.new(0.22, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
 
--- Rubber stamps that thump down over `parent` and fade away, like the shop's Bought and Sold.
--- `stamps` maps each stamp's wordmark ("Stamp_Bought") to its words, drawn in the display face
--- until it's uploaded; they're all `height` tall. They're made once and reused:
--- stamp.flash(name, at, sparkles) lands one with its middle at `at` (fractions of `parent`'s size,
--- its middle by default), with that many sparkles round it.
-function UI.stamp(parent: GuiObject, stamps: { [string]: string }, height: number): Stamp
-	local widest = 1
-	for name in stamps do
-		widest = math.max(widest, Art.aspect(`Wordmarks/{name}.png`))
-	end
+-- Builds the holder, the thump and the fade that UI.stamp and UI.stampText share. `widest` is how
+-- many heights wide the widest words are, and `addWords` makes each stamp's words in the holder
+-- (hidden) and returns them by name.
+local function buildStamp(
+	parent: GuiObject,
+	height: number,
+	widest: number,
+	addWords: (holder: CanvasGroup) -> { [string]: GuiObject }
+): Stamp
 	-- Room round the stamp for its sparkles (a CanvasGroup cuts off what's outside it).
 	local holder = UI.new("CanvasGroup", {
 		Name = "Stamp",
@@ -1886,15 +1891,7 @@ function UI.stamp(parent: GuiObject, stamps: { [string]: string }, height: numbe
 		Parent = parent,
 	})
 	local scale = UI.new("UIScale", { Parent = holder })
-	local words: { [string]: GuiObject } = {}
-	for name, text in stamps do
-		words[name] = UI.wordmark(name, text, height, {
-			AnchorPoint = Vector2.new(0.5, 0.5),
-			Position = UDim2.fromScale(0.5, 0.5),
-			Visible = false,
-			Parent = holder,
-		})
-	end
+	local words = addWords(holder)
 	local land = TweenService:Create(scale, STAMP_LAND, { Scale = 1 })
 	local show = TweenService:Create(holder, TweenInfo.new(0.1), { GroupTransparency = 0 })
 	local hide = TweenService:Create(holder, TweenInfo.new(0.35), { GroupTransparency = 1 })
@@ -1933,6 +1930,46 @@ function UI.stamp(parent: GuiObject, stamps: { [string]: string }, height: numbe
 			end)
 		end,
 	}
+end
+
+-- Rubber stamps that thump down over `parent` and fade away, like the shop's Bought and Sold.
+-- `stamps` maps each stamp's wordmark ("Stamp_Bought") to its words, drawn in the display face
+-- until it's uploaded; they're all `height` tall. They're made once and reused:
+-- stamp.flash(name, at, sparkles) lands one with its middle at `at` (fractions of `parent`'s size,
+-- its middle by default), with that many sparkles round it.
+function UI.stamp(parent: GuiObject, stamps: { [string]: string }, height: number): Stamp
+	local widest = 1
+	for name in stamps do
+		widest = math.max(widest, Art.aspect(`Wordmarks/{name}.png`))
+	end
+	return buildStamp(parent, height, widest, function(holder)
+		local words: { [string]: GuiObject } = {}
+		for name, text in stamps do
+			words[name] = UI.wordmark(name, text, height, {
+				AnchorPoint = Vector2.new(0.5, 0.5),
+				Position = UDim2.fromScale(0.5, 0.5),
+				Visible = false,
+				Parent = holder,
+			})
+		end
+		return words
+	end)
+end
+
+-- A stamp of just `text` in the display face, `height` tall, whatever art there is: it never draws a
+-- wordmark's picture, so it can say what no art says (the goals rail's DONE). It looks the way
+-- UI.stamp does before its art is uploaded, and it's flashed the same way: stamp.flash("Text", at,
+-- sparkles), "Text" being the name of its one set of words.
+function UI.stampText(parent: GuiObject, text: string, height: number): Stamp
+	-- About how many heights wide the words are, to leave room for them.
+	return buildStamp(parent, height, math.max(1, #text * 0.6), function(holder)
+		local words = plainWordmark("Text", text, height)
+		words.AnchorPoint = Vector2.new(0.5, 0.5)
+		words.Position = UDim2.fromScale(0.5, 0.5)
+		words.Visible = false
+		words.Parent = holder
+		return { Text = words }
+	end)
 end
 
 -- Prices ----------------------------------------------------------------------------------------

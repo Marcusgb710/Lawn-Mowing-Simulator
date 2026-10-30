@@ -130,8 +130,21 @@ function GameConfig.qualityMultiplier(quality: number): number
 	return math.clamp(1 + (quality - 0.75) * 1.5, 0.5, 1.3)
 end
 
+-- How a job went, as one factor: the finish and the speed multipliers blended by what the customer
+-- wants (`weights`, from Jobs.Preferences). It's 1 for a decent job done at par. The pay is built
+-- on it (jobPay) and so are the job's stars (JobService's completeJob), so they can't disagree.
+function GameConfig.performance(
+	quality: number,
+	elapsed: number,
+	parTime: number,
+	weights: { quality: number, time: number }
+): number
+	return weights.quality * GameConfig.qualityMultiplier(quality)
+		+ weights.time * GameConfig.speedMultiplier(elapsed, parTime)
+end
+
 -- Pay for a finished job, before it's split between the crew:
---   base pay x tool fit x (quality and time, weighted by what the customer wants)
+--   base pay x tool fit x performance (quality and time, weighted by what the customer wants)
 --   x crew/truck/business bonuses, minus damage.
 function GameConfig.jobPay(job: {
 	basePay: number,
@@ -143,8 +156,7 @@ function GameConfig.jobPay(job: {
 	bonus: number,
 	penalty: number,
 }): number
-	local performance = job.weights.quality * GameConfig.qualityMultiplier(job.quality)
-		+ job.weights.time * GameConfig.speedMultiplier(job.elapsed, job.parTime)
+	local performance = GameConfig.performance(job.quality, job.elapsed, job.parTime, job.weights)
 	return math.max(0, math.floor(job.basePay * job.toolFit * performance * job.bonus - job.penalty))
 end
 

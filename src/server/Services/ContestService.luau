@@ -226,7 +226,11 @@ function ContestService:Collect(player: Player): (boolean, string)
 		local rewards = pending.rewards or Contest.rewards(contest.wins, data.owned.Business)
 		contest.wins += 1
 		contest.summer += 1
-		DataService:AddMoney(player, rewards.money or 0)
+		-- The prize is money they made, so it counts toward `earned`.
+		local prize = rewards.money or 0
+		if prize > 0 then
+			DataService:Earn(player, prize)
+		end
 		if rewards.trophy then
 			DecorService:Gift(player, rewards.trophy)
 		end

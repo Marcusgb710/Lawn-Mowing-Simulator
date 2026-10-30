@@ -304,13 +304,14 @@ local function itemCard(order: number, image: string, locked: boolean, round: bo
 end
 
 -- The button on the right of a card, and while it's for sale its `price` on a plant tag over it
--- (shaded when it's out of reach). Returns the button.
+-- (shaded when it's out of reach). A price given as text ("Earned", for a paint that was a level
+-- reward) goes on the tag as it is, and is never shaded. Returns the button.
 local function cardButton(
 	card: GuiObject,
 	text: string,
 	style: string,
 	onClick: (button: TextButton) -> (),
-	price: number?
+	price: (number | string)?
 ): TextButton
 	-- The tag and the button, 34 + 6 + 40 tall, sit together in the middle of the card's right.
 	local button: TextButton
@@ -329,13 +330,14 @@ local function cardButton(
 	UI.new("UITextSizeConstraint", { MaxTextSize = 18, Parent = button })
 	UI.new("UIPadding", { PaddingLeft = UDim.new(0, 8), PaddingRight = UDim.new(0, 8), Parent = button })
 	if price then
-		UI.priceTag(Format.money(price), {
+		local dollars = typeof(price) == "number"
+		UI.priceTag(if typeof(price) == "number" then Format.money(price) else price, {
 			AnchorPoint = Vector2.new(0.5, 1),
 			Position = UDim2.new(1, -12 - BUTTON_WIDTH / 2, 0.5, -6),
 			Size = UDim2.fromOffset(0, 34),
 			Rotation = -3,
 			Parent = card,
-		}, style == "Disabled")
+		}, dollars and style == "Disabled")
 		-- The card's at least as tall as the tag and the button.
 		UI.new("Frame", { Size = UDim2.fromOffset(1, 96), BackgroundTransparency = 1, Parent = card })
 	end
@@ -343,7 +345,8 @@ local function cardButton(
 end
 
 -- One card on the Premium tab: its picture (a pass's circle, a tool or a truck), name,
--- description and details down the left, a button on the right.
+-- description and details down the left, a button on the right, and a `tag` over the button when
+-- it has one (the paints that were earned, not bought, say "Earned").
 local function premiumCard(
 	order: number,
 	image: string,
@@ -353,7 +356,8 @@ local function premiumCard(
 	note: string?,
 	buttonText: string,
 	style: string,
-	onClick: (() -> ())?
+	onClick: (() -> ())?,
+	tag: string?
 )
 	local card, text = itemCard(order, image, false, string.find(image, "Pass_") ~= nil)
 	UI.heading(name, { TextSize = 20, LayoutOrder = 1, Parent = text })
@@ -379,7 +383,7 @@ local function premiumCard(
 			premiumSpot = spotIn(button)
 			onClick()
 		end
-	end)
+	end, tag)
 end
 
 local function premiumHeading(order: number, text: string)
@@ -501,6 +505,8 @@ local function renderPremium(profile)
 			text, style, onClick = "Soon", "Disabled", nil
 		end
 		local look = if paint.finish then `{paint.finish} finish` else "Paint"
+		-- A paint they own that wasn't bought (a level reward) says so where the price would be.
+		local earned = owned and premium.earnedPaints ~= nil and premium.earnedPaints[paint.id] == true
 		premiumCard(
 			nextOrder(),
 			Art.item(paint.id),
@@ -510,7 +516,8 @@ local function renderPremium(profile)
 			nil,
 			text,
 			style,
-			onClick
+			onClick,
+			if earned then "Earned" else nil
 		)
 	end
 end

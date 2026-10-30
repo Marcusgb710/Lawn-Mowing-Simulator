@@ -13,6 +13,7 @@ local LOAD_ORDER = {
 	"LawnService",
 	"DecorService",
 	"HomeLawnService",
+	"SeasonService",
 	"JobService",
 	"ToolService",
 	"TruckService",

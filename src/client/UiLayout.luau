@@ -57,6 +57,9 @@
 --   device    "touch": it only ever shows on a touch screen; "keyboard": only with a keyboard
 --   fixed     true for something drawn only so the rest can be placed around it: the game decides
 --             where it goes (the dot is where the camera aims), so the editor shouldn't move it
+--   compactOnly  true for a piece that only shows on a short screen, the way the HUD counts one for
+--             its columns: shorter than __screen.scaling.Columns.fullHeight, not compactHeight. Once
+--             the editor learns it, it draws it on the phone screens and leaves it out of the tall ones
 --   note      when it shows, what decides its size, and anything else the editor should know
 --
 -- The screens. Each element is on one of these ScreenGuis (its `screen`, or its parent's), and
@@ -110,6 +113,8 @@
 -- Worked out while playing, from the values here (each one's note has the rule):
 --   * the columns' scale (above), and curb appeal hiding on a short screen while the job tracker
 --     shows;
+--   * the goals rail under Grandma's goal (its next two milestones, from Config/Milestones.luau), which
+--     hides on a short screen, where NextChip shows the next one instead, through a job too;
 --   * what gives way to what (each piece's hideWhile): on a touch screen Grandma's goal, the
 --     first-job coach and a crew invite share the top of the screen, one at a time, and the job
 --     tracker steps aside for the decorating buttons;
@@ -119,6 +124,8 @@
 --     way: the first-job coach, and on a touch screen Grandma's goal or a crew invite;
 --   * the dialogue box's width and height, for each line and the screen it's on, and the
 --     dialogue's compact places when the screen turns;
+--   * the Levels panel shrinking to fit the screen by the pay breakdown's rule (centred, it's already
+--     clear of the move stick and jump button on a touch screen);
 --   * a menu's window fills the computer's screen while you're at the computer;
 --   * inside the computer's screen, the taskbar hides the apps' names (and then your money) on
 --     narrower screens;
@@ -236,6 +243,17 @@ return {
 				note = "The smallest of 1, (screen height - margin) / its height and (screen width - margin) / "
 					.. "its width.",
 			},
+			LevelsPanel = {
+				elements = { "LevelsPanel" },
+				margin = 24,
+				touchMargin = 24,
+				scale = 1,
+				note = "The smallest of `scale`, (screen height - margin) / its height and (screen width - "
+					.. "margin) / its width, so it only ever shrinks. On a touch screen the height margin is "
+					.. "touchMargin, the same 24 as margin: a panel in the middle of the screen is already clear "
+					.. "of Roblox's move stick and jump button in the bottom corners, so it takes no more "
+					.. "height than the pay breakdown does.",
+			},
 			ContestResults = {
 				elements = { "ContestResults" },
 				marginX = 32,
@@ -272,8 +290,9 @@ return {
 		detach = "LeftColumn",
 		order = 1,
 		size = { 0, 250, 0, 72 },
-		note = "Always shown during play: your money, then your level and jobs done, then the XP bar. Low and "
-			.. "wide, so it takes little of a short screen's height.",
+		note = "Always shown during play: your money, then your level and jobs done, then the XP bar. The level "
+			.. "line and the XP bar are the Levels button (key L). Low and wide, so it takes little of a short "
+			.. "screen's height.",
 	},
 	MenuButtons = {
 		label = "Menu buttons",
@@ -339,9 +358,13 @@ return {
 			hideWhile = { "TutorialBanner", "CrewInvite" },
 		},
 		note = "Grandma's sticky note with your story goal and how close you are, while you have one. As "
-			.. "tall as its words. On a touch screen it's out of the column, at the top in the middle between "
-			.. "the HUD's columns, away from your thumb on the move stick, and the toasts start under it. The "
-			.. "first-job coach and a crew invite go there too, and it waits while either shows.",
+			.. "tall as its words. Under the goal's bar is the goals rail: the next two milestones (the ones "
+			.. "nearest to done), each a line of words over a thin bar, until the screen is shorter than "
+			.. "__screen.scaling.Columns.fullHeight, where the rail is hidden and NextChip says the next one "
+			.. "instead (typical is that short screen, so it has no rail). On a touch screen it's out of the "
+			.. "column, at the top in the middle between the HUD's columns, away from your thumb on the move "
+			.. "stick, and the toasts start under it. The first-job coach and a crew invite go there too, and "
+			.. "it waits while either shows.",
 	},
 	RightColumn = {
 		label = "Right HUD column",
@@ -352,11 +375,12 @@ return {
 		size = { 0, 280, 0, 0 },
 		autoSize = "Y",
 		list = { direction = "Vertical", padding = 10, align = "Right" },
-		typical = { 280, 330 },
-		note = "Curb appeal over the job tracker, then the Show what I missed button late in the mowing, down "
-			.. "the right. Its UIScale shrinks it to fit like the left column's, toward its top right corner. "
-			.. "Typical is during a job on a phone, where curb appeal hides. Each of the three can be taken out "
-			.. "of it (their detach) and put anywhere on the screen.",
+		typical = { 280, 368 },
+		note = "Curb appeal, then on a short screen the Next chip, over the job tracker, then the Show what I "
+			.. "missed button late in the mowing, down the right. Its UIScale shrinks it to fit like the left "
+			.. "column's, toward its top right corner. Typical is during a job on a phone, where curb appeal "
+			.. "hides and the chip stays. Each of the four can be taken out of it (their detach) and put "
+			.. "anywhere on the screen.",
 	},
 	CurbAppeal = {
 		label = "Curb appeal panel",
@@ -368,12 +392,27 @@ return {
 		note = "Your crew's curb appeal out of 100, once there is one. Hidden during a job on a screen "
 			.. "shorter than __screen.scaling.Columns.fullHeight, where the job tracker needs the room.",
 	},
+	NextChip = {
+		label = "Next milestone chip",
+		group = "Trackers",
+		parent = "RightColumn",
+		detach = "RightColumn",
+		order = 2,
+		size = { 0, 220, 0, 28 },
+		compactOnly = true,
+		note = "The goals rail's next milestone on one line ('Next: Finish 3 jobs 1/3'), under curb appeal, "
+			.. "while there is one left. Only on a screen shorter than __screen.scaling.Columns.fullHeight (a "
+			.. "phone held sideways), where Grandma's goal has no room for the rail's two rows. Nothing takes "
+			.. "its spot, so it stays up during a job, when curb appeal hides. Its words shrink to fit the "
+			.. "line (to 10 px at the least, so a line over 24 characters drops its 'Next: '), and it gets "
+			.. "the DONE stamp and the sparkles when the milestone's reached.",
+	},
 	JobTracker = {
 		label = "Job tracker",
 		group = "Trackers",
 		parent = "RightColumn",
 		detach = "RightColumn",
-		order = 2,
+		order = 3,
 		size = { 0, 280, 0, 0 },
 		autoSize = "Y",
 		typical = { 280, 330 },
@@ -393,7 +432,7 @@ return {
 		group = "HUD",
 		parent = "RightColumn",
 		detach = "RightColumn",
-		order = 3,
+		order = 4,
 		size = { 0, 280, 0, 44 },
 		touch = { size = { 0, 280, 0, 52 } },
 		note = "Under the job tracker, once the mowing's percent (how much of what the job requires is cut, "
@@ -648,9 +687,10 @@ return {
 		position = { 0.5, 0, 0.5, 0 },
 		size = { 0, 500, 0, 0 },
 		autoSize = "Y",
-		typical = { 500, 430 },
-		note = "After a job until you close it: Job Complete!, what each part paid and the total. As tall as "
-			.. "its lines; its UIScale shrinks it to fit the screen (__screen.scaling.PayBreakdown).",
+		typical = { 500, 480 },
+		note = "After a job until you close it: Job Complete!, what each part paid and the total, then the "
+			.. "stars row (three slots, about 50 px, that go gold one by one). As tall as its lines; its "
+			.. "UIScale shrinks it to fit the screen (__screen.scaling.PayBreakdown).",
 	},
 	CrewInvite = {
 		label = "Crew invite",
@@ -680,6 +720,19 @@ return {
 		note = "Every menu's window, one open at a time: Truck, Guide and Crew, and the computer's Jobs, "
 			.. "Orders, Business and Messages apps. While you're at the computer they fill its screen instead "
 			.. "(ComputerMonitor), however big that is.",
+	},
+	LevelsPanel = {
+		label = "Levels panel",
+		group = "Menus",
+		screen = "LawnUI",
+		anchor = { 0.5, 0.5 },
+		position = { 0.5, 0, 0.5, 0 },
+		size = { 0, 360, 0, 420 },
+		note = "Opened from the XP bar (and L on a keyboard), closed by its Close button or Escape: your level "
+			.. "and the XP to the next, then what the next five levels pay. Its own window, not one of the "
+			.. "menus: it never opens inside the shop computer, and it closes when a job's state changes, a "
+			.. "scene starts or you open a menu. Its UIScale shrinks it to fit the screen "
+			.. "(__screen.scaling.LevelsPanel).",
 	},
 	ComputerMonitor = {
 		label = "Shop computer",
@@ -877,7 +930,7 @@ return {
 		position = { 1, -12, 0.5, 0 },
 		size = { 0, 240, 0, 0 },
 		autoSize = "Y",
-		typical = { 240, 410 },
+		typical = { 240, 514 },
 		note = "Shortcuts for testing the story, shown and hidden with K in Studio playtests only. Its buttons "
 			.. "are laid out for its width.",
 	},

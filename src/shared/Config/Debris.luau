@@ -69,7 +69,8 @@ Debris.Kinds = {
 Debris.StallTime = 1.5
 
 -- How much a customer's lawn hides: one piece per this many lawn tiles (by the job's tier),
--- rounded, at least 1 and at most Max. A job's `lawn.debris` sets it outright. Only lawns that
+-- rounded, at least 1 and at most Max. A job's own `junk` sets it outright (0 for none, which is
+-- how the first-timer's strip hides nothing), and so does its lawn's `debris`. Only lawns that
 -- need mowing have any.
 Debris.TilesPerPiece = { Homeowner = 16, Serious = 14, Pro = 12 }
 Debris.Max = 10
@@ -94,6 +95,9 @@ end
 
 -- How many pieces hide in a job's lawn.
 function Debris.countFor(template): number
+	if template.junk then
+		return template.junk
+	end
 	local lawn = template.lawn
 	if lawn.debris then
 		return lawn.debris

@@ -110,6 +110,18 @@ You start from the bottom: a new player's only tool is a free pair of **grass sh
 (`GardenShears`, price 0), and the **reel push mower** (`ReelMower`) is the first thing they buy,
 for **$150**: the pay of 2-3 early jobs with the shears.
 
+**A new player starts on a lawn, not at the computer.** A first-timer (`Season.isFirstTimer`: the
+save's `firstJob` is false and no job is finished) joins straight onto their first job:
+`JobService:StartFirstJob` takes the hidden `FirstMow` job (below), builds the yard with their
+truck parked out front, starts the clock and stands them on the sidewalk facing the house with the
+shears in their hands. Only then does the title card lift, so the first thing they see is grass
+and a coach line: "Click and hold to snip. Clear the lawn." ("Hold Snip to cut." on a phone). The
+truck brings them home after the payday like after any job, and the story's intro plays then, as
+June's welcome. The second job teaches the computer, the Jobs app, loading the truck and the drive,
+and the coach stays up until it's paid. `firstJob` is saved as the opening starts, so someone who
+leaves mid-job comes back to their business and the usual flow, and if the opening fails they just
+start at their business.
+
 - **Shears cut by hand, a snip at a time** (`snip` in `Tools.luau`, `SnipController`, `ToolService`).
   Each click (or tap, or the **Snip** button on a phone) cuts what's where you aim: the grass
   around that spot or, where there's none left to cut, the one weed nearest. Holding the button
@@ -351,9 +363,19 @@ flowers, the turf-renovation steps) keeps the **4-stud tile** (`GameConfig.TileS
 
 ### The first job
 
-With only the shears, the board's first slot is always `QuickMow` (shown as **Front Lawn**), the
-one job the free gear can finish. It's built to take a new player **about 5 minutes** with the
-shears:
+Every new player's very first job is `FirstMow` (shown as **Front Strip**, Edna's), handed out as
+they join (see "Starting out") and never on the board (it's `hidden`, so `Jobs.boardTemplates`
+leaves it out). It's 5 x 6 tiles (20 x 24 studs) with no flowers: 480 grass cells, done at 99% =
+**476**, about half the Front Lawn's. By the arithmetic below that's ~80 s of snipping, ~15 s
+re-aiming, ~15 s walking and ~30 s finding your feet: **about 2 1/3 minutes** (~140 s), par time
+150 s. It hides no junk (`junk = 0`): the coach teaches the snip and nothing else, so a new player
+can't lose stars, the tip or the first milestone to something they were never told about. Junk
+comes with the next job. It pays exactly $60 (no roll), about $51 with the shears' fit and a fine
+finish, and 25 xp.
+
+After that, with only the shears, the board's first slot is always `QuickMow` (shown as **Front
+Lawn**), the one job the free gear can finish, so it's every new player's second. It's built to
+take a new player **about 5 minutes** with the shears:
 
 | | |
 | --- | --- |
@@ -383,8 +405,9 @@ have to spot them and pick them up (look at one and press **E**, or tap the big 
 cutting there.
 
 - **How much:** one piece per 16 lawn tiles on homeowner jobs, per 14 on serious ones and per 12
-  on pro ones, rounded, 1 to 10 (a job's `lawn.debris` sets it outright): 2 on a tiny yard, 4 on
-  the first job, 5 on a suburban lawn, 10 on the big ones. Each lies on one cell, never on the
+  on pro ones, rounded, 1 to 10 (a job's `junk`, or its lawn's `debris`, sets it outright): 2 on a
+  tiny yard, none on the first job's strip, 4 on the Front Lawn, 5 on a suburban lawn, 10 on the
+  big ones. Each lies on one cell, never on the
   optional cells beside flowers and trees, and at least 4 cells (4 studs) from the next piece.
   Sticks turn up most often, then rocks and balls, then toys and frisbees.
 - **Grass shears can't snip a spot with something in it**: a snip that would cut a cell with junk

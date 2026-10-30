@@ -8,6 +8,8 @@
 --             flower patches / gnomes the crew must not hit. Lawns that need mowing also hide some
 --             junk in the grass (Config/Debris.luau); `debris` sets how many instead of the usual
 --             count for the lawn's size and tier.
+--   junk      optional: how many pieces of junk the lawn hides, 0 for none, instead of the usual
+--             count (Debris.countFor reads it)
 --   tasks     { type = a TaskTypes id, amount = how many } in the order the customer lists them.
 --             A job without a mowing task gets an already-mown lawn. `rocky` (0-1) is the share of
 --             a task's targets in rocky ground, for tasks with TaskTypes `rocky`.
@@ -17,6 +19,8 @@
 --   which the customer hints at and only the probe reads exactly.
 --   parTime   seconds a solo player should take; beating it pays more on Speed jobs
 --   basePay, xp, minLevel
+--   hidden    never on the job board (Jobs.boardTemplates leaves it out): the first-timer's job,
+--             which JobService:StartFirstJob hands out itself
 
 local TaskTypes = require(script.Parent.TaskTypes)
 
@@ -72,12 +76,33 @@ Jobs.Customers = {
 }
 
 Jobs.Templates = {
-	-- Every new player's first job (the board's first slot is always one the free gear can do),
-	-- done with grass shears in about 5 minutes (docs/GAME_DESIGN.md, "Starting out"): it's done at
-	-- 856 of its 992 grass cells (the 128 by the flowers are optional, then 99% of the rest), at
-	-- about 3 cells a snip and 2 snips a second, with 4 bits of junk to find in the grass
-	-- (Debris.countFor). A reel mower does it in about a minute, and 2-3 of these with shears pay
-	-- for one.
+	-- Every new player's very first job, which they're already standing on as they join
+	-- (JobService:StartFirstJob, docs/GAME_DESIGN.md "The first job"), and never on the board: the
+	-- strip by the walk, 5 by 6 tiles and no flowers, so 480 grass cells, about half the Front
+	-- Lawn's. With the grass shears it takes about two and a half minutes. It hides no junk: the
+	-- coach teaches the snip and nothing else, so a new player who missed a stick would lose their
+	-- stars, the tip and the first milestone over a thing they were never told about. Junk comes
+	-- with the next job (Debris.countFor).
+	{
+		id = "FirstMow",
+		name = "Front Strip",
+		tier = "Homeowner",
+		minLevel = 1,
+		hidden = true,
+		lawn = { columns = 5, rows = 6, flowerPatches = 0 },
+		junk = 0,
+		tasks = { { type = "MowSmallLawn" } },
+		notes = { "Just the strip by the walk. Grandma said you'd do it." },
+		parTime = 150,
+		basePay = 60,
+		xp = 25,
+	},
+	-- The board's starter job (its first slot is always one the free gear can do), so every new
+	-- player's second job, done with grass shears in about 5 minutes (docs/GAME_DESIGN.md,
+	-- "Starting out"): it's done at 856 of its 992 grass cells (the 128 by the flowers are
+	-- optional, then 99% of the rest), at about 3 cells a snip and 2 snips a second, with 4 bits of
+	-- junk to find in the grass (Debris.countFor). A reel mower does it in about a minute, and 2-3
+	-- of these with shears pay for one.
 	{
 		id = "QuickMow",
 		name = "Front Lawn",
@@ -627,6 +652,18 @@ end
 
 function Jobs.get(id: string)
 	return byId[id]
+end
+
+-- The templates the job board can offer: all of them but the `hidden` ones. A new list each
+-- time, so a caller can't change Jobs.Templates through it.
+function Jobs.boardTemplates(): { any }
+	local templates = {}
+	for _, template in Jobs.Templates do
+		if not template.hidden then
+			table.insert(templates, template)
+		end
+	end
+	return templates
 end
 
 function Jobs.randomAddress(rng: Random): string

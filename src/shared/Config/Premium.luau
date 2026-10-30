@@ -12,8 +12,10 @@
 --
 -- What a player owns is saved in their data as `premium`:
 --   { owned = { [variant or paint id] = true }, passes = { [pass id] = true },
---     truckPaint = paint id or false, receipts = { [purchase id] = true } }
--- and sent to their screen in their profile. The helpers below read that table.
+--     truckPaint = paint id or false, receipts = { [purchase id] = true },
+--     earnedPaints = { [paint id] = true } }
+-- and sent to their screen in their profile. `earnedPaints` are the paints in `owned` that were
+-- given as level rewards, not bought (they have no receipt). The helpers below read that table.
 
 local Premium = {}
 
@@ -197,7 +199,7 @@ end
 
 -- A fresh `premium` table for a player's data.
 function Premium.empty()
-	return { owned = {}, passes = {}, truckPaint = false, receipts = {} }
+	return { owned = {}, passes = {}, truckPaint = false, receipts = {}, earnedPaints = {} }
 end
 
 -- The perks working on one of a player's tools: their passes, and the premium version of that

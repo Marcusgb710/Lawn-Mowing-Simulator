@@ -1,19 +1,27 @@
 -- Always-on screen stuff, laid out like the art's HUD (alphainstructions/instructions38.md):
---   * down the left: money and level (the money counter in the display face), the menu buttons
---     with their glyphs (and on a keyboard their keys: T, G, C), and Grandma's sticky note with
---     your story goal;
---   * down the right: your business's curb appeal, the job tracker on the art's GoalTracker
---     card (to-dos, a timer against par, damage), smaller on a phone, and under it, late in the
---     mowing, the button that lights up the grass you missed (M on a keyboard);
+--   * down the left: money and level (the money counter in the display face; the level line and
+--     its XP bar are one button that opens the Levels panel, LevelsController, with a gold star
+--     beside the level once you have the gold business sign), the menu buttons with their glyphs
+--     (and on a keyboard their keys: T, G, C), and Grandma's sticky note with your story goal and,
+--     under it, the goals rail: your next two milestones;
+--   * down the right: your business's curb appeal, on a phone the Next chip (the next milestone,
+--     where the rail has no room), the job tracker on the art's GoalTracker card (to-dos, a timer
+--     against par, damage), smaller on a phone, and under it, late in the mowing, the button that
+--     lights up the grass you missed (M on a keyboard);
 --   * the condition of the tool in your hands, a glyph for each thing wrong ("Running low on
 --     fuel" by the fuel can), or what you're doing to one at the workbench;
---   * the pay breakdown when a job's done, and the big moments: Level Up! and New Tool!
+--   * the pay breakdown when a job's done, and the big moments: Level Up! (when the server says
+--     what the level paid, LevelReward) and New Tool!
+--   * cash and XP coming in lift off the piece of the HUD they came from (FloatingText) and ring
+--     (Sounds.playUi): the pay panel's total and tip, a goal's row or the Next chip, the level line
+--     and the XP bar.
 -- On a keyboard V switches camera motion on and off. Where each piece goes is in UiLayout.luau,
 -- which can also take any of the columns' pieces out of its column to go anywhere on the screen.
 
 local Players = game:GetService("Players")
 local ProximityPromptService = game:GetService("ProximityPromptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -22,6 +30,7 @@ local GameConfig = require(Shared.Config.GameConfig)
 local Items = require(Shared.Config.Items)
 local Jobs = require(Shared.Config.Jobs)
 local Maintenance = require(Shared.Config.Maintenance)
+local Milestones = require(Shared.Config.Milestones)
 local Net = require(Shared.Net)
 local PayBreakdown = require(Shared.PayBreakdown)
 local Sounds = require(Shared.Sounds)
@@ -29,10 +38,12 @@ local Tools = require(Shared.Config.Tools)
 
 local Art = require(script.Parent.Parent.Art)
 local ClientState = require(script.Parent.Parent.ClientState)
+local FloatingText = require(script.Parent.Parent.FloatingText)
 local Goal = require(script.Parent.Parent.Goal)
 local UI = require(script.Parent.Parent.UI)
 local CameraController = require(script.Parent.CameraController)
 local GrassController = require(script.Parent.GrassController)
+local LevelsController = require(script.Parent.LevelsController)
 
 local player = Players.LocalPlayer
 
@@ -51,6 +62,31 @@ local MISSED_KEY = Enum.KeyCode.M
 -- done), this tall, with this many sparkles round it.
 local DONE_STAMP_HEIGHT = 40
 local DONE_SPARKLES = 5
+-- The goals rail under the story goal: this many milestones, each in a row this tall (its words over
+-- a thin bar). A milestone just reached stays on its row, done, under a stamp this tall, for
+-- RAIL_HOLD seconds before the rail moves on to the next.
+local RAIL_ROWS = 2
+local RAIL_ROW_HEIGHT = 32
+local RAIL_STAMP_HEIGHT = 24
+local RAIL_HOLD = 1.2
+-- The Next chip's line is one line of 10 to 14 px words; past this many characters it drops its
+-- "Next: " so the rest can stay readable.
+local CHIP_LONG_LINE = 24
+-- The pay breakdown's three star slots (a job's stars): each is this big, and the stars it earned
+-- fill in gold one every STAR_STEP seconds, each landing over that time.
+local STAR_GLYPH = "★"
+local STAR_SIZE = 44
+local STAR_STEP = 0.35
+-- Each star's chime is quieter than the default, so up to three ringing together aren't a smudge.
+local STAR_VOLUME = 0.35
+-- The cash pops on the pay panel come this long after it opens, once it has been laid out and
+-- scaled to fit (where its total and tip are is only known then); its chime doesn't wait. The
+-- tip's and the XP's are this many pixels tall, under the cash's.
+local PAY_POP_DELAY = 0.25
+local SMALL_POP = 16
+-- A level's cash lifts off the level line this long after the level-up arrives, so it doesn't ride
+-- the XP pop off the bar just under it (and lines up with the Level Up moment).
+local LEVEL_POP_DELAY = 0.3
 -- The columns down each side are full size on screens at least `fullHeight` tall (in pixels), and
 -- shrink on shorter ones (phones held sideways), down to `minScale`, or further (to `tightScale`)
 -- if that's what it takes to fit everything in a column on the screen. A piece taken out of its
@@ -58,6 +94,9 @@ local DONE_SPARKLES = 5
 local COLUMNS = UI.Layout.__screen.scaling.Columns
 -- Room for the key badge at the left of a menu button.
 local KEY_ROOM = 46
+-- The gold star beside the level (once the business has its gold sign) takes this much of the level
+-- line's width, which is its own size and the gap.
+local GOLD_STAMP_ROOM = 18
 -- On a short screen the job tracker's timer goes beside the job's name, in a box this wide.
 local COMPACT_TIMER = 112
 
@@ -65,7 +104,12 @@ local HudController = {}
 
 local money
 local levelLabel: TextLabel
+-- How far in from the left the level line starts (room for its glyph, when there's art for one).
+local levelLabelLeft = 0
+local goldStamp: TextLabel
 local xpBar: UI.Bar
+-- The XP the last profile had (nil before the first), so a rise can be shown as "+40 XP".
+local lastXp: number? = nil
 local curbPanel: GuiObject
 local curbValue: TextLabel
 local curbBar: UI.Bar
@@ -74,6 +118,34 @@ local goalNote: GuiObject
 local goalText: TextLabel
 local goalValue: TextLabel
 local goalBar: UI.Bar
+
+-- The goals rail's rows, in order: what each shows now (nil while it's empty) and, while its
+-- milestone's being celebrated, that one, which keeps the row until the celebration's over.
+type Milestone = Milestones.Milestone
+type RailRow = {
+	frame: Frame,
+	label: TextLabel,
+	bar: UI.Bar,
+	shown: Milestone?,
+	held: Milestone?,
+	stamp: UI.Stamp?,
+}
+local railRows: { RailRow } = {}
+-- The Next chip, its label and stamp, and the milestone being celebrated on it, if one is.
+local nextChip: GuiObject
+local nextChipLabel: TextLabel
+local chipStamp: UI.Stamp?
+local chipHeld: Milestone?
+-- Milestones MilestoneReached has said are reached that the profile doesn't have yet. The server
+-- sends the profile first, so this is normally empty; it keeps a late profile from drawing a
+-- reached milestone as still to do.
+local pending: { [string]: boolean } = {}
+-- Where the rail had a milestone the profile says is reached, by its id: the row's index. The
+-- profile comes before MilestoneReached and moves the rail on, so this is how the celebration
+-- finds the row the milestone was on.
+local leftRail: { [string]: number } = {}
+-- Whether the rail was last drawn for a short screen, so a window turning short or tall redraws it.
+local railCompact: boolean? = nil
 
 local tracker: GuiObject
 local trackerPadding: UIPadding
@@ -111,7 +183,6 @@ local heldCondition = {}
 
 local payPanel: GuiObject
 local payShownFor = nil
-local lastLevel: number? = nil
 local knownTools: { [string]: boolean }? = nil
 
 -- Tool attributes the server keeps up to date (see ToolService), as a condition table.
@@ -341,6 +412,7 @@ local function buildStats()
 	local levelIcon =
 		UI.icon("Level", { Size = UDim2.fromOffset(14, 14), Position = UDim2.fromOffset(2, 32), Parent = frame })
 	local levelX = if levelIcon then 22 else 0
+	levelLabelLeft = levelX
 	levelLabel = UI.label("Level 1", {
 		Position = UDim2.fromOffset(levelX, 30),
 		Size = UDim2.new(1, -levelX, 0, 18),
@@ -354,6 +426,49 @@ local function buildStats()
 		Size = UDim2.new(1, -levelX, 0, 8),
 		Parent = frame,
 	})
+	-- The small gold stamp for the business's gold sign (the GoldSign attribute, updateGoldSign), at
+	-- the end of the level line. No icon is drawn for it yet, so it's a gold star like the job board's.
+	goldStamp = UI.label("★", {
+		Name = "GoldStamp",
+		AnchorPoint = Vector2.new(1, 0),
+		Position = UDim2.new(1, 0, 0, 30),
+		Size = UDim2.fromOffset(16, 18),
+		TextSize = 14,
+		TextColor3 = UI.Colors.Gold,
+		TextXAlignment = Enum.TextXAlignment.Center,
+		Visible = false,
+		Parent = frame,
+	})
+	-- The level line and the XP bar are one button that opens the Levels panel. It's invisible, but
+	-- tall enough to tap on a phone (the bar alone is 8 px), and washes faintly under the mouse.
+	local levelsButton = UI.new("TextButton", {
+		Name = "LevelsButton",
+		Text = "",
+		AutoButtonColor = false,
+		BackgroundColor3 = UI.Colors.Text,
+		BackgroundTransparency = 1,
+		Position = UDim2.fromOffset(-6, 27),
+		Size = UDim2.new(1, 12, 0, 36),
+		ZIndex = 2,
+		Parent = frame,
+	}, { UI.corner(6) })
+	levelsButton.Activated:Connect(LevelsController.toggle)
+	if UserInputService.MouseEnabled then
+		levelsButton.MouseEnter:Connect(function()
+			levelsButton.BackgroundTransparency = 0.9
+		end)
+		levelsButton.MouseLeave:Connect(function()
+			levelsButton.BackgroundTransparency = 1
+		end)
+	end
+end
+
+-- Shows the gold stamp beside the level while the player has the gold business sign (the server
+-- sets GoldSign at level 20), and makes room for it on the level line.
+local function updateGoldSign()
+	local gold = player:GetAttribute("GoldSign") == true
+	goldStamp.Visible = gold
+	levelLabel.Size = UDim2.new(1, -levelLabelLeft - (if gold then GOLD_STAMP_ROOM else 0), 0, 18)
 end
 
 -- Your crew's business's curb appeal (see HomeLawnService), which pays a bonus on jobs.
@@ -500,11 +615,226 @@ local function buildGoal()
 		Parent = goalNote,
 	})
 	goalBar = UI.bar({ Size = UDim2.new(1, 0, 0, 10), LayoutOrder = 4, Parent = goalNote })
+	-- The goals rail under the bar (updateMilestones fills it in): a row for each milestone, one line
+	-- of words (they shrink to fit it, up to 15 px) over a thin bar. A row has no list in it, so its
+	-- stamp and sparkles go where they're put.
+	for index = 1, RAIL_ROWS do
+		local frame = UI.new("Frame", {
+			Name = `Milestone{index}`,
+			Size = UDim2.new(1, 0, 0, RAIL_ROW_HEIGHT),
+			BackgroundTransparency = 1,
+			Visible = false,
+			LayoutOrder = 4 + index,
+			Parent = goalNote,
+		})
+		local label = UI.label("", {
+			Position = UDim2.fromOffset(0, 6),
+			Size = UDim2.new(1, 0, 0, 18),
+			TextScaled = true,
+			TextSize = 15,
+			FontFace = UI.Fonts.Bold,
+			TextColor3 = UI.Colors.Ink,
+			Parent = frame,
+		})
+		UI.new("UITextSizeConstraint", { MaxTextSize = 15, MinTextSize = 10, Parent = label })
+		local bar = UI.bar({ Position = UDim2.fromOffset(0, 26), Size = UDim2.new(1, 0, 0, 6), Parent = frame })
+		railRows[index] = { frame = frame, label = label, bar = bar }
+	end
 	-- Out of its column at the top of the screen (on a touch screen), the toasts keep below it.
 	UI.keepToastsBelow(goalNote)
 end
 
+-- The Next chip: the rail's next milestone on one line in the right column, under curb appeal, on a
+-- short screen (a phone held sideways), where the note has no room for the rail. Nothing hides it:
+-- it stays up through a job, which curb appeal doesn't.
+local function buildNextChip()
+	nextChip = UI.sliced("Tooltip", {
+		Name = "NextChip",
+		Visible = false,
+	}, { color = UI.Colors.Background, transparency = 0.25, radius = 8 })
+	placeInColumn(nextChip, "NextChip")
+	UI.new("UIPadding", {
+		PaddingLeft = UDim.new(0, 10),
+		PaddingRight = UDim.new(0, 10),
+		Parent = nextChip,
+	})
+	nextChipLabel = UI.label("", {
+		Size = UDim2.fromScale(1, 1),
+		TextScaled = true,
+		TextSize = 14,
+		TextXAlignment = Enum.TextXAlignment.Center,
+		Parent = nextChip,
+	})
+	UI.new("UITextSizeConstraint", { MaxTextSize = 14, MinTextSize = 10, Parent = nextChipLabel })
+end
+
+-- The `count` milestones nearest to done, never one MilestoneReached has said is reached, which a
+-- profile that's behind would still list.
+local function nextMilestones(count: number): { Milestone }
+	local late = 0
+	for _ in pending do
+		late += 1
+	end
+	local nearest = {}
+	for _, milestone in Goal.milestones(count + late) do
+		if #nearest < count and not pending[milestone.id] then
+			table.insert(nearest, milestone)
+		end
+	end
+	return nearest
+end
+
+-- Draws `milestone` on a rail row: its words and how far along you are, over the bar, or done.
+local function fillRailRow(row: RailRow, milestone: Milestone, done: boolean)
+	local have, progress = Goal.milestoneProgress(milestone, if done then milestone.at else nil)
+	row.label.Text = `{milestone.text}   {progress}`
+	row.bar.fill(if done then "Money" else "Grass")
+	row.bar.set(have / milestone.at)
+end
+
+-- The goals rail and the Next chip, from the profile (Goal.milestones). The rows are hidden on a
+-- short screen (shortScreen, the test that hides curb appeal during a job), where the chip shows
+-- instead, whenever there's a milestone left. A row that's celebrating keeps its milestone, and
+-- the rows after it take the next ones.
+local function updateMilestones()
+	local compact = shortScreen()
+	railCompact = compact
+	local profile = ClientState.profile
+	local reached = if profile and profile.milestones then profile.milestones else {}
+	for id in pending do
+		if reached[id] then
+			pending[id] = nil
+		end
+	end
+	local free = {}
+	for index, row in railRows do
+		if not row.held then
+			table.insert(free, index)
+		end
+	end
+	local nearest = nextMilestones(#free)
+	for place, index in free do
+		local row = railRows[index]
+		local milestone = nearest[place]
+		local before = row.shown
+		-- The profile comes before MilestoneReached, so a row can give up a milestone here that
+		-- the event hasn't said is reached yet: keep where it was.
+		if before and not (milestone and milestone.id == before.id) and (reached[before.id] or pending[before.id]) then
+			leftRail[before.id] = index
+		end
+		row.shown = milestone
+		row.frame.Visible = milestone ~= nil and not compact
+		if milestone then
+			fillRailRow(row, milestone, false)
+		end
+	end
+	local chipMilestone = chipHeld or nextMilestones(1)[1]
+	nextChip.Visible = compact and chipMilestone ~= nil
+	if chipMilestone then
+		local _, progress = Goal.milestoneProgress(chipMilestone, if chipHeld then chipMilestone.at else nil)
+		local line = `{if chipHeld then "Done" else "Next"}: {chipMilestone.text} {progress}`
+		-- A long line would shrink past reading on a phone, so "Next: " goes (the chip says what it is).
+		if not chipHeld and #line > CHIP_LONG_LINE then
+			line = `{chipMilestone.text} {progress}`
+		end
+		nextChipLabel.Text = line
+	end
+end
+
+-- The row that has the milestone `id` on the rail, or just had it (see leftRail).
+local function railRowOf(id: string): RailRow?
+	for _, row in railRows do
+		if row.shown and row.shown.id == id then
+			return row
+		end
+	end
+	local index = leftRail[id]
+	return if index then railRows[index] else nil
+end
+
+-- A milestone's reached: sparkles and a DONE stamp land on the row it was on, or on the chip on a
+-- short screen, and that shows it done for RAIL_HOLD seconds, about as long as the stamp lasts,
+-- before the rail goes on to the next. The stamp is only the words DONE (UI.stampText): the art's
+-- Job Complete stamp would say "Job Complete!" on a milestone like "Earn $500". The caller
+-- redraws. Returns what the stamp landed on (the row's frame, or the chip), or nil where it landed
+-- on nothing.
+local function celebrateMilestone(milestone: Milestone): GuiObject?
+	if shortScreen() then
+		chipHeld = milestone
+		local stamp = chipStamp or UI.stampText(nextChip, "DONE", RAIL_STAMP_HEIGHT)
+		chipStamp = stamp
+		UI.sparkle(nextChip, 5, 22)
+		stamp.flash("Text")
+		task.delay(RAIL_HOLD, function()
+			if chipHeld == milestone then
+				chipHeld = nil
+				updateMilestones()
+			end
+		end)
+		return nextChip
+	end
+	local row = railRowOf(milestone.id)
+	if row and row.held then
+		-- Another milestone reached with this one has its row: this one takes the next row that's free.
+		row = nil
+		for _, other in railRows do
+			if not other.held then
+				row = other
+				break
+			end
+		end
+	end
+	if not row then
+		return nil
+	end
+	row.held = milestone
+	row.shown = milestone
+	fillRailRow(row, milestone, true)
+	row.frame.Visible = true
+	local stamp = row.stamp or UI.stampText(row.frame, "DONE", RAIL_STAMP_HEIGHT)
+	row.stamp = stamp
+	UI.sparkle(row.frame, 6, 24)
+	stamp.flash("Text")
+	task.delay(RAIL_HOLD, function()
+		if row.held == milestone then
+			row.held = nil
+			row.shown = nil
+			updateMilestones()
+		end
+	end)
+	return row.frame
+end
+
+local function milestoneById(id: string): Milestone?
+	for _, milestone in Milestones.List do
+		if milestone.id == id then
+			return milestone
+		end
+	end
+	return nil
+end
+
+-- The server's told us a milestone's reached (`info`: its id, its words and the cash it paid). It
+-- rings, and the cash it paid lifts off the row (or the chip) the stamp landed on, or off the money
+-- counter where there was no row to land on or it's hidden (on a touch screen the goal's note waits
+-- for the first-job coach and a crew invite).
+local function onMilestoneReached(info: { id: string, text: string, cash: number })
+	pending[info.id] = true
+	local milestone = milestoneById(info.id)
+	local on = if milestone then celebrateMilestone(milestone) else nil
+	leftRail[info.id] = nil
+	Sounds.playUi("GoalDone")
+	if info.cash > 0 then
+		local cash = `+{Format.money(info.cash)}`
+		if not (on and FloatingText.show(on, cash)) then
+			FloatingText.show(money.Frame, cash)
+		end
+	end
+	updateMilestones()
+end
+
 local function updateGoal()
+	updateMilestones()
 	local goal = Goal.current()
 	-- Where it gives way to something else that takes its spot (on a touch screen, the first-job
 	-- coach and a crew invite at the top of the screen), it hides while that shows.
@@ -892,8 +1222,8 @@ local function hidePay()
 	end
 end
 
--- After a job: Job Complete!, a line for what each part was worth, and what you earned, until you
--- close it (or the next job starts).
+-- After a job: Job Complete!, a line for what each part was worth (the customer's tip last), what
+-- you earned, and the job's stars filling in under it, until you close it (or the next job starts).
 local function showPay(job)
 	hidePay()
 	local result = job.result
@@ -937,6 +1267,8 @@ local function showPay(job)
 		LayoutOrder = 2,
 		Parent = payPanel,
 	})
+	-- The tip's amount, where its pop lifts off: the tip is the last line, when there is one.
+	local tipAmount: TextLabel? = nil
 	for index, line in lines do
 		local row = UI.new("Frame", {
 			Size = UDim2.new(1, 0, 0, 26),
@@ -949,7 +1281,7 @@ local function showPay(job)
 			{ Size = UDim2.new(1, -110, 1, 0), TextSize = 18, FontFace = UI.Fonts.Medium, Parent = row }
 		)
 		local sign = if line.amount < 0 then "-" else "+"
-		UI.label(`{sign}{Format.money(math.abs(line.amount))}`, {
+		local amount = UI.label(`{sign}{Format.money(math.abs(line.amount))}`, {
 			AnchorPoint = Vector2.new(1, 0),
 			Position = UDim2.fromScale(1, 0),
 			Size = UDim2.new(0, 110, 1, 0),
@@ -959,6 +1291,9 @@ local function showPay(job)
 			TextXAlignment = Enum.TextXAlignment.Right,
 			Parent = row,
 		})
+		if index == #lines and (result.tip or 0) > 0 then
+			tipAmount = amount
+		end
 	end
 	local rule = UI.bar({ Size = UDim2.new(1, 0, 0, 6), LayoutOrder = 50, Parent = payPanel })
 	rule.set(1)
@@ -969,7 +1304,7 @@ local function showPay(job)
 		Parent = payPanel,
 	})
 	UI.heading("TOTAL EARNED", { Size = UDim2.fromScale(0.5, 1), TextSize = 24, Parent = totalRow })
-	UI.display(
+	local totalDisplay = UI.display(
 		"Numbers",
 		Format.money(total),
 		{ TextSize = 54, Color = UI.Colors.Money, XAlignment = "Right", Fit = true },
@@ -980,6 +1315,79 @@ local function showPay(job)
 			Parent = totalRow,
 		}
 	)
+	-- The job's stars: three slots, grey until the stars it earned fill in gold, one by one.
+	local earnedStars = math.clamp(result.stars or 0, 0, 3)
+	local starRow = UI.new("Frame", {
+		Name = "Stars",
+		Size = UDim2.new(1, 0, 0, STAR_SIZE),
+		BackgroundTransparency = 1,
+		LayoutOrder = 52,
+		Parent = payPanel,
+	}, {
+		UI.new("UIListLayout", {
+			FillDirection = Enum.FillDirection.Horizontal,
+			HorizontalAlignment = Enum.HorizontalAlignment.Center,
+			VerticalAlignment = Enum.VerticalAlignment.Center,
+			Padding = UDim.new(0, 10),
+			SortOrder = Enum.SortOrder.LayoutOrder,
+		}),
+	})
+	-- Each star is a label in the middle of a plain slot: a UIScale grows from the anchor point of
+	-- what it's on, so the pop is on the label, and grows from the star's middle.
+	local slots: { TextLabel } = {}
+	for index = 1, 3 do
+		local slot = UI.new("Frame", {
+			Name = `Slot{index}`,
+			Size = UDim2.fromOffset(STAR_SIZE, STAR_SIZE),
+			BackgroundTransparency = 1,
+			LayoutOrder = index,
+			Parent = starRow,
+		})
+		slots[index] = UI.label(STAR_GLYPH, {
+			Name = `Star{index}`,
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Position = UDim2.fromScale(0.5, 0.5),
+			Size = UDim2.fromScale(1, 1),
+			TextSize = 40,
+			FontFace = UI.Fonts.Heavy,
+			TextColor3 = UI.Colors.Disabled,
+			TextXAlignment = Enum.TextXAlignment.Center,
+			Parent = slot,
+		})
+	end
+	local thisPanel = payPanel
+	task.spawn(function()
+		for index = 1, earnedStars do
+			task.wait(STAR_STEP)
+			-- Closed (or a newer job's panel up) in the meantime.
+			if payPanel ~= thisPanel then
+				return
+			end
+			local slot = slots[index]
+			slot.TextColor3 = UI.Colors.Gold
+			local pop = UI.new("UIScale", { Scale = 1.7, Parent = slot })
+			TweenService:Create(pop, TweenInfo.new(STAR_STEP, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+				Scale = 1,
+			}):Play()
+			UI.sparkle(slot, 3, 26)
+			Sounds.playUi("Star", STAR_VOLUME)
+		end
+	end)
+	-- The cash lands: it rings the instant the panel opens (not when the pop does, so it's clear of
+	-- the first star's sound), and "+$142" lifts off the total, and "+$12 tip" off the tip line,
+	-- once the panel's laid out, unless it's been closed by then. A job that paid nothing is silent.
+	if total > 0 then
+		Sounds.playUi("Cash")
+	end
+	task.delay(PAY_POP_DELAY, function()
+		if payPanel ~= thisPanel or total <= 0 then
+			return
+		end
+		if tipAmount then
+			FloatingText.show(tipAmount, `+{Format.money(result.tip)} tip`, nil, SMALL_POP)
+		end
+		FloatingText.show(totalDisplay.Frame, `+{Format.money(total)}`)
+	end)
 	-- What the customer wanted, the tools and the junk, in words.
 	local notes = { `The customer wanted {WANTED[result.preference] or WANTED.Balanced}.` }
 	if result.toolFit < 0.995 then
@@ -999,13 +1407,13 @@ local function showPay(job)
 		TextSize = 15,
 		FontFace = UI.Fonts.Body,
 		TextColor3 = UI.Colors.SubText,
-		LayoutOrder = 52,
+		LayoutOrder = 53,
 		Parent = payPanel,
 	})
 	local buttonRow = UI.new("Frame", {
 		Size = UDim2.new(1, 0, 0, 48),
 		BackgroundTransparency = 1,
-		LayoutOrder = 53,
+		LayoutOrder = 54,
 		Parent = payPanel,
 	})
 	UI.button("Nice!", hidePay, {
@@ -1021,12 +1429,9 @@ end
 
 -- Updating it all ----------------------------------------------------------------------------------
 
--- The big moments: a new level, a new tool (not the ones you had when you joined).
+-- The big moment for a new tool (not the ones you had when you joined). A new level's is
+-- onLevelReward, from the server, which knows what the level paid.
 local function moments(profile)
-	if lastLevel and profile.level > lastLevel then
-		UI.moment("LevelUp", "Level Up!", `Level {profile.level}`)
-	end
-	lastLevel = profile.level
 	local now = {}
 	for _, item in Items.ownedTools(profile.owned) do
 		now[item.id] = true
@@ -1035,6 +1440,19 @@ local function moments(profile)
 		end
 	end
 	knownTools = now
+end
+
+-- The server's paid a level's reward (`info`: the level, the line that names what it paid, and the
+-- cash). Level Up! is announced here and only here, with the reward under it.
+local function onLevelReward(info: { level: number, text: string, cash: number })
+	-- The art's wordmark has no number in it, so the subtitle carries the level too.
+	UI.moment("LevelUp", `Level {info.level}!`, if info.text ~= "" then `Level {info.level}: {info.text}` else nil)
+	Sounds.playUi("LevelUp")
+	if info.cash > 0 then
+		task.delay(LEVEL_POP_DELAY, function()
+			FloatingText.show(levelLabel, `+{Format.money(info.cash)}`)
+		end)
+	end
 end
 
 local function updateProfile()
@@ -1048,6 +1466,11 @@ local function updateProfile()
 	local from = GameConfig.xpForLevel(profile.level)
 	local to = GameConfig.xpForLevel(profile.level + 1)
 	xpBar.set((profile.xp - from) / (to - from))
+	-- XP that came in lifts off the bar (not on the first profile, which is only what you had).
+	if lastXp and profile.xp > lastXp then
+		FloatingText.show(xpBar.frame, `+{profile.xp - lastXp} XP`, UI.Colors.Accent, SMALL_POP)
+	end
+	lastXp = profile.xp
 	moments(profile)
 	updateGoal()
 end
@@ -1093,7 +1516,7 @@ local function updateJob()
 		setCallOffText(if isLeader then "Call off job" else "Leave job")
 	elseif job.state == "Complete" then
 		trackerHint.Text = if job.result
-			then `You earned {Format.money(job.result.share)}! Heading back soon...`
+			then `You earned {Format.money(job.result.share + (job.result.tip or 0))}! Heading back soon...`
 			else "Job done!"
 		callOffShown = false
 		if job.result and payShownFor ~= job.id then
@@ -1144,6 +1567,7 @@ function HudController:Start()
 	buildMenuButtons()
 	buildGoal()
 	buildCurbAppeal()
+	buildNextChip()
 	buildTracker()
 	buildMissedButton()
 	buildCondition()
@@ -1158,8 +1582,19 @@ function HudController:Start()
 		end
 	end)
 	player:GetAttributeChangedSignal("CurbAppeal"):Connect(updateGoal)
+	player:GetAttributeChangedSignal("GoldSign"):Connect(updateGoldSign)
+	updateGoldSign()
 	UI.onGiveWay("GrandmaGoal", updateGoal)
 	UI.onGiveWay("JobTracker", updateJob)
+	-- The rail hides and the Next chip shows when the screen turns short, and the other way (a window
+	-- resized).
+	UI.getScreen():GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+		if shortScreen() ~= railCompact then
+			updateMilestones()
+		end
+	end)
+	Net.event("MilestoneReached").OnClientEvent:Connect(onMilestoneReached)
+	Net.event("LevelReward").OnClientEvent:Connect(onLevelReward)
 	updateGoal()
 
 	task.spawn(function()

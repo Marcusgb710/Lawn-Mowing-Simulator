@@ -221,8 +221,9 @@ overhaul: what is left** and **Before release**. In order:
 
 - **Branches and PRs:** never commit straight to `main` for code. Make a branch, open a PR, merge
   with `--merge`. Before PRs, run `lune run scripts/check-mowing`, `lune run scripts/check-gui`,
-  `lune run scripts/check-story`, `lune run scripts/check-models`, `selene src`,
-  `stylua --check src` (`stylua src` fixes what it finds) and `rojo build -o /tmp/check.rbxl`.
+  `lune run scripts/check-story`, `lune run scripts/check-season`, `lune run scripts/check-models`,
+  `selene src`, `stylua --check src` (`stylua src` fixes what it finds) and
+  `rojo build -o /tmp/check.rbxl`.
   When `Config/Cast.luau` changes, also run `python scripts/cast-check.py`. It asks Roblox's catalog
   about every item the cast wears, so it needs the network and isn't one of the Lune checks.
 - **Models: the manifest pipeline.** New and replaced models go through one list,

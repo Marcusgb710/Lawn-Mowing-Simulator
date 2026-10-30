@@ -482,7 +482,10 @@ end
 
 -- A tool taken out of storage at the business, equipped straight away: a ride-on to drive (up
 -- the trailer's ramp, back to its bay) or one in your hands, which works on your own lawn.
--- TruckService takes it away again when it's put down.
+-- TruckService takes it away again when it's put down. At a job site, a tool that came in the
+-- truck is in their backpack already (GiveTools), so that one goes into their hands instead of a
+-- second copy (the first-timer's shears, see JobService:StartFirstJob). It stays in the loadout:
+-- it's still the truck's, and goes home in it.
 function ToolService:GiveHeld(player: Player, itemId: string): Tool?
 	local data = DataService:Get(player)
 	local item = Tools.get(itemId)
@@ -490,6 +493,16 @@ function ToolService:GiveHeld(player: Player, itemId: string): Tool?
 	local backpack = player:FindFirstChildOfClass("Backpack")
 	if not (data and item and ToolService.isHeld(item) and humanoid and backpack and humanoid.Health > 0) then
 		return nil
+	end
+	if JobService:IsAtJobSite(player) then
+		for _, container in { player.Character, backpack } do
+			for _, child in container and container:GetChildren() or {} do
+				if child:IsA("Tool") and child:GetAttribute("ItemId") == itemId then
+					humanoid:EquipTool(child)
+					return child
+				end
+			end
+		end
 	end
 	local height = player.Character and holdHeight(player.Character)
 	local tool = makeTool(player, data, item, height, false)

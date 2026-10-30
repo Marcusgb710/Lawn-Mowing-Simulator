@@ -4,6 +4,7 @@
 --   * developer products (premium tools and paint jobs): granted in ProcessReceipt, which saves
 --     the player straight away and remembers the receipt, so a purchase is never given twice
 --     and never lost
+--   * paint jobs earned as level rewards (SeasonService): GrantPaint, with no receipt
 -- It also switches the paint job on your truck.
 
 local MarketplaceService = game:GetService("MarketplaceService")
@@ -101,8 +102,11 @@ local function processReceipt(receipt)
 	end
 	rememberReceipt(premium, receipt.PurchaseId)
 	if not DataService:Save(player) then
-		-- Not saved: take it back so it's granted again on the retry.
-		premium.owned[item.id] = nil
+		-- Not saved: take it back so it's granted again on the retry. A paint they earned as a
+		-- level reward stays theirs (earnedPaints), whatever happens to the purchase.
+		if not (premium.earnedPaints and premium.earnedPaints[item.id]) then
+			premium.owned[item.id] = nil
+		end
 		premium.receipts[receipt.PurchaseId] = nil
 		return Enum.ProductPurchaseDecision.NotProcessedYet
 	end
@@ -136,6 +140,27 @@ function PremiumService:SetPaint(player: Player, paintId: string): (boolean, str
 	DataService:Changed(player)
 	WorldService:RefreshPlot(player)
 	return true, if paintId == "" then "Back to the truck's own paint." else "Paint job on!"
+end
+
+-- Gives them a paint job they earned (a level reward, see SeasonService). It's theirs the way a
+-- bought one is, in `owned`, but no receipt goes with it: it's listed in `earnedPaints` instead,
+-- so the shop can say "Earned" where a bought one has its price. It isn't put on their truck, and
+-- one they already own, bought or earned, is left as it is. Returns whether it was new.
+function PremiumService:GrantPaint(player: Player, paintId: string): boolean
+	local data = DataService:Get(player)
+	local paint = Premium.get(paintId)
+	if not (data and paint and Premium.isPaint(paint)) then
+		return false
+	end
+	local premium = data.premium
+	if premium.owned[paintId] then
+		return false
+	end
+	premium.owned[paintId] = true
+	premium.earnedPaints = premium.earnedPaints or {}
+	premium.earnedPaints[paintId] = true
+	DataService:Changed(player)
+	return true
 end
 
 function PremiumService:Init()

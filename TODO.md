@@ -464,6 +464,53 @@ Later (known, and left for after this PR):
 - [ ] A respawn within a second of a lawn's first fetch hits the `GetSwaths` limit and shows the lawn tall for 1.5 s until the retry.
 - [ ] Prediction stamps over cut and ragged grass whenever `Mows` is on; watch its cost on phones over a ragged patch.
 
+## Busy Season, slice 1: to check
+
+Slice 1 is the first minute and the ladder (design:
+`docs/superpowers/specs/2026-10-29-busy-season-design.md`, plan:
+`docs/superpowers/plans/2026-10-29-busy-season-slice-1.md`). A Studio pass has seen the
+first-timer landing (on the strip with the shears 1.2 s after joining, the coach line and the Next
+chip), a jump to level 5 paying levels 2 to 5 ($850), the Levels panel, and the iPhone preset with
+the chip above the tracker, with no errors. It has not seen or heard a completed job (the stars,
+the tip, the cash and XP pops, the sounds), June's welcome after the first payday, a milestone
+moment, the rail on a tall screen, or the chip with the Missed button up. The test panel (K) has
+two shortcuts for this: **Start as a first-timer** puts your save
+back to a brand-new one and drops you on the first lawn with the shears (it calls off any job
+first, and that session stops saving, so a playtest can't wipe a real save), and the **Level** row
+sets your level to 2, 5, 10 or 20 and pays any level reward not yet claimed.
+
+The spec's playtest checklist for slice 1:
+
+- [ ] tap to first snip under ten seconds on PC and phone
+- [ ] a level-up moment with the panel
+- [ ] a 3-star tip
+- [ ] the rail on a phone in landscape
+- [ ] every sound
+
+The payday half (June's welcome, then her texts) plays once per playtest launch, so a second
+**Start as a first-timer** run in the same launch shows no welcome. Restart Studio for a second
+look.
+
+What the reviews asked to see in Studio:
+
+- [ ] The star pop on the pay panel: each star should grow out of its middle (the anchor was moved
+      there, never seen).
+- [ ] The goal chip against the Snip and look-at buttons on an 844 by 390 phone, with the missed
+      button and the shears up together: it should clear them, and its 10 px text should read.
+- [ ] The Cash and Star sounds together on a paid job (Cash first, then each Star at a lower
+      volume): clear, or a smudge. Star and LevelUp are the likeliest to be swapped.
+- [ ] The Levels panel at phone scale: row text, the Close button and the star by the level line,
+      with and without the gold sign.
+- [ ] The total's "+$" pop on the pay panel: it starts in the middle of the big total, so check it
+      doesn't read as clutter.
+- [ ] The star glyph on the pay panel and the job board: nothing else in the game draws it, so it
+      may fall back to a system font and look off.
+- [ ] The XP button by thumb on a phone: it is 36 px, about 25 px at the columns' 0.7 scale.
+- [ ] The text-only DONE stamp (`UI.stampText`): its width is a guess of 0.6 heights per letter,
+      which fits "DONE"; check it on the rail.
+- [ ] The "Level n: text" subtitle against the 720 px level-up moment: it may be too long for
+      one line.
+
 ## Model overhaul: what is left
 
 Batches 1 to 4 (the mowers and trimmers; the blowers, barrows and the rest of batch 2; the trucks and

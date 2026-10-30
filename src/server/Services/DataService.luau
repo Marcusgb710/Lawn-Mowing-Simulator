@@ -15,16 +15,20 @@ local Items = require(Shared.Config.Items)
 local Maintenance = require(Shared.Config.Maintenance)
 local Net = require(Shared.Net)
 local Premium = require(Shared.Config.Premium)
+local Season = require(Shared.Config.Season)
 local Signal = require(Shared.Signal)
 local Storage = require(Shared.Config.Storage)
 
 local DataService = {}
 -- Fired with (player, new level) when a finished job takes them up a level.
 DataService.LeveledUp = Signal.new()
+-- Fired with (player, amount) after Earn has added money they made (not a sale or a refund) and
+-- sent their screen the new totals.
+DataService.Earned = Signal.new()
 
 -- Bump this whenever the save format changes, and add a step to MIGRATIONS that turns the
 -- previous version into the new one. Never delete a step: old saves still need it.
-local DATA_VERSION = 12
+local DATA_VERSION = 13
 
 -- MIGRATIONS[n] turns a version n - 1 save into version n. Steps must keep money, xp and every
 -- owned item. Don't use the live config to read an old save: write down what it looked like.
@@ -177,6 +181,19 @@ local MIGRATIONS = {
 	-- tile of grass. HomeLawnService reads those flags per cell when it builds the lawn (and saves
 	-- it per cell from then on), so nothing in the save changes here.
 	[12] = function(_data) end,
+
+	-- 12 -> 13, the Busy Season's ladder (see Season.upgradeSave): `earned` starts out as the money
+	-- they have (0 if they've finished no job), `stars` starts empty, `milestones` has every
+	-- milestone their jobs and earned already meet marked reached, `levelRewards` has every level
+	-- they've reached already claimed (so nobody is paid back pay for the past) and `firstJob` is
+	-- true for anyone who has finished a job. GameConfig.levelFromXp is the one live read, to find
+	-- the level they've reached. That's fine: it's a pure formula of their xp, not a table that gets
+	-- retuned, so a save migrated later reads the same as one migrated now. If the formula is ever
+	-- changed, a step of its own has to write the old one down first. The milestones are read from
+	-- Config/Milestones.luau as it stands the day the save migrates.
+	[13] = function(data)
+		Season.upgradeSave(data)
+	end,
 }
 
 local store: DataStore? = nil
@@ -235,6 +252,11 @@ local function defaultData()
 		-- What they've bought with Robux (see Premium.luau and PremiumService)
 		premium = Premium.empty(),
 	}
+	-- The Busy Season's fields (`earned`, `stars`, `milestones`, `levelRewards` and `firstJob`, see
+	-- Config/Season.luau), filled in the way the 12 -> 13 migration does, from the numbers above.
+	-- `levelRewards` is keyed by the level as a string (Season.levelKey), so the save stays a
+	-- dictionary rather than an array with holes.
+	Season.upgradeSave(data)
 	for _, category in Items.Categories do
 		data.owned[category] = {}
 		local starter = Items.starter(category)
@@ -282,6 +304,10 @@ local function reconcile(data)
 		if data.premium[key] == nil then
 			data.premium[key] = value
 		end
+	end
+	-- The paints given as level rewards must be a table: GrantPaint writes into it.
+	if typeof(data.premium.earnedPaints) ~= "table" then
+		data.premium.earnedPaints = {}
 	end
 	for _, category in Items.Categories do
 		data.owned[category] = data.owned[category] or {}
@@ -458,6 +484,10 @@ local function save(player: Player): boolean
 		if versionOf(stored) > DATA_VERSION then
 			return nil
 		end
+		-- Studio's reset can land while this call is in flight; a save that can't save writes nothing.
+		if not profile.canSave then
+			return nil
+		end
 		return profile.data, { player.UserId }
 	end)
 	if not ok then
@@ -474,6 +504,13 @@ local function snapshot(data)
 		xp = data.xp,
 		level = GameConfig.levelFromXp(data.xp),
 		jobsCompleted = data.jobsCompleted,
+		-- The Busy Season: money made so far, their best stars on each job, the milestone ids they've
+		-- reached, the levels whose reward they've claimed, and whether the first-job opening has run.
+		earned = data.earned,
+		stars = data.stars,
+		milestones = data.milestones,
+		levelRewards = data.levelRewards,
+		firstJob = data.firstJob,
 		owned = data.owned,
 		equipped = data.equipped,
 		loadout = data.loadout,
@@ -484,8 +521,14 @@ local function snapshot(data)
 		-- Their own truck and trailer (in a crew, PartyUpdated has the leader's truck instead).
 		truck = { used = usedSpace, space = space, baysUsed = usedBays, bays = bays },
 		trailerUnlocked = data.trailerUnlocked,
-		-- What they own with Robux, for the Premium tab and their tools' looks (not the receipts).
-		premium = { owned = data.premium.owned, passes = data.premium.passes, truckPaint = data.premium.truckPaint },
+		-- What they own with Robux, for the Premium tab and their tools' looks (not the receipts), and
+		-- which of the paints in `owned` they earned as level rewards instead (PremiumService:GrantPaint).
+		premium = {
+			owned = data.premium.owned,
+			passes = data.premium.passes,
+			truckPaint = data.premium.truckPaint,
+			earnedPaints = data.premium.earnedPaints or {},
+		},
 		-- The building a Best Yard win took half off, for the Business app (see Shop.price).
 		discount = if typeof(data.contest) == "table" and typeof(data.contest.discount) == "string"
 			then data.contest.discount
@@ -613,6 +656,19 @@ function DataService:AddMoney(player: Player, amount: number)
 	end
 end
 
+-- Money they made: job pay, tips and rewards. It counts toward `earned` (the Earned milestones)
+-- as well as their money; AddMoney is for sales and refunds, which don't. Callers pass whole
+-- dollars, nothing is rounded here.
+function DataService:Earn(player: Player, amount: number)
+	local data = self:Get(player)
+	if data then
+		data.money += amount
+		data.earned += amount
+		self:Changed(player)
+		DataService.Earned:Fire(player, amount)
+	end
+end
+
 function DataService:TrySpend(player: Player, amount: number): boolean
 	local data = self:Get(player)
 	if not data or data.money < amount then
@@ -638,6 +694,29 @@ function DataService:RecordJob(player: Player, xp: number)
 		Net.event("Notify"):FireClient(player, `Level up! You're now level {newLevel}.`)
 		DataService.LeveledUp:Fire(player, newLevel)
 	end
+end
+
+-- For testing in Studio (StudioTestService): puts this player's save back to a brand-new one and
+-- sends their screen the new numbers. It's done in place, so every service that holds their data
+-- table sees the new save, and nothing built from the old one (their business, home lawn and
+-- decor in the world) is rebuilt. Studio only, and the player stops saving for the rest of the
+-- session: Studio can write to the live DataStore, and a test must not wipe a real save. Returns
+-- whether it reset.
+function DataService:ResetForStudio(player: Player): boolean
+	local profile = profiles[player]
+	if not (RunService:IsStudio() and profile) then
+		return false
+	end
+	local data = profile.data
+	for key in data do
+		data[key] = nil
+	end
+	for key, value in defaultData() do
+		data[key] = value
+	end
+	profile.canSave = false
+	self:Changed(player)
+	return true
 end
 
 -- Lifecycle ----------------------------------------------------------------------------------

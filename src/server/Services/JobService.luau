@@ -3,6 +3,8 @@
 --   Traveling  truck cutscene on the way there
 --   Working    the crew is at the house doing yard work (the clock is running)
 --   Complete   everyone got paid, the truck heads back to the business in a few seconds
+-- A brand-new player's very first job starts at Working, with them already on the lawn (see
+-- StartFirstJob), and its clock starts at their first snip (SnipAt).
 --
 -- Nothing here tells players which tools to bring: offers carry the customer's story and to-do
 -- list, and a tool that can't do a task just gets "That won't work here".
@@ -30,6 +32,8 @@ local Items = require(Shared.Config.Items)
 local Jobs = require(Shared.Config.Jobs)
 local Net = require(Shared.Net)
 local Premium = require(Shared.Config.Premium)
+local Season = require(Shared.Config.Season)
+local Stars = require(Shared.Config.Stars)
 local Story = require(Shared.Config.Story)
 local TaskTypes = require(Shared.Config.TaskTypes)
 local Tools = require(Shared.Config.Tools)
@@ -55,7 +59,9 @@ local JobService = {}
 JobService.PlayerStateChanged = Signal.new()
 -- Fired with (player, info) for each of the crew once a job's been paid: info is { customer,
 -- pay (their share), quality (the finish, 0-1), preference, crew (how many of them), wonBack
--- (the customer was won back from TurfKing and paid a bonus) }.
+-- (the customer was won back from TurfKing and paid a bonus), stars (1-3), tip (what the customer
+-- tipped them on top of their share, 0 for none) }. Their best stars for the job are in their
+-- save by then (SeasonService counts the three-star jobs from it).
 JobService.JobFinished = Signal.new()
 
 local rng = Random.new()
@@ -147,10 +153,12 @@ end
 --   "StarterGear"  a job new players can finish with the gear they start with (always one)
 --   "Homeowner"    small yard and garden housework, up to the best player's level
 --   "Open"         anything up to a little above the best player's level
+-- Only templates the board can offer (not the first-timer's hidden one) are in any of them.
 local function poolFor(kind: string)
 	local maxLevel = if kind == "StarterGear" then 1 else highestLevel() + (if kind == "Open" then 2 else 0)
+	local templates = Jobs.boardTemplates()
 	local pool = {}
-	for _, template in Jobs.Templates do
+	for _, template in templates do
 		local fits = if kind == "StarterGear"
 			then doableWithStarterGear(template)
 			elseif kind == "Homeowner" then template.tier == "Homeowner"
@@ -163,7 +171,7 @@ local function poolFor(kind: string)
 		return pool
 	end
 	-- Config can't be allowed to leave the board empty.
-	return if kind == "StarterGear" then Jobs.Templates else poolFor("StarterGear")
+	return if kind == "StarterGear" then templates else poolFor("StarterGear")
 end
 
 local function slotKind(index: number): string
@@ -210,6 +218,29 @@ local function makeOffer(kind: string)
 		minLevel = template.minLevel,
 		parTime = template.parTime,
 		kind = kind,
+	}
+end
+
+-- The first-timer's job (Jobs FirstMow, never on the board, see JobService:StartFirstJob):
+-- Edna's, like the starter job, at exactly its pay, so every new player's first payday is the
+-- same. Her preference is Balanced, and that's in the story she tells.
+local function firstOffer()
+	local template = Jobs.get("FirstMow")
+	nextOfferId += 1
+	return {
+		id = tostring(nextOfferId),
+		templateId = template.id,
+		name = template.name,
+		tier = template.tier,
+		address = Jobs.randomAddress(rng),
+		customer = Story.FirstCustomer,
+		story = Jobs.story(rng, template, "Balanced"),
+		todo = Jobs.todoList(template),
+		payout = template.basePay,
+		xp = template.xp,
+		minLevel = template.minLevel,
+		parTime = template.parTime,
+		kind = "First",
 	}
 end
 
@@ -292,6 +323,8 @@ local function sendUpdate(job)
 		customer = job.offer.customer,
 		story = job.offer.story,
 		parTime = job.offer.parTime,
+		-- Which kind of offer this is ("First" for the first-timer's opening lawn), for the tutorial.
+		kind = job.offer.kind,
 		-- Server clock time the crew started working, for the HUD timer.
 		startedAt = job.startedServerTime,
 		penalty = job.penalty,
@@ -377,6 +410,46 @@ local function travel(players: { Player }, info, destination: (number, Player) -
 	end)
 end
 
+-- [Player] = os.clock() when they joined, until they're first where the game starts for them.
+local joinedAt = {}
+
+-- They're where the game starts for them: their business, or a first-timer's first lawn (see
+-- JobService:StartFirstJob). `streamStarted` is when loading it on their device began.
+local function markArrived(player: Player, place: string, streamStarted: number)
+	local joined = joinedAt[player]
+	if joined then
+		joinedAt[player] = nil
+		-- The title card logs its side of this in their own F9 console.
+		print(
+			string.format(
+				"[Load] %s is at %s %.1f s after joining (%.1f s of that loading it on their device)",
+				player.Name,
+				place,
+				os.clock() - joined,
+				os.clock() - streamStarted
+			)
+		)
+	end
+	-- The title card waits for this (see ReplicatedFirst). The name is from when everyone started at
+	-- their business: it means "arrived where the game starts", the first lawn for a first-timer.
+	player:SetAttribute("ArrivedAtBusiness", true)
+end
+
+-- Puts a player who isn't on a job at their crew's business, facing the shop.
+local function goHome(player: Player)
+	local streamStarted = os.clock()
+	if player.Parent == Players and player.Character and not JobService:IsBusy(player) then
+		local home = WorldService:GetHomeCFrame(player)
+		-- Load the business on their device first, so they don't land in an empty world.
+		pcall(player.RequestStreamAroundAsync, player, home.Position, 5)
+		if player.Parent == Players and player.Character and not JobService:IsBusy(player) then
+			player.Character:PivotTo(home)
+			setArrivedFacing(player, home)
+		end
+	end
+	markArrived(player, "their business", streamStarted)
+end
+
 local function claimSlot(): number
 	local slot = 0
 	while usedSlots[slot] do
@@ -457,6 +530,31 @@ end
 
 -- Job lifecycle ------------------------------------------------------------------------------
 
+-- Builds the job's yard at a free site, with the crew's truck (job.truckId, trailerId and paintId)
+-- parked out front.
+local function buildSite(job)
+	job.slot = claimSlot()
+	local origin = GameConfig.JobSiteOrigin + Vector3.new(job.slot * GameConfig.JobSiteSpacing, 0, 0)
+	job.lawn = LawnService:Build(Jobs.get(job.offer.templateId), origin, job.offer.address, { soil = job.soil })
+
+	local truck = Assets.truck(job.truckId, job.trailerId)
+	Premium.applyPaint(truck, if job.paintId then Premium.get(job.paintId) else nil)
+	Assets.anchor(truck)
+	Assets.placeOnGround(truck, job.lawn.truckCFrame)
+	-- Parked at the house with the tailgate down: it's where you work on your tools.
+	Openings.set(truck, true)
+	truck.Parent = job.lawn.folder
+	-- Tools are worked on at the tailgate, with the supplies you brought (see MaintenanceService):
+	-- a spot on the ground behind it and a vise on the tailgate. A supply you took goes back by
+	-- looking at the truck.
+	ServiceSpots.add(job.lawn.folder, ServiceSpots.forTruck(truck))
+	truck:SetAttribute("Interact", "Tailgate")
+	truck:SetAttribute("InteractText", "Put it back")
+	truck:SetAttribute("InteractName", "Tailgate")
+	job.lawn.folder.Name = "JobSite_" .. job.id
+	job.lawn.folder.Parent = sitesFolder
+end
+
 local function startDriving(job)
 	local party = job.party
 	-- Which tools to bring is the crew's call; only an overloaded truck stops them.
@@ -506,26 +604,7 @@ local function startDriving(job)
 	-- How good the business looked as the crew left: customers pay a little more for that.
 	job.curbAppeal = HomeLawnService:CurbAppeal(party.leader)
 
-	job.slot = claimSlot()
-	local origin = GameConfig.JobSiteOrigin + Vector3.new(job.slot * GameConfig.JobSiteSpacing, 0, 0)
-	job.lawn = LawnService:Build(Jobs.get(job.offer.templateId), origin, job.offer.address, { soil = job.soil })
-
-	local truck = Assets.truck(job.truckId, job.trailerId)
-	Premium.applyPaint(truck, paint)
-	Assets.anchor(truck)
-	Assets.placeOnGround(truck, job.lawn.truckCFrame)
-	-- Parked at the house with the tailgate down: it's where you work on your tools.
-	Openings.set(truck, true)
-	truck.Parent = job.lawn.folder
-	-- Tools are worked on at the tailgate, with the supplies you brought (see MaintenanceService):
-	-- a spot on the ground behind it and a vise on the tailgate. A supply you took goes back by
-	-- looking at the truck.
-	ServiceSpots.add(job.lawn.folder, ServiceSpots.forTruck(truck))
-	truck:SetAttribute("Interact", "Tailgate")
-	truck:SetAttribute("InteractText", "Put it back")
-	truck:SetAttribute("InteractName", "Tailgate")
-	job.lawn.folder.Name = "JobSite_" .. job.id
-	job.lawn.folder.Parent = sitesFolder
+	buildSite(job)
 
 	sendUpdate(job)
 	task.wait(GameConfig.PullOutTime)
@@ -609,14 +688,25 @@ local function completeJob(job)
 	end
 	local share = math.floor(total / #members)
 
+	-- Stars: how the job did against what the customer wanted, by GameConfig.performance, the same
+	-- blend GameConfig.jobPay pays by. A flower or gnome wrecked (damageCount), or junk left or
+	-- chewed up, keeps it from three. The customer tips each of the crew a share of their share by
+	-- the stars.
+	local qualityMultiplier = GameConfig.qualityMultiplier(quality)
+	local speedMultiplier = GameConfig.speedMultiplier(elapsed, job.offer.parTime)
+	local performance = Stars.round(GameConfig.performance(quality, elapsed, job.offer.parTime, weights))
+	local penalized = (debris.left + debris.hit) > 0 or job.damageCount > 0
+	local stars = Stars.of(performance, penalized)
+	local tip = math.floor(share * Stars.tipRate(stars))
+
 	job.result = {
 		basePay = job.offer.payout,
 		time = elapsed,
 		preference = job.preference,
 		toolFit = toolFit,
 		quality = quality,
-		qualityMultiplier = GameConfig.qualityMultiplier(quality),
-		speedMultiplier = GameConfig.speedMultiplier(elapsed, job.offer.parTime),
+		qualityMultiplier = qualityMultiplier,
+		speedMultiplier = speedMultiplier,
 		crewBonus = crewBonus,
 		truckBonus = truckBonus,
 		businessBonus = businessBonus,
@@ -630,12 +720,35 @@ local function completeJob(job)
 		wonBack = wonBack,
 		total = total,
 		share = share,
+		-- What the job's stars came from, the stars, and what the customer tipped each of the crew
+		-- on top of the share (PayBreakdown shows it).
+		performance = performance,
+		stars = stars,
+		tip = tip,
+		customer = job.offer.customer,
 	}
 
 	for _, member in members do
-		DataService:AddMoney(member, share)
+		-- Their best stars on this kind of job, in the save before anything else hears the job is done.
+		local data = DataService:Get(member)
+		if data then
+			local templateId = job.offer.templateId
+			data.stars[templateId] = math.max(data.stars[templateId] or 0, stars)
+		end
+		-- Job pay and the tip are money they earned (it counts toward the Earned milestones), each paid
+		-- only when there's something to pay.
+		if share > 0 then
+			DataService:Earn(member, share)
+		end
+		if tip > 0 then
+			DataService:Earn(member, tip)
+		end
 		DataService:RecordJob(member, job.offer.xp)
-		notify(member, `Job done! You earned {Format.money(share)}.`)
+		local message = `Job done! You earned {Format.money(share)}.`
+		if tip > 0 then
+			message ..= ` {job.offer.customer} tipped you {Format.money(tip)}.`
+		end
+		notify(member, message)
 	end
 	sendUpdate(job)
 	for _, member in members do
@@ -646,6 +759,8 @@ local function completeJob(job)
 			preference = job.preference,
 			crew = #members,
 			wonBack = wonBack > 0,
+			stars = stars,
+			tip = tip,
 		})
 	end
 
@@ -832,6 +947,14 @@ function JobService:SnipAt(
 	if not job or job.state ~= "Working" then
 		return false, nil
 	end
+	if job.firstTimer and not job.snipped then
+		-- The first-timer's job starts at the title card, so the par clock starts again here, at
+		-- their first snip: the time it took to tap past the card doesn't count against par.
+		job.snipped = true
+		job.startedAt = os.clock()
+		job.startedServerTime = workspace:GetServerTimeNow()
+		sendUpdate(job)
+	end
 	if options.damagesHazards then
 		wreckHazards(job, player, Vector3.new(x, 0, z), SNIP_HAZARD_REACH)
 	end
@@ -935,6 +1058,111 @@ function JobService:AcceptJob(player: Player, offerId: string): (boolean, string
 	readyJobs[party] = job
 	sendUpdate(job)
 	return true, "Job accepted! Load the tools you think you'll need, then get in at the truck's driver door."
+end
+
+-- A brand-new player (Season.isFirstTimer) starts on a lawn, not at the computer: as they join,
+-- this gives them the first-timer's job (Jobs FirstMow), already Working, and stands them on it
+-- with Grandma's shears in their hands and their truck parked out front. No board, no loading, no
+-- drive: the title card lifts on the grass. From there it's a job like any other (but its par
+-- clock starts again at their first snip, in SnipAt), and the truck brings them home after the
+-- payday (completeJob, sendHome), where the story's intro plays.
+-- Their save's firstJob is set before anything else, so a crash or a rejoin never runs this
+-- twice: they start at their business after that. If any of it fails, it's cleared away and they
+-- start at their business now, so nobody is left stranded.
+function JobService:StartFirstJob(player: Player)
+	local data = DataService:Get(player)
+	if not data then
+		goHome(player)
+		return
+	end
+	data.firstJob = true
+	DataService:Changed(player)
+	task.spawn(DataService.Save, DataService, player)
+
+	-- On their own only: someone already in a crew (an invite taken behind the title card) goes
+	-- with their crew.
+	local party = PartyService:GetParty(player)
+	if not (party and party.leader == player and #party.members == 1) or self:IsBusy(player) then
+		goHome(player)
+		return
+	end
+
+	local streamStarted = os.clock()
+	local job = nil
+	local ok, err = pcall(function()
+		local offer = firstOffer()
+		job = {
+			id = offer.id,
+			offer = offer,
+			preference = "Balanced",
+			party = party,
+			members = { player },
+			penalty = 0,
+			damageCount = 0,
+			work = 0,
+			fitWork = 0,
+			qualityWork = 0,
+			-- No pull-out to call off: they're there already (sendHome and a respawn read this).
+			tripStarted = true,
+			-- SnipAt starts their par clock again at the first snip (see there).
+			firstTimer = true,
+		}
+		activeJobs[job] = true
+		playerJobs[player] = job
+		-- Their own truck, as startDriving fills it in. It never leaves the business: sendHome's
+		-- ReturnTruck does nothing for a truck that's still at home.
+		job.truckOwner = player
+		job.truckId = data.equipped.Truck
+		job.trailerId = data.equipped.Trailer
+		job.businessId = data.equipped.Business
+		local paint = Premium.paintFor(data.premium)
+		job.paintId = if paint then paint.id else nil
+		job.curbAppeal = HomeLawnService:CurbAppeal(player)
+		buildSite(job)
+		job.state = "Working"
+		job.startedAt = os.clock()
+		job.startedServerTime = workspace:GetServerTimeNow()
+
+		-- Load the lawn on their device first, the way goHome loads the business.
+		local standAt = job.lawn.spawnCFrame
+		streamStarted = os.clock()
+		pcall(player.RequestStreamAroundAsync, player, standAt.Position, 5)
+		if playerJobs[player] ~= job then
+			-- They left while it loaded, and leaving cleared the job away.
+			return
+		end
+		local character = player.Character
+		assert(character, "they have no character")
+		character:PivotTo(standAt)
+		setArrivedFacing(player, standAt)
+		sendUpdate(job)
+		-- At the job site, the tools in the truck go in their backpack (ToolService:GiveTools)...
+		JobService.PlayerStateChanged:Fire(player)
+		-- ...and the shears from there into their hands. ToolService requires this module, so it's
+		-- looked up now rather than at the top (every service has loaded long before anyone joins).
+		local ToolService = require(script.Parent.ToolService)
+		-- GiveTools runs here directly as well: the signal's handler only runs to its first yield,
+		-- and GiveHeld builds a second pair if the backpack has none yet. Running it twice is safe.
+		ToolService:GiveTools(player)
+		ToolService:GiveHeld(player, "GardenShears")
+	end)
+	if not ok then
+		warn(`Couldn't start {player.Name}'s first job, so they start at their business: {err}`)
+		if job then
+			job.members = {}
+			if playerJobs[player] == job then
+				playerJobs[player] = nil
+			end
+			if activeJobs[job] then
+				endJob(job)
+			end
+			clearJobFor(player)
+			JobService.PlayerStateChanged:Fire(player)
+		end
+		goHome(player)
+		return
+	end
+	markArrived(player, "their first job", streamStarted)
 end
 
 -- The offers on the board right now (read them, don't change them).
@@ -1087,36 +1315,6 @@ function JobService:Start()
 		end
 	end)
 
-	-- [Player] = os.clock() when they joined, until they've first arrived at their business.
-	local joinedAt = {}
-	local function goHome(player: Player)
-		local streamStarted = os.clock()
-		if player.Parent == Players and player.Character and not self:IsBusy(player) then
-			local home = WorldService:GetHomeCFrame(player)
-			-- Load the business on their device first, so they don't land in an empty world.
-			pcall(player.RequestStreamAroundAsync, player, home.Position, 5)
-			if player.Parent == Players and player.Character and not self:IsBusy(player) then
-				player.Character:PivotTo(home)
-				setArrivedFacing(player, home)
-			end
-		end
-		local joined = joinedAt[player]
-		if joined then
-			joinedAt[player] = nil
-			-- The title card logs its side of this in their own F9 console.
-			print(
-				string.format(
-					"[Load] %s is at their business %.1f s after joining (%.1f s of that loading it on their device)",
-					player.Name,
-					os.clock() - joined,
-					os.clock() - streamStarted
-				)
-			)
-		end
-		-- The title card waits for this (see ReplicatedFirst).
-		player:SetAttribute("ArrivedAtBusiness", true)
-	end
-
 	-- Joining a crew takes you to the leader's business.
 	PartyService.MemberJoined:Connect(function(_party, player)
 		goHome(player)
@@ -1167,11 +1365,16 @@ function JobService:Start()
 			else
 				-- Everyone else spawns at their crew's business, as soon as it's been built (and a
 				-- frame on, so the spawn doesn't put them back).
-				DataService:WaitForData(player)
+				local data = DataService:WaitForData(player)
 				WorldService:WaitForPlot(player, 5)
 				task.wait()
 				if player.Character == character then
-					goHome(player)
+					-- A brand-new player starts on their first job's lawn instead.
+					if data and Season.isFirstTimer(data, false) then
+						self:StartFirstJob(player)
+					else
+						goHome(player)
+					end
 				end
 			end
 		end)

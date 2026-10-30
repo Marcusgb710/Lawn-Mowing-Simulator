@@ -14,6 +14,7 @@ local Controllers = script:WaitForChild("Controllers")
 local CONTROLLERS = {
 	"CameraController",
 	"HudController",
+	"LevelsController",
 	"JobBoardController",
 	"ShopController",
 	"TruckController",

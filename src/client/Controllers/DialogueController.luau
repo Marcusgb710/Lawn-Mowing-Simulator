@@ -10,11 +10,12 @@
 --     from her porch (GloriaController), and what June says when you talk to her on her porch.
 -- The server queues the scenes (StoryService). They play here once the moment's right (after
 -- the title card, not on a job, at the computer or in a menu), and the server's told when each
--- has been watched or skipped. The first one a new player gets is the intro, and the first-job
--- coach (TutorialController) waits for it. An act's opening scene starts with its title card
--- ("Act 2: TurfKing"). The lines are in Config/Story.luau (each speaker's portrait wears the
--- line's `mood`), the art in StoryArt (plain frames until it's uploaded), and the colors and fonts
--- in UI.
+-- has been watched or skipped. The first one a new player gets is the intro, June's welcome after
+-- their first payday (they start on a first lawn with her shears already in hand, see
+-- JobService:StartFirstJob), and the first-job coach (TutorialController) waits for it. An act's
+-- opening scene starts with its title card ("Act 2: TurfKing"). The lines are in
+-- Config/Story.luau (each speaker's portrait wears the line's `mood`), the art in StoryArt (plain
+-- frames until it's uploaded), and the colors and fonts in UI.
 
 local ContextActionService = game:GetService("ContextActionService")
 local Players = game:GetService("Players")
@@ -35,6 +36,7 @@ local StoryArt = require(script.Parent.Parent.StoryArt)
 local UI = require(script.Parent.Parent.UI)
 local CameraController = require(script.Parent.CameraController)
 local ComputerController = require(script.Parent.ComputerController)
+local LevelsController = require(script.Parent.LevelsController)
 
 local player = Players.LocalPlayer
 
@@ -831,6 +833,7 @@ local function goodMoment(): boolean
 		and ClientState.job == nil
 		and not ComputerController.isUsing()
 		and not UI.anyOpen()
+		and not LevelsController.isOpen()
 		and UI.getScreen().Enabled
 		and CameraController.isFirstPerson()
 		and player:GetAttribute("PlacingDecor") == nil
