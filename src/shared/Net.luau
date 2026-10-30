@@ -24,6 +24,7 @@ local EVENTS = {
 	"ContractDone",
 	"BonusDay",
 	"StreakAdvanced",
+	"LeaderboardUpdated",
 	"Swath",
 	"Regrow",
 	-- client -> server

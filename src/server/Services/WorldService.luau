@@ -145,6 +145,34 @@ local function interactable(target: Instance, action: string, actionText: string
 	end
 end
 
+-- The leaderboard sign (see LeaderboardService) stands this far from the spawn, on its +Z side, with
+-- its face toward the spawn. In the placeholder town that is the open side: the nearest business
+-- plots are the ones whose backs are 9 studs off the spawn pad's -Z edge, and +Z is bare ground and
+-- the road, with the next plots 25 studs past it. A Town built in Studio gets it at the same offset.
+local LEADERBOARD_SIGN_AWAY = Vector3.new(0, 0, 12)
+local LEADERBOARD_HEADER = "MAPLE GROVE BEST"
+
+-- Stands the leaderboard sign (Props/LeaderboardSign) beside the spawn, on the ground at the
+-- spawn pad's underside, parented to the town. The header is stamped with its name here; the boards
+-- are drawn by each player's own screen (see LeaderboardController). The sign stays streamed in
+-- for everyone, like Gloria's house, so a screen far from the spawn still has it when it walks there.
+local function standLeaderboardSign(town: Model, spawnLocation: BasePart)
+	local spawnAt = spawnLocation.Position - Vector3.new(0, spawnLocation.Size.Y / 2, 0)
+	local signAt = spawnAt + LEADERBOARD_SIGN_AWAY
+	local model = Assets.prop("LeaderboardSign")
+	Assets.anchor(model)
+	Assets.placeAt(model, CFrame.lookAt(signAt, spawnAt))
+	model.Name = "LeaderboardSign"
+	local header = model:FindFirstChild("LeaderboardSign__Header", true)
+	if header and header:IsA("BasePart") then
+		sign(header, LEADERBOARD_HEADER, Enum.NormalId.Front)
+	end
+	pcall(function()
+		model.ModelStreamingMode = Enum.ModelStreamingMode.Persistent
+	end)
+	model.Parent = town
+end
+
 local function buildPlaceholderTown(): Model
 	local town = Instance.new("Model")
 	town.Name = "Town"
@@ -183,6 +211,7 @@ local function buildPlaceholderTown(): Model
 	spawnLocation.Duration = 0
 	spawnLocation.Color = Color3.fromRGB(240, 200, 60)
 	spawnLocation.Parent = town
+	standLeaderboardSign(town, spawnLocation)
 
 	-- Business plots line both streets, every one facing its street to the south (-Z), so their
 	-- front lawns line up with the grid lawns are drawn on (see HomeLawnService).
@@ -975,6 +1004,11 @@ function WorldService:Init()
 	local spawnLocation = town:FindFirstChildWhichIsA("SpawnLocation", true)
 	if spawnLocation then
 		spawnCFrame = spawnLocation.CFrame + Vector3.new(0, 4, 0)
+		-- The placeholder town stood its sign up as it was built. A Town made in Studio gets one here,
+		-- unless it came with a sign of its own.
+		if not town:FindFirstChild("LeaderboardSign", true) then
+			standLeaderboardSign(town, spawnLocation)
+		end
 	end
 
 	local plotFolder = town:FindFirstChild("Plots")
