@@ -24,7 +24,7 @@
 -- (src/shared), which scripts/check-gui checks.
 --
 -- Keys 1 to 9 and 0 take out the first ten tools (or put one away, if it's the one in your hands),
--- as Roblox's did; a click or tap on any slot does the same for its tool, and a gamepad's L1 and R1
+-- and Backspace puts away the tool in your hands, as Roblox's did; a click or tap on any slot does the same for its tool, and a gamepad's L1 and R1
 -- step through every tool. It equips through your own Humanoid (EquipTool, UnequipTools), which
 -- Roblox replicates to the server for your own character's tools, exactly as Roblox's Backpack did:
 -- the server's Tool.Equipped and Tool.Unequipped handlers (ToolService, TruckService) see the same
@@ -644,6 +644,20 @@ toggleTray = function()
 	queueRender()
 end
 
+-- Backspace puts away the tool in your hands, as Roblox's Backpack did (nothing happens with empty hands).
+local function putAway()
+	closeTray()
+	if blocked() then
+		return
+	end
+	local humanoid = humanoidOf()
+	if humanoid and character and character:FindFirstChildOfClass("Tool") then
+		humanoid:UnequipTools()
+		Sounds.playUi("Click", CLICK_VOLUME)
+		queueRender()
+	end
+end
+
 -- A gamepad's L1 and R1: the tool before or after the one in your hands, through every tool (the
 -- first or last when your hands are empty).
 local function step(by: number)
@@ -791,6 +805,8 @@ function HotbarController:Start()
 			local place = KEYS[input.KeyCode]
 			if place then
 				press(place)
+			elseif input.KeyCode == Enum.KeyCode.Backspace then
+				putAway()
 			end
 		elseif input.KeyCode == Enum.KeyCode.ButtonL1 then
 			step(-1)

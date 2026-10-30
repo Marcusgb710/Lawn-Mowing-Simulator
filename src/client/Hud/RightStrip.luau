@@ -62,6 +62,13 @@ local SQUARE_LABEL_ROOM = 34
 -- On a touch or short screen the strip's squares are 8 px apart and not UiLayout's 12 (the PC's), so
 -- the strip is short enough to end well above the jump button (check-gui works the numbers).
 local SMALL_GAP = 8
+-- How tall the PC strip is, down the GUI (UiLayout's RightButtons): 12 px of edge, three 76 px faces with
+-- their 34 px of label room, Settings' 56 and 34, three 12 px gaps and the last lip's 6. LawnUI is 58 px
+-- shorter than the screen (the top bar), so a PC window under PC_STRIP_HEIGHT + 58 tall has less than that
+-- (a window turns "short", and the strip goes small, only under 500): the strip is drawn smaller then, by
+-- a UIScale on its top right corner, never under PC_STRIP_FLOOR (the shortest PC window, 500, is 0.93).
+local PC_STRIP_HEIGHT = 474
+local PC_STRIP_FLOOR = 0.9
 -- F also sends a decoration you own back to your inventory while you are placing one (DecorController),
 -- so the Top Lawns key leaves it be then.
 local PLACING_ATTRIBUTE = "PlacingDecor"
@@ -185,6 +192,18 @@ local function fitStripGap()
 	end
 end
 
+-- Draws the PC strip smaller when the GUI is shorter than it is (see PC_STRIP_HEIGHT); a touch or short
+-- screen's strip is built small and is not scaled.
+local function fitStripScale()
+	local scale = rightHolder:FindFirstChildOfClass("UIScale") or UI.new("UIScale", { Parent = rightHolder })
+	local room = UI.getScreen().AbsoluteSize.Y
+	if UI.isTouch() or UI.isCompact() or room <= 0 then
+		scale.Scale = 1
+	else
+		scale.Scale = math.clamp(room / PC_STRIP_HEIGHT, PC_STRIP_FLOOR, 1)
+	end
+end
+
 -- The strip down the right edge (UiLayout's RightButtons): Shop, Gifts, Top Lawns and Settings. Built
 -- straight at the size this screen asks (a UIScale on the strip would leave the buttons' sizes to the
 -- layout's mercy), and fitted again if the screen turns short or tall. Returns the Gifts and Settings
@@ -197,6 +216,8 @@ local function buildRightButtons(): { [string]: GuiObject }
 	})
 	UI.keepPlaced(rightHolder, "RightButtons")
 	fitStripGap()
+	fitStripScale()
+	UI.getScreen():GetPropertyChangedSignal("AbsoluteSize"):Connect(fitStripScale)
 
 	local small = UI.isTouch() or UI.isCompact()
 	for _, spec in RIGHT_BUTTONS do
@@ -249,6 +270,7 @@ local function buildRightButtons(): { [string]: GuiObject }
 
 	UI.CompactChanged:Connect(function()
 		fitStripGap()
+		fitStripScale()
 		for _, piece in rightPieces do
 			fitRightButton(piece)
 		end

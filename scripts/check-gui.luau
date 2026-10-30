@@ -1039,11 +1039,12 @@ do
 	check(selectable >= 2, `{path}: its slot and "+N" buttons aren't Selectable = false`)
 end
 
--- Roblox's Backpack (its own hotbar) stays off for good: every SetCoreGuiEnabled in the client that
--- names the Backpack, or All, passes false, and one does turn the Backpack off. Otherwise Roblox's
--- hotbar would show under the game's, and its number keys would equip tools behind the game's back.
+-- Roblox's Backpack (its own hotbar) and its player list stay off for good: every SetCoreGuiEnabled in the
+-- client that names either, or All, passes false, and one does turn each off. Otherwise Roblox's hotbar
+-- would show under the game's, and its number keys would equip tools behind the game's back, and the
+-- player list would sit over the right strip's Shop button in the top right corner of a PC screen.
 do
-	local switchesItOff = false
+	local switchedOff: { [string]: boolean } = {}
 	local function scanCore(folder: string)
 		for _, name in fs.readDir(folder) do
 			local path = `{folder}/{name}`
@@ -1060,14 +1061,17 @@ do
 					from = finish + 1
 					-- The call's arguments, up to its closing bracket (they have no brackets of their own).
 					local call = string.match(source, "^[^%)]*%)", finish + 1) or ""
-					local backpack = string.find(call, "CoreGuiType%.Backpack") ~= nil
-					if backpack or string.find(call, "CoreGuiType%.All") then
-						local last = string.match(call, ",%s*([%w_%.]+)%s*%)$")
-						check(
-							last == "false",
-							`{path} calls SetCoreGuiEnabled on the Backpack with {last or "a value worked out"}, not false: Roblox's Backpack stays off`
-						)
-						switchesItOff = switchesItOff or (backpack and last == "false")
+					local last = string.match(call, ",%s*([%w_%.]+)%s*%)$")
+					local all = string.find(call, "CoreGuiType%.All") ~= nil
+					for _, kind in { "Backpack", "PlayerList" } do
+						local named = string.find(call, `CoreGuiType%.{kind}`) ~= nil
+						if named or all then
+							check(
+								last == "false",
+								`{path} calls SetCoreGuiEnabled on {kind} with {last or "a value worked out"}, not false: Roblox's {kind} stays off`
+							)
+							switchedOff[kind] = switchedOff[kind] or (named and last == "false")
+						end
 					end
 				end
 			end
@@ -1075,7 +1079,12 @@ do
 	end
 	scanCore("src/client")
 	scanCore("src/first")
-	check(switchesItOff, "Nothing in the client turns Roblox's Backpack off (SetCoreGuiEnabled, Backpack, false)")
+	for _, kind in { "Backpack", "PlayerList" } do
+		check(
+			switchedOff[kind] == true,
+			`Nothing in the client turns Roblox's {kind} off (SetCoreGuiEnabled, {kind}, false)`
+		)
+	end
 end
 
 -- The HUD's code: HudController and the modules it draws the front-page pieces with (src/client/Hud:
@@ -1281,6 +1290,17 @@ do
 			scale >= columns.tightScale,
 			`the left column is scaled to {scale} {which} on the {phone.width} by {phone.height} phone ({guiHeight} px of it under the top bar; {content} px of column), under its {columns.tightScale} tight floor`
 		)
+		-- The Levels pill's hit area (the pill and the reach above and below it) is a control that acts: 40 px
+		-- once the column is scaled.
+		local pillHeight = tonumber(string.match(hudSource, "LEVEL_PILL = Vector2%.new%(%d+,%s*(%d+)%)"))
+		local reach = tonumber(string.match(hudSource, "LEVELS_BUTTON_REACH = (%d+)"))
+		check(pillHeight ~= nil and reach ~= nil, "HudController has no LEVEL_PILL and LEVELS_BUTTON_REACH")
+		if pillHeight and reach then
+			check(
+				(pillHeight + 2 * reach) * scale >= MIN_PHONE_FACE,
+				`the Levels pill's hit area is {(pillHeight + 2 * reach) * scale} px {which} on the {phone.width} by {phone.height} phone (column scale {scale}), under {MIN_PHONE_FACE}`
+			)
+		end
 		check(
 			GRID_FACE * scale >= MIN_PHONE_FACE,
 			`a menu square is {GRID_FACE * scale} px {which} on the {phone.width} by {phone.height} phone ({guiHeight} px of it under the top bar; column scale {scale} for {content} px of column), under {MIN_PHONE_FACE}`
@@ -1636,13 +1656,35 @@ do
 			`UiLayout's RightButtons isn't {SMALL} wide on a touch or short screen`
 		)
 
-		-- A PC: the strip's own height, its buttons and the gaps, and the 6 px lip under the last, stays
-		-- above the height where the screen turns short.
+		-- A PC: the strip's own height, its buttons and the gaps, and the 6 px lip under the last. LawnUI is
+		-- GUI_INSET shorter than the screen, and a window is only "short" (and the strip small) under
+		-- compactHeight, so on the shortest PC window the GUI is that less the inset and the strip is drawn
+		-- smaller to fit, by a UIScale on its top right corner (RightStrip's fitStripScale), never under the
+		-- floor RightStrip names.
 		local listPad = strip.list.padding
 		local pcHeight = EDGE + 3 * (BIG + LABEL_ROOM) + (BIG_SETTINGS + LABEL_ROOM) + 3 * listPad + 6
+		local floorScale = tonumber(string.match(hudSource, "local PC_STRIP_FLOOR = ([%d%.]+)"))
 		check(
-			pcHeight < UiLayout.__screen.compactHeight,
-			`the right strip is {pcHeight} px down on a PC, past the {UiLayout.__screen.compactHeight} px where the screen turns short (it has no scale)`
+			tonumber(string.match(hudSource, "local PC_STRIP_HEIGHT = (%d+)")) == pcHeight,
+			`RightStrip's PC_STRIP_HEIGHT isn't the strip's {pcHeight} px down a PC screen`
+		)
+		check(floorScale ~= nil, "RightStrip has no PC_STRIP_FLOOR")
+		local shortestGui = UiLayout.__screen.compactHeight - GUI_INSET
+		local shortestScale = math.min(1, shortestGui / pcHeight)
+		check(
+			floorScale ~= nil and shortestScale >= floorScale,
+			`the right strip needs {pcHeight} px and the shortest PC window's GUI has {shortestGui} (a {UiLayout.__screen.compactHeight} px window less the top bar): scale {shortestScale}, under the floor {floorScale}`
+		)
+		check(
+			string.find(hudSource, "room / PC_STRIP_HEIGHT", 1, true) ~= nil
+				and string.find(
+						hudSource,
+						'GetPropertyChangedSignal("AbsoluteSize"):Connect(fitStripScale)',
+						1,
+						true
+					)
+					~= nil,
+			"RightStrip doesn't draw the PC strip smaller when the GUI is shorter than it is"
 		)
 		-- The phone: the strip ends above Roblox's jump button (the columns' touchMargin), and its left
 		-- edge is clear of the look-at button, which is the nearest phone button.

@@ -1132,7 +1132,7 @@ gets the same three all day). What each asks and pays depends on the level band:
 A contract pays the moment it is met, once. Finishing all three pays the **Bonus Day**, $500 more.
 They count what you do that day: jobs finished, three-star jobs, junk picked up, and money earned
 (tips, the streak's cash and the Bonus Day too). The mailbox at the curb (`Props/CurbMailbox`) and
-the "Contracts 1/3" chip under the goals rail both open the panel.
+the Contracts square on the HUD's left (with its count badge) both open the panel.
 
 **The login streak** (`Config/Streak.luau`). The first time you are in on a UTC day the streak grows
 a day (it starts again at day 1 if you missed one) and that day's cash waits as a gift: the HUD's

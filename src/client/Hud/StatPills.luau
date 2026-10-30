@@ -45,7 +45,7 @@ local MONEY_COUNT_TIME = 0.4
 local LEVEL_TEXT_LEFT = 31
 local XP_BAR_LEFT = 87
 local XP_BAR_HEIGHT = 10
-local LEVELS_BUTTON_REACH = 11
+local LEVELS_BUTTON_REACH = 13
 -- The streak pill's flame: how far in its middle is, and how wide its body is.
 local FLAME_MIDDLE = 19
 local FLAME_WIDTH = 16

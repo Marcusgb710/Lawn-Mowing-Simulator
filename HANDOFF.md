@@ -134,7 +134,10 @@ turn pays. The turn now only moves the streak on and leaves the day's cash for t
 across a UTC midnight can skip one day's gift and pay another twice. So publish this one with
 **"Shut down all servers"**: once the new version is live, shut down every running server (the experience's
 "Shut down all servers" action on Roblox's Creator Hub) instead of letting old ones drain on their own, and
-expect everyone in them to be disconnected once and rejoin a fresh one. It also adds a top-level
+expect everyone in them to be disconnected once and rejoin a fresh one. Do it at a quiet time and not
+within a few minutes of 00:00 UTC, so the shutdown cannot itself straddle the day turn. The case it
+prevents is an old server saving a player after a new one did (a player hopping back to an old server),
+which would put back the gift the new one had already moved on. It also adds a top-level
 `settings` table to the save, which an old save gets from `defaultData` without a version bump.
 
 Phones only get what's been published. Publishing is one command and doesn't need Studio

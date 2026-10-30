@@ -600,8 +600,12 @@ The spec's playtest checklist for slice 2, with what to expect:
 The play screen was rebuilt as a front-page Roblox simulator HUD (design: `docs/GAME_DESIGN.md`, "12.
 The HUD"; plan: `docs/superpowers/plans/2026-10-30-front-page-hud.md`). The Lune checks cover what is
 pure (`check-gui` the layout rules at 1280 by 720, 1024 by 768, 844 by 390 and 667 by 375, the palette
-and the source rules; `check-season` the gift, the day turn and Settings rules). None of it has been
-looked at in Studio or on a phone yet, so every item below is a first look. Studio only: the test panel
+and the source rules; `check-season` the gift, the day turn and Settings rules). A first Studio pass
+(alone, on the phone emulator in landscape and in a 1232 by 440 PC viewport) saw the HUD draw, a gift
+claimed with its Payday card, Top Lawns, Settings and the layouts, and found the phone strip, the hotbar
+over windows and the Settings pills (fixed). Not yet seen: hand mowing and the splash, a job with 10 or
+more tools, Shop buying away from the desk, two players, Settings across a rejoin, and every sound. The
+items below are the ones still to look at. Studio only: the test panel
 (K) has Next day, and Studio does not save without API access (Game Settings > Security > Enable Studio
 Access to API Services), so turn that on where an item says so.
 
@@ -624,7 +628,9 @@ Layout (each step is one window size; look at each piece, then check nothing ove
       right edge: Shop, Gifts, Top Lawns and Settings squares.
 - [ ] 1024 by 768 and 1024 by 600 (the window resized). Expect the same PC layout as 1280 by 720: names
       under the squares, the banner clear of both columns, the right column just inside the strip. At
-      600 tall the columns are at full size (they only shrink under 560); nothing overlaps.
+      600 tall the GUI is 542 px (Roblox's top bar takes 58), so the columns are at 0.97 and the strip is at
+      full size; nothing overlaps. Also a 1024 by 520 window: the PC strip is drawn a little smaller (about
+      0.97, from 474 px of strip to 462 of GUI) so Settings is not cut off at the bottom.
 - [ ] The phone emulator at 844 by 390, landscape. Expect the four left squares in a 2 by 2 grid of bare
       faces (no names under them), the right strip's four squares bare too (all 40 px, 8 px apart), the
       left column about 0.66 scale when the countdown pill is up (the screen is 58 px shorter under
@@ -724,9 +730,11 @@ Shop, Top Lawns and Settings:
 - [ ] Top Lawns (F or the button), API access on: two tabs, up to 25 rows each, gold ranks for the first
       three, your own line under the list. With API access off: the window says the boards are off. On
       a phone, both tabs and the Close button are reachable, and the tab you press grows and clicks.
-- [ ] PlayerList vs the right strip. Test tab > Clients and Servers, 2 players: Roblox's own player list
-      sits at the top right. Expect the strip's top square (Shop) not to hide under it; if it does,
-      the strip needs to move down on a PC.
+- [ ] Roblox's player list is off. Test tab > Clients and Servers, 2 players, on a PC window: nothing of
+      Roblox's player list shows at the top right, and the Shop button there takes a click. (The game
+      turns the list off once at start; the money pill and Top Lawns carry what it showed.)
+- [ ] Backspace puts away the tool in your hands on a job, like the number keys; with empty hands it does
+      nothing.
 - [ ] Settings (comma or the button), API access on: choose Sound Low, Camera motion Off, Grass detail
       Low. Sounds are quieter (Off is silent, including the engine and the UI), the head bob stops,
       and the Grass row says it takes effect when you rejoin. Stop and play again (a rejoin): the three

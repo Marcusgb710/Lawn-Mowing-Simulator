@@ -812,8 +812,10 @@ local function buildMissedButton()
 		Visible = false,
 	})
 	Columns.placeInColumn(missedButton, "MissedButton")
-	Juicy.juice(missedButton)
+	-- The key badge goes on before the button is juiced: juice moves the kit's Icon into an inner frame, and
+	-- the badge looks for the Icon (as a direct child) to see how much room to leave it.
 	addKeyBadge(missedButton, MISSED_KEY)
+	Juicy.juice(missedButton)
 	Columns.addHitStrips(missedButton, showMissed, "RightColumn")
 end
 

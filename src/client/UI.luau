@@ -1393,6 +1393,33 @@ end
 
 -- Screens and menus -----------------------------------------------------------------------------
 
+-- Roblox's own screens the game draws its own versions of are turned off for good (the Backpack, by the
+-- hotbar, below; the player list here). Turning one off can fail while Roblox's own scripts are still
+-- starting, so `turnOff` (a pcall of SetCoreGuiEnabled) is tried again until it takes, in a thread of its
+-- own (nothing here waits). scripts/check-gui allows exactly these two calls, both false.
+local CORE_GUI_RETRY = 0.25
+local CORE_GUI_TRIES = 240
+local function keepOff(turnOff: () -> boolean, name: string)
+	task.spawn(function()
+		for _ = 1, CORE_GUI_TRIES do
+			if turnOff() then
+				return
+			end
+			task.wait(CORE_GUI_RETRY)
+		end
+		warn(`[UI] Couldn't turn Roblox's {name} off`)
+	end)
+end
+
+-- Roblox's player list sits in the top right corner of a PC screen, exactly where the right strip's Shop
+-- button is, and eats the clicks there; the money pill and Top Lawns carry what it showed. It is turned off
+-- once, when the game's screen is first made (the client's start).
+local function turnOffPlayerList()
+	keepOff(function()
+		return (pcall(StarterGui.SetCoreGuiEnabled, StarterGui, Enum.CoreGuiType.PlayerList, false))
+	end, "player list")
+end
+
 function UI.getScreen(): ScreenGui
 	if not screen then
 		screen = UI.new("ScreenGui", {
@@ -1401,6 +1428,7 @@ function UI.getScreen(): ScreenGui
 			ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
 			Parent = Players.LocalPlayer:WaitForChild("PlayerGui"),
 		})
+		turnOffPlayerList()
 	end
 	return screen
 end
@@ -1624,22 +1652,14 @@ local hiders: { [string]: boolean } = {}
 local hotbarWanted = false
 local hotbarShown = false
 local backpackOff = false
-local BACKPACK_RETRY = 0.25
-local BACKPACK_TRIES = 240
 local function turnOffBackpack()
 	if backpackOff then
 		return
 	end
 	backpackOff = true
-	task.spawn(function()
-		for _ = 1, BACKPACK_TRIES do
-			if pcall(StarterGui.SetCoreGuiEnabled, StarterGui, Enum.CoreGuiType.Backpack, false) then
-				return
-			end
-			task.wait(BACKPACK_RETRY)
-		end
-		warn("[UI] Couldn't turn Roblox's Backpack off")
-	end)
+	keepOff(function()
+		return (pcall(StarterGui.SetCoreGuiEnabled, StarterGui, Enum.CoreGuiType.Backpack, false))
+	end, "Backpack")
 end
 -- Fired with whether the hotbar shows, when that changes (HotbarController listens).
 UI.HotbarChanged = Signal.new()
