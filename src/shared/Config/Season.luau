@@ -1,8 +1,9 @@
 -- The Busy Season's part of the save (docs/superpowers/specs/2026-10-29-busy-season-design.md):
--- `earned`, `stars`, `milestones`, `levelRewards` and `firstJob`, and who still counts as a
--- first-timer. upgradeSave is the one place those fields get their starting values: DataService
--- runs it for a brand new save and as the 12 -> 13 migration, so the two can't drift apart. It
--- touches nothing else in a save, and nothing here pays or saves anything.
+-- `earned`, `stars`, `milestones`, `levelRewards` and `firstJob`, then the day's `daily`, `streak`
+-- and `flags` and the judging calendar kept on `contest`, and who still counts as a first-timer.
+-- upgradeSave is the one place those fields get their starting values: DataService runs it for a
+-- brand new save and as the 12 -> 13 and 13 -> 14 migrations, so they can't drift apart. It touches
+-- nothing else in a save, and nothing here pays or saves anything.
 --
 -- scripts/check-season.luau gates this file. It reaches GameConfig and Milestones through
 -- `script`, which Lune doesn't have, so the check loads it with both handed in.
@@ -17,8 +18,8 @@ function Season.levelKey(level: number): string
 	return tostring(level)
 end
 
--- Fills in what a version 13 save carries and keeps whatever is already there with the right
--- type, so it is safe on any save and safe to run twice.
+-- Fills in what a version 14 save carries and keeps whatever is already there with the right
+-- type, so it is safe on any save and safe to run twice. The version 13 fields:
 --   earned        what they've made from jobs and rewards; an old save counts the money it has,
 --                 unless it has finished no job, which has made nothing: a brand new save starts
 --                 at 0 whatever StartingMoney is, so raising it never starts a player part way to
@@ -37,6 +38,19 @@ end
 --                 spelling.
 --   firstJob      true once the first-timer opening has run; a save that has finished jobs is
 --                 already past it
+-- The version 14 fields, which every save starts with empty. Each one is filled in on its own, so
+-- a day that has some of its fields keeps those and gains the rest:
+--   daily         the day's contracts: `day` is its UTC day key (Daily.dayKey; "" before the first),
+--                 `contracts` is the list made for that day, `done` has [contract id] = true for
+--                 each one paid, `count` is what they've done toward them today (jobs, earned, junk
+--                 and stars), and `bonus` is true once the bonus for finishing all of them is paid
+--   streak        the login streak: how many `days` in a row, and the day key it was `last` kept
+--   flags         [flag id] = true for each cosmetic flag they own
+--   contest       gains `lastJudged`, the day key of the last Saturday judged ("" for none), and
+--                 `saturdays`, the Saturdays judged without a win since the last one. The contest
+--                 table itself is made by the 10 -> 11 migration and by DataService's defaultData,
+--                 both before this runs, so a save without one is left alone rather than given a
+--                 stub that ContestService would take for the whole thing.
 function Season.upgradeSave(data: { [string]: any })
 	if typeof(data.earned) ~= "number" then
 		local jobs = data.jobsCompleted or 0
@@ -63,6 +77,55 @@ function Season.upgradeSave(data: { [string]: any })
 	end
 	if typeof(data.firstJob) ~= "boolean" then
 		data.firstJob = (data.jobsCompleted or 0) > 0
+	end
+
+	if typeof(data.daily) ~= "table" then
+		data.daily = {}
+	end
+	local daily = data.daily
+	if typeof(daily.day) ~= "string" then
+		daily.day = ""
+	end
+	-- A list of contract tables, which the DataStore's JSON keeps as an array.
+	if typeof(daily.contracts) ~= "table" then
+		daily.contracts = {}
+	end
+	if typeof(daily.done) ~= "table" then
+		daily.done = {}
+	end
+	if typeof(daily.count) ~= "table" then
+		daily.count = {}
+	end
+	for _, counter in { "jobs", "earned", "junk", "stars" } do
+		if typeof(daily.count[counter]) ~= "number" then
+			daily.count[counter] = 0
+		end
+	end
+	if typeof(daily.bonus) ~= "boolean" then
+		daily.bonus = false
+	end
+
+	if typeof(data.streak) ~= "table" then
+		data.streak = {}
+	end
+	if typeof(data.streak.days) ~= "number" then
+		data.streak.days = 0
+	end
+	if typeof(data.streak.last) ~= "string" then
+		data.streak.last = ""
+	end
+
+	if typeof(data.flags) ~= "table" then
+		data.flags = {}
+	end
+
+	if typeof(data.contest) == "table" then
+		if typeof(data.contest.lastJudged) ~= "string" then
+			data.contest.lastJudged = ""
+		end
+		if typeof(data.contest.saturdays) ~= "number" then
+			data.contest.saturdays = 0
+		end
 	end
 end
 

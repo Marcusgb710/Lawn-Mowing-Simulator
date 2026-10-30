@@ -4,7 +4,8 @@
 -- (src/shared/Config/Milestones.luau), the level rewards and what comes next
 -- (src/shared/Config/Levels.luau), and how a job's performance becomes stars and tips
 -- (src/shared/Config/Stars.luau) and that the pay is built on that same factor
--- (GameConfig.performance), and how a save becomes a version 13 save and who is still a
+-- (GameConfig.performance), and how a save becomes a version 14 save (the ladder's fields, then
+-- the day's contracts, the streak, the flags and the judging calendar) and who is still a
 -- first-timer, without back pay for the milestones or levels it has already passed
 -- (src/shared/Config/Season.luau), and that the six sounds the Busy Season rings
 -- (cash, level up, goal done, star, find, streak) have ids (src/shared/Sounds.luau), and how a
@@ -370,6 +371,166 @@ check(Season.isFirstTimer({ firstJob = false }, false) == true, "a save with no 
 check(
 	Season.isFirstTimer({ firstJob = false, jobsCompleted = 1 }, false) == false,
 	"a finished job is not a first-timer"
+)
+
+-- Version 14: the day's contracts, the streak, the flags and the judging calendar. DataService makes
+-- the contest table (the 10 -> 11 migration, or defaultData) before it runs upgradeSave, so a fresh
+-- save here carries one the same way.
+local fresh14 = { money = 0, xp = 0, jobsCompleted = 0, contest = { summer = 1, judged = 0 } }
+Season.upgradeSave(fresh14)
+check(
+	fresh14.daily.day == ""
+		and next(fresh14.daily.contracts) == nil
+		and next(fresh14.daily.done) == nil
+		and fresh14.daily.bonus == false,
+	"a fresh save has no day, no contracts, nothing done and no bonus"
+)
+check(
+	fresh14.daily.count.jobs == 0
+		and fresh14.daily.count.earned == 0
+		and fresh14.daily.count.junk == 0
+		and fresh14.daily.count.stars == 0,
+	"a fresh day's counts all start at 0"
+)
+check(fresh14.streak.days == 0 and fresh14.streak.last == "", "a fresh save has no streak")
+check(next(fresh14.flags) == nil, "a fresh save owns no flags")
+check(
+	fresh14.contest.lastJudged == "" and fresh14.contest.saturdays == 0,
+	"a fresh contest has judged on no day and no Saturdays without a win"
+)
+check(fresh14.contest.summer == 1 and fresh14.contest.judged == 0, "the contest's other fields are left alone")
+check(fresh.contest == nil, "a save with no contest table is not given a stub of one")
+local noContest = { money = 0, xp = 0, jobsCompleted = 0, contest = false }
+Season.upgradeSave(noContest)
+check(noContest.contest == false, "a contest that is not a table is left alone, whatever it is")
+
+-- A day already in progress keeps its day, contracts, done list and bonus, and gains the counts it
+-- lacked. The tables are the ones that were there, not copies.
+local contracts = { {} }
+local done = {}
+local midDay = {
+	money = 0,
+	xp = 0,
+	jobsCompleted = 0,
+	daily = { day = "20261029", contracts = contracts, done = done, bonus = true },
+}
+Season.upgradeSave(midDay)
+check(
+	midDay.daily.day == "20261029"
+		and midDay.daily.contracts == contracts
+		and midDay.daily.done == done
+		and midDay.daily.bonus == true,
+	"a day in progress keeps its day, contracts, done list and bonus"
+)
+check(
+	midDay.daily.count.jobs == 0
+		and midDay.daily.count.earned == 0
+		and midDay.daily.count.junk == 0
+		and midDay.daily.count.stars == 0,
+	"a day with no counts gains them at 0"
+)
+local partial = { money = 0, xp = 0, jobsCompleted = 0, daily = { count = { jobs = 2, earned = 90 } } }
+Season.upgradeSave(partial)
+check(
+	partial.daily.count.jobs == 2
+		and partial.daily.count.earned == 90
+		and partial.daily.count.junk == 0
+		and partial.daily.count.stars == 0,
+	"counts that are there are kept and the missing ones start at 0"
+)
+local kept14 = {
+	money = 0,
+	xp = 0,
+	jobsCompleted = 0,
+	streak = { days = 4, last = "20261028" },
+	flags = { TruckPennant = true },
+	contest = { lastJudged = "20261024", saturdays = 2 },
+}
+Season.upgradeSave(kept14)
+check(
+	kept14.streak.days == 4 and kept14.streak.last == "20261028" and kept14.flags.TruckPennant == true,
+	"a streak and flags that are there are kept"
+)
+check(
+	kept14.contest.lastJudged == "20261024" and kept14.contest.saturdays == 2,
+	"a judging calendar that is there is kept"
+)
+
+-- Running the upgrade again changes nothing, for a fresh save, an old one and one with a day in it.
+local function sameTable(a: any, b: any): boolean
+	if typeof(a) ~= "table" or typeof(b) ~= "table" then
+		return a == b
+	end
+	for key, value in a do
+		if not sameTable(value, b[key]) then
+			return false
+		end
+	end
+	for key in b do
+		if a[key] == nil then
+			return false
+		end
+	end
+	return true
+end
+local function copyOf(value: any): any
+	if typeof(value) ~= "table" then
+		return value
+	end
+	local copy = {}
+	for key, inner in value do
+		copy[key] = copyOf(inner)
+	end
+	return copy
+end
+local sampleSaves = {
+	fresh14,
+	midDay,
+	partial,
+	kept14,
+	{ money = 1234.5, xp = 1800, jobsCompleted = 30, contest = { summer = 2, wins = 1, judged = 3 } },
+	{ money = 50, xp = 0, jobsCompleted = 0, contest = { judged = 1 } },
+}
+for index, save in sampleSaves do
+	Season.upgradeSave(save)
+	local once = copyOf(save)
+	Season.upgradeSave(save)
+	check(sameTable(once, save), `upgrading save {index} twice is upgrading it once`)
+end
+
+-- A field of the wrong type is filled in again, the way the version 13 fields are.
+local scrambled = {
+	money = 0,
+	xp = 0,
+	jobsCompleted = 0,
+	daily = { day = 5, contracts = false, done = 1, count = 3, bonus = "yes" },
+	streak = { days = "many", last = 7 },
+	flags = true,
+	contest = { lastJudged = 7, saturdays = "two" },
+}
+Season.upgradeSave(scrambled)
+check(
+	scrambled.daily.day == ""
+		and next(scrambled.daily.contracts) == nil
+		and next(scrambled.daily.done) == nil
+		and scrambled.daily.bonus == false
+		and scrambled.daily.count.jobs == 0
+		and scrambled.daily.count.stars == 0,
+	"a day of the wrong types is made again"
+)
+check(
+	scrambled.streak.days == 0
+		and scrambled.streak.last == ""
+		and next(scrambled.flags) == nil
+		and scrambled.contest.lastJudged == ""
+		and scrambled.contest.saturdays == 0,
+	"a streak, flags and judging calendar of the wrong types are made again"
+)
+local noDay = { money = 0, xp = 0, jobsCompleted = 0, daily = 7, streak = "x" }
+Season.upgradeSave(noDay)
+check(
+	noDay.daily.day == "" and noDay.daily.count.junk == 0 and noDay.streak.days == 0,
+	"a day or streak that is not a table is made whole"
 )
 
 if failures > 0 then

@@ -28,7 +28,7 @@ DataService.Earned = Signal.new()
 
 -- Bump this whenever the save format changes, and add a step to MIGRATIONS that turns the
 -- previous version into the new one. Never delete a step: old saves still need it.
-local DATA_VERSION = 13
+local DATA_VERSION = 14
 
 -- MIGRATIONS[n] turns a version n - 1 save into version n. Steps must keep money, xp and every
 -- owned item. Don't use the live config to read an old save: write down what it looked like.
@@ -194,6 +194,14 @@ local MIGRATIONS = {
 	[13] = function(data)
 		Season.upgradeSave(data)
 	end,
+
+	-- 13 -> 14, the day (see Season.upgradeSave): `daily` starts out as no day yet with no
+	-- contracts, nothing done and every count at 0, `streak` as 0 days kept on no day, `flags` as
+	-- none owned, and the `contest` the 10 -> 11 step made gains `lastJudged` (no Saturday judged
+	-- yet) and `saturdays` (none without a win). Nothing the save already holds changes.
+	[14] = function(data)
+		Season.upgradeSave(data)
+	end,
 }
 
 local store: DataStore? = nil
@@ -252,10 +260,11 @@ local function defaultData()
 		-- What they've bought with Robux (see Premium.luau and PremiumService)
 		premium = Premium.empty(),
 	}
-	-- The Busy Season's fields (`earned`, `stars`, `milestones`, `levelRewards` and `firstJob`, see
-	-- Config/Season.luau), filled in the way the 12 -> 13 migration does, from the numbers above.
-	-- `levelRewards` is keyed by the level as a string (Season.levelKey), so the save stays a
-	-- dictionary rather than an array with holes.
+	-- The Busy Season's fields (`earned`, `stars`, `milestones`, `levelRewards` and `firstJob`, then
+	-- `daily`, `streak` and `flags` and the `lastJudged` and `saturdays` of the contest above, see
+	-- Config/Season.luau), filled in the way the 12 -> 13 and 13 -> 14 migrations do, from the
+	-- numbers above. `levelRewards` is keyed by the level as a string (Season.levelKey), so the save
+	-- stays a dictionary rather than an array with holes.
 	Season.upgradeSave(data)
 	for _, category in Items.Categories do
 		data.owned[category] = {}
@@ -511,6 +520,11 @@ local function snapshot(data)
 		milestones = data.milestones,
 		levelRewards = data.levelRewards,
 		firstJob = data.firstJob,
+		-- The day: today's contracts and what they've done toward them, the login streak, and the
+		-- cosmetic flags they own.
+		daily = data.daily,
+		streak = data.streak,
+		flags = data.flags,
 		owned = data.owned,
 		equipped = data.equipped,
 		loadout = data.loadout,
