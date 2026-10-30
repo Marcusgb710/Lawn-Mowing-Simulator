@@ -489,8 +489,8 @@ check(typeof(UiLayout.__screen.compactHeight) == "number", "__screen has no comp
 
 -- The Levels panel (Busy Season, slice 1): a centred window of its own on the game's screen, opened
 -- from the XP bar, that shrinks to fit like the pay breakdown does. Centred, it's already clear of
--- Roblox's move stick and jump button, so a touch screen has the same height margin (a bigger one
--- would only make its words small), and `scale` is the most it's drawn at.
+-- Roblox's move stick and jump button, so a touch screen has the same top margin, and `scale` is the
+-- most it's drawn at. (On a touch screen it also stands above the hotbar: see HOTBAR_BAND below.)
 local levelsPanel = UiLayout.LevelsPanel
 check(levelsPanel ~= nil, "UiLayout has no LevelsPanel")
 if levelsPanel then
@@ -515,7 +515,7 @@ if levelsRule then
 	)
 	check(
 		typeof(levelsRule.touchMargin) == "number" and levelsRule.touchMargin == levelsRule.margin,
-		"__screen.scaling.LevelsPanel's touchMargin isn't its margin: it's centred, clear of the thumb zones"
+		"__screen.scaling.LevelsPanel's touchMargin isn't its margin: the top margin is the same on a touch screen"
 	)
 	check(
 		typeof(levelsRule.scale) == "number" and levelsRule.scale > 0 and levelsRule.scale <= 1,
@@ -525,7 +525,7 @@ end
 
 -- The contracts panel and its chip (Busy Season, slice 2). The panel is the Levels panel's twin: a
 -- centred window of its own that shrinks to fit by the same rule (the same margins, a touch screen's
--- the same as any other's, for the same reason). The chip is the left column's last piece, under
+-- top margin the same as any other's, and the same place above the hotbar there). The chip is the left column's last piece, under
 -- Grandma's goal, and it shows on every screen, through a job too: nothing hides it and it isn't
 -- compactOnly, so no entry's hideWhile (in its place, its touch ones or its compact ones) names it,
 -- and it has an order of its own in the column.
@@ -551,7 +551,7 @@ do
 		check(rule.margin == 24, "__screen.scaling.ContractsPanel's margin isn't 24, the Levels panel's")
 		check(
 			typeof(rule.touchMargin) == "number" and rule.touchMargin == rule.margin,
-			"__screen.scaling.ContractsPanel's touchMargin isn't its margin: it's centred, clear of the thumb zones"
+			"__screen.scaling.ContractsPanel's touchMargin isn't its margin: the top margin is the same on a touch screen"
 		)
 		check(
 			typeof(rule.scale) == "number" and rule.scale > 0 and rule.scale <= 1,
@@ -594,6 +594,45 @@ do
 				)
 			end
 		end
+	end
+end
+
+-- Roblox's hotbar sits in a band along the bottom middle of a phone (48 px slots), and the tool
+-- condition chips keep 66 px clear of the bottom on a short screen. Both windows stand above that
+-- band on a touch screen, bottom edge anchored, so a tap on their Close button never lands on a slot
+-- (it did, on the Grass Shears slot). Anywhere else they stay centred.
+local HOTBAR_BAND = 66
+do
+	local chips = UiLayout.ToolCondition.compact
+	check(
+		chips ~= nil and chips.position ~= nil and chips.position[4] == -HOTBAR_BAND,
+		"UiLayout's ToolCondition isn't HOTBAR_BAND above the bottom on a short screen: update HOTBAR_BAND"
+	)
+	for _, id in { "LevelsPanel", "ContractsPanel" } do
+		local entry = UiLayout[id]
+		local touch = entry.touch
+		check(
+			touch ~= nil and touch.anchor ~= nil and touch.anchor[1] == 0.5 and touch.anchor[2] == 1,
+			`UiLayout's {id} isn't anchored at its bottom edge on a touch screen`
+		)
+		check(
+			touch ~= nil
+				and touch.position ~= nil
+				and touch.position[1] == 0.5
+				and touch.position[2] == 0
+				and touch.position[3] == 1
+				and touch.position[4] <= -HOTBAR_BAND,
+			`UiLayout's {id} isn't at least {HOTBAR_BAND} px above the bottom on a touch screen: Close is under the hotbar`
+		)
+		check(
+			entry.anchor[1] == 0.5
+				and entry.anchor[2] == 0.5
+				and entry.position[1] == 0.5
+				and entry.position[3] == 0.5
+				and entry.position[2] == 0
+				and entry.position[4] == 0,
+			`UiLayout's {id} isn't centred off a touch screen: nothing changes on a PC`
+		)
 	end
 end
 

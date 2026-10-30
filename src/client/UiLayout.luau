@@ -249,10 +249,11 @@ return {
 				touchMargin = 24,
 				scale = 1,
 				note = "The smallest of `scale`, (screen height - margin) / its height and (screen width - "
-					.. "margin) / its width, so it only ever shrinks. On a touch screen the height margin is "
-					.. "touchMargin, the same 24 as margin: a panel in the middle of the screen is already clear "
-					.. "of Roblox's move stick and jump button in the bottom corners, so it takes no more "
-					.. "height than the pay breakdown does.",
+					.. "margin) / its width, so it only ever shrinks. On a touch screen the window stands above "
+					.. "Roblox's hotbar (its touch place's distance from the bottom, 66 px, so its Close button "
+					.. "is never under a slot), so the height it has is the screen's height less that and "
+					.. "touchMargin, the same 24 as margin, at the top. In the middle of the screen it is "
+					.. "already clear of the move stick and jump button in the bottom corners.",
 			},
 			ContractsPanel = {
 				elements = { "ContractsPanel" },
@@ -261,8 +262,9 @@ return {
 				scale = 1,
 				note = "The same rule as the Levels panel's: the smallest of `scale`, (screen height - margin) / "
 					.. "its height and (screen width - margin) / its width, so it only ever shrinks. On a touch "
-					.. "screen the height margin is touchMargin, the same 24 as margin, for the same reason: it's "
-					.. "in the middle of the screen, clear of Roblox's move stick and jump button.",
+					.. "screen the window stands above Roblox's hotbar (its touch place's distance from the "
+					.. "bottom, 66 px), so the height it has is the screen's height less that and touchMargin, "
+					.. "the same 24 as margin, at the top.",
 			},
 			ContestResults = {
 				elements = { "ContestResults" },
@@ -752,11 +754,14 @@ return {
 		anchor = { 0.5, 0.5 },
 		position = { 0.5, 0, 0.5, 0 },
 		size = { 0, 360, 0, 460 },
+		touch = { anchor = { 0.5, 1 }, position = { 0.5, 0, 1, -66 } },
 		note = "Opened from the XP bar (and L on a keyboard), closed by its Close button or Escape: your level "
 			.. "and the XP to the next, the streak line under that ('Streak: Day 3 of 7, next $300'), then "
 			.. "what the next five levels pay. Its own window, not one of the menus: it never opens inside "
 			.. "the shop computer, and it closes when a job's state changes, a scene starts or you open a "
-			.. "menu. Its UIScale shrinks it to fit the screen (__screen.scaling.LevelsPanel).",
+			.. "menu. Its UIScale shrinks it to fit the screen (__screen.scaling.LevelsPanel). On a touch "
+			.. "screen its bottom edge stands 66 px up, above Roblox's hotbar like the tool condition chips, "
+			.. "so a tap on Close never lands on a slot.",
 	},
 	ContractsPanel = {
 		label = "Contracts panel",
@@ -765,13 +770,16 @@ return {
 		anchor = { 0.5, 0.5 },
 		position = { 0.5, 0, 0.5, 0 },
 		size = { 0, 360, 0, 400 },
+		touch = { anchor = { 0.5, 1 }, position = { 0.5, 0, 1, -66 } },
 		note = "Opened from the contracts chip (and the curb mailbox at the street end of the driveway), "
 			.. "closed by its Close button or Escape: today's three contracts (each with how far along it "
 			.. "is and what it pays, and a DONE stamp once it's paid), the Bonus Day for doing all three, "
 			.. "and the streak line ('Day 3 of 7, next $300'). It's opened by name like the menus "
 			.. "(UI.open), but it's a window of its own like the Levels panel: it never opens inside the "
 			.. "shop computer, and it closes when a job's state changes, a scene starts or you open a "
-			.. "menu. Its UIScale shrinks it to fit the screen (__screen.scaling.ContractsPanel).",
+			.. "menu. Its UIScale shrinks it to fit the screen (__screen.scaling.ContractsPanel). On a touch "
+			.. "screen its bottom edge stands 66 px up, above Roblox's hotbar like the tool condition chips, "
+			.. "so a tap on Close never lands on a slot.",
 	},
 	ComputerMonitor = {
 		label = "Shop computer",

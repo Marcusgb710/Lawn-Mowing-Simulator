@@ -9,7 +9,8 @@
 -- shop computer, and when you open one of the menus, since only one window is up at a time. It's
 -- scaled down to fit the screen the way the pay breakdown is (UiLayout's
 -- __screen.scaling.LevelsPanel). Centred, it's already clear of Roblox's move stick and jump
--- button, so a touch screen gets the same margin.
+-- button; on a touch screen it also stands above the hotbar (UiLayout's touch place for it), so
+-- Close is never under a slot.
 
 local GuiService = game:GetService("GuiService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -134,16 +135,22 @@ end
 
 -- Sizes the panel to the screen (__screen.scaling.LevelsPanel): the smallest of its biggest scale
 -- and what fits the screen's height and width less their margins (the touch height margin is the
--- same as the other), times its own scale in UiLayout.
+-- same as the other, and on a touch screen the band above the hotbar is left out of the height too),
+-- times its own scale in UiLayout.
 local function fit()
 	local screen = UI.getScreen().AbsoluteSize
 	if screen.X <= 0 or screen.Y <= 0 then
 		return
 	end
 	local rule = UI.Layout.__screen.scaling.LevelsPanel
-	local margin = if UI.isTouch() then rule.touchMargin else rule.margin
+	local place = UI.layout("LevelsPanel")
+	-- On a touch screen the window stands above the hotbar: its place is anchored at its bottom edge,
+	-- this far up from the screen's bottom (UiLayout's touch place, the one number for it), and that
+	-- much of the screen's height is not its to use. A centred place has no offset, so none on a PC.
+	local above = math.max(0, -(place.position :: UDim2).Y.Offset)
+	local margin = (if UI.isTouch() then rule.touchMargin else rule.margin) + above
 	local wanted = math.min(rule.scale, (screen.Y - margin) / panelHeight, (screen.X - rule.margin) / panelWidth)
-	scale.Scale = math.max(wanted, SMALLEST_SCALE) * UI.layout("LevelsPanel").scale
+	scale.Scale = math.max(wanted, SMALLEST_SCALE) * place.scale
 end
 
 local function close()

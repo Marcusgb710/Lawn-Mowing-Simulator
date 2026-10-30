@@ -230,7 +230,11 @@ local function fit()
 	local rule = UI.Layout.__screen.scaling.ContractsPanel
 	local place = UI.layout("ContractsPanel")
 	local size = place.size :: UDim2
-	local margin = if UI.isTouch() then rule.touchMargin else rule.margin
+	-- On a touch screen the window stands above the hotbar: its place is anchored at its bottom edge,
+	-- this far up from the screen's bottom (UiLayout's touch place, the one number for it), and that
+	-- much of the screen's height is not its to use. A centred place has no offset, so none on a PC.
+	local above = math.max(0, -(place.position :: UDim2).Y.Offset)
+	local margin = (if UI.isTouch() then rule.touchMargin else rule.margin) + above
 	local wanted = math.min(rule.scale, (screen.Y - margin) / size.Y.Offset, (screen.X - rule.margin) / size.X.Offset)
 	scale.Scale = math.max(wanted, SMALLEST_SCALE) * place.scale
 end
