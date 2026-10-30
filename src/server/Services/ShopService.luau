@@ -1,7 +1,8 @@
--- Buying and selling gear and business upgrades, on the computer in your shop (the Orders and
--- Business apps). The client only asks; every check happens here (the rules themselves are in
--- Shared/Shop.luau, so the menus can show them too). Tools and supplies arrive in a box at the
--- shop (DeliveryService); trucks, trailers and buildings are there straight away.
+-- Buying and selling gear and business upgrades, from the HUD's Shop button or the computer in your
+-- shop (the Orders and Business apps), wherever you stand: the client only asks, and every check
+-- happens here (the rules themselves are in Shared/Shop.luau, so the menus can show them too).
+-- Tools and supplies arrive in a box at the shop (DeliveryService); trucks, trailers and buildings
+-- are there straight away. Taking a job is still a computer thing (JobService:AcceptJob).
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -81,9 +82,6 @@ function ShopService:Buy(player: Player, category: string, itemId: string): (boo
 	if not item or not data then
 		return false, "That item doesn't exist."
 	end
-	if not WorldService:IsAtComputer(player) then
-		return false, "Order it from the computer in your shop."
-	end
 	local allowed, reason = Shop.canBuy(shopState(data), category, itemId)
 	if not allowed then
 		return false, reason or "You can't buy that."
@@ -126,7 +124,7 @@ function ShopService:Buy(player: Player, category: string, itemId: string): (boo
 		`Ordered the {item.name}! It'll be delivered to your shop. Unbox it and put it on the {string.lower(spot.name)}.`
 end
 
--- Sells a tool back (Orders, on the shop computer), to free up its storage spot.
+-- Sells a tool back (Orders), to free up its storage spot.
 function ShopService:Sell(player: Player, category: string, itemId: string): (boolean, string)
 	local item = findItem(category, itemId)
 	local data = DataService:Get(player)
@@ -135,9 +133,6 @@ function ShopService:Sell(player: Player, category: string, itemId: string): (bo
 	end
 	if not data.owned[category][itemId] then
 		return false, "You don't own that."
-	end
-	if not WorldService:IsAtComputer(player) then
-		return false, "Sell it from the computer in your shop."
 	end
 	if not Shop.canSell(item) then
 		return false, "You can't sell your starter gear."
@@ -173,9 +168,6 @@ function ShopService:Equip(player: Player, category: string, itemId: string): (b
 	local data = DataService:Get(player)
 	if not item or not data or Items.isToolCategory(category) or not data.owned[category][itemId] then
 		return false, "You don't own that yet."
-	end
-	if not WorldService:IsAtComputer(player) then
-		return false, "Switch it over on the computer in your shop."
 	end
 	if PLOT_CATEGORIES[category] and JobService:IsBusy(player) then
 		return false, "You can't swap vehicles or buildings in the middle of a job."

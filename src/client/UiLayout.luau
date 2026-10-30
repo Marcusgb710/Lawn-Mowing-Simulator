@@ -424,19 +424,85 @@ return {
 			.. "it waits while either shows (a crew invite is along the bottom on a PC, but the banner waits "
 			.. "for it there too, so one rule serves every screen).",
 	},
+	RightButtons = {
+		label = "Right buttons",
+		group = "HUD",
+		screen = "LawnUI",
+		anchor = { 1, 0 },
+		position = { 1, -12, 0, 12 },
+		size = { 0, 76, 0, 0 },
+		autoSize = "Y",
+		list = { direction = "Vertical", padding = 12, align = "Center" },
+		typical = { 76, 456 },
+		touch = { size = { 0, 56, 0, 0 }, typical = { 56, 248 } },
+		compact = { size = { 0, 56, 0, 0 }, typical = { 56, 248 } },
+		note = "The strip down the right edge: Shop, Gifts, Top Lawns and Settings, glossy squares with their "
+			.. "glyphs, 12 px apart. On a PC the first three are 76 px faces with their names under them and "
+			.. "Settings is 56 (456 px tall, so it has no scale). On a touch screen or a short one they are "
+			.. "built 56 px (Settings 44) with no names, so the strip is 248 px tall and ends above Roblox's "
+			.. "jump button on a phone held sideways. RightColumn sits inside it by its width and 12 px, on "
+			.. "each kind of screen, so the two never overlap.",
+	},
+	ShopButton = {
+		label = "Shop button",
+		group = "HUD",
+		parent = "RightButtons",
+		order = 1,
+		size = { 0, 76, 0, 110 },
+		touch = { size = { 0, 56, 0, 56 } },
+		compact = { size = { 0, 56, 0, 56 } },
+		note = "A teal square with the Orders box glyph. Opens the Orders window (B), anywhere: the shop sells "
+			.. "away from the desk now, and what you buy still comes in a box at your shop's door.",
+	},
+	GiftsButton = {
+		label = "Gifts button",
+		group = "HUD",
+		parent = "RightButtons",
+		order = 2,
+		size = { 0, 76, 0, 110 },
+		touch = { size = { 0, 56, 0, 56 } },
+		compact = { size = { 0, 56, 0, 56 } },
+		note = "A pink square with a drawn present on it. For now it opens the contracts panel, where the streak "
+			.. "card is. It has no key.",
+	},
+	TopLawnsButton = {
+		label = "Top Lawns button",
+		group = "HUD",
+		parent = "RightButtons",
+		order = 3,
+		size = { 0, 76, 0, 110 },
+		touch = { size = { 0, 56, 0, 56 } },
+		compact = { size = { 0, 56, 0, 56 } },
+		note = "A gold square with the Crown glyph. Opens the Top Lawns window, the two leaderboards (F).",
+	},
+	SettingsButton = {
+		label = "Settings button",
+		group = "HUD",
+		parent = "RightButtons",
+		order = 4,
+		size = { 0, 56, 0, 90 },
+		touch = { size = { 0, 44, 0, 44 } },
+		compact = { size = { 0, 44, 0, 44 } },
+		note = "A grey square with the Wrench glyph, smaller than the others (56 px, 44 on a phone). For now it "
+			.. "says settings are coming (comma).",
+	},
 	RightColumn = {
 		label = "Right HUD column",
 		group = "HUD",
 		screen = "LawnUI",
 		anchor = { 1, 0 },
-		position = { 1, -12, 0, 12 },
+		position = { 1, -100, 0, 12 },
 		size = { 0, 280, 0, 0 },
 		autoSize = "Y",
 		list = { direction = "Vertical", padding = 10, align = "Right" },
 		typical = { 280, 368 },
+		touch = { position = { 1, -80, 0, 12 } },
+		compact = { position = { 1, -80, 0, 12 } },
 		note = "Curb appeal, then on a short screen the Next chip, over the job tracker, then the boost pills, "
 			.. "then the Show what I "
-			.. "missed button late in the mowing, down the right. Its UIScale shrinks it to fit like the left "
+			.. "missed button late in the mowing, down the right, just inside the right buttons (the strip's "
+			.. "width and a 12 px gap: 100 px in from the edge on a PC, 80 on a touch or short screen). Its "
+			.. "UIScale shrinks it to fit like the left "
 			.. "column's, toward its top right corner. Typical is during a job on a phone, where curb appeal "
 			.. "hides and the chip stays. Each of the five can be taken out of it (their detach) and put "
 			.. "anywhere on the screen.",
@@ -548,14 +614,15 @@ return {
 		position = { 0.5, 0, 0, 12 },
 		size = { 0.6, 0, 0, 0 },
 		autoSize = "Y",
-		max = { width = 520 },
+		max = { width = 480 },
 		typical = { 450, 130 },
-		touch = { size = { 1, -400, 0, 0 }, scale = 0.85, typical = { 450, 96 }, hideWhile = { "CrewInvite" } },
-		compact = { size = { 1, -320, 0, 0 }, scale = 0.7, hideWhile = { "CrewInvite", "HoldRing" } },
+		touch = { size = { 1, -560, 0, 0 }, scale = 0.85, typical = { 284, 120 }, hideWhile = { "CrewInvite" } },
+		compact = { size = { 1, -500, 0, 0 }, scale = 0.7, hideWhile = { "CrewInvite", "HoldRing" } },
 		note = "Coaches a new player through their first job, a step at a time, once the intro scene's over "
 			.. "and until the job's paid: at the shop, on the way and on the lawn. As tall as its words. The "
 			.. "toasts keep below it. On a touch screen its words are shorter and it's narrower, to fit between "
-			.. "the HUD's columns (the job tracker's on the right), and smaller, so it stays above the dot. A "
+			.. "the HUD's columns (the job tracker's on the right, which now stands inside the right buttons, "
+			.. "so about 240 px is left on a phone), and smaller, so it stays above the dot. A "
 			.. "crew invite goes there too on a touch screen, and it waits while that shows, and on a short "
 			.. "screen while you hold to work on a tool (the hold ring would be under it).",
 	},

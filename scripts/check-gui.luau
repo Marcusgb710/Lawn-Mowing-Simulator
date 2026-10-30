@@ -989,6 +989,266 @@ do
 		`the right column is scaled to {scale} on the {phone.width} by {phone.height} phone ({content} px of column during a job), under its {columns.minScale} floor`
 	)
 end
+-- The right-edge strip and what its buttons open (front-page HUD, rulings 3, 4, 6, 8 and 14). RightButtons
+-- is Shop, Gifts, Top Lawns and Settings down the right edge at {1, -12, 0, 12}: 76 px faces with a label
+-- under them (Settings 56) on a PC, and on a touch or short screen 56 px faces (Settings 44) with no
+-- labels, built at that size and not scaled, so the strip ends above Roblox's jump button on the phone.
+-- RightColumn sits inside it by its width and 12 px, on every kind of screen, so nothing overlaps.
+-- The Shop button opens the Orders window and the shop sells away from the desk; Top Lawns is a panel of
+-- the two leaderboards.
+do
+	local LABEL_ROOM = 34
+	local BIG, BIG_SETTINGS, SMALL, SMALL_SETTINGS = 76, 56, 56, 44
+	local MIN_TOUCH_FACE = 40
+	local EDGE, GAP = 12, 12
+	local BUTTONS = {
+		{ id = "ShopButton", order = 1, color = "Shop", settings = false },
+		{ id = "GiftsButton", order = 2, color = "Gifts", settings = false },
+		{ id = "TopLawnsButton", order = 3, color = "TopLawns", settings = false },
+		{ id = "SettingsButton", order = 4, color = "Settings", settings = true },
+	}
+	local strip = UiLayout.RightButtons
+	check(strip ~= nil, "UiLayout has no RightButtons")
+	if strip then
+		check(
+			strip.parent == nil and strip.screen == "LawnUI",
+			"UiLayout's RightButtons isn't on LawnUI, out of the columns"
+		)
+		check(strip.detach == nil, "UiLayout's RightButtons can leave a column: it isn't in one")
+		check(
+			strip.anchor ~= nil and strip.anchor[1] == 1 and strip.anchor[2] == 0,
+			"UiLayout's RightButtons isn't anchored at its top right corner"
+		)
+		check(
+			strip.position ~= nil
+				and strip.position[1] == 1
+				and strip.position[2] == -EDGE
+				and strip.position[3] == 0
+				and strip.position[4] == EDGE,
+			`UiLayout's RightButtons isn't at \{1, -{EDGE}, 0, {EDGE}}`
+		)
+		check(
+			strip.list ~= nil and strip.list.direction == "Vertical",
+			"UiLayout's RightButtons isn't a vertical list of buttons"
+		)
+		check(strip.autoSize == "Y", "UiLayout's RightButtons doesn't grow with its buttons")
+	end
+	for _, want in BUTTONS do
+		local entry = UiLayout[want.id]
+		check(entry ~= nil, `UiLayout has no {want.id}`)
+		if entry then
+			local big = if want.settings then BIG_SETTINGS else BIG
+			local small = if want.settings then SMALL_SETTINGS else SMALL
+			check(entry.parent == "RightButtons", `UiLayout's {want.id} is in {entry.parent}, not RightButtons`)
+			check(entry.order == want.order, `UiLayout's {want.id} is order {entry.order}, not {want.order}`)
+			check(
+				entry.size ~= nil and entry.size[2] == big and entry.size[4] == big + LABEL_ROOM,
+				`UiLayout's {want.id} isn't {big} by {big + LABEL_ROOM} on a PC (a {big} px face and its label)`
+			)
+			for _, kind in { "touch", "compact" } do
+				local places = entry[kind] or {}
+				check(
+					places.size ~= nil and places.size[2] == small and places.size[4] == small,
+					`UiLayout's {want.id} isn't a bare {small} px square on a {kind} screen (no label)`
+				)
+				check(places.scale == nil, `UiLayout's {want.id} is scaled on a {kind} screen: it is built at its size`)
+				check(
+					places.size == nil or places.size[4] >= MIN_TOUCH_FACE,
+					`UiLayout's {want.id} is under {MIN_TOUCH_FACE} px`
+				)
+			end
+			check(
+				entry.hideWhile == nil
+					and (entry.touch or {}).hideWhile == nil
+					and (entry.compact or {}).hideWhile == nil,
+				`UiLayout's {want.id} gives way to something: the strip shows on every screen`
+			)
+		end
+	end
+	for id, entry in UiLayout do
+		if id ~= "__screen" and entry.parent == "RightButtons" then
+			local known = false
+			for _, want in BUTTONS do
+				known = known or want.id == id
+			end
+			check(known, `UiLayout's {id} is in RightButtons, which check-gui doesn't know`)
+		end
+	end
+
+	-- RightColumn clears the strip on each kind of screen: its right edge is further in than the
+	-- strip's left edge by GAP. (UI.layout picks compact over touch over the base, a field at a time.)
+	local function pick(entry, key: string, kind: string)
+		local compact, touch = entry.compact or {}, entry.touch or {}
+		if kind == "compact" and compact[key] ~= nil then
+			return compact[key]
+		elseif (kind == "compact" or kind == "touch") and touch[key] ~= nil then
+			return touch[key]
+		end
+		return entry[key]
+	end
+	local column = UiLayout.RightColumn
+	local widths: { [string]: number } = {}
+	if strip then
+		for _, kind in { "base", "touch", "compact" } do
+			local stripWidth = pick(strip, "size", kind)[2]
+			local stripRight = pick(strip, "position", kind)[2]
+			local columnRight = pick(column, "position", kind)[2]
+			widths[kind] = stripWidth
+			check(
+				columnRight <= stripRight - stripWidth - GAP,
+				`UiLayout's RightColumn ({kind}) is at x {columnRight}, which doesn't clear the strip ({stripWidth} px wide at {stripRight}) by {GAP} px`
+			)
+			check(
+				pick(column, "anchor", kind)[1] == 1,
+				`UiLayout's RightColumn ({kind}) isn't anchored at its right edge, so its x doesn't mean what the strip check reads`
+			)
+		end
+		check(widths.base == BIG, `UiLayout's RightButtons is {widths.base} wide on a PC, not the {BIG} px faces`)
+		check(
+			widths.touch == SMALL and widths.compact == SMALL,
+			`UiLayout's RightButtons isn't {SMALL} wide on a touch or short screen`
+		)
+
+		-- A PC: the strip's own height, its buttons and the gaps, and the 6 px lip under the last, stays
+		-- above the height where the screen turns short.
+		local listPad = strip.list.padding
+		local pcHeight = EDGE + 3 * (BIG + LABEL_ROOM) + (BIG_SETTINGS + LABEL_ROOM) + 3 * listPad + 6
+		check(
+			pcHeight < UiLayout.__screen.compactHeight,
+			`the right strip is {pcHeight} px down on a PC, past the {UiLayout.__screen.compactHeight} px where the screen turns short (it has no scale)`
+		)
+		-- The phone: the strip ends above Roblox's jump button (the columns' touchMargin), and its left
+		-- edge is clear of the look-at button, which is the nearest phone button.
+		local phone = UiLayout.__screen.phone
+		local columns = UiLayout.__screen.scaling.Columns
+		local touchHeight = EDGE + 3 * SMALL + SMALL_SETTINGS + 3 * listPad + 6
+		check(
+			touchHeight <= phone.height - columns.touchMargin,
+			`the right strip ends {touchHeight} px down on the {phone.width} by {phone.height} phone, past {phone.height - columns.touchMargin}, where the jump button's room starts`
+		)
+		local stripLeft = phone.width + strip.position[2] - SMALL
+		local lookAt = UiLayout.InteractButton
+		local lookAtRight = phone.width + lookAt.touch.position[2]
+		check(
+			stripLeft >= lookAtRight,
+			`the right strip starts at x {stripLeft} on the phone, over the look-at button, which ends at {lookAtRight}`
+		)
+		-- And the banner still sits between the columns with the right one moved in.
+		local widest = math.clamp(phone.height / columns.fullHeight, columns.minScale, 1)
+		local columnLeft = phone.width + pick(column, "position", "touch")[2] - column.size[2] * widest
+		local bannerRight = phone.width / 2 + UiLayout.GrandmaGoal.size[2] * widest / 2
+		check(
+			bannerRight < columnLeft,
+			`Grandma's goal ends at {bannerRight} on the phone, over the right column, which starts at {columnLeft}`
+		)
+		-- The first-job coach is centred too, so it has to stop short of the right column (now moved in by
+		-- the strip) on the phone, touch or short, and on a 1280 px wide PC.
+		local COACH_CLEAR = 16
+		local coach = UiLayout.TutorialBanner
+		for _, kind in { "touch", "compact" } do
+			local places = coach[kind]
+			local coachRight = phone.width / 2 + (phone.width + places.size[2]) * places.scale / 2
+			local edge = phone.width + pick(column, "position", kind)[2] - column.size[2] * widest
+			check(
+				coachRight + COACH_CLEAR <= edge,
+				`the first-job coach ends at {coachRight} on the phone ({kind}), within {COACH_CLEAR} px of the right column, which starts at {edge}`
+			)
+		end
+		local pcWidth = 1280
+		local coachWide = math.min(coach.size[1] * pcWidth, coach.max.width)
+		local pcEdge = pcWidth + pick(column, "position", "base")[2] - column.size[2]
+		check(
+			pcWidth / 2 + coachWide / 2 + COACH_CLEAR <= pcEdge,
+			`the first-job coach ends at {pcWidth / 2 + coachWide / 2} on a {pcWidth} px PC, within {COACH_CLEAR} px of the right column, which starts at {pcEdge}`
+		)
+	end
+
+	-- HudController builds the four buttons with Juicy.button from the glyphs the art has, puts the strip
+	-- where UiLayout says, and wires them as the plan says. The Gifts glyph is drawn (the Premium
+	-- diamond reads as a shop, not a present).
+	check(
+		string.find(hudSource, "buildRightButtons", 1, true) ~= nil
+			and string.find(hudSource, 'UI.keepPlaced(rightHolder, "RightButtons")', 1, true) ~= nil,
+		"HudController doesn't build RightButtons"
+	)
+	for _, glyph in { "Orders", "Crown", "Wrench" } do
+		check(GuiArt.Images[`Icons/{glyph}.png`] ~= nil, `the right strip's glyph {glyph} isn't in GuiArt`)
+		check(
+			string.find(hudSource, `icon = "{glyph}"`, 1, true) ~= nil,
+			`HudController's right strip doesn't use the {glyph} glyph`
+		)
+	end
+	check(string.find(hudSource, "drawGift", 1, true) ~= nil, "HudController doesn't draw the Gifts button's present")
+	local hudWants = {
+		'ShopController.openApp("Orders")',
+		'UI.toggle("TopLawns")',
+		'UI.toggle("Contracts")',
+		"Settings are coming in the next update.",
+		"Enum.KeyCode.B",
+		"Enum.KeyCode.F",
+		"Enum.KeyCode.Comma",
+		"HudController.giftsButton",
+		"HudController.settingsButton",
+	}
+	for _, wanted in hudWants do
+		check(string.find(hudSource, wanted, 1, true) ~= nil, `HudController doesn't have {wanted}`)
+	end
+
+	-- Shop anywhere (ruling 6): the shop's Buy, Sell and Equip and the decorations' Buy don't ask where
+	-- the player stands. Taking a job and TurfKing's visit stay at the desk.
+	for _, path in { "src/server/Services/ShopService.luau", "src/server/Services/DecorService.luau" } do
+		check(
+			string.find(fs.readFile(path), "IsAtComputer", 1, true) == nil,
+			`{path} still asks WorldService:IsAtComputer: the shop sells away from the desk`
+		)
+	end
+	for _, path in { "src/server/Services/JobService.luau", "src/server/Services/TurfKingService.luau" } do
+		check(
+			string.find(fs.readFile(path), "IsAtComputer", 1, true) ~= nil,
+			`{path} lost its IsAtComputer check: jobs stay a computer thing`
+		)
+	end
+	check(
+		string.find(fs.readFile("src/server/Services/ShopService.luau"), "JobService:IsBusy(player)", 1, true) ~= nil,
+		"ShopService no longer refuses tools and plot items in the middle of a job"
+	)
+
+	-- Top Lawns (ruling 8): the leaderboard payload is kept in ClientState, TopLawnsController draws it
+	-- in a panel with two tabs, and init.client starts it.
+	local topLawns = if fs.isFile("src/client/Controllers/TopLawnsController.luau")
+		then fs.readFile("src/client/Controllers/TopLawnsController.luau")
+		else ""
+	check(topLawns ~= "", "there is no TopLawnsController")
+	local topLawnsWants = {
+		'UI.panel("TopLawns", "Top Lawns")',
+		"UI.scrollingList",
+		"UI.tab(",
+		"ClientState.Changed",
+		'"leaderboard"',
+		"LeaderboardController.rowText",
+		"LeaderboardController.youLine",
+	}
+	for _, wanted in topLawnsWants do
+		check(string.find(topLawns, wanted, 1, true) ~= nil, `TopLawnsController doesn't have {wanted}`)
+	end
+	check(
+		string.find(
+			fs.readFile("src/client/Controllers/LeaderboardController.luau"),
+			'ClientState.set("leaderboard"',
+			1,
+			true
+		) ~= nil,
+		"LeaderboardController doesn't keep its payload in ClientState.leaderboard"
+	)
+	check(
+		string.find(fs.readFile("src/client/ClientState.luau"), "leaderboard", 1, true) ~= nil,
+		"ClientState's comment doesn't know the leaderboard key"
+	)
+	check(
+		string.find(fs.readFile("src/client/init.client.luau"), '"TopLawnsController"', 1, true) ~= nil,
+		"init.client doesn't start TopLawnsController"
+	)
+end
 -- The goals rail's DONE stamp is words only (UI.stampText): asked of UI.stamp it would be the art's
 -- "Job Complete!" once that's uploaded. The stamp scan above doesn't read UI.stampText, which asks
 -- for no art.

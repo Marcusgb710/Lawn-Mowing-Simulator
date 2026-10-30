@@ -17,6 +17,11 @@
 --     a phone, under it the boost pills (Crew, Curb, Truck and Business pay bonuses, while they
 --     are above zero), and under those, late in the mowing, the button that lights up the grass you
 --     missed (M on a keyboard);
+--   * down the right edge, outside that column: the right buttons, glossy squares for the Shop (the
+--     Orders window, from anywhere: B on a keyboard), Gifts (for now the contracts panel), Top Lawns
+--     (the two leaderboards, TopLawnsController: F) and Settings (comma): faces 76 px with their names
+--     under them on a PC, 56 px and bare on a phone or a short screen (the column moves in to clear
+--     them, UiLayout's RightColumn);
 --   * the condition of the tool in your hands, a glyph for each thing wrong ("Running low on
 --     fuel" by the fuel can), or what you're doing to one at the workbench;
 --   * the pay breakdown when a job's done, and the big moments: Level Up! (when the server says
@@ -59,6 +64,7 @@ local UI = require(script.Parent.Parent.UI)
 local CameraController = require(script.Parent.CameraController)
 local GrassController = require(script.Parent.GrassController)
 local LevelsController = require(script.Parent.LevelsController)
+local ShopController = require(script.Parent.ShopController)
 
 local player = Players.LocalPlayer
 
@@ -84,6 +90,38 @@ local SQUARE_KEY_SIZE = 22
 local SQUARE_KEY_INSET = 8
 -- The Contracts square's count badge hangs this far off its top right corner.
 local COUNT_BADGE_OVERHANG = 8
+-- The right buttons: the strip's four squares, their face colours, glyphs and keys (Gifts has no key
+-- and a present drawn in code, since the Premium glyph is a diamond; the key badge sits on a face's
+-- top left corner, with a keyboard only), and where each is placed in UiLayout.luau. What each does
+-- is in rightActions, so a later task can change it (HudController.setRightAction).
+local RIGHT_BUTTONS = {
+	{ id = "Shop", label = "Shop", layout = "ShopButton", color = "Shop", icon = "Orders", key = Enum.KeyCode.B },
+	{ id = "Gifts", label = "Gifts", layout = "GiftsButton", color = "Gifts" },
+	{
+		id = "TopLawns",
+		label = "Top Lawns",
+		layout = "TopLawnsButton",
+		color = "TopLawns",
+		icon = "Crown",
+		key = Enum.KeyCode.F,
+	},
+	{
+		id = "Settings",
+		label = "Settings",
+		layout = "SettingsButton",
+		color = "Settings",
+		icon = "Wrench",
+		key = Enum.KeyCode.Comma,
+	},
+}
+-- On a PC a right button's piece is its face and, under it, the label's 12 px gap and 22 px of room
+-- (UiLayout's ShopButton and the rest are 34 taller than the face); on a touch or short screen it is
+-- the bare face.
+local SQUARE_LABEL_GAP = 12
+local SQUARE_LABEL_ROOM = 34
+-- F also sends a decoration you own back to your inventory while you are placing one (DecorController),
+-- so the Top Lawns key leaves it be then.
+local PLACING_ATTRIBUTE = "PlacingDecor"
 local MOTION_KEY = Enum.KeyCode.V
 -- The key for the "Show what I missed" button (see buildMissedButton).
 local MISSED_KEY = Enum.KeyCode.M
@@ -253,6 +291,12 @@ local chipHeld: Milestone?
 -- The menu squares' holder, the mouse hint in it (with a keyboard), the Contracts square's face (cash
 -- lifts off it) and the count badge on it, with its number, while there are contracts left today.
 local menuHolder: Frame
+-- The right buttons' strip, and each one's pieces (its spec, button, face and label), for fitting them
+-- to the screen.
+local rightHolder: Frame
+local rightPieces: { { spec: any, button: TextButton, face: Frame, label: GuiObject? } } = {}
+-- What each right button does (by its id), so it can be changed without building the button again.
+local rightActions: { [string]: () -> () } = {}
 local mouseHint: TextLabel?
 local contractsFace: Frame
 local contractsBadge: Frame?
@@ -1044,6 +1088,153 @@ local function buildMenuButtons()
 	UI.CompactChanged:Connect(layoutMenu)
 end
 
+-- A present on a face, drawn from frames: a white box with its lid, a yellow ribbon down the middle
+-- and a bow of two loops and a knot on top, all in the ink outline. Sized in fractions of the face, so
+-- it keeps its shape at any face size.
+local GIFT_SIZE = 0.62
+local GIFT_STROKE = 1.5
+local function drawGift(face: Frame)
+	local function piece(name: string, color: Color3, position: Vector2, size: Vector2, order: number, round: number)
+		return UI.new("Frame", {
+			Name = name,
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Position = UDim2.fromScale(position.X, position.Y),
+			Size = UDim2.fromScale(size.X, size.Y),
+			BackgroundColor3 = color,
+			BorderSizePixel = 0,
+			ZIndex = order,
+		}, {
+			UI.new("UICorner", { CornerRadius = UDim.new(round, 0) }),
+			UI.new("UIStroke", {
+				ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+				Color = Juicy.Palette.Ink,
+				Thickness = GIFT_STROKE,
+				LineJoinMode = Enum.LineJoinMode.Round,
+			}),
+		})
+	end
+	local gift = UI.new("Frame", {
+		Name = "Gift",
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.52),
+		Size = UDim2.fromScale(GIFT_SIZE, GIFT_SIZE),
+		BackgroundTransparency = 1,
+		ZIndex = 5,
+		Parent = face,
+	})
+	local ribbon = Juicy.Palette.Badge
+	piece("Box", WHITE, Vector2.new(0.5, 0.75), Vector2.new(0.8, 0.5), 1, 0.1).Parent = gift
+	piece("Lid", WHITE, Vector2.new(0.5, 0.42), Vector2.new(1, 0.24), 2, 0.2).Parent = gift
+	piece("Ribbon", ribbon, Vector2.new(0.5, 0.7), Vector2.new(0.16, 0.6), 3, 0.1).Parent = gift
+	local left = piece("LeftLoop", ribbon, Vector2.new(0.36, 0.2), Vector2.new(0.3, 0.2), 4, 0.5)
+	left.Rotation = -28
+	left.Parent = gift
+	local right = piece("RightLoop", ribbon, Vector2.new(0.64, 0.2), Vector2.new(0.3, 0.2), 4, 0.5)
+	right.Rotation = 28
+	right.Parent = gift
+	piece("Knot", ribbon, Vector2.new(0.5, 0.26), Vector2.new(0.16, 0.16), 5, 0.5).Parent = gift
+end
+
+-- Sets a right button's face, label and corner to the size its UiLayout entry gives on this screen: on
+-- a PC the entry is the face and the label's room, on a touch or short screen just the face, and the
+-- label goes. UI.place has already put the button at that size; the face is Juicy's Body frame, which
+-- is as tall as the face was built, so it is set to match.
+local function fitRightButton(piece)
+	local small = UI.isTouch() or UI.isCompact()
+	local height = UI.layout(piece.spec.layout).size.Y.Offset
+	local faceHeight = if small then height else height - SQUARE_LABEL_ROOM
+	local body = piece.face.Parent
+	if body and body:IsA("GuiObject") then
+		body.Size = UDim2.new(1, 0, 0, faceHeight)
+	end
+	local label = piece.label
+	if label then
+		label.Visible = not small
+		label.Position = UDim2.new(0.5, 0, 0, faceHeight + SQUARE_LABEL_GAP)
+	end
+end
+
+-- The strip down the right edge (UiLayout's RightButtons): Shop, Gifts, Top Lawns and Settings. Built
+-- straight at the size this screen asks (a UIScale on the strip would leave the buttons' sizes to the
+-- layout's mercy), and fitted again if the screen turns short or tall.
+local function buildRightButtons()
+	rightHolder = UI.new("Frame", {
+		Name = "RightButtons",
+		BackgroundTransparency = 1,
+		Parent = UI.getScreen(),
+	})
+	UI.keepPlaced(rightHolder, "RightButtons")
+
+	local small = UI.isTouch() or UI.isCompact()
+	for _, spec in RIGHT_BUTTONS do
+		local size = UI.layout(spec.layout).size
+		local face = if small then size.Y.Offset else size.Y.Offset - SQUARE_LABEL_ROOM
+		local button, faceFrame = Juicy.button(spec.color, function()
+			rightActions[spec.id]()
+		end, {
+			Name = spec.id .. "Button",
+			Icon = spec.icon,
+			Label = spec.label,
+			Size = UDim2.fromOffset(size.X.Offset, face),
+			Parent = rightHolder,
+		})
+		UI.keepPlaced(button, spec.layout)
+		if spec.key then
+			addCornerKey(faceFrame, spec.key)
+		end
+		if spec.id == "Gifts" then
+			drawGift(faceFrame)
+		end
+		local piece = {
+			spec = spec,
+			button = button,
+			face = faceFrame,
+			label = button:FindFirstChild("Label", true),
+		}
+		table.insert(rightPieces, piece)
+		fitRightButton(piece)
+	end
+
+	-- Where each button goes: the Shop opens the Orders window (or puts it away when it is up), Gifts
+	-- shows the contracts panel for now (its streak card), Top Lawns the leaderboards, and Settings says
+	-- they are coming. Opening one closes any other menu, since only one is up at a time (UI.open).
+	rightActions.Shop = function()
+		if UI.isOpen("Shop") then
+			UI.close("Shop")
+		else
+			ShopController.openApp("Orders")
+		end
+	end
+	rightActions.Gifts = function()
+		UI.toggle("Contracts")
+	end
+	rightActions.TopLawns = function()
+		UI.toggle("TopLawns")
+	end
+	rightActions.Settings = function()
+		UI.notify("Settings are coming in the next update.")
+	end
+
+	-- A later task builds on the Gifts and Settings buttons (a tag on Gifts, the window behind Settings).
+	HudController.giftsButton = rightPieces[2].button
+	HudController.giftsFace = rightPieces[2].face
+	HudController.settingsButton = rightPieces[4].button
+	HudController.settingsFace = rightPieces[4].face
+
+	UI.CompactChanged:Connect(function()
+		for _, piece in rightPieces do
+			fitRightButton(piece)
+		end
+	end)
+end
+
+-- Changes what a right button does ("Gifts" or "Settings", or any of the four by its id), so the task
+-- that wires it up needs no new button.
+function HudController.setRightAction(id: string, action: () -> ())
+	assert(rightActions[id] ~= nil, `HudController has no right button {id}`)
+	rightActions[id] = action
+end
+
 -- Grandma's goal: a cream banner at the top in the middle of the screen (UiLayout's GrandmaGoal), a red
 -- flag, your story goal in a line or two, what finishing it pays when it pays something, and a bar
 -- for how close you are, and under that the goals rail's rows. The banner is a Juicy cream face
@@ -1527,6 +1718,15 @@ local function onKey(input: InputObject, processed: boolean)
 	for _, menu in MENUS do
 		if input.KeyCode == menu.key then
 			UI.toggle(menu.name)
+			return
+		end
+	end
+	for _, button in RIGHT_BUTTONS do
+		if button.key and input.KeyCode == button.key then
+			if button.id == "TopLawns" and player:GetAttribute(PLACING_ATTRIBUTE) ~= nil then
+				return
+			end
+			rightActions[button.id]()
 			return
 		end
 	end
@@ -2526,6 +2726,7 @@ function HudController:Start()
 	buildStats()
 	buildPills()
 	buildMenuButtons()
+	buildRightButtons()
 	buildGoal()
 	buildCurbAppeal()
 	buildNextChip()

@@ -25,6 +25,7 @@ local CONTROLLERS = {
 	"GloriaController",
 	"ContestController",
 	"LeaderboardController",
+	"TopLawnsController",
 	"TutorialController",
 	"CarryController",
 	"ComputerController",

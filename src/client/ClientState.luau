@@ -14,8 +14,9 @@ local ClientState = {
 	story = nil, -- your place in the story: act, goal, scenes to play, texts (see StoryService)
 	contest = nil, -- the Best Yard contest: state, summer, Gloria's bar, the result (ContestService)
 	contracts = nil, -- today's contracts and the streak: the view DailyService sends (day, contracts, bonus, streak)
-	-- Fired with the name of what changed: "profile", "job", "party", "board", "story", "contest" or
-	-- "contracts"
+	leaderboard = nil, -- the two leaderboards and your own line: the last LeaderboardUpdated payload (LeaderboardController)
+	-- Fired with the name of what changed: "profile", "job", "party", "board", "story", "contest",
+	-- "contracts" or "leaderboard"
 	Changed = Signal.new(),
 }
 
