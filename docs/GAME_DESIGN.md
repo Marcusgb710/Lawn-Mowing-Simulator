@@ -1031,8 +1031,8 @@ which earns your business curb appeal and a bonus on every job.
   Each category is out of 25, against Gloria's bar (88, then 2 more each summer you win, capped
   at 96). Calling the judges from the Messages app scores the yard there and then. Winning pays
   $2,500, and the first win also brings the Best Yard Trophy (a decoration that's only ever won)
-  and half off the next building from the Small Office up. A loss can be tried again after 4 jobs,
-  and a win brings next summer's contest after 12.
+  and half off the next building from the Small Office up. After the first judging day, judging
+  day is every Saturday (UTC) instead of a wait in jobs (section 11).
 
 ## 10. Premium
 
@@ -1068,6 +1068,99 @@ never skips a level or a business requirement, and nothing is sold as plain cash
   - Each item's `gamePassId` or `productId` is its id on Roblox. `scripts/premium-setup.py`
     creates any item with id 0 on Roblox through Open Cloud, puts everything on sale at its price
     and writes the ids in. Until an item has one, the shop shows "Soon".
+
+## 11. The Busy Season
+
+The pull that brings a player back: a first minute that puts a tool in your hand, a ladder that pays
+out every few minutes, and a reason to open the game tomorrow. It adds nothing to sell for Robux and
+nothing that stops you playing. The design is
+`docs/superpowers/specs/2026-10-29-busy-season-design.md`. The numbers below are the config files'
+(`lune run scripts/check-season` checks the tables); this section says what they mean.
+
+### The first minute and the ladder
+
+**First job first.** A first-timer (the save's `firstJob` is false and no job is finished) joins
+straight onto the hidden `FirstMow` job: a 5 by 6 tile strip with no junk in the grass, par time
+150 s, pay $60 and 25 XP, with the grass shears in hand and the truck parked out front. The flow
+and its arithmetic are in "Starting out" and "The first job".
+
+**Stars and tips** (`Config/Stars.luau`). A finished job earns one to three stars from the pay
+formula's own performance factor: the quality and speed multipliers blended by what the customer
+cares about, where 1.0 is "as expected". Three stars take a factor of 1.1 or more and no penalty
+(no flower or gnome hit, no junk left or chewed up), two take 0.9 or more, and one is anything
+below. The customer tips 15% of the pay at three stars, 5% at two and nothing at one, and a tip
+counts as money earned. The best stars on each kind of job are saved and shown on the job board.
+
+**The goals rail** (`Config/Milestones.luau`). Grandma's note shows three goals: the story's, then
+the two milestones nearest to done, where nearest is the share still to go ($400 of $500 beats 2
+jobs of 3). A milestone pays the moment it is reached:
+
+- Jobs finished: 1, 3, 5, 10, 25, 50, 100, 250 and 500, paying $10 a job up to $2,500.
+- Money earned: $500, $2,000, $10,000, $50,000 and $250,000. They pay nothing, and the rail stamps
+  them.
+- Three-star jobs: 1, 5, 25 and 100, paying $25 each.
+
+On a phone held sideways the rail is the story goal alone, and the nearest milestone is the Next
+chip under curb appeal.
+
+**Levels** (`Config/Levels.luau`). The curve is the old one, `level = floor(sqrt(xp / 50)) + 1`,
+but every level from 2 on has a named reward, shown on the level-up card and in the Levels panel
+(the XP bar, or L), which lists the next five. Cash runs from $100 at level 2 to $5,000 at levels
+18 and 20. Four levels also give a truck tint, in order: Racing Red at 3, Forest Green at 6, Sky
+Blue at 9 and Midnight Black at 12 (they stay on sale for 49 Robux as a shortcut). Level 20 gives a
+gold business sign. Past 20 every level pays $3,000, and every fifth pays $5,000 and a HUD stamp.
+Rewards are claimed by level (`levelRewards`), so each pays once, and a save that is already past a
+level is marked, not paid back pay.
+
+Saved as data version 13: `earned`, `stars`, `milestones`, `levelRewards` and `firstJob`
+(`Config/Season.luau` says how an older save gets them).
+
+### Tomorrow
+
+**Today's contracts** (`Config/Contracts.luau`). Three contracts a day, new at 00:00 UTC: always
+one Mow, one Earn, and one more that is Junk or Stars, which the day's seed picks (the same player
+gets the same three all day). What each asks and pays depends on the level band:
+
+| Level | Mow (lawns) | Earn | Junk (pieces) | Stars (three-star jobs) | Pays each |
+| --- | --- | --- | --- | --- | --- |
+| 1 to 2 | 2 | $150 | 3 | 1 | $60 |
+| 3 to 7 | 3 | $400 | 4 | 1 | $150 |
+| 8 to 11 | 4 | $1,200 | 6 | 2 | $400 |
+| 12 and up | 5 | $3,000 | 8 | 2 | $900 |
+
+A contract pays the moment it is met, once. Finishing all three pays the **Bonus Day**, $500 more.
+They count what you do that day: jobs finished, three-star jobs, junk picked up, and money earned
+(tips, the streak's cash and the Bonus Day too). The mailbox at the curb (`Props/CurbMailbox`) and
+the "Contracts 1/3" chip under the goals rail both open the panel.
+
+**The login streak** (`Config/Streak.luau`). The first time you are in on a UTC day the streak grows
+a day (it starts again at day 1 if you missed one), pays that day and shows a card for four
+seconds: "Day 3 of 7", today's cash and tomorrow's. The week pays $100, $150, $200, $300, $400,
+$600 and, on day 7, $1,000 and a pennant for the truck, given once and flown from the bed
+(`flags.TruckPennant`). After day 7 the week repeats with the same cash and no second pennant. The
+Levels panel and the contracts panel show the streak.
+
+**The leaderboards** (`LeaderboardService`). Two OrderedDataStores, `LawnsMowed_v1` (jobs finished)
+and `MoneyEarned_v1` (money earned). A player's numbers are written when one of their jobs
+finishes, at most once a minute each (a finish inside that minute is written at the next refresh
+or when they leave). The server reads both every two minutes and puts the top 25 of each on the
+sign at the town spawn (`Props/LeaderboardSign`; each player's own screen draws the boards), with
+the viewer's own line under them. It reads four pages deep, so anyone in the first 100 sees their
+rank, and anyone further down sees "not in the top 100 yet" with their own number. Without
+DataStores (Studio without API access, or an outage) the sign says the leaderboards are off and the
+game plays on.
+
+**Judging day on the calendar** (`Contest.calendarState`). The first judging day still comes by
+the jobs, so the story lands the first time. After it, judging day is every Saturday, UTC: the
+judges can be called once on each, and the goals rail and June's porch count the days to the next.
+A Saturday you miss changes nothing. A win starts the next summer with Gloria's bar up 2 (88 at
+first, 96 at most), and so do four lost Saturdays after the first judging day, so the bar rises
+even for someone who never wins.
+
+Saved as data version 14: `daily`, `streak`, `flags`, and the contest's `lastJudged` and
+`saturdays` (`Config/Season.luau`). Everything that depends on the day asks the server's `Clock`
+(`src/server/Clock.luau`): `os.time()` plus an offset that only Studio can set, from the test panel's
+Next day and Jump to Saturday.
 
 ## Phases
 

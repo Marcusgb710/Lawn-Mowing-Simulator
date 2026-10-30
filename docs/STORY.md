@@ -157,12 +157,18 @@ and level 8), so they're one now. Act 1 gets a level fallback too, so the story 
 - **If you lose:**
   - Gloria wins, insufferably.
   - June: *"Next summer. And you're mowing every Tuesday."*
-  - The contest comes back after more play, so you can try again.
+  - The judges come back on Saturday, so you can try again.
+
+**After the first judging day it is every Saturday (UTC).** The judges can be called once on each,
+the goals rail counts the days to the next, and June's porch line counts them too: "Saturday's the
+day. 2 days to go." The results screen says so after a loss: "Judging day comes round again next
+Saturday." A Saturday you miss changes nothing. Four lost Saturdays start a new summer anyway, with
+Gloria's bar 2 higher.
 
 ### After the story
 
-- Best Yard comes back every "summer" (a play-time cycle), and Gloria raises the stakes each
-  time: a bigger crew, a fountain, flamingos.
+- Best Yard comes back every "summer" (a win, or four lost Saturdays), and Gloria raises the
+  stakes each time: a bigger crew, a fountain, flamingos.
 - Customers keep their personalities, and June keeps texting.
 - Room for more later: other neighborhoods, a regional contest, and TurfKing's head office.
 
@@ -389,10 +395,11 @@ This is in rough order, as separate PRs.
      time next year, June."* Later wins play `ContestWinAgain`.
    - **Losing:** Gloria wins, insufferably (`ContestLose`: *"Oh, June. Thirty years, and all it
      took was a franchise."*, *"I'll keep it polished for you. You can visit."*, both new). Then
-     June: *"Next summer. And you're mowing every Tuesday."* You can try again after **4 jobs**
-     (a jobs cooldown, not play time). The goal card counts them down.
-   - **Every summer after:** a win brings the next summer's contest after 12 jobs, with Gloria's
-     bar 2 higher, and June texts when the judges are back.
+     June: *"Next summer. And you're mowing every Tuesday."* You can try again the next
+     Saturday: after the first judging day the calendar takes over (Act 4, above), and the goal
+     card counts the days.
+   - **Every summer after:** a win starts the next summer, with Gloria's bar 2 higher, and so do
+     four lost Saturdays. June texts when the judges are back.
    - **Saving:** save version 11 adds `contest` (see GAME_DESIGN.md "Saves").
    - **Remotes:** `GetContest`, `StartJudging` and `CollectContest` take nothing from the client,
      are rate-limited to one a second, and the server checks the act, the state, that you're not on

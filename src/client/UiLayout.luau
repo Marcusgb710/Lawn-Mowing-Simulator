@@ -969,7 +969,7 @@ return {
 		position = { 1, -12, 0.5, 0 },
 		size = { 0, 240, 0, 0 },
 		autoSize = "Y",
-		typical = { 240, 514 },
+		typical = { 240, 634 },
 		note = "Shortcuts for testing the story, shown and hidden with K in Studio playtests only. Its buttons "
 			.. "are laid out for its width.",
 	},

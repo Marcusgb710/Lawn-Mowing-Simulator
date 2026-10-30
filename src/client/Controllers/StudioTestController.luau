@@ -1,6 +1,7 @@
 -- A panel of shortcuts for testing the story in a Studio playtest (StudioTestService does them):
 -- jump to an act, replay the intro, start over, start as a first-timer again, get money, set your
--- level, tidy your lawn, open judging day.
+-- level, tidy your lawn, open judging day, and move the day on (the next day, the next Saturday, the
+-- leaderboards read again).
 -- Press K to show or hide it; the mouse is freed while it's up. It's never built outside Studio.
 
 local Players = game:GetService("Players")
@@ -183,6 +184,15 @@ local function build()
 	wideButton("Open judging day", 13, function()
 		run("Judging")
 	end).Parent = panel
+	wideButton("Next day", 14, function()
+		run("NextDay")
+	end).Parent = panel
+	wideButton("Jump to Saturday", 15, function()
+		run("Saturday")
+	end).Parent = panel
+	wideButton("Refresh the boards", 16, function()
+		run("Leaderboard")
+	end).Parent = panel
 
 	status = UI.label("", {
 		Size = UDim2.fromScale(1, 0),
@@ -190,7 +200,7 @@ local function build()
 		TextSize = 14,
 		TextWrapped = true,
 		TextXAlignment = Enum.TextXAlignment.Left,
-		LayoutOrder = 14,
+		LayoutOrder = 17,
 		Parent = panel,
 	})
 	setStatus("Jumping back an act: the story moves on again as soon as your progress passes its gate.", true)

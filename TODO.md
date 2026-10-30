@@ -513,10 +513,55 @@ What the reviews asked to see in Studio:
 
 ## Busy Season, slice 2: to check
 
+Slice 2 is Tomorrow (design: `docs/superpowers/specs/2026-10-29-busy-season-design.md`, plan:
+`docs/superpowers/plans/2026-10-29-busy-season-slice-2.md`): the daily contracts and the mailbox,
+the login streak, the leaderboards and judging day every Saturday. The Lune checks cover the tables
+and the rules (`check-season`, `check-story`, `check-gui`); nothing here has been seen or heard in
+Studio yet. The test panel (K) has three shortcuts for it, all Studio only: **Next day** moves the
+server's clock a day on and turns every player's day over (a new three contracts, the streak and its
+cash), **Jump to Saturday** moves it to noon on the next Saturday UTC (never today, so it always
+moves, and a judging mark saved for that day is cleared) and **Refresh the boards** reads both
+leaderboards now instead of in two minutes. A jump skips days, so it starts the streak again at day
+1: press **Next day** one day at a time to walk the streak up. The panel's +$ buttons are not
+earnings for a contract; a Level jump's cash is.
+
+The spec's playtest checklist for slice 2, with what to expect:
+
+- [ ] A fresh day's contracts: open them from the mailbox at the curb (E) and from the "Contracts
+      0/3" chip under the goals rail. Both show "Today's contracts": a Mow, an Earn and a Junk or
+      Stars contract for your level band, each with its pay. Finish a job: one completes with the
+      goal chime, a "+$" pop off the chip and a DONE stamp on its row, and the chip counts it.
+- [ ] The Bonus Day: finish all three. A Payday moment says "Bonus Day!" with +$500 and the cash
+      sound, and the panel's line reads "Bonus Day collected".
+- [ ] The streak card: press **Next day**. A Payday moment shows "Day 2 of 7" for four seconds with
+      "+$150 today, $200 tomorrow", the streak chime and the cash lifting off the money counter.
+      The contracts are a new three, and the Levels panel (L) reads "Streak: Day 2 of 7, next $200".
+- [ ] Day 7: press **Next day** five more times, one at a time. The moment reads "Day 7 of 7" over
+      "Day 7: +$1,000 and a pennant for the truck", and a purple pennant flies from the truck's bed
+      at your business and on the truck in the drive cutscene.
+- [ ] The leaderboard sign at spawn, with API access off: it stands 12 studs from the spawn pad on
+      its +Z side. Both boards say "Leaderboards are off in this place" and nothing else, and
+      **Refresh the boards** says so too.
+- [ ] The same sign with API access on (Game Settings > Security > Enable Studio Access to API
+      Services): two boards of up to 25 rows, a "You:" line under each ("You: #12 with 40 lawns",
+      or "You: not in the top 100 yet, 3 lawns"), a new row or number after a finished job within
+      two minutes, and the same at once from **Refresh the boards** ("Boards refreshed.").
+- [ ] **Jump to Saturday** after a first judging day (act 4: **Open judging day**, call the judges,
+      collect). Before it the goals rail says "Judging day in N days" and June's porch line counts
+      them ("Saturday's the day. N days to go."). After it the rail asks you to beat Gloria's bar
+      on judging day with **Call the judges**, and the judges can be called. A loss shows "Judging
+      day comes round again next Saturday." on the results screen. Four lost Saturdays after the
+      first judging day (jump, judge, lose, four times) start a new summer, and the bar goes up 2.
+      **Open judging day** now answers "Judging day is every Saturday now; use Jump to Saturday."
+- [ ] On a phone (the device emulator, landscape, say 844 by 390): the contracts panel from the chip
+      (rows, bars and Close all reachable), the Levels panel's streak line, and the sign's 18 px
+      text readable from a few steps away.
 - [ ] Model wanted: `Props/CurbMailbox`, the mailbox at the curb by every driveway (a block
       placeholder until then).
 - [ ] Model wanted: `Props/TruckPennant`, the streak's pennant on the truck bed (a block placeholder
       until then).
+- [ ] Pennant on the drive cutscene's truck once a real `Props/TruckPennant` model lands: the trip
+      info must `Assets.shareWith` the model so the client can build it.
 
 ## Model overhaul: what is left
 
