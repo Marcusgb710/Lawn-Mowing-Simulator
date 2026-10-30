@@ -250,6 +250,8 @@ local LAYOUT_FIELDS = {
 -- buttons and the rest are built inside these, so they stay where they are.
 local COLUMN_PIECES = {
 	MoneyPanel = "LeftColumn",
+	StatPills = "LeftColumn",
+	Countdown = "LeftColumn",
 	MenuButtons = "LeftColumn",
 	GrandmaGoal = "LeftColumn",
 	ContractsChip = "LeftColumn",
@@ -597,6 +599,67 @@ do
 					`UiLayout's {id} ({place}) hides while ContractsChip shows, which would hide it during a job`
 				)
 			end
+		end
+	end
+end
+
+-- The money pill and the pills under it (front-page HUD, ruling 3): the money pill is 250 by 70, the
+-- level pill 136 by 36 and the streak pill 106 by 36 side by side (with the 8 px gap that makes the
+-- column's 250), the countdown pill 250 by 34. Each piece's entry is its face plus the 6 px its lip and
+-- outline hang below it, and they come first in the left column, in that order, ahead of the menu
+-- buttons, Grandma's goal and the contracts chip.
+do
+	local LIP_ROOM = 6
+	local PILL_PIECES = {
+		{ id = "MoneyPanel", order = 1, face = 70 },
+		{ id = "StatPills", order = 2, face = 36 },
+		{ id = "Countdown", order = 3, face = 34 },
+	}
+	local LEVEL_PILL, STREAK_PILL, PILL_GAP = 136, 106, 8
+	local lastPill = 0
+	for _, want in PILL_PIECES do
+		local entry = UiLayout[want.id]
+		check(entry ~= nil, `UiLayout has no {want.id}`)
+		if entry then
+			check(entry.parent == "LeftColumn", `UiLayout's {want.id} is in {entry.parent}, not the LeftColumn`)
+			check(
+				entry.detach == "LeftColumn",
+				`UiLayout's {want.id} can't be taken out of and put back in the LeftColumn`
+			)
+			check(entry.order == want.order, `UiLayout's {want.id} is order {entry.order}, not {want.order}`)
+			check(
+				entry.size ~= nil
+					and entry.size[1] == 0
+					and entry.size[2] == 250
+					and entry.size[3] == 0
+					and entry.size[4] == want.face + LIP_ROOM,
+				`UiLayout's {want.id} isn't 250 by {want.face + LIP_ROOM} (a {want.face} px face and {LIP_ROOM} px for its lip)`
+			)
+			check(entry.autoSize == nil, `UiLayout's {want.id} grows with what's in it: its height is the pill's`)
+			lastPill = math.max(lastPill, entry.order or 0)
+		end
+	end
+	local row = UiLayout.StatPills
+	if row then
+		check(
+			row.list ~= nil and row.list.direction == "Horizontal" and row.list.padding == PILL_GAP,
+			`UiLayout's StatPills isn't a row with {PILL_GAP} px between the pills`
+		)
+		check(
+			LEVEL_PILL + PILL_GAP + STREAK_PILL == 250,
+			"the level and streak pills with their gap aren't the column's 250"
+		)
+	end
+	for id, entry in UiLayout do
+		if
+			id ~= "__screen"
+			and entry.parent == "LeftColumn"
+			and not table.find({ "MoneyPanel", "StatPills", "Countdown" }, id)
+		then
+			check(
+				typeof(entry.order) == "number" and entry.order > lastPill,
+				`UiLayout's {id} comes before the pills in the LeftColumn`
+			)
 		end
 	end
 end
@@ -979,6 +1042,19 @@ for name, value in juicyPalette do
 	if typeof(value) == "table" then
 		check(JUICY_FACES[name] ~= nil, `JuicyPalette.{name} isn't a colour the first ruling names`)
 	end
+end
+
+-- Every face HudController asks Juicy for is in the palette, and the money plate draws its four pills.
+local pillsDrawn: { [string]: boolean } = {}
+for name in string.gmatch(hudSource, 'Juicy%.pill%(%s*"([%w_]+)"') do
+	pillsDrawn[name] = true
+	check(
+		typeof(juicyPalette[name]) == "table",
+		`HudController draws a Juicy pill in {name}, which isn't a palette face`
+	)
+end
+for _, name in { "Money", "Level", "Streak", "Countdown" } do
+	check(pillsDrawn[name] == true, `HudController doesn't draw the {name} pill with Juicy.pill`)
 end
 
 -- The art's own files, when there's a copy to read ------------------------------------------------

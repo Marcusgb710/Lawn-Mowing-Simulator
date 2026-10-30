@@ -1,7 +1,9 @@
 -- Always-on screen stuff, laid out like the art's HUD (alphainstructions/instructions38.md):
---   * down the left: money and level (the money counter in the display face; the level line and
---     its XP bar are one button that opens the Levels panel, LevelsController, with a gold star
---     beside the level once you have the gold business sign), the menu buttons with their glyphs
+--   * down the left: the money pill (a gold coin and the money counter in the display face, which
+--     counts up when money comes in), under it the level pill (a star, "LVL 3" and the XP bar, one
+--     button that opens the Levels panel, LevelsController, with the star gold once you have the gold
+--     business sign) beside the streak pill ("DAY 3", once there is a streak), the judging day
+--     countdown pill (once judging day is on the calendar), the menu buttons with their glyphs
 --     (and on a keyboard their keys: T, G, C), Grandma's sticky note with your story goal and,
 --     under it, the goals rail: your next two milestones, then the contracts chip ("Contracts 1/3":
 --     how many of today's three are done, which opens the contracts panel, ContractsController);
@@ -16,7 +18,7 @@
 --     for each day the streak grows (StreakAdvanced);
 --   * cash and XP coming in lift off the piece of the HUD they came from (FloatingText) and ring
 --     (Sounds.playUi): the pay panel's total and tip, a goal's row or the Next chip, the contracts
---     chip (ContractDone), the money counter (the streak's day), the level line and the XP bar.
+--     chip (ContractDone), the money counter (the streak's day), the level pill and the XP bar.
 -- On a keyboard V switches camera motion on and off. Where each piece goes is in UiLayout.luau,
 -- which can also take any of the columns' pieces out of its column to go anywhere on the screen.
 
@@ -27,6 +29,7 @@ local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Daily = require(Shared.Daily)
 local Format = require(Shared.Format)
 local GameConfig = require(Shared.Config.GameConfig)
 local Items = require(Shared.Config.Items)
@@ -43,6 +46,7 @@ local Art = require(script.Parent.Parent.Art)
 local ClientState = require(script.Parent.Parent.ClientState)
 local FloatingText = require(script.Parent.Parent.FloatingText)
 local Goal = require(script.Parent.Parent.Goal)
+local Juicy = require(script.Parent.Parent.Juicy)
 local UI = require(script.Parent.Parent.UI)
 local CameraController = require(script.Parent.CameraController)
 local GrassController = require(script.Parent.GrassController)
@@ -100,20 +104,59 @@ local CONTRACT_GAP = 0.6
 local COLUMNS = UI.Layout.__screen.scaling.Columns
 -- Room for the key badge at the left of a menu button.
 local KEY_ROOM = 46
--- The gold star beside the level (once the business has its gold sign) takes this much of the level
--- line's width, which is its own size and the gap.
-local GOLD_STAMP_ROOM = 18
+-- The money pill and the pills under it (UiLayout's MoneyPanel, StatPills and Countdown, whose heights
+-- are these and the 6 px a pill's lip and outline hang below it), in pixels.
+local MONEY_PILL = Vector2.new(250, 70)
+local LEVEL_PILL = Vector2.new(136, 36)
+local STREAK_PILL = Vector2.new(106, 36)
+local COUNTDOWN_PILL = Vector2.new(250, 34)
+local MONEY_TEXT_SIZE = 38
+local PILL_TEXT_SIZE = 17
+-- The coin beside the money: its size, and how far in from the pill's left edge and from the money.
+local COIN_SIZE = 46
+local COIN_LEFT = 12
+local COIN_GAP = 10
+-- Money that comes in counts up to its new total over this long.
+local MONEY_COUNT_TIME = 0.4
+-- The level pill: where its words start, where the XP bar starts, and how tall the bar is; and the
+-- room the Levels button's hit area takes above and below the pill (the column's gaps are wider).
+local LEVEL_TEXT_LEFT = 31
+local XP_BAR_LEFT = 87
+local XP_BAR_HEIGHT = 10
+local LEVELS_BUTTON_REACH = 11
+-- The streak pill's flame: how far in its middle is, and how wide its body is.
+local FLAME_MIDDLE = 19
+local FLAME_WIDTH = 16
+-- The countdown is worked out again this often (seconds): it counts down in hours.
+local COUNTDOWN_REFRESH = 60
+local WHITE = Color3.new(1, 1, 1)
+local COIN_GRADIENT = ColorSequence.new({
+	ColorSequenceKeypoint.new(0, Color3.fromHex("FFF3A8")),
+	ColorSequenceKeypoint.new(0.5, Color3.fromHex("FFD24A")),
+	ColorSequenceKeypoint.new(1, Color3.fromHex("E8A61E")),
+})
+local FLAME_OUTER = Color3.fromHex("FF5A1F")
+local FLAME_INNER = Color3.fromHex("FFE066")
 -- On a short screen the job tracker's timer goes beside the job's name, in a box this wide.
 local COMPACT_TIMER = 112
 
 local HudController = {}
 
+-- The money counter, the pill it is on, and the money the last profile had (nil before the first), so
+-- a gain counts up.
 local money
+local moneyPill: Frame
+local lastMoney: number? = nil
 local levelLabel: TextLabel
--- How far in from the left the level line starts (room for its glyph, when there's art for one).
-local levelLabelLeft = 0
-local goldStamp: TextLabel
-local xpBar: UI.Bar
+-- The star on the level pill (an icon, or a letter star while there is no art), gold with the sign.
+local levelGlyph: GuiObject
+-- The XP bar on the level pill: its track (what XP pops lift off) and how full it is.
+local xpBar: { frame: GuiObject, set: (fraction: number) -> () }
+local streakPill: Frame
+local streakLabel: TextLabel
+-- The countdown's piece of the column (hidden when there is nothing to count down to) and its words.
+local countdownPanel: Frame
+local countdownLabel: TextLabel
 -- The XP the last profile had (nil before the first), so a rise can be shown as "+40 XP".
 local lastXp: number? = nil
 local curbPanel: GuiObject
@@ -394,90 +437,273 @@ local function placeInColumn(gui: GuiObject, id: string)
 	end
 end
 
--- Low and wide, so it takes little of a short screen's height: the money, then your level and jobs
--- done, then the XP bar, close together.
+-- The money pill: a gold coin and the money, big and white with an ink outline, on a green pill. The
+-- column's piece is a plain frame the size of the pill and its lip (UiLayout's MoneyPanel) and the
+-- pill sits in it, so the pill can pulse about its middle without moving the column.
 local function buildStats()
-	local frame = hudPanel({ Name = "Stats" })
+	local frame = UI.new("Frame", { Name = "Stats", BackgroundTransparency = 1 })
 	placeInColumn(frame, "MoneyPanel")
-	UI.new("UIPadding", {
-		PaddingTop = UDim.new(0, 6),
-		PaddingBottom = UDim.new(0, 7),
-		PaddingLeft = UDim.new(0, 10),
-		PaddingRight = UDim.new(0, 10),
+	local face: Frame
+	moneyPill, face = Juicy.pill("Money", {
+		Name = "MoneyPill",
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.new(0.5, 0, 0, MONEY_PILL.Y / 2),
+		Size = UDim2.fromOffset(MONEY_PILL.X, MONEY_PILL.Y),
 		Parent = frame,
 	})
-	local moneyIcon = UI.icon(
-		"Money",
-		{ Size = UDim2.fromOffset(24, 24), Position = UDim2.fromOffset(0, 2), Parent = frame },
-		UI.Colors.Money
-	)
-	local moneyX = if moneyIcon then 32 else 0
+	-- The coin: a round gold gradient with an ink rim and an ink "$".
+	local coin = UI.new("Frame", {
+		Name = "Coin",
+		AnchorPoint = Vector2.new(0, 0.5),
+		Position = UDim2.new(0, COIN_LEFT, 0.5, 0),
+		Size = UDim2.fromOffset(COIN_SIZE, COIN_SIZE),
+		BackgroundColor3 = WHITE,
+		BorderSizePixel = 0,
+		ZIndex = 5,
+		Parent = face,
+	}, {
+		UI.corner(COIN_SIZE / 2),
+		UI.new("UIGradient", { Color = COIN_GRADIENT, Rotation = 45 }),
+		UI.new("UIStroke", {
+			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+			Color = Juicy.Palette.Ink,
+			Thickness = 3,
+		}),
+	})
+	Juicy.text("$", {
+		Name = "Sign",
+		Size = UDim2.fromScale(1, 1),
+		TextSize = 30,
+		TextColor3 = Juicy.Palette.Ink,
+		ZIndex = 6,
+		Parent = coin,
+	}, 0)
+	local moneyX = COIN_LEFT + COIN_SIZE + COIN_GAP
 	money = UI.display(
 		"Numbers",
 		"$0",
-		{ TextSize = 26, Color = UI.Colors.Money, Fit = true },
-		{ Position = UDim2.fromOffset(moneyX, 0), Size = UDim2.new(1, -moneyX, 0, 28), Parent = frame }
+		{ TextSize = MONEY_TEXT_SIZE, Color = WHITE, OutlineColor = Juicy.Palette.Ink, Fit = true, ZIndex = 5 },
+		{
+			Position = UDim2.fromOffset(moneyX, 0),
+			Size = UDim2.new(1, -moneyX - COIN_GAP - 4, 1, 0),
+			ZIndex = 5,
+			Parent = face,
+		}
 	)
-	local levelIcon =
-		UI.icon("Level", { Size = UDim2.fromOffset(14, 14), Position = UDim2.fromOffset(2, 32), Parent = frame })
-	local levelX = if levelIcon then 22 else 0
-	levelLabelLeft = levelX
-	levelLabel = UI.label("Level 1", {
-		Position = UDim2.fromOffset(levelX, 30),
-		Size = UDim2.new(1, -levelX, 0, 18),
+end
+
+-- A flame: a round body with a rotated rounded square for its tip, `width` wide, its middle `middle`
+-- px in from the left and its bottom `bottom` px down the face.
+local function flameShape(parent: GuiObject, color: Color3, middle: number, bottom: number, width: number, z: number)
+	local radius = width / 2
+	UI.new("Frame", {
+		Name = "FlameBody",
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromOffset(middle, bottom - radius),
+		Size = UDim2.fromOffset(width, width),
+		BackgroundColor3 = color,
+		BorderSizePixel = 0,
+		ZIndex = z,
+		Parent = parent,
+	}, { UI.corner(radius) })
+	local tip = math.round(width * 0.72)
+	UI.new("Frame", {
+		Name = "FlameTip",
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromOffset(middle, bottom - radius - math.round(width * 0.28)),
+		Size = UDim2.fromOffset(tip, tip),
+		Rotation = 45,
+		BackgroundColor3 = color,
+		BorderSizePixel = 0,
+		ZIndex = z,
+		Parent = parent,
+	}, { UI.corner(math.round(tip * 0.18)) })
+end
+
+-- The star on the level pill takes its colour (gold with the business's gold sign).
+local function colorLevelGlyph(color: Color3)
+	if levelGlyph:IsA("ImageLabel") then
+		levelGlyph.ImageColor3 = color
+	elseif levelGlyph:IsA("TextLabel") then
+		levelGlyph.TextColor3 = color
+	end
+end
+
+-- A pill's words: white Fredoka with an ink stroke, shrinking to fit the room, which starts `left` px
+-- in and stops `right` px short of the pill's right edge.
+local function pillText(face: Frame, name: string, text: string, left: number, right: number, size: number): TextLabel
+	local label = Juicy.text(text, {
+		Name = name,
+		Position = UDim2.fromOffset(left, 0),
+		Size = UDim2.new(1, -left - right, 1, 0),
+		TextSize = size,
 		TextScaled = true,
-		TextColor3 = UI.Colors.Text,
-		Parent = frame,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		ZIndex = 5,
+		Parent = face,
 	})
-	UI.new("UITextSizeConstraint", { MaxTextSize = 15, Parent = levelLabel })
-	xpBar = UI.bar({
-		Position = UDim2.fromOffset(levelX, 51),
-		Size = UDim2.new(1, -levelX, 0, 8),
-		Parent = frame,
+	UI.new("UITextSizeConstraint", { MaxTextSize = size, MinTextSize = 9, Parent = label })
+	return label
+end
+
+-- The pills under the money: the level and streak pills side by side in one piece of the column
+-- (UiLayout's StatPills), then the judging day countdown pill (Countdown).
+local function buildPills()
+	local row = UI.new("Frame", { Name = "StatPills", BackgroundTransparency = 1 })
+	placeInColumn(row, "StatPills")
+
+	-- The level pill: a star, "LVL 3" and the XP bar. The Levels button is invisible over it, and
+	-- reaches a little above and below it so it is a thumb's size on a phone.
+	local levelHolder, levelFace = Juicy.pill("Level", {
+		Name = "LevelPill",
+		Size = UDim2.fromOffset(LEVEL_PILL.X, LEVEL_PILL.Y),
+		LayoutOrder = 1,
+		Parent = row,
 	})
-	-- The small gold stamp for the business's gold sign (the GoldSign attribute, updateGoldSign), at
-	-- the end of the level line. No icon is drawn for it yet, so it's a gold star like the job board's.
-	goldStamp = UI.label("★", {
-		Name = "GoldStamp",
-		AnchorPoint = Vector2.new(1, 0),
-		Position = UDim2.new(1, 0, 0, 30),
-		Size = UDim2.fromOffset(16, 18),
-		TextSize = 14,
-		TextColor3 = UI.Colors.Gold,
-		TextXAlignment = Enum.TextXAlignment.Center,
-		Visible = false,
-		Parent = frame,
-	})
-	-- The level line and the XP bar are one button that opens the Levels panel. It's invisible, but
-	-- tall enough to tap on a phone (the bar alone is 8 px), and washes faintly under the mouse.
+	local star = UI.icon("Level", {
+		AnchorPoint = Vector2.new(0, 0.5),
+		Position = UDim2.new(0, 8, 0.5, 0),
+		Size = UDim2.fromOffset(20, 20),
+		ZIndex = 5,
+		Parent = levelFace,
+	}, WHITE)
+	if not star then
+		star = UI.label("★", {
+			Name = "Level",
+			AnchorPoint = Vector2.new(0, 0.5),
+			Position = UDim2.new(0, 8, 0.5, 0),
+			Size = UDim2.fromOffset(20, 20),
+			TextSize = 16,
+			TextColor3 = WHITE,
+			TextXAlignment = Enum.TextXAlignment.Center,
+			ZIndex = 5,
+			Parent = levelFace,
+		})
+	end
+	levelGlyph = star :: GuiObject
+	levelLabel = pillText(levelFace, "Level", "LVL 1", LEVEL_TEXT_LEFT, LEVEL_PILL.X - XP_BAR_LEFT + 4, PILL_TEXT_SIZE)
+	-- The XP bar: a dark track and a gold fill.
+	local track = UI.new("Frame", {
+		Name = "XpBar",
+		AnchorPoint = Vector2.new(0, 0.5),
+		Position = UDim2.new(0, XP_BAR_LEFT, 0.5, 0),
+		Size = UDim2.new(1, -XP_BAR_LEFT - 10, 0, XP_BAR_HEIGHT),
+		BackgroundColor3 = Juicy.Palette.Ink,
+		BackgroundTransparency = 0.15,
+		BorderSizePixel = 0,
+		ClipsDescendants = true,
+		ZIndex = 5,
+		Parent = levelFace,
+	}, { UI.corner(XP_BAR_HEIGHT / 2) })
+	local fill = UI.new("Frame", {
+		Name = "Fill",
+		BackgroundColor3 = Juicy.Palette.Badge,
+		BorderSizePixel = 0,
+		Size = UDim2.fromScale(0, 1),
+		ZIndex = 6,
+		Parent = track,
+	}, { UI.corner(XP_BAR_HEIGHT / 2) })
+	xpBar = {
+		frame = track,
+		set = function(fraction: number)
+			fill.Size = UDim2.fromScale(math.clamp(fraction, 0, 1), 1)
+		end,
+	}
 	local levelsButton = UI.new("TextButton", {
 		Name = "LevelsButton",
 		Text = "",
 		AutoButtonColor = false,
-		BackgroundColor3 = UI.Colors.Text,
 		BackgroundTransparency = 1,
-		Position = UDim2.fromOffset(-6, 27),
-		Size = UDim2.new(1, 12, 0, 36),
-		ZIndex = 2,
-		Parent = frame,
-	}, { UI.corner(6) })
-	levelsButton.Activated:Connect(LevelsController.toggle)
-	if UserInputService.MouseEnabled then
-		levelsButton.MouseEnter:Connect(function()
-			levelsButton.BackgroundTransparency = 0.9
-		end)
-		levelsButton.MouseLeave:Connect(function()
-			levelsButton.BackgroundTransparency = 1
-		end)
+		Position = UDim2.fromOffset(0, -LEVELS_BUTTON_REACH),
+		Size = UDim2.new(1, 0, 0, LEVEL_PILL.Y + 2 * LEVELS_BUTTON_REACH),
+		ZIndex = 10,
+		Parent = levelHolder,
+	})
+	levelsButton.Activated:Connect(function()
+		Sounds.playUi("Click", 0.4)
+		LevelsController.toggle()
+	end)
+
+	-- The streak pill: a flame (a gold flame inside an orange one, both with an ink rim) and "DAY 3".
+	-- It is hidden until there is a streak.
+	local face: Frame
+	streakPill, face = Juicy.pill("Streak", {
+		Name = "StreakPill",
+		Size = UDim2.fromOffset(STREAK_PILL.X, STREAK_PILL.Y),
+		LayoutOrder = 2,
+		Visible = false,
+		Parent = row,
+	})
+	local bottom = STREAK_PILL.Y - 5
+	flameShape(face, Juicy.Palette.Ink, FLAME_MIDDLE, bottom + 2, FLAME_WIDTH + 4, 5)
+	flameShape(face, FLAME_OUTER, FLAME_MIDDLE, bottom, FLAME_WIDTH, 6)
+	flameShape(face, FLAME_INNER, FLAME_MIDDLE, bottom - 2, FLAME_WIDTH / 2, 7)
+	streakLabel = pillText(face, "Days", "DAY 1", 38, 8, PILL_TEXT_SIZE)
+
+	-- The countdown pill: a stopwatch and the words. The column's piece is a frame of its own that
+	-- hides, so the column closes up when there is nothing to count down to.
+	countdownPanel = UI.new("Frame", { Name = "Countdown", BackgroundTransparency = 1, Visible = false })
+	placeInColumn(countdownPanel, "Countdown")
+	local _, countdownFace = Juicy.pill("Countdown", {
+		Name = "CountdownPill",
+		Size = UDim2.fromOffset(COUNTDOWN_PILL.X, COUNTDOWN_PILL.Y),
+		Parent = countdownPanel,
+	})
+	UI.icon("Timer", {
+		AnchorPoint = Vector2.new(0, 0.5),
+		Position = UDim2.new(0, 12, 0.5, 0),
+		Size = UDim2.fromOffset(22, 22),
+		ZIndex = 5,
+		Parent = countdownFace,
+	}, WHITE)
+	countdownLabel = pillText(countdownFace, "Words", "Judging day", 42, 12, 16)
+end
+
+-- Shows the star beside the level in gold while the player has the gold business sign (the server
+-- sets GoldSign at level 20).
+local function updateGoldSign()
+	colorLevelGlyph(if player:GetAttribute("GoldSign") == true then UI.Colors.Gold else WHITE)
+end
+
+-- The streak pill: "DAY 3" from the day's view (ClientState.contracts), hidden with no streak.
+local function updateStreak()
+	local view = ClientState.contracts
+	local days = if view and view.streak then view.streak.days or 0 else 0
+	streakPill.Visible = days > 0
+	if days > 0 then
+		streakLabel.Text = `DAY {days}`
 	end
 end
 
--- Shows the gold stamp beside the level while the player has the gold business sign (the server
--- sets GoldSign at level 20), and makes room for it on the level line.
-local function updateGoldSign()
-	local gold = player:GetAttribute("GoldSign") == true
-	goldStamp.Visible = gold
-	levelLabel.Size = UDim2.new(1, -levelLabelLeft - (if gold then GOLD_STAMP_ROOM else 0), 0, 18)
+-- The judging day countdown, from the contest view (ClientState.contest) and this computer's clock:
+-- only for someone with judging day on the Saturday calendar, "Judging day in 2d 5h" while it is
+-- coming and "Judging day is today!" while it is open.
+local function updateCountdown()
+	local contest = ClientState.contest
+	local text: string? = nil
+	if contest and contest.calendar then
+		if contest.state == "Open" then
+			text = "Judging day is today!"
+		elseif contest.state == "Waiting" then
+			local now = os.time()
+			local target = Daily.nextSaturday(now)
+			-- A Saturday they have judged on already looks to the next one.
+			if target <= now then
+				target = Daily.nextSaturday(Daily.midnightAfter(now))
+			end
+			local left = target - now
+			local days = left // 86400
+			local hours = (left % 86400) // 3600
+			text = if days > 0
+				then `Judging day in {days}d {hours}h`
+				elseif hours > 0 then `Judging day in {hours}h`
+				else "Judging day in under 1h"
+		end
+	end
+	countdownPanel.Visible = text ~= nil
+	if text then
+		countdownLabel.Text = text
+	end
 end
 
 -- Your crew's business's curb appeal (see HomeLawnService), which pays a bonus on jobs.
@@ -1631,9 +1857,17 @@ local function updateProfile()
 	if not profile then
 		return
 	end
-	money:SetText(Format.money(profile.money))
-	levelLabel.Text =
-		`Level {profile.level}  ·  {profile.jobsCompleted} {if profile.jobsCompleted == 1 then "job" else "jobs"} done`
+	-- Money that came in counts up and the pill pulses; anything else (the first profile, a spend) is set.
+	if profile.money ~= lastMoney then
+		if lastMoney and profile.money > lastMoney then
+			Juicy.countTo(money, lastMoney, profile.money, MONEY_COUNT_TIME, Format.money)
+			Juicy.pulse(moneyPill)
+		else
+			Juicy.countTo(money, profile.money, profile.money, 0, Format.money)
+		end
+		lastMoney = profile.money
+	end
+	levelLabel.Text = `LVL {profile.level}`
 	local from = GameConfig.xpForLevel(profile.level)
 	local to = GameConfig.xpForLevel(profile.level + 1)
 	xpBar.set((profile.xp - from) / (to - from))
@@ -1735,6 +1969,7 @@ end
 function HudController:Start()
 	buildColumns()
 	buildStats()
+	buildPills()
 	buildMenuButtons()
 	buildGoal()
 	buildCurbAppeal()
@@ -1751,8 +1986,12 @@ function HudController:Start()
 			updateJob()
 		elseif key == "story" or key == "contest" then
 			updateGoal()
+			if key == "contest" then
+				updateCountdown()
+			end
 		elseif key == "contracts" then
 			updateContractsChip()
+			updateStreak()
 		end
 	end)
 	player:GetAttributeChangedSignal("CurbAppeal"):Connect(updateGoal)
@@ -1775,7 +2014,15 @@ function HudController:Start()
 	UI.TitleCardDone:Connect(playHeld)
 	updateGoal()
 	updateContractsChip()
+	updateStreak()
+	updateCountdown()
 
+	task.spawn(function()
+		while true do
+			task.wait(COUNTDOWN_REFRESH)
+			updateCountdown()
+		end
+	end)
 	task.spawn(function()
 		while true do
 			task.wait(0.25)

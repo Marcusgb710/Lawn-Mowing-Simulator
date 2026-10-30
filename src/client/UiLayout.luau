@@ -289,8 +289,9 @@ return {
 		size = { 0, 250, 0, 0 },
 		autoSize = "Y",
 		list = { direction = "Vertical", padding = 18, align = "Left" },
-		typical = { 250, 416 },
-		note = "The money panel, the menu buttons, Grandma's goal and the contracts chip stacked down the "
+		typical = { 250, 480 },
+		note = "The money pill, the level and streak pills, the judging day countdown, the menu buttons, "
+			.. "Grandma's goal and the contracts chip stacked down the "
 			.. "left, so they can't run into each other on a short screen, far enough apart that the panels "
 			.. "are clear of the menu buttons on a phone. Its UIScale shrinks it to fit "
 			.. "(__screen.scaling.Columns). Each of them can be taken out of it (their detach) and put "
@@ -298,22 +299,47 @@ return {
 			.. "stick.",
 	},
 	MoneyPanel = {
-		label = "Money and level panel",
+		label = "Money pill",
 		group = "HUD",
 		parent = "LeftColumn",
 		detach = "LeftColumn",
 		order = 1,
-		size = { 0, 250, 0, 72 },
-		note = "Always shown during play: your money, then your level and jobs done, then the XP bar. The level "
-			.. "line and the XP bar are the Levels button (key L). Low and wide, so it takes little of a short "
-			.. "screen's height.",
+		size = { 0, 250, 0, 76 },
+		note = "Always shown during play: your money in big white numbers beside a gold coin, on a green pill. "
+			.. "The pill itself is 250 by 70 and the other 6 px are its lip. When money comes in, the number "
+			.. "counts up to it and the pill pulses once.",
+	},
+	StatPills = {
+		label = "Level and streak pills",
+		group = "HUD",
+		parent = "LeftColumn",
+		detach = "LeftColumn",
+		order = 2,
+		size = { 0, 250, 0, 42 },
+		list = { direction = "Horizontal", padding = 8, align = "Left" },
+		note = "A row under the money pill with two pills side by side. The blue level pill (136 wide) shows "
+			.. "your level and, on its right, how far you are to the next one; it is the Levels button (key L). "
+			.. "The orange streak pill (106 wide) shows the days in a row you have played ('DAY 3') and is "
+			.. "hidden until you have a streak. The pills are 36 tall and the other 6 px are their lip.",
+	},
+	Countdown = {
+		label = "Judging day countdown",
+		group = "HUD",
+		parent = "LeftColumn",
+		detach = "LeftColumn",
+		order = 3,
+		size = { 0, 250, 0, 40 },
+		note = "A purple pill under the level and streak pills that counts down to judging day: 'Judging day in "
+			.. "2d 5h', or 'Judging day is today!' on the day itself. It is only there once judging day is on "
+			.. "the Saturday calendar, and it is hidden the rest of the time. The pill is 34 tall and the other "
+			.. "6 px are its lip.",
 	},
 	MenuButtons = {
 		label = "Menu buttons",
 		group = "HUD",
 		parent = "LeftColumn",
 		detach = "LeftColumn",
-		order = 2,
+		order = 4,
 		size = { 0, 150, 0, 0 },
 		autoSize = "Y",
 		list = { direction = "Vertical", padding = 12, align = "Left" },
@@ -361,7 +387,7 @@ return {
 		group = "Trackers",
 		parent = "LeftColumn",
 		detach = "LeftColumn",
-		order = 3,
+		order = 5,
 		size = { 0, 220, 0, 0 },
 		autoSize = "Y",
 		typical = { 220, 86 },
@@ -385,7 +411,7 @@ return {
 		group = "Trackers",
 		parent = "LeftColumn",
 		detach = "LeftColumn",
-		order = 4,
+		order = 6,
 		size = { 0, 220, 0, 28 },
 		note = "Today's contracts on one line ('Contracts 1/3': how many of the day's three are done), under "
 			.. "Grandma's goal, from the moment the server has sent the day's contracts. It shows on every "
