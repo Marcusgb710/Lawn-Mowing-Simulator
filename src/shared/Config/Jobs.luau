@@ -8,6 +8,8 @@
 --             flower patches / gnomes the crew must not hit. Lawns that need mowing also hide some
 --             junk in the grass (Config/Debris.luau); `debris` sets how many instead of the usual
 --             count for the lawn's size and tier.
+--   junk      optional: how many pieces of junk the lawn hides, 0 for none, instead of the usual
+--             count (Debris.countFor reads it)
 --   tasks     { type = a TaskTypes id, amount = how many } in the order the customer lists them.
 --             A job without a mowing task gets an already-mown lawn. `rocky` (0-1) is the share of
 --             a task's targets in rocky ground, for tasks with TaskTypes `rocky`.
@@ -77,8 +79,10 @@ Jobs.Templates = {
 	-- Every new player's very first job, which they're already standing on as they join
 	-- (JobService:StartFirstJob, docs/GAME_DESIGN.md "The first job"), and never on the board: the
 	-- strip by the walk, 5 by 6 tiles and no flowers, so 480 grass cells, about half the Front
-	-- Lawn's. With the grass shears it takes about two and a half minutes, with 2 bits of junk in
-	-- the grass (Debris.countFor).
+	-- Lawn's. With the grass shears it takes about two and a half minutes. It hides no junk: the
+	-- coach teaches the snip and nothing else, so a new player who missed a stick would lose their
+	-- stars, the tip and the first milestone over a thing they were never told about. Junk comes
+	-- with the next job (Debris.countFor).
 	{
 		id = "FirstMow",
 		name = "Front Strip",
@@ -86,6 +90,7 @@ Jobs.Templates = {
 		minLevel = 1,
 		hidden = true,
 		lawn = { columns = 5, rows = 6, flowerPatches = 0 },
+		junk = 0,
 		tasks = { { type = "MowSmallLawn" } },
 		notes = { "Just the strip by the walk. Grandma said you'd do it." },
 		parTime = 150,

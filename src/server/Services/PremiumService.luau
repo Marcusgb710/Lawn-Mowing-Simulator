@@ -102,8 +102,11 @@ local function processReceipt(receipt)
 	end
 	rememberReceipt(premium, receipt.PurchaseId)
 	if not DataService:Save(player) then
-		-- Not saved: take it back so it's granted again on the retry.
-		premium.owned[item.id] = nil
+		-- Not saved: take it back so it's granted again on the retry. A paint they earned as a
+		-- level reward stays theirs (earnedPaints), whatever happens to the purchase.
+		if not (premium.earnedPaints and premium.earnedPaints[item.id]) then
+			premium.owned[item.id] = nil
+		end
 		premium.receipts[receipt.PurchaseId] = nil
 		return Enum.ProductPurchaseDecision.NotProcessedYet
 	end

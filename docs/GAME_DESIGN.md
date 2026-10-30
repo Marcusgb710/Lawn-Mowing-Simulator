@@ -367,8 +367,10 @@ Every new player's very first job is `FirstMow` (shown as **Front Strip**, Edna'
 they join (see "Starting out") and never on the board (it's `hidden`, so `Jobs.boardTemplates`
 leaves it out). It's 5 x 6 tiles (20 x 24 studs) with no flowers: 480 grass cells, done at 99% =
 **476**, about half the Front Lawn's. By the arithmetic below that's ~80 s of snipping, ~15 s
-re-aiming, ~15 s walking, 2 pieces of junk (~20 s) and ~30 s finding your feet: **about 2 1/2
-minutes**, par time 150 s. It pays exactly $60 (no roll), about $51 with the shears' fit and a fine
+re-aiming, ~15 s walking and ~30 s finding your feet: **about 2 1/3 minutes** (~140 s), par time
+150 s. It hides no junk (`junk = 0`): the coach teaches the snip and nothing else, so a new player
+can't lose stars, the tip or the first milestone to something they were never told about. Junk
+comes with the next job. It pays exactly $60 (no roll), about $51 with the shears' fit and a fine
 finish, and 25 xp.
 
 After that, with only the shears, the board's first slot is always `QuickMow` (shown as **Front
@@ -403,8 +405,9 @@ have to spot them and pick them up (look at one and press **E**, or tap the big 
 cutting there.
 
 - **How much:** one piece per 16 lawn tiles on homeowner jobs, per 14 on serious ones and per 12
-  on pro ones, rounded, 1 to 10 (a job's `lawn.debris` sets it outright): 2 on a tiny yard, 4 on
-  the first job, 5 on a suburban lawn, 10 on the big ones. Each lies on one cell, never on the
+  on pro ones, rounded, 1 to 10 (a job's `junk`, or its lawn's `debris`, sets it outright): 2 on a
+  tiny yard, none on the first job's strip, 4 on the Front Lawn, 5 on a suburban lawn, 10 on the
+  big ones. Each lies on one cell, never on the
   optional cells beside flowers and trees, and at least 4 cells (4 studs) from the next piece.
   Sticks turn up most often, then rocks and balls, then toys and frisbees.
 - **Grass shears can't snip a spot with something in it**: a snip that would cut a cell with junk

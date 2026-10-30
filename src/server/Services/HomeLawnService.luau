@@ -347,7 +347,10 @@ local function settle(
 			state.tippedAt = now
 			state.tipReady = false
 			local tip = GameConfig.HomeLawn.TidyTip
-			DataService:AddMoney(owner, tip)
+			-- A tip is money they made, so it counts toward `earned`.
+			if tip > 0 then
+				DataService:Earn(owner, tip)
+			end
 			notify(owner, `Your lawn looks great! A neighbor tipped you {Format.money(tip)}.`)
 		elseif owner == player then
 			notify(player, "Your lawn looks great!")

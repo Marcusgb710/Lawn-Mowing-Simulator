@@ -468,8 +468,13 @@ Later (known, and left for after this PR):
 
 Slice 1 is the first minute and the ladder (design:
 `docs/superpowers/specs/2026-10-29-busy-season-design.md`, plan:
-`docs/superpowers/plans/2026-10-29-busy-season-slice-1.md`). None of it has been seen or heard in
-Studio yet. The test panel (K) has two shortcuts for this: **Start as a first-timer** puts your save
+`docs/superpowers/plans/2026-10-29-busy-season-slice-1.md`). A Studio pass has seen the
+first-timer landing (on the strip with the shears 1.2 s after joining, the coach line and the Next
+chip), a jump to level 5 paying levels 2 to 5 ($850), the Levels panel, and the iPhone preset with
+the chip above the tracker, with no errors. It has not seen or heard a completed job (the stars,
+the tip, the cash and XP pops, the sounds), June's welcome after the first payday, a milestone
+moment, the rail on a tall screen, or the chip with the Missed button up. The test panel (K) has
+two shortcuts for this: **Start as a first-timer** puts your save
 back to a brand-new one and drops you on the first lawn with the shears (it calls off any job
 first, and that session stops saving, so a playtest can't wipe a real save), and the **Level** row
 sets your level to 2, 5, 10 or 20 and pays any level reward not yet claimed.

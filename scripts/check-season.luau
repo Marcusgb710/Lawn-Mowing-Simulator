@@ -5,7 +5,8 @@
 -- (src/shared/Config/Levels.luau), and how a job's performance becomes stars and tips
 -- (src/shared/Config/Stars.luau) and that the pay is built on that same factor
 -- (GameConfig.performance), and how a save becomes a version 13 save and who is still a
--- first-timer (src/shared/Config/Season.luau), and that the six sounds the Busy Season rings
+-- first-timer, without back pay for the milestones or levels it has already passed
+-- (src/shared/Config/Season.luau), and that the six sounds the Busy Season rings
 -- (cash, level up, goal done, star, find, streak) have ids (src/shared/Sounds.luau). Exits with an
 -- error if anything's off.
 
@@ -192,10 +193,10 @@ end
 
 -- The save ------------------------------------------------------------------------------------
 
--- Season reaches GameConfig through `script`, which Lune doesn't have, and GameConfig builds a
--- Vector3 as it loads. So GameConfig is loaded here with Lune's Vector3 and handed to Season as
--- its sibling: levelFromXp below is the real one. Run from the repo root, like the command at
--- the top.
+-- Season reaches GameConfig and Milestones through `script`, which Lune doesn't have, and
+-- GameConfig builds a Vector3 as it loads. So GameConfig is loaded here with Lune's Vector3 and
+-- handed to Season as its sibling, with Milestones: levelFromXp and reachedBy below are the real
+-- ones. Run from the repo root, like the command at the top.
 local GameConfig = luau.load(fs.readFile("src/shared/Config/GameConfig.luau"), {
 	debugName = "GameConfig",
 	environment = { Vector3 = roblox.Vector3 },
@@ -203,7 +204,7 @@ local GameConfig = luau.load(fs.readFile("src/shared/Config/GameConfig.luau"), {
 local Season = luau.load(fs.readFile("src/shared/Config/Season.luau"), {
 	debugName = "Season",
 	environment = {
-		script = { Parent = { GameConfig = GameConfig } },
+		script = { Parent = { GameConfig = GameConfig, Milestones = Milestones } },
 		require = function(module)
 			return module
 		end,
@@ -249,6 +250,45 @@ for level = 2, 7 do
 end
 check(old.levelRewards["8"] == nil, "nothing above its level is claimed")
 check(Season.levelKey(12) == "12", "level keys are strings")
+
+-- A version 12 save is not showered with back pay for milestones any more than for levels: every
+-- one its numbers already meet is marked reached when `milestones` is first made, and nothing
+-- else. 60 jobs and $12,000 meet Jobs:1 to Jobs:50 and Earned:500 to Earned:10000, no more.
+local veteran = { money = 12000, xp = 1800, jobsCompleted = 60 }
+Season.upgradeSave(veteran)
+local reachedIds = {}
+for id in veteran.milestones do
+	table.insert(reachedIds, id)
+end
+table.sort(reachedIds)
+check(
+	table.concat(reachedIds, " ") == "Earned:10000 Earned:2000 Earned:500 Jobs:1 Jobs:10 Jobs:25 Jobs:3 Jobs:5 Jobs:50",
+	"a v12 save with 60 jobs and $12,000 has Jobs:1 to Jobs:50 and Earned:500 to Earned:10000 reached, nothing else"
+)
+check(
+	veteran.milestones["Jobs:100"] == nil
+		and veteran.milestones["Earned:50000"] == nil
+		and veteran.milestones["Stars:1"] == nil,
+	"nothing past its numbers is reached, and no three-star job is credited"
+)
+check(next(fresh.milestones) == nil, "a fresh save has nothing reached")
+-- `old` (30 jobs, $1,234) from above.
+check(
+	old.milestones["Jobs:25"] == true and old.milestones["Earned:500"] == true and old.milestones["Jobs:50"] == nil,
+	"an old save is marked up to its own numbers"
+)
+local oldMilestones = { ["Jobs:1"] = true }
+local sixtyJobs = { money = 12000, xp = 1800, jobsCompleted = 60, milestones = oldMilestones }
+Season.upgradeSave(sixtyJobs)
+check(
+	sixtyJobs.milestones == oldMilestones and next(oldMilestones) == "Jobs:1" and next(oldMilestones, "Jobs:1") == nil,
+	"a milestones table that is already there is kept as it is, not filled up"
+)
+-- A save with no finished job has made nothing from jobs: it starts at 0 earned whatever money it
+-- holds, so a raised StartingMoney would not start new players part way to Earned:500.
+local rich = { money = 800, xp = 0, jobsCompleted = 0 }
+Season.upgradeSave(rich)
+check(rich.earned == 0 and next(rich.milestones) == nil, "no finished job: earned is 0 and nothing is reached")
 local kept = {
 	money = 10,
 	xp = 0,

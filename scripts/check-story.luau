@@ -9,7 +9,8 @@
 -- CastService puts a rig's Root so it stands on the spot a statue did (src/shared/CastRig.luau), and
 -- which pose NpcAnimator picks for a person and how fast the judges' walk plays
 -- (src/shared/NpcAnimator.luau), and that the first-timer's job never reaches the job board
--- (src/shared/Config/Jobs.luau). Exits with an error if anything's off.
+-- (src/shared/Config/Jobs.luau) and hides no junk in its grass (src/shared/Config/Debris.luau).
+-- Exits with an error if anything's off.
 
 local fs = require("@lune/fs")
 local luau = require("@lune/luau")
@@ -325,6 +326,7 @@ end
 local Tools = loadConfig("Tools")
 local TaskTypes = loadConfig("TaskTypes", { Tools = Tools })
 local Jobs = loadConfig("Jobs", { TaskTypes = TaskTypes })
+local Debris = loadConfig("Debris")
 
 local firstMow = Jobs.get("FirstMow")
 check(firstMow ~= nil and firstMow.hidden == true, "the first-timer's job is hidden")
@@ -336,6 +338,19 @@ for _, template in onBoard do
 end
 check(not hiddenOnBoard, "a hidden template is never on the board")
 check(#onBoard == #Jobs.Templates - 1, "the board offers every template but the first-timer's")
+-- The first strip hides no junk: the coach teaches the snip and nothing else, so a first-timer
+-- who never spotted a stick would lose stars, the tip and the first milestone for it. The count
+-- comes from the same function LawnService builds the lawn with.
+check(firstMow ~= nil and Debris.countFor(firstMow) == 0, "the first strip hides no junk")
+check(Debris.countFor(Jobs.get("QuickMow")) == 4, "the board's Front Lawn still hides its 4 pieces")
+local junkLawn = { columns = 9, rows = 7 }
+check(Debris.countFor({ tier = "Homeowner", lawn = junkLawn, junk = 0 }) == 0, "a template's junk of 0 is honoured")
+check(Debris.countFor({ tier = "Homeowner", lawn = junkLawn, junk = 3 }) == 3, "a template's junk sets the count")
+check(Debris.countFor({ tier = "Homeowner", lawn = junkLawn }) == 4, "no junk set: the lawn's size and tier decide")
+check(
+	Debris.countFor({ tier = "Homeowner", lawn = { columns = 9, rows = 7, debris = 2 } }) == 2,
+	"lawn.debris still sets it"
+)
 
 -- TurfKing taking jobs ------------------------------------------------------------------------
 

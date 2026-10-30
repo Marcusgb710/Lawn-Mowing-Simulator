@@ -178,6 +178,11 @@ local function onPlayerAdded(player: Player)
 			if reward and reward.sign then
 				player:SetAttribute("GoldSign", true)
 			end
+			-- A migrated save claims its past levels without being paid, so this is where it comes to
+			-- own the tints it passed (cash stays unpaid). GrantPaint skips one they already own.
+			if reward and reward.paint then
+				PremiumService:GrantPaint(player, reward.paint)
+			end
 		end
 		SeasonService:ClaimLevels(player)
 	end)

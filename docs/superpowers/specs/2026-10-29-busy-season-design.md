@@ -60,9 +60,9 @@ Each slice is its own plan and its own PR, stacked in this order. Each leaves th
 Today: title card, Intro scene (seven lines), coach banner, walk to the desk, Jobs app, accept, load a tool into the truck, E on the door, pull-out and drive cutscenes, then cut. That is three to five minutes before grass moves.
 
 New: a player whose save has `jobsCompleted == 0` and no accepted job is a **first-timer**. For a first-timer:
-- The server accepts a **first-timer job** on join: a new template `FirstMow` ("Mrs. Alvarez's front strip"), half the cells of the QuickMow Front Lawn, the same tasks, par time 150 s, pay $60, xp 25, used only for this flow and never on the board. The full Front Lawn stays the board's starter job for the second job. (The Front Lawn takes about 4.5 minutes with the shears, which is too long for a first minute; shears speed and the reel mower's value stay as they are.)
+- The server accepts a **first-timer job** on join: a new template `FirstMow` ("Mrs. Alvarez's front strip"), half the cells of the QuickMow Front Lawn, the same tasks and no junk in the grass, par time 150 s, pay $60, xp 25, used only for this flow and never on the board. The full Front Lawn stays the board's starter job for the second job. (The Front Lawn takes about 4.5 minutes with the shears, which is too long for a first minute; shears speed and the reel mower's value stay as they are.)
 - It sets the job state to Working and arrives the crew at the job site the way `DriveToJob` would at the end of the drive, with the truck parked there and Grandma's shears in the player's hands (owned and equipped already). No pull-out or drive cutscene.
-- The title card waits for `ArrivedAtJob` instead of `ArrivedAtBusiness` for a first-timer, so the first thing after the tap is the lawn, the shears, and the coach banner: "Hold E to snip. Clear the lawn."
+- The title card waits for the `ArrivedAtBusiness` attribute, which the first-timer job sets once the crew is on the lawn (the name is historical; built as a reuse, there is no `ArrivedAtJob`), so the first thing after the tap is the lawn, the shears, and the coach banner: "Click and hold to snip. Clear the lawn."
 - The Intro scene does not play on join. It plays as **June's welcome** when the truck brings the first-timer home after the first payday: same seven lines, same shears card (which now reads "Grandma's Grass Shears, already yours"), then the existing FirstJob texts. The second job is where the desk, the Jobs app and the truck door are taught; the coach banner stays until the second job is paid instead of the first.
 - The save's `firstJob` flag is set the moment the first-timer job starts, so a first-timer who leaves mid-job and comes back is no longer a first-timer: they arrive at their business and the normal flow (the board's starter job) resumes.
 
@@ -79,7 +79,7 @@ New: the note becomes a **rail of three goals**, top to bottom:
 Milestones (`src/shared/Config/Milestones.luau`, pure, Lune-checked):
 - Jobs done: 1, 3, 5, 10, 25, 50, 100, 250, 500. Reward: cash equal to 10 times the milestone, capped at $2500, and a toast.
 - Money earned (lifetime, a new `earned` stat): $500, $2000, $10000, $50000, $250000. Reward: a toast and a HUD stamp.
-- Level: the next level (reward from 1c).
+- Level: not a milestone kind. The next level shows as its own reward (1c), in the Levels panel and the level-up moment.
 - Stars: 3-star jobs: 1, 5, 25, 100 (from 1d). Reward: cash 25 times the milestone.
 - Finds (slice 3): 1, 10, 30; sets completed.
 
@@ -128,7 +128,7 @@ New: every completed job gets **stars** from the pay formula's own performance f
 
 Today: five sounds, no floating numbers.
 
-New: a small `src/client/FloatingText.luau` draws "+$12" and "+40 XP" rising from the pay panel and from pickups; the job's stars stamp in on the pay panel instead of a card of their own. `src/shared/Sounds.luau` gains six ids: Cash, LevelUp, GoalDone, Star, Find, Streak. They come from Roblox-owned public audio (the builder searches the audio catalog for Roblox-created cash register, chime, stamp and pickup sounds and records the ids and names in the file; `check-season` asserts the six are `rbxassetid://` ids). Levels of the existing LawnDone chime stay.
+New: a small `src/client/FloatingText.luau` draws "+$12" and "+40 XP" rising from the pay panel; the job's stars stamp in on the pay panel instead of a card of their own. `src/shared/Sounds.luau` gains six ids: Cash, LevelUp, GoalDone, Star, Find, Streak. They come from Roblox-owned public audio (the builder searches the audio catalog for Roblox-created cash register, chime, stamp and pickup sounds and records the ids and names in the file; `check-season` asserts the six are `rbxassetid://` ids). Levels of the existing LawnDone chime stay.
 
 ### Slice 1 data and checks
 
