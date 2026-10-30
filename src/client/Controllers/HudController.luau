@@ -2,8 +2,9 @@
 --   * down the left: money and level (the money counter in the display face; the level line and
 --     its XP bar are one button that opens the Levels panel, LevelsController, with a gold star
 --     beside the level once you have the gold business sign), the menu buttons with their glyphs
---     (and on a keyboard their keys: T, G, C), and Grandma's sticky note with your story goal and,
---     under it, the goals rail: your next two milestones;
+--     (and on a keyboard their keys: T, G, C), Grandma's sticky note with your story goal and,
+--     under it, the goals rail: your next two milestones, then the contracts chip ("Contracts 1/3":
+--     how many of today's three are done, which opens the contracts panel, ContractsController);
 --   * down the right: your business's curb appeal, on a phone the Next chip (the next milestone,
 --     where the rail has no room), the job tracker on the art's GoalTracker card (to-dos, a timer
 --     against par, damage), smaller on a phone, and under it, late in the mowing, the button that
@@ -11,10 +12,11 @@
 --   * the condition of the tool in your hands, a glyph for each thing wrong ("Running low on
 --     fuel" by the fuel can), or what you're doing to one at the workbench;
 --   * the pay breakdown when a job's done, and the big moments: Level Up! (when the server says
---     what the level paid, LevelReward) and New Tool!
+--     what the level paid, LevelReward), New Tool!, and a Payday for the Bonus Day (BonusDay) and
+--     for each day the streak grows (StreakAdvanced);
 --   * cash and XP coming in lift off the piece of the HUD they came from (FloatingText) and ring
---     (Sounds.playUi): the pay panel's total and tip, a goal's row or the Next chip, the level line
---     and the XP bar.
+--     (Sounds.playUi): the pay panel's total and tip, a goal's row or the Next chip, the contracts
+--     chip (ContractDone), the money counter (the streak's day), the level line and the XP bar.
 -- On a keyboard V switches camera motion on and off. Where each piece goes is in UiLayout.luau,
 -- which can also take any of the columns' pieces out of its column to go anywhere on the screen.
 
@@ -34,6 +36,7 @@ local Milestones = require(Shared.Config.Milestones)
 local Net = require(Shared.Net)
 local PayBreakdown = require(Shared.PayBreakdown)
 local Sounds = require(Shared.Sounds)
+local Streak = require(Shared.Config.Streak)
 local Tools = require(Shared.Config.Tools)
 
 local Art = require(script.Parent.Parent.Art)
@@ -136,6 +139,9 @@ local nextChip: GuiObject
 local nextChipLabel: TextLabel
 local chipStamp: UI.Stamp?
 local chipHeld: Milestone?
+-- The contracts chip under Grandma's goal and its words.
+local contractsChip: GuiObject
+local contractsChipLabel: TextLabel
 -- Milestones MilestoneReached has said are reached that the profile doesn't have yet. The server
 -- sends the profile first, so this is normally empty; it keeps a late profile from drawing a
 -- reached milestone as still to do.
@@ -666,6 +672,73 @@ local function buildNextChip()
 		Parent = nextChip,
 	})
 	UI.new("UITextSizeConstraint", { MaxTextSize = 14, MinTextSize = 10, Parent = nextChipLabel })
+end
+
+-- The contracts chip: how many of today's contracts are done ("Contracts 1/3") in the left column,
+-- under Grandma's goal. Unlike the Next chip it shows on every screen, tall or short, and nothing
+-- hides it, a job included. It's a button too: tapping it opens the contracts panel
+-- (ContractsController), or closes it if it's open.
+local function buildContractsChip()
+	contractsChip = UI.sliced("Tooltip", {
+		Name = "ContractsChip",
+		Visible = false,
+	}, { color = UI.Colors.Background, transparency = 0.25, radius = 8 })
+	placeInColumn(contractsChip, "ContractsChip")
+	UI.new("UIPadding", {
+		PaddingLeft = UDim.new(0, 10),
+		PaddingRight = UDim.new(0, 10),
+		Parent = contractsChip,
+	})
+	contractsChipLabel = UI.label("", {
+		Size = UDim2.fromScale(1, 1),
+		TextScaled = true,
+		TextSize = 14,
+		TextXAlignment = Enum.TextXAlignment.Center,
+		Parent = contractsChip,
+	})
+	UI.new("UITextSizeConstraint", { MaxTextSize = 14, MinTextSize = 10, Parent = contractsChipLabel })
+	-- The whole chip is the button (past the padding, which only keeps the words in), and it washes
+	-- faintly under the mouse like the level line's.
+	local button = UI.new("TextButton", {
+		Name = "ContractsButton",
+		Text = "",
+		AutoButtonColor = false,
+		BackgroundColor3 = UI.Colors.Text,
+		BackgroundTransparency = 1,
+		Position = UDim2.fromOffset(-10, 0),
+		Size = UDim2.new(1, 20, 1, 0),
+		ZIndex = 2,
+		Parent = contractsChip,
+	}, { UI.corner(8) })
+	button.Activated:Connect(function()
+		UI.toggle("Contracts")
+	end)
+	if UserInputService.MouseEnabled then
+		button.MouseEnter:Connect(function()
+			button.BackgroundTransparency = 0.9
+		end)
+		button.MouseLeave:Connect(function()
+			button.BackgroundTransparency = 1
+		end)
+	end
+end
+
+-- The chip's words from the day's view (ClientState.contracts): the contracts done out of the day's
+-- three. It's hidden until the server has sent the day's contracts.
+local function updateContractsChip()
+	local view = ClientState.contracts
+	local total = if view then #view.contracts else 0
+	contractsChip.Visible = total > 0
+	if not view or total == 0 then
+		return
+	end
+	local done = 0
+	for _, contract in view.contracts do
+		if contract.done then
+			done += 1
+		end
+	end
+	contractsChipLabel.Text = `Contracts {done}/{total}`
 end
 
 -- The `count` milestones nearest to done, never one MilestoneReached has said is reached, which a
@@ -1455,6 +1528,42 @@ local function onLevelReward(info: { level: number, text: string, cash: number }
 	end
 end
 
+-- The server's paid a contract (`info`: its id, its words and its cash): the goal chime, and the
+-- cash lifts off the contracts chip, or off the money counter where the chip isn't showing. The
+-- chip's count follows with the view, which the server sends once it has paid.
+local function onContractDone(info: { id: string, text: string, reward: number })
+	Sounds.playUi("GoalDone")
+	if info.reward > 0 then
+		local cash = `+{Format.money(info.reward)}`
+		if not FloatingText.show(contractsChip, cash) then
+			FloatingText.show(money.Frame, cash)
+		end
+	end
+	updateContractsChip()
+end
+
+-- All three contracts are paid and so is the Bonus Day (`info`: its cash): a Payday moment and the
+-- cash register.
+local function onBonusDay(info: { cash: number })
+	UI.moment("Payday", "Bonus Day!", `+{Format.money(info.cash)}`, 3)
+	Sounds.playUi("Cash")
+end
+
+-- The streak grew (`info`: the days in a row, what today paid, the flag today gave if it gave one,
+-- and what tomorrow pays): a Payday moment saying what it paid and what's next, or on the day that
+-- gave the truck its pennant, that, the streak chime, and the cash lifts off the money counter.
+local function onStreakAdvanced(info: { days: number, cash: number, flag: string?, tomorrow: number })
+	local today = `+{Format.money(info.cash)} today`
+	local subtitle = if info.flag
+		then `{today} and a pennant for the truck`
+		else `{today}, {Format.money(info.tomorrow)} tomorrow`
+	UI.moment("Payday", Streak.text(info.days), subtitle, 4)
+	Sounds.playUi("Streak")
+	if info.cash > 0 then
+		FloatingText.show(money.Frame, `+{Format.money(info.cash)}`)
+	end
+end
+
 local function updateProfile()
 	local profile = ClientState.profile
 	if not profile then
@@ -1568,6 +1677,7 @@ function HudController:Start()
 	buildGoal()
 	buildCurbAppeal()
 	buildNextChip()
+	buildContractsChip()
 	buildTracker()
 	buildMissedButton()
 	buildCondition()
@@ -1579,6 +1689,8 @@ function HudController:Start()
 			updateJob()
 		elseif key == "story" or key == "contest" then
 			updateGoal()
+		elseif key == "contracts" then
+			updateContractsChip()
 		end
 	end)
 	player:GetAttributeChangedSignal("CurbAppeal"):Connect(updateGoal)
@@ -1595,7 +1707,11 @@ function HudController:Start()
 	end)
 	Net.event("MilestoneReached").OnClientEvent:Connect(onMilestoneReached)
 	Net.event("LevelReward").OnClientEvent:Connect(onLevelReward)
+	Net.event("ContractDone").OnClientEvent:Connect(onContractDone)
+	Net.event("BonusDay").OnClientEvent:Connect(onBonusDay)
+	Net.event("StreakAdvanced").OnClientEvent:Connect(onStreakAdvanced)
 	updateGoal()
+	updateContractsChip()
 
 	task.spawn(function()
 		while true do

@@ -248,6 +248,7 @@ local COLUMN_PIECES = {
 	MoneyPanel = "LeftColumn",
 	MenuButtons = "LeftColumn",
 	GrandmaGoal = "LeftColumn",
+	ContractsChip = "LeftColumn",
 	CurbAppeal = "RightColumn",
 	NextChip = "RightColumn",
 	JobTracker = "RightColumn",
@@ -496,10 +497,10 @@ if levelsPanel then
 	check(levelsPanel.screen == "LawnUI", `UiLayout's LevelsPanel is on {levelsPanel.screen}, not LawnUI`)
 	check(levelsPanel.parent == nil, "UiLayout's LevelsPanel is in another element: it's a window of its own")
 	check(
-		levelsPanel.size ~= nil and levelsPanel.size[2] == 360 and levelsPanel.size[4] == 420,
-		"UiLayout's LevelsPanel isn't 360 by 420"
+		levelsPanel.size ~= nil and levelsPanel.size[2] == 360 and levelsPanel.size[4] == 460,
+		"UiLayout's LevelsPanel isn't 360 by 460"
 	)
-	check(levelsPanel.autoSize == nil, "UiLayout's LevelsPanel grows with what's in it: it's 420 tall")
+	check(levelsPanel.autoSize == nil, "UiLayout's LevelsPanel grows with what's in it: it's 460 tall")
 end
 local levelsRule = UiLayout.__screen.scaling.LevelsPanel
 check(levelsRule ~= nil, "__screen.scaling has no LevelsPanel")
@@ -520,6 +521,80 @@ if levelsRule then
 		typeof(levelsRule.scale) == "number" and levelsRule.scale > 0 and levelsRule.scale <= 1,
 		"__screen.scaling.LevelsPanel has no scale from above 0 to 1"
 	)
+end
+
+-- The contracts panel and its chip (Busy Season, slice 2). The panel is the Levels panel's twin: a
+-- centred window of its own that shrinks to fit by the same rule (the same margins, a touch screen's
+-- the same as any other's, for the same reason). The chip is the left column's last piece, under
+-- Grandma's goal, and it shows on every screen, through a job too: nothing hides it and it isn't
+-- compactOnly, so no entry's hideWhile (in its place, its touch ones or its compact ones) names it,
+-- and it has an order of its own in the column.
+do
+	local panel = UiLayout.ContractsPanel
+	check(panel ~= nil, "UiLayout has no ContractsPanel")
+	if panel then
+		check(panel.screen == "LawnUI", `UiLayout's ContractsPanel is on {panel.screen}, not LawnUI`)
+		check(panel.parent == nil, "UiLayout's ContractsPanel is in another element: it's a window of its own")
+		check(
+			panel.size ~= nil and panel.size[2] == 360 and panel.size[4] == 400,
+			"UiLayout's ContractsPanel isn't 360 by 400"
+		)
+		check(panel.autoSize == nil, "UiLayout's ContractsPanel grows with what's in it: it's 400 tall")
+	end
+	local rule = UiLayout.__screen.scaling.ContractsPanel
+	check(rule ~= nil, "__screen.scaling has no ContractsPanel")
+	if rule then
+		check(
+			table.find(rule.elements, "ContractsPanel") ~= nil,
+			"__screen.scaling.ContractsPanel doesn't scale the ContractsPanel"
+		)
+		check(rule.margin == 24, "__screen.scaling.ContractsPanel's margin isn't 24, the Levels panel's")
+		check(
+			typeof(rule.touchMargin) == "number" and rule.touchMargin == rule.margin,
+			"__screen.scaling.ContractsPanel's touchMargin isn't its margin: it's centred, clear of the thumb zones"
+		)
+		check(
+			typeof(rule.scale) == "number" and rule.scale > 0 and rule.scale <= 1,
+			"__screen.scaling.ContractsPanel has no scale from above 0 to 1"
+		)
+	end
+
+	local chip = UiLayout.ContractsChip
+	check(chip ~= nil, "UiLayout has no ContractsChip")
+	if chip then
+		check(chip.parent == "LeftColumn", `UiLayout's ContractsChip is in {chip.parent}, not the LeftColumn`)
+		check(
+			chip.detach == "LeftColumn",
+			"UiLayout's ContractsChip can't be taken out of and put back in the LeftColumn"
+		)
+		check(chip.compactOnly == nil, "UiLayout's ContractsChip is compactOnly: it shows on every screen")
+		check(
+			chip.size ~= nil and chip.size[2] == 220 and chip.size[4] == 28,
+			"UiLayout's ContractsChip isn't 220 by 28, the Next chip's size"
+		)
+		check(typeof(chip.order) == "number", "UiLayout's ContractsChip has no order in the LeftColumn")
+		for other, entry in UiLayout do
+			if other ~= "__screen" and other ~= "ContractsChip" and entry.parent == "LeftColumn" then
+				check(entry.order ~= chip.order, `UiLayout's ContractsChip and {other} are both order {chip.order}`)
+			end
+		end
+	end
+	for id, entry in UiLayout do
+		if id ~= "__screen" then
+			for place, places in { whole = entry, touch = entry.touch or {}, compact = entry.compact or {} } do
+				if id == "ContractsChip" then
+					check(
+						(places :: any).hideWhile == nil,
+						`UiLayout's ContractsChip ({place}) gives way to something: it shows on every screen`
+					)
+				end
+				check(
+					table.find((places :: any).hideWhile or {}, "ContractsChip") == nil,
+					`UiLayout's {id} ({place}) hides while ContractsChip shows, which would hide it during a job`
+				)
+			end
+		end
+	end
 end
 
 -- COLUMN_PIECES is what HudController builds into a column: every piece it puts in one with

@@ -124,8 +124,8 @@
 --     way: the first-job coach, and on a touch screen Grandma's goal or a crew invite;
 --   * the dialogue box's width and height, for each line and the screen it's on, and the
 --     dialogue's compact places when the screen turns;
---   * the Levels panel shrinking to fit the screen by the pay breakdown's rule (centred, it's already
---     clear of the move stick and jump button on a touch screen);
+--   * the Levels panel and the contracts panel shrinking to fit the screen by the pay breakdown's rule
+--     (centred, they're already clear of the move stick and jump button on a touch screen);
 --   * a menu's window fills the computer's screen while you're at the computer;
 --   * inside the computer's screen, the taskbar hides the apps' names (and then your money) on
 --     narrower screens;
@@ -254,6 +254,16 @@ return {
 					.. "of Roblox's move stick and jump button in the bottom corners, so it takes no more "
 					.. "height than the pay breakdown does.",
 			},
+			ContractsPanel = {
+				elements = { "ContractsPanel" },
+				margin = 24,
+				touchMargin = 24,
+				scale = 1,
+				note = "The same rule as the Levels panel's: the smallest of `scale`, (screen height - margin) / "
+					.. "its height and (screen width - margin) / its width, so it only ever shrinks. On a touch "
+					.. "screen the height margin is touchMargin, the same 24 as margin, for the same reason: it's "
+					.. "in the middle of the screen, clear of Roblox's move stick and jump button.",
+			},
 			ContestResults = {
 				elements = { "ContestResults" },
 				marginX = 32,
@@ -276,12 +286,13 @@ return {
 		size = { 0, 250, 0, 0 },
 		autoSize = "Y",
 		list = { direction = "Vertical", padding = 18, align = "Left" },
-		typical = { 250, 370 },
-		note = "The money panel, the menu buttons and Grandma's goal stacked down the left, so they can't "
-			.. "run into each other on a short screen, far enough apart that the panels are clear of the menu "
-			.. "buttons on a phone. Its UIScale shrinks it to fit (__screen.scaling.Columns). Each of them can "
-			.. "be taken out of it (their detach) and put anywhere on the screen: on a touch screen Grandma's "
-			.. "goal is, away from your thumb on the move stick.",
+		typical = { 250, 416 },
+		note = "The money panel, the menu buttons, Grandma's goal and the contracts chip stacked down the "
+			.. "left, so they can't run into each other on a short screen, far enough apart that the panels "
+			.. "are clear of the menu buttons on a phone. Its UIScale shrinks it to fit "
+			.. "(__screen.scaling.Columns). Each of them can be taken out of it (their detach) and put "
+			.. "anywhere on the screen: on a touch screen Grandma's goal is, away from your thumb on the move "
+			.. "stick.",
 	},
 	MoneyPanel = {
 		label = "Money and level panel",
@@ -365,6 +376,19 @@ return {
 			.. "column, at the top in the middle between the HUD's columns, away from your thumb on the move "
 			.. "stick, and the toasts start under it. The first-job coach and a crew invite go there too, and "
 			.. "it waits while either shows.",
+	},
+	ContractsChip = {
+		label = "Contracts chip",
+		group = "Trackers",
+		parent = "LeftColumn",
+		detach = "LeftColumn",
+		order = 4,
+		size = { 0, 220, 0, 28 },
+		note = "Today's contracts on one line ('Contracts 1/3': how many of the day's three are done), under "
+			.. "Grandma's goal, from the moment the server has sent the day's contracts. It shows on every "
+			.. "screen, tall or short, and stays up during a job (nothing takes its spot); tapping it opens "
+			.. "the contracts panel. Its words shrink to fit the line (to 10 px at the least). When a "
+			.. "contract is done its cash lifts off it and a chime rings.",
 	},
 	RightColumn = {
 		label = "Right HUD column",
@@ -727,12 +751,27 @@ return {
 		screen = "LawnUI",
 		anchor = { 0.5, 0.5 },
 		position = { 0.5, 0, 0.5, 0 },
-		size = { 0, 360, 0, 420 },
+		size = { 0, 360, 0, 460 },
 		note = "Opened from the XP bar (and L on a keyboard), closed by its Close button or Escape: your level "
-			.. "and the XP to the next, then what the next five levels pay. Its own window, not one of the "
-			.. "menus: it never opens inside the shop computer, and it closes when a job's state changes, a "
-			.. "scene starts or you open a menu. Its UIScale shrinks it to fit the screen "
-			.. "(__screen.scaling.LevelsPanel).",
+			.. "and the XP to the next, the streak line under that ('Streak: Day 3 of 7, next $300'), then "
+			.. "what the next five levels pay. Its own window, not one of the menus: it never opens inside "
+			.. "the shop computer, and it closes when a job's state changes, a scene starts or you open a "
+			.. "menu. Its UIScale shrinks it to fit the screen (__screen.scaling.LevelsPanel).",
+	},
+	ContractsPanel = {
+		label = "Contracts panel",
+		group = "Menus",
+		screen = "LawnUI",
+		anchor = { 0.5, 0.5 },
+		position = { 0.5, 0, 0.5, 0 },
+		size = { 0, 360, 0, 400 },
+		note = "Opened from the contracts chip (and the mailbox at the curb), closed by its Close button or "
+			.. "Escape: today's three contracts (each with how far along it is and what it pays, and a DONE "
+			.. "stamp once it's paid), the Bonus Day for doing all three, and the streak line ('Day 3 of 7, "
+			.. "next $300'). It's opened by name like the menus (UI.open), but it's a window of its own like "
+			.. "the Levels panel: it never opens inside the shop computer, and it closes when a job's state "
+			.. "changes, a scene starts or you open a menu. Its UIScale shrinks it to fit the screen "
+			.. "(__screen.scaling.ContractsPanel).",
 	},
 	ComputerMonitor = {
 		label = "Shop computer",
