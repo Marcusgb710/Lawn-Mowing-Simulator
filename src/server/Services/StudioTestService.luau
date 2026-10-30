@@ -47,7 +47,8 @@ local function onCalendar(data): boolean
 end
 
 -- Turns every player's day over for the Clock's new time: DailyService makes the day's contracts and
--- keeps the streak (and pays it), and as the day turns it wakes their contest (June's text and the
+-- keeps the streak (paying a gift left unclaimed the day before, and leaving the new day's waiting on
+-- the Gifts button), and as the day turns it wakes their contest (June's text and the
 -- view: judging day is a day of the week). Each player is on their own, so one failing is a warning
 -- and the rest still turn. The Clock is the server's, so the day moves for everyone in the test.
 local function turnTheDay()
@@ -183,8 +184,10 @@ local TESTS = {
 		ContestService:OpenForTesting(player)
 		return true, "Judging day is open: call the judges from Messages."
 	end,
-	-- The Clock a day on, for everyone: a new day's contracts, and the streak card and its cash if
-	-- they were here yesterday (each press is one more day, so seven are a week's streak).
+	-- The Clock a day on, for everyone: a new day's contracts, and a CLAIM tag on the Gifts button for
+	-- the streak's next day if they were here yesterday (each press is one more day, so seven are a
+	-- week's streak). Pressing Gifts plays the streak card; a gift not claimed before the next press
+	-- is paid by it, with a "Yesterday's gift" toast.
 	NextDay = function()
 		Clock.setOffset(Clock.offset() + SECONDS_PER_DAY)
 		turnTheDay()
@@ -194,8 +197,9 @@ local TESTS = {
 	-- The Clock to noon on the next Saturday (UTC), for everyone, so judging day is open once the
 	-- first one has been played. Daily.nextSaturday counts today when it is a Saturday (it gives that
 	-- day's midnight), so it is asked from tomorrow: this always goes to a Saturday that is not today
-	-- and never stays put. A jump of more than one day breaks the streak, so turning the day pays
-	-- day 1 at once (from a Friday the landing day is tomorrow, and the streak just advances).
+	-- and never stays put. A jump of more than one day breaks the streak, so turning the day leaves
+	-- day 1's gift to claim (from a Friday the landing day is tomorrow, and the streak just advances).
+	-- A gift left unclaimed before the jump is paid by it.
 	Saturday = function(player: Player)
 		local now = Clock.now()
 		local saturday = Daily.nextSaturday(Daily.midnightAfter(now)) + NOON

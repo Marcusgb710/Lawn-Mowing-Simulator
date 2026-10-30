@@ -407,7 +407,10 @@ check(
 		and fresh14.daily.count.stars == 0,
 	"a fresh day's counts all start at 0"
 )
-check(fresh14.streak.days == 0 and fresh14.streak.last == "", "a fresh save has no streak")
+check(
+	fresh14.streak.days == 0 and fresh14.streak.last == "" and fresh14.streak.claimed == "",
+	"a fresh save has no streak and has claimed no gift"
+)
 check(next(fresh14.flags) == nil, "a fresh save owns no flags")
 check(
 	fresh14.contest.lastJudged == "" and fresh14.contest.saturdays == 0 and fresh14.contest.offeredDay == "",
@@ -466,6 +469,16 @@ check(
 	kept14.streak.days == 4 and kept14.streak.last == "20261028" and kept14.flags.TruckPennant == true,
 	"a streak and flags that are there are kept"
 )
+-- A streak from before gifts were claimed ({days, last}) had its day paid when it was kept, so it
+-- counts that day's gift as claimed: nobody is paid twice for one day.
+check(kept14.streak.claimed == "20261028", "a streak with no claimed day has claimed the day it was last kept")
+check(not Streak.waiting(kept14.streak, "20261028"), "so an upgraded streak has no gift waiting on its own day")
+local claimedKept = { money = 0, xp = 0, jobsCompleted = 0, streak = { days = 2, last = "20261029", claimed = "" } }
+Season.upgradeSave(claimedKept)
+check(claimedKept.streak.claimed == "", "a claimed day that is there is kept, even an empty one")
+local claimedWrong = { money = 0, xp = 0, jobsCompleted = 0, streak = { days = 2, last = "20261029", claimed = 7 } }
+Season.upgradeSave(claimedWrong)
+check(claimedWrong.streak.claimed == "20261029", "a claimed day that is not a string is the day last kept")
 check(
 	kept14.contest.lastJudged == "20261024" and kept14.contest.saturdays == 2,
 	"a judging calendar that is there is kept"
@@ -560,6 +573,7 @@ check(
 check(
 	scrambled.streak.days == 0
 		and scrambled.streak.last == ""
+		and scrambled.streak.claimed == ""
 		and next(scrambled.flags) == nil
 		and scrambled.contest.lastJudged == ""
 		and scrambled.contest.saturdays == 0
@@ -599,7 +613,7 @@ local stored = {
 		count = { jobs = 3, earned = 250, junk = 1, stars = 0 },
 		bonus = false,
 	},
-	streak = { days = 4, last = "20261029" },
+	streak = { days = 4, last = "20261029", claimed = "20261028" },
 	flags = { TruckPennant = true },
 	contest = { summer = 2, wins = 1, judged = 3, lastJudged = "20261024", saturdays = 2, offeredDay = "20261024" },
 }
@@ -802,6 +816,95 @@ end
 check(week.days == 8 and week.last == "20261105", "eight days in a row make a streak of 8")
 check(Streak.text(3) == "Day 3 of 7" and Streak.text(7) == "Day 7 of 7", "the streak line reads Day N of 7")
 check(Streak.text(8) == "Day 1 of 7" and Streak.text(14) == "Day 7 of 7", "a second week starts again at day 1")
+
+-- The gift: the day turn moves the streak on and the day's cash waits to be claimed (Gifts). A gift
+-- left unclaimed is paid by the next turn, once, so nobody loses a day's cash.
+check(
+	Streak.waiting({ days = 3, last = "20261029", claimed = "20261028" }, "20261029"),
+	"a streak kept today and not claimed today has a gift waiting"
+)
+check(
+	not Streak.waiting({ days = 3, last = "20261029", claimed = "20261029" }, "20261029"),
+	"a gift claimed today is not waiting"
+)
+check(
+	not Streak.waiting({ days = 3, last = "20261028", claimed = "" }, "20261029"),
+	"a streak not yet kept today has nothing waiting today (the turn comes first)"
+)
+check(not Streak.waiting({ days = 0, last = "", claimed = "" }, "20261029"), "no streak, no gift")
+
+-- turn: the first day of all, then claimed, then the next day owes nothing.
+local gift = { days = 0, last = "", claimed = "" }
+local advanced, owed, owedDays = Streak.turn(gift, "20261029", "20261028")
+check(
+	advanced == true and owed == nil and owedDays == nil and gift.days == 1 and gift.last == "20261029",
+	"the first turn of all starts the streak and owes nothing"
+)
+check(Streak.waiting(gift, "20261029"), "and day 1's gift waits")
+local claimedReward = Streak.claim(gift, "20261029")
+check(
+	claimedReward ~= nil and claimedReward.cash == 100 and gift.claimed == "20261029",
+	"claiming day 1 pays its $100 and marks it claimed"
+)
+check(Streak.claim(gift, "20261029") == nil, "a gift is claimed once")
+check(not Streak.waiting(gift, "20261029"), "and is not waiting after")
+advanced, owed = Streak.turn(gift, "20261030", "20261029")
+check(advanced == true and owed == nil and gift.days == 2, "a claimed day owes nothing at the next turn")
+check(
+	Streak.turn(gift, "20261030", "20261029") == false and gift.days == 2,
+	"the same day's turn again changes nothing"
+)
+
+-- A missed claim is paid by the next turn, exactly once, and the new day's gift waits.
+local unclaimed = { days = 3, last = "20261029", claimed = "20261028" }
+advanced, owed, owedDays = Streak.turn(unclaimed, "20261030", "20261029")
+check(
+	advanced == true and owed == 200 and owedDays == 3,
+	"an unclaimed day 3 is paid at the next turn: $200 for day 3"
+)
+check(unclaimed.days == 4 and unclaimed.last == "20261030", "and the streak moves on to day 4")
+check(Streak.waiting(unclaimed, "20261030"), "and day 4's gift waits to be claimed")
+local again, owedAgain = Streak.turn(unclaimed, "20261030", "20261029")
+check(again == false and owedAgain == nil, "the owed gift is paid once: the same day's turn again owes nothing")
+check(Streak.claim(unclaimed, "20261030").cash == 300, "the new day's gift is still its own: day 4 pays $300")
+check(Streak.claim(unclaimed, "20261030") == nil, "and is claimed once")
+
+-- Day 7's gift: the pennant flag comes with the turn onto day 7 (the caller gives it then), the
+-- owed gift is cash only, and the turn past day 7 brings no flag.
+local seventh = { days = 6, last = "20261028", claimed = "20261028" }
+advanced, owed = Streak.turn(seventh, "20261029", "20261028")
+check(
+	advanced == true and owed == nil and seventh.days == 7 and Streak.rewardFor(seventh.days).flag == "TruckPennant",
+	"the turn onto day 7 is the one with the pennant"
+)
+advanced, owed, owedDays = Streak.turn(seventh, "20261030", "20261029")
+check(
+	advanced == true and owed == 1000 and owedDays == 7,
+	"an unclaimed day 7 pays its $1,000 at the next turn"
+)
+check(
+	seventh.days == 8 and Streak.rewardFor(seventh.days).flag == nil,
+	"and the turn past day 7 has no flag, so the pennant is never given twice"
+)
+
+-- A gap of two days starts again at day 1 and still pays the one day that went unclaimed.
+local gap = { days = 3, last = "20261027", claimed = "20261026" }
+advanced, owed, owedDays = Streak.turn(gap, "20261030", "20261029")
+check(
+	advanced == true and owed == 200 and owedDays == 3 and gap.days == 1 and gap.last == "20261030",
+	"a two-day gap starts again at day 1 and pays the unclaimed day 3 once"
+)
+check(Streak.waiting(gap, "20261030"), "and day 1's gift waits")
+
+-- A save from before gifts: the upgrade gives it claimed = last, so its paid day owes nothing.
+local oldSave = { money = 0, xp = 0, jobsCompleted = 0, streak = { days = 5, last = "20261029" } }
+Season.upgradeSave(oldSave)
+check(
+	oldSave.streak.claimed == "20261029" and not Streak.waiting(oldSave.streak, "20261029"),
+	"an upgraded {days, last} save has claimed its last day and nothing waits"
+)
+advanced, owed = Streak.turn(oldSave.streak, "20261030", "20261029")
+check(advanced == true and owed == nil and oldSave.streak.days == 6, "and its next turn owes nothing (it was paid)")
 
 -- The truck's pennant ---------------------------------------------------------------------------
 

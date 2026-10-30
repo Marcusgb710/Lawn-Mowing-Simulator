@@ -1,5 +1,6 @@
 -- The Levels panel: your level and the XP to the next one, your streak ("Streak: Day 3 of 7, next
--- $300", once the server has sent it), then what the next five levels pay.
+-- $300", or "claim $200 in Gifts" while today's gift waits, once the server has sent it), then what
+-- the next five levels pay.
 -- The XP bar in the stats panel opens it (HudController calls LevelsController.toggle), and so does
 -- L on a keyboard. Its Close button, the X in its corner and Escape close it.
 --

@@ -522,39 +522,50 @@ Close button under the hotbar was found) and the day 1 Payday card was seen afte
 but not heard. Not yet seen or heard: the PC shortcuts, the leaderboard sign, the later streak days
 and the Bonus Day moment, the pennant, and any of the sounds. The test panel (K) has three
 shortcuts for it, all Studio only: **Next day** moves the server's clock a day on and turns every
-player's day over (a new three contracts, the streak and its cash), **Jump to Saturday** moves it to
+player's day over (a new three contracts, and the streak with its gift to claim), **Jump to Saturday** moves it to
 noon on the next Saturday UTC (never today, so it always moves, and a judging mark saved for that
 day is cleared) and **Refresh the boards** reads both leaderboards now instead of in two minutes. A
 jump of more than one day breaks the streak and starts it again at day 1; from a Friday it is just
 tomorrow, so the streak advances. Press **Next day** one day at a time to walk the streak up. The
-panel's +$ buttons are not earnings for a contract; a Level jump's cash is.
+streak's cash is a gift now: after a turn the Gifts button (right edge) wears a tilted CLAIM tag and
+pulses, and pressing it pays the day and plays the streak card. A gift left unclaimed is paid by the
+next turn with a "Yesterday's gift: +$N" toast. The panel's +$ buttons are not earnings for a
+contract; a Level jump's cash and a claimed gift are.
 
 The spec's playtest checklist for slice 2, with what to expect:
 
 - [ ] A fresh day's contracts: open them from the mailbox at the curb (E) and from the "Contracts
       0/3" chip under the goals rail. Both show "Today's contracts": a Mow, an Earn and a Junk or
-      Stars contract for your level band, each with its pay. Finish a job: Mow reads 1/2, and on
-      day 1 of the streak the Earn row completes (the day 1 streak cash counts toward it, and the
+      Stars contract for your level band, each with its pay. Claim day 1's gift (Gifts) and finish
+      a job: Mow reads 1/2, and the Earn row completes (the claimed $100 counts toward it, and the
       job's $60 and the $10 first-job milestone take it past $150), with the goal chime, a "+$" pop
       off the chip and a DONE stamp on its row; the chip reads 1/3, or 2/3 if the job earned three
-      stars on a Stars day. From day 2 the streak's login cash ($150 and up) already meets Earn $150
-      at level 1 or 2, so that row completes at login, with the Payday card (its chime and pop 0.6 s
-      after the card). The test panel's Level 5 jump finishes Earn only on a day whose streak cash
-      falls short: day 1 before the first job, or band 2 and up, where Earn is $400 or more; its $850
-      across levels 2 to 5 counts as earned.
-- [ ] The Bonus Day: finish all three. Earn completes as above (with the first job on day 1, at
-      login from day 2, or with the Level 5 jump where the streak cash falls short), two jobs do
+      stars on a Stars day. From day 2 the claimed gift ($150 and up) already meets Earn $150 at
+      level 1 or 2, so that row completes as you claim, after the Payday card (its chime and pop
+      0.6 s after the card). The test panel's Level 5 jump finishes Earn only on a day whose gift
+      falls short or is not claimed yet: day 1 before the first job, or band 2 and up, where Earn
+      is $400 or more; its $850 across levels 2 to 5 counts as earned.
+- [ ] The Bonus Day: finish all three. Earn completes as above (with the first job on day 1, with
+      the claim from day 2, or with the Level 5 jump where the gift falls short), two jobs do
       Mow, and the Junk or Stars one (the pieces picked up on the lawn, or a three-star job) is the
       third. A Payday
       moment whose subtitle reads "Bonus Day: +$500" plays with the cash sound, and the panel's
       line reads "Bonus Day collected".
-- [ ] The streak card: press **Next day**. A Payday moment whose subtitle reads "Day 2 of 7: +$150
-      today, $200 tomorrow" shows for four seconds, with the streak chime and the cash lifting off
-      the money counter. The contracts are a new three, and the Levels panel (L) reads "Streak:
-      Day 2 of 7, next $200".
-- [ ] Day 7: press **Next day** five more times, one at a time. A Payday moment whose subtitle
-      reads "Day 7: +$1,000 and a pennant for the truck" shows, and a purple pennant flies from the
-      truck's bed at your business and on the truck in the drive cutscene.
+- [ ] The gift: press **Next day**. No card plays; the Gifts button wears a tilted yellow CLAIM tag
+      on its top left and pulses every 2.5 s, the contracts are a new three, and the Levels panel
+      (L) reads "Streak: Day 2 of 7, claim $150 in Gifts". Press Gifts: a Payday moment whose
+      subtitle reads "Day 2 of 7: +$150 today, $200 tomorrow" shows for four seconds, with the
+      streak chime and the cash lifting off the money counter; the tag goes, the pulse stops, and
+      the Levels panel reads "Streak: Day 2 of 7, next $200". Press Gifts again: the contracts
+      panel opens.
+- [ ] A gift left unclaimed: press **Next day** twice without pressing Gifts. The second press pays
+      day 2's gift for you with a "Yesterday's gift: +$150" toast and the cash register, once
+      (the money goes up by $150, not more), and day 3's CLAIM tag is up. The Earn row counts that
+      $150 once.
+- [ ] Day 7: press **Next day** and claim, five more times, one at a time. The day 7 turn puts a
+      purple pennant on the truck's bed at your business (and on the truck in the drive
+      cutscene); claiming day 7 shows a Payday moment whose subtitle reads "Day 7: +$1,000 and a
+      pennant for the truck".
 - [ ] The leaderboard sign at spawn, with API access off: it stands 12 studs from the spawn pad on
       its +Z side. Both boards say "Leaderboards are off in this place" and nothing else, and
       **Refresh the boards** says so too.

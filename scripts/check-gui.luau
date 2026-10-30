@@ -1193,6 +1193,44 @@ do
 	for _, wanted in hudWants do
 		check(string.find(hudSource, wanted, 1, true) ~= nil, `HudController doesn't have {wanted}`)
 	end
+	-- Gifts (ruling 7): the button claims the day's gift while the view says one waits, wears a CLAIM
+	-- tag tilted -8 degrees and pulses meanwhile, and a gift the day turn paid is told after the title
+	-- card. The server pays the gift on a claim, not at the turn.
+	local giftWants = {
+		'Net.func("ClaimStreak"):InvokeServer()',
+		"streak.claimable",
+		'Juicy.badge("CLAIM"',
+		"GIFT_TAG_TILT = -8",
+		"GIFT_PULSE_EVERY = 2.5",
+		"rightActions.Gifts = pressGifts",
+		'Net.event("StreakGiftPaid")',
+		"afterTitleCard(showGiftPaid",
+	}
+	for _, wanted in giftWants do
+		check(string.find(hudSource, wanted, 1, true) ~= nil, `HudController's Gifts button doesn't have {wanted}`)
+	end
+	local dailySource = fs.readFile("src/server/Services/DailyService.luau")
+	local refreshStart = string.find(dailySource, "function DailyService:Refresh", 1, true)
+	local claimStart = string.find(dailySource, "function DailyService:Claim", 1, true)
+	check(refreshStart ~= nil and claimStart ~= nil, "DailyService has no Refresh or no Claim")
+	if refreshStart and claimStart then
+		local refreshBody = string.sub(dailySource, refreshStart, claimStart - 1)
+		local claimBody = string.sub(dailySource, claimStart)
+		check(
+			string.find(refreshBody, '"StreakAdvanced"', 1, true) == nil,
+			"DailyService:Refresh still plays the streak card at the day turn: the card is the claim's"
+		)
+		check(
+			string.find(claimBody, '"StreakAdvanced"', 1, true) ~= nil
+				and string.find(claimBody, "Streak.claim(", 1, true) ~= nil,
+			"DailyService:Claim doesn't claim through Streak.claim and play the streak card"
+		)
+		check(
+			string.find(dailySource, 'Net.func("ClaimStreak").OnServerInvoke', 1, true) ~= nil
+				and string.find(dailySource, "CLAIM_COOLDOWN", 1, true) ~= nil,
+			"DailyService doesn't answer ClaimStreak with a cooldown"
+		)
+	end
 
 	-- Shop anywhere (ruling 6): the shop's Buy, Sell and Equip and the decorations' Buy don't ask where
 	-- the player stands. Taking a job and TurfKing's visit stay at the desk.

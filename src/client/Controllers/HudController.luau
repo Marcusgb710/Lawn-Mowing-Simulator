@@ -18,7 +18,8 @@
 --     are above zero), and under those, late in the mowing, the button that lights up the grass you
 --     missed (M on a keyboard);
 --   * down the right edge, outside that column: the right buttons, glossy squares for the Shop (the
---     Orders window, from anywhere: B on a keyboard), Gifts (for now the contracts panel), Top Lawns
+--     Orders window, from anywhere: B on a keyboard), Gifts (claims the day's streak gift, ClaimStreak,
+--     with a tilted CLAIM tag and a pulse while one waits; with none, the contracts panel), Top Lawns
 --     (the two leaderboards, TopLawnsController: F) and Settings (comma): faces 76 px with their names
 --     under them on a PC, 56 px and bare on a phone or a short screen (the column moves in to clear
 --     them, UiLayout's RightColumn);
@@ -26,10 +27,11 @@
 --     fuel" by the fuel can), or what you're doing to one at the workbench;
 --   * the pay breakdown when a job's done, and the big moments: Level Up! (when the server says
 --     what the level paid, LevelReward), New Tool!, and a Payday for the Bonus Day (BonusDay) and
---     for each day the streak grows (StreakAdvanced);
+--     for each day's gift claimed (StreakAdvanced), and a toast for an unclaimed gift the day turn
+--     paid (StreakGiftPaid);
 --   * cash and XP coming in lift off the piece of the HUD they came from (FloatingText) and ring
 --     (Sounds.playUi): the pay panel's total and tip, a goal's row or the Next chip, the Contracts
---     square (ContractDone), the money counter (the streak's day), the level pill and the XP bar.
+--     square (ContractDone), the money counter (the streak's gift), the level pill and the XP bar.
 -- On a keyboard V switches camera motion on and off. Where each piece goes is in UiLayout.luau,
 -- which can also take any of the columns' pieces out of its column to go anywhere on the screen.
 
@@ -90,6 +92,11 @@ local SQUARE_KEY_SIZE = 22
 local SQUARE_KEY_INSET = 8
 -- The Contracts square's count badge hangs this far off its top right corner.
 local COUNT_BADGE_OVERHANG = 8
+-- The Gifts button's CLAIM tag while the day's gift waits: it hangs this far off the face's top left
+-- corner, tilted the other way from a count badge, and the button pulses every few seconds.
+local GIFT_TAG_OVERHANG = 8
+local GIFT_TAG_TILT = -8
+local GIFT_PULSE_EVERY = 2.5
 -- The right buttons: the strip's four squares, their face colours, glyphs and keys (Gifts has no key
 -- and a present drawn in code, since the Premium glyph is a diamond; the key badge sits on a face's
 -- top left corner, with a keyboard only), and where each is placed in UiLayout.luau. What each does
@@ -297,6 +304,9 @@ local rightHolder: Frame
 local rightPieces: { { spec: any, button: TextButton, face: Frame, label: GuiObject? } } = {}
 -- What each right button does (by its id), so it can be changed without building the button again.
 local rightActions: { [string]: () -> () } = {}
+-- The Gifts button's CLAIM tag while a gift waits, and whether a claim is on its way to the server.
+local giftTag: Frame? = nil
+local claiming = false
 local mouseHint: TextLabel?
 local contractsFace: Frame
 local contractsBadge: Frame?
@@ -1154,6 +1164,37 @@ local function fitRightButton(piece)
 	end
 end
 
+-- Whether the day's view says today's gift (the streak's cash) is waiting to be claimed.
+local function giftWaiting(): boolean
+	local view = ClientState.contracts
+	return view ~= nil and view.streak ~= nil and view.streak.claimable == true
+end
+
+-- The Gifts button: claims the waiting gift (the server pays it and the Payday card follows, from
+-- StreakAdvanced), or with none waiting opens the contracts panel, whose streak card says what
+-- tomorrow's pays. One claim at a time; when one doesn't go through the server says why.
+local function pressGifts()
+	if not giftWaiting() then
+		UI.toggle("Contracts")
+		return
+	end
+	if claiming then
+		return
+	end
+	claiming = true
+	task.spawn(function()
+		local ok, claimed, message = pcall(function()
+			return Net.func("ClaimStreak"):InvokeServer()
+		end)
+		claiming = false
+		if not ok then
+			UI.notify("Your gift didn't come through. Try again in a moment.")
+		elseif not claimed and typeof(message) == "string" then
+			UI.notify(message)
+		end
+	end)
+end
+
 -- The strip down the right edge (UiLayout's RightButtons): Shop, Gifts, Top Lawns and Settings. Built
 -- straight at the size this screen asks (a UIScale on the strip would leave the buttons' sizes to the
 -- layout's mercy), and fitted again if the screen turns short or tall.
@@ -1196,8 +1237,9 @@ local function buildRightButtons()
 	end
 
 	-- Where each button goes: the Shop opens the Orders window (or puts it away when it is up), Gifts
-	-- shows the contracts panel for now (its streak card), Top Lawns the leaderboards, and Settings says
-	-- they are coming. Opening one closes any other menu, since only one is up at a time (UI.open).
+	-- claims the day's gift (or shows the contracts panel's streak card when none waits), Top Lawns the
+	-- leaderboards, and Settings says they are coming. Opening one closes any other menu, since only
+	-- one is up at a time (UI.open).
 	rightActions.Shop = function()
 		if UI.isOpen("Shop") then
 			UI.close("Shop")
@@ -1205,9 +1247,7 @@ local function buildRightButtons()
 			ShopController.openApp("Orders")
 		end
 	end
-	rightActions.Gifts = function()
-		UI.toggle("Contracts")
-	end
+	rightActions.Gifts = pressGifts
 	rightActions.TopLawns = function()
 		UI.toggle("TopLawns")
 	end
@@ -1233,6 +1273,40 @@ end
 function HudController.setRightAction(id: string, action: () -> ())
 	assert(rightActions[id] ~= nil, `HudController has no right button {id}`)
 	rightActions[id] = action
+end
+
+-- A pulse of the Gifts button: its Content frame, which grows from its middle and holds the hover
+-- scale (Juicy.pulse works relative to that and gives way to a hover or a press).
+local function pulseGifts()
+	local button = HudController.giftsButton
+	local content = button and button:FindFirstChild("Content")
+	if content and content:IsA("GuiObject") then
+		Juicy.pulse(content)
+	end
+end
+
+-- The CLAIM tag on the Gifts button's face, from the day's view: on while a gift waits (with a pulse
+-- as it appears, then every GIFT_PULSE_EVERY seconds from Start's loop), gone once it is claimed.
+local function updateGiftTag()
+	local face = HudController.giftsFace
+	if not face then
+		return
+	end
+	local waiting = giftWaiting()
+	if waiting and not giftTag then
+		local tag = Juicy.badge("CLAIM", {
+			Name = "ClaimTag",
+			Position = UDim2.fromOffset(-GIFT_TAG_OVERHANG, -GIFT_TAG_OVERHANG),
+			Rotation = GIFT_TAG_TILT,
+			ZIndex = 8,
+			Parent = face,
+		})
+		giftTag = tag
+		pulseGifts()
+	elseif not waiting and giftTag then
+		giftTag:Destroy()
+		giftTag = nil
+	end
 end
 
 -- Grandma's goal: a cream banner at the top in the middle of the screen (UiLayout's GrandmaGoal), a red
@@ -2453,7 +2527,8 @@ local function inTurn(play: (info: any) -> (), info: any)
 	end
 end
 
--- Moments the login brings (the streak's day, and a contract or the Bonus Day that its cash meets)
+-- Moments the login brings (an unclaimed gift the day turn paid, and a contract or the Bonus Day that
+-- its cash meets)
 -- come as soon as the save loads, while the title card is still up over the screen they play on, so
 -- nobody would see or hear them. They wait here for the card to go (UI.titleCardDone), then play in
 -- the order they came, each in its turn. The counts, the badge and the panels don't wait: only the
@@ -2511,7 +2586,7 @@ local function onBonusDay(info: { cash: number })
 	afterTitleCard(showBonusDay, info)
 end
 
--- The streak grew (`info`: the days in a row, what today paid, the flag today gave if it gave one,
+-- The day's gift was claimed (`info`: the days in a row, what today paid, day 7's flag if it is day 7,
 -- and what tomorrow pays): a Payday moment saying the day, what it paid and what's next, or on the
 -- day that gave the truck its pennant, that, the streak chime, and the cash lifts off the money
 -- counter. The art's wordmark reads Payday! and nothing else, so the subtitle carries the day too.
@@ -2528,9 +2603,26 @@ local function showStreakAdvanced(info: { days: number, cash: number, flag: stri
 	end
 end
 
--- The streak grew: the moment above, once the title card is gone, which is when it is on a login.
+-- A gift was claimed (the Gifts button): the moment above, in turn with the chime of a contract its
+-- cash meets, which comes after it. A claim is a press, so the title card is long gone.
 local function onStreakAdvanced(info: { days: number, cash: number, flag: string?, tomorrow: number })
 	afterTitleCard(showStreakAdvanced, info)
+end
+
+-- A gift left unclaimed that the day turn paid for them (`info`: its cash, and whether it was
+-- yesterday's or from a visit before that): a toast saying so, the cash register, and the cash lifts
+-- off the money counter.
+local function showGiftPaid(info: { cash: number, yesterday: boolean })
+	local cash = `+{Format.money(info.cash)}`
+	UI.notify(if info.yesterday then `Yesterday's gift: {cash}` else `Your unclaimed gift: {cash}`)
+	Sounds.playUi("Cash")
+	FloatingText.show(money.Frame, cash)
+end
+
+-- The turn paid an unclaimed gift: mostly on a login, so it waits for the title card like the
+-- contracts and the Bonus Day its cash can meet, which come after it.
+local function onGiftPaid(info: { cash: number, yesterday: boolean })
+	afterTitleCard(showGiftPaid, info)
 end
 
 local function updateProfile()
@@ -2748,6 +2840,7 @@ function HudController:Start()
 		elseif key == "contracts" then
 			updateContractsBadge()
 			updateStreak()
+			updateGiftTag()
 		end
 	end)
 	player:GetAttributeChangedSignal("CurbAppeal"):Connect(updateGoal)
@@ -2767,11 +2860,23 @@ function HudController:Start()
 	Net.event("ContractDone").OnClientEvent:Connect(onContractDone)
 	Net.event("BonusDay").OnClientEvent:Connect(onBonusDay)
 	Net.event("StreakAdvanced").OnClientEvent:Connect(onStreakAdvanced)
+	Net.event("StreakGiftPaid").OnClientEvent:Connect(onGiftPaid)
 	UI.TitleCardDone:Connect(playHeld)
 	updateGoal()
 	updateContractsBadge()
 	updateStreak()
+	updateGiftTag()
 	updateCountdown()
+
+	-- The Gifts button pulses while its CLAIM tag is up.
+	task.spawn(function()
+		while true do
+			task.wait(GIFT_PULSE_EVERY)
+			if giftTag then
+				pulseGifts()
+			end
+		end
+	end)
 
 	task.spawn(function()
 		while true do

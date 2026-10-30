@@ -31,7 +31,8 @@ local ClientState = require(script.Parent.Parent.ClientState)
 local UI = require(script.Parent.Parent.UI)
 
 -- What DailyService sends (its viewOf): the day's contracts with how far along each is, whether
--- the Bonus Day is paid, and the streak with what tomorrow pays.
+-- the Bonus Day is paid, and the streak with what tomorrow pays, whether today's gift is waiting to
+-- be claimed and what it pays.
 export type Contract = {
 	id: string,
 	kind: string,
@@ -45,7 +46,7 @@ export type View = {
 	day: string,
 	contracts: { Contract },
 	bonus: boolean,
-	streak: { days: number, last: string, next: number },
+	streak: { days: number, last: string, next: number, claimable: boolean, cash: number },
 }
 
 local ContractsController = {}
@@ -81,7 +82,8 @@ local drawnDone: { [string]: boolean } = {}
 
 -- The streak line without its label: "Day 3 of 7, next $300", and past the first week the real count
 -- beside the week's: "Day 6 of 7 (20 days in a row), next $1,000". `next` is what tomorrow pays.
--- Nothing before there's a view or a streak to show. The Levels panel's line is this one too.
+-- While today's gift waits it says so instead: "Day 3 of 7, claim $200 in Gifts". Nothing before
+-- there's a view or a streak to show. The Levels panel's line is this one too.
 function ContractsController.streakLine(view: View?): string?
 	if not view or view.streak.days < 1 then
 		return nil
@@ -89,6 +91,9 @@ function ContractsController.streakLine(view: View?): string?
 	local line = Streak.text(view.streak.days)
 	if view.streak.days > #Streak.Rewards then
 		line ..= ` ({view.streak.days} days in a row)`
+	end
+	if view.streak.claimable then
+		return `{line}, claim {Format.money(view.streak.cash)} in Gifts`
 	end
 	return `{line}, next {Format.money(view.streak.next)}`
 end

@@ -1135,11 +1135,15 @@ They count what you do that day: jobs finished, three-star jobs, junk picked up,
 the "Contracts 1/3" chip under the goals rail both open the panel.
 
 **The login streak** (`Config/Streak.luau`). The first time you are in on a UTC day the streak grows
-a day (it starts again at day 1 if you missed one), pays that day and shows a card for four
-seconds: "Day 3 of 7", today's cash and tomorrow's. The week pays $100, $150, $200, $300, $400,
-$600 and, on day 7, $1,000 and a pennant for the truck, given once and flown from the bed
+a day (it starts again at day 1 if you missed one) and that day's cash waits as a gift: the HUD's
+Gifts button wears a tilted CLAIM tag and pulses until you press it. Claiming your gift pays the
+day and shows a card for four seconds: "Day 3 of 7", today's cash and tomorrow's. A gift you never
+claim is paid for you when the next day turns, once, with a "Yesterday's gift" toast, so nobody
+loses a day's cash. The week pays $100, $150, $200, $300, $400, $600 and, on day 7, $1,000 and a
+pennant for the truck, given once with the day 7 turn and flown from the bed
 (`flags.TruckPennant`). After day 7 the week repeats with the same cash and no second pennant. The
-Levels panel and the contracts panel show the streak.
+Levels panel and the contracts panel show the streak, and while a gift waits they say "claim $200
+in Gifts". With no gift waiting the Gifts button opens the contracts panel.
 
 **The leaderboards** (`LeaderboardService`). Two OrderedDataStores, `LawnsMowed_v1` (jobs finished)
 and `MoneyEarned_v1` (money earned). A player's numbers are written when one of their jobs
@@ -1162,7 +1166,9 @@ first, 96 at most), and so do four lost Saturdays after the first judging day, s
 even for someone who never wins.
 
 Saved as data version 14: `daily`, `streak`, `flags`, and the contest's `lastJudged`, `saturdays`
-and `offeredDay` (`Config/Season.luau`). Everything that depends on the day asks the server's `Clock`
+and `offeredDay` (`Config/Season.luau`). The streak's `claimed` (the day whose gift was last
+claimed) came later without a version bump: a save without it starts it at its `last`, since that
+day was paid as it was kept. Everything that depends on the day asks the server's `Clock`
 (`src/server/Clock.luau`): `os.time()` plus an offset that only Studio can set, from the test panel's
 Next day and Jump to Saturday.
 
