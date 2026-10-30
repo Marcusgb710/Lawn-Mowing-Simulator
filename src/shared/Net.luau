@@ -20,6 +20,10 @@ local EVENTS = {
 	"ContestUpdated",
 	"MilestoneReached",
 	"LevelReward",
+	"ContractsUpdated",
+	"ContractDone",
+	"BonusDay",
+	"StreakAdvanced",
 	"Swath",
 	"Regrow",
 	-- client -> server
@@ -37,6 +41,7 @@ local FUNCTIONS = {
 	"GetStory",
 	"TalkToJune",
 	"GetContest",
+	"GetContracts",
 	"StartJudging",
 	"StudioTest",
 	"CollectContest",

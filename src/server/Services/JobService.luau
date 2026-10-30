@@ -60,8 +60,9 @@ JobService.PlayerStateChanged = Signal.new()
 -- Fired with (player, info) for each of the crew once a job's been paid: info is { customer,
 -- pay (their share), quality (the finish, 0-1), preference, crew (how many of them), wonBack
 -- (the customer was won back from TurfKing and paid a bonus), stars (1-3), tip (what the customer
--- tipped them on top of their share, 0 for none) }. Their best stars for the job are in their
--- save by then (SeasonService counts the three-star jobs from it).
+-- tipped them on top of their share, 0 for none), junkPicked (pieces of junk picked up on the
+-- lawn) }. Their best stars for the job are in their save by then (SeasonService counts the
+-- three-star jobs from it).
 JobService.JobFinished = Signal.new()
 
 local rng = Random.new()
@@ -761,6 +762,8 @@ local function completeJob(job)
 			wonBack = wonBack > 0,
 			stars = stars,
 			tip = tip,
+			-- Pieces of junk picked up on the lawn, for the day's contracts (DailyService).
+			junkPicked = debris.picked,
 		})
 	end
 
