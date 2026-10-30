@@ -970,7 +970,7 @@ end
 -- src/client/JuicyPalette.luau is the front-page HUD's colours with nothing else in it, so it loads
 -- here with Lune's Color3 (Juicy itself builds Instances and stays out of Lune). Each face is a
 -- gradient from a lighter top to a darker bottom, the ink outline is darker than every bottom, and
--- the colours are the ones the plan's first ruling names.
+-- the colours are the ones the plan's first ruling names (plus Danger and Gold, which the HUD adds).
 local juicyPalette = luau.load(fs.readFile("src/client/JuicyPalette.luau"), {
 	chunkName = "JuicyPalette",
 	environment = { Color3 = roblox.Color3 },
@@ -1037,10 +1037,18 @@ for name, hexes in JUICY_FACES do
 		end
 	end
 end
--- No face outside the ruling: a new colour is added to the plan's first ruling and to JUICY_FACES.
+-- The badge yellow is Gold's top, so a badge (Badge on top, Gold's bottom below) is one yellow.
+if typeof(juicyPalette.Badge) == "Color3" and typeof(juicyPalette.Gold) == "table" then
+	check(juicyPalette.Badge == juicyPalette.Gold.top, "JuicyPalette.Badge isn't the top of JuicyPalette.Gold")
+end
+-- No face outside the list: the faces are the first ruling's plus Danger and Gold, and a new one is
+-- added to the plan and to JUICY_FACES together.
 for name, value in juicyPalette do
 	if typeof(value) == "table" then
-		check(JUICY_FACES[name] ~= nil, `JuicyPalette.{name} isn't a colour the first ruling names`)
+		check(
+			JUICY_FACES[name] ~= nil,
+			`JuicyPalette.{name} isn't one of the first ruling's faces, nor Danger or Gold`
+		)
 	end
 end
 

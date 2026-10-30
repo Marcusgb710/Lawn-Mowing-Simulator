@@ -6,6 +6,16 @@
 --
 -- Sizes are in pixels. A face's lip hangs below the Size you give (by Lip pixels) and its outline
 -- sticks out Stroke pixels all round, so leave that much room, as the HUD's columns do.
+--
+-- face, pill, button and badge each return TWO values (the piece, then its Face frame). Do not use
+-- the call as the last argument of another call or in table.insert(list, Juicy.pill(...)): the
+-- second value would ride along. Wrap it in parentheses, or take both into locals.
+--
+-- pulse and pop animate the element's own UIScale if it has one (the LayoutScale UI.place gives a
+-- placed element, or a UI.scaler one), relative to the scale it has, and give back exactly that
+-- scale; they only make a "JuicyScale" when there is none. So they are safe on a placed element,
+-- and if the layout re-places it mid-animation the animation stops and the layout's value stands.
+-- A badge's bob stops when the badge is destroyed; just unparenting it leaves the bob running.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -43,6 +53,8 @@ local SHINE_BAND_TRANSPARENCY = 0.72
 local HIGHLIGHT_INSET = 6
 local HIGHLIGHT_HEIGHT = 4
 local HIGHLIGHT_TRANSPARENCY = 0.55
+-- A face shorter than this (a badge, a thin pill) has no room for the highlight.
+local HIGHLIGHT_MIN_HEIGHT = 30
 
 -- A button's feel.
 local HOVER_SCALE = 1.06
@@ -54,7 +66,7 @@ local CLICK_VOLUME = 0.4
 -- The label under a button: its height, its gap under the lip, and how much wider than the face it
 -- may run (a long word is not cut off).
 local LABEL_HEIGHT = 22
-local LABEL_GAP = 8
+local LABEL_GAP = 12
 local LABEL_TEXT_SIZE = 16
 local LABEL_OVERHANG = 20
 -- A glyph in a face fills this much of it.
@@ -198,17 +210,21 @@ local function newFace(top: Color3, bottom: Color3, props, radius: number, strok
 		}),
 	})
 
-	-- The highlight: a thin white line just under the top edge.
-	UI.new("Frame", {
-		Name = "Highlight",
-		BackgroundColor3 = WHITE,
-		BackgroundTransparency = HIGHLIGHT_TRANSPARENCY,
-		BorderSizePixel = 0,
-		Position = UDim2.fromOffset(HIGHLIGHT_INSET, HIGHLIGHT_INSET),
-		Size = UDim2.new(1, -2 * HIGHLIGHT_INSET, 0, HIGHLIGHT_HEIGHT),
-		ZIndex = base + 3,
-		Parent = face,
-	}, { UI.corner(2) })
+	-- The highlight: a thin white line just under the top edge, left off a face too short for it
+	-- (a height given as a scale is not known here, so it gets one).
+	local size: UDim2? = props and props.Size
+	if not (size and size.Y.Scale == 0 and size.Y.Offset < HIGHLIGHT_MIN_HEIGHT) then
+		UI.new("Frame", {
+			Name = "Highlight",
+			BackgroundColor3 = WHITE,
+			BackgroundTransparency = HIGHLIGHT_TRANSPARENCY,
+			BorderSizePixel = 0,
+			Position = UDim2.fromOffset(HIGHLIGHT_INSET, HIGHLIGHT_INSET),
+			Size = UDim2.new(1, -2 * HIGHLIGHT_INSET, 0, HIGHLIGHT_HEIGHT),
+			ZIndex = base + 3,
+			Parent = face,
+		}, { UI.corner(2) })
+	end
 
 	if props and props.Parent then
 		holder.Parent = props.Parent
@@ -235,16 +251,23 @@ function Juicy.face(color: string, props): (Frame, Frame)
 	return newFace(top, bottom, props, radius, stroke, lip)
 end
 
--- A face rounded to its full height (Size's Y in pixels), with a 3 px outline and a 4 px lip.
--- Radius, Stroke and Lip in `props` still win. Returns the holder and the Face.
-function Juicy.pill(color: string, props): (Frame, Frame)
-	local top, bottom = colorsOf(color)
+-- A pill in the colours `top` to `bottom`: rounded to its full height (Size's Y, in pixels unless
+-- Radius is given), a 3 px outline and a 4 px lip.
+local function pillOf(top: Color3, bottom: Color3, props): (Frame, Frame)
 	local sized = table.clone(props or {})
 	sized.Size = sized.Size or UDim2.fromOffset(100, 36)
+	assert(sized.Radius or sized.Size.Y.Scale == 0, "Juicy.pill: Size's height must be in pixels (or give a Radius)")
 	local radius = sized.Radius or math.max(sized.Size.Y.Offset / 2, 2)
 	local stroke = sized.Stroke or PILL_STROKE
 	local lip = sized.Lip or PILL_LIP
 	return newFace(top, bottom, sized, radius, stroke, lip)
+end
+
+-- A face rounded to its full height (Size's Y in pixels), with a 3 px outline and a 4 px lip.
+-- Radius, Stroke and Lip in `props` still win. Returns the holder and the Face.
+function Juicy.pill(color: string, props): (Frame, Frame)
+	local top, bottom = colorsOf(color)
+	return pillOf(top, bottom, props)
 end
 
 -- Buttons ----------------------------------------------------------------------------------------
@@ -348,6 +371,7 @@ function Juicy.button(color: string, onClick: (() -> ())?, props): (TextButton, 
 	local hovered = false
 	local pressed = false
 	local running: Tween? = nil
+	local pressEnded: RBXScriptConnection? = nil
 	local function goTo(target: number, info: TweenInfo)
 		if running then
 			running:Cancel()
@@ -356,14 +380,17 @@ function Juicy.button(color: string, onClick: (() -> ())?, props): (TextButton, 
 		running = tween
 		tween:Play()
 	end
-	local function rest(): number
-		return if hovered then HOVER_SCALE else 1
-	end
 	local function release()
-		if pressed then
-			pressed = false
-			goTo(rest(), TweenInfo.new(RELEASE_TIME, Enum.EasingStyle.Back, Enum.EasingDirection.Out))
+		if not pressed then
+			return
 		end
+		pressed = false
+		if pressEnded then
+			pressEnded:Disconnect()
+			pressEnded = nil
+		end
+		local rest = if hovered then HOVER_SCALE else 1
+		goTo(rest, TweenInfo.new(RELEASE_TIME, Enum.EasingStyle.Back, Enum.EasingDirection.Out))
 	end
 	button.MouseEnter:Connect(function()
 		if not hasPointer() then
@@ -375,26 +402,28 @@ function Juicy.button(color: string, onClick: (() -> ())?, props): (TextButton, 
 		end
 	end)
 	button.MouseLeave:Connect(function()
+		local wasHovered = hovered
 		hovered = false
 		if pressed then
 			release()
-		else
+		elseif wasHovered then
 			goTo(1, TweenInfo.new(HOVER_TIME, Enum.EasingStyle.Quad, Enum.EasingDirection.Out))
 		end
 	end)
-	button.MouseButton1Down:Connect(function()
+	-- A press starts on this button and ends when that same input (the mouse button, or that
+	-- finger) lifts, wherever it is by then: a touch dragged off the button still releases it.
+	button.InputBegan:Connect(function(input: InputObject)
+		local kind = input.UserInputType
+		if pressed or (kind ~= Enum.UserInputType.MouseButton1 and kind ~= Enum.UserInputType.Touch) then
+			return
+		end
 		pressed = true
 		goTo(PRESS_SCALE, TweenInfo.new(PRESS_TIME, Enum.EasingStyle.Quad, Enum.EasingDirection.Out))
-	end)
-	button.MouseButton1Up:Connect(release)
-	-- A finger lifted off the button, or dragged away, ends the press too.
-	button.InputEnded:Connect(function(input: InputObject)
-		if
-			input.UserInputType == Enum.UserInputType.Touch
-			or input.UserInputType == Enum.UserInputType.MouseButton1
-		then
-			release()
-		end
+		pressEnded = UserInputService.InputEnded:Connect(function(ended: InputObject)
+			if ended == input then
+				release()
+			end
+		end)
 	end)
 	button.Activated:Connect(function()
 		Sounds.playUi("Click", CLICK_VOLUME)
@@ -424,6 +453,7 @@ function Juicy.badge(text: string, props): (Frame, Frame)
 			TextService:GetTextSize(text, BADGE_TEXT_SIZE, Enum.Font.FredokaOne, Vector2.new(1000, BADGE_HEIGHT)).X
 		size = UDim2.fromOffset(math.max(BADGE_HEIGHT, math.ceil(width) + BADGE_PADDING), BADGE_HEIGHT)
 	end
+	assert(size.Y.Scale == 0, "Juicy.badge: Size's height must be in pixels")
 	local outer = UI.new("Frame", {
 		Name = "Badge",
 		BackgroundTransparency = 1,
@@ -433,9 +463,10 @@ function Juicy.badge(text: string, props): (Frame, Frame)
 	})
 	applyProps(outer, props, { Size = true, Parent = true })
 
-	local pill, face = Juicy.pill("Gold", {
+	-- The Badge yellow at the top, Gold's darker yellow at the bottom.
+	local pill, face = pillOf(JuicyPalette.Badge, JuicyPalette.Gold.bottom, {
 		Name = "Pill",
-		Size = UDim2.fromScale(1, 1),
+		Size = UDim2.new(1, 0, 0, size.Y.Offset),
 		Radius = size.Y.Offset / 2,
 		ZIndex = props.ZIndex,
 		Parent = outer,
@@ -468,48 +499,86 @@ end
 
 -- Pulse, pop and count ---------------------------------------------------------------------------
 
-local scaleTweens: { [UIScale]: Tween } = setmetatable({}, { __mode = "k" }) :: any
+-- The animations running on a UIScale: the connection, the scale it started from (the layout's or
+-- code's own value, handed back at the end) and the last value written, so a write by anyone else
+-- (UI.place re-placing the element) is noticed and ends the animation.
+type Animation = { connection: RBXScriptConnection, base: number, written: number }
+local animations: { [UIScale]: Animation } = setmetatable({}, { __mode = "k" }) :: any
 
--- The UIScale pulse and pop share on `gui`, made if it has none.
+-- The UIScale pulse and pop animate on `gui`: the one it has, else a "JuicyScale" made for it.
 local function scaleOf(gui: GuiObject): UIScale
-	local existing = gui:FindFirstChild(SCALE_NAME)
-	if existing and existing:IsA("UIScale") then
+	local existing = gui:FindFirstChildOfClass("UIScale")
+	if existing then
 		return existing
 	end
 	return UI.new("UIScale", { Name = SCALE_NAME, Scale = 1, Parent = gui })
 end
 
-local function playScale(scale: UIScale, info: TweenInfo, goal: number)
-	local running = scaleTweens[scale]
+-- Runs `factor(alpha)` (alpha 0 to 1 over `duration`) as a multiple of the scale's own value, and
+-- ends on exactly that value. Starting another on the same scale first drops the running one and
+-- keeps the value it was heading back to.
+local function animate(scale: UIScale, duration: number, factor: (number) -> number)
+	local running = animations[scale]
+	local base = if running then running.base else scale.Scale
 	if running then
-		running:Cancel()
+		running.connection:Disconnect()
+		animations[scale] = nil
+		scale.Scale = base
 	end
-	local tween = TweenService:Create(scale, info, { Scale = goal })
-	scaleTweens[scale] = tween
-	tween:Play()
+	local animation: Animation = { connection = nil :: any, base = base, written = base }
+	local elapsed = 0
+	local function finish()
+		animation.connection:Disconnect()
+		if animations[scale] == animation then
+			animations[scale] = nil
+		end
+	end
+	local function write(value: number)
+		animation.written = value
+		scale.Scale = value
+	end
+	write(base * factor(0))
+	animation.connection = RunService.Heartbeat:Connect(function(dt: number)
+		if not scale.Parent or math.abs(scale.Scale - animation.written) > 1e-4 then
+			-- Gone, or set by someone else: leave it as it is.
+			finish()
+			return
+		end
+		elapsed += dt
+		if elapsed >= duration then
+			write(base)
+			finish()
+			return
+		end
+		write(base * factor(elapsed / duration))
+	end)
+	animations[scale] = animation
 end
 
--- A quick grow and shrink, 1 to 1.08 and back in a quarter of a second: money coming in, a gift
--- waiting. It scales about `gui`'s AnchorPoint.
+-- A quick grow and shrink, to 1.08 times its scale and back in a quarter of a second: money coming
+-- in, a gift waiting. It scales about `gui`'s AnchorPoint.
 function Juicy.pulse(gui: GuiObject)
 	local scale = scaleOf(gui)
-	scale.Scale = 1
-	playScale(
-		scale,
-		TweenInfo.new(PULSE_TIME / 2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, 0, true),
-		PULSE_SCALE
-	)
+	animate(scale, PULSE_TIME, function(alpha: number): number
+		local half = if alpha < 0.5 then alpha * 2 else (1 - alpha) * 2
+		local eased = TweenService:GetValue(half, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+		return 1 + (PULSE_SCALE - 1) * eased
+	end)
 end
 
--- Appears from 60 percent and overshoots to full size (0.35 s, Back Out). Scales about `gui`'s
--- AnchorPoint.
+-- Appears from 60 percent of its scale and overshoots to full size (0.35 s, Back Out). Scales about
+-- `gui`'s AnchorPoint.
 function Juicy.pop(gui: GuiObject)
 	local scale = scaleOf(gui)
-	scale.Scale = POP_FROM
-	playScale(scale, TweenInfo.new(POP_TIME, Enum.EasingStyle.Back, Enum.EasingDirection.Out), 1)
+	animate(scale, POP_TIME, function(alpha: number): number
+		local eased = TweenService:GetValue(alpha, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+		return POP_FROM + (1 - POP_FROM) * eased
+	end)
 end
 
 local counts: { [any]: RBXScriptConnection } = setmetatable({}, { __mode = "k" }) :: any
+-- The labels already watched for being destroyed, so each is hooked once however often it counts.
+local watched: { [Instance]: boolean } = setmetatable({}, { __mode = "k" }) :: any
 
 local function plainNumber(value: number): string
 	return tostring(value)
@@ -558,10 +627,14 @@ function Juicy.countTo(label: any, from: number, to: number, seconds: number, fo
 		show(math.floor(from + (to - from) * eased + 0.5))
 	end)
 	counts[label] = connection
-	if typeof(label) == "Instance" then
+	-- A label destroyed mid-count ends its count. One hook per label, not one per call.
+	if typeof(label) == "Instance" and not watched[label] then
+		watched[label] = true
 		label.Destroying:Once(function()
-			if counts[label] == connection then
-				stop()
+			local running = counts[label]
+			if running then
+				running:Disconnect()
+				counts[label] = nil
 			end
 		end)
 	end
