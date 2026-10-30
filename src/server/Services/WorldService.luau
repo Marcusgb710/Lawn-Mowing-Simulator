@@ -39,6 +39,9 @@ local PLOT_SIZE = Vector3.new(90, 1, 90)
 -- How far back the building stands, and how wide the driveway is.
 local BUILDING_Z = 22
 local DRIVEWAY_WIDTH = 10
+-- The curb mailbox stands at the driveway's street end, this far past the driveway's right edge
+-- (the side away from the lawn) and this far in from the plot's street edge.
+local MAILBOX_BESIDE, MAILBOX_FROM_STREET = 1.5, 2
 -- Where the business's own lawn goes (see HomeLawnService), on the left of the driveway, in plot
 -- space: its edge runs a couple of studs from the driveway. Where a building's truck parks further
 -- left, the lawn moves left with the driveway, staying LAWN_GAP from it.
@@ -142,6 +145,40 @@ local function interactable(target: Instance, action: string, actionText: string
 	end
 end
 
+-- The leaderboard sign (see LeaderboardService) stands this far from the spawn, on its +Z side, with
+-- its face toward the spawn. In the placeholder town that is the open side: the nearest business
+-- plots are the ones whose backs are 9 studs off the spawn pad's -Z edge, and +Z is bare ground and
+-- the road, with the next plots 25 studs past it. A Town built in Studio gets it at the same offset.
+local LEADERBOARD_SIGN_AWAY = Vector3.new(0, 0, 12)
+local LEADERBOARD_HEADER = "MAPLE GROVE BEST"
+
+-- Stands the leaderboard sign (Props/LeaderboardSign) beside the spawn, on the ground at the
+-- spawn pad's underside, parented to the town. The header is stamped with its name here, lit as it
+-- is however dark it is out, like the boards, which are drawn by each player's own screen (see
+-- LeaderboardController). The sign stays streamed in for everyone, like Gloria's house, so a screen
+-- far from the spawn still has it when it walks there.
+local function standLeaderboardSign(town: Model, spawnLocation: BasePart)
+	local spawnAt = spawnLocation.Position - Vector3.new(0, spawnLocation.Size.Y / 2, 0)
+	local signAt = spawnAt + LEADERBOARD_SIGN_AWAY
+	local model = Assets.prop("LeaderboardSign")
+	Assets.anchor(model)
+	Assets.placeAt(model, CFrame.lookAt(signAt, spawnAt))
+	model.Name = "LeaderboardSign"
+	local header = model:FindFirstChild("LeaderboardSign__Header", true)
+	if header and header:IsA("BasePart") then
+		sign(header, LEADERBOARD_HEADER, Enum.NormalId.Front)
+		-- sign() leaves its text lit by the day, which would dim the header at night beside the boards.
+		local gui = header:FindFirstChildOfClass("SurfaceGui")
+		if gui then
+			gui.LightInfluence = 0
+		end
+	end
+	pcall(function()
+		model.ModelStreamingMode = Enum.ModelStreamingMode.Persistent
+	end)
+	model.Parent = town
+end
+
 local function buildPlaceholderTown(): Model
 	local town = Instance.new("Model")
 	town.Name = "Town"
@@ -180,6 +217,7 @@ local function buildPlaceholderTown(): Model
 	spawnLocation.Duration = 0
 	spawnLocation.Color = Color3.fromRGB(240, 200, 60)
 	spawnLocation.Parent = town
+	standLeaderboardSign(town, spawnLocation)
 
 	-- Business plots line both streets, every one facing its street to the south (-Z), so their
 	-- front lawns line up with the grid lawns are drawn on (see HomeLawnService).
@@ -624,6 +662,18 @@ local function buildPlot(plot)
 	})
 	local lawnRight = math.min(LAWN_CENTER.X + LAWN_SIZE.X / 2, truckAt.X - drivewayWidth / 2 - LAWN_GAP)
 	plot.lawnFrame, plot.lawnSize = at(lawnRight - LAWN_SIZE.X / 2, 0, LAWN_CENTER.Z), LAWN_SIZE
+	-- The curb mailbox, where the day's contracts are (see DailyService): at the driveway's street
+	-- end on the right, facing the street. A plain prop, not a decoration (no DecorId, so nobody
+	-- buys, moves or loses it), though decorations keep clear of it like anything else on the plot.
+	local mailbox = Assets.prop("CurbMailbox")
+	Assets.anchor(mailbox)
+	Assets.placeOnGround(
+		mailbox,
+		at(truckAt.X + drivewayWidth / 2 + MAILBOX_BESIDE, 0, -plot.depth / 2 + MAILBOX_FROM_STREET)
+	)
+	mailbox.Name = "CurbMailbox"
+	mailbox.Parent = model
+	interactable(mailbox, "OpenPanel", "Check the mail", "Mailbox", { OpensPanel = "Contracts" })
 	-- Getting in at the driver's door heads off on the job (see JobService). Carried tools go in
 	-- its bed by looking at the bed (see InteractController).
 	local driverDoor
@@ -638,6 +688,11 @@ local function buildPlot(plot)
 		if descendant:IsA("BasePart") and string.sub(descendant.Name, -17) == "__DriverDoorGlass" then
 			interactable(descendant, "DriveToJob", "Get In", "Crew Truck", { OwnerUserId = owner.UserId })
 		end
+	end
+	-- The streak's pennant, once they've earned it (see RefreshPennant). The truck is measured by
+	-- now, and the pennant leaves its pivot alone.
+	if WorldService:HasPennant(owner) then
+		Assets.addPennant(truck)
 	end
 	decorArea(plot, model)
 	if plot.awayTruck then
@@ -802,6 +857,25 @@ function WorldService:GetPlotTruck(player: Player): Model?
 	return if truck and truck:IsA("Model") then truck else nil
 end
 
+-- Whether this player has flown the streak's pennant: day 7 of a streak gives the flag
+-- (Config/Streak, DailyService). Read from the save, so WorldService needs nothing from DailyService.
+function WorldService:HasPennant(player: Player): boolean
+	local data = DataService:Get(player)
+	local flags = data and data.flags
+	return flags ~= nil and flags.TruckPennant == true
+end
+
+-- Puts the pennant on this player's truck if they've earned it, and does nothing if they haven't or
+-- it's there already. DailyService calls this when it pays the flag. The truck out on a trip counts:
+-- it's the one that comes back. (buildPlot and JobService.buildSite add it to a truck as they build it.)
+function WorldService:RefreshPennant(player: Player)
+	local plot = playerPlots[player]
+	local truck = plot and (plot.awayTruck or WorldService:GetPlotTruck(player))
+	if truck and WorldService:HasPennant(player) then
+		Assets.addPennant(truck)
+	end
+end
+
 -- How far a point is from the nearest point of a part.
 local function distanceTo(target: BasePart, point: Vector3): number
 	local offset = target.CFrame:PointToObjectSpace(point)
@@ -936,6 +1010,11 @@ function WorldService:Init()
 	local spawnLocation = town:FindFirstChildWhichIsA("SpawnLocation", true)
 	if spawnLocation then
 		spawnCFrame = spawnLocation.CFrame + Vector3.new(0, 4, 0)
+		-- The placeholder town stood its sign up as it was built. A Town made in Studio gets one here,
+		-- unless it came with a sign of its own.
+		if not town:FindFirstChild("LeaderboardSign", true) then
+			standLeaderboardSign(town, spawnLocation)
+		end
 	end
 
 	local plotFolder = town:FindFirstChild("Plots")

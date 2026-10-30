@@ -122,6 +122,19 @@ local GameConfig = {
 
 	DataStoreName = "PlayerData_v1",
 	AutosaveInterval = 120,
+
+	-- The two leaderboards on the sign at the town spawn (see LeaderboardService): an
+	-- OrderedDataStore each, for lawns mowed (jobs finished) and money earned. Changing a name
+	-- starts that board over, which is what the _v1 is for.
+	LeaderboardStores = { Lawns = "LawnsMowed_v1", Money = "MoneyEarned_v1" },
+	-- A player's numbers are written at most this often (seconds), when a job of theirs finishes.
+	LeaderboardWriteInterval = 60,
+	-- The boards are read again this often (seconds), and the sign's screens are all sent the result.
+	LeaderboardRefreshInterval = 120,
+	-- Each board shows this many players, and the server reads this many pages of them (so
+	-- LeaderboardTop times LeaderboardRankPages players in all) to tell the ones online their rank.
+	LeaderboardTop = 25,
+	LeaderboardRankPages = 4,
 }
 
 -- How the finish (0-1) affects pay: 0.75, a decent residential mow, pays 1x.

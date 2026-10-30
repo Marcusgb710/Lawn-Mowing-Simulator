@@ -52,8 +52,6 @@ local BUBBLE_TIME = 4
 local BUBBLE_PER_CHARACTER = 0.05
 -- Bubbles further from the camera than this (studs) aren't drawn.
 local BUBBLE_DISTANCE = 300
--- If the title card never says it's gone, scenes wait this long (seconds) after joining.
-local TITLE_CARD_WAIT = 40
 -- Screens shorter than this (pixels) get the smaller sizes, and UiLayout's compact places: phones
 -- held sideways.
 local COMPACT_HEIGHT = UI.Layout.__screen.compactHeight
@@ -93,7 +91,6 @@ local playing: { id: string, scene: any, index: number, skipped: boolean, aborte
 local stepped = Instance.new("BindableEvent")
 -- Scenes watched this session (the server's list can lag a moment behind).
 local played: { [string]: boolean } = {}
-local joinedAt = os.clock()
 -- The camera before the scene took it, to give it back, and a token for the scene that has it (a
 -- shot still fading in once the scene's over leaves the camera alone).
 local savedCamera: CFrame? = nil
@@ -815,19 +812,11 @@ end
 
 -- When scenes may play -----------------------------------------------------------------------
 
-local function titleCardGone(): boolean
-	if player:GetAttribute("TitleCardDone") == true then
-		return true
-	end
-	local playerGui = player:FindFirstChildOfClass("PlayerGui")
-	return os.clock() - joinedAt > TITLE_CARD_WAIT and not (playerGui and playerGui:FindFirstChild("TitleCard"))
-end
-
 -- Not on a job or at the computer, no menu open, nothing else on the screen.
 local function goodMoment(): boolean
 	local character = player.Character
 	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
-	return titleCardGone()
+	return UI.titleCardDone()
 		and humanoid ~= nil
 		and humanoid.Health > 0
 		and ClientState.job == nil

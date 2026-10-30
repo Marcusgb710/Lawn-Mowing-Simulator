@@ -3,8 +3,9 @@
 -- It checks every scene, beat and act points at things that exist, that the act gates and beats
 -- fire when docs/STORY.md says they should (src/shared/Config/Story.luau), TurfKing's rules for
 -- taking jobs and winning customers back (src/shared/Config/TurfKing.luau), and the Best Yard
--- contest's scoring, Gloria's bar and when judging day comes round
--- (src/shared/Config/Contest.luau), and the nine people's catalog outfits
+-- contest's scoring, Gloria's bar and when judging day comes round, in jobs for the first one and
+-- on Saturdays (UTC) after it (src/shared/Config/Contest.luau, with src/shared/Daily.luau handed
+-- in), and the nine people's catalog outfits
 -- (src/shared/Config/Cast.luau; scripts/cast-check.py asks the catalog about their ids), and where
 -- CastService puts a rig's Root so it stands on the spot a statue did (src/shared/CastRig.luau), and
 -- which pose NpcAnimator picks for a person and how fast the judges' walk plays
@@ -19,9 +20,23 @@ local roblox = require("@lune/roblox")
 
 local Cast = require("../src/shared/Config/Cast")
 local CastRig = require("../src/shared/CastRig")
-local Contest = require("../src/shared/Config/Contest")
+local Daily = require("../src/shared/Daily")
 local Story = require("../src/shared/Config/Story")
 local TurfKing = require("../src/shared/Config/TurfKing")
+
+-- Contest reaches Daily through `script` (script.Parent.Parent.Daily), which Lune doesn't have. So
+-- it is loaded here with Daily stood in for and handed to its require, the way check-season loads
+-- Season and gives it GameConfig: the Saturday rules below are the real ones. Run from the repo
+-- root, like the command at the top.
+local Contest = luau.load(fs.readFile("src/shared/Config/Contest.luau"), {
+	debugName = "Contest",
+	environment = {
+		script = { Parent = { Parent = { Daily = Daily } } },
+		require = function(module)
+			return module
+		end,
+	},
+})()
 
 local failures = 0
 local function check(ok: boolean, message: string)
@@ -80,6 +95,7 @@ local placeholders = {
 	bar = true,
 	rival = true,
 	jobs = true,
+	days = true,
 }
 local function checkText(text: string, where: string)
 	for name in string.gmatch(text, "{(%w+)}") do
@@ -471,6 +487,74 @@ check(Contest.nextAt(false, 40) == 40 + Contest.RetryJobs, "a loss can be tried 
 check(Contest.nextAt(true, 40) == 40 + Contest.SummerJobs, "a win brings next summer's contest later")
 check(Contest.RetryJobs < Contest.SummerJobs, "trying again comes sooner than next summer")
 
+-- Judging day on the calendar: the first one follows the jobs rule above, and once it has been
+-- played judging day is every Saturday (UTC). The dates are fixed: 00:00 UTC on Thursday 29 October
+-- 2026 is 1793232000, and on Saturday 31 October 2026 it is 1793404800. An hour is added to most
+-- of them, so the moment is well inside its day and not on the second the day begins.
+local THURSDAY = 1793232000
+local SATURDAY = 1793404800
+local HOUR = 3600
+local DAY = 86400
+local calendar = { judged = 1, lastJudged = "", pending = false }
+check(Contest.calendarState(calendar, 4, 40, THURSDAY + HOUR) == "Waiting", "Thursday waits for Saturday")
+check(Contest.daysUntilJudging(calendar, THURSDAY + HOUR) == 2, "Thursday is 2 days from judging day")
+check(Contest.daysUntilJudging(calendar, SATURDAY - HOUR) == 1, "Friday is 1 day from judging day")
+check(Contest.calendarState(calendar, 4, 40, SATURDAY + HOUR) == "Open", "Saturday is judging day")
+check(Contest.calendarState(calendar, 4, 40, SATURDAY + DAY - 1) == "Open", "all of Saturday is judging day")
+check(Contest.daysUntilJudging(calendar, SATURDAY + HOUR) == 0, "on judging day there are no days to wait")
+check(Contest.calendarState(calendar, 4, 40, SATURDAY + DAY + HOUR) == "Waiting", "Sunday waits again")
+check(Contest.daysUntilJudging(calendar, SATURDAY + DAY + HOUR) == 6, "Sunday is 6 days from judging day")
+check(
+	Contest.calendarState({ judged = 1, pending = false }, 4, 40, SATURDAY + HOUR) == "Open",
+	"a save with no last judging day has not judged this Saturday"
+)
+local judgedSaturday = { judged = 2, lastJudged = "20261031", pending = false }
+check(Contest.calendarState(judgedSaturday, 4, 40, SATURDAY + HOUR) == "Waiting", "judged once, not twice, a Saturday")
+check(Contest.daysUntilJudging(judgedSaturday, SATURDAY + HOUR) == 7, "after judging, next Saturday is 7 days away")
+check(Contest.daysUntilJudging(judgedSaturday, SATURDAY + DAY - 1) == 7, "...till midnight")
+check(Contest.calendarState(judgedSaturday, 4, 40, SATURDAY + 7 * DAY + HOUR) == "Open", "next Saturday is open again")
+check(Contest.daysUntilJudging(judgedSaturday, SATURDAY + DAY + HOUR) == 6, "Sunday after judging is 6 days away")
+check(Contest.calendarState(calendar, 3, 40, SATURDAY + HOUR) == "Locked", "no judging day before act 4")
+local calendarResults = { judged = 1, lastJudged = "20261031", pending = { won = true } }
+check(Contest.calendarState(calendarResults, 4, 40, THURSDAY + HOUR) == "Results", "judged: the results wait")
+check(Contest.calendarState(calendarResults, 4, 40, SATURDAY + HOUR) == "Results", "...even on a Saturday")
+-- Before the first judging day it is still jobs, not the calendar: open on a Thursday, and waiting
+-- on a Saturday.
+local firstDay = { judged = 0, lastJudged = "", pending = false, nextAt = 0 }
+check(Contest.calendarState(firstDay, 4, 0, THURSDAY + HOUR) == "Open", "the first judging day is open on any day")
+check(
+	Contest.calendarState({ pending = false }, 4, 0, THURSDAY + HOUR) == "Open",
+	"a save with no judged count is a first day"
+)
+firstDay.nextAt = 5
+check(Contest.calendarState(firstDay, 4, 2, THURSDAY + HOUR) == "Waiting", "the first day waits for its jobs")
+check(Contest.calendarState(firstDay, 4, 2, SATURDAY + HOUR) == "Waiting", "...even on a Saturday")
+check(Contest.calendarState(firstDay, 4, 5, THURSDAY + HOUR) == "Open", "...and opens when they are done")
+check(Contest.calendarState(firstDay, 3, 9, THURSDAY + HOUR) == "Locked", "the first day is locked before act 4 too")
+
+-- Lost Saturdays count toward a new summer: the first judging day is the jobs rule's and counts for
+-- nothing, then each loss adds one, and the fourth starts a new summer and the count again.
+check(Contest.SaturdaysPerSummer == 4, "four lost Saturdays start a new summer")
+local lostSaturdays, newSummer = Contest.afterLoss(1, 0)
+check(lostSaturdays == 0 and newSummer == false, "losing the first judging day counts no Saturday")
+lostSaturdays, newSummer = Contest.afterLoss(1, 2)
+check(lostSaturdays == 2 and newSummer == false, "...and leaves the count that was there alone")
+lostSaturdays, newSummer = Contest.afterLoss(5, 0)
+check(lostSaturdays == 1 and newSummer == false, "a loss on a later judging day adds one Saturday")
+local counts, summers = {}, {}
+lostSaturdays = 0
+for judged = 2, 5 do
+	lostSaturdays, newSummer = Contest.afterLoss(judged, lostSaturdays)
+	table.insert(counts, lostSaturdays)
+	table.insert(summers, tostring(newSummer))
+end
+check(
+	table.concat(counts, ",") == "1,2,3,0" and table.concat(summers, ",") == "false,false,false,true",
+	"four lost Saturdays in a row count 1, 2, 3, then 0 with a new summer only on the fourth"
+)
+lostSaturdays, newSummer = Contest.afterLoss(6, lostSaturdays)
+check(lostSaturdays == 1 and newSummer == false, "the count starts again after a new summer")
+
 local firstWin = Contest.rewards(0, { Shed = true, Garage = true })
 check(firstWin.money == Contest.Prize and firstWin.money == 2500, "winning pays $2,500")
 check(firstWin.trophy == "BestYardTrophy", "the first win brings the trophy")
@@ -493,6 +577,20 @@ check(string.find(offerLine, "88", 1, true) ~= nil, "June says what Gloria's yar
 check(
 	not string.find(Story.juneLine(4, 1, { appeal = 80, contest = "Waiting" }), "{", 1, true),
 	"June still has something to say about the contest without the jobs left"
+)
+-- On the calendar she counts the days to Saturday instead of the jobs.
+for turn = 1, 6 do
+	local said = Story.juneLine(4, turn, { appeal = 80, bar = Story.ContestBar, contest = "Waiting", days = "2 days" })
+	check(not string.find(said, "{", 1, true), `June's calendar line, turn {turn}`)
+end
+local calendarLine = Story.juneLine(4, 1, { appeal = 80, contest = "Waiting", days = "2 days" })
+check(
+	string.find(calendarLine, "Saturday", 1, true) ~= nil and string.find(calendarLine, "2 days", 1, true) ~= nil,
+	"June says how many days to Saturday"
+)
+check(
+	string.find(Story.juneLine(4, 1, { appeal = 80, contest = "Waiting", jobs = 3 }), "3 jobs", 1, true) ~= nil,
+	"before the calendar, June still counts the jobs"
 )
 
 -- The cast's outfits --------------------------------------------------------------------------

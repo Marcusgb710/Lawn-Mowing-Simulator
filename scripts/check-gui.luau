@@ -248,6 +248,7 @@ local COLUMN_PIECES = {
 	MoneyPanel = "LeftColumn",
 	MenuButtons = "LeftColumn",
 	GrandmaGoal = "LeftColumn",
+	ContractsChip = "LeftColumn",
 	CurbAppeal = "RightColumn",
 	NextChip = "RightColumn",
 	JobTracker = "RightColumn",
@@ -488,18 +489,18 @@ check(typeof(UiLayout.__screen.compactHeight) == "number", "__screen has no comp
 
 -- The Levels panel (Busy Season, slice 1): a centred window of its own on the game's screen, opened
 -- from the XP bar, that shrinks to fit like the pay breakdown does. Centred, it's already clear of
--- Roblox's move stick and jump button, so a touch screen has the same height margin (a bigger one
--- would only make its words small), and `scale` is the most it's drawn at.
+-- Roblox's move stick and jump button, so a touch screen has the same top margin, and `scale` is the
+-- most it's drawn at. (On a touch screen it also stands above the hotbar: see HOTBAR_BAND_TOUCH below.)
 local levelsPanel = UiLayout.LevelsPanel
 check(levelsPanel ~= nil, "UiLayout has no LevelsPanel")
 if levelsPanel then
 	check(levelsPanel.screen == "LawnUI", `UiLayout's LevelsPanel is on {levelsPanel.screen}, not LawnUI`)
 	check(levelsPanel.parent == nil, "UiLayout's LevelsPanel is in another element: it's a window of its own")
 	check(
-		levelsPanel.size ~= nil and levelsPanel.size[2] == 360 and levelsPanel.size[4] == 420,
-		"UiLayout's LevelsPanel isn't 360 by 420"
+		levelsPanel.size ~= nil and levelsPanel.size[2] == 360 and levelsPanel.size[4] == 460,
+		"UiLayout's LevelsPanel isn't 360 by 460"
 	)
-	check(levelsPanel.autoSize == nil, "UiLayout's LevelsPanel grows with what's in it: it's 420 tall")
+	check(levelsPanel.autoSize == nil, "UiLayout's LevelsPanel grows with what's in it: it's 460 tall")
 end
 local levelsRule = UiLayout.__screen.scaling.LevelsPanel
 check(levelsRule ~= nil, "__screen.scaling has no LevelsPanel")
@@ -514,12 +515,134 @@ if levelsRule then
 	)
 	check(
 		typeof(levelsRule.touchMargin) == "number" and levelsRule.touchMargin == levelsRule.margin,
-		"__screen.scaling.LevelsPanel's touchMargin isn't its margin: it's centred, clear of the thumb zones"
+		"__screen.scaling.LevelsPanel's touchMargin isn't its margin: the top margin is the same on a touch screen"
 	)
 	check(
 		typeof(levelsRule.scale) == "number" and levelsRule.scale > 0 and levelsRule.scale <= 1,
 		"__screen.scaling.LevelsPanel has no scale from above 0 to 1"
 	)
+end
+
+-- The contracts panel and its chip (Busy Season, slice 2). The panel is the Levels panel's twin: a
+-- centred window of its own that shrinks to fit by the same rule (the same margins, a touch screen's
+-- top margin the same as any other's, and the same place above the hotbar there). The chip is the
+-- left column's last piece, under Grandma's goal, and it shows on every screen, through a job too:
+-- nothing hides it and it isn't compactOnly, so no entry's hideWhile (in its place, its touch ones
+-- or its compact ones) names it, and it has an order of its own in the column.
+do
+	local panel = UiLayout.ContractsPanel
+	check(panel ~= nil, "UiLayout has no ContractsPanel")
+	if panel then
+		check(panel.screen == "LawnUI", `UiLayout's ContractsPanel is on {panel.screen}, not LawnUI`)
+		check(panel.parent == nil, "UiLayout's ContractsPanel is in another element: it's a window of its own")
+		check(
+			panel.size ~= nil and panel.size[2] == 360 and panel.size[4] == 400,
+			"UiLayout's ContractsPanel isn't 360 by 400"
+		)
+		check(panel.autoSize == nil, "UiLayout's ContractsPanel grows with what's in it: it's 400 tall")
+	end
+	local rule = UiLayout.__screen.scaling.ContractsPanel
+	check(rule ~= nil, "__screen.scaling has no ContractsPanel")
+	if rule then
+		check(
+			table.find(rule.elements, "ContractsPanel") ~= nil,
+			"__screen.scaling.ContractsPanel doesn't scale the ContractsPanel"
+		)
+		check(rule.margin == 24, "__screen.scaling.ContractsPanel's margin isn't 24, the Levels panel's")
+		check(
+			typeof(rule.touchMargin) == "number" and rule.touchMargin == rule.margin,
+			"__screen.scaling.ContractsPanel's touchMargin isn't its margin: the top margin is the same on a touch screen"
+		)
+		check(
+			typeof(rule.scale) == "number" and rule.scale > 0 and rule.scale <= 1,
+			"__screen.scaling.ContractsPanel has no scale from above 0 to 1"
+		)
+	end
+
+	local chip = UiLayout.ContractsChip
+	check(chip ~= nil, "UiLayout has no ContractsChip")
+	if chip then
+		check(chip.parent == "LeftColumn", `UiLayout's ContractsChip is in {chip.parent}, not the LeftColumn`)
+		check(
+			chip.detach == "LeftColumn",
+			"UiLayout's ContractsChip can't be taken out of and put back in the LeftColumn"
+		)
+		check(chip.compactOnly == nil, "UiLayout's ContractsChip is compactOnly: it shows on every screen")
+		check(
+			chip.size ~= nil and chip.size[2] == 220 and chip.size[4] == 28,
+			"UiLayout's ContractsChip isn't 220 by 28, the Next chip's size"
+		)
+		check(typeof(chip.order) == "number", "UiLayout's ContractsChip has no order in the LeftColumn")
+		for other, entry in UiLayout do
+			if other ~= "__screen" and other ~= "ContractsChip" and entry.parent == "LeftColumn" then
+				check(entry.order ~= chip.order, `UiLayout's ContractsChip and {other} are both order {chip.order}`)
+			end
+		end
+	end
+	for id, entry in UiLayout do
+		if id ~= "__screen" then
+			for place, places in { whole = entry, touch = entry.touch or {}, compact = entry.compact or {} } do
+				if id == "ContractsChip" then
+					check(
+						(places :: any).hideWhile == nil,
+						`UiLayout's ContractsChip ({place}) gives way to something: it shows on every screen`
+					)
+				end
+				check(
+					table.find((places :: any).hideWhile or {}, "ContractsChip") == nil,
+					`UiLayout's {id} ({place}) hides while ContractsChip shows, which would hide it during a job`
+				)
+			end
+		end
+	end
+end
+
+-- Roblox's hotbar sits in a band along the bottom middle of the screen (48 px slots on a phone, 60
+-- on a tablet), and the tool condition chips keep clear of it: 78 px up on a touch screen and 66 on
+-- a short one. Both windows stand above the same band, bottom edge anchored, so a tap on their Close
+-- button never lands on a slot (it did, on the Grass Shears slot). A short screen's place carries its
+-- own anchor, since a short screen that isn't a touch screen has no touch place to give it one. The
+-- whole place stays centred.
+local HOTBAR_BAND_TOUCH = 78
+local HOTBAR_BAND_COMPACT = 66
+do
+	local chips = UiLayout.ToolCondition
+	check(
+		chips.touch ~= nil and chips.touch.position ~= nil and chips.touch.position[4] == -HOTBAR_BAND_TOUCH,
+		"UiLayout's ToolCondition isn't HOTBAR_BAND_TOUCH above the bottom on a touch screen: update HOTBAR_BAND_TOUCH"
+	)
+	check(
+		chips.compact ~= nil and chips.compact.position ~= nil and chips.compact.position[4] == -HOTBAR_BAND_COMPACT,
+		"UiLayout's ToolCondition isn't HOTBAR_BAND_COMPACT above the bottom on a short screen: update it"
+	)
+	for _, id in { "LevelsPanel", "ContractsPanel" } do
+		local entry = UiLayout[id]
+		for which, band in { touch = HOTBAR_BAND_TOUCH, compact = HOTBAR_BAND_COMPACT } do
+			local place = entry[which]
+			check(
+				place ~= nil and place.anchor ~= nil and place.anchor[1] == 0.5 and place.anchor[2] == 1,
+				`UiLayout's {id} isn't anchored at its bottom edge in its {which} place`
+			)
+			check(
+				place ~= nil
+					and place.position ~= nil
+					and place.position[1] == 0.5
+					and place.position[2] == 0
+					and place.position[3] == 1
+					and place.position[4] <= -band,
+				`UiLayout's {id} isn't at least {band} px above the bottom in its {which} place: Close is under the hotbar`
+			)
+		end
+		check(
+			entry.anchor[1] == 0.5
+				and entry.anchor[2] == 0.5
+				and entry.position[1] == 0.5
+				and entry.position[3] == 0.5
+				and entry.position[2] == 0
+				and entry.position[4] == 0,
+			`UiLayout's {id} isn't centred on a screen that is neither touch nor short`
+		)
+	end
 end
 
 -- COLUMN_PIECES is what HudController builds into a column: every piece it puts in one with

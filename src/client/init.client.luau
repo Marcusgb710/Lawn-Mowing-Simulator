@@ -15,6 +15,7 @@ local CONTROLLERS = {
 	"CameraController",
 	"HudController",
 	"LevelsController",
+	"ContractsController",
 	"JobBoardController",
 	"ShopController",
 	"TruckController",
@@ -23,6 +24,7 @@ local CONTROLLERS = {
 	"MessagesController",
 	"GloriaController",
 	"ContestController",
+	"LeaderboardController",
 	"TutorialController",
 	"CarryController",
 	"ComputerController",
@@ -65,6 +67,9 @@ end)
 Net.event("ContestUpdated").OnClientEvent:Connect(function(contest)
 	ClientState.set("contest", contest)
 end)
+Net.event("ContractsUpdated").OnClientEvent:Connect(function(view)
+	ClientState.set("contracts", view)
+end)
 
 for _, name in CONTROLLERS do
 	local controller = require(Controllers:WaitForChild(name))
@@ -106,6 +111,12 @@ end
 local contest = Net.func("GetContest"):InvokeServer()
 if contest and not ClientState.contest then
 	ClientState.set("contest", contest)
+end
+-- The day's contracts are pushed when the save loads, which can come before this script was
+-- listening, so ask for them too (nil while the save is still loading: the push will follow).
+local contracts = Net.func("GetContracts"):InvokeServer()
+if contracts and not ClientState.contracts then
+	ClientState.set("contracts", contracts)
 end
 -- For the F9 console, next to the title card's steps.
 print(

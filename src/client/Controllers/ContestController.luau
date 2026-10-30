@@ -409,7 +409,8 @@ local function categoryRow(parent: Instance, index: number, category, yours: num
 	end
 end
 
--- What you won, as chips (or, after a loss, when you can try again).
+-- What you won, as chips (or, after a loss, when you can try again: in jobs before the first judging
+-- day has been played, and on the next Saturday once it is on the calendar).
 local function chips(parent: Instance, result)
 	-- In a row, each as wide as its words, wrapping onto a second row if they need it.
 	local list = UI.new("Frame", {
@@ -437,8 +438,14 @@ local function chips(parent: Instance, result)
 		end
 	else
 		table.insert(entries, { text = "Gloria takes the trophy", color = UI.Colors.Rival })
-		local jobs = result.retryJobs or Contest.RetryJobs
-		table.insert(entries, { text = `Try again in {jobs} {if jobs == 1 then "job" else "jobs"}` })
+		local contest = ClientState.contest
+		if contest and contest.calendar then
+			-- Judging day is every Saturday now, so there are no jobs to count.
+			table.insert(entries, { text = "Judging day comes round again next Saturday." })
+		else
+			local jobs = result.retryJobs or Contest.RetryJobs
+			table.insert(entries, { text = `Try again in {jobs} {if jobs == 1 then "job" else "jobs"}` })
+		end
 	end
 	for index, entry in entries do
 		local chip = UI.label(entry.text, {

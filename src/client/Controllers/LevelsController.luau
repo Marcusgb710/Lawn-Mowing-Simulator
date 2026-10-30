@@ -1,4 +1,5 @@
--- The Levels panel: your level and the XP to the next one, then what the next five levels pay.
+-- The Levels panel: your level and the XP to the next one, your streak ("Streak: Day 3 of 7, next
+-- $300", once the server has sent it), then what the next five levels pay.
 -- The XP bar in the stats panel opens it (HudController calls LevelsController.toggle), and so does
 -- L on a keyboard. Its Close button, the X in its corner and Escape close it.
 --
@@ -8,7 +9,8 @@
 -- shop computer, and when you open one of the menus, since only one window is up at a time. It's
 -- scaled down to fit the screen the way the pay breakdown is (UiLayout's
 -- __screen.scaling.LevelsPanel). Centred, it's already clear of Roblox's move stick and jump
--- button, so a touch screen gets the same margin.
+-- button; on a touch screen it also stands above the hotbar (UiLayout's touch or compact place), so
+-- Close is never under a slot.
 
 local GuiService = game:GetService("GuiService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -23,6 +25,7 @@ local Season = require(Shared.Config.Season)
 local Art = require(script.Parent.Parent.Art)
 local ClientState = require(script.Parent.Parent.ClientState)
 local UI = require(script.Parent.Parent.UI)
+local ContractsController = require(script.Parent.ContractsController)
 
 local LevelsController = {}
 
@@ -42,6 +45,7 @@ local scale: UIScale
 local panelWidth = 0
 local panelHeight = 0
 local header: TextLabel
+local streakLine: TextLabel
 local xpBar: UI.Bar
 local rows: Frame
 -- Your job's id and state the last time either changed, to close the panel when they do.
@@ -105,7 +109,8 @@ local function addRow(index: number, level: number, text: string, claimed: boole
 	})
 end
 
--- Your level and the XP to the next, the bar, and the next five rewards, from the profile.
+-- Your level and the XP to the next, your streak, the bar, and the next five rewards, from the
+-- profile (and the day's view, for the streak). The streak line is hidden until there's one.
 local function render()
 	local profile = ClientState.profile
 	if not profile then
@@ -115,6 +120,11 @@ local function render()
 	local from = GameConfig.xpForLevel(level)
 	local to = GameConfig.xpForLevel(level + 1)
 	header.Text = `Level {level}, {commas(math.max(0, to - profile.xp))} XP to level {level + 1}`
+	local streak = ContractsController.streakLine(ClientState.contracts)
+	streakLine.Visible = streak ~= nil
+	if streak then
+		streakLine.Text = `Streak: {streak}`
+	end
 	xpBar.set((profile.xp - from) / (to - from))
 	UI.clearList(rows)
 	local claimed = profile.levelRewards or {}
@@ -125,16 +135,22 @@ end
 
 -- Sizes the panel to the screen (__screen.scaling.LevelsPanel): the smallest of its biggest scale
 -- and what fits the screen's height and width less their margins (the touch height margin is the
--- same as the other), times its own scale in UiLayout.
+-- same as the other, and on a touch screen the band above the hotbar is left out of the height too),
+-- times its own scale in UiLayout.
 local function fit()
 	local screen = UI.getScreen().AbsoluteSize
 	if screen.X <= 0 or screen.Y <= 0 then
 		return
 	end
 	local rule = UI.Layout.__screen.scaling.LevelsPanel
-	local margin = if UI.isTouch() then rule.touchMargin else rule.margin
+	local place = UI.layout("LevelsPanel")
+	-- On a touch screen the window stands above the hotbar: its place is anchored at its bottom edge,
+	-- this far up from the screen's bottom (UiLayout's touch or compact place, the one number), and that
+	-- much of the screen's height is not its to use. A centred place has no offset, so none on a PC.
+	local above = math.max(0, -(place.position :: UDim2).Y.Offset)
+	local margin = (if UI.isTouch() then rule.touchMargin else rule.margin) + above
 	local wanted = math.min(rule.scale, (screen.Y - margin) / panelHeight, (screen.X - rule.margin) / panelWidth)
-	scale.Scale = math.max(wanted, SMALLEST_SCALE) * UI.layout("LevelsPanel").scale
+	scale.Scale = math.max(wanted, SMALLEST_SCALE) * place.scale
 end
 
 local function close()
@@ -157,6 +173,9 @@ local function open()
 	-- One window at a time: it takes the place of an open menu.
 	UI.closeAll()
 	render()
+	-- Put where UiLayout says now, so a change since it was built (a touch screen turning up, a short
+	-- one) is what it opens on.
+	UI.place(panel, "LevelsPanel")
 	fit()
 	panel.Visible = true
 	UI.holdCursor(CURSOR_HOLDER, true)
@@ -175,8 +194,8 @@ function LevelsController.isOpen(): boolean
 	return panel ~= nil and panel.Visible
 end
 
--- The window: its title and X like every menu's, then (in a column) the header line, the XP bar,
--- the five rows and a Close button.
+-- The window: its title and X like every menu's, then (in a column) the header line, the streak
+-- line, the XP bar, the five rows and a Close button.
 local function build()
 	panel = UI.sliced("Panel", {
 		Name = "LevelsPanel",
@@ -227,19 +246,33 @@ local function build()
 		Parent = content,
 	})
 	UI.new("UITextSizeConstraint", { MaxTextSize = 18, Parent = header })
-	xpBar = UI.bar({ Name = "XpBar", Size = UDim2.new(1, 0, 0, 10), LayoutOrder = 2, Parent = content })
+	-- One line like the header, in the quieter colour; the longest (past the first week, with the
+	-- real count) shrinks to fit it.
+	streakLine = UI.label("", {
+		Name = "Streak",
+		Size = UDim2.new(1, 0, 0, 20),
+		TextScaled = true,
+		TextSize = 16,
+		FontFace = UI.Fonts.Medium,
+		TextColor3 = UI.Colors.SubText,
+		Visible = false,
+		LayoutOrder = 2,
+		Parent = content,
+	})
+	UI.new("UITextSizeConstraint", { MaxTextSize = 16, MinTextSize = 11, Parent = streakLine })
+	xpBar = UI.bar({ Name = "XpBar", Size = UDim2.new(1, 0, 0, 10), LayoutOrder = 3, Parent = content })
 	rows = UI.new("Frame", {
 		Name = "Rows",
 		Size = UDim2.new(1, 0, 0, ROWS * ROW_HEIGHT + (ROWS - 1) * ROW_GAP),
 		BackgroundTransparency = 1,
-		LayoutOrder = 3,
+		LayoutOrder = 4,
 		Parent = content,
 	}, { UI.list(ROW_GAP) })
 	UI.button("Close", close, {
 		Name = "CloseButton",
 		Size = UDim2.new(1, 0, 0, 40),
 		TextSize = 20,
-		LayoutOrder = 4,
+		LayoutOrder = 5,
 		Parent = content,
 	})
 end
@@ -251,7 +284,7 @@ local function stepOf(job): string?
 end
 
 local function onChanged(key: string)
-	if key == "profile" then
+	if key == "profile" or key == "contracts" then
 		if panel.Visible then
 			render()
 		end

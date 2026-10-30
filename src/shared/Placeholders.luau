@@ -1293,6 +1293,114 @@ PROP_BUILDERS.TurfKingSign = function(model: Model)
 	end
 end
 
+-- The curb mailbox at the end of every driveway, where the day's contracts are (see WorldService):
+-- a dark wood post with a green box on top and a small red flag on its right, the box's front
+-- toward -Z, the street. Its Root lies on the ground under the box, so it is stood with
+-- Assets.placeOnGround. It has no DecorId: nobody buys, moves or loses it.
+PROP_BUILDERS.CurbMailbox = function(model: Model)
+	local add = propAdder(model)
+	model.PrimaryPart = add({
+		Name = "Root",
+		Size = Vector3.new(1, 0.1, 1.4),
+		Position = Vector3.new(0, 0.05, 0),
+		Transparency = 1,
+		CanCollide = false,
+		CanTouch = false,
+		CanQuery = false,
+	})
+	add({
+		Name = "CurbMailbox__Post",
+		Size = Vector3.new(0.3, 3.5, 0.3),
+		Position = Vector3.new(0, 1.75, 0),
+		Color = Color3.fromRGB(85, 60, 40),
+		Material = Enum.Material.Wood,
+	})
+	add({
+		Name = "CurbMailbox__Box",
+		Size = Vector3.new(1, 0.8, 1.4),
+		Position = Vector3.new(0, 3.9, 0),
+		Color = Color3.fromRGB(40, 90, 60),
+	})
+	add({
+		Name = "CurbMailbox__Flag",
+		Size = Vector3.new(0.06, 0.55, 0.3),
+		Position = Vector3.new(0.53, 4.2, 0.45),
+		Color = Color3.fromRGB(200, 40, 40),
+		CanCollide = false,
+	})
+end
+
+-- The streak's pennant for the truck's bed (Assets.addPennant): a thin pole with a purple flag
+-- streaming back from its top. Built like the real models: origin at the pole's foot, a Root part.
+local PENNANT_PURPLE = Color3.fromRGB(140, 80, 200)
+
+PROP_BUILDERS.TruckPennant = function(model: Model)
+	local add = propAdder(model)
+	rootPart(model, add)
+	add({
+		Name = "TruckPennant__Pole",
+		Size = Vector3.new(0.15, 3, 0.15),
+		Position = Vector3.new(0, 1.5, 0),
+		Color = Color3.fromRGB(190, 190, 195),
+		Material = Enum.Material.Metal,
+		CanCollide = false,
+	})
+	-- A wedge's tall edge is at +Z. Turned half way round, that edge is on the pole and the point
+	-- streams back along +Z, the way a truck's flag does as it drives off.
+	add({
+		ClassName = "WedgePart",
+		Name = "TruckPennant__Flag",
+		Size = Vector3.new(0.1, 0.7, 1),
+		CFrame = CFrame.new(0, 2.65, 0.575) * CFrame.Angles(0, math.pi, 0),
+		Color = PENNANT_PURPLE,
+		CanCollide = false,
+	})
+end
+
+-- The leaderboard sign at the town spawn (see WorldService and LeaderboardController): a wooden
+-- header over two dark green boards, `LawnsBoard` on the left and `MoneyBoard` on the right as you
+-- face it, on two posts behind them. The boards' faces and the header's are toward -Z, and its
+-- origin is on the ground with a Root part, like the real models. The boards are left blank: every
+-- player's own screen draws its lists on them (LeaderboardController), and the server stamps the
+-- header with the sign's name. Each board is sized for what it holds, 25 rows of 18 px text, a
+-- title and the player's own line, at the 40 pixels a stud its screen is drawn at (320 by 640).
+local LEADERBOARD_BOARD = Vector3.new(8, 16, 0.4)
+local LEADERBOARD_GAP = 0.4
+local LEADERBOARD_RISE = 2.5
+local LEADERBOARD_GREEN = Color3.fromRGB(36, 68, 43)
+
+PROP_BUILDERS.LeaderboardSign = function(model: Model)
+	local add = propAdder(model)
+	rootPart(model, add)
+	local board = LEADERBOARD_BOARD
+	local wood = Color3.fromRGB(85, 60, 40)
+	local apart = (board.X + LEADERBOARD_GAP) / 2
+	local top = LEADERBOARD_RISE + board.Y
+	-- Facing -Z, +X is on your left.
+	for _, entry in { { name = "LawnsBoard", x = apart }, { name = "MoneyBoard", x = -apart } } do
+		add({
+			Name = entry.name,
+			Size = board,
+			Position = Vector3.new(entry.x, LEADERBOARD_RISE + board.Y / 2, 0),
+			Color = LEADERBOARD_GREEN,
+		})
+		add({
+			Name = "LeaderboardSign__Post",
+			Size = Vector3.new(0.8, top, 0.8),
+			Position = Vector3.new(entry.x, top / 2, board.Z / 2 + 0.4),
+			Color = wood,
+			Material = Enum.Material.Wood,
+		})
+	end
+	add({
+		Name = "LeaderboardSign__Header",
+		Size = Vector3.new(board.X * 2 + LEADERBOARD_GAP + 0.8, 2, board.Z),
+		Position = Vector3.new(0, top + 1, 0),
+		Color = Color3.fromRGB(110, 78, 50),
+		Material = Enum.Material.Wood,
+	})
+end
+
 -- A Best Yard judge standing: legs, a jacket, a head and whatever they're carrying (`extras`).
 local function judge(model: Model, jacket: Color3, trousers: Color3, hair: Color3, extras: (any) -> ())
 	local add = propAdder(model)

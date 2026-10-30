@@ -14,6 +14,7 @@ local LOAD_ORDER = {
 	"DecorService",
 	"HomeLawnService",
 	"SeasonService",
+	"DailyService",
 	"JobService",
 	"ToolService",
 	"TruckService",
@@ -24,6 +25,7 @@ local LOAD_ORDER = {
 	"StoryService",
 	"TurfKingService",
 	"ContestService",
+	"LeaderboardService",
 	"StudioTestService",
 }
 

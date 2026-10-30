@@ -60,8 +60,9 @@ JobService.PlayerStateChanged = Signal.new()
 -- Fired with (player, info) for each of the crew once a job's been paid: info is { customer,
 -- pay (their share), quality (the finish, 0-1), preference, crew (how many of them), wonBack
 -- (the customer was won back from TurfKing and paid a bonus), stars (1-3), tip (what the customer
--- tipped them on top of their share, 0 for none) }. Their best stars for the job are in their
--- save by then (SeasonService counts the three-star jobs from it).
+-- tipped them on top of their share, 0 for none), junkPicked (pieces of junk picked up on the
+-- lawn) }. Their best stars for the job are in their save by then (SeasonService counts the
+-- three-star jobs from it).
 JobService.JobFinished = Signal.new()
 
 local rng = Random.new()
@@ -518,6 +519,7 @@ local function sendHome(job, players: { Player })
 		truckId = job.truckId,
 		trailerId = job.trailerId,
 		paintId = job.paintId,
+		pennant = WorldService:HasPennant(job.truckOwner) or nil,
 	}, function(index, player)
 		return WorldService:GetHomeCFrame(player, index)
 	end, function()
@@ -548,6 +550,11 @@ local function buildSite(job)
 	-- a spot on the ground behind it and a vise on the tailgate. A supply you took goes back by
 	-- looking at the truck.
 	ServiceSpots.add(job.lawn.folder, ServiceSpots.forTruck(truck))
+	-- The streak's pennant flies on it too, if the leader has earned it (see WorldService). After the
+	-- spots above, which are measured from the bare truck.
+	if WorldService:HasPennant(job.truckOwner) then
+		Assets.addPennant(truck)
+	end
 	truck:SetAttribute("Interact", "Tailgate")
 	truck:SetAttribute("InteractText", "Put it back")
 	truck:SetAttribute("InteractName", "Tailgate")
@@ -620,6 +627,7 @@ local function startDriving(job)
 		truckId = job.truckId,
 		trailerId = job.trailerId,
 		paintId = job.paintId,
+		pennant = WorldService:HasPennant(job.truckOwner) or nil,
 	}, function(index, player)
 		if playerJobs[player] ~= job then
 			return nil
@@ -761,6 +769,8 @@ local function completeJob(job)
 			wonBack = wonBack > 0,
 			stars = stars,
 			tip = tip,
+			-- Pieces of junk picked up on the lawn, for the day's contracts (DailyService).
+			junkPicked = debris.picked,
 		})
 	end
 

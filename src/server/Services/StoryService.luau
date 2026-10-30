@@ -298,7 +298,7 @@ function StoryService:SendTexts(player: Player, texts: { any }, values: { [strin
 end
 
 -- ContestService adds to what June can say on her porch: `values(player)` returns more
--- placeholder values ({ contest, rival, jobs }), or nil.
+-- placeholder values ({ contest, rival, jobs, days }), or nil.
 function StoryService:SetTalkValues(values: (Player) -> { [string]: any }?)
 	talkValues = values
 end

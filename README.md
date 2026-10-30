@@ -53,7 +53,7 @@ Other useful commands:
 | `stylua src` | Auto-formats the code |
 | `selene src` | Lints the code |
 | `lune run scripts/check-mowing` | Checks the lawn's cell maths: which cells a mower's deck cuts, and the cell counts |
-| `lune run scripts/check-season` | Checks the season's tables: the goals rail's milestones, what each level pays, and how a job earns its stars and tip |
+| `lune run scripts/check-season` | Checks the season's tables: the goals rail's milestones, what each level pays, how a job earns its stars and tip, the day, the clock, the contracts and the streak |
 
 **Testing saves in Studio:** Game Settings → Security → turn on *Enable Studio Access to API
 Services*. Without it the game still runs, it just doesn't save progress.
@@ -244,9 +244,12 @@ src/shared/                  -> ReplicatedStorage.Shared   code used by both ser
   Config/Milestones.luau        the goals rail's milestones (jobs, money earned, three-star jobs) and what each pays
   Config/Levels.luau            what each level pays: cash, a truck tint, the gold sign, a HUD stamp
   Config/Stars.luau             how a job's performance earns one to three stars, and the tip they bring
+  Config/Contracts.luau         the day's three contracts by level band, what each pays and the Bonus Day
+  Config/Streak.luau            the login streak: what each of its seven days pays, and when a day counts
   Config/Season.luau            the Busy Season's part of the save, and who still counts as a first-timer
   Config/GuiArt.luau            GENERATED: the GUI art's image ids, slices, palette and bitmap fonts
                                 (scripts/gui-art-ids.py; see HANDOFF.md, "GUI art")
+  Daily.luau                    what day it is in UTC: the day key, Saturday and the midnights, told the moment
   GuiLayout.luau                the GUI's layout maths: bitmap text, the hold ring, striped fills
   PayBreakdown.luau             a finished job's pay split into dollar lines for the pay breakdown
   Shop.luau                     what a player may buy (shared by the server and the shop menu)
@@ -256,6 +259,7 @@ src/shared/                  -> ReplicatedStorage.Shared   code used by both ser
 src/server/                  -> ServerScriptService.Server
   init.server.luau              starts every service
   BusinessStorage.luau          lays out the pegboards, racks, hooks, shelves, floor spots and bays
+  Clock.luau                    the server's one clock (os.time plus an offset only Studio can set) for the day's rules
   Services/DataService          saving money, xp, gear and truck loadout (with save migrations)
   Services/WorldService         the town, business plots and buildings
   Services/PartyService         crews, invites, shared truck space
@@ -270,6 +274,8 @@ src/server/                  -> ServerScriptService.Server
   Services/TurfKingService      TurfKing taking jobs off your board, and the won-back bonus
   Services/ContestService       the Best Yard contest: judging your yard, the result and rewards
   Services/SeasonService        paying each milestone and level reward once, and telling the screen
+  Services/DailyService         the day's contracts and the login streak, and paying them
+  Services/LeaderboardService   the two leaderboards on the sign at spawn, kept in OrderedDataStores
 src/client/                  -> StarterPlayer.StarterPlayerScripts.Client
   init.client.luau              starts every controller
   Controllers/                  HUD, shop computer (jobs, orders, business), truck checklist, carrying tools, crew menu,
@@ -277,6 +283,10 @@ src/client/                  -> StarterPlayer.StarterPlayerScripts.Client
                                 the Messages app, Gloria's yard as your act has it, and the Best
                                 Yard contest's judges and results screen
   Controllers/LevelsController  the Levels panel: your level, and what the next five levels pay
+  Controllers/ContractsController
+                                the contracts panel: today's three, the Bonus Day and the streak
+  Controllers/LeaderboardController
+                                draws the two leaderboards on the sign at the town spawn
   UI.luau                       the look: colours, fonts, windows, cards, buttons, bars, prompts
   UiLayout.luau                 where everything on the play screen goes, as plain data for the
                                 layout editor (lune run scripts/ui-layout-json prints it as JSON)
@@ -329,7 +339,9 @@ There are two ways to add them:
 
 You can also build your own town in Studio: make a Model named `Town` in Workspace with a
 `SpawnLocation` and a `Plots` folder with one Part per business plot (front facing the street). The placeholder
-town is only built when there's no `Town`.
+town is only built when there's no `Town`. Leave `Town` on `Default` streaming: the leaderboard sign
+inside it is `Persistent`, and a `Persistent` child makes an `Atomic` parent behave as `Persistent`,
+which would stop the whole town streaming.
 
 Set the place's max players to 12 or fewer (Game Settings → Places), since the placeholder town has
 12 business plots.
