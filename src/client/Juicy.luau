@@ -7,14 +7,19 @@
 -- Sizes are in pixels. A face's lip hangs below the Size you give (by Lip pixels) and its outline
 -- sticks out Stroke pixels all round, so leave that much room, as the HUD's columns do.
 --
--- face, pill, button and badge each return TWO values (the piece, then its Face frame). Do not use
--- the call as the last argument of another call or in table.insert(list, Juicy.pill(...)): the
--- second value would ride along. Wrap it in parentheses, or take both into locals.
+-- face, pill and button each return TWO values (the piece, then its Face frame), and badge THREE (the
+-- badge, its Face frame, then its text label). Do not use the call as the last argument of another
+-- call or in table.insert(list, Juicy.pill(...)): the extra values would ride along. Wrap it in
+-- parentheses, or take what you need into locals.
 --
 -- pulse and pop animate the element's own UIScale if it has one (the LayoutScale UI.place gives a
 -- placed element, or a UI.scaler one), relative to the scale it has, and give back exactly that
 -- scale; they only make a "JuicyScale" when there is none. So they are safe on a placed element,
 -- and if the layout re-places it mid-animation the animation stops and the layout's value stands.
+-- Place an element (UI.place) BEFORE pulsing or popping it: a "JuicyScale" made first would be taken
+-- for the element's own code scale, and UI.place would then not give it the LayoutScale its entry asks
+-- for. Pulse or pop an inner frame, not a member of a list or anything that sizes its parent: the
+-- list is laid out again on every frame of the animation.
 -- A badge's bob stops when the badge is destroyed; just unparenting it leaves the bob running.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -444,8 +449,8 @@ end
 -- or a CLAIM tag on a button's corner. `props` are the outer frame's (Position, AnchorPoint,
 -- Parent, Size...); Size defaults to the text's width, 22 tall. The pill inside is what bobs, so
 -- moving the returned frame never fights the bob, and the bob ends when the badge is destroyed.
--- Returns the outer frame and the pill's Face.
-function Juicy.badge(text: string, props): (Frame, Frame)
+-- Returns the outer frame, the pill's Face and the text label on it (to change the number).
+function Juicy.badge(text: string, props): (Frame, Frame, TextLabel)
 	props = props or {}
 	local size: UDim2 = props.Size
 	if not size then
@@ -471,7 +476,7 @@ function Juicy.badge(text: string, props): (Frame, Frame)
 		ZIndex = props.ZIndex,
 		Parent = outer,
 	})
-	Juicy.text(text, {
+	local label = Juicy.text(text, {
 		Name = "Text",
 		Size = UDim2.fromScale(1, 1),
 		TextColor3 = JuicyPalette.Ink,
@@ -494,7 +499,7 @@ function Juicy.badge(text: string, props): (Frame, Frame)
 	if props.Parent then
 		outer.Parent = props.Parent
 	end
-	return outer, face
+	return outer, face, label
 end
 
 -- Pulse, pop and count ---------------------------------------------------------------------------
@@ -519,11 +524,16 @@ end
 -- keeps the value it was heading back to.
 local function animate(scale: UIScale, duration: number, factor: (number) -> number)
 	local running = animations[scale]
-	local base = if running then running.base else scale.Scale
+	local base = scale.Scale
 	if running then
 		running.connection:Disconnect()
 		animations[scale] = nil
-		scale.Scale = base
+		-- The base it was heading back to, unless someone else has set the scale since its last write
+		-- (a re-place between two frames): then what is there now is the scale, as for a fresh start.
+		if math.abs(scale.Scale - running.written) <= 1e-4 then
+			base = running.base
+			scale.Scale = base
+		end
 	end
 	local animation: Animation = { connection = nil :: any, base = base, written = base }
 	local elapsed = 0

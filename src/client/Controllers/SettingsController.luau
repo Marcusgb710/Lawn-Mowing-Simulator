@@ -24,10 +24,11 @@ local CameraController = require(script.Parent.CameraController)
 
 local SettingsController = {}
 
--- A choice is sent this long after the last tap, and never sooner than MIN_GAP after the one before
--- (the server refuses a second save inside half a second).
+-- A choice is sent this long after the last tap, and never sooner than MIN_GAP after the one before.
+-- The server refuses a second save inside Settings.Cooldown (half a second), measured between arrivals
+-- where this measures between sends, so MIN_GAP leaves the network's jitter some room.
 local SAVE_DELAY = 0.3
-local MIN_GAP = 0.6
+local MIN_GAP = 0.9
 
 -- The window's measurements: a row's height, the room its words leave for the choices, and a choice's
 -- width and height (the pill's lip hangs a few pixels below).
@@ -110,6 +111,14 @@ local function render()
 	end
 end
 
+-- Draws the choices only while the window is up: they are drawn again as it opens (Start), so a choice
+-- made with the window away (the V key) or a profile that comes in costs nothing.
+local function renderIfShown()
+	if window.Visible then
+		render()
+	end
+end
+
 -- Takes the profile's settings as what is in force, unless a choice of ours is still on its way to
 -- the server (its answer would only put the old one back for a moment).
 local function adopt()
@@ -119,7 +128,15 @@ local function adopt()
 	end
 	current = Settings.clean(profile.settings)
 	apply()
-	render()
+	renderIfShown()
+end
+
+-- Asks the server to save `sent`: whether it answered with the saved choices.
+local function ask(sent): boolean
+	local ok, saved = pcall(function()
+		return Net.func("SaveSettings"):InvokeServer(sent)
+	end)
+	return ok and typeof(saved) == "table"
 end
 
 -- Sends `current` to the server, once it has been quiet for SAVE_DELAY, and again if it changed
@@ -134,15 +151,22 @@ local function send()
 		dirty = false
 		lastSent = os.clock()
 		local sent = table.clone(current)
-		local ok, saved = pcall(function()
-			return Net.func("SaveSettings"):InvokeServer(sent)
-		end)
-		if not (ok and typeof(saved) == "table") and not dirty then
+		local saved = ask(sent)
+		if not saved and not dirty then
+			-- A nil answer is usually the server's cooldown, which a slow first request and a quick second
+			-- can trip: wait out the gap and ask once more before giving the choice up.
+			task.wait(MIN_GAP)
+			if not dirty then
+				lastSent = os.clock()
+				saved = ask(sent)
+			end
+		end
+		if not saved and not dirty then
 			local profile = ClientState.profile
 			if profile then
 				current = Settings.clean(profile.settings)
 				apply()
-				render()
+				renderIfShown()
 			end
 		end
 	end
@@ -174,7 +198,7 @@ function SettingsController.set(key: string, value: any)
 	end
 	current[key] = value
 	apply()
-	render()
+	renderIfShown()
 	scheduleSave()
 end
 
@@ -248,7 +272,6 @@ function SettingsController:Start()
 		end
 	end)
 	adopt()
-	render()
 end
 
 return SettingsController

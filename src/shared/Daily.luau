@@ -52,4 +52,39 @@ function Daily.midnightAfter(unix: number): number
 	return (dayNumber(unix) + 1) * SECONDS_PER_DAY
 end
 
+-- The words on the judging day countdown pill, or nil when there is no pill: from the contest view the
+-- server sent (`state`, and `daysLeft`: 0 when judging day is open, 7 on a Saturday already judged, 1 to
+-- 6 on the other days) and this computer's clock `now`. "Judging day is today!" while it is open, "Judging
+-- day in 2d 5h" while it is coming. The server only sends the view when someone joins, an act starts or a
+-- job ends, so one held across Saturday's midnight is out of date, and two things are told from the clock:
+--   * a Waiting view from before today's Saturday (`daysLeft` under 7: it was sent on another day) says
+--     today is judging day, as the server would once it sent the view again;
+--   * an Open view held past Saturday is not open any more, so it reads as the countdown.
+-- A Saturday already judged (`daysLeft` 7, or none) counts to the next one.
+function Daily.judgingText(state: string, daysLeft: number?, now: number): string?
+	if state == "Open" then
+		if Daily.isSaturday(now) then
+			return "Judging day is today!"
+		end
+	elseif state ~= "Waiting" then
+		return nil
+	end
+	local target = Daily.nextSaturday(now)
+	if target <= now then
+		if (daysLeft or 7) < 7 then
+			return "Judging day is today!"
+		end
+		target = Daily.nextSaturday(Daily.midnightAfter(now))
+	end
+	local left = target - now
+	local days = left // SECONDS_PER_DAY
+	local hours = (left % SECONDS_PER_DAY) // 3600
+	if days > 0 then
+		return `Judging day in {days}d {hours}h`
+	elseif hours > 0 then
+		return `Judging day in {hours}h`
+	end
+	return "Judging day in under 1h"
+end
+
 return Daily

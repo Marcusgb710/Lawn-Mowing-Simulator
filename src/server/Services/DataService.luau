@@ -31,9 +31,6 @@ DataService.Earned = Signal.new()
 -- previous version into the new one. Never delete a step: old saves still need it.
 local DATA_VERSION = 14
 
--- How soon a player can save their Settings again, in seconds (like the shop's cooldown).
-local SETTINGS_COOLDOWN = 0.5
-
 -- MIGRATIONS[n] turns a version n - 1 save into version n. Steps must keep money, xp and every
 -- owned item. Don't use the live config to read an old save: write down what it looked like.
 local MIGRATIONS = {
@@ -772,19 +769,18 @@ function DataService:Init()
 	-- default), so a tampered call can change nothing but those. Answers the saved choices, or nil
 	-- when it refuses (not a table, too soon after the last, or no save loaded yet).
 	Net.func("SaveSettings").OnServerInvoke = function(player, value)
-		if typeof(value) ~= "table" then
-			return nil
-		end
 		local data = self:Get(player)
 		if not data then
 			return nil
 		end
+		-- Settings.admit decides: a table, not too soon after this player's last accepted save, cleaned.
 		local now = os.clock()
-		if now - (lastSettingsSave[player] or -SETTINGS_COOLDOWN) < SETTINGS_COOLDOWN then
+		local admitted, saved = Settings.admit(value, lastSettingsSave[player], now)
+		if not admitted then
 			return nil
 		end
 		lastSettingsSave[player] = now
-		data.settings = Settings.clean(value)
+		data.settings = saved
 		self:Changed(player)
 		return Settings.clean(data.settings)
 	end

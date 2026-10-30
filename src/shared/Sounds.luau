@@ -9,7 +9,9 @@
 -- sound is made, and sounds are put in it by their SoundGroup property, not by parenting them under
 -- it, so a sound on a tool or a part keeps its place in the world. A sound the server makes (the
 -- server plays some, and its ids are all still empty) carries a tag, and `watch`, which a client runs
--- once, puts those in the group as they arrive.
+-- once, puts those in the group as they arrive. `watch` also puts the Sounds Roblox's own character
+-- script makes for every character (footsteps, jumping, landing) in the group, so Sound set to Off
+-- really is silent.
 
 -- How far away a sound can still be heard, in studs.
 local ROLL_OFF_DISTANCE = 60
@@ -24,6 +26,8 @@ local Sounds = {}
 -- here so a group made later starts at it.
 local level = 1
 local effects: SoundGroup? = nil
+-- Whether `watch` has run.
+local watching = false
 
 -- The Effects SoundGroup, under SoundService, made when it is first wanted. Only a client has one.
 local function effectsGroup(): SoundGroup
@@ -63,9 +67,16 @@ function Sounds.getVolume(): number
 end
 
 -- Puts the sounds the server makes (tagged in `route`) through this client's Effects group, the ones
--- already here and each one that arrives. A client calls this once.
+-- already here and each one that arrives, and the Sounds in every character (Roblox's footsteps, jump
+-- and landing, which its own script makes on this client for each character). A client calls this; a
+-- second call does nothing.
 function Sounds.watch()
+	if watching then
+		return
+	end
+	watching = true
 	local collection = game:GetService("CollectionService")
+	local players = game:GetService("Players")
 	local function adopt(instance: Instance)
 		if instance:IsA("Sound") then
 			instance.SoundGroup = effectsGroup()
@@ -74,6 +85,22 @@ function Sounds.watch()
 	collection:GetInstanceAddedSignal(EFFECTS_TAG):Connect(adopt)
 	for _, instance in collection:GetTagged(EFFECTS_TAG) do
 		adopt(instance)
+	end
+	local function watchCharacter(character: Model)
+		for _, descendant in character:GetDescendants() do
+			adopt(descendant)
+		end
+		character.DescendantAdded:Connect(adopt)
+	end
+	local function watchPlayer(player: Player)
+		if player.Character then
+			watchCharacter(player.Character)
+		end
+		player.CharacterAdded:Connect(watchCharacter)
+	end
+	players.PlayerAdded:Connect(watchPlayer)
+	for _, player in players:GetPlayers() do
+		watchPlayer(player)
 	end
 end
 

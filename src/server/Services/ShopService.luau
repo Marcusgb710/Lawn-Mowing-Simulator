@@ -1,8 +1,10 @@
 -- Buying and selling gear and business upgrades, from the HUD's Shop button or the computer in your
--- shop (the Orders and Business apps), wherever you stand: the client only asks, and every check
--- happens here (the rules themselves are in Shared/Shop.luau, so the menus can show them too).
--- Tools and supplies arrive in a box at the shop (DeliveryService); trucks, trailers and buildings
--- are there straight away. Taking a job is still a computer thing (JobService:AcceptJob).
+-- shop (the Orders and Business apps): the client only asks, and every check happens here (the
+-- rules themselves are in Shared/Shop.luau, so the menus can show them too). Tools and supplies
+-- (and selling them) work wherever you stand, and arrive in a box at the shop (DeliveryService).
+-- Trucks, trailers and business buildings (PLOT_CATEGORIES) change what is built on your plot, are
+-- there straight away, and are still bought and switched to at the computer in your shop. Taking a
+-- job is a computer thing too (JobService:AcceptJob).
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -86,6 +88,9 @@ function ShopService:Buy(player: Player, category: string, itemId: string): (boo
 	if not allowed then
 		return false, reason or "You can't buy that."
 	end
+	if PLOT_CATEGORIES[category] and not WorldService:IsAtComputer(player) then
+		return false, "Order it from the computer in your shop."
+	end
 	if PLOT_CATEGORIES[category] and JobService:IsBusy(player) then
 		return false, "You can't swap vehicles or buildings in the middle of a job."
 	end
@@ -168,6 +173,9 @@ function ShopService:Equip(player: Player, category: string, itemId: string): (b
 	local data = DataService:Get(player)
 	if not item or not data or Items.isToolCategory(category) or not data.owned[category][itemId] then
 		return false, "You don't own that yet."
+	end
+	if PLOT_CATEGORIES[category] and not WorldService:IsAtComputer(player) then
+		return false, "Switch it over on the computer in your shop."
 	end
 	if PLOT_CATEGORIES[category] and JobService:IsBusy(player) then
 		return false, "You can't swap vehicles or buildings in the middle of a job."

@@ -46,7 +46,6 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Daily = require(Shared.Daily)
 local Format = require(Shared.Format)
 local GameConfig = require(Shared.Config.GameConfig)
-local HomeLawn = require(Shared.HomeLawn)
 local Items = require(Shared.Config.Items)
 local Jobs = require(Shared.Config.Jobs)
 local Maintenance = require(Shared.Config.Maintenance)
@@ -81,15 +80,21 @@ local MENUS = {
 }
 -- The fourth square opens the contracts panel (no key; the mailbox at the curb opens it too).
 local CONTRACTS_SQUARE = { name = "Contracts", layout = "ContractsButton", color = "Contracts", icon = "Jobs" }
--- The squares are 76 px faces (UiLayout's TruckButton and the rest are that and the label under it).
--- On a touch or short screen they sit in a 2x2 grid with this much between them across and down; the
--- grid's scale is MenuButtons' own (UiLayout), and check-gui works out from these that a square is
+-- The squares are 76 px faces on a PC (UiLayout's TruckButton and the rest are that and the label under
+-- it). On a touch or short screen they sit in a 2x2 grid of GRID_FACE px faces, built at that size
+-- (not a smaller drawing of the PC ones: a list is not promised to make room for a child's UIScale),
+-- with this much between them across and down; check-gui works out from these that a grid square is
 -- 44 px or more on a phone.
 local SQUARE_FACE = 76
+local GRID_FACE = 64
 local SQUARE_GAP_X = 16
 local SQUARE_GAP_Y = 8
--- A key badge on a square's top left corner: its size and how far in its middle is.
+-- A key badge on a face's top left corner: its size and how far in its middle is. A face under
+-- KEY_SMALL_FACE px (the right strip on a phone, Settings anywhere) gets the small badge, so it does
+-- not cover the glyph.
 local SQUARE_KEY_SIZE = 22
+local SQUARE_KEY_SMALL = 16
+local KEY_SMALL_FACE = 60
 local SQUARE_KEY_INSET = 8
 -- The Contracts square's count badge hangs this far off its top right corner.
 local COUNT_BADGE_OVERHANG = 8
@@ -133,6 +138,12 @@ local PLACING_ATTRIBUTE = "PlacingDecor"
 local MOTION_KEY = Enum.KeyCode.V
 -- The key for the "Show what I missed" button (see buildMissedButton).
 local MISSED_KEY = Enum.KeyCode.M
+-- Every control that acts has a hit area at least this many pixels tall once its column's scale is
+-- applied (addHitStrips); a chip that only shows is exempt. The Call off pill asks "Sure?" for this many
+-- seconds after the first tap, and the second tap calls the job off.
+local HIT_MIN = 40
+local HIT_CLICK_VOLUME = 0.4
+local CALL_OFF_SURE = 3
 -- A finished mowing row gets a stamp over it (the art's "Job Complete!", the only stamp that says
 -- done), this tall, with this many sparkles round it.
 local DONE_STAMP_HEIGHT = 40
@@ -250,11 +261,13 @@ local BOOSTS = {
 
 local HudController = {}
 
--- The money counter, the pill it is on, and the money the last profile had (nil before the first), so
--- a gain counts up.
+-- The money counter, the pill it is on, the money the last profile had (nil before the first), so a gain
+-- counts up, and the number the counter shows right now (its count writes it), so a gain that arrives
+-- mid-count carries on from what is on screen.
 local money
 local moneyPill: Frame
 local lastMoney: number? = nil
+local shownMoney: number? = nil
 local levelLabel: TextLabel
 -- The star on the level pill (an icon, or a letter star while there is no art), gold with the sign.
 local levelGlyph: GuiObject
@@ -302,7 +315,10 @@ local menuHolder: Frame
 -- The right buttons' strip, and each one's pieces (its spec, button, face and label), for fitting them
 -- to the screen.
 local rightHolder: Frame
-local rightPieces: { { spec: any, button: TextButton, face: Frame, label: GuiObject? } } = {}
+type Piece = { spec: any, button: TextButton, face: Frame, label: GuiObject?, key: GuiObject?, keyText: TextLabel? }
+local rightPieces: { Piece } = {}
+-- The menu squares' pieces the same way.
+local squarePieces: { Piece } = {}
 -- What each right button does (by its id), so it can be changed without building the button again.
 local rightActions: { [string]: () -> () } = {}
 -- The Gifts button's CLAIM tag while a gift waits, and whether a claim is on its way to the server.
@@ -363,6 +379,11 @@ local compactCallOffLabel: TextLabel
 local trackerTimed = false
 local trackerPenalty = 0
 local callOffShown = false
+-- The Call off pill's words when it is not asking "Sure?", and whether it is asking now (the first tap
+-- asks, a second within CALL_OFF_SURE seconds calls the job off).
+local callOffWords = "Call off job"
+local callOffSure = false
+local callOffAskedAt = 0
 local conditionPanel: GuiObject
 -- The chips on it, one for each thing wrong (a glyph and its words), made as they're needed and
 -- then reused.
@@ -779,11 +800,21 @@ local function buildPills()
 
 	-- The level pill: a star, "LVL 3" and the XP bar. The Levels button is invisible over it, and
 	-- reaches a little above and below it so it is a thumb's size on a phone.
-	local levelHolder, levelFace = Juicy.pill("Level", {
-		Name = "LevelPill",
+	-- The pill sits in a slot the row lays out, so a pop of the pill (pressing it) never lays the row out
+	-- again.
+	local levelSlot = UI.new("Frame", {
+		Name = "LevelSlot",
+		BackgroundTransparency = 1,
 		Size = UDim2.fromOffset(LEVEL_PILL.X, LEVEL_PILL.Y),
 		LayoutOrder = 1,
 		Parent = row,
+	})
+	local levelHolder, levelFace = Juicy.pill("Level", {
+		Name = "LevelPill",
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.5),
+		Size = UDim2.fromOffset(LEVEL_PILL.X, LEVEL_PILL.Y),
+		Parent = levelSlot,
 	})
 	local star = UI.icon("Level", {
 		AnchorPoint = Vector2.new(0, 0.5),
@@ -842,10 +873,11 @@ local function buildPills()
 		Position = UDim2.fromOffset(0, -LEVELS_BUTTON_REACH),
 		Size = UDim2.new(1, 0, 0, LEVEL_PILL.Y + 2 * LEVELS_BUTTON_REACH),
 		ZIndex = 10,
-		Parent = levelHolder,
+		Parent = levelSlot,
 	})
 	levelsButton.Activated:Connect(function()
 		Sounds.playUi("Click", 0.4)
+		Juicy.pop(levelHolder)
 		LevelsController.toggle()
 	end)
 
@@ -902,28 +934,14 @@ end
 
 -- The judging day countdown, from the contest view (ClientState.contest) and this computer's clock:
 -- only for someone with judging day on the Saturday calendar, "Judging day in 2d 5h" while it is
--- coming and "Judging day is today!" while it is open.
+-- coming and "Judging day is today!" while it is open. The words are Daily.judgingText's, which also
+-- copes with a view that is older than today (the server sends it rarely, so one held across Saturday's
+-- midnight is out of date).
 local function updateCountdown()
 	local contest = ClientState.contest
 	local text: string? = nil
 	if contest and contest.calendar then
-		if contest.state == "Open" then
-			text = "Judging day is today!"
-		elseif contest.state == "Waiting" then
-			local now = os.time()
-			local target = Daily.nextSaturday(now)
-			-- A Saturday they have judged on already looks to the next one.
-			if target <= now then
-				target = Daily.nextSaturday(Daily.midnightAfter(now))
-			end
-			local left = target - now
-			local days = left // 86400
-			local hours = (left % 86400) // 3600
-			text = if days > 0
-				then `Judging day in {days}d {hours}h`
-				elseif hours > 0 then `Judging day in {hours}h`
-				else "Judging day in under 1h"
-		end
+		text = Daily.judgingText(contest.state, contest.daysLeft, os.time())
 	end
 	countdownPanel.Visible = text ~= nil
 	if text then
@@ -997,40 +1015,79 @@ local function addKeyBadge(button: TextButton, key: Enum.KeyCode)
 	end
 end
 
--- A key badge on a square's top left corner (the key's name in a small dark square), with a keyboard.
-local function addCornerKey(face: Frame, key: Enum.KeyCode)
+-- Sizes a key badge for a face `faceHeight` px tall: the small one under KEY_SMALL_FACE.
+local function fitCornerKey(badge: GuiObject, text: TextLabel, faceHeight: number)
+	local small = faceHeight < KEY_SMALL_FACE
+	local size = if small then SQUARE_KEY_SMALL else SQUARE_KEY_SIZE
+	badge.Size = UDim2.fromOffset(size, size)
+	text.TextSize = if small then 11 else 14
+end
+
+-- A key badge on a face's top left corner (the key's name in a small dark square), with a keyboard.
+-- Returns it and its text, or nothing without one; fitCornerKey sizes it for the face.
+local function addCornerKey(face: Frame, key: Enum.KeyCode, faceHeight: number): (GuiObject?, TextLabel?)
 	if not UserInputService.KeyboardEnabled then
-		return
+		return nil, nil
 	end
 	local badge = UI.sliced("KeyBadge", {
 		Name = "Key",
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.fromOffset(SQUARE_KEY_INSET, SQUARE_KEY_INSET),
-		Size = UDim2.fromOffset(SQUARE_KEY_SIZE, SQUARE_KEY_SIZE),
 		ZIndex = 8,
 		Parent = face,
 	}, { color = UI.Colors.Ink, transparency = 0.3, radius = 6 })
-	UI.heading(UserInputService:GetStringForKeyCode(key), {
+	local text = UI.heading(UserInputService:GetStringForKeyCode(key), {
 		Size = UDim2.fromScale(1, 1),
 		TextXAlignment = Enum.TextXAlignment.Center,
-		TextSize = 14,
 		ZIndex = 9,
 		Parent = badge,
 	})
+	fitCornerKey(badge, text, faceHeight)
+	return badge, text
+end
+
+-- The face a menu square is built with on this screen: the grid's on a touch or short screen, the
+-- PC column's otherwise.
+local function squareFace(): number
+	return if UI.isTouch() or UI.isCompact() then GRID_FACE else SQUARE_FACE
+end
+
+-- Sets a menu square's face (its Body) and the label under it to the face this screen asks for. UI.place
+-- has already given the button its UiLayout size, which is that face and the label's room.
+local function fitSquare(piece: Piece)
+	local faceHeight = squareFace()
+	local body = piece.face.Parent
+	if body and body:IsA("GuiObject") then
+		body.Size = UDim2.new(1, 0, 0, faceHeight)
+	end
+	local label = piece.label
+	if label then
+		label.Position = UDim2.new(0.5, 0, 0, faceHeight + SQUARE_LABEL_GAP)
+	end
+	if piece.key and piece.keyText then
+		fitCornerKey(piece.key, piece.keyText, faceHeight)
+	end
 end
 
 -- One menu square: a glossy face in its colour with its glyph and its name under it, placed by its
--- UiLayout entry in the holder. Returns the button and its face.
-local function buildSquare(spec, onClick: () -> ()): (TextButton, Frame)
-	local button, face = Juicy.button(spec.color, onClick, {
+-- UiLayout entry in the holder, built at the face this screen asks for (squareFace). Returns the piece.
+local function buildSquare(spec, onClick: () -> ()): Piece
+	local face = squareFace()
+	local button, faceFrame = Juicy.button(spec.color, onClick, {
 		Name = spec.name .. "Button",
 		Icon = spec.icon or spec.name,
 		Label = spec.name,
-		Size = UDim2.fromOffset(SQUARE_FACE, SQUARE_FACE),
+		Size = UDim2.fromOffset(face, face),
 		Parent = menuHolder,
 	})
 	UI.keepPlaced(button, spec.layout)
-	return button, face
+	local piece: Piece =
+		{ spec = spec, button = button, face = faceFrame, label = button:FindFirstChild("Label", true) }
+	if spec.key then
+		piece.key, piece.keyText = addCornerKey(faceFrame, spec.key, face)
+	end
+	table.insert(squarePieces, piece)
+	return piece
 end
 
 -- The squares are a column on a PC and a 2x2 grid on a touch screen or a short one (the mouse hint
@@ -1068,6 +1125,9 @@ local function layoutMenu()
 	if mouseHint then
 		mouseHint.Visible = not asGrid
 	end
+	for _, piece in squarePieces do
+		fitSquare(piece)
+	end
 end
 
 local function buildMenuButtons()
@@ -1075,15 +1135,14 @@ local function buildMenuButtons()
 	placeInColumn(menuHolder, "MenuButtons")
 
 	for _, menu in MENUS do
-		local _button, face = buildSquare(menu, function()
+		buildSquare(menu, function()
 			UI.toggle(menu.name)
 		end)
-		addCornerKey(face, menu.key)
 	end
-	local _contracts, face = buildSquare(CONTRACTS_SQUARE, function()
+	local contracts = buildSquare(CONTRACTS_SQUARE, function()
 		UI.toggle("Contracts")
 	end)
-	contractsFace = face
+	contractsFace = contracts.face
 	if UserInputService.KeyboardEnabled then
 		-- The mouse is locked to the middle of the screen in first person.
 		mouseHint = UI.label("Hold Alt for the mouse", {
@@ -1163,6 +1222,9 @@ local function fitRightButton(piece)
 		label.Visible = not small
 		label.Position = UDim2.new(0.5, 0, 0, faceHeight + SQUARE_LABEL_GAP)
 	end
+	if piece.key and piece.keyText then
+		fitCornerKey(piece.key, piece.keyText, faceHeight)
+	end
 end
 
 -- Whether the day's view says today's gift (the streak's cash) is waiting to be claimed.
@@ -1221,18 +1283,18 @@ local function buildRightButtons()
 			Parent = rightHolder,
 		})
 		UI.keepPlaced(button, spec.layout)
-		if spec.key then
-			addCornerKey(faceFrame, spec.key)
-		end
 		if spec.id == "Gifts" then
 			drawGift(faceFrame)
 		end
-		local piece = {
+		local piece: Piece = {
 			spec = spec,
 			button = button,
 			face = faceFrame,
 			label = button:FindFirstChild("Label", true),
 		}
+		if spec.key then
+			piece.key, piece.keyText = addCornerKey(faceFrame, spec.key, face)
+		end
 		table.insert(rightPieces, piece)
 		fitRightButton(piece)
 	end
@@ -1243,7 +1305,8 @@ local function buildRightButtons()
 	-- through setRightAction). Opening one closes any other menu, since only one is up at a time
 	-- (UI.open).
 	rightActions.Shop = function()
-		if UI.isOpen("Shop") then
+		-- Puts the Orders window away; with the computer's Business app up it switches to Orders instead.
+		if UI.isOpen("Shop") and ShopController.currentApp() == "Orders" then
 			UI.close("Shop")
 		else
 			ShopController.openApp("Orders")
@@ -1526,14 +1589,14 @@ local function updateContractsBadge()
 		contractsBadgeText.Text = text
 		return
 	end
-	local badge, badgeFace = Juicy.badge(text, {
+	local badge, _face, label = Juicy.badge(text, {
 		AnchorPoint = Vector2.new(1, 0),
 		Position = UDim2.new(1, COUNT_BADGE_OVERHANG, 0, -COUNT_BADGE_OVERHANG),
 		ZIndex = 8,
 		Parent = contractsFace,
 	})
 	contractsBadge = badge
-	contractsBadgeText = badgeFace:FindFirstChild("Text") :: TextLabel
+	contractsBadgeText = label
 end
 
 -- The `count` milestones nearest to done, never one MilestoneReached has said is reached, which a
@@ -1757,6 +1820,51 @@ local function updateGoal()
 	goalBar.set(if goal.need > 0 then have / goal.need else 1)
 end
 
+-- Gives `button` a hit area at least HIT_MIN px tall once its column is scaled, on a touch screen: two
+-- invisible strips just above and below it (children of it, so they follow it and its visibility) that
+-- do what it does, each as tall as the missing part needs. Its width is enough already. The strips lie
+-- over the card or the gap around the button, never over another control. `column` is the column it is
+-- in, by its name in UiLayout.
+local function addHitStrips(button: TextButton, onActivate: () -> (), column: string)
+	local scale = columns[column]:FindFirstChildOfClass("UIScale")
+	local strips: { TextButton } = {}
+	for _, below in { false, true } do
+		local strip = UI.new("TextButton", {
+			Name = if below then "HitBelow" else "HitAbove",
+			AutoButtonColor = false,
+			BackgroundTransparency = 1,
+			BorderSizePixel = 0,
+			Text = "",
+			AnchorPoint = Vector2.new(0, if below then 0 else 1),
+			Position = UDim2.fromScale(0, if below then 1 else 0),
+			Size = UDim2.fromScale(1, 0),
+			Visible = false,
+			Parent = button,
+		})
+		strip.Activated:Connect(function()
+			Sounds.playUi("Click", HIT_CLICK_VOLUME)
+			onActivate()
+		end)
+		table.insert(strips, strip)
+	end
+	local function fit()
+		local factor = if scale then math.max(scale.Scale, 0.01) else 1
+		local extra = 0
+		if UI.isTouch() then
+			extra = math.max(0, math.ceil((HIT_MIN / factor - button.Size.Y.Offset) / 2))
+		end
+		for _, strip in strips do
+			strip.Size = UDim2.new(1, 0, 0, extra)
+			strip.Visible = extra > 0
+		end
+	end
+	if scale then
+		scale:GetPropertyChangedSignal("Scale"):Connect(fit)
+	end
+	UI.CompactChanged:Connect(fit)
+	fit()
+end
+
 -- "Show what I missed" -------------------------------------------------------------------------
 
 local missedButton: TextButton
@@ -1781,6 +1889,7 @@ local function buildMissedButton()
 	})
 	placeInColumn(missedButton, "MissedButton")
 	addKeyBadge(missedButton, MISSED_KEY)
+	addHitStrips(missedButton, showMissed, "RightColumn")
 end
 
 local function onKey(input: InputObject, processed: boolean)
@@ -1819,6 +1928,34 @@ end
 
 local function callOffJob()
 	Net.event("AbandonJob"):FireServer()
+end
+
+-- The call-off button's words on both of the tracker's layouts: what the job's state says, or "Sure?"
+-- while it is asking.
+local function showCallOffWords()
+	local words = if callOffSure then "Sure?" else callOffWords
+	callOffLabel.Text = words
+	compactCallOffLabel.Text = words
+end
+
+-- Calling a job off sends the whole crew home when you lead, so it takes two taps: the first turns the
+-- pill into "Sure?" for CALL_OFF_SURE seconds (the Shop's sell confirm does the same), the second sends it.
+local function pressCallOff()
+	if callOffSure then
+		callOffSure = false
+		showCallOffWords()
+		callOffJob()
+		return
+	end
+	callOffSure = true
+	callOffAskedAt = os.clock()
+	showCallOffWords()
+	task.delay(CALL_OFF_SURE, function()
+		if callOffSure and os.clock() - callOffAskedAt >= CALL_OFF_SURE then
+			callOffSure = false
+			showCallOffWords()
+		end
+	end)
 end
 
 -- A to-do's row: its words over a bar of how far along it is, or on a short screen just the words,
@@ -1871,7 +2008,7 @@ end
 -- A Call off pill: Juicy's Danger button with `words` in its face, `size` big, in `parent` at its
 -- right. Returns the button and the words.
 local function callOffPill(size: Vector2, textSize: number, parent: Frame): (TextButton, TextLabel)
-	local button, face = Juicy.button("Danger", callOffJob, {
+	local button, face = Juicy.button("Danger", pressCallOff, {
 		Name = "CallOff",
 		Size = UDim2.fromOffset(size.X, size.Y),
 		Radius = size.Y / 2,
@@ -2052,9 +2189,11 @@ local function buildTracker()
 		Position = UDim2.new(0, damageX, 0.5, 0),
 		Size = UDim2.new(1, -(damageX + CALL_OFF.X + 8), 0, 22),
 		TextSize = 16,
+		TextTruncate = Enum.TextTruncate.AtEnd,
 		Parent = damageRow,
 	})
 	trackerButton, callOffLabel = callOffPill(CALL_OFF, 15, damageRow)
+	addHitStrips(trackerButton, pressCallOff, "RightColumn")
 
 	-- On a short screen the damage (once there is some) and a small Call off pill share a row at the
 	-- bottom instead.
@@ -2076,6 +2215,7 @@ local function buildTracker()
 		Parent = compactFooter,
 	})
 	compactButton, compactCallOffLabel = callOffPill(COMPACT_CALL_OFF, 14, compactFooter)
+	addHitStrips(compactButton, pressCallOff, "RightColumn")
 
 	-- Small or full size as the screen changes, like curb appeal's rule.
 	UI.getScreen():GetPropertyChangedSignal("AbsoluteSize"):Connect(layoutTracker)
@@ -2141,8 +2281,8 @@ end
 
 -- The call-off button's words, on both of the tracker's layouts.
 local function setCallOffText(text: string)
-	callOffLabel.Text = text
-	compactCallOffLabel.Text = text
+	callOffWords = text
+	showCallOffWords()
 end
 
 -- "0:42" big with "par 1:30" beside it (the short screen's one is "0:42 / 1:30", beside the job's
@@ -2625,18 +2765,25 @@ local function onGiftPaid(info: { cash: number, yesterday: boolean })
 	afterTitleCard(showGiftPaid, info)
 end
 
+-- The money counter's words for a number, noting that it is the one on screen now.
+local function moneyText(value: number): string
+	shownMoney = value
+	return Format.money(value)
+end
+
 local function updateProfile()
 	local profile = ClientState.profile
 	if not profile then
 		return
 	end
-	-- Money that came in counts up and the pill pulses; anything else (the first profile, a spend) is set.
+	-- Money that came in counts up from the number on screen and the pill pulses; anything else (the
+	-- first profile, a spend) is set.
 	if profile.money ~= lastMoney then
 		if lastMoney and profile.money > lastMoney then
-			Juicy.countTo(money, lastMoney, profile.money, MONEY_COUNT_TIME, Format.money)
+			Juicy.countTo(money, shownMoney or lastMoney, profile.money, MONEY_COUNT_TIME, moneyText)
 			Juicy.pulse(moneyPill)
 		else
-			Juicy.countTo(money, profile.money, profile.money, 0, Format.money)
+			Juicy.countTo(money, profile.money, profile.money, 0, moneyText)
 		end
 		lastMoney = profile.money
 	end
@@ -2682,32 +2829,18 @@ local function boostWords(label: string, bonus: number): string?
 	return if percent > 0 then `{label} +{percent}%` else nil
 end
 
--- The pay bonuses on the job you're on, as the pills under its card: Crew (GameConfig.CrewBonusPerMember
--- for each member of your crew besides its leader), Curb (HomeLawn.payBonus of the leader's curb
--- appeal, which is a player attribute everyone can read) and Truck and Business (the payoutBonus of the
--- items the leader has equipped). JobService works the pay out the same way. The leader's equipped
--- items are only in your own profile, so Truck and Business show when you are the one leading; as a
--- crew member you can't see them and they are left off rather than guessed. Shown only while the card
+-- The pay bonuses on the job you're on, as the pills under its card: Crew, Curb, Truck and Business, the
+-- factors the server sends with every job update (JobService's payBonuses, the same ones the pay is
+-- worked out from, so a crew member sees the leader's truck and business too). Shown only while the card
 -- is, and a pill only while its bonus is above zero.
 local function updateBoosts()
 	local job = ClientState.job
 	local words: { [string]: string? } = {}
 	if job and tracker.Visible then
-		local party = ClientState.party
-		local members = if party then #party.members else 1
-		words.Crew = boostWords("Crew", GameConfig.CrewBonusPerMember * math.max(0, members - 1))
-		local leader = job.leader
-		local appeal = if leader then leader:GetAttribute("CurbAppeal") else nil
-		if typeof(appeal) == "number" then
-			words.Curb = boostWords("Curb", HomeLawn.payBonus(appeal) - 1)
-		end
-		local profile = ClientState.profile
-		if leader == player and profile and profile.equipped then
-			local truck = if profile.equipped.Truck then Items.get("Truck", profile.equipped.Truck) else nil
-			local business = if profile.equipped.Business then Items.get("Business", profile.equipped.Business) else nil
-			words.Truck = if truck then boostWords("Truck", truck.payoutBonus) else nil
-			words.Business = if business then boostWords("Business", business.payoutBonus) else nil
-		end
+		words.Crew = boostWords("Crew", (job.crewBonus or 1) - 1)
+		words.Curb = boostWords("Curb", (job.curbBonus or 1) - 1)
+		words.Truck = boostWords("Truck", (job.truckBonus or 1) - 1)
+		words.Business = boostWords("Business", (job.businessBonus or 1) - 1)
 	end
 	local any = false
 	for id, pill in boostPills do
@@ -2725,6 +2858,9 @@ local function updateJob()
 	local job = ClientState.job
 	if not job then
 		tracker.Visible = false
+		-- A "Sure?" that was waiting goes with the job.
+		callOffSure = false
+		showCallOffWords()
 		clearTaskRows()
 		updateMissedButton()
 		updateCurbAppeal()
@@ -2735,6 +2871,7 @@ local function updateJob()
 
 	if job.id ~= shownJobId then
 		shownJobId = job.id
+		callOffSure = false
 		clearTaskRows()
 		if payShownFor ~= job.id then
 			hidePay()
@@ -2772,6 +2909,11 @@ local function updateJob()
 			showPay(job)
 		end
 	end
+	-- A "Sure?" does not outlast the button (a job that is starting, done or no longer yours to call off).
+	if not callOffShown then
+		callOffSure = false
+	end
+	showCallOffWords()
 	updateStars(job)
 	updateTimer()
 	updateCurbAppeal()

@@ -345,14 +345,16 @@ return {
 		autoSize = "Y",
 		list = { direction = "Vertical", padding = 12, align = "Left" },
 		typical = { 150, 476 },
-		touch = { size = { 0, 168, 0, 0 }, scale = 0.85, typical = { 168, 228 } },
-		compact = { size = { 0, 168, 0, 0 }, scale = 0.85, typical = { 168, 228 } },
+		touch = { size = { 0, 144, 0, 0 }, typical = { 144, 204 } },
+		compact = { size = { 0, 144, 0, 0 }, typical = { 144, 204 } },
 		note = "The Truck, Guide, Crew and Contracts squares: a column of four on a PC (12 px apart, 476 px tall). "
 			.. "On a touch screen or a short one they are a 2x2 grid instead (two squares and a 16 px gap across, "
-			.. "8 px between the rows, 228 px tall, drawn at 0.85 so the left column still fits at its 0.7 floor "
-			.. "with the countdown showing; HudController swaps the list for a grid), which is what keeps the "
-			.. "squares 44 px or more on a phone held sideways. With a keyboard each has its key (T, G, C) on its corner and, in the "
-			.. "column, the mouse hint goes under them.",
+			.. "8 px between the rows, 204 px tall; HudController swaps the list for a grid). The grid's squares "
+			.. "are built with a 64 px face, not drawn smaller by a scale on the grid (a list is not promised to "
+			.. "make room for a child's UIScale), so the left column's content is what the squares really take; "
+			.. "that keeps their faces 44 px or more on a phone held sideways, with the judging day countdown "
+			.. "showing. With a keyboard each has its key (T, G, C) on its corner and, in the column, the mouse "
+			.. "hint goes under them.",
 	},
 	TruckButton = {
 		label = "Truck button",
@@ -360,8 +362,11 @@ return {
 		parent = "MenuButtons",
 		order = 1,
 		size = { 0, 76, 0, 110 },
+		touch = { size = { 0, 64, 0, 98 } },
+		compact = { size = { 0, 64, 0, 98 } },
 		note = "A blue square with the Truck glyph and its name under it. Opens the Truck menu (T). 76 px of face "
-			.. "and 34 for the label (its 6 px lip hangs into that room).",
+			.. "and 34 for the label (its 6 px lip hangs into that room); 64 px of face (98 in all) in the grid on "
+			.. "a touch or short screen. The other three squares are the same.",
 	},
 	GuideButton = {
 		label = "Guide button",
@@ -369,6 +374,8 @@ return {
 		parent = "MenuButtons",
 		order = 2,
 		size = { 0, 76, 0, 110 },
+		touch = { size = { 0, 64, 0, 98 } },
+		compact = { size = { 0, 64, 0, 98 } },
 		note = "An orange square with the Guide glyph and its name under it. Opens the Tool Guide (G).",
 	},
 	CrewButton = {
@@ -377,6 +384,8 @@ return {
 		parent = "MenuButtons",
 		order = 3,
 		size = { 0, 76, 0, 110 },
+		touch = { size = { 0, 64, 0, 98 } },
+		compact = { size = { 0, 64, 0, 98 } },
 		note = "A purple square with the Crew glyph and its name under it. Opens the Crew menu (C).",
 	},
 	ContractsButton = {
@@ -385,6 +394,8 @@ return {
 		parent = "MenuButtons",
 		order = 4,
 		size = { 0, 76, 0, 110 },
+		touch = { size = { 0, 64, 0, 98 } },
+		compact = { size = { 0, 64, 0, 98 } },
 		note = "A coral square with the clipboard glyph and 'Contracts' under it, where the Contracts chip was. It "
 			.. "opens the contracts panel, or closes it if it is open. A tilted yellow badge on its top right corner "
 			.. "counts the contracts left today (3 minus the ones done) and is hidden at 0 and before the day's "
@@ -409,9 +420,12 @@ return {
 		order = 5,
 		anchor = { 0.5, 0 },
 		position = { 0.5, 0, 0, 12 },
-		size = { 0, 330, 0, 0 },
+		size = { 1, -784, 0, 0 },
+		min = { width = 240 },
+		max = { width = 330 },
 		autoSize = "Y",
 		typical = { 330, 64 },
+		compact = { position = { 0.5, -45, 0, 12 }, size = { 1.43, -696, 0, 0 } },
 		hideWhile = { "TutorialBanner", "CrewInvite" },
 		note = "A cream banner at the top in the middle, on every screen, with your story goal and how close "
 			.. "you are, while you have one: a red flag, the goal in a line or two, what finishing it pays (only "
@@ -423,7 +437,15 @@ return {
 			.. "detach puts it back there), between the HUD's two columns and away from your thumb on the move "
 			.. "stick, and the toasts start under it. The first-job coach and a crew invite go there too, and "
 			.. "it waits while either shows (a crew invite is along the bottom on a PC, but the banner waits "
-			.. "for it there too, so one rule serves every screen).",
+			.. "for it there too, so one rule serves every screen). Its width is what is left between the "
+			.. "columns: the screen's width less twice the right column's reach from the edge (the right "
+			.. "buttons, 12 px either side of them, and the column's 280 px, which is 380) and a 12 px gap, so "
+			.. "784, but never wider than 330 or narrower than 240 (a 1024 px wide window gets 240; a PC window "
+			.. "narrower than that is not covered, the banner stays 240 and the job card can reach it). A short "
+			.. "screen (a phone) has less room, so its banner is the scaled-up rule for the columns' 0.7 "
+			.. "(1.43 of the width less 696 before the scale, which is the width less 487 after it) and sits "
+			.. "45 px left of the middle, in the middle of what is left between the columns, so a 667 px wide "
+			.. "phone gets 180 px and an 844 px wide one the full 330.",
 	},
 	RightButtons = {
 		label = "Right buttons",
@@ -542,7 +564,7 @@ return {
 		size = { 0, 280, 0, 0 },
 		autoSize = "Y",
 		typical = { 280, 330 },
-		compact = { typical = { 280, 144 } },
+		compact = { typical = { 280, 150 } },
 		hideWhile = { "DecorButtons" },
 		note = "A dark glass card (4 px ink outline and a lip), while you have a job: its name in gold with the "
 			.. "job's three stars beside it once it's paid, a hint, the big white timer with par beside it "
@@ -566,8 +588,9 @@ return {
 		list = { direction = "Horizontal", padding = 6, align = "Right" },
 		note = "Under the job tracker, during a job: a dark glass pill with a glyph for each pay bonus that is "
 			.. "above zero: Crew (15% for each crew member besides the leader), Curb (from the crew's curb "
-			.. "appeal), and Truck and Business (the leader's equipped ones, shown only when you are the "
-			.. "leader, since the crew's other members can't see them). The row is hidden when there is "
+			.. "appeal, as it was when the truck pulled out), and Truck and Business (the leader's equipped "
+			.. "ones). The numbers are the server's, sent with every job update, so everyone in the crew "
+			.. "sees all four. The row is hidden when there is "
 			.. "none, and wraps to a second line when the pills don't fit. The tracker's card and this row "
 			.. "hide together.",
 	},
@@ -637,17 +660,26 @@ return {
 		screen = "LawnUI",
 		anchor = { 0.5, 0 },
 		position = { 0.5, 0, 0, 12 },
-		size = { 0.6, 0, 0, 0 },
+		size = { 1, -784, 0, 0 },
 		autoSize = "Y",
+		min = { width = 240 },
 		max = { width = 480 },
 		typical = { 450, 130 },
-		touch = { size = { 1, -560, 0, 0 }, scale = 0.85, typical = { 284, 120 }, hideWhile = { "CrewInvite" } },
-		compact = { size = { 1, -500, 0, 0 }, scale = 0.7, hideWhile = { "CrewInvite", "HoldRing" } },
+		touch = { size = { 1.18, -875, 0, 0 }, scale = 0.85, typical = { 333, 120 }, hideWhile = { "CrewInvite" } },
+		compact = {
+			position = { 0.5, -45, 0, 12 },
+			size = { 1.43, -696, 0, 0 },
+			scale = 0.7,
+			typical = { 480, 100 },
+			hideWhile = { "CrewInvite", "HoldRing" },
+		},
 		note = "Coaches a new player through their first job, a step at a time, once the intro scene's over "
 			.. "and until the job's paid: at the shop, on the way and on the lawn. As tall as its words. The "
-			.. "toasts keep below it. On a touch screen its words are shorter and it's narrower, to fit between "
-			.. "the HUD's columns (the job tracker's on the right, which now stands inside the right buttons, "
-			.. "so about 240 px is left on a phone), and smaller, so it stays above the dot. A "
+			.. "toasts keep below it. It follows Grandma's goal's rule for its width (which is its note): "
+			.. "what is left between the columns, 784 less than the screen on a PC, never narrower than 240 "
+			.. "or wider than 480. On a touch screen its words are shorter, it's drawn at 0.85 so it stays above "
+			.. "the dot (the width less 744 once scaled, because the right column is 20 px nearer the edge "
+			.. "there), and on a short screen at 0.7 and 45 px left of the middle, like the banner. A "
 			.. "crew invite goes there too on a touch screen, and it waits while that shows, and on a short "
 			.. "screen while you hold to work on a tool (the hold ring would be under it).",
 	},

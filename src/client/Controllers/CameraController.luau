@@ -9,8 +9,8 @@
 --   * bobs the camera a little as you walk and shakes it slightly while a gas engine you're using
 --     is running (harder while a mower is cutting thick grass), unless camera motion is switched
 --     off (GameConfig.Camera, or the player's "Camera motion" setting: in the Settings window, the
---     Guide's switch or V, which all save it through SettingsController). It starts from the saved
---     setting when the profile arrives, and follows it if the saved value changes
+--     Guide's switch or V, which all save it through SettingsController, the one writer; it also
+--     applies the saved setting when the profile arrives, through setMotion)
 --   * turns the camera the way the server says to face after it moves you (back at the shop after
 --     a respawn or a job, at the house on a job, at a new crew's shop): first person would keep
 --     looking wherever it was, and turn your character back to match
@@ -25,12 +25,10 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local GameConfig = require(Shared.Config.GameConfig)
 local GuiLayout = require(Shared.GuiLayout)
 local Maintenance = require(Shared.Config.Maintenance)
-local Settings = require(Shared.Config.Settings)
 local Signal = require(Shared.Signal)
 local Tools = require(Shared.Config.Tools)
 
 local Art = require(script.Parent.Parent.Art)
-local ClientState = require(script.Parent.Parent.ClientState)
 local UI = require(script.Parent.Parent.UI)
 
 local player = Players.LocalPlayer
@@ -56,10 +54,6 @@ local CameraController = {}
 CameraController.MotionChanged = Signal.new()
 
 local motionOn = true
--- The camera motion the profile last said (nil before it arrives). Only a change in it moves the
--- camera, so a profile that comes in while a new choice is on its way to the server (a money update,
--- say) does not put the old one back.
-local savedMotion: boolean? = nil
 local altHeld = false
 local cursorButton: TextButton
 local crosshair: ScreenGui
@@ -93,20 +87,6 @@ function CameraController.setMotion(on: boolean)
 	if CameraController.hasMotion() and motionOn ~= on then
 		motionOn = on
 		CameraController.MotionChanged:Fire(on)
-	end
-end
-
--- Takes camera motion from the saved settings in the profile, when that is different from what the
--- profile said before.
-local function readSetting()
-	local profile = ClientState.profile
-	if not profile then
-		return
-	end
-	local motion = Settings.clean(profile.settings).motion
-	if motion ~= savedMotion then
-		savedMotion = motion
-		CameraController.setMotion(motion)
 	end
 end
 
@@ -303,13 +283,6 @@ function CameraController:Start()
 	setUpCamera()
 	workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(setUpCamera)
 	motionOn = CameraController.hasMotion()
-	-- The profile may already be here, and it comes again whenever it changes.
-	readSetting()
-	ClientState.Changed:Connect(function(key)
-		if key == "profile" then
-			readSetting()
-		end
-	end)
 
 	cursorButton = UI.new("TextButton", {
 		Name = "FreeCursor",

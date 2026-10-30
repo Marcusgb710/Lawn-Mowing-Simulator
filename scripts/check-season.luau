@@ -216,6 +216,54 @@ check(
 )
 check(Daily.midnightAfter(1793232000 + 100) == 1793232000 + 86400, "midnight after")
 
+-- The judging day countdown pill's words (Daily.judgingText), from the contest view the server sent
+-- (state, and daysLeft: 0 on judging day, 7 on a Saturday already judged, 1 to 6 on the other days) and
+-- this computer's clock. The server only sends the view at join, at an act and when a job ends, so a
+-- player who stays on across Saturday's midnight holds a view from before it: the pill must say today
+-- is judging day, not seven days, and a stale Open off Saturday must fall back to the countdown.
+do
+	local FRIDAY, SATURDAY = 1793404800 - 86400, 1793404800
+	check(
+		Daily.judgingText("Waiting", 2, 1793232000 + 3600) == "Judging day in 1d 23h",
+		"Thursday 01:00 to Saturday is 1d 23h"
+	)
+	check(Daily.judgingText("Waiting", 1, SATURDAY - 1800) == "Judging day in under 1h", "late Friday is under an hour")
+	check(Daily.judgingText("Waiting", 1, SATURDAY - 7200) == "Judging day in 2h", "two hours out says hours")
+	check(
+		Daily.judgingText("Waiting", 1, SATURDAY) == "Judging day is today!",
+		"Saturday's midnight with a view from Friday says today"
+	)
+	check(
+		Daily.judgingText("Waiting", 1, SATURDAY + 40000) == "Judging day is today!",
+		"later on that Saturday the old view still says today"
+	)
+	check(
+		Daily.judgingText("Waiting", 7, SATURDAY + 36000) == "Judging day in 6d 14h",
+		"a Saturday already judged looks to the next one"
+	)
+	check(
+		Daily.judgingText("Waiting", 7, SATURDAY) == "Judging day in 7d 0h",
+		"a judged Saturday's midnight is a week to the next"
+	)
+	check(
+		Daily.judgingText("Waiting", nil, SATURDAY) == "Judging day in 7d 0h",
+		"a view with no daysLeft counts as judged"
+	)
+	check(Daily.judgingText("Open", 0, SATURDAY + 100) == "Judging day is today!", "Open on a Saturday is today")
+	check(
+		Daily.judgingText("Open", 0, SATURDAY + 86400 + 36000) == "Judging day in 5d 14h",
+		"an Open view held past Sunday falls to the countdown"
+	)
+	check(
+		Daily.judgingText("Open", 0, FRIDAY + 3600) == "Judging day in 23h",
+		"an Open view held to Friday falls to the countdown"
+	)
+	check(
+		Daily.judgingText("Locked", 3, SATURDAY) == nil and Daily.judgingText("Results", 0, SATURDAY) == nil,
+		"a contest that is neither waiting nor open shows no pill"
+	)
+end
+
 -- The Clock loads with nothing but its table (it looks RunService up only inside setOffset, and Lune
 -- has no `game`), so it can be required here. Outside Studio the offset stays 0 and now() is the
 -- real time.
@@ -861,16 +909,26 @@ check(
 -- A missed claim is paid by the next turn, exactly once, and the new day's gift waits.
 local unclaimed = { days = 3, last = "20261029", claimed = "20261028" }
 advanced, owed, owedDays = Streak.turn(unclaimed, "20261030", "20261029")
-check(
-	advanced == true and owed == 200 and owedDays == 3,
-	"an unclaimed day 3 is paid at the next turn: $200 for day 3"
-)
+check(advanced == true and owed == 200 and owedDays == 3, "an unclaimed day 3 is paid at the next turn: $200 for day 3")
 check(unclaimed.days == 4 and unclaimed.last == "20261030", "and the streak moves on to day 4")
 check(Streak.waiting(unclaimed, "20261030"), "and day 4's gift waits to be claimed")
 local again, owedAgain = Streak.turn(unclaimed, "20261030", "20261029")
 check(again == false and owedAgain == nil, "the owed gift is paid once: the same day's turn again owes nothing")
 check(Streak.claim(unclaimed, "20261030").cash == 300, "the new day's gift is still its own: day 4 pays $300")
 check(Streak.claim(unclaimed, "20261030") == nil, "and is claimed once")
+
+-- The day turn runs every minute (DailyService's loop), so most of its calls are on a day the streak
+-- already has: with today's gift waiting it moves nothing, owes nothing and leaves the gift waiting.
+local waitingToday = { days = 3, last = "20261029", claimed = "20261028" }
+local movedToday, owedToday, owedTodayDays = Streak.turn(waitingToday, "20261029", "20261028")
+check(
+	movedToday == false and owedToday == nil and owedTodayDays == nil and Streak.waiting(waitingToday, "20261029"),
+	"a same-day turn leaves today's gift waiting and owes nothing"
+)
+check(
+	waitingToday.days == 3 and waitingToday.last == "20261029" and waitingToday.claimed == "20261028",
+	"and changes nothing in the streak"
+)
 
 -- Day 7's gift: the pennant flag comes with the turn onto day 7 (the caller gives it then), the
 -- owed gift is cash only, and the turn past day 7 brings no flag.
@@ -881,10 +939,7 @@ check(
 	"the turn onto day 7 is the one with the pennant"
 )
 advanced, owed, owedDays = Streak.turn(seventh, "20261030", "20261029")
-check(
-	advanced == true and owed == 1000 and owedDays == 7,
-	"an unclaimed day 7 pays its $1,000 at the next turn"
-)
+check(advanced == true and owed == 1000 and owedDays == 7, "an unclaimed day 7 pays its $1,000 at the next turn")
 check(
 	seventh.days == 8 and Streak.rewardFor(seventh.days).flag == nil,
 	"and the turn past day 7 has no flag, so the pennant is never given twice"
@@ -1177,6 +1232,61 @@ if typeof(Sounds.setVolume) == "function" and typeof(Sounds.getVolume) == "funct
 	Sounds.setVolume(1)
 end
 
+-- Settings.admit is the server's whole decision about a SaveSettings call, so it is tested by what it
+-- does: `value` is what the client sent, `lastAt` when this player's last accepted save was (nil for
+-- none) and `now` this call's moment, both os.clock seconds. A refusal answers false and nothing;
+-- otherwise true and the cleaned table to save.
+do
+	check(Settings.Cooldown == 0.5, "SaveSettings lets a player save once every half second")
+	local okFirst, savedFirst = Settings.admit({ sound = "Low", motion = false, grass = "High" }, nil, 100)
+	check(
+		okFirst == true
+			and savedFirst ~= nil
+			and sameTable(savedFirst, { sound = "Low", motion = false, grass = "High" }),
+		"a first save is let through and comes back as it was sent"
+	)
+	for _, junk in { 5, "Low", true, false, print } do
+		local ok, saved = Settings.admit(junk, nil, 100)
+		check(ok == false and saved == nil, `{typeof(junk)} is not a table, so it is refused`)
+	end
+	local okNil, savedNil = Settings.admit(nil, nil, 100)
+	check(okNil == false and savedNil == nil, "nothing is refused")
+	local good = { sound = "Off", motion = true, grass = "Low" }
+	local okSoon, savedSoon = Settings.admit(good, 100, 100 + Settings.Cooldown - 0.01)
+	check(okSoon == false and savedSoon == nil, "a second save inside the cooldown is refused")
+	local okSame, savedSame = Settings.admit(good, 100, 100)
+	check(okSame == false and savedSame == nil, "a save at the very moment of the last is refused")
+	local okLater, savedLater = Settings.admit(good, 100, 100 + Settings.Cooldown)
+	check(
+		okLater == true and savedLater ~= nil and sameTable(savedLater, good),
+		"a save after the cooldown is let through"
+	)
+	local okEarlier, savedEarlier = Settings.admit(good, 100, 50)
+	check(okEarlier == false and savedEarlier == nil, "a clock that went backwards still counts as too soon")
+	-- What is let through is cleaned: bad values are the defaults, unknown keys dropped, never the table sent.
+	local okDirty, savedDirty = Settings.admit({ sound = "Loud", motion = 1, grass = "High", money = 1e9 }, nil, 100)
+	local savedKeys = 0
+	for _ in savedDirty or {} do
+		savedKeys += 1
+	end
+	check(
+		okDirty == true
+			and savedDirty ~= nil
+			and savedDirty.sound == "High"
+			and savedDirty.motion == Settings.Defaults.motion
+			and savedDirty.grass == "High"
+			and savedKeys == 3,
+		"what is let through is cleaned to the three keys"
+	)
+	local sent = { sound = "Low" }
+	local _, savedCopy = Settings.admit(sent, nil, 100)
+	check(savedCopy ~= sent, "what is saved is never the table the client sent")
+	-- A refused call does not cost the next one anything: admit keeps no state of its own.
+	local _ = Settings.admit(good, 100, 100.1)
+	local okAfter = Settings.admit(good, 100, 100 + Settings.Cooldown)
+	check(okAfter == true, "a refused call leaves the next one as it was")
+end
+
 -- The save and the server: the wiring is checked in the text, as DataService cannot load here.
 local function source(path: string): string
 	return if fs.isFile(path) then fs.readFile(path) else ""
@@ -1197,11 +1307,25 @@ local fromSnapshot = string.match(dataService, "local function snapshot%(data%).
 check(has(fromSnapshot, "settings = data.settings"), "snapshot sends the settings")
 local fromHandler = string.match(dataService, 'Net.func%("SaveSettings"%).-\n\tend\n') or ""
 check(fromHandler ~= "", "DataService answers SaveSettings")
-check(has(fromHandler, 'typeof(value) ~= "table"'), "SaveSettings refuses anything that is not a table")
-check(has(fromHandler, "Settings.clean(value)"), "SaveSettings cleans what it is sent")
-check(has(fromHandler, "SETTINGS_COOLDOWN"), "SaveSettings is rate limited")
+-- The decision is Settings.admit's (tested above by what it does); the handler only has to ask it with
+-- this player's last accepted save, keep the moment of a save it let through, and save what came back.
+check(
+	has(fromHandler, "Settings.admit(value, lastSettingsSave[player], now)"),
+	"SaveSettings asks Settings.admit about the value, this player's last save and now"
+)
+check(has(fromHandler, "lastSettingsSave[player] = now"), "SaveSettings keeps the moment of a save it let through")
+check(has(fromHandler, "data.settings = saved"), "SaveSettings saves what Settings.admit cleaned, not what it was sent")
+check(
+	not has(fromHandler, "SETTINGS_COOLDOWN") and not has(dataService, "SETTINGS_COOLDOWN"),
+	"the cooldown is Settings.Cooldown, not a copy in DataService"
+)
 check(has(fromHandler, "self:Changed(player)"), "SaveSettings pushes the profile")
-check(has(dataService, "DATA_VERSION = 14"), "no version bump for the settings key")
+-- Slice 3 owns data version 15 (the plan's Global Constraints): when it bumps DATA_VERSION this rule is
+-- the one to change, to the new number; it only says this front-page HUD plan added no bump of its own.
+check(
+	has(dataService, "DATA_VERSION = 14"),
+	"DATA_VERSION isn't 14: if slice 3 bumped it to 15 on purpose, update this rule to the new number (the Settings keys needed no bump of their own)"
+)
 local soundsSource = source("src/shared/Sounds.luau")
 check(has(soundsSource, "SoundGroup") and has(soundsSource, '"Effects"'), "Sounds has the Effects SoundGroup")
 

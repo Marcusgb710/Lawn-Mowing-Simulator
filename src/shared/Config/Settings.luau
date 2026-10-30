@@ -2,8 +2,9 @@
 -- Low, High), Camera motion (on or off) and Grass detail (Auto, High, Low). They are saved in the
 -- profile as `settings = { sound, motion, grass }`. This file is the rule for what is allowed:
 -- `clean` makes any value into a good one, and it is what the server runs on every SaveSettings call
--- and on a save as it loads, so a tampered or old value never gets further. Nothing here reads the
--- game or saves anything.
+-- and on a save as it loads, so a tampered or old value never gets further. `admit` is the server's
+-- whole decision about a SaveSettings call (a table, not too soon after the last, and cleaned). Nothing
+-- here reads the game or saves anything.
 --
 -- scripts/check-season.luau gates this file. It has no requires, so Lune can load it: the motion
 -- default is a copy of what GameConfig.Camera says (the check compares them) and the shell counts are
@@ -45,6 +46,27 @@ function Settings.clean(source: any): Values
 		values[key] = if table.find(Settings.Options[key], value) then value else Settings.Defaults[key]
 	end
 	return values :: any
+end
+
+-- The least time, in seconds, between one player's accepted SaveSettings calls. The Settings window
+-- (SettingsController) sends no faster than a safe margin over this, since the server measures the gap
+-- between arrivals and the window the gap between sends.
+Settings.Cooldown = 0.5
+
+-- Whether a SaveSettings call is let through, and what to save. `value` is what the client sent,
+-- `lastAt` the moment (os.clock seconds) of this player's last accepted call (nil for none) and `now`
+-- the moment of this one. A refusal is false and nothing: the value is not a table, or it comes
+-- sooner than Cooldown after the last (a clock that went backwards counts as too soon). Otherwise
+-- true and a new, cleaned table. It keeps no state, so the caller keeps `lastAt`, and only sets it
+-- when the call was let through.
+function Settings.admit(value: any, lastAt: number?, now: number): (boolean, Values?)
+	if typeof(value) ~= "table" then
+		return false, nil
+	end
+	if lastAt ~= nil and (now < lastAt or now - lastAt < Settings.Cooldown) then
+		return false, nil
+	end
+	return true, Settings.clean(value)
 end
 
 -- The volume of the Effects group for a Sound choice (the default's for anything unknown).

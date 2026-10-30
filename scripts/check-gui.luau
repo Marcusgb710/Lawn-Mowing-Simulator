@@ -476,9 +476,10 @@ for id, entry in UiLayout do
 end
 
 -- Grandma's goal (front-page HUD, ruling 3): a cream banner at the top in the middle on every screen,
--- 330 wide and as tall as its words, out of the left column (it is still a piece the editor can put
+-- up to 330 wide and as tall as its words, out of the left column (it is still a piece the editor can put
 -- back there: its detach). It shares the top with the first-job coach and a crew invite, one at a
 -- time, so it waits for both on every screen, not only a touch one.
+local BANNER_GAP = 12
 local grandma = UiLayout.GrandmaGoal
 check(grandma ~= nil, "UiLayout has no GrandmaGoal")
 if grandma then
@@ -497,9 +498,19 @@ if grandma then
 			and grandma.position[4] == 12,
 		"UiLayout's GrandmaGoal isn't 12 px down from the top, in the middle"
 	)
+	-- Its width is what is left between the columns: the screen less twice the right column's reach from
+	-- the edge (the strip, the gaps and the column itself) and a gap to keep from it, never wider than
+	-- 330 nor narrower than 240. That is the piece's base size, which is a PC's and a tall touch screen's;
+	-- the short screens have their own (see the screens check below).
+	local rightColumn = UiLayout.RightColumn
+	local bannerReach = -rightColumn.position[2] + rightColumn.size[2] + BANNER_GAP
 	check(
-		grandma.size ~= nil and grandma.size[1] == 0 and grandma.size[2] == 330,
-		"UiLayout's GrandmaGoal isn't 330 px wide"
+		grandma.size ~= nil and grandma.size[1] == 1 and grandma.size[2] == -2 * bannerReach,
+		`UiLayout's GrandmaGoal isn't the screen's width less {2 * bannerReach} px (twice the right column's reach from the edge, {-rightColumn.position[2] + rightColumn.size[2]}, and a {BANNER_GAP} px gap)`
+	)
+	check(
+		grandma.max ~= nil and grandma.max.width == 330 and grandma.min ~= nil and grandma.min.width == 240,
+		"UiLayout's GrandmaGoal isn't between 240 and 330 px wide"
 	)
 	check(grandma.autoSize == "Y", "UiLayout's GrandmaGoal doesn't grow with its words")
 	check(
@@ -921,14 +932,42 @@ for id in COLUMN_PIECES do
 	check(inColumns[id] == true, `HudController doesn't build {id} into a column (with placeInColumn)`)
 end
 -- The four menu squares (front-page HUD, rulings 3, 4, 5 and 14): Truck, Guide, Crew and Contracts are
--- 76 px faces with a label under them, 76 by 110 in all (the face, a 12 px gap and a 22 px label), in
--- MenuButtons in that order and then the mouse hint. On a PC MenuButtons is a column of them; on a
--- touch or short screen it is a 2x2 grid, wide enough for two squares and the gap HudController puts
--- between them. HudController draws each with Juicy.button, in the face colour of its name. On the
+-- faces with a label under them (the face, a 12 px gap and a 22 px label), in MenuButtons in that order
+-- and then the mouse hint. On a PC MenuButtons is a column of 76 px faces (HudController's SQUARE_FACE);
+-- on a touch or short screen it is a 2x2 grid of smaller faces (its GRID_FACE), wide enough for two
+-- squares and the gap HudController puts between them. The grid squares are BUILT at that face size,
+-- not shrunk by a UIScale on the grid (nothing here can promise a list honours a child's UIScale), and
+-- their layout entries are that size and the label's room, so the left column's list and the grid agree
+-- on what they take. HudController draws each with Juicy.button, in the face colour of its name. On the
 -- phone the left column's scale, worked out the way HudController's fitColumn does with everything
--- that can show in the column at once, leaves a square at least 44 px.
+-- that can show in the column at once, leaves a grid face at least 44 px.
 do
-	local FACE, SQUARE_HEIGHT, MIN_PHONE_FACE = 76, 110, 44
+	local MIN_PHONE_FACE = 44
+	-- The faces come from HudController, so changing one there fails here until the layout follows.
+	local FACE = tonumber(string.match(hudSource, "SQUARE_FACE%s*=%s*(%d+)"))
+	local GRID_FACE = tonumber(string.match(hudSource, "GRID_FACE%s*=%s*(%d+)"))
+	local LABEL_ROOM = tonumber(string.match(hudSource, "SQUARE_LABEL_ROOM%s*=%s*(%d+)"))
+	check(FACE ~= nil, "HudController has no SQUARE_FACE")
+	check(GRID_FACE ~= nil, "HudController has no GRID_FACE, the grid squares' face on a touch or short screen")
+	check(LABEL_ROOM ~= nil, "HudController has no SQUARE_LABEL_ROOM")
+	if not (FACE and GRID_FACE and LABEL_ROOM) then
+		FACE, GRID_FACE, LABEL_ROOM = 76, 64, 34
+	end
+	local SQUARE_HEIGHT, GRID_HEIGHT = FACE + LABEL_ROOM, GRID_FACE + LABEL_ROOM
+	-- A key badge on a face under 60 px is the small 16 px one (the right strip on a phone, Settings
+	-- anywhere), so it does not cover the glyph; on a bigger face it is 22.
+	check(
+		string.find(hudSource, "SQUARE_KEY_SIZE = 22", 1, true) ~= nil
+			and string.find(hudSource, "SQUARE_KEY_SMALL = 16", 1, true) ~= nil
+			and string.find(hudSource, "KEY_SMALL_FACE = 60", 1, true) ~= nil
+			and string.find(hudSource, "faceHeight < KEY_SMALL_FACE", 1, true) ~= nil,
+		"HudController's key badge isn't 16 px on a face under 60 px and 22 px on a bigger one"
+	)
+	check(GRID_FACE < FACE, "HudController's GRID_FACE isn't smaller than SQUARE_FACE")
+	check(
+		string.find(hudSource, "then GRID_FACE else SQUARE_FACE", 1, true) ~= nil,
+		"HudController doesn't build a square at GRID_FACE on a touch or short screen and SQUARE_FACE otherwise"
+	)
 	local SQUARES = {
 		{ id = "TruckButton", order = 1, color = "Truck" },
 		{ id = "GuideButton", order = 2, color = "Guide" },
@@ -959,6 +998,18 @@ do
 					and entry.size[4] == SQUARE_HEIGHT,
 				`UiLayout's {want.id} isn't {FACE} by {SQUARE_HEIGHT} (a {FACE} px face and its label)`
 			)
+			for _, kind in { "touch", "compact" } do
+				local places = entry[kind] or {}
+				check(
+					places.size ~= nil
+						and places.size[1] == 0
+						and places.size[2] == GRID_FACE
+						and places.size[3] == 0
+						and places.size[4] == GRID_HEIGHT,
+					`UiLayout's {want.id} isn't {GRID_FACE} by {GRID_HEIGHT} on a {kind} screen (a {GRID_FACE} px face and its label, built at that size)`
+				)
+				check(places.scale == nil, `UiLayout's {want.id} is scaled on a {kind} screen: it is built at its size`)
+			end
 		end
 		check(
 			string.find(hudSource, `color%s*=%s*"{want.color}"`) ~= nil,
@@ -984,46 +1035,41 @@ do
 		"HudController's Contracts square doesn't open the contracts panel with UI.toggle"
 	)
 
-	-- The grid: two squares and the gap across, two rows and the gap down, drawn at the touch and compact
-	-- places' scale (a short window on a PC is a grid too).
+	-- The grid: two squares and the gap across, two rows and the gap down, with no scale of its own (a
+	-- short window on a PC is a grid too).
 	local gapX = tonumber(string.match(hudSource, "SQUARE_GAP_X%s*=%s*(%d+)"))
 	local gapY = tonumber(string.match(hudSource, "SQUARE_GAP_Y%s*=%s*(%d+)"))
 	check(gapX ~= nil and gapY ~= nil, "HudController has no SQUARE_GAP_X and SQUARE_GAP_Y for the squares' grid")
-	local gridHeight, gridScale = 0, 1
+	local gridHeight = 0
 	if menu and gapX and gapY then
-		gridHeight = 2 * SQUARE_HEIGHT + gapY
+		gridHeight = 2 * GRID_HEIGHT + gapY
 		for _, which in { "touch", "compact" } do
 			local place = (menu :: any)[which]
 			check(
-				place ~= nil and place.size ~= nil and place.size[2] == 2 * FACE + gapX and place.size[4] == 0,
-				`UiLayout's MenuButtons has no {which} place {2 * FACE + gapX} wide: two squares and the gap`
+				place ~= nil and place.size ~= nil and place.size[2] == 2 * GRID_FACE + gapX and place.size[4] == 0,
+				`UiLayout's MenuButtons has no {which} place {2 * GRID_FACE + gapX} wide: two squares and the gap`
 			)
 			check(
 				place ~= nil
 					and place.typical ~= nil
-					and place.typical[1] == 2 * FACE + gapX
+					and place.typical[1] == 2 * GRID_FACE + gapX
 					and place.typical[2] == gridHeight,
-				`UiLayout's MenuButtons {which} place isn't typically {2 * FACE + gapX} by {gridHeight}, the 2x2 grid`
+				`UiLayout's MenuButtons {which} place isn't typically {2 * GRID_FACE + gapX} by {gridHeight}, the 2x2 grid`
 			)
 			check(
-				place ~= nil and typeof(place.scale) == "number" and place.scale <= 1,
-				`UiLayout's MenuButtons {which} place has no scale to shrink the grid by`
+				place ~= nil and place.scale == nil,
+				`UiLayout's MenuButtons {which} place has a scale: the grid squares are built at their size instead, since nothing promises a list honours a child's UIScale`
 			)
-			if place and typeof(place.scale) == "number" then
-				gridScale = place.scale
-			end
 		end
-		check(
-			menu.touch ~= nil and menu.compact ~= nil and menu.touch.scale == menu.compact.scale,
-			"UiLayout's MenuButtons touch and compact places draw the grid at different scales"
-		)
 	end
 
 	-- The phone: everything that can show in the left column on a touch screen at once (Grandma's goal
 	-- is out of it there, the mouse hint is keyboard only), stacked with the column's gaps, once with
 	-- the judging day countdown showing (the worst case: it shows for any player with judging day on the
-	-- calendar) and once without. The column must stay at its 0.7 floor or above in both, and a square
-	-- is its face times the grid's scale times the column's.
+	-- calendar) and once without. The grid squares are built at GRID_FACE and sit in the column at its
+	-- scale, so a square is GRID_FACE times the column's scale, at least 44 px. With the countdown the
+	-- column's content asks for a little under the 0.7 the height rule gives (the fit rule goes down to
+	-- tightScale for that), which is the price of the names under the squares.
 	local columns = UiLayout.__screen.scaling.Columns
 	local phone = UiLayout.__screen.phone
 	for _, withCountdown in { true, false } do
@@ -1035,7 +1081,7 @@ do
 					and entry.device ~= "keyboard"
 					and (withCountdown or id ~= "Countdown")
 				if shows then
-					content += if id == "MenuButtons" then gridHeight * gridScale else entry.size[4]
+					content += if id == "MenuButtons" then gridHeight else entry.size[4]
 					pieces += 1
 				end
 			end
@@ -1047,12 +1093,12 @@ do
 		)
 		local which = if withCountdown then "with the countdown" else "without the countdown"
 		check(
-			scale >= columns.minScale - 1e-9,
-			`the left column is scaled to {scale} {which} on the {phone.width} by {phone.height} phone ({content} px of column), under its {columns.minScale} floor`
+			scale >= columns.tightScale,
+			`the left column is scaled to {scale} {which} on the {phone.width} by {phone.height} phone ({content} px of column), under its {columns.tightScale} tight floor`
 		)
 		check(
-			FACE * gridScale * scale >= MIN_PHONE_FACE,
-			`a menu square is {FACE * gridScale * scale} px {which} on the {phone.width} by {phone.height} phone (column scale {scale} for {content} px of column), under {MIN_PHONE_FACE}`
+			GRID_FACE * scale >= MIN_PHONE_FACE,
+			`a menu square is {GRID_FACE * scale} px {which} on the {phone.width} by {phone.height} phone (column scale {scale} for {content} px of column), under {MIN_PHONE_FACE}`
 		)
 	end
 end
@@ -1085,21 +1131,171 @@ do
 		"HudController works out stars itself: the client can't know the quality, so it must show result.stars"
 	)
 
-	-- The phone: the banner sits between the two columns at their widest (they are at most the height
-	-- rule's scale), and the right column's pieces that can show during a job there (curb appeal hides
-	-- on a short screen; the job card is its compact one; the pills may wrap to two rows) fit in the
-	-- column's height at its floor scale.
+	-- The job card on a short screen is 150 px tall (its padding, the header, two to-do lines and the 32 px
+	-- footer: the right column's phone fit reads this), and the damage words in the full card are cut off
+	-- at the end rather than running under the Call off pill.
+	local tracker = UiLayout.JobTracker
+	check(
+		tracker.compact ~= nil and tracker.compact.typical ~= nil and tracker.compact.typical[2] == 150,
+		"UiLayout's JobTracker isn't typically 150 px tall on a short screen"
+	)
+	local damageAt = string.find(hudSource, "damageLabel = UI.label(", 1, true)
+	local damageEnd = if damageAt then string.find(hudSource, "})", damageAt, true) else nil
+	check(
+		damageAt ~= nil
+			and damageEnd ~= nil
+			and string.find(
+					string.sub(hudSource, damageAt, damageEnd),
+					"TextTruncate = Enum.TextTruncate.AtEnd",
+					1,
+					true
+				)
+				~= nil,
+		"HudController's damage words aren't cut off at the end (TextTruncate AtEnd)"
+	)
+
+	-- The Shop button (and B) puts the Shop window away only when the Orders app is what is open; with the
+	-- Business app up at the computer it switches to Orders instead. F is left to DecorController while a
+	-- decoration is being placed (it sends the decoration back), so Top Lawns does not open then. Running
+	-- low of a supply says to order more from the Shop, which is where the Shop button goes.
+	check(
+		string.find(hudSource, 'UI.isOpen("Shop") and ShopController.currentApp() == "Orders"', 1, true) ~= nil
+			and string.find(
+					fs.readFile("src/client/Controllers/ShopController.luau"),
+					"function ShopController.currentApp",
+					1,
+					true
+				)
+				~= nil,
+		"HudController's Shop button doesn't switch the Business app to Orders instead of closing"
+	)
+	check(
+		string.find(hudSource, 'PLACING_ATTRIBUTE = "PlacingDecor"', 1, true) ~= nil
+			and string.find(
+					hudSource,
+					'button.id == "TopLawns" and player:GetAttribute(PLACING_ATTRIBUTE) ~= nil',
+					1,
+					true
+				)
+				~= nil,
+		"HudController's F key isn't left alone while a decoration is being placed (PlacingDecor)"
+	)
+	local maintenanceSource = fs.readFile("src/server/Services/MaintenanceService.luau")
+	check(
+		string.find(maintenanceSource, "Order more from the Shop.", 1, true) ~= nil
+			and string.find(maintenanceSource, "Order more on the shop computer.", 1, true) == nil,
+		'MaintenanceService doesn\'t say "Order more from the Shop."'
+	)
+
+	-- Juicy's pulse and pop start from the scale the element has when they start: a running animation's
+	-- remembered base is reused only while the scale still holds the value that animation wrote last (within
+	-- 1e-4), so a re-place by the layout between two frames is not written over.
+	local juicySource = fs.readFile("src/client/Juicy.luau")
+	check(
+		string.find(juicySource, "math.abs(scale.Scale - running.written) <= 1e-4", 1, true) ~= nil,
+		"Juicy's animate reuses a running animation's base without checking the scale is still what it wrote"
+	)
+
+	-- Juicy.badge hands back its text label (a third value), so HudController changes a badge's number
+	-- through it and never digs for a child called "Text".
+	check(
+		string.find(juicySource, "return outer, face, label", 1, true) ~= nil
+			and string.find(hudSource, 'FindFirstChild("Text")', 1, true) == nil,
+		"Juicy.badge doesn't return its label, or HudController still looks for the badge's Text by name"
+	)
+
+	-- The money counts up from the number the label shows now (shownMoney, written by the count's own
+	-- formatter), not from the previous profile's money, so a second gain mid-count never jumps. The
+	-- Levels button pops the level pill when pressed, on the pill itself inside a slot of the row, so the
+	-- row's list is not laid out again every frame.
+	check(
+		string.find(hudSource, "shownMoney", 1, true) ~= nil
+			and string.find(hudSource, "countTo(money, shownMoney", 1, true) ~= nil
+			and string.find(hudSource, "countTo(money, lastMoney", 1, true) == nil,
+		"HudController's money count doesn't start from the number on screen (shownMoney)"
+	)
+	check(
+		string.find(hudSource, "Juicy.pop(levelHolder)", 1, true) ~= nil
+			and string.find(hudSource, "LevelSlot", 1, true) ~= nil,
+		"HudController's Levels button doesn't pop the level pill (inside a LevelSlot of the row)"
+	)
+
+	-- The boost pills show the numbers the server sends with every job update (crewBonus, truckBonus,
+	-- businessBonus and curbBonus: the same factors completeJob multiplies, through the one payBonuses,
+	-- with the curb appeal frozen at pull-out), so they are exact for every crew member; the client
+	-- has no formula of its own for them.
+	local jobSource = fs.readFile("src/server/Services/JobService.luau")
+	local updateFrom = string.find(jobSource, "local function sendUpdate(job)", 1, true)
+	local updateTo = if updateFrom then string.find(jobSource, "\nend\n", updateFrom, true) else nil
+	local completeFrom = string.find(jobSource, "local function completeJob(job)", 1, true)
+	local completeTo = if completeFrom then string.find(jobSource, "\nend\n", completeFrom, true) else nil
+	check(
+		updateFrom ~= nil and updateTo ~= nil and completeFrom ~= nil and completeTo ~= nil,
+		"check-gui can't find JobService's sendUpdate and completeJob"
+	)
+	if updateFrom and updateTo and completeFrom and completeTo then
+		local updateBody = string.sub(jobSource, updateFrom, updateTo)
+		for _, field in { "crewBonus", "truckBonus", "businessBonus", "curbBonus" } do
+			check(
+				string.find(updateBody, `{field} = `, 1, true) ~= nil,
+				`JobService's sendUpdate doesn't send {field} to the job card's boost pills`
+			)
+			check(
+				string.find(hudSource, `job.{field}`, 1, true) ~= nil,
+				`HudController's boost pills don't read job.{field} from the server`
+			)
+		end
+		check(
+			string.find(updateBody, "payBonuses(job)", 1, true) ~= nil
+				and string.find(string.sub(jobSource, completeFrom, completeTo), "payBonuses(job)", 1, true) ~= nil,
+			"JobService's sendUpdate and completeJob don't both take the pay bonuses from payBonuses"
+		)
+	end
+	for _, formula in { "HomeLawn.payBonus(", "CrewBonusPerMember", "payoutBonus" } do
+		check(
+			string.find(hudSource, formula, 1, true) == nil,
+			`HudController works the boost pills out itself ({formula}): the server sends the numbers`
+		)
+	end
+
+	-- The countdown pill's words come from Daily.judgingText (check-season runs its cases, including a
+	-- view held across Saturday's midnight), with the contest view's daysLeft and this computer's clock;
+	-- HudController does not work the days out itself.
+	check(
+		string.find(hudSource, "Daily.judgingText(contest.state, contest.daysLeft, os.time())", 1, true) ~= nil
+			and string.find(hudSource, "Daily.nextSaturday", 1, true) == nil,
+		"HudController's countdown pill isn't Daily.judgingText of the view's state and daysLeft"
+	)
+
+	-- Call off sends the whole crew home when you lead, so it takes two taps: the first turns the pill
+	-- into "Sure?" for 3 seconds (the Shop's sell confirm does the same) and only the second sends
+	-- AbandonJob. Every control that acts has a hit area of at least 40 px once its column's scale is
+	-- applied (addHitStrips adds invisible strips above and below it on a touch screen): the two Call off
+	-- pills and the Show what I missed button. A chip that only shows is exempt.
+	check(
+		string.find(hudSource, "CALL_OFF_SURE = 3", 1, true) ~= nil
+			and string.find(hudSource, '"Sure?"', 1, true) ~= nil,
+		'HudController\'s Call off has no two-tap confirm ("Sure?" for CALL_OFF_SURE = 3 seconds)'
+	)
+	check(
+		string.find(hudSource, 'Juicy.button("Danger", pressCallOff', 1, true) ~= nil
+			and select(2, string.gsub(hudSource, "callOffJob%(%)", "")) == 2,
+		"HudController's Call off pills don't go through pressCallOff: callOffJob should be called only there"
+	)
+	local hitMin = tonumber(string.match(hudSource, "HIT_MIN%s*=%s*(%d+)"))
+	check(hitMin ~= nil and hitMin >= 40, "HudController's HIT_MIN isn't at least 40 px")
+	for _, wanted in { "addHitStrips(trackerButton", "addHitStrips(compactButton", "addHitStrips(missedButton" } do
+		check(string.find(hudSource, wanted, 1, true) ~= nil, `HudController doesn't have {wanted}`)
+	end
+
+	-- The phone: the right column's pieces that can show during a job there (curb appeal hides on a
+	-- short screen; the job card is its compact one; the pills may wrap to two rows) fit in the
+	-- column's height at its floor scale. (That the banner sits between the columns is the screens
+	-- check, further down.)
 	local columns = UiLayout.__screen.scaling.Columns
 	local phone = UiLayout.__screen.phone
 	local widest = math.clamp(phone.height / columns.fullHeight, columns.minScale, 1)
-	local left, right = UiLayout.LeftColumn, UiLayout.RightColumn
-	local leftEdge = left.position[2] + left.size[2] * widest
-	local rightEdge = phone.width + right.position[2] - right.size[2] * widest
-	local bannerHalf = UiLayout.GrandmaGoal.size[2] * widest / 2
-	check(
-		phone.width / 2 - bannerHalf > leftEdge and phone.width / 2 + bannerHalf < rightEdge,
-		`Grandma's goal ({bannerHalf * 2} px wide on the phone) runs into a column: it spans {phone.width / 2 - bannerHalf} to {phone.width / 2 + bannerHalf}, the left column ends at {leftEdge} and the right one starts at {rightEdge}`
-	)
+	local right = UiLayout.RightColumn
 	local content, pieces = 0, 0
 	for id, entry in UiLayout do
 		if id ~= "__screen" and entry.parent == "RightColumn" and id ~= "CurbAppeal" then
@@ -1266,33 +1462,90 @@ do
 			stripLeft >= lookAtRight,
 			`the right strip starts at x {stripLeft} on the phone, over the look-at button, which ends at {lookAtRight}`
 		)
-		-- And the banner still sits between the columns with the right one moved in.
-		local widest = math.clamp(phone.height / columns.fullHeight, columns.minScale, 1)
-		local columnLeft = phone.width + pick(column, "position", "touch")[2] - column.size[2] * widest
-		local bannerRight = phone.width / 2 + UiLayout.GrandmaGoal.size[2] * widest / 2
-		check(
-			bannerRight < columnLeft,
-			`Grandma's goal ends at {bannerRight} on the phone, over the right column, which starts at {columnLeft}`
-		)
-		-- The first-job coach is centred too, so it has to stop short of the right column (now moved in by
-		-- the strip) on the phone, touch or short, and on a 1280 px wide PC.
-		local COACH_CLEAR = 16
-		local coach = UiLayout.TutorialBanner
-		for _, kind in { "touch", "compact" } do
-			local places = coach[kind]
-			local coachRight = phone.width / 2 + (phone.width + places.size[2]) * places.scale / 2
-			local edge = phone.width + pick(column, "position", kind)[2] - column.size[2] * widest
-			check(
-				coachRight + COACH_CLEAR <= edge,
-				`the first-job coach ends at {coachRight} on the phone ({kind}), within {COACH_CLEAR} px of the right column, which starts at {edge}`
-			)
+		-- Grandma's goal and the first-job coach share the top in the middle, and each must clear both
+		-- columns and the strip on the screens people play on: the two phones (an iPhone SE's 667 by 375
+		-- and the 844 by 390 the HUD is verified at), a 1024 by 600 and a 1024 by 768 window or tablet and a
+		-- 1280 by 720 one, each with and without a touch screen (a touch screen has its own places). Where a
+		-- column sits is worked out at its widest (the height rule's scale; the fit rule only shrinks it
+		-- further), the pieces shrink by the same rule (the banner by the columns' rule, the coach by its own
+		-- scale), and 8 px is the least that must be left. A short screen's banner and coach are narrower
+		-- and shifted left, toward the roomier side (the left column is narrower than the right one with its
+		-- job card), instead of centred: the room between the columns on a 667 px wide phone is 180 px wide
+		-- and 45 px left of its middle. A PC window narrower than 1024 px is not covered: there the banner
+		-- stays at its 240 px minimum and the right column's job card can reach it.
+		local CLEAR = 8
+		local function placedOn(entry, key: string, touch: boolean, short: boolean): any
+			local value = entry[key]
+			if touch and entry.touch and entry.touch[key] ~= nil then
+				value = entry.touch[key]
+			end
+			if short and entry.compact and entry.compact[key] ~= nil then
+				value = entry.compact[key]
+			end
+			return value
 		end
-		local pcWidth = 1280
-		local coachWide = math.min(coach.size[1] * pcWidth, coach.max.width)
-		local pcEdge = pcWidth + pick(column, "position", "base")[2] - column.size[2]
+		local SCREENS = {
+			{ width = 667, height = 375, touch = true },
+			{ width = 844, height = 390, touch = true },
+			{ width = 1024, height = 600, touch = false },
+			{ width = 1024, height = 600, touch = true },
+			{ width = 1024, height = 768, touch = false },
+			{ width = 1024, height = 768, touch = true },
+			{ width = 1280, height = 720, touch = false },
+			{ width = 1280, height = 720, touch = true },
+		}
+		local left = UiLayout.LeftColumn
+		for _, screen in SCREENS do
+			local short = screen.height < UiLayout.__screen.compactHeight
+			local rule = math.clamp(screen.height / columns.fullHeight, columns.minScale, 1)
+			local where = `{screen.width} by {screen.height}{if screen.touch then " touch" else ""}`
+			local leftEdge = left.position[2] + left.size[2] * rule
+			local columnLeft = screen.width
+				+ placedOn(column, "position", screen.touch, short)[2]
+				- column.size[2] * rule
+			local stripWidth = placedOn(strip, "size", screen.touch, short)[2]
+			local stripLeft = screen.width + placedOn(strip, "position", screen.touch, short)[2] - stripWidth
+			for _, id in { "GrandmaGoal", "TutorialBanner" } do
+				local piece = UiLayout[id]
+				local size = placedOn(piece, "size", screen.touch, short)
+				local width = size[1] * screen.width + size[2]
+				if piece.min and piece.min.width then
+					width = math.max(width, piece.min.width)
+				end
+				if piece.max and piece.max.width then
+					width = math.min(width, piece.max.width)
+				end
+				-- The banner is scaled by the columns' rule (it is a column piece out on the screen), the coach
+				-- by its own scale.
+				local own = placedOn(piece, "scale", screen.touch, short) or 1
+				width *= if id == "GrandmaGoal" then rule * own else own
+				local position = placedOn(piece, "position", screen.touch, short)
+				local anchor = placedOn(piece, "anchor", screen.touch, short)
+				local from = position[1] * screen.width + position[2] - anchor[1] * width
+				check(
+					from >= leftEdge + CLEAR,
+					`{id} starts at {from} on {where}, within {CLEAR} px of the left column, which ends at {leftEdge}`
+				)
+				check(
+					from + width <= columnLeft - CLEAR,
+					`{id} ends at {from + width} on {where}, within {CLEAR} px of the right column, which starts at {columnLeft}`
+				)
+				check(
+					from + width <= stripLeft - CLEAR,
+					`{id} ends at {from + width} on {where}, within {CLEAR} px of the right strip, which starts at {stripLeft}`
+				)
+			end
+		end
+		-- The coach follows the banner's rule.
+		local coach = UiLayout.TutorialBanner
+		local coachReach = -column.position[2] + column.size[2] + BANNER_GAP
 		check(
-			pcWidth / 2 + coachWide / 2 + COACH_CLEAR <= pcEdge,
-			`the first-job coach ends at {pcWidth / 2 + coachWide / 2} on a {pcWidth} px PC, within {COACH_CLEAR} px of the right column, which starts at {pcEdge}`
+			coach.size[1] == 1 and coach.size[2] == -2 * coachReach,
+			`UiLayout's TutorialBanner isn't the screen's width less {2 * coachReach} px, the same as Grandma's goal`
+		)
+		check(
+			coach.max ~= nil and coach.max.width == 480 and coach.min ~= nil and coach.min.width == 240,
+			"UiLayout's TutorialBanner isn't between 240 and 480 px wide"
 		)
 	end
 
@@ -1352,6 +1605,15 @@ do
 			string.find(refreshBody, '"StreakAdvanced"', 1, true) == nil,
 			"DailyService:Refresh still plays the streak card at the day turn: the card is the claim's"
 		)
+		-- What the turn owes is paid (and told) in Refresh: it asks Streak.turn what is owed, pays that with
+		-- payGift (the pcall passes it the player and `owed`) and plays StreakGiftPaid. Without this wiring a
+		-- missed day's gift would never be paid, and nothing else here would notice.
+		check(
+			string.find(refreshBody, "Streak.turn(", 1, true) ~= nil
+				and string.find(refreshBody, "pcall(payGift, player, owed", 1, true) ~= nil
+				and string.find(refreshBody, '"StreakGiftPaid"', 1, true) ~= nil,
+			"DailyService:Refresh doesn't pay what Streak.turn says is owed (payGift, then StreakGiftPaid)"
+		)
 		check(
 			string.find(claimBody, '"StreakAdvanced"', 1, true) ~= nil
 				and string.find(claimBody, "Streak.claim(", 1, true) ~= nil,
@@ -1404,10 +1666,30 @@ do
 		"the Guide's camera switch doesn't choose camera motion through SettingsController"
 	)
 	local cameraSource = fs.readFile("src/client/Controllers/CameraController.luau")
+	-- SettingsController's adopt is the one reader of the saved motion (it applies it at Start and on
+	-- every profile push, and holds off while a choice of the player's is still on its way); the camera
+	-- has no reader of its own, which could race it.
 	check(
-		string.find(cameraSource, "Settings.clean(profile.settings).motion", 1, true) ~= nil
-			and string.find(cameraSource, "ClientState.Changed:Connect", 1, true) ~= nil,
-		"CameraController doesn't start from the saved camera motion"
+		string.find(cameraSource, "readSetting", 1, true) == nil
+			and string.find(cameraSource, "Settings.clean", 1, true) == nil
+			and string.find(cameraSource, "ClientState", 1, true) == nil,
+		"CameraController reads the saved camera motion itself: SettingsController.adopt is the one reader"
+	)
+	-- The window sends no faster than 0.9 s apart (the server's cooldown is Settings.Cooldown, 0.5, measured
+	-- between arrivals), asks again once on a refusal before it puts the profile's choice back, and draws
+	-- its choices only while the window is up.
+	check(
+		string.find(settingsSource, "MIN_GAP = 0.9", 1, true) ~= nil,
+		"SettingsController's MIN_GAP isn't 0.9 s, which leaves the server's half second some network jitter"
+	)
+	check(
+		select(2, string.gsub(settingsSource, "= ask%(sent%)", "")) == 2,
+		"SettingsController doesn't ask the server a second time before it gives a nil answer up"
+	)
+	check(
+		string.find(settingsSource, "local function renderIfShown", 1, true) ~= nil
+			and select(2, string.gsub(settingsSource, "\n\t*render%(%)", "")) == 2,
+		"SettingsController draws its choices while the window is away (only renderIfShown and the window opening should)"
 	)
 	local grassSource = fs.readFile("src/client/Controllers/GrassController.luau")
 	check(
@@ -1424,14 +1706,68 @@ do
 		select(2, string.gsub(soundsSource, "route%(sound%)", "")) == 3,
 		"Sounds.play, playUi and loop don't all send their sound through the Effects group"
 	)
+	-- The line that really groups a sound (route's `sound.SoundGroup = effectsGroup()`, and watch's for the
+	-- server's sounds and the characters') has to be there, and each maker must route its sound BEFORE it
+	-- parents it, so a sound never plays for a moment outside the group (Sound set to Off would leak).
+	check(
+		string.find(soundsSource, "sound.SoundGroup = effectsGroup()", 1, true) ~= nil
+			and string.find(soundsSource, "instance.SoundGroup = effectsGroup()", 1, true) ~= nil,
+		"Sounds doesn't put sounds in the Effects group with `SoundGroup = effectsGroup()`"
+	)
+	for _, name in { "play", "playUi", "loop" } do
+		local from = string.find(soundsSource, `function Sounds.{name}(`, 1, true)
+		local to = if from then string.find(soundsSource, "\nend\n", from, true) else nil
+		check(from ~= nil and to ~= nil, `check-gui can't find Sounds.{name}`)
+		if from and to then
+			local body = string.sub(soundsSource, from, to)
+			local routed = string.find(body, "route(sound)", 1, true)
+			local parented = string.find(body, "sound.Parent =", 1, true)
+			check(
+				routed ~= nil and parented ~= nil and routed < parented,
+				`Sounds.{name} doesn't route its sound into the Effects group before it parents it`
+			)
+		end
+	end
+	check(
+		string.find(soundsSource, "if watching then", 1, true) ~= nil
+			and string.find(soundsSource, "watching = true", 1, true) ~= nil,
+		"Sounds.watch has no once-guard: a second call would connect everything again"
+	)
+	check(
+		string.find(soundsSource, "CharacterAdded:Connect(watchCharacter)", 1, true) ~= nil,
+		"Sounds.watch doesn't put the characters' own sounds (footsteps, jump) in the Effects group"
+	)
 
-	-- Shop anywhere (ruling 6): the shop's Buy, Sell and Equip and the decorations' Buy don't ask where
-	-- the player stands. Taking a job and TurfKing's visit stay at the desk.
-	for _, path in { "src/server/Services/ShopService.luau", "src/server/Services/DecorService.luau" } do
-		check(
-			string.find(fs.readFile(path), "IsAtComputer", 1, true) == nil,
-			`{path} still asks WorldService:IsAtComputer: the shop sells away from the desk`
-		)
+	-- Shop anywhere (ruling 6, narrowed): tools, supplies, decorations and selling don't ask where the
+	-- player stands, but the things built on the business plot (PLOT_CATEGORIES: the truck, the trailer
+	-- and the business buildings) are still bought and switched to at the computer: ShopService's Buy and
+	-- Equip ask WorldService:IsAtComputer for them and nothing else there does. The Shop button never
+	-- offers them, so the server stays as strict as before. Taking a job and TurfKing's visit stay at the
+	-- desk too.
+	check(
+		string.find(fs.readFile("src/server/Services/DecorService.luau"), "IsAtComputer", 1, true) == nil,
+		"DecorService still asks WorldService:IsAtComputer: decorations are bought away from the desk"
+	)
+	local shopSource = fs.readFile("src/server/Services/ShopService.luau")
+	local plotAtDesk = "PLOT_CATEGORIES[category] and not WorldService:IsAtComputer(player)"
+	check(
+		select(2, string.gsub(shopSource, "IsAtComputer", "")) == 2,
+		"ShopService doesn't ask WorldService:IsAtComputer exactly twice (for plot items, in Buy and Equip)"
+	)
+	for _, name in { "Buy", "Equip", "Sell" } do
+		local from = string.find(shopSource, `function ShopService:{name}(`, 1, true)
+		local to = if from then string.find(shopSource, "\nend\n", from, true) else nil
+		check(from ~= nil and to ~= nil, `check-gui can't find ShopService:{name}`)
+		if from and to then
+			local body = string.sub(shopSource, from, to)
+			local asksAtDesk = string.find(body, plotAtDesk, 1, true) ~= nil
+			check(
+				asksAtDesk == (name ~= "Sell"),
+				if name == "Sell"
+					then "ShopService:Sell asks WorldService:IsAtComputer: selling is allowed anywhere"
+					else `ShopService:{name} doesn't send plot items to the computer`
+			)
+		end
 	end
 	for _, path in { "src/server/Services/JobService.luau", "src/server/Services/TurfKingService.luau" } do
 		check(
@@ -1789,9 +2125,15 @@ for name, hexes in JUICY_FACES do
 		if typeof(face.top) == "Color3" and typeof(face.bottom) == "Color3" then
 			check(hex(face.top) == hexes[1], `JuicyPalette.{name}.top is {hex(face.top)}, not {hexes[1]}`)
 			check(hex(face.bottom) == hexes[2], `JuicyPalette.{name}.bottom is {hex(face.bottom)}, not {hexes[2]}`)
-			check(luminance(face.top) > luminance(face.bottom), `JuicyPalette.{name}: the top isn't lighter than the bottom`)
+			check(
+				luminance(face.top) > luminance(face.bottom),
+				`JuicyPalette.{name}: the top isn't lighter than the bottom`
+			)
 			if typeof(ink) == "Color3" then
-				check(luminance(ink) < luminance(face.bottom), `JuicyPalette.{name}: the ink isn't darker than the bottom`)
+				check(
+					luminance(ink) < luminance(face.bottom),
+					`JuicyPalette.{name}: the ink isn't darker than the bottom`
+				)
 			end
 		end
 	end

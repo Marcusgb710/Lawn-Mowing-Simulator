@@ -69,6 +69,8 @@ table.insert(APPS.Orders.tabs, SELL_TAB)
 
 local window: GuiObject
 local stamp: UI.Stamp
+-- The app the window was last opened on ("Orders" or "Business").
+local openedApp: string? = nil
 -- Where the last Robux button tapped was, for the stamp once Roblox's prompt says it's bought.
 local premiumSpot: Vector2? = nil
 local selectedCategory = Items.Categories[1]
@@ -661,12 +663,18 @@ function render()
 	end
 end
 
+-- Which app the window is showing ("Orders" or "Business"), or nil while it is put away.
+function ShopController.currentApp(): string?
+	return if window and window.Visible then openedApp else nil
+end
+
 -- Opens one of the shop computer's apps ("Orders" or "Business") on its first tab.
 function ShopController.openApp(name: string)
 	local app = APPS[name]
 	if not app then
 		return
 	end
+	openedApp = name
 	for category, button in tabButtons do
 		button.Visible = table.find(app.tabs, category) ~= nil
 	end
