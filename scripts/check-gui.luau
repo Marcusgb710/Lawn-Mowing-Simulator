@@ -257,6 +257,7 @@ local COLUMN_PIECES = {
 	CurbAppeal = "RightColumn",
 	NextChip = "RightColumn",
 	JobTracker = "RightColumn",
+	BoostPills = "RightColumn",
 	MissedButton = "RightColumn",
 }
 -- How big or small a `scale` can be.
@@ -471,15 +472,73 @@ for id, entry in UiLayout do
 		end
 	end
 end
-local grandmaWaits = UiLayout.GrandmaGoal.touch.hideWhile
-check(
-	grandmaWaits ~= nil and table.find(grandmaWaits, "TutorialBanner") ~= nil,
-	"UiLayout's GrandmaGoal doesn't wait for the TutorialBanner on a touch screen"
-)
-check(
-	grandmaWaits ~= nil and table.find(grandmaWaits, "CrewInvite") ~= nil,
-	"UiLayout's GrandmaGoal doesn't wait for the CrewInvite on a touch screen"
-)
+
+-- Grandma's goal (front-page HUD, ruling 3): a cream banner at the top in the middle on every screen,
+-- 330 wide and as tall as its words, out of the left column (it is still a piece the editor can put
+-- back there: its detach). It shares the top with the first-job coach and a crew invite, one at a
+-- time, so it waits for both on every screen, not only a touch one.
+local grandma = UiLayout.GrandmaGoal
+check(grandma ~= nil, "UiLayout has no GrandmaGoal")
+if grandma then
+	check(grandma.parent == nil, `UiLayout's GrandmaGoal is in {grandma.parent}: the banner is out of the columns`)
+	check(grandma.detach == "LeftColumn", "UiLayout's GrandmaGoal can't be put back in the LeftColumn")
+	check(grandma.screen == "LawnUI", "UiLayout's GrandmaGoal isn't on LawnUI, the game's own screen")
+	check(
+		grandma.anchor ~= nil and grandma.anchor[1] == 0.5 and grandma.anchor[2] == 0,
+		"UiLayout's GrandmaGoal isn't anchored at the top in the middle"
+	)
+	check(
+		grandma.position ~= nil
+			and grandma.position[1] == 0.5
+			and grandma.position[2] == 0
+			and grandma.position[3] == 0
+			and grandma.position[4] == 12,
+		"UiLayout's GrandmaGoal isn't 12 px down from the top, in the middle"
+	)
+	check(
+		grandma.size ~= nil and grandma.size[1] == 0 and grandma.size[2] == 330,
+		"UiLayout's GrandmaGoal isn't 330 px wide"
+	)
+	check(grandma.autoSize == "Y", "UiLayout's GrandmaGoal doesn't grow with its words")
+	check(
+		grandma.touch == nil or grandma.touch.parent == nil,
+		"UiLayout's GrandmaGoal has a touch parent: its place is the same on every screen"
+	)
+	local grandmaWaits = grandma.hideWhile
+	check(
+		grandmaWaits ~= nil and table.find(grandmaWaits, "TutorialBanner") ~= nil,
+		"UiLayout's GrandmaGoal doesn't wait for the TutorialBanner"
+	)
+	check(
+		grandmaWaits ~= nil and table.find(grandmaWaits, "CrewInvite") ~= nil,
+		"UiLayout's GrandmaGoal doesn't wait for the CrewInvite"
+	)
+end
+
+-- The boost pills (front-page HUD, ruling 3): the crew, curb appeal, truck and business pay bonuses as
+-- pills in the right column, straight under the job tracker (the Show what I missed button goes under
+-- them). They show during a job and hide when no bonus applies, which HudController decides, so
+-- nothing in UiLayout hides them.
+local boosts = UiLayout.BoostPills
+check(boosts ~= nil, "UiLayout has no BoostPills")
+if boosts then
+	check(boosts.parent == "RightColumn", `UiLayout's BoostPills is in {boosts.parent}, not the RightColumn`)
+	check(boosts.detach == "RightColumn", "UiLayout's BoostPills can't be taken out of and put back in the RightColumn")
+	check(
+		typeof(boosts.order) == "number" and boosts.order == UiLayout.JobTracker.order + 1,
+		"UiLayout's BoostPills isn't the piece right after the JobTracker"
+	)
+	check(
+		typeof(boosts.order) == "number" and UiLayout.MissedButton.order > boosts.order,
+		"UiLayout's MissedButton isn't after the BoostPills"
+	)
+	check(boosts.hideWhile == nil, "UiLayout's BoostPills gives way to something: HudController hides it")
+	check(
+		boosts.list ~= nil and boosts.list.direction == "Horizontal" and boosts.list.align == "Right",
+		"UiLayout's BoostPills isn't a right-aligned row of pills"
+	)
+	check(boosts.autoSize == "Y", "UiLayout's BoostPills doesn't grow when its pills wrap to a second row")
+end
 
 for name, rule in UiLayout.__screen.scaling do
 	for _, id in rule.elements do
@@ -863,6 +922,72 @@ do
 			`a menu square is {FACE * gridScale * scale} px {which} on the {phone.width} by {phone.height} phone (column scale {scale} for {content} px of column), under {MIN_PHONE_FACE}`
 		)
 	end
+end
+-- The goal banner, the job card and the boosts (front-page HUD, rulings 1, 2 and 3), as HudController
+-- draws them: the banner is a cream Juicy face with the red flag (no "GRANDMA'S GOAL" header), the job
+-- card is dark glass in the palette's Glass at its GlassTransparency, its call-off button is a Juicy
+-- Danger one, and the boost pills are BoostPills. A star is filled only from the stars the server
+-- sent with the result: the client does not know the quality or what the customer wants while a job
+-- runs, so HudController must not work stars out for itself.
+do
+	check(
+		string.find(hudSource, 'Juicy%.face%(%s*"Cream"') ~= nil,
+		"HudController doesn't draw Grandma's goal on a cream Juicy face"
+	)
+	check(
+		string.find(hudSource, "GRANDMA'S GOAL", 1, true) == nil,
+		"HudController still headlines Grandma's goal with GRANDMA'S GOAL: the red flag stands in for it"
+	)
+	check(
+		string.find(hudSource, "Palette%.Glass%f[%A]") ~= nil
+			and string.find(hudSource, "Palette%.GlassTransparency") ~= nil,
+		"HudController doesn't draw the job card in Juicy's Glass at its GlassTransparency"
+	)
+	check(
+		string.find(hudSource, 'Juicy%.button%(%s*"Danger"') ~= nil,
+		"HudController doesn't draw the call-off button as a Juicy Danger button"
+	)
+	check(
+		string.find(hudSource, "Stars%.of%(") == nil and string.find(hudSource, "GameConfig%.performance%(") == nil,
+		"HudController works out stars itself: the client can't know the quality, so it must show result.stars"
+	)
+
+	-- The phone: the banner sits between the two columns at their widest (they are at most the height
+	-- rule's scale), and the right column's pieces that can show during a job there (curb appeal hides
+	-- on a short screen; the job card is its compact one; the pills may wrap to two rows) fit in the
+	-- column's height at its floor scale.
+	local columns = UiLayout.__screen.scaling.Columns
+	local phone = UiLayout.__screen.phone
+	local widest = math.clamp(phone.height / columns.fullHeight, columns.minScale, 1)
+	local left, right = UiLayout.LeftColumn, UiLayout.RightColumn
+	local leftEdge = left.position[2] + left.size[2] * widest
+	local rightEdge = phone.width + right.position[2] - right.size[2] * widest
+	local bannerHalf = UiLayout.GrandmaGoal.size[2] * widest / 2
+	check(
+		phone.width / 2 - bannerHalf > leftEdge and phone.width / 2 + bannerHalf < rightEdge,
+		`Grandma's goal ({bannerHalf * 2} px wide on the phone) runs into a column: it spans {phone.width / 2 - bannerHalf} to {phone.width / 2 + bannerHalf}, the left column ends at {leftEdge} and the right one starts at {rightEdge}`
+	)
+	local content, pieces = 0, 0
+	for id, entry in UiLayout do
+		if id ~= "__screen" and entry.parent == "RightColumn" and id ~= "CurbAppeal" then
+			local height = entry.size[4]
+			if id == "JobTracker" then
+				height = entry.compact.typical[2]
+			elseif id == "BoostPills" then
+				height = 2 * entry.size[4] + entry.list.padding
+			elseif entry.touch and entry.touch.size then
+				height = entry.touch.size[4]
+			end
+			content += height
+			pieces += 1
+		end
+	end
+	content += (pieces - 1) * right.list.padding
+	local scale = math.min(widest, math.max(columns.tightScale, (phone.height - columns.touchMargin) / content))
+	check(
+		scale >= columns.minScale - 1e-9,
+		`the right column is scaled to {scale} on the {phone.width} by {phone.height} phone ({content} px of column during a job), under its {columns.minScale} floor`
+	)
 end
 -- The goals rail's DONE stamp is words only (UI.stampText): asked of UI.stamp it would be the art's
 -- "Job Complete!" once that's uploaded. The stamp scan above doesn't read UI.stampText, which asks

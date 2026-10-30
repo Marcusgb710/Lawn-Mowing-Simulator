@@ -115,13 +115,13 @@
 --     shows;
 --   * the goals rail under Grandma's goal (its next two milestones, from Config/Milestones.luau), which
 --     hides on a short screen, where NextChip shows the next one instead, through a job too;
---   * what gives way to what (each piece's hideWhile): on a touch screen Grandma's goal, the
---     first-job coach and a crew invite share the top of the screen, one at a time, and the job
+--   * what gives way to what (each piece's hideWhile): Grandma's goal, the first-job coach and
+--     (on a touch screen) a crew invite share the top of the screen, one at a time, and the job
 --     tracker steps aside for the decorating buttons;
 --   * the job tracker's smaller layout on a short screen, which leaves room for the phone
 --     buttons under it;
 --   * the toasts move down to stay just under what's showing at the top of the screen in their
---     way: the first-job coach, and on a touch screen Grandma's goal or a crew invite;
+--     way: Grandma's goal, the first-job coach, and on a touch screen a crew invite;
 --   * the dialogue box's width and height, for each line and the screen it's on, and the
 --     dialogue's compact places when the screen turns;
 --   * the Levels panel and the contracts panel shrinking to fit the screen by the pay breakdown's rule
@@ -290,13 +290,13 @@ return {
 		autoSize = "Y",
 		list = { direction = "Vertical", padding = 14, align = "Left" },
 		typical = { 250, 480 },
-		note = "The money pill, the level and streak pills, the judging day countdown, the menu squares "
-			.. "(Contracts among them) and Grandma's goal stacked down the "
+		note = "The money pill, the level and streak pills, the judging day countdown and the menu squares "
+			.. "(Contracts among them) stacked down the "
 			.. "left, so they can't run into each other on a short screen, far enough apart that the panels "
 			.. "are clear of the menu buttons on a phone. Its UIScale shrinks it to fit "
 			.. "(__screen.scaling.Columns). Each of them can be taken out of it (their detach) and put "
-			.. "anywhere on the screen: on a touch screen Grandma's goal is, away from your thumb on the move "
-			.. "stick.",
+			.. "anywhere on the screen. Grandma's goal belongs to it but is out of it, a banner at the top "
+			.. "in the middle, on every screen.",
 	},
 	MoneyPanel = {
 		label = "Money pill",
@@ -403,26 +403,26 @@ return {
 	GrandmaGoal = {
 		label = "Grandma's goal",
 		group = "Trackers",
-		parent = "LeftColumn",
+		screen = "LawnUI",
 		detach = "LeftColumn",
 		order = 5,
-		size = { 0, 220, 0, 0 },
+		anchor = { 0.5, 0 },
+		position = { 0.5, 0, 0, 12 },
+		size = { 0, 330, 0, 0 },
 		autoSize = "Y",
-		typical = { 220, 86 },
-		touch = {
-			parent = false,
-			anchor = { 0.5, 0 },
-			position = { 0.5, 0, 0, 12 },
-			hideWhile = { "TutorialBanner", "CrewInvite" },
-		},
-		note = "Grandma's sticky note with your story goal and how close you are, while you have one. As "
-			.. "tall as its words. Under the goal's bar is the goals rail: the next two milestones (the ones "
-			.. "nearest to done), each a line of words over a thin bar, until the screen is shorter than "
+		typical = { 330, 64 },
+		hideWhile = { "TutorialBanner", "CrewInvite" },
+		note = "A cream banner at the top in the middle, on every screen, with your story goal and how close "
+			.. "you are, while you have one: a red flag, the goal in a line or two, what finishing it pays (only "
+			.. "when the goal has a reward) and a striped bar. As tall as its words. Under the goal's bar is "
+			.. "the goals rail, in the cream: the next two milestones (the ones nearest to done), each a line "
+			.. "of words over a thin bar, until the screen is shorter than "
 			.. "__screen.scaling.Columns.fullHeight, where the rail is hidden and NextChip says the next one "
-			.. "instead (typical is that short screen, so it has no rail). On a touch screen it's out of the "
-			.. "column, at the top in the middle between the HUD's columns, away from your thumb on the move "
+			.. "instead (typical is that short screen, so it has no rail). It is out of the left column (its "
+			.. "detach puts it back there), between the HUD's two columns and away from your thumb on the move "
 			.. "stick, and the toasts start under it. The first-job coach and a crew invite go there too, and "
-			.. "it waits while either shows.",
+			.. "it waits while either shows (a crew invite is along the bottom on a PC, but the banner waits "
+			.. "for it there too, so one rule serves every screen).",
 	},
 	RightColumn = {
 		label = "Right HUD column",
@@ -434,10 +434,11 @@ return {
 		autoSize = "Y",
 		list = { direction = "Vertical", padding = 10, align = "Right" },
 		typical = { 280, 368 },
-		note = "Curb appeal, then on a short screen the Next chip, over the job tracker, then the Show what I "
+		note = "Curb appeal, then on a short screen the Next chip, over the job tracker, then the boost pills, "
+			.. "then the Show what I "
 			.. "missed button late in the mowing, down the right. Its UIScale shrinks it to fit like the left "
 			.. "column's, toward its top right corner. Typical is during a job on a phone, where curb appeal "
-			.. "hides and the chip stays. Each of the four can be taken out of it (their detach) and put "
+			.. "hides and the chip stays. Each of the five can be taken out of it (their detach) and put "
 			.. "anywhere on the screen.",
 	},
 	CurbAppeal = {
@@ -476,21 +477,39 @@ return {
 		typical = { 280, 330 },
 		compact = { typical = { 280, 144 } },
 		hideWhile = { "DecorButtons" },
-		note = "On the art's GoalTracker card, while you have a job: its name, a hint, its to-dos, the timer "
-			.. "against par and damage while you work, and a button to call it off. As tall as what's in it. "
+		note = "A dark glass card (4 px ink outline and a lip), while you have a job: its name in gold with the "
+			.. "job's three stars beside it once it's paid, a hint, the big white timer with par beside it "
+			.. "(red once over par) while you work, its to-dos (the mowing one a striped yellow bar) and damage, "
+			.. "and a small coral Call off pill. As tall as what's in it. "
 			.. "On a screen shorter than __screen.scaling.Columns.fullHeight (a phone) it's laid out small, "
 			.. "so the look-at and Snip buttons fit under it: no hint, the timer beside the job's name, each "
 			.. "to-do on one line without its bar, and the damage (once there is some) and a small call-off "
-			.. "button sharing a row at the bottom. Typical is during a job with two to-dos and the junk; "
+			.. "pill sharing a row at the bottom. Typical is during a job with two to-dos and the junk; "
 			.. "compact's is that on a short screen. It steps aside while you're putting a decoration down on a "
 			.. "phone, for the decorating buttons (and curb appeal shows again).",
+	},
+	BoostPills = {
+		label = "Boost pills",
+		group = "HUD",
+		parent = "RightColumn",
+		detach = "RightColumn",
+		order = 4,
+		size = { 0, 280, 0, 34 },
+		autoSize = "Y",
+		list = { direction = "Horizontal", padding = 6, align = "Right" },
+		note = "Under the job tracker, during a job: a dark glass pill with a glyph for each pay bonus that is "
+			.. "above zero: Crew (15% for each crew member besides the leader), Curb (from the crew's curb "
+			.. "appeal), and Truck and Business (the leader's equipped ones, shown only when you are the "
+			.. "leader, since the crew's other members can't see them). The row is hidden when there is "
+			.. "none, and wraps to a second line when the pills don't fit. The tracker's card and this row "
+			.. "hide together.",
 	},
 	MissedButton = {
 		label = "Show what I missed button",
 		group = "HUD",
 		parent = "RightColumn",
 		detach = "RightColumn",
-		order = 4,
+		order = 5,
 		size = { 0, 280, 0, 44 },
 		touch = { size = { 0, 280, 0, 52 } },
 		note = "Under the job tracker, once the mowing's percent (how much of what the job requires is cut, "
