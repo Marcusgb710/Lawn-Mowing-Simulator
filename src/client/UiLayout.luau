@@ -76,9 +76,10 @@
 --   * Dialogue and BestYard have IgnoreGuiInset on too, then ScreenInsets set to
 --     DeviceSafeInsets: they can go under Roblox's top bar but keep clear of a phone's notch.
 -- LawnUI is switched off while a scene, the drive or the contest results has the screen
--- (UI.hideGame), and Roblox's own hotbar (the Backpack) only shows on a job site (UI.setHotbar).
--- The hotbar's place is Roblox's, along the bottom in the middle, so it isn't in here: the tool
--- condition and the carry hint sit far enough up to clear it.
+-- (UI.hideGame). Roblox's own hotbar (the Backpack) is off for good: the game draws its own in its
+-- place (Hotbar, HotbarController), along the bottom in the middle, and it only shows on a job site
+-- (UI.setHotbar). The tool condition and the Levels and contracts windows stand above it, and the
+-- carry hint gives way to it.
 --
 -- Scaling. Three things shrink with a UIScale to fit the screen; __screen.scaling has the exact
 -- numbers and each rule, and the controllers read them from there:
@@ -126,7 +127,7 @@
 --     dialogue's compact places when the screen turns;
 --   * the Levels panel and the contracts panel shrinking to fit the screen by the pay breakdown's rule
 --     (centred, so already clear of the move stick and jump button; on a touch screen they stand
---     above Roblox's hotbar, 78 px up and 66 on a short screen, the way the tool condition chips do);
+--     above the hotbar, 78 px up, the way the tool condition chips do);
 --   * a menu's window fills the computer's screen while you're at the computer;
 --   * inside the computer's screen, the taskbar hides the apps' names (and then your money) on
 --     narrower screens;
@@ -251,8 +252,8 @@ return {
 				scale = 1,
 				note = "The smallest of `scale`, (screen height - margin) / its height and (screen width - "
 					.. "margin) / its width, so it only ever shrinks. On a touch screen the window stands above "
-					.. "Roblox's hotbar (its touch or compact place's distance from the bottom, 78 or 66 px, so "
-					.. "its Close button is never under a slot), so the height it has is the screen's height "
+					.. "the hotbar (its touch or compact place's distance from the bottom, 78 px, so its Close "
+					.. "button is never over a slot), so the height it has is the screen's height "
 					.. "less that and touchMargin, the same 24 as margin, at the top. In the middle of the "
 					.. "screen it is already clear of the move stick and jump button in the bottom corners.",
 			},
@@ -263,8 +264,8 @@ return {
 				scale = 1,
 				note = "The same rule as the Levels panel's: the smallest of `scale`, (screen height - margin) / "
 					.. "its height and (screen width - margin) / its width, so it only ever shrinks. On a touch "
-					.. "screen the window stands above Roblox's hotbar (its touch or compact place's distance "
-					.. "from the bottom, 78 or 66 px), so the height it has is the screen's height less that "
+					.. "screen the window stands above the hotbar (its touch or compact place's distance "
+					.. "from the bottom, 78 px), so the height it has is the screen's height less that "
 					.. "and touchMargin, the same 24 as margin, at the top.",
 			},
 			ContestResults = {
@@ -591,17 +592,41 @@ return {
 		group = "HUD",
 		screen = "LawnUI",
 		anchor = { 0.5, 1 },
-		position = { 0.5, 0, 1, -68 },
+		position = { 0.5, 0, 1, -88 },
 		size = { 0.9, 0, 0, 36 },
 		autoSize = "Y",
 		max = { width = 440 },
 		typical = { 440, 36 },
-		touch = { position = { 0.5, 0, 1, -78 } },
-		compact = { position = { 0.5, 0, 1, -66 }, scale = 0.85 },
+		touch = { position = { 0.5, 0, 1, -90 } },
+		compact = { position = { 0.5, 0, 1, -78 }, scale = 0.85 },
 		note = "What's wrong with the tool in your hands (a chip for each thing), or 'Working on it... 3s' "
-			.. "while you work on one. The chips go onto a second line when they don't fit. Above Roblox's "
-			.. "hotbar (60 px slots, 48 on a phone), and on a touch screen far enough above it to keep clear of "
-			.. "tapping a slot; under the look-at prompt, and a little smaller on a phone to fit between them.",
+			.. "while you work on one. The chips go onto a second line when they don't fit. Above the hotbar "
+			.. "(its top edge is 82 px up on a PC and 70 on a touch or short screen): 6 px above it, and on a "
+			.. "touch screen 20 px, far enough to keep clear of tapping a slot; under the look-at prompt, and a "
+			.. "little smaller on a phone to fit between them.",
+	},
+	Hotbar = {
+		label = "Hotbar",
+		group = "HUD",
+		screen = "LawnUI",
+		anchor = { 0.5, 1 },
+		position = { 0.5, 0, 1, -8 },
+		size = { 0, 0, 0, 74 },
+		autoSize = "X",
+		list = { direction = "Horizontal", padding = 8, align = "Center" },
+		typical = { 312, 62 },
+		touch = { size = { 0, 0, 0, 62 } },
+		compact = { size = { 0, 0, 0, 62 } },
+		note = "The game's own hotbar, in place of Roblox's (the Backpack, which stays off): a slot for each "
+			.. "tool you have on a job, at least five and at most nine, in the order you got them, shown only "
+			.. "while Roblox's would have been (on a job site, while nothing hides the game's screen). Its "
+			.. "height is a slot's face (60 px on a PC, 48 on a touch or short screen) and 14 px round it for "
+			.. "the ink outline (4 px a side) and the held slot's lip (6 px under it); HotbarController works "
+			.. "the face out from that. Each slot is the face and its outline, 8 px apart, so it is as wide "
+			.. "as its slots. The held tool's slot is a cream face, the others dark glass, the empty ones "
+			.. "dimmer. With a keyboard each slot with a tool has its key (1 to 9) on its top left corner, "
+			.. "inside the outline. The tool condition and the Levels and contracts windows stand above it, "
+			.. "and the carry hint gives way to it.",
 	},
 
 	-- Prompts ------------------------------------------------------------------------------------
@@ -639,13 +664,14 @@ return {
 		touch = { size = { 1, -360, 0, 0 } },
 		compact = { size = { 1, -372, 0, 0 }, scale = 0.85 },
 		typical = { 304, 78 },
-		hideWhile = { "ToolCondition" },
+		hideWhile = { "ToolCondition", "Hotbar" },
 		note = "What to do with the tool you're carrying or driving at your business, along the bottom under "
 			.. "the look-at prompt. On a touch screen it's 360 px narrower than the screen, to stay between "
 			.. "Roblox's move stick and jump button, and on a short screen a little smaller, under the look-at prompt "
 			.. "and clear of the Snip button. As tall as its words. A tool you can use comes out of "
 			.. "storage in your hands, for your own lawn, so it can have something wrong with it, or be worked "
-			.. "on: the tool condition goes in the same spot then, and this waits while it shows.",
+			.. "on: the tool condition shows over this spot then, and this waits while it shows. It waits "
+			.. "while the hotbar shows too (carrying a supply on a job), since the hotbar has this spot there.",
 	},
 	InteractPrompt = {
 		label = "Look-at prompt",
@@ -873,13 +899,13 @@ return {
 		position = { 0.5, 0, 0.5, 0 },
 		size = { 0, 360, 0, 460 },
 		touch = { anchor = { 0.5, 1 }, position = { 0.5, 0, 1, -78 } },
-		compact = { anchor = { 0.5, 1 }, position = { 0.5, 0, 1, -66 } },
+		compact = { anchor = { 0.5, 1 }, position = { 0.5, 0, 1, -78 } },
 		note = "Opened from the XP bar (and L on a keyboard), closed by its Close button or Escape: your level "
 			.. "and the XP to the next, the streak line under that ('Streak: Day 3 of 7, next $300'), then "
 			.. "what the next five levels pay. Its own window, not one of the menus: it never opens inside "
 			.. "the shop computer, and it closes when a job's state changes, a scene starts or you open a "
 			.. "menu. Its UIScale shrinks it to fit the screen (__screen.scaling.LevelsPanel). On a touch "
-			.. "screen its bottom edge stands 78 px up (66 on a short screen), above Roblox's hotbar like "
+			.. "or short screen its bottom edge stands 78 px up, above the hotbar (70 px up there) like "
 			.. "the tool condition chips, so a tap on Close never lands on a slot.",
 	},
 	ContractsPanel = {
@@ -890,7 +916,7 @@ return {
 		position = { 0.5, 0, 0.5, 0 },
 		size = { 0, 360, 0, 400 },
 		touch = { anchor = { 0.5, 1 }, position = { 0.5, 0, 1, -78 } },
-		compact = { anchor = { 0.5, 1 }, position = { 0.5, 0, 1, -66 } },
+		compact = { anchor = { 0.5, 1 }, position = { 0.5, 0, 1, -78 } },
 		note = "Opened from the contracts chip (and the curb mailbox at the street end of the driveway), "
 			.. "closed by its Close button or Escape: today's three contracts (each with how far along it "
 			.. "is and what it pays, and a DONE stamp once it's paid), the Bonus Day for doing all three, "
@@ -898,7 +924,7 @@ return {
 			.. "(UI.open), but it's a window of its own like the Levels panel: it never opens inside the "
 			.. "shop computer, and it closes when a job's state changes, a scene starts or you open a "
 			.. "menu. Its UIScale shrinks it to fit the screen (__screen.scaling.ContractsPanel). On a touch "
-			.. "screen its bottom edge stands 78 px up (66 on a short screen), above Roblox's hotbar like "
+			.. "or short screen its bottom edge stands 78 px up, above the hotbar (70 px up there) like "
 			.. "the tool condition chips, so a tap on Close never lands on a slot.",
 	},
 	ComputerMonitor = {

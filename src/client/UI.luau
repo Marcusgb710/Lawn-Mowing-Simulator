@@ -1611,11 +1611,40 @@ end
 -- takes over the screen: the drive cutscene, or a dialogue. Each says why, so one ending doesn't
 -- bring them back while the other's still up.
 local hiders: { [string]: boolean } = {}
--- Roblox's hotbar (the Backpack) is only for switching between your loaded tools on a job site.
--- Everywhere else you carry one thing at a time, and its slot would just be a dark box.
+-- The hotbar is only for switching between your loaded tools on a job site. Everywhere else you
+-- carry one thing at a time, and its slot would just be a dark box. It's the game's own
+-- (HotbarController): Roblox's (the Backpack) stays off for good, so its number keys never equip
+-- anything either. Turning it off can fail while Roblox's own scripts are still starting, so it's
+-- tried again until it takes, in a thread of its own (nothing here waits).
 local hotbarWanted = false
+local hotbarShown = false
+local backpackOff = false
+local BACKPACK_RETRY = 0.25
+local BACKPACK_TRIES = 240
+local function turnOffBackpack()
+	if backpackOff then
+		return
+	end
+	backpackOff = true
+	task.spawn(function()
+		for _ = 1, BACKPACK_TRIES do
+			if pcall(StarterGui.SetCoreGuiEnabled, StarterGui, Enum.CoreGuiType.Backpack, false) then
+				return
+			end
+			task.wait(BACKPACK_RETRY)
+		end
+		warn("[UI] Couldn't turn Roblox's Backpack off")
+	end)
+end
+-- Fired with whether the hotbar shows, when that changes (HotbarController listens).
+UI.HotbarChanged = Signal.new()
 local function showHotbar()
-	pcall(StarterGui.SetCoreGuiEnabled, StarterGui, Enum.CoreGuiType.Backpack, hotbarWanted and next(hiders) == nil)
+	turnOffBackpack()
+	local shown = hotbarWanted and next(hiders) == nil
+	if shown ~= hotbarShown then
+		hotbarShown = shown
+		UI.HotbarChanged:Fire(shown)
+	end
 end
 function UI.hideGame(reason: string, hidden: boolean)
 	hiders[reason] = if hidden then true else nil
@@ -1623,10 +1652,15 @@ function UI.hideGame(reason: string, hidden: boolean)
 	showHotbar()
 end
 
--- Whether Roblox's hotbar shows (when nothing's hiding the game): on a job site, not elsewhere.
+-- Whether the hotbar shows (when nothing's hiding the game): on a job site, not elsewhere.
 function UI.setHotbar(wanted: boolean)
 	hotbarWanted = wanted
 	showHotbar()
+end
+
+-- Whether the hotbar shows right now: wanted (UI.setHotbar) and nothing hiding the game.
+function UI.hotbarShown(): boolean
+	return hotbarShown
 end
 
 -- A story line (Config/Story.luau) for a RichText label: its `*highlights*` in the highlight

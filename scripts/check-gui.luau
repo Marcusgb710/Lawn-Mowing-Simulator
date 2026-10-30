@@ -13,7 +13,9 @@
 -- its touch and compact places only places, and nothing giving way to what gives way to it), only
 -- the pieces HudController builds straight into a HUD column can leave it, and those are in their
 -- column or have a place of their own on the screen (a touch screen's too), every element the
--- client places by name is in it, and every one in it is placed somewhere. And src/client/
+-- client places by name is in it, and every one in it is placed somewhere; what stands along the
+-- bottom keeps clear of the game's own hotbar, and nothing in the client turns Roblox's Backpack
+-- back on. And src/client/
 -- JuicyPalette.luau, the front-page HUD's colours: each face lighter at the top, the ink darker
 -- than all of them.
 -- Given the art's GUI folder (or with art-source/GUI in this repo), it also reads the manifest
@@ -554,7 +556,7 @@ check(typeof(UiLayout.__screen.compactHeight) == "number", "__screen has no comp
 -- The Levels panel (Busy Season, slice 1): a centred window of its own on the game's screen, opened
 -- from the XP bar, that shrinks to fit like the pay breakdown does. Centred, it's already clear of
 -- Roblox's move stick and jump button, so a touch screen has the same top margin, and `scale` is the
--- most it's drawn at. (On a touch screen it also stands above the hotbar: see HOTBAR_BAND_TOUCH below.)
+-- most it's drawn at. (On a touch or short screen it also stands above the hotbar: see the hotbar rules below.)
 local levelsPanel = UiLayout.LevelsPanel
 check(levelsPanel ~= nil, "UiLayout has no LevelsPanel")
 if levelsPanel then
@@ -728,40 +730,122 @@ do
 	end
 end
 
--- Roblox's hotbar sits in a band along the bottom middle of the screen (48 px slots on a phone, 60
--- on a tablet), and the tool condition chips keep clear of it: 78 px up on a touch screen and 66 on
--- a short one. Both windows stand above the same band, bottom edge anchored, so a tap on their Close
--- button never lands on a slot (it did, on the Grass Shears slot). A short screen's place carries its
--- own anchor, since a short screen that isn't a touch screen has no touch place to give it one. The
--- whole place stays centred.
-local HOTBAR_BAND_TOUCH = 78
-local HOTBAR_BAND_COMPACT = 66
+-- The hotbar (front-page HUD, ruling 10): the game's own (HotbarController), in place of Roblox's
+-- Backpack, which stays off. It stands along the bottom middle of the game's screen, its bottom
+-- edge 8 px up: a row of slots 60 px square on a PC and 48 on a touch or short screen, 8 px apart
+-- (its list's gap), each with room round it for its ink outline (4 px a side) and the held slot's lip
+-- (6 px under it), so 74 or 62 px tall in all. As many slots as there are tools, at least five, so
+-- its width grows with them. What stands along the bottom keeps clear of it on every kind of screen
+-- (a PC, a touch screen, a short one, a short touch one): the tool condition chips stand above its
+-- top edge with a gap (a wider one on a touch screen, so a tap on a chip never lands on a slot), the
+-- Levels and contracts windows' bottom edges stand above it on a touch or short screen (bottom edge
+-- anchored, so a tap on their Close button never lands on a slot: it did, on Roblox's Grass Shears
+-- slot), and the carry hint, which sits lower down, gives way to it. A short screen's place carries
+-- its own anchor, since a short screen that isn't a touch screen has no touch place to give it one.
+local HOTBAR_BOTTOM = 8
+local HOTBAR_GAP_BETWEEN = 8
+local HOTBAR_ROOM = 14
+local HOTBAR_FACE = { pc = 60, touch = 48, compact = 48, touchCompact = 48 }
+local HOTBAR_CLEARANCE = { pc = 6, touch = 16, compact = 6, touchCompact = 6 }
+local SCREEN_KINDS = { "pc", "touch", "compact", "touchCompact" }
+-- An entry's `field` on a kind of screen: its own, its touch one over it on a touch screen, and its
+-- compact one over those on a short screen, the way UI.layout and the editor pick them.
+local function placedOn(entry, kind: string, field: string): any
+	local value = entry[field]
+	local touch = entry.touch
+	if (kind == "touch" or kind == "touchCompact") and typeof(touch) == "table" and touch[field] ~= nil then
+		value = touch[field]
+	end
+	local compact = entry.compact
+	if (kind == "compact" or kind == "touchCompact") and typeof(compact) == "table" and compact[field] ~= nil then
+		value = compact[field]
+	end
+	return value
+end
+-- How far up from the screen's bottom the hotbar's top edge is on each kind of screen (left out where
+-- its place there isn't the shape these rules need: a fail says which).
+local hotbarTop: { [string]: number } = {}
 do
+	local bar = UiLayout.Hotbar
+	check(bar ~= nil, "UiLayout has no Hotbar: the game's own hotbar needs a place")
+	if bar then
+		check(bar.screen == "LawnUI", `UiLayout's Hotbar is on {bar.screen}, not LawnUI, the game's own screen`)
+		check(bar.parent == nil, "UiLayout's Hotbar is in another element: it stands on the screen")
+		check(bar.autoSize == "X", "UiLayout's Hotbar doesn't grow sideways with its slots (autoSize X)")
+		local list = bar.list
+		check(
+			list ~= nil
+				and list.direction == "Horizontal"
+				and list.padding == HOTBAR_GAP_BETWEEN
+				and list.align == "Center",
+			`UiLayout's Hotbar isn't a row of slots {HOTBAR_GAP_BETWEEN} px apart (a Horizontal, Center list)`
+		)
+		for _, kind in SCREEN_KINDS do
+			local anchor = placedOn(bar, kind, "anchor")
+			local position = placedOn(bar, kind, "position")
+			local size = placedOn(bar, kind, "size")
+			local height = HOTBAR_FACE[kind] + HOTBAR_ROOM
+			local centred = isNumbers(anchor, 2)
+				and anchor[1] == 0.5
+				and anchor[2] == 1
+				and isNumbers(position, 4)
+				and position[1] == 0.5
+				and position[2] == 0
+				and position[3] == 1
+				and position[4] == -HOTBAR_BOTTOM
+			check(
+				centred,
+				`UiLayout's Hotbar isn't centred at the bottom, its bottom edge {HOTBAR_BOTTOM} px up, on a {kind} screen`
+			)
+			local sized = isNumbers(size, 4) and size[1] == 0 and size[2] == 0 and size[3] == 0 and size[4] == height
+			check(
+				sized,
+				`UiLayout's Hotbar isn't {height} px tall on a {kind} screen ({HOTBAR_FACE[kind]} px slots, {HOTBAR_ROOM} px round them)`
+			)
+			if centred and sized then
+				hotbarTop[kind] = HOTBAR_BOTTOM + height
+			end
+		end
+	end
+
+	-- The tool condition chips: placed by their bottom edge, above the hotbar's top with the gap.
 	local chips = UiLayout.ToolCondition
-	check(
-		chips.touch ~= nil and chips.touch.position ~= nil and chips.touch.position[4] == -HOTBAR_BAND_TOUCH,
-		"UiLayout's ToolCondition isn't HOTBAR_BAND_TOUCH above the bottom on a touch screen: update HOTBAR_BAND_TOUCH"
-	)
-	check(
-		chips.compact ~= nil and chips.compact.position ~= nil and chips.compact.position[4] == -HOTBAR_BAND_COMPACT,
-		"UiLayout's ToolCondition isn't HOTBAR_BAND_COMPACT above the bottom on a short screen: update it"
-	)
+	for _, kind in SCREEN_KINDS do
+		local top = hotbarTop[kind]
+		local anchor = placedOn(chips, kind, "anchor")
+		local position = placedOn(chips, kind, "position")
+		check(
+			isNumbers(anchor, 2) and anchor[2] == 1 and isNumbers(position, 4) and position[3] == 1,
+			`UiLayout's ToolCondition isn't placed by its bottom edge from the screen's bottom on a {kind} screen`
+		)
+		if top and isNumbers(position, 4) then
+			local clearance = HOTBAR_CLEARANCE[kind]
+			check(
+				-position[4] >= top + clearance,
+				`UiLayout's ToolCondition is {-position[4]} px up on a {kind} screen, but the hotbar's top is {top} px up and the chips stand {clearance} px above it`
+			)
+		end
+	end
+
+	-- The Levels and contracts windows: centred on a PC, their bottom edge above the hotbar elsewhere.
 	for _, id in { "LevelsPanel", "ContractsPanel" } do
 		local entry = UiLayout[id]
-		for which, band in { touch = HOTBAR_BAND_TOUCH, compact = HOTBAR_BAND_COMPACT } do
-			local place = entry[which]
+		for _, kind in { "touch", "compact", "touchCompact" } do
+			local anchor = placedOn(entry, kind, "anchor")
+			local position = placedOn(entry, kind, "position")
 			check(
-				place ~= nil and place.anchor ~= nil and place.anchor[1] == 0.5 and place.anchor[2] == 1,
-				`UiLayout's {id} isn't anchored at its bottom edge in its {which} place`
+				isNumbers(anchor, 2) and anchor[1] == 0.5 and anchor[2] == 1,
+				`UiLayout's {id} isn't anchored at its bottom edge on a {kind} screen`
 			)
+			local top = hotbarTop[kind]
 			check(
-				place ~= nil
-					and place.position ~= nil
-					and place.position[1] == 0.5
-					and place.position[2] == 0
-					and place.position[3] == 1
-					and place.position[4] <= -band,
-				`UiLayout's {id} isn't at least {band} px above the bottom in its {which} place: Close is under the hotbar`
+				top ~= nil
+					and isNumbers(position, 4)
+					and position[1] == 0.5
+					and position[2] == 0
+					and position[3] == 1
+					and -position[4] >= top,
+				`UiLayout's {id} isn't above the hotbar on a {kind} screen: Close is over a slot`
 			)
 		end
 		check(
@@ -774,6 +858,55 @@ do
 			`UiLayout's {id} isn't centred on a screen that is neither touch nor short`
 		)
 	end
+
+	-- The carry hint sits lower than the hotbar's top, so it gives way to it on every kind of screen
+	-- (carrying a supply on a job is the only time both are wanted at once).
+	for _, kind in SCREEN_KINDS do
+		local gives = placedOn(UiLayout.CarryHint, kind, "hideWhile")
+		check(
+			typeof(gives) == "table" and table.find(gives, "Hotbar") ~= nil,
+			`UiLayout's CarryHint doesn't give way to the Hotbar on a {kind} screen (its hideWhile)`
+		)
+	end
+end
+
+-- Roblox's Backpack (its own hotbar) stays off for good: every SetCoreGuiEnabled in the client that
+-- names the Backpack, or All, passes false, and one does turn the Backpack off. Otherwise Roblox's
+-- hotbar would show under the game's, and its number keys would equip tools behind the game's back.
+do
+	local switchesItOff = false
+	local function scanCore(folder: string)
+		for _, name in fs.readDir(folder) do
+			local path = `{folder}/{name}`
+			if fs.isDir(path) then
+				scanCore(path)
+			elseif string.match(name, "%.luau$") then
+				local source = fs.readFile(path)
+				local from = 1
+				while true do
+					local start, finish = string.find(source, "SetCoreGuiEnabled", from, true)
+					if not start then
+						break
+					end
+					from = finish + 1
+					-- The call's arguments, up to its closing bracket (they have no brackets of their own).
+					local call = string.match(source, "^[^%)]*%)", finish + 1) or ""
+					local backpack = string.find(call, "CoreGuiType%.Backpack") ~= nil
+					if backpack or string.find(call, "CoreGuiType%.All") then
+						local last = string.match(call, ",%s*([%w_%.]+)%s*%)$")
+						check(
+							last == "false",
+							`{path} calls SetCoreGuiEnabled on the Backpack with {last or "a value worked out"}, not false: Roblox's Backpack stays off`
+						)
+						switchesItOff = switchesItOff or (backpack and last == "false")
+					end
+				end
+			end
+		end
+	end
+	scanCore("src/client")
+	scanCore("src/first")
+	check(switchesItOff, "Nothing in the client turns Roblox's Backpack off (SetCoreGuiEnabled, Backpack, false)")
 end
 
 -- COLUMN_PIECES is what HudController builds into a column: every piece it puts in one with

@@ -29,6 +29,7 @@ local CONTROLLERS = {
 	"SettingsController",
 	"TutorialController",
 	"CarryController",
+	"HotbarController",
 	"ComputerController",
 	"InteractController",
 	"DecorController",
@@ -45,7 +46,7 @@ local CONTROLLERS = {
 Net.event("ProfileUpdated").OnClientEvent:Connect(function(profile)
 	ClientState.set("profile", profile)
 end)
--- Roblox's hotbar is how you switch between your loaded tools on a job site, and only there.
+-- The hotbar (HotbarController) is how you switch between your loaded tools on a job site, and only there.
 local function updateHotbar(job)
 	UI.setHotbar(job ~= nil and (job.state == "Working" or job.state == "Complete"))
 end
