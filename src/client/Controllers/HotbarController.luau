@@ -18,8 +18,10 @@
 -- screen, 24 on a PC), but never so small that a slot's face is under 40 px on a touch screen (48 on
 -- a PC). When even that doesn't fit, it shows as many slots as fit with the last one a gold "+N" (the
 -- tools that didn't fit), which opens a tray of them just above the bar; the held tool is never one
--- of them. The tray closes on any other press, when a tool comes out or goes away, and when the bar
--- hides. While it's open it can cover the tool condition chips.
+-- of them. The tray closes on any other press (a slot, a key, L1 or R1, or a click or tap anywhere
+-- that isn't on a button), when a tool comes out or goes away, and when the bar hides. While it's
+-- open it can cover the tool condition chips. The numbers and the fitting are HotbarFit's
+-- (src/shared), which scripts/check-gui checks.
 --
 -- Keys 1 to 9 and 0 take out the first ten tools (or put one away, if it's the one in your hands),
 -- as Roblox's did; a click or tap on any slot does the same for its tool, and a gamepad's L1 and R1
@@ -40,6 +42,7 @@ local UserInputService = game:GetService("UserInputService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Sounds = require(Shared:WaitForChild("Sounds"))
+local HotbarFit = require(Shared:WaitForChild("HotbarFit"))
 
 local Art = require(script.Parent.Parent.Art)
 local Juicy = require(script.Parent.Parent.Juicy)
@@ -49,21 +52,11 @@ local player = Players.LocalPlayer
 
 local HotbarController = {}
 
--- At least this many slots are drawn (empty ones when you have fewer tools). There is no most.
-local MIN_SLOTS = 5
--- Round a slot's face: its ink outline (each side) and, under the held one, its lip. UiLayout's
--- Hotbar is a face tall plus ROOM, so the face is worked out from it. Slots are GAP apart.
-local STROKE = 4
-local LIP = 6
-local ROOM = STROKE * 2 + LIP
-local GAP = 8
--- Fitting the width: how far in from each side of the screen the row may reach, and the smallest a
--- slot's face may be drawn, on a touch screen (clear of the move stick and the jump button) and
--- elsewhere.
-local TOUCH_SIDE = 120
-local PC_SIDE = 24
-local TOUCH_FLOOR = 40
-local PC_FLOOR = 48
+-- Round a slot's face: its ink outline (each side) and, under the held one, its lip. Slots are GAP
+-- apart. (HotbarFit has these and the rest of the hotbar's numbers.)
+local STROKE = HotbarFit.STROKE
+local LIP = HotbarFit.LIP
+local GAP = HotbarFit.GAP
 -- A face's corners, as a share of its size (14 px on a 60 px face, 12 on 48).
 local RADIUS_SHARE = 0.24
 -- The item's picture fills this much of the face, a category glyph this much.
@@ -97,7 +90,6 @@ local KEYS = {
 	[Enum.KeyCode.Nine] = 9,
 	[Enum.KeyCode.Zero] = 10,
 }
-local KEY_COUNT = 10
 
 -- One place in the order: a tool, or (tool nil) the empty place of one set down to be worked on.
 type Entry = { id: string, tool: Tool? }
@@ -205,15 +197,15 @@ end
 local press: (place: number) -> ()
 local toggleTray: () -> ()
 
+-- A slot's size, and how wide `count` are side by side, for this screen's face, before any scale.
 local function cellWidth(): number
-	return face + STROKE * 2
+	return HotbarFit.cellWidth(face)
 end
 local function cellHeight(): number
-	return face + ROOM
+	return HotbarFit.cellHeight(face)
 end
--- How wide `count` slots are, side by side, before any scale.
 local function rowWidth(count: number): number
-	return count * cellWidth() + math.max(count - 1, 0) * GAP
+	return HotbarFit.rowWidth(count, face)
 end
 
 local function makeSlot(parent: Instance, name: string): Slot
@@ -353,9 +345,9 @@ local function drawSlot(slot: Slot, place: number?)
 	slot.glass.BackgroundTransparency = if tool then GLASS_FULL else GLASS_EMPTY
 	slot.glassOutline.Transparency = if tool then 0 else GLASS_EMPTY_OUTLINE
 	if slot.key and slot.keyLabel then
-		local keyed = tool ~= nil and place ~= nil and place <= KEY_COUNT
-		slot.key.Visible = keyed
-		slot.keyLabel.Text = if keyed then tostring((place :: number) % 10) else ""
+		local key = if tool and place then HotbarFit.keyFor(place) else nil
+		slot.key.Visible = key ~= nil
+		slot.keyLabel.Text = key or ""
 	end
 
 	local id = tool and entry.id
@@ -389,27 +381,6 @@ local function hideFrom(pool: { Slot }, first: number)
 	end
 end
 
--- Fitting the width ---------------------------------------------------------------------------------
-
--- How the row fits `count` slots on this screen: the scale to draw it at, and how many slots show
--- (all of them, or fewer with the last a "+N" when even the smallest scale is too wide).
-local function fit(count: number): (number, number)
-	local touch = UI.isTouch()
-	local screenWidth = UI.getScreen().AbsoluteSize.X
-	if screenWidth <= 0 then
-		return 1, count
-	end
-	local room = screenWidth - 2 * (if touch then TOUCH_SIDE else PC_SIDE)
-	local smallest = math.min(1, (if touch then TOUCH_FLOOR else PC_FLOOR) / face)
-	local scale = math.min(1, room / rowWidth(count))
-	if scale >= smallest then
-		return scale, count
-	end
-	-- As many as fit at the smallest scale (two at least: one tool and the "+N").
-	local fits = math.floor((room / smallest + GAP) / (cellWidth() + GAP))
-	return smallest, math.clamp(fits, 2, count)
-end
-
 -- Drawing -------------------------------------------------------------------------------------------
 
 local function closeTray()
@@ -437,9 +408,9 @@ local function render()
 	end
 	lastHeld = held
 
-	local drawn = math.max(MIN_SLOTS, #entries)
-	local scale, showCount = fit(drawn)
-	local overflow = showCount < drawn
+	-- A slot for every place, fitted to the screen's width (HotbarFit).
+	local drawn = HotbarFit.drawnCount(#entries)
+	local scale, showCount, overflow = HotbarFit.fit(UI.getScreen().AbsoluteSize.X, drawn, UI.isTouch(), face)
 	-- The places in the row, in order: all of them, or the first ones and then (behind "+N") the rest.
 	local inRow: { number } = {}
 	local hidden: { number } = {}
@@ -572,7 +543,7 @@ end
 local function layOut()
 	UI.place(bar, "Hotbar")
 	local height = (UI.layout("Hotbar").size :: UDim2).Y.Offset
-	local newFace = math.max(height - ROOM, 1)
+	local newFace = HotbarFit.faceFor(height)
 	if newFace ~= face or not more then
 		face = newFace
 		for _, pool in { rowSlots, traySlots } do
@@ -803,6 +774,16 @@ function HotbarController:Start()
 	useBackpack(player:FindFirstChildOfClass("Backpack"))
 
 	UserInputService.InputBegan:Connect(function(input: InputObject, processed: boolean)
+		-- A click or a tap that no button took (the world, a gap in the tray) closes an open tray. One
+		-- on a slot, the tray or "+N" comes in processed, and that button's own press handles it.
+		local kind = input.UserInputType
+		if
+			trayOpen
+			and not processed
+			and (kind == Enum.UserInputType.MouseButton1 or kind == Enum.UserInputType.Touch)
+		then
+			closeTray()
+		end
 		if processed or UserInputService:GetFocusedTextBox() then
 			return
 		end

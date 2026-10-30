@@ -637,8 +637,8 @@ The tool hotbar:
       (the held one is cream; pressing its slot again puts it away). Roblox's own hotbar never shows.
 - [ ] Narrow the window (or use 667 by 375) with 10 tools: the row shrinks first, then stops at 40 px
       slots (48 px on a PC) and the last slot becomes a gold "+N" that opens a tray of the rest just
-      above the bar. The held tool is never in the tray. Pressing a slot, or the job ending, closes the
-      tray; a tap on the bare screen does not (a known gap). The row stays clear of the move stick and
+      above the bar. The held tool is never in the tray. Pressing a slot, a tap on the bare screen, or the
+      job ending closes the tray. The row stays clear of the move stick and
       the jump button.
 - [ ] A gamepad (or the emulator's): L1 and R1 step through every tool. A broken mower mid-job, and a
       respawn: no stale slot, no errors in the output.

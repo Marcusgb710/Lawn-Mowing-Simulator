@@ -30,6 +30,7 @@ local serde = require("@lune/serde")
 
 local GuiArt = require("../src/shared/Config/GuiArt")
 local GuiLayout = require("../src/shared/GuiLayout")
+local HotbarFit = require("../src/shared/HotbarFit")
 local PayBreakdown = require("../src/shared/PayBreakdown")
 local UiLayout = require("../src/client/UiLayout")
 
@@ -756,10 +757,16 @@ end
 -- anchored, so a tap on their Close button never lands on a slot: it did, on Roblox's Grass Shears
 -- slot), and the carry hint, which sits lower down, gives way to it. A short screen's place carries
 -- its own anchor, since a short screen that isn't a touch screen has no touch place to give it one.
+-- The faces, the gap and the room round a face are HotbarFit's (checked below to be 60, 48, 8 and 14).
 local HOTBAR_BOTTOM = 8
 local HOTBAR_GAP_BETWEEN = 8
-local HOTBAR_ROOM = 14
-local HOTBAR_FACE = { pc = 60, touch = 48, compact = 48, touchCompact = 48 }
+local HOTBAR_ROOM = HotbarFit.ROOM
+local HOTBAR_FACE = {
+	pc = HotbarFit.PC_FACE,
+	touch = HotbarFit.SMALL_FACE,
+	compact = HotbarFit.SMALL_FACE,
+	touchCompact = HotbarFit.SMALL_FACE,
+}
 local HOTBAR_CLEARANCE = { pc = 6, touch = 16, compact = 6, touchCompact = 6 }
 local SCREEN_KINDS = { "pc", "touch", "compact", "touchCompact" }
 -- An entry's `field` on a kind of screen: its own, its touch one over it on a touch screen, and its
@@ -879,93 +886,151 @@ do
 	end
 end
 
--- What HotbarController does with that place (front-page HUD, Task 8 fix 1). Every tool gets a slot:
--- at least five are drawn and nothing caps them. Keys 1 to 9 and 0 take out the first ten. Its slots
--- are the band's sizes (the gap, and the outline and lip round a face). The row is fitted to the
--- screen's width, never drawn bigger than its entry, never with a face under 40 px on a touch screen
--- or 48 on a PC, kept 120 px in from a touch screen's sides (the move stick and the jump button) and
--- 24 from a PC's; past that floor the last slot is a gold "+N" that opens a tray of the rest. A tool
--- set down to be worked on (Servicing) keeps its place, and the slots aren't gamepad-selectable (L1
--- and R1 are the gamepad's way through them). Then the fit worked out with its numbers on the
--- narrowest phones it has to serve, with as many tools as a starter truck and a bucket can carry.
+-- The hotbar's numbers and its fit to the screen (src/shared/HotbarFit.luau, front-page HUD Task 8),
+-- the very functions HotbarController draws with. Every tool gets a slot: at least five are drawn
+-- and nothing caps them. Keys 1 to 9 and 0 take out the first ten. A slot is the band's sizes (the
+-- gap, and the outline and lip round a face). The row is fitted to the screen's width, never drawn
+-- bigger than its entry, never with a face under 40 px on a touch screen or 48 on a PC, kept 120 px
+-- in from a touch screen's sides (the move stick and the jump button) and 24 from a PC's; past that
+-- floor the last slot is a "+N" for the rest. Each worked case's numbers are written out here, so a
+-- change to the arithmetic shows. Then what HotbarController must do with it: use these functions
+-- for every number (no fit, cap or key of its own), draw the gold "+N" and its tray, keep the place
+-- of a tool set down to be worked on (Servicing), close an open tray on a click or tap that no button
+-- took, and keep its buttons out of gamepad selection (L1 and R1 are the gamepad's way through).
 do
+	local expected = {
+		PC_FACE = 60,
+		SMALL_FACE = 48,
+		STROKE = 4,
+		LIP = 6,
+		ROOM = 14,
+		GAP = 8,
+		MIN_SLOTS = 5,
+		KEY_COUNT = 10,
+		TOUCH_SIDE = 120,
+		PC_SIDE = 24,
+		TOUCH_FLOOR = 40,
+		PC_FLOOR = 48,
+	}
+	for name, value in expected do
+		check(HotbarFit[name] == value, `HotbarFit.{name} is {HotbarFit[name]}, not {value}`)
+	end
+	check(HotbarFit.ROOM == HotbarFit.STROKE * 2 + HotbarFit.LIP, "HotbarFit.ROOM isn't two outlines and the lip")
+	check(HotbarFit.GAP == HOTBAR_GAP_BETWEEN, `HotbarFit.GAP isn't the band's {HOTBAR_GAP_BETWEEN} px`)
+
+	check(HotbarFit.faceFor(74) == 60 and HotbarFit.faceFor(62) == 48, "HotbarFit.faceFor isn't the height less 14")
+	check(
+		HotbarFit.cellWidth(60) == 68 and HotbarFit.cellWidth(48) == 56,
+		"HotbarFit.cellWidth isn't a face and two outlines"
+	)
+	check(
+		HotbarFit.cellHeight(60) == 74 and HotbarFit.cellHeight(48) == 62,
+		"HotbarFit.cellHeight isn't a face and ROOM"
+	)
+	check(
+		HotbarFit.rowWidth(5, 48) == 312 and HotbarFit.rowWidth(1, 60) == 68 and HotbarFit.rowWidth(0, 60) == 0,
+		"HotbarFit.rowWidth isn't the slots and the gaps between them"
+	)
+	for places, drawn in { [0] = 5, [3] = 5, [5] = 5, [14] = 14, [30] = 30 } do
+		check(
+			HotbarFit.drawnCount(places) == drawn,
+			`HotbarFit.drawnCount({places}) is {HotbarFit.drawnCount(places)}, not {drawn}: at least five, and a slot for every place`
+		)
+	end
+	for place, key in { [1] = "1", [5] = "5", [9] = "9", [10] = "0" } do
+		check(HotbarFit.keyFor(place) == key, `HotbarFit.keyFor({place}) isn't "{key}"`)
+	end
+	for _, place in { 0, 11, 14 } do
+		check(HotbarFit.keyFor(place) == nil, `HotbarFit.keyFor({place}) is a key: only the first ten have one`)
+	end
+
+	-- { screen width, tools, touch, face, scale, slots shown, "+N" }. 0 wide is a screen not measured
+	-- yet. 844, 740, 667 and 663 are phones held sideways (663: one slot fits only with the gap after
+	-- the last one counted); 300 is narrower than any, still a tool and the "+N"; 1280 is a PC.
+	local small = HotbarFit.TOUCH_FLOOR / HotbarFit.SMALL_FACE
+	local cases = {
+		{ 0, 14, true, 48, 1, 14, false },
+		{ 844, 5, true, 48, 1, 5, false },
+		{ 844, 10, true, 48, 604 / 632, 10, false },
+		{ 844, 14, true, 48, small, 11, true },
+		{ 740, 14, true, 48, small, 9, true },
+		{ 667, 14, true, 48, small, 8, true },
+		{ 663, 14, true, 48, small, 8, true },
+		{ 300, 14, true, 48, small, 2, true },
+		{ 1280, 14, false, 60, 1, 14, false },
+		{ 1280, 24, false, 60, 0.8, 20, true },
+	}
+	for _, case in cases do
+		local width, count, touch, faceSize = case[1], case[2], case[3], case[4]
+		local scale, shown, overflow = HotbarFit.fit(width, count, touch, faceSize)
+		local where = `HotbarFit.fit on a {width} px {if touch then "touch" else "PC"} screen with {count} slots`
+		check(near(scale, case[5]), `{where} draws it at {scale}, not {case[5]}`)
+		check(shown == case[6], `{where} shows {shown}, not {case[6]}`)
+		check(overflow == case[7], `{where} {if case[7] then "has no" else "has a"} "+N"`)
+		check(scale <= 1, `{where} draws it bigger than its entry`)
+		if width > 0 then
+			local floor = if touch then HotbarFit.TOUCH_FLOOR else HotbarFit.PC_FLOOR
+			local side = if touch then HotbarFit.TOUCH_SIDE else HotbarFit.PC_SIDE
+			check(faceSize * scale >= floor - 1e-6, `{where} draws a face under {floor} px`)
+			if shown > 2 then
+				local drawn = HotbarFit.rowWidth(shown, faceSize) * scale
+				check(drawn <= width - 2 * side + 1e-6, `{where} is {drawn} px wide: within {side} px of a side`)
+			end
+		end
+	end
+
 	local path = "src/client/Controllers/HotbarController.luau"
 	local source = fs.readFile(path)
-	local function constant(name: string): number?
-		return tonumber(string.match(source, `\nlocal {name} = (%d+)\n`))
-	end
 	local function has(text: string): boolean
 		return string.find(source, text, 1, true) ~= nil
 	end
-	check(constant("MIN_SLOTS") == 5, `{path}: MIN_SLOTS isn't 5 (at least five slots are drawn)`)
-	check(not has("MAX_SLOTS"), `{path} caps its slots (MAX_SLOTS): every tool gets one`)
-	local stroke, lip, gap = constant("STROKE"), constant("LIP"), constant("GAP")
-	check(gap == HOTBAR_GAP_BETWEEN, `{path}: GAP isn't {HOTBAR_GAP_BETWEEN} px`)
+	local fitSource = fs.readFile("src/shared/HotbarFit.luau")
 	check(
-		stroke ~= nil and lip ~= nil and stroke * 2 + lip == HOTBAR_ROOM,
-		`{path}: STROKE twice and LIP aren't the {HOTBAR_ROOM} px round a face that UiLayout's Hotbar allows`
+		not has("MAX_SLOTS") and string.find(fitSource, "MAX_SLOTS", 1, true) == nil,
+		"The hotbar caps its slots (MAX_SLOTS): every tool gets one"
 	)
+	-- Its numbers are HotbarFit's: the lines that take them, word for word.
+	for _, line in
+		{
+			"local STROKE = HotbarFit.STROKE",
+			"local LIP = HotbarFit.LIP",
+			"local GAP = HotbarFit.GAP",
+			"return HotbarFit.cellWidth(face)",
+			"return HotbarFit.cellHeight(face)",
+			"return HotbarFit.rowWidth(count, face)",
+			"local newFace = HotbarFit.faceFor(height)",
+			"local drawn = HotbarFit.drawnCount(#entries)\n",
+			"HotbarFit.fit(UI.getScreen().AbsoluteSize.X, drawn, UI.isTouch(), face)\n",
+			"HotbarFit.keyFor(place)",
+		}
+	do
+		check(has(line), `{path} doesn't take its numbers from HotbarFit: no "{string.gsub(line, "\n", "")}"`)
+	end
+	-- Nothing of its own that HotbarFit has.
+	for _, name in { "MIN_SLOTS", "ROOM", "KEY_COUNT", "TOUCH_SIDE", "PC_SIDE", "TOUCH_FLOOR", "PC_FLOOR" } do
+		check(
+			string.find(source, `local {name} =`, 1, true) == nil,
+			`{path} has a {name} of its own: HotbarFit's is the one`
+		)
+	end
 	local keyNames = { "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine" }
 	for index, name in keyNames do
 		check(has(`[Enum.KeyCode.{name}] = {index},`), `{path} doesn't bind the {index} key to the slot {index}`)
 	end
 	check(has("[Enum.KeyCode.Zero] = 10,"), `{path} doesn't bind the 0 key to the tenth slot`)
-	local floors = { TOUCH_FLOOR = 40, PC_FLOOR = 48, TOUCH_SIDE = 120, PC_SIDE = 24 }
-	for name, value in floors do
-		check(constant(name) == value, `{path}: {name} isn't {value}`)
-	end
-	check(
-		has("math.min(1, room / rowWidth(count))"),
-		`{path} doesn't fit the row to the room it has, at most its own size`
-	)
-	check(
-		has("math.min(1, (if touch then TOUCH_FLOOR else PC_FLOOR) / face)"),
-		`{path} doesn't floor the fit at TOUCH_FLOOR or PC_FLOOR px a face`
-	)
 	check(
 		has('Juicy.face("Gold"') and has("`+{#trayPlaces}`"),
 		`{path} has no gold "+N" slot for the tools that don't fit`
 	)
 	check(has('Name = "Tray"'), `{path} has no tray for the tools behind "+N"`)
+	check(
+		has("and not processed\n")
+			and has("(kind == Enum.UserInputType.MouseButton1 or kind == Enum.UserInputType.Touch)"),
+		`{path} doesn't close an open tray on a click or tap that no button took`
+	)
 	check(has('GetAttribute("Servicing")'), `{path} doesn't keep the place of a tool set down to be worked on`)
 	local _, selectable = string.gsub(source, "Selectable = false", "")
 	check(selectable >= 2, `{path}: its slot and "+N" buttons aren't Selectable = false`)
-
-	-- The fit, as HotbarController works it out (its fit function), on a few screens.
-	local touchSide, pcSide = constant("TOUCH_SIDE") or 0, constant("PC_SIDE") or 0
-	local touchFloor, pcFloor = constant("TOUCH_FLOOR") or 0, constant("PC_FLOOR") or 0
-	local function fitOn(width: number, touch: boolean, faceSize: number, count: number): (number, number)
-		local cell = faceSize + (stroke or 0) * 2
-		local function across(n: number): number
-			return n * cell + math.max(n - 1, 0) * (gap or 0)
-		end
-		local room = width - 2 * (if touch then touchSide else pcSide)
-		local smallest = math.min(1, (if touch then touchFloor else pcFloor) / faceSize)
-		local scale = math.min(1, room / across(count))
-		if scale >= smallest then
-			return scale, count
-		end
-		local fits = math.floor((room / smallest + (gap or 0)) / (cell + (gap or 0)))
-		return smallest, math.clamp(fits, 2, count)
-	end
-	-- { screen width, touch, face, tools }: an iPhone SE and a Galaxy S9 held sideways with 14 tools,
-	-- the 844 px phone with 10, and a 1280 px PC with 14.
-	for _, case in { { 667, true, 48, 14 }, { 740, true, 48, 14 }, { 844, true, 48, 10 }, { 1280, false, 60, 14 } } do
-		local width, touch, faceSize, count = case[1], case[2], case[3], case[4]
-		local scale, shown = fitOn(width, touch, faceSize, count)
-		local side = if touch then touchSide else pcSide
-		local drawn = (shown * (faceSize + (stroke or 0) * 2) + (shown - 1) * (gap or 0)) * scale
-		check(scale <= 1, `the hotbar is drawn bigger than its entry on a {width} px screen`)
-		check(
-			faceSize * scale >= (if touch then touchFloor else pcFloor) - 1e-6,
-			`the hotbar's faces are under the floor on a {width} px screen with {count} tools`
-		)
-		check(
-			drawn <= width - 2 * side + 1e-6,
-			`the hotbar is {drawn} px wide on a {width} px screen: it reaches within {side} px of a side`
-		)
-		check(shown >= 2, `the hotbar shows {shown} slots on a {width} px screen: no room for a tool and "+N"`)
-	end
 end
 
 -- Roblox's Backpack (its own hotbar) stays off for good: every SetCoreGuiEnabled in the client that
