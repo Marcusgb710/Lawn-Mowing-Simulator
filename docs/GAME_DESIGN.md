@@ -1172,6 +1172,66 @@ day was paid as it was kept. Everything that depends on the day asks the server'
 (`src/server/Clock.luau`): `os.time()` plus an offset that only Studio can set, from the test panel's
 Next day and Jump to Saturday.
 
+## 12. The HUD
+
+The play screen is built like a front-page Roblox simulator: chunky buttons with a gradient face, a
+thick dark outline and a lip under them, white rounded text with a dark edge, and a bounce when you
+touch them. All of it is drawn in code (`src/client/Juicy.luau`, with the colours in
+`JuicyPalette.luau`), so it adds no art to upload. Where each piece goes is `UiLayout.luau`. The look
+was drawn first as the "Lawn HUD Restyle" mock; this section says how it behaves.
+
+**The left.** Your money in a pill with a gold coin, which counts up when cash comes in and gives one
+pulse. Under it the level pill (your level and an XP bar; press it for the Levels window) beside the
+streak pill (the flame and "DAY 3", once you have a streak). When judging day is on the calendar, a
+purple pill counts down to it. Then four colour squares: Truck, Guide, Crew and Contracts. The
+Contracts one wears a tilted yellow tag with the contracts left today. On a keyboard each shows its key
+(T, G, C). On a phone the four sit in a 2 by 2 grid.
+
+**The top and the right.** Grandma's goal is a cream banner at the top in the middle, with a red flag,
+the goal, its reward when it has one and a striped bar. Down the right, curb appeal, then during a job
+the job card (dark glass: the job's name, a big timer with the par time, a bar for how much is
+mown and a small Call off pill, which asks "Sure?" before it calls the job off), and under it small
+pills for the pay bonuses you have (crew, curb appeal, truck, business). Late in the mowing the
+"Show what I missed" button appears there. Against the right edge is a strip of four squares.
+
+**The right buttons.** Shop opens the Orders window from anywhere (B on a keyboard): tools, supplies
+and decorations can be bought and sold wherever you stand and arrive in a box at your shop door, but
+trucks, trailers and business buildings still need the computer in your shop, and so does taking a
+job. Gifts (no key) is the daily streak gift. Top Lawns (F) is the two leaderboards from the sign at
+the town spawn, in a window: Lawns mowed and Money earned, 25 rows each and your own line under them.
+Settings (comma) is the window described below.
+
+**The gift.** The first time you play on a new day, the day turn moves your streak on but does not pay
+it. The Gifts button wears a tilted CLAIM tag and pulses until you press it, and pressing it pays the
+day's cash and plays the Payday card. If you never press it, the next day turn pays it for you with a
+toast, so nobody loses money by forgetting. With no gift waiting the button opens the streak card.
+
+**Settings.** Three choices that are kept with your save: Sound (Off, Low, High) is the volume of the
+game's sounds, Camera motion (On, Off) is the head bob and the engine shake in first person (the V key
+and the Guide's switch change the same one), and Grass detail (Auto, High, Low) is how many layers of
+grass are drawn, which takes effect the next time you join. A player who never opens the window gets
+what the game always did: full sound, motion as the camera config says, and Auto grass (4 layers on a
+phone, 6 on a PC).
+
+**The hotbar.** Roblox's own hotbar is off. The game's row of tool slots sits along the bottom on a job
+site: the held tool's slot is cream, the others dark glass, each with the tool's picture and, with a
+keyboard, its key (1 to 9, then 0). Press a key or tap a slot to take that tool out, or to put it away if
+you are holding it. Every tool you have gets a slot. If the row would run into the move stick or the
+jump button it shrinks, never below a size a thumb can hit, and past that the last slot is a gold "+N"
+that opens a tray of the rest.
+
+**Every button feels the same.** Over a button the pointer grows it a little, a press squashes it, it
+springs back and a soft click plays (nothing grows under a finger on a phone). This is one helper
+(`Juicy.juice`), used by the squares, the pills, the windows' Close buttons, the Top Lawns tabs and the
+rest of the HUD's buttons.
+
+**The stripe splash.** Mow a straight pass of 30 studs or more without the blade hitting anything
+(and without the mower stalling, running out of fuel or going dull) and, when the pass ends, gold
+words pop in a little above the middle of the screen and fade after a second: "NICE STRIPE!", then
+"CLEAN CUT!", then "PERFECT LINE!", in turn. It is a pat on the back and nothing more: no XP, no
+cash, nothing sent to the server. It shows at most once every 8 seconds, never over a menu, the pay
+panel or a scene. A U-turn is two passes, not one long one.
+
 ## Phases
 
 | Phase | What | Status |

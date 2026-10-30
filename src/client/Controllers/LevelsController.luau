@@ -25,6 +25,7 @@ local Season = require(Shared.Config.Season)
 
 local Art = require(script.Parent.Parent.Art)
 local ClientState = require(script.Parent.Parent.ClientState)
+local Juicy = require(script.Parent.Parent.Juicy)
 local UI = require(script.Parent.Parent.UI)
 local ContractsController = require(script.Parent.ContractsController)
 
@@ -218,7 +219,7 @@ local function build()
 		TextSize = 28,
 		Parent = panel,
 	})
-	UI.button(if Art.icon("Close") ~= "" then "" else "X", close, {
+	Juicy.juice(UI.button(if Art.icon("Close") ~= "" then "" else "X", close, {
 		Name = "Close",
 		Style = "Danger",
 		Icon = "Close",
@@ -227,7 +228,7 @@ local function build()
 		Position = UDim2.new(1, -10, 0, 10),
 		Size = UDim2.fromOffset(36, 36),
 		Parent = panel,
-	})
+	}))
 
 	-- Where a menu's content starts under the Panel art's title band (UI.panel's).
 	local top = if Art.slice("Panel") then 58 else 52
@@ -269,13 +270,13 @@ local function build()
 		LayoutOrder = 4,
 		Parent = content,
 	}, { UI.list(ROW_GAP) })
-	UI.button("Close", close, {
+	Juicy.juice(UI.button("Close", close, {
 		Name = "CloseButton",
 		Size = UDim2.new(1, 0, 0, 40),
 		TextSize = 20,
 		LayoutOrder = 5,
 		Parent = content,
-	})
+	}))
 end
 
 -- The job's id and state as one string, or nil without a job: it changes when a job is accepted,

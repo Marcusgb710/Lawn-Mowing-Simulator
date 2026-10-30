@@ -886,6 +886,19 @@ return {
 		note = "Level Up!, New Tool! or Payday! for a couple of seconds: the wordmark with a line under it. "
 			.. "It pops in with a UIScale from 0.6.",
 	},
+	Splash = {
+		label = "Stripe splash",
+		group = "Popups",
+		screen = "LawnUI",
+		anchor = { 0.5, 0.5 },
+		position = { 0.5, 0, 0.42, 0 },
+		size = { 0, 520, 0, 90 },
+		touch = { size = { 0, 380, 0, 64 } },
+		note = "NICE STRIPE!, CLEAN CUT! or PERFECT LINE! for 1.2 seconds after a clean mower pass of 30 studs "
+			.. "or more (GrassController's StripDone, shown by HudController): gold Fredoka 54 px with a 4 px "
+			.. "ink stroke, tilted 4 degrees, 40 px on a touch or short screen. At most once every 8 seconds, "
+			.. "never over a menu, the pay breakdown or a scene. It pops in on an inner frame and fades.",
+	},
 	PayBreakdown = {
 		label = "Pay breakdown",
 		group = "Popups",

@@ -1,8 +1,10 @@
 -- Juicy: the front-page HUD's look, drawn in code so no art is uploaded. A glossy gradient face
 -- with a thick ink outline and a lip under it, a diagonal shine and a thin highlight, buttons that
 -- grow on hover and squash on press, pills, tilted badges, and white Fredoka text with an ink
--- stroke. Plus three small animations the HUD reuses: pulse, pop and countTo. The colours are in
--- JuicyPalette.luau (which scripts/check-gui reads outside Roblox); this file builds the Instances.
+-- stroke. Plus three small animations the HUD reuses (pulse, pop and countTo) and juice, which gives
+-- the same hover, press and Click feel to any GuiButton, so the HUD's other buttons (the Levels pill,
+-- the tabs, the windows' Close) match the Juicy ones. The colours are in JuicyPalette.luau (which
+-- scripts/check-gui reads outside Roblox); this file builds the Instances.
 --
 -- Sizes are in pixels. A face's lip hangs below the Size you give (by Lip pixels) and its outline
 -- sticks out Stroke pixels all round, so leave that much room, as the HUD's columns do.
@@ -293,6 +295,133 @@ local function hasPointer(): boolean
 	return not (UserInputService.TouchEnabled and not UserInputService.MouseEnabled)
 end
 
+-- The animations running on a UIScale: the connection, the scale it started from (the layout's or
+-- code's own value, handed back at the end) and the last value written, so a write by anyone else
+-- (UI.place re-placing the element) is noticed and ends the animation.
+type Animation = { connection: RBXScriptConnection, base: number, written: number }
+local animations: { [UIScale]: Animation } = setmetatable({}, { __mode = "k" }) :: any
+
+-- The UIScale pulse, pop and juice animate on `gui`: the one it has, else a "JuicyScale" made for it.
+local function scaleOf(gui: GuiObject): UIScale
+	local existing = gui:FindFirstChildOfClass("UIScale")
+	if existing then
+		return existing
+	end
+	return UI.new("UIScale", { Name = SCALE_NAME, Scale = 1, Parent = gui })
+end
+
+-- The buttons already given the feel, so a second call does nothing.
+local juiced: { [GuiButton]: boolean } = setmetatable({}, { __mode = "k" }) :: any
+
+-- Gives any GuiButton the front-page feel: it grows 6 percent while the pointer is over it (not on a
+-- touch screen), squashes to 92 percent while it is held, springs back with a Back/Out rebound when it
+-- lets go, and plays the Click sound when it is activated. The button's own action stays wherever it
+-- was connected: this only adds the feel. `target` is the GuiObject that grows and squashes, the button
+-- itself unless you say (a transparent button laid over a pill gives the pill). It animates the target's
+-- UIScale: the one it has (the LayoutScale UI.place gives, and then it rests at that scale), else a
+-- "JuicyScale" it makes, so call it after the target is placed. Like every UIScale it grows about the
+-- target's AnchorPoint, so a button anchored at its top left grows towards the bottom right; it is
+-- 6 percent, so the shift is a few pixels on a control of the HUD's size. A list the target is in does
+-- not make room for the growth. A press that starts on the button ends when that same finger or mouse
+-- button lifts, wherever it is by then, so a touch dragged off the button still lets it go.
+function Juicy.juice(button: GuiButton, target: GuiObject?)
+	if juiced[button] then
+		return
+	end
+	juiced[button] = true
+	local scale = scaleOf(target or button)
+	-- Where the scale rests: what it was when the pointer arrived, so a layout's scale is honoured.
+	local rest = scale.Scale
+	local hovered = false
+	local pressed = false
+	-- A tween is on its way to its end (a new rest is not read from the middle of one).
+	local moving = false
+	local running: Tween? = nil
+	local pressEnded: RBXScriptConnection? = nil
+	local function goTo(factor: number, info: TweenInfo)
+		if running then
+			running:Cancel()
+		end
+		local tween = TweenService:Create(scale, info, { Scale = rest * factor })
+		running = tween
+		moving = true
+		tween.Completed:Connect(function(state: Enum.PlaybackState)
+			if running == tween and state == Enum.PlaybackState.Completed then
+				moving = false
+			end
+		end)
+		tween:Play()
+	end
+	-- Called as the button leaves its rest: reads the scale it rests at.
+	local function leavingRest()
+		if not (hovered or pressed or moving) then
+			-- A pulse or pop in flight is on its way back to its own base: that is the rest.
+			local animation = animations[scale]
+			rest = if animation then animation.base else scale.Scale
+		end
+	end
+	local function release()
+		if not pressed then
+			return
+		end
+		pressed = false
+		if pressEnded then
+			pressEnded:Disconnect()
+			pressEnded = nil
+		end
+		goTo(
+			if hovered then HOVER_SCALE else 1,
+			TweenInfo.new(RELEASE_TIME, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+		)
+	end
+	button.MouseEnter:Connect(function()
+		if not hasPointer() then
+			return
+		end
+		leavingRest()
+		hovered = true
+		if not pressed then
+			goTo(HOVER_SCALE, TweenInfo.new(HOVER_TIME, Enum.EasingStyle.Quad, Enum.EasingDirection.Out))
+		end
+	end)
+	button.MouseLeave:Connect(function()
+		local wasHovered = hovered
+		hovered = false
+		if pressed then
+			release()
+		elseif wasHovered then
+			goTo(1, TweenInfo.new(HOVER_TIME, Enum.EasingStyle.Quad, Enum.EasingDirection.Out))
+		end
+	end)
+	-- A press starts on this button and ends when that same input (the mouse button, or that
+	-- finger) lifts, wherever it is by then: a touch dragged off the button still releases it.
+	button.InputBegan:Connect(function(input: InputObject)
+		local kind = input.UserInputType
+		if pressed or (kind ~= Enum.UserInputType.MouseButton1 and kind ~= Enum.UserInputType.Touch) then
+			return
+		end
+		leavingRest()
+		pressed = true
+		goTo(PRESS_SCALE, TweenInfo.new(PRESS_TIME, Enum.EasingStyle.Quad, Enum.EasingDirection.Out))
+		pressEnded = UserInputService.InputEnded:Connect(function(ended: InputObject)
+			if ended == input then
+				release()
+			end
+		end)
+	end)
+	button.Activated:Connect(function()
+		Sounds.playUi("Click", CLICK_VOLUME)
+	end)
+	button.Destroying:Once(function()
+		if running then
+			running:Cancel()
+		end
+		if pressEnded then
+			pressEnded:Disconnect()
+		end
+	end)
+end
+
 -- A button: a face (colour `color`, the size in props.Size, 76 x 76 by default; give its height in
 -- pixels) with props.Icon (a glyph name UI.icon knows) in the middle and props.Label under it.
 -- The button's own size is the face plus the label. It grows on hover, squashes when pressed,
@@ -328,7 +457,7 @@ function Juicy.button(color: string, onClick: (() -> ())?, props): (TextButton, 
 		ZIndex = base,
 		Parent = button,
 	})
-	local scale = UI.new("UIScale", { Scale = 1, Parent = content })
+	UI.new("UIScale", { Scale = 1, Parent = content })
 
 	local _body, face = Juicy.face(color, {
 		Name = "Body",
@@ -372,70 +501,11 @@ function Juicy.button(color: string, onClick: (() -> ())?, props): (TextButton, 
 		})
 	end
 
-	-- The feel: hover grows, press squashes, release springs back to wherever it should rest.
-	local hovered = false
-	local pressed = false
-	local running: Tween? = nil
-	local pressEnded: RBXScriptConnection? = nil
-	local function goTo(target: number, info: TweenInfo)
-		if running then
-			running:Cancel()
-		end
-		local tween = TweenService:Create(scale, info, { Scale = target })
-		running = tween
-		tween:Play()
+	-- The feel: hover grows, press squashes, release springs back, and a press plays the Click.
+	Juicy.juice(button, content)
+	if onClick then
+		button.Activated:Connect(onClick)
 	end
-	local function release()
-		if not pressed then
-			return
-		end
-		pressed = false
-		if pressEnded then
-			pressEnded:Disconnect()
-			pressEnded = nil
-		end
-		local rest = if hovered then HOVER_SCALE else 1
-		goTo(rest, TweenInfo.new(RELEASE_TIME, Enum.EasingStyle.Back, Enum.EasingDirection.Out))
-	end
-	button.MouseEnter:Connect(function()
-		if not hasPointer() then
-			return
-		end
-		hovered = true
-		if not pressed then
-			goTo(HOVER_SCALE, TweenInfo.new(HOVER_TIME, Enum.EasingStyle.Quad, Enum.EasingDirection.Out))
-		end
-	end)
-	button.MouseLeave:Connect(function()
-		local wasHovered = hovered
-		hovered = false
-		if pressed then
-			release()
-		elseif wasHovered then
-			goTo(1, TweenInfo.new(HOVER_TIME, Enum.EasingStyle.Quad, Enum.EasingDirection.Out))
-		end
-	end)
-	-- A press starts on this button and ends when that same input (the mouse button, or that
-	-- finger) lifts, wherever it is by then: a touch dragged off the button still releases it.
-	button.InputBegan:Connect(function(input: InputObject)
-		local kind = input.UserInputType
-		if pressed or (kind ~= Enum.UserInputType.MouseButton1 and kind ~= Enum.UserInputType.Touch) then
-			return
-		end
-		pressed = true
-		goTo(PRESS_SCALE, TweenInfo.new(PRESS_TIME, Enum.EasingStyle.Quad, Enum.EasingDirection.Out))
-		pressEnded = UserInputService.InputEnded:Connect(function(ended: InputObject)
-			if ended == input then
-				release()
-			end
-		end)
-	end)
-	button.Activated:Connect(function()
-		Sounds.playUi("Click", CLICK_VOLUME)
-		if onClick then
-			onClick()
-		end
-	end)
 
 	if props.Parent then
 		button.Parent = props.Parent
@@ -503,21 +573,6 @@ function Juicy.badge(text: string, props): (Frame, Frame, TextLabel)
 end
 
 -- Pulse, pop and count ---------------------------------------------------------------------------
-
--- The animations running on a UIScale: the connection, the scale it started from (the layout's or
--- code's own value, handed back at the end) and the last value written, so a write by anyone else
--- (UI.place re-placing the element) is noticed and ends the animation.
-type Animation = { connection: RBXScriptConnection, base: number, written: number }
-local animations: { [UIScale]: Animation } = setmetatable({}, { __mode = "k" }) :: any
-
--- The UIScale pulse and pop animate on `gui`: the one it has, else a "JuicyScale" made for it.
-local function scaleOf(gui: GuiObject): UIScale
-	local existing = gui:FindFirstChildOfClass("UIScale")
-	if existing then
-		return existing
-	end
-	return UI.new("UIScale", { Name = SCALE_NAME, Scale = 1, Parent = gui })
-end
 
 -- Runs `factor(alpha)` (alpha 0 to 1 over `duration`) as a multiple of the scale's own value, and
 -- ends on exactly that value. Starting another on the same scale first drops the running one and

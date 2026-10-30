@@ -247,6 +247,8 @@ src/shared/                  -> ReplicatedStorage.Shared   code used by both ser
   Config/Contracts.luau         the day's three contracts by level band, what each pays and the Bonus Day
   Config/Streak.luau            the login streak: what each of its seven days pays, and when a day counts
   Config/Season.luau            the Busy Season's part of the save, and who still counts as a first-timer
+  Config/Settings.luau          the Settings window's three choices (sound, camera motion, grass detail): what is
+                                allowed, what a bad value becomes, and the shell count for each grass detail
   Config/GuiArt.luau            GENERATED: the GUI art's image ids, slices, palette and bitmap fonts
                                 (scripts/gui-art-ids.py; see HANDOFF.md, "GUI art")
   Daily.luau                    what day it is in UTC: the day key, Saturday and the midnights, told the moment
@@ -287,6 +289,14 @@ src/client/                  -> StarterPlayer.StarterPlayerScripts.Client
                                 the contracts panel: today's three, the Bonus Day and the streak
   Controllers/LeaderboardController
                                 draws the two leaderboards on the sign at the town spawn
+  Controllers/HotbarController  the hotbar: a slot for every tool along the bottom of a job site, keys 1 to 9 and 0
+  Controllers/TopLawnsController
+                                the Top Lawns window: the two leaderboards, from the HUD button or F
+  Controllers/SettingsController
+                                the Settings window: sound, camera motion and grass detail, kept in the save
+  Juicy.luau                    the front-page HUD's look drawn in code: faces, buttons, pills, badges, text, and
+                                the hover, press and click feel for any button (Juicy.juice)
+  JuicyPalette.luau             the colours Juicy draws with (plain data, so scripts/check-gui can read it)
   UI.luau                       the look: colours, fonts, windows, cards, buttons, bars, prompts
   UiLayout.luau                 where everything on the play screen goes, as plain data for the
                                 layout editor (lune run scripts/ui-layout-json prints it as JSON)

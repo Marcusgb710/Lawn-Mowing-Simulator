@@ -595,6 +595,132 @@ The spec's playtest checklist for slice 2, with what to expect:
 - [ ] Pennant on the drive cutscene's truck once a real `Props/TruckPennant` model lands: the trip
       info must `Assets.shareWith` the model so the client can build it.
 
+## Front-page HUD: to check
+
+The play screen was rebuilt as a front-page Roblox simulator HUD (design: `docs/GAME_DESIGN.md`, "12.
+The HUD"; plan: `docs/superpowers/plans/2026-10-30-front-page-hud.md`). The Lune checks cover what is
+pure (`check-gui` the layout rules at 1280 by 720, 1024 by 768, 844 by 390 and 667 by 375, the palette
+and the source rules; `check-season` the gift, the day turn and Settings rules). None of it has been
+looked at in Studio or on a phone yet, so every item below is a first look. Studio only: the test panel
+(K) has Next day, and Studio does not save without API access (Game Settings > Security > Enable Studio
+Access to API Services), so turn that on where an item says so.
+
+Each step reads "do this, expect that".
+
+Layout (look at each piece, then check nothing overlaps):
+
+- [ ] PC, a 1280 by 720 window. Expect, down the left: the money pill with a gold coin, the level pill
+      and the streak pill side by side (the streak pill only once you have a streak), the purple
+      countdown pill (only when judging day is on the calendar), then four squares (Truck, Guide,
+      Crew, Contracts) with their names under them and T, G, C on their corners. At the top in the
+      middle: Grandma's cream banner, clear of both columns. Down the right, inside the edge strip:
+      curb appeal, and during a job the dark job card with the timer, then the boost pills, then (late
+      in the mowing) the missed button. Against the right edge: Shop, Gifts, Top Lawns and Settings
+      squares. Also look at 1024 by 768 and 1024 by 600.
+- [ ] The phone emulator at 844 by 390, landscape. Expect the four left squares in a 2 by 2 grid, the
+      right strip's squares bare (no names, 56 px, Settings smaller), the left column about 0.7
+      scale when the countdown pill is up, and every square at least 40 px across (44 px expected).
+      Nothing under the move stick (bottom left) or the jump button (bottom right), and the banner not
+      touching either column.
+- [ ] The phone emulator at 667 by 375. Same checks; the squares are about 42 px. The banner and the
+      first-job coach move left to clear the right column.
+- [ ] The Next chip (a phone only, in the right column) shows the next milestone on one line. It only
+      shows; nothing happens when it is tapped.
+- [ ] Touch targets. On a phone, Call off and the missed button each have a hit area 40 px tall or
+      more (invisible strips above and below them). Press Call off once: it says "Sure?" for three
+      seconds; press it again inside that to call the job off.
+
+The tool hotbar:
+
+- [ ] A job with 10 or more tools (the starter truck with the ToolBucket carries 10 to 13): every tool has
+      a slot, keys 1 to 9 and then 0 take out the first ten, and clicking any slot takes that tool out
+      (the held one is cream; pressing its slot again puts it away). Roblox's own hotbar never shows.
+- [ ] Narrow the window (or use 667 by 375) with 10 tools: the row shrinks first, then stops at 40 px
+      slots (48 px on a PC) and the last slot becomes a gold "+N" that opens a tray of the rest just
+      above the bar. The held tool is never in the tray. Pressing a slot, or the job ending, closes the
+      tray; a tap on the bare screen does not (a known gap). The row stays clear of the move stick and
+      the jump button.
+- [ ] A gamepad (or the emulator's): L1 and R1 step through every tool. A broken mower mid-job, and a
+      respawn: no stale slot, no errors in the output.
+- [ ] Studio probe, the hotbar equip: take a tool out with a key, then check on the server (Server view)
+      that `Tool.Equipped` fired once and the tool's `Working` attribute follows. The plan assumed
+      Roblox's own hotbar did the same; this is the first look.
+
+The money, the squares and the buttons:
+
+- [ ] Finish a job: the money counts up over about 0.4 s and the pill pulses once. Hover a square, a pill
+      and a window's Close button with the mouse: each grows a little; press and hold: it squashes;
+      let go: it springs back; a soft click plays on each. On a phone nothing grows under a finger,
+      but the press and the click still happen. Press and drag off a button with a finger, then lift:
+      the button must still spring back (it must not stay squashed).
+- [ ] The Heartbeat pulses. Watch the Gifts button (while a gift waits), the money pill and the badges
+      for a minute: nothing flickers or ends up a size it was not (a pulse that lands while the
+      pointer is over the button should end at the hover size).
+- [ ] Studio probe, the font: the new text is FredokaOne. Look at "LVL", "DAY", the squares' names and
+      the splash for a face that falls back to a system font (letters too thin or the wrong shape).
+- [ ] Studio probe, the face sizes: with the Explorer open, check the Truck, Guide, Crew and
+      Contracts squares' `Face` frames are 76 px on a PC and 64 px in the phone grid
+      (`AbsoluteSize`), and the right strip's are 76, or 56 and 44 on a phone.
+- [ ] Studio probe, the automatic heights: the job card, the banner and the Top Lawns and Settings
+      windows grow with their words (`AutomaticSize` Y). Change the goal text length (play to a later
+      goal) and look for a banner that clips its bar or leaves a gap under it.
+
+The gift (Busy Season, slice 2 has the full walk):
+
+- [ ] Press the test panel's Next day. Expect no card; the Gifts button wears a tilted yellow CLAIM tag
+      and pulses every 2.5 s. Press Gifts: a Payday card for the day, the streak chime, the cash
+      lifting off the money counter, the tag gone. Press Gifts again: the contracts panel opens.
+- [ ] Next day twice without claiming: the second press pays the first's gift with a "Yesterday's
+      gift: +$N" toast, once, and a new CLAIM tag is up.
+
+Shop, Top Lawns and Settings:
+
+- [ ] Shop buying away from the desk. Stand in the yard, away from the computer, and press the Shop button
+      (or B): the Orders window opens with tools, supplies and decorations. Buy a tool: it is paid for
+      and a box arrives at the shop door. Sell one: it works. The window has no Truck, Trailer or
+      Business tabs away from the desk. At the computer's Orders app the truck, trailer and business
+      tabs are there and buying one works. A truck bought by hand from the command bar away from the
+      desk is refused ("Order it from the computer in your shop."). Taking a job still needs the
+      computer. While on a job, buying a tool says "Finish the job first. Your orders can wait."
+- [ ] Top Lawns (F or the button), API access on: two tabs, up to 25 rows each, gold ranks for the first
+      three, your own line under the list. With API access off: the window says the boards are off. On
+      a phone, both tabs and the Close button are reachable, and the tab you press grows and clicks.
+- [ ] PlayerList vs the right strip. Test tab > Clients and Servers, 2 players: Roblox's own player list
+      sits at the top right. Expect the strip's top square (Shop) not to hide under it; if it does,
+      the strip needs to move down on a PC.
+- [ ] Settings (comma or the button), API access on: choose Sound Low, Camera motion Off, Grass detail
+      Low. Sounds are quieter (Off is silent, including the engine and the UI), the head bob stops,
+      and the Grass row says it takes effect when you rejoin. Stop and play again (a rejoin): the three
+      choices are still as you left them, the grass is drawn with 4 layers (a flatter lawn). V on a
+      keyboard flips Camera motion and the window follows it. A player who never opens it: full
+      sound, motion as before, Auto grass.
+- [ ] Settings with API access off: the choices work for the session and are not kept after a rejoin.
+      Press a choice many times fast: the window keeps up and the server answers the last one.
+
+The stripe splash:
+
+- [ ] On a job, mow one straight pass of 30 studs or more with a gas mower, out to the edge of the lawn
+      (a pass ends when the deck leaves the lawn, you put the mower away, or you turn back): gold "NICE
+      STRIPE!" tilted a little pops in above the middle, holds about a second, fades, and a soft star
+      chime plays. Do three more passes 10 seconds apart: "CLEAN CUT!", then "PERFECT LINE!", then
+      "NICE STRIPE!" again. Two passes within 8 seconds: only the first cheers.
+- [ ] Turn round after 40 studs and come back: the cheer comes at the turn (the way back is a pass of
+      its own), not at the end of the way back.
+- [ ] No splash for: a pass under 30 studs (a U-turn after 15 studs and back counts as two short
+      passes); a pass that hit junk (the engine stalls for a moment, so the pass ends there); a pass
+      with a dull blade or no fuel; any pass finished while a menu or the pay panel is up. Money and XP
+      do not change when it shows. On a phone it is smaller (40 px), not under the thumbs.
+- [ ] Studio probe, the stall: hit junk mid-pass and watch the tool's `Working` attribute drop to false
+      (the splash decides a pass was hit from this, since the blade-hit sound has no id yet). If a
+      pass ends clean and still shows no splash, check the pass really covered 30 studs along its
+      first two seconds' heading.
+
+Later (known, left for after this PR):
+
+- [ ] A blade-hit sound id (`Sounds.Ids.BladeHit` is empty) and an Effects volume for the engine.
+- [ ] The seven-rewards card for the Gifts button when nothing waits.
+- [ ] Gamepad focus for the HUD's new squares.
+
 ## Model overhaul: what is left
 
 Batches 1 to 4 (the mowers and trimmers; the blowers, barrows and the rest of batch 2; the trucks and

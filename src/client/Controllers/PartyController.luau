@@ -9,6 +9,7 @@ local GameConfig = require(Shared.Config.GameConfig)
 local Net = require(Shared.Net)
 
 local ClientState = require(script.Parent.Parent.ClientState)
+local Juicy = require(script.Parent.Parent.Juicy)
 local UI = require(script.Parent.Parent.UI)
 
 local player = Players.LocalPlayer
@@ -142,12 +143,12 @@ local function showInvite(from: Player, timeout: number)
 			UI.notify(message)
 		end
 	end
-	UI.button("Join", function()
+	Juicy.juice(UI.button("Join", function()
 		respond(true)
-	end, { Position = UDim2.new(0.5, -115, 0, 32), Parent = popup })
-	UI.button("No thanks", function()
+	end, { Position = UDim2.new(0.5, -115, 0, 32), Parent = popup }))
+	Juicy.juice(UI.button("No thanks", function()
 		respond(false)
-	end, { Position = UDim2.new(0.5, 5, 0, 32), BackgroundColor3 = UI.Colors.Danger, Parent = popup })
+	end, { Position = UDim2.new(0.5, 5, 0, 32), BackgroundColor3 = UI.Colors.Danger, Parent = popup }))
 
 	task.delay(timeout, function()
 		if popup.Parent then

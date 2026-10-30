@@ -1293,7 +1293,7 @@ do
 
 	-- The money counts up from the number the label shows now (shownMoney, written by the count's own
 	-- formatter), not from the previous profile's money, so a second gain mid-count never jumps. The
-	-- Levels button pops the level pill when pressed, on the pill itself inside a slot of the row, so the
+	-- Levels button juices the level pill when pressed, on the pill itself inside a slot of the row, so the
 	-- row's list is not laid out again every frame.
 	check(
 		string.find(hudSource, "shownMoney", 1, true) ~= nil
@@ -1302,9 +1302,9 @@ do
 		"HudController's money count doesn't start from the number on screen (shownMoney)"
 	)
 	check(
-		string.find(hudSource, "Juicy.pop(levelHolder)", 1, true) ~= nil
+		string.find(hudSource, "Juicy.juice(levelsButton, levelHolder)", 1, true) ~= nil
 			and string.find(hudSource, "LevelSlot", 1, true) ~= nil,
-		"HudController's Levels button doesn't pop the level pill (inside a LevelSlot of the row)"
+		"HudController's Levels button doesn't juice the level pill (inside a LevelSlot of the row)"
 	)
 
 	-- The boost pills show the numbers the server sends with every job update (crewBonus, truckBonus,
@@ -1901,6 +1901,118 @@ do
 	check(
 		string.find(fs.readFile("src/client/init.client.luau"), '"TopLawnsController"', 1, true) ~= nil,
 		"init.client doesn't start TopLawnsController"
+	)
+
+	-- The clean-stripe splash (ruling 11): GrassController follows each mower pass and fires StripDone
+	-- (a Signal) once, when the pass ends, if it went STRIP_LENGTH studs or more along the way its first
+	-- seconds went and nothing bad happened in it (a stalled blade, Blocked, Ragged, a fall); HudController
+	-- connects StripDone and shows it, at most once every SPLASH_COOLDOWN seconds, never over a menu, the
+	-- pay panel or a scene, and tells the server nothing (it is cosmetic: no XP).
+	check(
+		string.find(grassSource, "GrassController.StripDone = Signal.new()", 1, true) ~= nil
+			and select(2, string.gsub(grassSource, "StripDone:Fire%(", "")) == 1
+			and string.find(grassSource, "local function trackPass", 1, true) ~= nil
+			and string.find(grassSource, "trackPass(now)", 1, true) ~= nil,
+		"GrassController doesn't follow mower passes and fire StripDone once, from endPass"
+	)
+	local stripLength = tonumber(string.match(grassSource, "local STRIP_LENGTH = (%d+)"))
+	check(stripLength ~= nil and stripLength >= 30, "GrassController's STRIP_LENGTH is under 30 studs")
+	local passBody = string.match(grassSource, "local function passWasClean.-\nend\n") or ""
+	for _, bad in { '"Blocked"', '"Ragged"', '"Working"', "Health" } do
+		check(string.find(passBody, bad, 1, true) ~= nil, `GrassController's clean-pass rule doesn't look at {bad}`)
+	end
+	check(
+		string.find(hudSource, "GrassController.StripDone:Connect(showSplash)", 1, true) ~= nil,
+		"HudController doesn't connect GrassController.StripDone to the splash"
+	)
+	local splashCooldown = tonumber(string.match(hudSource, "local SPLASH_COOLDOWN = (%d+)"))
+	check(
+		splashCooldown ~= nil and splashCooldown >= 8,
+		"HudController's SPLASH_COOLDOWN is under 8 seconds (at most one splash every 8)"
+	)
+	check(
+		string.find(hudSource, "now - splashAt < SPLASH_COOLDOWN", 1, true) ~= nil,
+		"HudController's splash doesn't hold to its cooldown"
+	)
+	local splashBody = string.match(hudSource, "local function splashFree.-\nlocal function showSplash.-\nend\n") or ""
+	check(splashBody ~= "", "HudController has no splash (splashFree and showSplash)")
+	for _, wanted in
+		{
+			"UI.needsCursor()",
+			"payPanel == nil",
+			"UI.getScreen().Enabled",
+			"UI.titleCardDone()",
+			"Juicy.pop(inner)",
+			'Sounds.playUi("Star", SPLASH_VOLUME)',
+			"Rotation = SPLASH_TILT",
+		}
+	do
+		check(string.find(splashBody, wanted, 1, true) ~= nil, `HudController's splash doesn't have {wanted}`)
+	end
+	for _, never in { "FireServer", "InvokeServer", "Net.", "DataService" } do
+		check(string.find(splashBody, never, 1, true) == nil, `HudController's splash reaches the server ({never})`)
+	end
+	check(
+		string.find(hudSource, 'SPLASH_WORDS = { "NICE STRIPE!", "CLEAN CUT!", "PERFECT LINE!" }', 1, true) ~= nil
+			and string.find(hudSource, "local SPLASH_TEXT_SIZE = 54", 1, true) ~= nil
+			and string.find(hudSource, "local SPLASH_TEXT_SIZE_SMALL = 40", 1, true) ~= nil
+			and string.find(hudSource, "local SPLASH_STROKE = 4", 1, true) ~= nil
+			and string.find(hudSource, "local SPLASH_TILT = -4", 1, true) ~= nil
+			and string.find(hudSource, "local SPLASH_SHOWN = 1.2", 1, true) ~= nil,
+		"HudController's splash words, 54/40 px size, 4 px stroke, -4 degree tilt or 1.2 s aren't the plan's"
+	)
+	local splashPlace = UiLayout.Splash
+	check(splashPlace ~= nil, "UiLayout has no Splash")
+	if splashPlace then
+		check(
+			splashPlace.screen == "LawnUI" and splashPlace.position[3] == 0.42 and splashPlace.anchor[1] == 0.5,
+			"UiLayout's Splash isn't centred at 0.42 of the screen height"
+		)
+	end
+
+	-- The juice pass (ruling 12): every HUD control that acts gets the hover, press squash and Click of a
+	-- Juicy button, through the one helper Juicy.juice (a GuiButton, and the GuiObject that moves when it
+	-- is not itself). A Juicy button runs the same helper, and plays no Click of its own.
+	local juiceSource = fs.readFile("src/client/Juicy.luau")
+	check(
+		string.find(juiceSource, "function Juicy.juice(button: GuiButton, target: GuiObject?)", 1, true) ~= nil
+			and string.find(juiceSource, "Juicy.juice(button, content)", 1, true) ~= nil
+			and select(2, string.gsub(juiceSource, 'Sounds.playUi%("Click"', "")) == 1,
+		"Juicy.button doesn't get its feel from Juicy.juice (or plays Click more than once)"
+	)
+	local juiceUsers = {
+		{
+			"src/client/Controllers/HudController.luau",
+			{ "Juicy.juice(levelsButton, levelHolder)", "Juicy.juice(missedButton)", 'Juicy.juice(UI.button("Nice!"' },
+		},
+		{
+			"src/client/Controllers/TopLawnsController.luau",
+			{ "Juicy.juice(tab)", 'Juicy.juice(window:FindFirstChild("Close")' },
+		},
+		{ "src/client/Controllers/SettingsController.luau", { 'Juicy.juice(window:FindFirstChild("Close")' } },
+		{
+			"src/client/Controllers/ContractsController.luau",
+			{ 'Juicy.juice(panel:FindFirstChild("Close")', 'Juicy.juice(UI.button("Close"' },
+		},
+		{
+			"src/client/Controllers/LevelsController.luau",
+			{ 'Juicy.juice(UI.button(if Art.icon("Close")', 'Juicy.juice(UI.button("Close"' },
+		},
+		{
+			"src/client/Controllers/PartyController.luau",
+			{ 'Juicy.juice(UI.button("Join"', 'Juicy.juice(UI.button("No thanks"' },
+		},
+	}
+	for _, user in juiceUsers do
+		local source = fs.readFile(user[1])
+		for _, wanted in user[2] do
+			check(string.find(source, wanted, 1, true) ~= nil, `{user[1]} doesn't have {wanted}`)
+		end
+	end
+	check(
+		string.find(hudSource, 'Sounds.playUi("Click", 0.4)', 1, true) == nil
+			and string.find(hudSource, "Juicy.pop(levelHolder)", 1, true) == nil,
+		"HudController's Levels button still plays its own Click or pops the pill (Juicy.juice does both)"
 	)
 end
 -- The goals rail's DONE stamp is words only (UI.stampText): asked of UI.stamp it would be the art's

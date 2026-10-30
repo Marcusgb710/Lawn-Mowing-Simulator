@@ -15,6 +15,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local GameConfig = require(Shared.Config.GameConfig)
 
 local ClientState = require(script.Parent.Parent.ClientState)
+local Juicy = require(script.Parent.Parent.Juicy)
 local UI = require(script.Parent.Parent.UI)
 local LeaderboardController = require(script.Parent.LeaderboardController)
 
@@ -133,6 +134,8 @@ end
 function TopLawnsController:Start()
 	local content
 	window, content = UI.panel("TopLawns", "Top Lawns")
+	-- The window's X and the tabs feel like the HUD's buttons (Juicy.juice).
+	Juicy.juice(window:FindFirstChild("Close") :: GuiButton)
 
 	local tabs = UI.new("Frame", {
 		Name = "Tabs",
@@ -141,10 +144,12 @@ function TopLawnsController:Start()
 		Parent = content,
 	}, { UI.list(6, Enum.FillDirection.Horizontal) })
 	for index, board in BOARDS do
-		tabButtons[board.list] = UI.tab(board.name, board.icon, function()
+		local tab = UI.tab(board.name, board.icon, function()
 			selected = board.list
 			render()
 		end, { LayoutOrder = index, Parent = tabs })
+		Juicy.juice(tab)
+		tabButtons[board.list] = tab
 	end
 
 	local footer = YOU_HEIGHT + DIVIDER_HEIGHT + DIVIDER_GAP

@@ -28,6 +28,7 @@ local Format = require(Shared.Format)
 local Streak = require(Shared.Config.Streak)
 
 local ClientState = require(script.Parent.Parent.ClientState)
+local Juicy = require(script.Parent.Parent.Juicy)
 local UI = require(script.Parent.Parent.UI)
 
 -- What DailyService sends (its viewOf): the day's contracts with how far along each is, whether
@@ -267,6 +268,8 @@ end
 local function build()
 	local content: Frame
 	panel, content = UI.panel(PANEL, "Today's contracts")
+	-- The window's X and its Close button feel like the HUD's buttons (Juicy.juice).
+	Juicy.juice(panel:FindFirstChild("Close") :: GuiButton)
 	-- Over the pay breakdown (5) should the two ever be up together, like the Levels panel.
 	panel.ZIndex = 6
 	UI.keepPlaced(panel, "ContractsPanel")
@@ -320,13 +323,13 @@ local function build()
 		Parent = streakCard,
 	})
 	UI.new("UITextSizeConstraint", { MaxTextSize = 17, MinTextSize = 11, Parent = streakLabel })
-	UI.button("Close", close, {
+	Juicy.juice(UI.button("Close", close, {
 		Name = "CloseButton",
 		Size = UDim2.new(1, 0, 0, 40),
 		TextSize = 20,
 		LayoutOrder = 5,
 		Parent = content,
-	})
+	}))
 end
 
 -- It's been opened (by name, with UI.open, or from the Contracts square): drawn fresh and fitted, unless it
