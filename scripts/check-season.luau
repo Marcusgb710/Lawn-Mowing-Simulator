@@ -10,7 +10,9 @@
 -- (src/shared/Config/Season.luau), and that the six sounds the Busy Season rings
 -- (cash, level up, goal done, star, find, streak) have ids (src/shared/Sounds.luau), and how a
 -- moment becomes a UTC day key, a Saturday and the midnight after it (src/shared/Daily.luau), and
--- that the server's clock loads and starts at the real time (src/server/Clock.luau). Exits with an
+-- that the server's clock loads and starts at the real time (src/server/Clock.luau), and the day's
+-- three contracts by level band with how far along each is (src/shared/Config/Contracts.luau), and
+-- the streak's rewards and when a day adds to it (src/shared/Config/Streak.luau). Exits with an
 -- error if anything's off.
 
 local fs = require("@lune/fs")
@@ -19,12 +21,14 @@ local process = require("@lune/process")
 local roblox = require("@lune/roblox")
 
 local Clock = require("../src/server/Clock")
+local Contracts = require("../src/shared/Config/Contracts")
 local Daily = require("../src/shared/Daily")
 local Format = require("../src/shared/Format")
 local Levels = require("../src/shared/Config/Levels")
 local Milestones = require("../src/shared/Config/Milestones")
 local Sounds = require("../src/shared/Sounds")
 local Stars = require("../src/shared/Config/Stars")
+local Streak = require("../src/shared/Config/Streak")
 
 local failures = 0
 local function check(ok: boolean, message: string)
@@ -542,6 +546,171 @@ check(
 	noDay.daily.day == "" and noDay.daily.count.junk == 0 and noDay.streak.days == 0,
 	"a day or streak that is not a table is made whole"
 )
+
+-- The day's contracts -------------------------------------------------------------------------
+
+-- Four bands of levels with no gap or overlap, the last open to 999.
+local lastMax = 0
+for index, band in Contracts.Bands do
+	check(band.min == lastMax + 1 and band.max >= band.min, `band {index} starts where the band before it ends`)
+	lastMax = band.max
+end
+check(#Contracts.Bands == 4 and lastMax == 999, "four bands, the last one open to level 999")
+check(
+	Contracts.bandFor(1) == 1 and Contracts.bandFor(2) == 1 and Contracts.bandFor(3) == 2,
+	"levels 1 and 2 are band 1 and level 3 starts band 2"
+)
+check(
+	Contracts.bandFor(7) == 2
+		and Contracts.bandFor(8) == 3
+		and Contracts.bandFor(11) == 3
+		and Contracts.bandFor(12) == 4,
+	"level 7 ends band 2, levels 8 to 11 are band 3 and level 12 starts band 4"
+)
+check(Contracts.bandFor(999) == 4 and Contracts.bandFor(1500) == 4, "a level past the last band stays in it")
+check(Contracts.bandFor(0) == 1, "a level below 1 is held to band 1")
+
+check(table.concat(Contracts.Need.Mow, " ") == "2 3 4 5", "Mow needs by band")
+check(table.concat(Contracts.Need.Earn, " ") == "150 400 1200 3000", "Earn needs by band")
+check(table.concat(Contracts.Need.Junk, " ") == "3 4 6 8", "Junk needs by band")
+check(table.concat(Contracts.Need.Stars, " ") == "1 1 2 2", "Stars needs by band")
+check(table.concat(Contracts.Reward, " ") == "60 150 400 900", "a contract pays 60, 150, 400 or 900 by band")
+check(Contracts.BonusCash == 500, "the Bonus Day pays $500")
+
+-- A level 5 player is in band 2: 3 lawns, $400, and a $150 reward on each.
+local day = Contracts.generate(Contracts.seed("20261029", 1234), 5)
+check(#day == 3 and day[1].id == "Mow" and day[2].id == "Earn", "a day is a Mow, an Earn and one more")
+check(day[3].id == "Junk" or day[3].id == "Stars", "the one more is Junk or Stars")
+check(day[1].kind == "Mow" and day[2].kind == "Earn" and day[3].kind == day[3].id, "a contract's kind is its id")
+check(day[1].need == 3 and day[2].need == 400, "band 2 asks for 3 lawns and $400")
+check(day[1].reward == 150 and day[2].reward == 150 and day[3].reward == 150, "band 2 pays $150 a contract")
+check(day[1].text == "Mow 3 lawns" and day[2].text == "Earn $400", "the Mow and Earn text")
+
+-- A day's third contract at this level, found by trying seeds until one picks `kind`.
+local function flavour(kind: string, level: number)
+	for seed = 1, 200 do
+		local contract = Contracts.generate(seed, level)[3]
+		if contract.kind == kind then
+			return contract
+		end
+	end
+	error(`no seed from 1 to 200 gave a {kind} contract at level {level}`)
+end
+check(
+	flavour("Junk", 5).need == 4 and flavour("Junk", 5).text == "Pick up 4 pieces of junk",
+	"band 2's Junk contract is 4 pieces"
+)
+check(
+	flavour("Stars", 5).need == 1 and flavour("Stars", 5).text == "Get a three-star job",
+	"band 2's Stars contract is one three-star job"
+)
+check(
+	flavour("Stars", 9).need == 2 and flavour("Stars", 9).text == "Get 2 three-star jobs",
+	"band 3's Stars contract is two three-star jobs"
+)
+local firstBand = Contracts.generate(1, 1)
+check(
+	firstBand[1].text == "Mow 2 lawns" and firstBand[2].text == "Earn $150" and firstBand[1].reward == 60,
+	"level 1 asks for 2 lawns and $150, and pays $60 a contract"
+)
+local thirdBand = Contracts.generate(1, 8)
+check(
+	thirdBand[2].text == "Earn $1,200" and thirdBand[2].need == 1200 and thirdBand[2].reward == 400,
+	"level 8 asks for $1,200 and pays $400 a contract"
+)
+local lastBand = Contracts.generate(1, 12)
+check(
+	lastBand[1].text == "Mow 5 lawns" and lastBand[2].text == "Earn $3,000" and lastBand[3].reward == 900,
+	"level 12 asks for 5 lawns and $3,000, and pays $900 a contract"
+)
+
+-- The same seed and level are the same day, and the seeds do not all pick the same third contract.
+check(sameTable(Contracts.generate(777, 5), Contracts.generate(777, 5)), "the same seed and level give the same list")
+local picked = {}
+for seed = 1, 50 do
+	picked[Contracts.generate(seed, 5)[3].kind] = true
+end
+check(picked.Junk == true and picked.Stars == true, "50 seeds in a row give both Junk and Stars")
+local pickedByDay = {}
+for offset = 0, 49 do
+	local key = Daily.dayKey(1793232000 + offset * 86400)
+	pickedByDay[Contracts.generate(Contracts.seed(key, 1234), 5)[3].kind] = true
+end
+check(pickedByDay.Junk == true and pickedByDay.Stars == true, "one player gets both Junk and Stars over 50 days")
+local pickedByPlayer = {}
+for userId = 1, 50 do
+	pickedByPlayer[Contracts.generate(Contracts.seed("20261029", userId), 5)[3].kind] = true
+end
+check(pickedByPlayer.Junk == true and pickedByPlayer.Stars == true, "50 players on one day get both Junk and Stars")
+
+local seed = Contracts.seed("20261029", 1234)
+check(seed == Contracts.seed("20261029", 1234), "the same day and player give the same seed")
+check(math.floor(seed) == seed and seed >= 0, "a seed is a whole number, 0 or more")
+check(seed ~= Contracts.seed("20261029", 1235), "another player gets another seed")
+check(seed ~= Contracts.seed("20261030", 1234), "another day gets another seed")
+-- Studio's test players have negative ids.
+local studioSeed = Contracts.seed("20261029", -1)
+check(math.floor(studioSeed) == studioSeed and studioSeed >= 0, "a Studio player's negative id still gives a seed")
+check(studioSeed ~= Contracts.seed("20261029", -2), "Studio's test players get seeds of their own")
+
+-- have: how far along a contract is, never past its need, from the counter of its own kind.
+check(Contracts.have({ kind = "Earn", need = 400 }, { earned = 950 }) == 400, "have stops at the need")
+check(Contracts.have({ kind = "Earn", need = 400 }, { earned = 150 }) == 150, "have is the count while under the need")
+check(Contracts.have({ kind = "Mow", need = 3 }, { jobs = 2 }) == 2, "Mow counts jobs")
+check(Contracts.have({ kind = "Junk", need = 4 }, { junk = 1 }) == 1, "Junk counts junk")
+check(Contracts.have({ kind = "Stars", need = 2 }, { stars = 5 }) == 2, "Stars counts three-star jobs")
+check(
+	Contracts.have({ kind = "Junk", need = 4 }, { jobs = 9, earned = 999, stars = 9 }) == 0
+		and Contracts.have({ kind = "Mow", need = 3 }, {}) == 0,
+	"a contract ignores the other kinds' counts, and a count that is missing is 0"
+)
+
+-- The streak ----------------------------------------------------------------------------------
+
+local cashes = {}
+for number = 1, 7 do
+	table.insert(cashes, Streak.rewardFor(number).cash)
+end
+check(#Streak.Rewards == 7, "a streak week has seven rewards")
+check(table.concat(cashes, " ") == "100 150 200 300 400 600 1000", "the week pays 100, 150, 200, 300, 400, 600, 1000")
+check(Streak.rewardFor(7).flag == "TruckPennant" and Streak.rewardFor(6).flag == nil, "day 7 has the truck pennant")
+check(
+	Streak.rewardFor(14).cash == 1000 and Streak.rewardFor(14).flag == nil,
+	"day 14 pays like day 7 but the pennant is only given once"
+)
+check(Streak.rewardFor(8).cash == 100 and Streak.rewardFor(10).cash == 200, "the week repeats with cash")
+check(Streak.rewardFor(0).cash == 100, "a streak below 1 is held to day 1")
+local reward = Streak.rewardFor(7)
+reward.cash = 1
+check(Streak.rewardFor(7).cash == 1000 and Streak.Rewards[7].cash == 1000, "a reward is a copy, not the table's own")
+
+-- advance: a new day adds one, the same day twice adds nothing, a missed day starts again.
+local running = { days = 3, last = "20261028" }
+check(
+	Streak.advance(running, "20261029", "20261028") == true and running.days == 4 and running.last == "20261029",
+	"the day after the last one adds a day"
+)
+check(
+	Streak.advance(running, "20261029", "20261028") == false and running.days == 4 and running.last == "20261029",
+	"the same day again changes nothing"
+)
+local missed = { days = 3, last = "20261020" }
+check(
+	Streak.advance(missed, "20261029", "20261028") == true and missed.days == 1 and missed.last == "20261029",
+	"a missed day starts the streak again at 1"
+)
+local beginner = { days = 0, last = "" }
+check(
+	Streak.advance(beginner, "20261029", "20261028") == true and beginner.days == 1 and beginner.last == "20261029",
+	"the first day of all is day 1"
+)
+local week = { days = 0, last = "" }
+for offset = 0, 7 do
+	Streak.advance(week, Daily.dayKey(1793232000 + offset * 86400), Daily.dayKey(1793232000 + (offset - 1) * 86400))
+end
+check(week.days == 8 and week.last == "20261105", "eight days in a row make a streak of 8")
+check(Streak.text(3) == "Day 3 of 7" and Streak.text(7) == "Day 7 of 7", "the streak line reads Day N of 7")
+check(Streak.text(8) == "Day 1 of 7" and Streak.text(14) == "Day 7 of 7", "a second week starts again at day 1")
 
 if failures > 0 then
 	print(`{failures} check(s) failed`)
