@@ -29,10 +29,10 @@ MenuSquares.MENUS = MENUS
 -- The fourth square opens the contracts panel (no key; the mailbox at the curb opens it too).
 local CONTRACTS_SQUARE = { name = "Contracts", layout = "ContractsButton", color = "Contracts", icon = "Jobs" }
 -- The squares are 76 px faces on a PC (UiLayout's TruckButton and the rest are that and the label under
--- it). On a touch or short screen they sit in a 2x2 grid of GRID_FACE px faces, built at that size
--- (not a smaller drawing of the PC ones: a list is not promised to make room for a child's UIScale),
+-- it). On a touch or short screen they sit in a 2x2 grid of GRID_FACE px faces with no names, built at that
+-- size (not a smaller drawing of the PC ones: a list is not promised to make room for a child's UIScale),
 -- with this much between them across and down; check-gui works out from these that a grid square is
--- 44 px or more on a phone.
+-- 40 px or more on a phone, with the top bar's inset taken off the screen.
 local SQUARE_FACE = 76
 local GRID_FACE = 64
 local SQUARE_GAP_X = 16
@@ -64,8 +64,11 @@ local function fitSquare(piece: Piece)
 	if body and body:IsA("GuiObject") then
 		body.Size = UDim2.new(1, 0, 0, faceHeight)
 	end
+	-- The grid's squares are bare faces: the names are left off a touch or short screen, where the column
+	-- has no height to spare once the top bar's 58 px are gone (check-gui works the numbers).
 	local label = piece.label
 	if label then
+		label.Visible = not (UI.isTouch() or UI.isCompact())
 		label.Position = UDim2.new(0.5, 0, 0, faceHeight + Bits.SQUARE_LABEL_GAP)
 	end
 	if piece.key and piece.keyText then

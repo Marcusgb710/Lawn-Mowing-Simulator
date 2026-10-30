@@ -625,20 +625,30 @@ Layout (each step is one window size; look at each piece, then check nothing ove
 - [ ] 1024 by 768 and 1024 by 600 (the window resized). Expect the same PC layout as 1280 by 720: names
       under the squares, the banner clear of both columns, the right column just inside the strip. At
       600 tall the columns are at full size (they only shrink under 560); nothing overlaps.
-- [ ] The phone emulator at 844 by 390, landscape. Expect the four left squares in a 2 by 2 grid, the
-      right strip's squares bare (no names, 56 px, Settings smaller), the left column about 0.7
-      scale when the countdown pill is up, and every square at least 40 px across (44 px expected).
-      Nothing under the move stick (bottom left) or the jump button (bottom right), and the banner not
-      touching either column.
+- [ ] The phone emulator at 844 by 390, landscape. Expect the four left squares in a 2 by 2 grid of bare
+      faces (no names under them), the right strip's four squares bare too (all 40 px, 8 px apart), the
+      left column about 0.66 scale when the countdown pill is up (the screen is 58 px shorter under
+      Roblox's top bar), and every left square about 42 px across (40 at least). Nothing under the move
+      stick (bottom left); the strip's last square (Settings) ends 130 px above the bottom, clear of the
+      jump button and the rounded corner, and a first tap on it opens Settings. The banner does not touch
+      either column.
 - [ ] Studio probe, the GuiInset, on the same phone emulator at 844 by 390 with the countdown pill
       showing (judging day on the calendar, so the purple pill is up). LawnUI
       is not IgnoreGuiInset, so the HUD may see 390 minus the top bar (about 58 px) and not 390. Read
       `LawnUI.AbsoluteSize.Y`, the left column's `AbsoluteSize` and `UIScale.Scale`, and one grid
       square's `Face` `AbsoluteSize`. Expect the face at least 40 px and the countdown pill still on the
-      screen. If the inset is taken off and a face is under 40 px, say what you see: the 2 by 2 grid
-      wins over the column (ruling 4), so the column's scale should shrink further, not the grid.
-- [ ] The phone emulator at 667 by 375. Same checks; the squares are about 42 px. The banner and the
-      first-job coach move left to clear the right column.
+      screen. check-gui models the inset (58 px): expect `LawnUI.AbsoluteSize.Y` about 332, the column
+      scale about 0.66 and a face about 42 px. If a face is under 40 px, say what you see: the 2 by 2
+      grid wins over the column (ruling 4), so the column's scale should shrink further, not the grid.
+- [ ] The phone emulator at 667 by 375. Same checks; the squares are about 40 px, and the strip's last
+      square ends about 115 px above the bottom (the jump button's room is tight on this phone). The
+      banner and the first-job coach move left to clear the right column.
+- [ ] The hotbar gives way to windows. On a job with tools, open Top Lawns, then Settings, then the Shop
+      (button or key): the hotbar is not drawn while a window is up, and is back when the window closes
+      (the Close button, its key or the X). On a phone the window and the hotbar never overlap.
+- [ ] Settings reads at a glance. In the Settings window the chosen choice in each row is the light grey
+      pill with dark words and the others are dark pills with white words; pressing another moves the
+      light one.
 - [ ] The Next chip (a phone only, in the right column) shows the next milestone on one line. It only
       shows; nothing happens when it is tapped.
 - [ ] Touch targets. On a phone, Call off and the missed button each have a hit area 40 px tall or
@@ -689,7 +699,7 @@ The money, the squares and the buttons:
       the splash for a face that falls back to a system font (letters too thin or the wrong shape).
 - [ ] Studio probe, the face sizes: with the Explorer open, check the Truck, Guide, Crew and
       Contracts squares' `Face` frames are 76 px on a PC and 64 px in the phone grid
-      (`AbsoluteSize`), and the right strip's are 76, or 56 and 44 on a phone.
+      (`AbsoluteSize`), and the right strip's are 76 (Settings 56) on a PC, or 40 each on a phone.
 - [ ] Studio probe, the automatic heights: the job card, the banner and the Top Lawns and Settings
       windows grow with their words (`AutomaticSize` Y). Change the goal text length (play to a later
       goal) and look for a banner that clips its bar or leaves a gap under it.

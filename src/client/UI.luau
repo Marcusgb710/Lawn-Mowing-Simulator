@@ -1462,6 +1462,8 @@ function UI.panel(name: string, title: string)
 	panels[name] = window
 	window:GetPropertyChangedSignal("Visible"):Connect(function()
 		UI.CursorChanged:Fire()
+		-- The hotbar gives way to an open window, and is back when the last one closes.
+		UI.refreshHotbar()
 	end)
 	return window, content
 end
@@ -1643,7 +1645,7 @@ end
 UI.HotbarChanged = Signal.new()
 local function showHotbar()
 	turnOffBackpack()
-	local shown = hotbarWanted and next(hiders) == nil
+	local shown = hotbarWanted and next(hiders) == nil and not UI.anyOpen()
 	if shown ~= hotbarShown then
 		hotbarShown = shown
 		UI.HotbarChanged:Fire(shown)
@@ -1655,13 +1657,18 @@ function UI.hideGame(reason: string, hidden: boolean)
 	showHotbar()
 end
 
--- Whether the hotbar shows (when nothing's hiding the game): on a job site, not elsewhere.
+-- Works out again whether the hotbar shows, for a window opening or closing (UI.panel calls it).
+function UI.refreshHotbar()
+	showHotbar()
+end
+
+-- Whether the hotbar shows (when nothing's hiding the game and no menu window is open): on a job site, not elsewhere.
 function UI.setHotbar(wanted: boolean)
 	hotbarWanted = wanted
 	showHotbar()
 end
 
--- Whether the hotbar shows right now: wanted (UI.setHotbar) and nothing hiding the game.
+-- Whether the hotbar shows right now: wanted (UI.setHotbar), nothing hiding the game and no menu window open.
 function UI.hotbarShown(): boolean
 	return hotbarShown
 end

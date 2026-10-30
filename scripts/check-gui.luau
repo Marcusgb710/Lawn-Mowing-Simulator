@@ -223,6 +223,12 @@ end
 
 -- UiLayout fits together -------------------------------------------------------------------------
 
+-- LawnUI (the HUD's screen, UI.getScreen) has IgnoreGuiInset off, so on any screen it starts under Roblox's top
+-- bar and is that much shorter than the screen: 58 px on today's Roblox (UiLayout's header, GuiService:
+-- GetGuiInset). The columns work out their scale from the ScreenGui's own height, so every height rule below
+-- that models a phone or a window is given the screen's height less this.
+local GUI_INSET = 58
+
 -- What an entry can have, and what each one is (see UiLayout.luau's header).
 local LAYOUT_FIELDS = {
 	label = "string",
@@ -1109,12 +1115,13 @@ end
 -- on a touch or short screen it is a 2x2 grid of smaller faces (its GRID_FACE), wide enough for two
 -- squares and the gap HudController puts between them. The grid squares are BUILT at that face size,
 -- not shrunk by a UIScale on the grid (nothing here can promise a list honours a child's UIScale), and
--- their layout entries are that size and the label's room, so the left column's list and the grid agree
--- on what they take. HudController draws each with Juicy.button, in the face colour of its name. On the
--- phone the left column's scale, worked out the way HudController's fitColumn does with everything
--- that can show in the column at once, leaves a grid face at least 44 px.
+-- their layout entries are that bare face (the names are left off the grid: with the top bar's inset the
+-- column has no height for them), so the left column's list and the grid agree on what they take.
+-- HudController draws each with Juicy.button, in the face colour of its name. On the phone the left
+-- column's scale, worked out the way HudController's fitColumn does with everything that can show in
+-- the column at once, under the top bar (GUI_INSET), leaves a grid face at least 40 px.
 do
-	local MIN_PHONE_FACE = 44
+	local MIN_PHONE_FACE = 40
 	-- The faces come from HudController, so changing one there fails here until the layout follows.
 	local FACE = tonumber(string.match(hudSource, "SQUARE_FACE%s*=%s*(%d+)"))
 	local GRID_FACE = tonumber(string.match(hudSource, "GRID_FACE%s*=%s*(%d+)"))
@@ -1125,7 +1132,12 @@ do
 	if not (FACE and GRID_FACE and LABEL_ROOM) then
 		FACE, GRID_FACE, LABEL_ROOM = 76, 64, 34
 	end
-	local SQUARE_HEIGHT, GRID_HEIGHT = FACE + LABEL_ROOM, GRID_FACE + LABEL_ROOM
+	-- A PC square is its face and the label's room; a grid square is the bare face (no name on a phone).
+	local SQUARE_HEIGHT, GRID_HEIGHT = FACE + LABEL_ROOM, GRID_FACE
+	check(
+		string.find(hudSource, "label.Visible = not (UI.isTouch() or UI.isCompact())", 1, true) ~= nil,
+		"HudController shows the squares' names in the phone grid, which has no height for them"
+	)
 	-- A key badge on a face under 60 px is the small 16 px one (the right strip on a phone, Settings
 	-- anywhere), so it does not cover the glyph; on a bigger face it is 22.
 	check(
@@ -1178,7 +1190,7 @@ do
 						and places.size[2] == GRID_FACE
 						and places.size[3] == 0
 						and places.size[4] == GRID_HEIGHT,
-					`UiLayout's {want.id} isn't {GRID_FACE} by {GRID_HEIGHT} on a {kind} screen (a {GRID_FACE} px face and its label, built at that size)`
+					`UiLayout's {want.id} isn't a bare {GRID_FACE} px square on a {kind} screen (no name, built at that size)`
 				)
 				check(places.scale == nil, `UiLayout's {want.id} is scaled on a {kind} screen: it is built at its size`)
 			end
@@ -1239,11 +1251,12 @@ do
 	-- is out of it there, the mouse hint is keyboard only), stacked with the column's gaps, once with
 	-- the judging day countdown showing (the worst case: it shows for any player with judging day on the
 	-- calendar) and once without. The grid squares are built at GRID_FACE and sit in the column at its
-	-- scale, so a square is GRID_FACE times the column's scale, at least 44 px. With the countdown the
-	-- column's content asks for a little under the 0.7 the height rule gives (the fit rule goes down to
-	-- tightScale for that), which is the price of the names under the squares.
+	-- scale, so a square is GRID_FACE times the column's scale, at least 40 px. The column's room is the
+	-- GUI's height (the phone's less the top bar) less touchMargin, so with the countdown the column's
+	-- content asks for less than the 0.7 the height rule gives (the fit rule goes down to tightScale).
 	local columns = UiLayout.__screen.scaling.Columns
 	local phone = UiLayout.__screen.phone
+	local guiHeight = phone.height - GUI_INSET
 	for _, withCountdown in { true, false } do
 		local content, pieces = 0, 0
 		for id, entry in UiLayout do
@@ -1260,17 +1273,17 @@ do
 		end
 		content += (pieces - 1) * UiLayout.LeftColumn.list.padding
 		local scale = math.min(
-			math.clamp(phone.height / columns.fullHeight, columns.minScale, 1),
-			math.max(columns.tightScale, (phone.height - columns.touchMargin) / content)
+			math.clamp(guiHeight / columns.fullHeight, columns.minScale, 1),
+			math.max(columns.tightScale, (guiHeight - columns.touchMargin) / content)
 		)
 		local which = if withCountdown then "with the countdown" else "without the countdown"
 		check(
 			scale >= columns.tightScale,
-			`the left column is scaled to {scale} {which} on the {phone.width} by {phone.height} phone ({content} px of column), under its {columns.tightScale} tight floor`
+			`the left column is scaled to {scale} {which} on the {phone.width} by {phone.height} phone ({guiHeight} px of it under the top bar; {content} px of column), under its {columns.tightScale} tight floor`
 		)
 		check(
 			GRID_FACE * scale >= MIN_PHONE_FACE,
-			`a menu square is {GRID_FACE * scale} px {which} on the {phone.width} by {phone.height} phone (column scale {scale} for {content} px of column), under {MIN_PHONE_FACE}`
+			`a menu square is {GRID_FACE * scale} px {which} on the {phone.width} by {phone.height} phone ({guiHeight} px of it under the top bar; column scale {scale} for {content} px of column), under {MIN_PHONE_FACE}`
 		)
 	end
 end
@@ -1466,7 +1479,8 @@ do
 	-- check, further down.)
 	local columns = UiLayout.__screen.scaling.Columns
 	local phone = UiLayout.__screen.phone
-	local widest = math.clamp(phone.height / columns.fullHeight, columns.minScale, 1)
+	local guiHeight = phone.height - GUI_INSET
+	local widest = math.clamp(guiHeight / columns.fullHeight, columns.minScale, 1)
 	local right = UiLayout.RightColumn
 	local content, pieces = 0, 0
 	for id, entry in UiLayout do
@@ -1484,22 +1498,34 @@ do
 		end
 	end
 	content += (pieces - 1) * right.list.padding
-	local scale = math.min(widest, math.max(columns.tightScale, (phone.height - columns.touchMargin) / content))
+	local scale = math.min(widest, math.max(columns.tightScale, (guiHeight - columns.touchMargin) / content))
+	-- Under the top bar the worst case (a curb-appeal-less column with the Next chip, the job card, two rows
+	-- of boost pills and the missed button, all at once) asks for a little under the 0.7 the height rule
+	-- gives; the fit rule takes it down, and this is the floor it must not pass.
+	local PHONE_RIGHT_FLOOR = 0.65
 	check(
-		scale >= columns.minScale - 1e-9,
-		`the right column is scaled to {scale} on the {phone.width} by {phone.height} phone ({content} px of column during a job), under its {columns.minScale} floor`
+		scale >= PHONE_RIGHT_FLOOR - 1e-9,
+		`the right column is scaled to {scale} on the {phone.width} by {phone.height} phone ({guiHeight} px of it under the top bar; {content} px of column during a job), under its {PHONE_RIGHT_FLOOR} floor`
 	)
 end
 -- The right-edge strip and what its buttons open (front-page HUD, rulings 3, 4, 6, 8 and 14). RightButtons
 -- is Shop, Gifts, Top Lawns and Settings down the right edge at {1, -12, 0, 12}: 76 px faces with a label
--- under them (Settings 56) on a PC, and on a touch or short screen 56 px faces (Settings 44) with no
--- labels, built at that size and not scaled, so the strip ends above Roblox's jump button on the phone.
+-- under them (Settings 56) on a PC, and on a touch or short screen 40 px faces with no labels, 8 px apart
+-- (RightStrip's SMALL_GAP), built at that size and not scaled, so the strip ends above Roblox's jump button
+-- and the phone's rounded corner: its last square's lip is JUMP_ROOM px above the bottom of the phone,
+-- counting the top bar that LawnUI starts under (GUI_INSET).
 -- RightColumn sits inside it by its width and 12 px, on every kind of screen, so nothing overlaps.
 -- The Shop button opens the Orders window and the shop sells away from the desk; Top Lawns is a panel of
 -- the two leaderboards.
 do
 	local LABEL_ROOM = 34
-	local BIG, BIG_SETTINGS, SMALL, SMALL_SETTINGS = 76, 56, 56, 44
+	local BIG, BIG_SETTINGS, SMALL, SMALL_SETTINGS = 76, 56, 40, 40
+	-- The gap between the strip's squares on a touch or short screen (RightStrip's SMALL_GAP) and the room
+	-- the strip leaves above the bottom of the phone, for the jump button and the corner.
+	local SMALL_GAP = tonumber(string.match(hudSource, "local SMALL_GAP = (%d+)"))
+	local JUMP_ROOM = 130
+	check(SMALL_GAP ~= nil, "RightStrip has no SMALL_GAP, the gap between the strip's squares on a phone")
+	SMALL_GAP = SMALL_GAP or 8
 	local MIN_TOUCH_FACE = 40
 	local EDGE, GAP = 12, 12
 	local BUTTONS = {
@@ -1622,10 +1648,18 @@ do
 		-- edge is clear of the look-at button, which is the nearest phone button.
 		local phone = UiLayout.__screen.phone
 		local columns = UiLayout.__screen.scaling.Columns
-		local touchHeight = EDGE + 3 * SMALL + SMALL_SETTINGS + 3 * listPad + 6
+		local touchHeight = EDGE + 3 * SMALL + SMALL_SETTINGS + 3 * SMALL_GAP + 6
 		check(
-			touchHeight <= phone.height - columns.touchMargin,
-			`the right strip ends {touchHeight} px down on the {phone.width} by {phone.height} phone, past {phone.height - columns.touchMargin}, where the jump button's room starts`
+			touchHeight + GUI_INSET <= phone.height - JUMP_ROOM,
+			`the right strip ends {touchHeight + GUI_INSET} px down the {phone.width} by {phone.height} phone ({touchHeight} under the {GUI_INSET} px top bar), past {phone.height - JUMP_ROOM}, where the {JUMP_ROOM} px for the jump button and the corner starts`
+		)
+		check(
+			listPad == 12,
+			`UiLayout's RightButtons list is {listPad} apart, not the PC's 12 (the phone's gap is RightStrip's SMALL_GAP)`
+		)
+		check(
+			string.find(hudSource, "layout.Padding = UDim.new(0, SMALL_GAP)", 1, true) ~= nil,
+			"RightStrip doesn't set the strip's gap to SMALL_GAP on a touch or short screen"
 		)
 		local stripLeft = phone.width + strip.position[2] - SMALL
 		local lookAt = UiLayout.InteractButton
@@ -1669,7 +1703,7 @@ do
 		local left = UiLayout.LeftColumn
 		for _, screen in SCREENS do
 			local short = screen.height < UiLayout.__screen.compactHeight
-			local rule = math.clamp(screen.height / columns.fullHeight, columns.minScale, 1)
+			local rule = math.clamp((screen.height - GUI_INSET) / columns.fullHeight, columns.minScale, 1)
 			local where = `{screen.width} by {screen.height}{if screen.touch then " touch" else ""}`
 			local leftEdge = left.position[2] + left.size[2] * rule
 			local columnLeft = screen.width
@@ -2070,6 +2104,22 @@ do
 			"UiLayout's Splash isn't centred at 0.42 of the screen height"
 		)
 	end
+
+	-- The hotbar gives way to any open menu window (UI.panel's Visible change refreshes it, and it shows
+	-- only with no window open), so it is never drawn over Top Lawns, Settings or the Shop. The Settings
+	-- window's chosen choice is the light Settings face with dark words, the others the dark Muted face.
+	check(
+		string.find(uiSource, "hotbarWanted and next(hiders) == nil and not UI.anyOpen()", 1, true) ~= nil
+			and string.find(uiSource, "UI.refreshHotbar()", 1, true) ~= nil
+			and string.find(uiSource, "function UI.refreshHotbar()", 1, true) ~= nil,
+		"UI's hotbar doesn't give way to an open menu window"
+	)
+	check(
+		settingsSource ~= ""
+			and string.find(settingsSource, 'if chosen then "Settings" else "Muted"', 1, true) ~= nil
+			and string.find(settingsSource, "TextColor3 = if chosen then Juicy.Palette.Ink", 1, true) ~= nil,
+		"SettingsController's chosen choice isn't the Settings face with dark words over the Muted others"
+	)
 
 	-- The juice pass (ruling 12): every HUD control that acts gets the hover, press squash and Click of a
 	-- Juicy button, through the one helper Juicy.juice (a GuiButton, and the GuiObject that moves when it

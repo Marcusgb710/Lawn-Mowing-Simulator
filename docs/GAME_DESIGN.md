@@ -1185,7 +1185,7 @@ pulse. Under it the level pill (your level and an XP bar; press it for the Level
 streak pill (the flame and "DAY 3", once you have a streak). When judging day is on the calendar, a
 purple pill counts down to it. Then four colour squares: Truck, Guide, Crew and Contracts. The
 Contracts one wears a tilted yellow tag with the contracts left today. On a keyboard each shows its key
-(T, G, C). On a phone the four sit in a 2 by 2 grid.
+(T, G, C). On a phone the four sit in a 2 by 2 grid of bare faces, without the names.
 
 **The top and the right.** Grandma's goal is a cream banner at the top in the middle, with a red flag,
 the goal, its reward when it has one and a striped bar. Down the right, curb appeal, then during a job
@@ -1218,7 +1218,7 @@ site: the held tool's slot is cream, the others dark glass, each with the tool's
 keyboard, its key (1 to 9, then 0). Press a key or tap a slot to take that tool out, or to put it away if
 you are holding it. Every tool you have gets a slot. If the row would run into the move stick or the
 jump button it shrinks, never below a size a thumb can hit, and past that the last slot is a gold "+N"
-that opens a tray of the rest.
+that opens a tray of the rest. It is hidden while any menu window is open, and back when the window closes.
 
 **Every button feels the same.** Over a button the pointer grows it a little, a press squashes it, it
 springs back and a soft click plays (nothing grows under a finger on a phone). This is one helper

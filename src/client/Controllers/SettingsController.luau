@@ -98,15 +98,18 @@ local function render()
 				LayoutOrder = index,
 				Parent = holder,
 			})
+			-- The chosen choice is the light Settings face with dark words, the others the dark Muted face with
+			-- white ones: white on the light face would not read.
 			Juicy.text(row.words[option], {
 				Name = "Words",
 				Size = UDim2.fromScale(1, 1),
 				TextSize = CHOICE_TEXT_SIZE,
+				TextColor3 = if chosen then Juicy.Palette.Ink else Color3.new(1, 1, 1),
 				TextXAlignment = Enum.TextXAlignment.Center,
 				TextYAlignment = Enum.TextYAlignment.Center,
 				ZIndex = 5,
 				Parent = face,
-			})
+			}, if chosen then 0 else nil)
 		end
 	end
 end

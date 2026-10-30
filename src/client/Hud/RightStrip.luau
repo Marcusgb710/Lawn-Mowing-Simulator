@@ -59,6 +59,9 @@ local RIGHT_BUTTONS = {
 -- (UiLayout's ShopButton and the rest are 34 taller than the face); on a touch or short screen it is
 -- the bare face.
 local SQUARE_LABEL_ROOM = 34
+-- On a touch or short screen the strip's squares are 8 px apart and not UiLayout's 12 (the PC's), so
+-- the strip is short enough to end well above the jump button (check-gui works the numbers).
+local SMALL_GAP = 8
 -- F also sends a decoration you own back to your inventory while you are placing one (DecorController),
 -- so the Top Lawns key leaves it be then.
 local PLACING_ATTRIBUTE = "PlacingDecor"
@@ -174,6 +177,14 @@ local function pressGifts()
 	end)
 end
 
+-- Puts the strip's gap right for this screen (UI.place has just set the PC's, from UiLayout).
+local function fitStripGap()
+	local layout = rightHolder:FindFirstChildOfClass("UIListLayout")
+	if layout and (UI.isTouch() or UI.isCompact()) then
+		layout.Padding = UDim.new(0, SMALL_GAP)
+	end
+end
+
 -- The strip down the right edge (UiLayout's RightButtons): Shop, Gifts, Top Lawns and Settings. Built
 -- straight at the size this screen asks (a UIScale on the strip would leave the buttons' sizes to the
 -- layout's mercy), and fitted again if the screen turns short or tall. Returns the Gifts and Settings
@@ -185,6 +196,7 @@ local function buildRightButtons(): { [string]: GuiObject }
 		Parent = UI.getScreen(),
 	})
 	UI.keepPlaced(rightHolder, "RightButtons")
+	fitStripGap()
 
 	local small = UI.isTouch() or UI.isCompact()
 	for _, spec in RIGHT_BUTTONS do
@@ -236,6 +248,7 @@ local function buildRightButtons(): { [string]: GuiObject }
 	rightActions.Settings = function() end
 
 	UI.CompactChanged:Connect(function()
+		fitStripGap()
 		for _, piece in rightPieces do
 			fitRightButton(piece)
 		end

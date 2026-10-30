@@ -345,15 +345,15 @@ return {
 		autoSize = "Y",
 		list = { direction = "Vertical", padding = 12, align = "Left" },
 		typical = { 150, 476 },
-		touch = { size = { 0, 144, 0, 0 }, typical = { 144, 204 } },
-		compact = { size = { 0, 144, 0, 0 }, typical = { 144, 204 } },
+		touch = { size = { 0, 144, 0, 0 }, typical = { 144, 136 } },
+		compact = { size = { 0, 144, 0, 0 }, typical = { 144, 136 } },
 		note = "The Truck, Guide, Crew and Contracts squares: a column of four on a PC (12 px apart, 476 px tall). "
 			.. "On a touch screen or a short one they are a 2x2 grid instead (two squares and a 16 px gap across, "
-			.. "8 px between the rows, 204 px tall; HudController swaps the list for a grid). The grid's squares "
-			.. "are built with a 64 px face, not drawn smaller by a scale on the grid (a list is not promised to "
-			.. "make room for a child's UIScale), so the left column's content is what the squares really take; "
-			.. "that keeps their faces 44 px or more on a phone held sideways, with the judging day countdown "
-			.. "showing. With a keyboard each has its key (T, G, C) on its corner and, in the column, the mouse "
+			.. "8 px between the rows, 136 px tall; HudController swaps the list for a grid). The grid's squares "
+			.. "are built with a 64 px face and no name under them, not drawn smaller by a scale on the grid (a "
+			.. "list is not promised to make room for a child's UIScale), so the left column's content is what "
+			.. "the squares really take; with LawnUI 58 px shorter than the phone (the top bar), that keeps "
+			.. "their faces 40 px or more on a phone held sideways, with the judging day countdown showing. With a keyboard each has its key (T, G, C) on its corner and, in the column, the mouse "
 			.. "hint goes under them.",
 	},
 	TruckButton = {
@@ -362,10 +362,10 @@ return {
 		parent = "MenuButtons",
 		order = 1,
 		size = { 0, 76, 0, 110 },
-		touch = { size = { 0, 64, 0, 98 } },
-		compact = { size = { 0, 64, 0, 98 } },
+		touch = { size = { 0, 64, 0, 64 } },
+		compact = { size = { 0, 64, 0, 64 } },
 		note = "A blue square with the Truck glyph and its name under it. Opens the Truck menu (T). 76 px of face "
-			.. "and 34 for the label (its 6 px lip hangs into that room); 64 px of face (98 in all) in the grid on "
+			.. "and 34 for the label (its 6 px lip hangs into that room); a bare 64 px face (no name) in the grid on "
 			.. "a touch or short screen. The other three squares are the same.",
 	},
 	GuideButton = {
@@ -374,8 +374,8 @@ return {
 		parent = "MenuButtons",
 		order = 2,
 		size = { 0, 76, 0, 110 },
-		touch = { size = { 0, 64, 0, 98 } },
-		compact = { size = { 0, 64, 0, 98 } },
+		touch = { size = { 0, 64, 0, 64 } },
+		compact = { size = { 0, 64, 0, 64 } },
 		note = "An orange square with the Guide glyph and its name under it. Opens the Tool Guide (G).",
 	},
 	CrewButton = {
@@ -384,8 +384,8 @@ return {
 		parent = "MenuButtons",
 		order = 3,
 		size = { 0, 76, 0, 110 },
-		touch = { size = { 0, 64, 0, 98 } },
-		compact = { size = { 0, 64, 0, 98 } },
+		touch = { size = { 0, 64, 0, 64 } },
+		compact = { size = { 0, 64, 0, 64 } },
 		note = "A purple square with the Crew glyph and its name under it. Opens the Crew menu (C).",
 	},
 	ContractsButton = {
@@ -394,8 +394,8 @@ return {
 		parent = "MenuButtons",
 		order = 4,
 		size = { 0, 76, 0, 110 },
-		touch = { size = { 0, 64, 0, 98 } },
-		compact = { size = { 0, 64, 0, 98 } },
+		touch = { size = { 0, 64, 0, 64 } },
+		compact = { size = { 0, 64, 0, 64 } },
 		note = "A coral square with the clipboard glyph and 'Contracts' under it. It "
 			.. "opens the contracts panel, or closes it if it is open. A tilted yellow badge on its top right corner "
 			.. "counts the contracts left today (3 minus the ones done) and is hidden at 0 and before the day's "
@@ -457,14 +457,17 @@ return {
 		autoSize = "Y",
 		list = { direction = "Vertical", padding = 12, align = "Center" },
 		typical = { 76, 456 },
-		touch = { size = { 0, 56, 0, 0 }, typical = { 56, 248 } },
-		compact = { size = { 0, 56, 0, 0 }, typical = { 56, 248 } },
+		touch = { size = { 0, 40, 0, 0 }, typical = { 40, 184 } },
+		compact = { size = { 0, 40, 0, 0 }, typical = { 40, 184 } },
 		note = "The strip down the right edge: Shop, Gifts, Top Lawns and Settings, glossy squares with their "
 			.. "glyphs, 12 px apart. On a PC the first three are 76 px faces with their names under them and "
-			.. "Settings is 56 (456 px tall, so it has no scale). On a touch screen or a short one they are "
-			.. "built 56 px (Settings 44) with no names, so the strip is 248 px tall and ends above Roblox's "
-			.. "jump button on a phone held sideways. RightColumn sits inside it by its width and 12 px, on "
-			.. "each kind of screen, so the two never overlap.",
+			.. "Settings is 56 (456 px tall, so it has no scale). On a touch screen or a short one all four are "
+			.. "built 40 px with no names and 8 px apart (RightStrip sets the gap; the list's 12 is the PC's), "
+			.. "so the strip is 184 px tall: it starts 12 px under Roblox's top bar (LawnUI is not "
+			.. "IgnoreGuiInset, so that bar takes about 58 px of the phone's 390) and its last square's lip ends "
+			.. "202 px down, which is 130 px above the bottom of an 844 by 390 phone, clear of the jump button "
+			.. "and the rounded corner (115 px on a 667 by 375 one). RightColumn sits inside it by its width "
+			.. "and 12 px, on each kind of screen, so the two never overlap.",
 	},
 	ShopButton = {
 		label = "Shop button",
@@ -472,8 +475,8 @@ return {
 		parent = "RightButtons",
 		order = 1,
 		size = { 0, 76, 0, 110 },
-		touch = { size = { 0, 56, 0, 56 } },
-		compact = { size = { 0, 56, 0, 56 } },
+		touch = { size = { 0, 40, 0, 40 } },
+		compact = { size = { 0, 40, 0, 40 } },
 		note = "A teal square with the Orders box glyph. Opens the Orders window (B), anywhere: the shop sells "
 			.. "away from the desk now, and what you buy still comes in a box at your shop's door.",
 	},
@@ -483,8 +486,8 @@ return {
 		parent = "RightButtons",
 		order = 2,
 		size = { 0, 76, 0, 110 },
-		touch = { size = { 0, 56, 0, 56 } },
-		compact = { size = { 0, 56, 0, 56 } },
+		touch = { size = { 0, 40, 0, 40 } },
+		compact = { size = { 0, 40, 0, 40 } },
 		note = "A pink square with a drawn present on it. It claims the day's streak gift while one waits (a "
 			.. "tilted CLAIM tag and a pulse say so), and with nothing waiting it opens the contracts panel, "
 			.. "where the streak line is. It has no key.",
@@ -495,8 +498,8 @@ return {
 		parent = "RightButtons",
 		order = 3,
 		size = { 0, 76, 0, 110 },
-		touch = { size = { 0, 56, 0, 56 } },
-		compact = { size = { 0, 56, 0, 56 } },
+		touch = { size = { 0, 40, 0, 40 } },
+		compact = { size = { 0, 40, 0, 40 } },
 		note = "A gold square with the Crown glyph. Opens the Top Lawns window, the two leaderboards (F).",
 	},
 	SettingsButton = {
@@ -505,9 +508,9 @@ return {
 		parent = "RightButtons",
 		order = 4,
 		size = { 0, 56, 0, 90 },
-		touch = { size = { 0, 44, 0, 44 } },
-		compact = { size = { 0, 44, 0, 44 } },
-		note = "A grey square with the Wrench glyph, smaller than the others (56 px, 44 on a phone). It opens "
+		touch = { size = { 0, 40, 0, 40 } },
+		compact = { size = { 0, 40, 0, 40 } },
+		note = "A grey square with the Wrench glyph, smaller than the others on a PC (56 px; 40 on a phone, like the rest). It opens "
 			.. "the Settings window: Sound, Camera motion and Grass detail (comma).",
 	},
 	RightColumn = {
@@ -520,12 +523,12 @@ return {
 		autoSize = "Y",
 		list = { direction = "Vertical", padding = 10, align = "Right" },
 		typical = { 280, 368 },
-		touch = { position = { 1, -80, 0, 12 } },
-		compact = { position = { 1, -80, 0, 12 } },
+		touch = { position = { 1, -64, 0, 12 } },
+		compact = { position = { 1, -64, 0, 12 } },
 		note = "Curb appeal, then on a short screen the Next chip, over the job tracker, then the boost pills, "
 			.. "then the Show what I "
 			.. "missed button late in the mowing, down the right, just inside the right buttons (the strip's "
-			.. "width and a 12 px gap: 100 px in from the edge on a PC, 80 on a touch or short screen). Its "
+			.. "width and a 12 px gap: 100 px in from the edge on a PC, 64 on a touch or short screen). Its "
 			.. "UIScale shrinks it to fit like the left "
 			.. "column's, toward its top right corner. Typical is during a job on a phone, where curb appeal "
 			.. "hides and the chip stays. Each of the five can be taken out of it (their detach) and put "
