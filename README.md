@@ -283,8 +283,10 @@ src/client/                  -> StarterPlayer.StarterPlayerScripts.Client
                                 the Messages app, Gloria's yard as your act has it, and the Best
                                 Yard contest's judges and results screen
   Controllers/LevelsController  the Levels panel: your level, and what the next five levels pay
-  Controllers/ContractsController the contracts panel: today's three, the Bonus Day and the streak
-  Controllers/LeaderboardController draws the two leaderboards on the sign at the town spawn
+  Controllers/ContractsController
+                                the contracts panel: today's three, the Bonus Day and the streak
+  Controllers/LeaderboardController
+                                draws the two leaderboards on the sign at the town spawn
   UI.luau                       the look: colours, fonts, windows, cards, buttons, bars, prompts
   UiLayout.luau                 where everything on the play screen goes, as plain data for the
                                 layout editor (lune run scripts/ui-layout-json prints it as JSON)

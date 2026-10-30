@@ -71,8 +71,9 @@ driveway: a post with a box and a flag, front toward -Z, about 1 by 4.3 by 1.4 s
 small purple flag, origin at the foot of the pole) and `Props/LeaderboardSign` (the two leaderboards
 at the town spawn: front toward -Z, origin on the ground, with an invisible `Root` part whose bottom
 is on the ground, two boards named `LawnsBoard` (on the left as you face the sign) and `MoneyBoard`,
-each 8 by 16 studs because the client draws 320 by 640 pixels on each at 40 pixels a stud, and a
-`LeaderboardSign__Header` above the boards, which the server stamps with the sign's name). Until a
+each about 8 by 16 studs, which fits 25 rows at 40 pixels a stud (the client draws as many rows as
+a board's size allows), and a `LeaderboardSign__Header` above the boards, which the server stamps
+with the sign's name). Until a
 model is in, the game stands in block placeholders for all three, built to the same rules (an
 invisible `Root`, front toward -Z).
 

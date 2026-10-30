@@ -345,10 +345,11 @@ end
 -- Writes the players a finish was held back for, then reads both boards and sends every player the
 -- result. A read that fails leaves what the sign shows as it was (or, if it shows nothing yet, says
 -- it is off) and is not tried again until the next tick. Does nothing while the leaderboards are off
--- or a read is already under way.
-function LeaderboardService:Refresh()
+-- or a read is already under way. Returns true when it read the boards, and false when it did not:
+-- it skipped, or the read failed (which is warned).
+function LeaderboardService:Refresh(): boolean
 	if not available or refreshing then
-		return
+		return false
 	end
 	refreshing = true
 	local held = {}
@@ -363,18 +364,18 @@ function LeaderboardService:Refresh()
 	if not available then
 		-- A write found Studio has no DataStore access: the boards are off, and nothing is read.
 		refreshing = false
-		return
+		return false
 	end
 	local ok, result = pcall(readBoards)
 	refreshing = false
 	if ok then
 		board = result
 		broadcast()
-		return
+		return true
 	end
 	if isStudioDenied(result) then
 		switchOff(reasonFor(result))
-		return
+		return false
 	end
 	warn(
 		`LeaderboardService: couldn't read the leaderboards, trying again in {GameConfig.LeaderboardRefreshInterval} s: {result}`
@@ -383,6 +384,7 @@ function LeaderboardService:Refresh()
 		off = true
 		broadcast()
 	end
+	return false
 end
 
 -- Lifecycle ----------------------------------------------------------------------------------

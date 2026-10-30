@@ -336,12 +336,12 @@ One PR per phase, each stacked on the one before. Every phase still needs a Stud
       - a win: $2,500, the trophy's box at the shop (placing it, its cup shining, Send back
         refused), the Small Office at half price in the Business app (and full price again once
         bought), and the ending (June scratching the name, "Fine. FINE.");
-      - a loss: Gloria's gloating, June's "Next summer...", the goal card counting 4 jobs down,
-        June's text when the judges are back;
+      - a loss: Gloria's gloating, June's "Next summer...", the goal card counting the days to
+        the next Saturday, June's text when the judges are back;
       - leaving between calling the judges and collecting, then rejoining: the scene, then the
         same result;
-      - the next summer after 12 jobs, with Gloria at 90, the shorter judging scene and
-        `ContestWinAgain`;
+      - the next summer after a win (judging day is the next Saturday), with Gloria at 90, the
+        shorter judging scene and `ContestWinAgain`;
       - the Best Yard Trophy isn't in the Decorations tab;
       - tune the scoring (`Config/Contest.luau`) once real yards are judged. The contest's art
         (title, ribbon, trophy, striped bars, confetti) is wired: see **GUI overhaul** below.
@@ -521,24 +521,31 @@ Studio yet. The test panel (K) has three shortcuts for it, all Studio only: **Ne
 server's clock a day on and turns every player's day over (a new three contracts, the streak and its
 cash), **Jump to Saturday** moves it to noon on the next Saturday UTC (never today, so it always
 moves, and a judging mark saved for that day is cleared) and **Refresh the boards** reads both
-leaderboards now instead of in two minutes. A jump skips days, so it starts the streak again at day
-1: press **Next day** one day at a time to walk the streak up. The panel's +$ buttons are not
-earnings for a contract; a Level jump's cash is.
+leaderboards now instead of in two minutes. A jump of more than one day breaks the streak and starts
+it again at day 1; from a Friday it is just tomorrow, so the streak advances. Press **Next day**
+one day at a time to walk the streak up. The panel's +$ buttons are not earnings for a contract; a
+Level jump's cash is.
 
 The spec's playtest checklist for slice 2, with what to expect:
 
 - [ ] A fresh day's contracts: open them from the mailbox at the curb (E) and from the "Contracts
       0/3" chip under the goals rail. Both show "Today's contracts": a Mow, an Earn and a Junk or
-      Stars contract for your level band, each with its pay. Finish a job: one completes with the
-      goal chime, a "+$" pop off the chip and a DONE stamp on its row, and the chip counts it.
-- [ ] The Bonus Day: finish all three. A Payday moment says "Bonus Day!" with +$500 and the cash
-      sound, and the panel's line reads "Bonus Day collected".
-- [ ] The streak card: press **Next day**. A Payday moment shows "Day 2 of 7" for four seconds with
-      "+$150 today, $200 tomorrow", the streak chime and the cash lifting off the money counter.
-      The contracts are a new three, and the Levels panel (L) reads "Streak: Day 2 of 7, next $200".
-- [ ] Day 7: press **Next day** five more times, one at a time. The moment reads "Day 7 of 7" over
-      "Day 7: +$1,000 and a pennant for the truck", and a purple pennant flies from the truck's bed
-      at your business and on the truck in the drive cutscene.
+      Stars contract for your level band, each with its pay. Finish a job: a row's count moves
+      (Mow 1/2, say) and the chip stays 0/3, because one job meets none of them at level 1 or 2.
+      To see one complete, press the test panel's Level 5 jump: its $850 across levels 2 to 5
+      counts as earned, so the Earn row completes with the goal chime, a "+$" pop off the chip and
+      a DONE stamp on its row, and the chip reads 1/3.
+- [ ] The Bonus Day: finish all three. The Level 5 jump does Earn, two jobs do Mow, and the Junk
+      or Stars one (the pieces picked up on the lawn, or a three-star job) is the third. A Payday
+      moment whose subtitle reads "Bonus Day: +$500" plays with the cash sound, and the panel's
+      line reads "Bonus Day collected".
+- [ ] The streak card: press **Next day**. A Payday moment whose subtitle reads "Day 2 of 7: +$150
+      today, $200 tomorrow" shows for four seconds, with the streak chime and the cash lifting off
+      the money counter. The contracts are a new three, and the Levels panel (L) reads "Streak:
+      Day 2 of 7, next $200".
+- [ ] Day 7: press **Next day** five more times, one at a time. A Payday moment whose subtitle
+      reads "Day 7: +$1,000 and a pennant for the truck" shows, and a purple pennant flies from the
+      truck's bed at your business and on the truck in the drive cutscene.
 - [ ] The leaderboard sign at spawn, with API access off: it stands 12 studs from the spawn pad on
       its +Z side. Both boards say "Leaderboards are off in this place" and nothing else, and
       **Refresh the boards** says so too.

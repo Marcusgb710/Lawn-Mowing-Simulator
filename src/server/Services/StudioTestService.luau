@@ -47,13 +47,16 @@ local function onCalendar(data): boolean
 end
 
 -- Turns every player's day over for the Clock's new time: DailyService makes the day's contracts and
--- keeps the streak (and pays it), and the contest view is sent again, since judging day is a day of
--- the week. The Clock is the server's, so the day moves for everyone in the test.
+-- keeps the streak (and pays it), and as the day turns it wakes their contest (June's text and the
+-- view: judging day is a day of the week). Each player is on their own, so one failing is a warning
+-- and the rest still turn. The Clock is the server's, so the day moves for everyone in the test.
 local function turnTheDay()
 	for _, player in Players:GetPlayers() do
 		if DataService:Get(player) then
-			DailyService:Refresh(player)
-			ContestService:Update(player)
+			local ok, err = pcall(DailyService.Refresh, DailyService, player)
+			if not ok then
+				warn(`StudioTestService: turning {player.Name}'s day failed: {err}`)
+			end
 		end
 	end
 end
@@ -191,7 +194,8 @@ local TESTS = {
 	-- The Clock to noon on the next Saturday (UTC), for everyone, so judging day is open once the
 	-- first one has been played. Daily.nextSaturday counts today when it is a Saturday (it gives that
 	-- day's midnight), so it is asked from tomorrow: this always goes to a Saturday that is not today
-	-- and never stays put. The days skipped break the streak, so the next day's pay is day 1's.
+	-- and never stays put. A jump of more than one day breaks the streak, so turning the day pays
+	-- day 1 at once (from a Friday the landing day is tomorrow, and the streak just advances).
 	Saturday = function(player: Player)
 		local now = Clock.now()
 		local saturday = Daily.nextSaturday(Daily.midnightAfter(now)) + NOON
@@ -212,9 +216,12 @@ local TESTS = {
 	end,
 	-- Reads both boards now and sends them to every screen, instead of in a couple of minutes.
 	Leaderboard = function()
-		LeaderboardService:Refresh()
+		local read = LeaderboardService:Refresh()
 		if not LeaderboardService:IsAvailable() then
 			return false, "Leaderboards are off in this place."
+		end
+		if not read then
+			return false, "The boards are being read; try again in a moment."
 		end
 		return true, "Boards refreshed."
 	end,

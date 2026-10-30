@@ -365,10 +365,10 @@ This is in rough order, as separate PRs.
      - A yard fresh past act 3's curb appeal of 75 (a tidy lawn and a few decorations) scores about
        75. Beating 88 takes a fresh mow and edge, three beds, four trimmed shrubs and a
        well-decorated yard.
-   - **Gloria's bar** is 88 the first summer and 2 more each summer after (each one you win),
-     capped at 96. Her score splits over the categories with TurfKing's edges the strongest. A tie
-     goes to June, the champion. (Not the same as `Story.ContestBar`, the curb appeal of 75 that
-     starts act 4.)
+   - **Gloria's bar** is 88 the first summer and 2 more each summer after (each new summer: a
+     win starts one, and so do four lost Saturdays), capped at 96. Her score splits over the
+     categories with TurfKing's edges the strongest. A tie goes to June, the champion. (Not the
+     same as `Story.ContestBar`, the curb appeal of 75 that starts act 4.)
    - **Judging day** (`ContestJudging`): a "Yard" shot of your front lawn with the two judges
      (`NPC_Judge1` Judge Pruitt and `NPC_Judge2` Judge Marigold, rigs that `CastService` builds)
      walking it, then the same across the street at Gloria's. Gloria says *"Half

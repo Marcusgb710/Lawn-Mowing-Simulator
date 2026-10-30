@@ -33,9 +33,10 @@
 --                                                     pole's foot, a Root part
 --   Props/LeaderboardSign                             the two leaderboards at the town spawn, front toward -Z,
 --                                                     a Root part with its bottom on the ground: boards named
---                                                     LawnsBoard (left as you face it) and MoneyBoard, each 8 by
---                                                     16 studs (the client draws 320 by 640 px on each, 40 px a
---                                                     stud), and a LeaderboardSign__Header above them
+--                                                     LawnsBoard (left as you face it) and MoneyBoard, each about
+--                                                     8 by 16 studs, which fits 25 rows at 40 px a stud (the
+--                                                     client draws as many as the size allows), and a
+--                                                     LeaderboardSign__Header above them
 --   Story/<id>          e.g. Story/GloriaHouse        the story's places and props
 --                                                     (alphainstructions/instructions37.md). Its
 --                                                     people (NPC_<name>) aren't files: they are

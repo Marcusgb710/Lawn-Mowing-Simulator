@@ -1028,11 +1028,12 @@ which earns your business curb appeal and a bonus on every job.
   - **Decorations and charm:** the decoration share curb appeal uses, plus how many different
     kinds there are.
 
-  Each category is out of 25, against Gloria's bar (88, then 2 more each summer you win, capped
-  at 96). Calling the judges from the Messages app scores the yard there and then. Winning pays
-  $2,500, and the first win also brings the Best Yard Trophy (a decoration that's only ever won)
-  and half off the next building from the Small Office up. After the first judging day, judging
-  day is every Saturday (UTC) instead of a wait in jobs (section 11).
+  Each category is out of 25, against Gloria's bar (88, then 2 more each new summer, capped at
+  96: a win starts one, and so do four lost Saturdays). Calling the judges from the Messages app
+  scores the yard there and then. Winning pays $2,500, and the first win also brings the Best Yard
+  Trophy (a decoration that's only ever won) and half off the next building from the Small Office
+  up. After the first judging day, judging day is every Saturday (UTC) instead of a wait in jobs
+  (section 11).
 
 ## 10. Premium
 
@@ -1150,9 +1151,10 @@ rank, and anyone further down sees "not in the top 100 yet" with their own numbe
 DataStores (Studio without API access, or an outage) the sign says the leaderboards are off and the
 game plays on.
 
-**Judging day on the calendar** (`Contest.calendarState`). The first judging day still comes by
-the jobs, so the story lands the first time. After it, judging day is every Saturday, UTC: the
-judges can be called once on each, and the goals rail and June's porch count the days to the next.
+**Judging day on the calendar** (`Contest.calendarState`). The first judging day is unchanged: it
+opens when act 4 begins, so the story lands the first time. After it, judging day is every
+Saturday, UTC: the judges can be called once on each, and the goals rail and June's porch count
+the days to the next.
 A Saturday you miss changes nothing. A win starts the next summer with Gloria's bar up 2 (88 at
 first, 96 at most), and so do four lost Saturdays after the first judging day, so the bar rises
 even for someone who never wins.
@@ -1229,12 +1231,14 @@ phase that gives them work.
   have already done a job aren't shown the intro: `StoryService` catches them up to their act
   when they join.
 - **Version 11 (the Best Yard contest)** adds `contest`:
-  - `summer`, which summer it is (a win starts the next one, with Gloria's bar higher);
+  - `summer`, which summer it is (a win starts the next one, and so do four lost Saturdays, with
+    Gloria's bar higher);
   - `wins` and `judged`, how many times you've won and how many judging days you've had;
   - `last`, the last result (`{ summer, won, you, gloria }`, the totals);
   - `pending`, the result waiting to be collected, with both sides' scores and the rewards. It's
     decided when the judges are called, so leaving before collecting changes nothing;
-  - `nextAt`, the jobs done when judging day comes round again;
+  - `nextAt`, the jobs done when the first judging day comes round (after it, judging day is every
+    Saturday and nothing reads this);
   - `offered`, how many judging days there had been when June last texted that it's open;
   - `discount`, the building a win took half off, until it's bought.
 
