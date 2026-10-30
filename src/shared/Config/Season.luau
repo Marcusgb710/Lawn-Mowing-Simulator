@@ -43,11 +43,15 @@ end
 --   daily         the day's contracts: `day` is its UTC day key (Daily.dayKey; "" before the first),
 --                 `contracts` is the list made for that day, `done` has [contract id] = true for
 --                 each one paid, `count` is what they've done toward them today (jobs, earned, junk
---                 and stars), and `bonus` is true once the bonus for finishing all of them is paid
+--                 and stars), and `bonus` is true once the bonus for finishing all of them is paid.
+--                 A list with a contract that is missing a field (an id, kind, text, or a need or
+--                 reward that is a number) is emptied and `day` is blanked, so the next Refresh
+--                 makes the day again instead of breaking everything that reads it
 --   streak        the login streak: how many `days` in a row, and the day key it was `last` kept
 --   flags         [flag id] = true for each cosmetic flag they own
---   contest       gains `lastJudged`, the day key of the last Saturday judged ("" for none), and
---                 `saturdays`, the Saturdays judged without a win since the last one. The contest
+--   contest       gains `lastJudged`, the day key of the last Saturday judged ("" for none),
+--                 `saturdays`, the Saturdays judged without a win since the last one, and
+--                 `offeredDay`, the day key of June's last "judges are back" text. The contest
 --                 table itself is made by the 10 -> 11 migration and by DataService's defaultData,
 --                 both before this runs, so a save without one is left alone: nothing here makes
 --                 the contest, and a stub would only hide a save that lost it.
@@ -90,6 +94,22 @@ function Season.upgradeSave(data: { [string]: any })
 	if typeof(daily.contracts) ~= "table" then
 		daily.contracts = {}
 	end
+	-- Each one has to be whole, or what reads it (Contracts.have, the view) would throw: a list with
+	-- a broken entry is dropped and the day is blanked, so the next Refresh makes a new one.
+	for _, contract in daily.contracts do
+		if
+			typeof(contract) ~= "table"
+			or typeof(contract.id) ~= "string"
+			or typeof(contract.kind) ~= "string"
+			or typeof(contract.text) ~= "string"
+			or typeof(contract.need) ~= "number"
+			or typeof(contract.reward) ~= "number"
+		then
+			daily.contracts = {}
+			daily.day = ""
+			break
+		end
+	end
 	if typeof(daily.done) ~= "table" then
 		daily.done = {}
 	end
@@ -125,6 +145,9 @@ function Season.upgradeSave(data: { [string]: any })
 		end
 		if typeof(data.contest.saturdays) ~= "number" then
 			data.contest.saturdays = 0
+		end
+		if typeof(data.contest.offeredDay) ~= "string" then
+			data.contest.offeredDay = ""
 		end
 	end
 end

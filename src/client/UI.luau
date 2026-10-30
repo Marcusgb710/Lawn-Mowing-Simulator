@@ -26,6 +26,43 @@ local UI = {}
 -- screen, so CameraController frees it while a menu is open (see UI.needsCursor).
 UI.CursorChanged = Signal.new()
 
+-- The title card (src/first) is a screen over everything, up from join until the player has arrived
+-- and tapped; it sets the TitleCardDone attribute (on this screen only) as it goes. A moment played
+-- while it is up can't be seen, so whatever plays moments or scenes asks UI.titleCardDone, and
+-- UI.TitleCardDone fires, once, when the answer first turns yes.
+local TITLE_CARD_WAIT = 40
+local joinedAt = os.clock()
+
+-- Whether the title card is gone: it said so, or it never did (a place without one) and it is
+-- TITLE_CARD_WAIT seconds since this screen started with no TitleCard in the PlayerGui.
+function UI.titleCardDone(): boolean
+	local player = Players.LocalPlayer
+	if player:GetAttribute("TitleCardDone") == true then
+		return true
+	end
+	local playerGui = player:FindFirstChildOfClass("PlayerGui")
+	return os.clock() - joinedAt > TITLE_CARD_WAIT and not (playerGui and playerGui:FindFirstChild("TitleCard"))
+end
+
+UI.TitleCardDone = Signal.new()
+do
+	local announced = false
+	local function announce()
+		if not announced and UI.titleCardDone() then
+			announced = true
+			UI.TitleCardDone:Fire()
+		end
+	end
+	Players.LocalPlayer:GetAttributeChangedSignal("TitleCardDone"):Connect(announce)
+	-- The other way it can be gone (no card at all) has no attribute to hear, so it is looked for.
+	task.spawn(function()
+		while not announced do
+			task.wait(0.25)
+			announce()
+		end
+	end)
+end
+
 local palette = Art.color
 UI.Colors = {
 	Background = palette("panel"), -- windows and HUD panels

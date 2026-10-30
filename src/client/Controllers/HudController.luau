@@ -1546,6 +1546,31 @@ local function inTurn(play: (info: any) -> (), info: any)
 	end
 end
 
+-- Moments the login brings (the streak's day, and a contract or the Bonus Day that its cash meets)
+-- come as soon as the save loads, while the title card is still up over the screen they play on, so
+-- nobody would see or hear them. They wait here for the card to go (UI.titleCardDone), then play in
+-- the order they came, each in its turn. The counts, the chip and the panels don't wait: only the
+-- moments and their sounds.
+local held: { { play: (info: any) -> (), info: any } } = {}
+
+local function afterTitleCard(play: (info: any) -> (), info: any)
+	-- Behind anything already held too, so a late arrival can't pass what is waiting.
+	if UI.titleCardDone() and #held == 0 then
+		inTurn(play, info)
+	else
+		table.insert(held, { play = play, info = info })
+	end
+end
+
+-- The title card is gone: what waited plays now, in order.
+local function playHeld()
+	local waiting = held
+	held = {}
+	for _, item in waiting do
+		inTurn(item.play, item.info)
+	end
+end
+
 -- The goal chime and the cash for a paid contract: the cash lifts off the contracts chip, or off the
 -- money counter where the chip isn't showing.
 local function showContractDone(info: { id: string, text: string, reward: number })
@@ -1560,9 +1585,10 @@ end
 
 -- The server's paid a contract (`info`: its id, its words and its cash). Two paid in one frame
 -- (one job can meet two) don't play on top of each other: each waits its turn, CONTRACT_GAP after the
--- one before. The chip's count follows with the view, which the server sends once it has paid.
+-- one before, and all of them wait for the title card. The chip's count follows with the view, which
+-- the server sends once it has paid.
 local function onContractDone(info: { id: string, text: string, reward: number })
-	inTurn(showContractDone, info)
+	afterTitleCard(showContractDone, info)
 end
 
 -- The Bonus Day's Payday moment and the cash register. The art's wordmark reads Payday! and nothing
@@ -1575,14 +1601,14 @@ end
 -- All three contracts are paid and so is the Bonus Day (`info`: its cash). It comes in the same frame
 -- as the last contract, and takes its turn behind that contract's chime, so the payoff is last.
 local function onBonusDay(info: { cash: number })
-	inTurn(showBonusDay, info)
+	afterTitleCard(showBonusDay, info)
 end
 
 -- The streak grew (`info`: the days in a row, what today paid, the flag today gave if it gave one,
 -- and what tomorrow pays): a Payday moment saying the day, what it paid and what's next, or on the
 -- day that gave the truck its pennant, that, the streak chime, and the cash lifts off the money
 -- counter. The art's wordmark reads Payday! and nothing else, so the subtitle carries the day too.
-local function onStreakAdvanced(info: { days: number, cash: number, flag: string?, tomorrow: number })
+local function showStreakAdvanced(info: { days: number, cash: number, flag: string?, tomorrow: number })
 	local cash = Format.money(info.cash)
 	-- Day 7 drops its "of 7" so that it fits a phone.
 	local subtitle = if info.flag
@@ -1593,6 +1619,11 @@ local function onStreakAdvanced(info: { days: number, cash: number, flag: string
 	if info.cash > 0 then
 		FloatingText.show(money.Frame, `+{Format.money(info.cash)}`)
 	end
+end
+
+-- The streak grew: the moment above, once the title card is gone, which is when it is on a login.
+local function onStreakAdvanced(info: { days: number, cash: number, flag: string?, tomorrow: number })
+	afterTitleCard(showStreakAdvanced, info)
 end
 
 local function updateProfile()
@@ -1741,6 +1772,7 @@ function HudController:Start()
 	Net.event("ContractDone").OnClientEvent:Connect(onContractDone)
 	Net.event("BonusDay").OnClientEvent:Connect(onBonusDay)
 	Net.event("StreakAdvanced").OnClientEvent:Connect(onStreakAdvanced)
+	UI.TitleCardDone:Connect(playHeld)
 	updateGoal()
 	updateContractsChip()
 

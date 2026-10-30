@@ -410,8 +410,8 @@ check(
 check(fresh14.streak.days == 0 and fresh14.streak.last == "", "a fresh save has no streak")
 check(next(fresh14.flags) == nil, "a fresh save owns no flags")
 check(
-	fresh14.contest.lastJudged == "" and fresh14.contest.saturdays == 0,
-	"a fresh contest has judged on no day and no Saturdays without a win"
+	fresh14.contest.lastJudged == "" and fresh14.contest.saturdays == 0 and fresh14.contest.offeredDay == "",
+	"a fresh contest has judged on no day, no Saturdays without a win and told June's offer on no day"
 )
 check(fresh14.contest.summer == 1 and fresh14.contest.judged == 0, "the contest's other fields are left alone")
 check(fresh.contest == nil, "a save with no contest table is not given a stub of one")
@@ -421,7 +421,7 @@ check(noContest.contest == false, "a contest that is not a table is left alone, 
 
 -- A day already in progress keeps its day, contracts, done list and bonus, and gains the counts it
 -- lacked. The tables are the ones that were there, not copies.
-local contracts = { {} }
+local contracts = { { id = "Mow", kind = "Mow", text = "Mow 2 lawns", need = 2, reward = 60 } }
 local done = {}
 local midDay = {
 	money = 0,
@@ -508,9 +508,25 @@ local scrambled = {
 	daily = { day = 5, contracts = false, done = 1, count = 3, bonus = "yes" },
 	streak = { days = "many", last = 7 },
 	flags = true,
-	contest = { lastJudged = 7, saturdays = "two" },
+	contest = { lastJudged = 7, saturdays = "two", offeredDay = 3 },
 }
 local noDay = { money = 0, xp = 0, jobsCompleted = 0, daily = 7, streak = "x" }
+-- A day whose second contract has lost its `need`: Contracts.have would throw on it.
+local brokenContract = {
+	money = 0,
+	xp = 0,
+	jobsCompleted = 0,
+	daily = {
+		day = "20261029",
+		contracts = {
+			{ id = "Mow", kind = "Mow", text = "Mow 2 lawns", need = 2, reward = 60 },
+			{ id = "Earn", kind = "Earn", text = "Earn $150", reward = 60 },
+		},
+		done = { Mow = true },
+		count = { jobs = 2, earned = 90, junk = 0, stars = 0 },
+		bonus = false,
+	},
+}
 local sampleSaves = {
 	fresh14,
 	midDay,
@@ -521,6 +537,7 @@ local sampleSaves = {
 	{ money = 0, xp = 0, jobsCompleted = 0 },
 	copyOf(scrambled),
 	copyOf(noDay),
+	copyOf(brokenContract),
 }
 for index, save in sampleSaves do
 	Season.upgradeSave(save)
@@ -545,7 +562,8 @@ check(
 		and scrambled.streak.last == ""
 		and next(scrambled.flags) == nil
 		and scrambled.contest.lastJudged == ""
-		and scrambled.contest.saturdays == 0,
+		and scrambled.contest.saturdays == 0
+		and scrambled.contest.offeredDay == "",
 	"a streak, flags and judging calendar of the wrong types are made again"
 )
 Season.upgradeSave(noDay)
@@ -553,6 +571,26 @@ check(
 	noDay.daily.day == "" and noDay.daily.count.junk == 0 and noDay.streak.days == 0,
 	"a day or streak that is not a table is made whole"
 )
+Season.upgradeSave(brokenContract)
+check(
+	brokenContract.daily.day == "" and next(brokenContract.daily.contracts) == nil,
+	"a day with a contract that has lost a field is blanked, so the next Refresh makes it again"
+)
+local notWhole = {
+	{ id = "Mow", kind = "Mow", text = "Mow 2 lawns", need = "2", reward = 60 },
+	{ id = "Mow", kind = "Mow", text = "Mow 2 lawns", need = 2 },
+	{ id = 1, kind = "Mow", text = "Mow 2 lawns", need = 2, reward = 60 },
+	{ kind = "Mow", text = "Mow 2 lawns", need = 2, reward = 60 },
+	{ id = "Mow", kind = "Mow", need = 2, reward = 60 },
+	"Mow",
+	7,
+	true,
+}
+for _, broken in notWhole do
+	local save = { money = 0, xp = 0, jobsCompleted = 0, daily = { day = "20261029", contracts = { broken } } }
+	Season.upgradeSave(save)
+	check(save.daily.day == "" and next(save.daily.contracts) == nil, "a contract that is not whole blanks the day")
+end
 
 -- The day's contracts -------------------------------------------------------------------------
 

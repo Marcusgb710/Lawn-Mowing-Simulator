@@ -92,8 +92,36 @@ local function viewOf(data)
 	}
 end
 
+-- [Player] = the view last sent to them, so the minute's look doesn't rebuild an open panel with a
+-- view that hasn't changed. A player's first send (their join) is always made.
+local lastView = {}
+
+-- Whether two views (plain tables of numbers, strings and booleans) hold the same things.
+local function sameView(a: any, b: any): boolean
+	if typeof(a) ~= "table" or typeof(b) ~= "table" then
+		return a == b
+	end
+	for key, value in a do
+		if not sameView(value, b[key]) then
+			return false
+		end
+	end
+	for key in b do
+		if a[key] == nil then
+			return false
+		end
+	end
+	return true
+end
+
+-- Tells the screen where things stand, unless it was told exactly this already.
 local function sendView(player: Player, data)
-	Net.event("ContractsUpdated"):FireClient(player, viewOf(data))
+	local view = viewOf(data)
+	if sameView(lastView[player], view) then
+		return
+	end
+	lastView[player] = view
+	Net.event("ContractsUpdated"):FireClient(player, view)
 end
 
 -- Whether the day has contracts and every one of them is paid. A day with none (before the first
@@ -199,8 +227,8 @@ end
 -- contracts for their level with every count at zero, and a streak that grew or started again pays
 -- that day's cash, gives the flag day 7 has and tells the screen, and a new day also wakes their
 -- contest, since judging day is a day of the week. Then it pays anything met and still unpaid
--- (so the minute's look is a safety net for a pay that failed) and sends the view. Safe to call as
--- often as you like: on the day the save already has, nothing changes but the view sent. A call that
+-- (so the minute's look is a safety net for a pay that failed) and sends the view if it has changed.
+-- Safe to call as often as you like: on the day the save already has, nothing changes. A call that
 -- comes in the middle of a pay (settle's, or this one's) does nothing, the next one will.
 function DailyService:Refresh(player: Player)
 	if paying[player] then
@@ -322,6 +350,7 @@ function DailyService:Init()
 	Players.PlayerRemoving:Connect(function(player)
 		paying[player] = nil
 		recheck[player] = nil
+		lastView[player] = nil
 	end)
 
 	-- One loop for everyone: a day that turns over while they play (or a streak that is due) is

@@ -552,7 +552,10 @@ The spec's playtest checklist for slice 2, with what to expect:
 - [ ] The same sign with API access on (Game Settings > Security > Enable Studio Access to API
       Services): two boards of up to 25 rows, a "You:" line under each ("You: #12 with 40 lawns",
       or "You: not in the top 100 yet, 3 lawns"), a new row or number after a finished job within
-      two minutes, and the same at once from **Refresh the boards** ("Boards refreshed.").
+      two minutes, and the same at once from **Refresh the boards** ("Boards refreshed."). Studio
+      reads and writes its own boards (the stores' names with "_studio" on the end; the output says
+      so at start), so the live boards never see a test row. A read that fails while the boards are
+      on says "The boards are not answering right now." until one works.
 - [ ] **Jump to Saturday** after a first judging day (act 4: **Open judging day**, call the judges,
       collect). Before it the goals rail says "Judging day in N days" and June's porch line counts
       them ("Saturday's the day. N days to go."). After it the rail asks you to beat Gloria's bar

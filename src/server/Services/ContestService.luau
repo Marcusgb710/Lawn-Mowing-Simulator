@@ -26,6 +26,8 @@
 --             scene }, or false. It's decided when judging starts, so leaving doesn't change it.
 --   nextAt    the jobs done when the first judging day comes round (it gates nothing after it)
 --   offered   how many judging days there had been when June last texted it's open (-1: never)
+--   offeredDay  the day key of that text ("" for never), so on the calendar each Saturday that is
+--             open and not judged gets one
 --   discount  the building a win took half off, until it's bought (Shop.price), or false
 --   lastJudged  the day key (Daily.dayKey) of the last time the judges were called ("" for never)
 --   saturdays   the Saturdays judged without a win since the last new summer
@@ -85,6 +87,9 @@ local function stateOf(data)
 	end
 	if typeof(contest.offered) ~= "number" then
 		contest.offered = -1
+	end
+	if typeof(contest.offeredDay) ~= "string" then
+		contest.offeredDay = ""
 	end
 	for _, key in { "last", "pending" } do
 		if typeof(contest[key]) ~= "table" then
@@ -148,10 +153,16 @@ local function offer(player: Player)
 		return
 	end
 	local contest = stateOf(data)
-	if stateFor(player, data, contest) ~= "Open" or contest.offered == contest.judged then
+	local now = Clock.now()
+	local today = Daily.dayKey(now)
+	-- Once for the first judging day. After it, once for each Saturday that is open: a Saturday that
+	-- went by without judging gets June's text again the next one.
+	local told = contest.offered == contest.judged and (contest.judged == 0 or contest.offeredDay == today)
+	if stateFor(player, data, contest, now) ~= "Open" or told then
 		return
 	end
 	contest.offered = contest.judged
+	contest.offeredDay = today
 	local texts = if contest.judged == 0
 		then Story.ContestTexts.Open
 		elseif contest.last and contest.last.won then Story.ContestTexts.Again

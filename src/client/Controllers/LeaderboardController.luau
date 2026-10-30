@@ -29,6 +29,8 @@ local UI = require(script.Parent.Parent.UI)
 export type Row = { name: string, value: number }
 export type View = {
 	available: boolean,
+	-- What to say instead of boards when `available` is false (the server picks it).
+	notice: string?,
 	lawns: { Row }?,
 	money: { Row }?,
 	you: { lawnsRank: number?, moneyRank: number?, lawns: number, money: number }?,
@@ -46,6 +48,7 @@ local GUI_NAME = "Leaderboard"
 local PIXELS_PER_STUD = 40
 local TEXT_SIZE = 18
 local TITLE_SIZE = 26
+-- Said when the server sends no words of its own with `available = false`.
 local OFF_TEXT = "Leaderboards are off in this place"
 local OFF_SIZE = 24
 -- Where things go on a board, in pixels: the margin all round, the title's height, the gap
@@ -205,7 +208,7 @@ local function build(part: BasePart, board, view: View?)
 		Parent = gui,
 	})
 	if view and not view.available then
-		UI.label(OFF_TEXT, {
+		UI.label(view.notice or OFF_TEXT, {
 			Name = "Off",
 			Position = UDim2.fromOffset(PADDING, 0),
 			Size = UDim2.new(1, -2 * PADDING, 1, 0),

@@ -1,6 +1,7 @@
 -- The two leaderboards on the sign at the town spawn (docs/superpowers/specs/2026-10-29-busy-season-design.md,
 -- 2c): lawns mowed (jobs finished) and money earned, an OrderedDataStore each (GameConfig's
--- LeaderboardStores), keyed "u<UserId>".
+-- LeaderboardStores), keyed "u<UserId>". A Studio playtest opens stores of its own, the same names
+-- ending "_studio", so a developer's account and test players never reach the live boards.
 --   Record   writes a player's two numbers when a job of theirs finishes, at most once every
 --            GameConfig.LeaderboardWriteInterval seconds each. A finish inside that window is
 --            not lost: the player is marked, and the next Refresh (or their leaving) writes them.
@@ -16,7 +17,7 @@
 --   * Studio with API access off, or stores that couldn't be made, switch the leaderboards off for
 --     the session: one warning, then no DataStore call is made again, and the sign says so.
 --   * Any other failed read keeps the last result on the sign and waits for the next tick. If
---     there is no result yet, the sign says it is off until a read works.
+--     there is no result yet, the sign says the boards are not answering until a read works.
 --   * A failed write is a warning, and not tried again until the player's next job.
 --   * Names are looked up for the top lists only when the player isn't online, and a read gives up
 --     on lookups after a few fail (the rest show a name already known, or "Player"). A name that
@@ -25,12 +26,14 @@
 -- The payload each screen is sent (the boards are the same for everyone, `you` is their own):
 --   { available = true, lawns = { { name, value } }, money = { { name, value } },
 --     you = { lawnsRank = number?, moneyRank = number?, lawns = jobs finished, money = earned } }
--- or just { available = false } when the leaderboards are off. A rank is nil when they aren't in
--- the pages that were read.
+-- or { available = false, notice = "..." } when there is nothing to show: the words to put on the
+-- sign (the leaderboards are off for the session, or the first read hasn't worked yet). A rank is
+-- nil when they aren't in the pages that were read.
 
 local DataStoreService = game:GetService("DataStoreService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local GameConfig = require(Shared.Config.GameConfig)
@@ -47,6 +50,13 @@ local FIRST_READ_DELAY = 10
 local ARRIVAL_WAIT = 60
 -- The name shown for a player whose name couldn't be looked up.
 local UNKNOWN_NAME = "Player"
+-- What the sign says when there are no boards to show: the leaderboards can't work this session
+-- (Studio without API access, or stores that couldn't be made), or they can but the first read
+-- hasn't worked (it is tried again every tick).
+local OFF_NOTICE = "Leaderboards are off in this place"
+local RESTING_NOTICE = "The boards are not answering right now."
+-- The stores a Studio playtest opens are the live names with this on the end.
+local STUDIO_SUFFIX = "_studio"
 -- One read stops looking names up after this many lookups have failed in it.
 local MAX_NAME_FAILURES = 3
 -- A name whose lookup failed isn't asked for again for this many reads.
@@ -71,8 +81,9 @@ local stores: { [string]: OrderedDataStore }? = nil
 local available = false
 -- Set the first time the leaderboards are switched off, so that happens (and is warned of) once.
 local switchedOff = false
--- True while there is nothing to show and no way to get it yet: the sign says the boards are off.
-local off = false
+-- What the sign says while there is nothing to show (no good read yet): OFF_NOTICE or RESTING_NOTICE,
+-- or nil before there is anything to say.
+local notice: string? = nil
 -- True while a read is under way (it yields), so a second one doesn't start on top of it.
 local refreshing = false
 -- The last good read, kept while later reads fail.
@@ -138,8 +149,8 @@ local function payloadFor(player: Player)
 			},
 		}
 	end
-	if off then
-		return { available = false }
+	if notice then
+		return { available = false, notice = notice }
 	end
 	return nil
 end
@@ -167,7 +178,7 @@ local function switchOff(reason: string)
 	available = false
 	warn("LeaderboardService: the leaderboards are off. " .. reason)
 	if not board then
-		off = true
+		notice = OFF_NOTICE
 		broadcast()
 	end
 end
@@ -380,8 +391,8 @@ function LeaderboardService:Refresh(): boolean
 	warn(
 		`LeaderboardService: couldn't read the leaderboards, trying again in {GameConfig.LeaderboardRefreshInterval} s: {result}`
 	)
-	if not board and not off then
-		off = true
+	if not board and notice ~= RESTING_NOTICE then
+		notice = RESTING_NOTICE
 		broadcast()
 	end
 	return false
@@ -392,9 +403,15 @@ end
 function LeaderboardService:Init()
 	local made = {}
 	local failure: any = nil
+	-- A Studio playtest with API access on really reads and writes (that's the way to try the boards),
+	-- so it does it on boards of its own: the live ones never see a developer's or a test player's row.
+	local suffix = if RunService:IsStudio() then STUDIO_SUFFIX else ""
+	if suffix ~= "" then
+		print(`LeaderboardService: Studio plays on its own boards (the live names ending "{suffix}").`)
+	end
 	for _, which in BOARDS do
 		local ok, result =
-			pcall(DataStoreService.GetOrderedDataStore, DataStoreService, GameConfig.LeaderboardStores[which])
+			pcall(DataStoreService.GetOrderedDataStore, DataStoreService, GameConfig.LeaderboardStores[which] .. suffix)
 		if ok then
 			made[which] = result
 		elseif failure == nil then
