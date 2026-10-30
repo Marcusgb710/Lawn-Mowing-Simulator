@@ -2,7 +2,8 @@
 -- 2c): lawns mowed (jobs finished) and money earned, an OrderedDataStore each (GameConfig's
 -- LeaderboardStores), keyed "u<UserId>".
 --   Record   writes a player's two numbers when a job of theirs finishes, at most once every
---            GameConfig.LeaderboardWriteInterval seconds each.
+--            GameConfig.LeaderboardWriteInterval seconds each. A finish inside that window is
+--            not lost: the player is marked, and the next Refresh (or their leaving) writes them.
 --   Refresh  reads both boards: the top GameConfig.LeaderboardTop for the sign and, a few pages
 --            deep (LeaderboardRankPages), where everyone online stands. It runs once shortly
 --            after the server starts and then every LeaderboardRefreshInterval seconds, and the
@@ -17,6 +18,9 @@
 --   * Any other failed read keeps the last result on the sign and waits for the next tick. If
 --     there is no result yet, the sign says it is off until a read works.
 --   * A failed write is a warning, and not tried again until the player's next job.
+--   * Names are looked up for the top lists only when the player isn't online, and a read gives up
+--     on lookups after a few fail (the rest show a name already known, or "Player"). A name that
+--     failed is left alone for the next few reads.
 --
 -- The payload each screen is sent (the boards are the same for everyone, `you` is their own):
 --   { available = true, lawns = { { name, value } }, money = { { name, value } },
@@ -43,6 +47,10 @@ local FIRST_READ_DELAY = 10
 local ARRIVAL_WAIT = 60
 -- The name shown for a player whose name couldn't be looked up.
 local UNKNOWN_NAME = "Player"
+-- One read stops looking names up after this many lookups have failed in it.
+local MAX_NAME_FAILURES = 3
+-- A name whose lookup failed isn't asked for again for this many reads.
+local MISS_READS = 3
 -- The boards, in the order they are written and read.
 local BOARDS = { "Lawns", "Money" }
 
@@ -71,8 +79,16 @@ local refreshing = false
 local board: Board? = nil
 -- [Player] = os.clock() of their last write, for the throttle.
 local lastWrite: { [Player]: number } = {}
+-- [Player] = true for a player whose job finished inside the write window, so the boards are a job
+-- behind them: they are written at the next Refresh or when they leave.
+local dirty: { [Player]: boolean } = {}
 -- [UserId] = name, for the players names have been looked up for.
 local names: { [number]: string } = {}
+-- Which read this is (every read counts, good or not), how many lookups have failed in it, and
+-- [UserId] = the first read a name that failed may be asked for again in.
+local readNumber = 0
+local nameFailures = 0
+local missedUntil: { [number]: number } = {}
 
 local function keyFor(userId: number): string
 	return "u" .. userId
@@ -156,8 +172,10 @@ local function switchOff(reason: string)
 	end
 end
 
--- A player's name: the one they're online with, else the one looked up before, else a lookup
--- (a failed one gives UNKNOWN_NAME and isn't kept, so a later read asks again).
+-- A player's name: the one they're online with, else the one looked up before, else a lookup. A
+-- failed lookup gives UNKNOWN_NAME and is remembered, so that name isn't asked for again for
+-- MISS_READS reads (a banned or deleted account is not asked about every tick), and once
+-- MAX_NAME_FAILURES have failed in one read the rest of that read don't ask at all.
 local function nameOf(key: string, online: { [number]: string }): string
 	local userId = tonumber(string.sub(key, 2))
 	if not userId then
@@ -167,11 +185,17 @@ local function nameOf(key: string, online: { [number]: string }): string
 	if known then
 		return known
 	end
+	if nameFailures >= MAX_NAME_FAILURES or readNumber < (missedUntil[userId] or 0) then
+		return UNKNOWN_NAME
+	end
 	local ok, result = pcall(Players.GetNameFromUserIdAsync, Players, userId)
 	if ok and typeof(result) == "string" then
 		names[userId] = result
+		missedUntil[userId] = nil
 		return result
 	end
+	nameFailures += 1
+	missedUntil[userId] = readNumber + MISS_READS + 1
 	return UNKNOWN_NAME
 end
 
@@ -208,6 +232,8 @@ end
 
 -- Both boards, with names. Throws when a DataStore call does.
 local function readBoards(): Board
+	readNumber += 1
+	nameFailures = 0
 	local found = stores :: { [string]: OrderedDataStore }
 	local lawnsTop, lawnRanks = readBoard(found.Lawns)
 	local moneyTop, moneyRanks = readBoard(found.Money)
@@ -244,28 +270,13 @@ local function onPlayerAdded(player: Player)
 	end
 end
 
--- Public API ---------------------------------------------------------------------------------
-
--- Writes a player's lawns mowed and money earned to the boards, unless they were written less than
--- LeaderboardWriteInterval seconds ago (a crew's jobs finishing together write once each). A save
--- that isn't being kept (it couldn't be loaded, or Studio reset it) is never written: its numbers
--- start again from nothing and would take a real score down.
-function LeaderboardService:Record(player: Player)
-	local found = stores
-	if not (available and found) or not DataService:CanSave(player) then
-		return
-	end
-	local now = os.clock()
-	local last = lastWrite[player]
-	if last and now - last < GameConfig.LeaderboardWriteInterval then
-		return
-	end
+-- Writes a player's two numbers, one write to each board. The numbers are read before the first
+-- write, which yields. A failed write is a warning; Studio's refusal switches the boards off.
+local function writeScores(player: Player, found: { [string]: OrderedDataStore })
 	local data = DataService:Get(player)
 	if not data then
 		return
 	end
-	-- Stamped and read before the first write, which yields.
-	lastWrite[player] = now
 	local key = keyFor(player.UserId)
 	local values = { Lawns = data.jobsCompleted or 0, Money = math.floor(data.earned or 0) }
 	for _, which in BOARDS do
@@ -281,14 +292,72 @@ function LeaderboardService:Record(player: Player)
 	end
 end
 
--- Reads both boards and sends every player the result. A read that fails leaves what the sign
--- shows as it was (or, if it shows nothing yet, says it is off) and is not tried again until the
--- next tick. Does nothing while the leaderboards are off or a read is already under way.
+-- Writes a player a finish was held back for (see Record), if the boards are on and their save is
+-- one that is being kept. Marked clean before the write, which yields, so two flushes at once (the
+-- tick and their leaving) write once.
+local function flush(player: Player)
+	if not dirty[player] then
+		return
+	end
+	dirty[player] = nil
+	local found = stores
+	if not (available and found) or not DataService:CanSave(player) then
+		return
+	end
+	lastWrite[player] = os.clock()
+	writeScores(player, found)
+end
+
+-- Public API ---------------------------------------------------------------------------------
+
+-- Writes a player's lawns mowed and money earned to the boards, unless they were written less than
+-- LeaderboardWriteInterval seconds ago (a crew's jobs finishing together write once each): then the
+-- player is marked, and the next Refresh or their leaving writes them. A save that isn't being kept
+-- (it couldn't be loaded, or Studio reset it) is never written: its numbers start again from
+-- nothing and would take a real score down.
+function LeaderboardService:Record(player: Player)
+	local found = stores
+	if not (available and found) or not DataService:CanSave(player) then
+		return
+	end
+	local now = os.clock()
+	local last = lastWrite[player]
+	if last and now - last < GameConfig.LeaderboardWriteInterval then
+		dirty[player] = true
+		return
+	end
+	if not DataService:Get(player) then
+		return
+	end
+	-- Stamped before the first write, which yields.
+	lastWrite[player] = now
+	dirty[player] = nil
+	writeScores(player, found)
+end
+
+-- Writes the players a finish was held back for, then reads both boards and sends every player the
+-- result. A read that fails leaves what the sign shows as it was (or, if it shows nothing yet, says
+-- it is off) and is not tried again until the next tick. Does nothing while the leaderboards are off
+-- or a read is already under way.
 function LeaderboardService:Refresh()
 	if not available or refreshing then
 		return
 	end
 	refreshing = true
+	local held = {}
+	for player in dirty do
+		table.insert(held, player)
+	end
+	for _, player in held do
+		guarded("score write", player, function()
+			flush(player)
+		end)
+	end
+	if not available then
+		-- A write found Studio has no DataStore access: the boards are off, and nothing is read.
+		refreshing = false
+		return
+	end
 	local ok, result = pcall(readBoards)
 	refreshing = false
 	if ok then
@@ -341,7 +410,12 @@ function LeaderboardService:Init()
 		task.spawn(onPlayerAdded, player)
 	end
 	Players.PlayerRemoving:Connect(function(player)
+		-- DataService lets the save go only after writing it out (which yields), so it is still here.
+		guarded("score write", player, function()
+			flush(player)
+		end)
 		lastWrite[player] = nil
+		dirty[player] = nil
 	end)
 end
 

@@ -193,7 +193,7 @@ local function build(part: BasePart, board, view: View?)
 		Face = Enum.NormalId.Front,
 		SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud,
 		PixelsPerStud = PIXELS_PER_STUD,
-		-- Lit as it is, like the other signs' text, however dark it is out.
+		-- Lit as it is, like the sign's header (WorldService), however dark it is out.
 		LightInfluence = 0,
 	})
 	local face = UI.new("Frame", {

@@ -153,9 +153,10 @@ local LEADERBOARD_SIGN_AWAY = Vector3.new(0, 0, 12)
 local LEADERBOARD_HEADER = "MAPLE GROVE BEST"
 
 -- Stands the leaderboard sign (Props/LeaderboardSign) beside the spawn, on the ground at the
--- spawn pad's underside, parented to the town. The header is stamped with its name here; the boards
--- are drawn by each player's own screen (see LeaderboardController). The sign stays streamed in
--- for everyone, like Gloria's house, so a screen far from the spawn still has it when it walks there.
+-- spawn pad's underside, parented to the town. The header is stamped with its name here, lit as it
+-- is however dark it is out, like the boards, which are drawn by each player's own screen (see
+-- LeaderboardController). The sign stays streamed in for everyone, like Gloria's house, so a screen
+-- far from the spawn still has it when it walks there.
 local function standLeaderboardSign(town: Model, spawnLocation: BasePart)
 	local spawnAt = spawnLocation.Position - Vector3.new(0, spawnLocation.Size.Y / 2, 0)
 	local signAt = spawnAt + LEADERBOARD_SIGN_AWAY
@@ -166,6 +167,11 @@ local function standLeaderboardSign(town: Model, spawnLocation: BasePart)
 	local header = model:FindFirstChild("LeaderboardSign__Header", true)
 	if header and header:IsA("BasePart") then
 		sign(header, LEADERBOARD_HEADER, Enum.NormalId.Front)
+		-- sign() leaves its text lit by the day, which would dim the header at night beside the boards.
+		local gui = header:FindFirstChildOfClass("SurfaceGui")
+		if gui then
+			gui.LightInfluence = 0
+		end
 	end
 	pcall(function()
 		model.ModelStreamingMode = Enum.ModelStreamingMode.Persistent
