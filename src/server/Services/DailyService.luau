@@ -94,7 +94,9 @@ end
 
 -- [Player] = the view last sent to them, so the minute's look doesn't rebuild an open panel with a
 -- view that hasn't changed. A player's first send (their join) is always made.
-local lastView = {}
+-- Weak by player, so a player who has left cannot be kept here by the minute's loop while their save
+-- is still being written out.
+local lastView = setmetatable({}, { __mode = "k" })
 
 -- Whether two views (plain tables of numbers, strings and booleans) hold the same things.
 local function sameView(a: any, b: any): boolean
@@ -120,8 +122,9 @@ local function sendView(player: Player, data)
 	if sameView(lastView[player], view) then
 		return
 	end
-	lastView[player] = view
 	Net.event("ContractsUpdated"):FireClient(player, view)
+	-- After the send, so one that failed is tried again.
+	lastView[player] = view
 end
 
 -- Whether the day has contracts and every one of them is paid. A day with none (before the first

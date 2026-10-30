@@ -516,18 +516,18 @@ What the reviews asked to see in Studio:
 Slice 2 is Tomorrow (design: `docs/superpowers/specs/2026-10-29-busy-season-design.md`, plan:
 `docs/superpowers/plans/2026-10-29-busy-season-slice-2.md`): the daily contracts and the mailbox,
 the login streak, the leaderboards and judging day every Saturday. The Lune checks cover the tables
-and the rules (`check-season`, `check-story`, `check-gui`). In Studio only the phone layout has
-been looked at (the contracts chip and panel and the Levels panel on the device emulator, which is
-how the Close button under the hotbar was found); the PC shortcuts, the leaderboard sign, the streak
-and Bonus Day moments and the pennant have not been seen or heard yet. The test panel (K) has three
-shortcuts for it, all Studio only: **Next day** moves the
-server's clock a day on and turns every player's day over (a new three contracts, the streak and its
-cash), **Jump to Saturday** moves it to noon on the next Saturday UTC (never today, so it always
-moves, and a judging mark saved for that day is cleared) and **Refresh the boards** reads both
-leaderboards now instead of in two minutes. A jump of more than one day breaks the streak and starts
-it again at day 1; from a Friday it is just tomorrow, so the streak advances. Press **Next day**
-one day at a time to walk the streak up. The panel's +$ buttons are not earnings for a contract; a
-Level jump's cash is.
+and the rules (`check-season`, `check-story`, `check-gui`). In Studio, on the phone emulator, the
+phone layout has been looked at (the contracts chip and panel and the Levels panel, which is how the
+Close button under the hotbar was found) and the day 1 Payday card was seen after the tap to start,
+but not heard. Not yet seen or heard: the PC shortcuts, the leaderboard sign, the later streak days
+and the Bonus Day moment, the pennant, and any of the sounds. The test panel (K) has three
+shortcuts for it, all Studio only: **Next day** moves the server's clock a day on and turns every
+player's day over (a new three contracts, the streak and its cash), **Jump to Saturday** moves it to
+noon on the next Saturday UTC (never today, so it always moves, and a judging mark saved for that
+day is cleared) and **Refresh the boards** reads both leaderboards now instead of in two minutes. A
+jump of more than one day breaks the streak and starts it again at day 1; from a Friday it is just
+tomorrow, so the streak advances. Press **Next day** one day at a time to walk the streak up. The
+panel's +$ buttons are not earnings for a contract; a Level jump's cash is.
 
 The spec's playtest checklist for slice 2, with what to expect:
 
@@ -537,10 +537,15 @@ The spec's playtest checklist for slice 2, with what to expect:
       day 1 of the streak the Earn row completes (the day 1 streak cash counts toward it, and the
       job's $60 and the $10 first-job milestone take it past $150), with the goal chime, a "+$" pop
       off the chip and a DONE stamp on its row; the chip reads 1/3, or 2/3 if the job earned three
-      stars on a Stars day. On a later day, press the test panel's Level 5 jump to finish Earn: its
-      $850 across levels 2 to 5 counts as earned.
-- [ ] The Bonus Day: finish all three. Earn completes as above, two jobs do Mow, and the Junk or
-      Stars one (the pieces picked up on the lawn, or a three-star job) is the third. A Payday
+      stars on a Stars day. From day 2 the streak's login cash ($150 and up) already meets Earn $150
+      at level 1 or 2, so that row completes at login, with the Payday card (its chime and pop 0.6 s
+      after the card). The test panel's Level 5 jump finishes Earn only on a day whose streak cash
+      falls short: day 1 before the first job, or band 2 and up, where Earn is $400 or more; its $850
+      across levels 2 to 5 counts as earned.
+- [ ] The Bonus Day: finish all three. Earn completes as above (with the first job on day 1, at
+      login from day 2, or with the Level 5 jump where the streak cash falls short), two jobs do
+      Mow, and the Junk or Stars one (the pieces picked up on the lawn, or a three-star job) is the
+      third. A Payday
       moment whose subtitle reads "Bonus Day: +$500" plays with the cash sound, and the panel's
       line reads "Bonus Day collected".
 - [ ] The streak card: press **Next day**. A Payday moment whose subtitle reads "Day 2 of 7: +$150

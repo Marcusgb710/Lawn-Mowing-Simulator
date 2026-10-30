@@ -1148,8 +1148,10 @@ or when they leave). The server reads both every two minutes and puts the top 25
 sign at the town spawn (`Props/LeaderboardSign`; each player's own screen draws the boards), with
 the viewer's own line under them. It reads four pages deep, so anyone in the first 100 sees their
 rank, and anyone further down sees "not in the top 100 yet" with their own number. Without
-DataStores (Studio without API access, or an outage) the sign says the leaderboards are off and the
-game plays on.
+DataStores (Studio without API access, or no stores) the sign says the leaderboards are off, and
+while the boards are on but no read has worked (an outage) it says they are not answering right
+now; the game plays on either way. A Studio playtest uses boards of its own, so it never writes to
+the live ones.
 
 **Judging day on the calendar** (`Contest.calendarState`). The first judging day is unchanged: it
 opens when act 4 begins, so the story lands the first time. After it, judging day is every
@@ -1159,8 +1161,8 @@ A Saturday you miss changes nothing. A win starts the next summer with Gloria's 
 first, 96 at most), and so do four lost Saturdays after the first judging day, so the bar rises
 even for someone who never wins.
 
-Saved as data version 14: `daily`, `streak`, `flags`, and the contest's `lastJudged` and
-`saturdays` (`Config/Season.luau`). Everything that depends on the day asks the server's `Clock`
+Saved as data version 14: `daily`, `streak`, `flags`, and the contest's `lastJudged`, `saturdays`
+and `offeredDay` (`Config/Season.luau`). Everything that depends on the day asks the server's `Clock`
 (`src/server/Clock.luau`): `os.time()` plus an offset that only Studio can set, from the test panel's
 Next day and Jump to Saturday.
 
@@ -1239,7 +1241,9 @@ phase that gives them work.
     decided when the judges are called, so leaving before collecting changes nothing;
   - `nextAt`, the jobs done when the first judging day comes round (after it, judging day is every
     Saturday and it gates nothing);
-  - `offered`, how many judging days there had been when June last texted that it's open;
+  - `offered`, how many judging days there had been when June last texted that it's open (and, from
+    version 14, `offeredDay`, the day of that text, so each open Saturday after the first judging
+    day gets one);
   - `discount`, the building a win took half off, until it's bought.
 
   Everyone starts in summer 1 with nothing judged, and judging day opens as soon as they reach

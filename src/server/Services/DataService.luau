@@ -198,7 +198,8 @@ local MIGRATIONS = {
 	-- 13 -> 14, the day (see Season.upgradeSave): `daily` starts out as no day yet with no
 	-- contracts, nothing done and every count at 0, `streak` as 0 days kept on no day, `flags` as
 	-- none owned, and the `contest` the 10 -> 11 step made gains `lastJudged` (no Saturday judged
-	-- yet) and `saturdays` (none without a win). Nothing the save already holds changes.
+	-- yet), `saturdays` (none without a win) and `offeredDay` (June hasn't texted on any day). Nothing
+	-- the save already holds changes.
 	[14] = function(data)
 		Season.upgradeSave(data)
 	end,
@@ -261,7 +262,7 @@ local function defaultData()
 		premium = Premium.empty(),
 	}
 	-- The Busy Season's fields (`earned`, `stars`, `milestones`, `levelRewards` and `firstJob`, then
-	-- `daily`, `streak` and `flags` and the `lastJudged` and `saturdays` of the contest above, see
+	-- `daily`, `streak` and `flags` and the `lastJudged`, `saturdays` and `offeredDay` of the contest above, see
 	-- Config/Season.luau), filled in the way the 12 -> 13 and 13 -> 14 migrations do, from the
 	-- numbers above. `levelRewards` is keyed by the level as a string (Season.levelKey), so the save
 	-- stays a dictionary rather than an array with holes.
@@ -455,7 +456,12 @@ local function load(player: Player)
 				if result ~= nil and typeof(result) ~= "table" then
 					error("the save isn't a table")
 				end
-				return reconcile(if newer then result else migrate(result or defaultData()))
+				local loaded = if newer then result else migrate(result or defaultData())
+				-- Every save, not only the ones a migration touches: a stored save can carry a shape the game
+				-- no longer writes, and upgradeSave is the one place that knows every shape (a current save is
+				-- a fixed point of it, so a good one comes out as it went in).
+				Season.upgradeSave(loaded)
+				return reconcile(loaded)
 			end)
 			if migrated then
 				if newer then

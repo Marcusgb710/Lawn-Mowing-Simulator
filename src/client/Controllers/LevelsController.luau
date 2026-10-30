@@ -9,7 +9,7 @@
 -- shop computer, and when you open one of the menus, since only one window is up at a time. It's
 -- scaled down to fit the screen the way the pay breakdown is (UiLayout's
 -- __screen.scaling.LevelsPanel). Centred, it's already clear of Roblox's move stick and jump
--- button; on a touch screen it also stands above the hotbar (UiLayout's touch place for it), so
+-- button; on a touch screen it also stands above the hotbar (UiLayout's touch or compact place), so
 -- Close is never under a slot.
 
 local GuiService = game:GetService("GuiService")
@@ -145,7 +145,7 @@ local function fit()
 	local rule = UI.Layout.__screen.scaling.LevelsPanel
 	local place = UI.layout("LevelsPanel")
 	-- On a touch screen the window stands above the hotbar: its place is anchored at its bottom edge,
-	-- this far up from the screen's bottom (UiLayout's touch place, the one number for it), and that
+	-- this far up from the screen's bottom (UiLayout's touch or compact place, the one number), and that
 	-- much of the screen's height is not its to use. A centred place has no offset, so none on a PC.
 	local above = math.max(0, -(place.position :: UDim2).Y.Offset)
 	local margin = (if UI.isTouch() then rule.touchMargin else rule.margin) + above

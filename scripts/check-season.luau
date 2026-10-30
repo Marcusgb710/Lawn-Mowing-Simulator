@@ -576,6 +576,52 @@ check(
 	brokenContract.daily.day == "" and next(brokenContract.daily.contracts) == nil,
 	"a day with a contract that has lost a field is blanked, so the next Refresh makes it again"
 )
+-- A complete stored version 14 save (DataService runs upgradeSave on every one it loads) whose second
+-- contract has lost its `need`: the list is emptied and the day blanked, and nothing else moves.
+local stored = {
+	version = 14,
+	money = 1234,
+	xp = 1800,
+	jobsCompleted = 30,
+	earned = 5000,
+	stars = { ["3"] = 2 },
+	milestones = { ["Jobs:1"] = true },
+	levelRewards = { ["2"] = true },
+	firstJob = true,
+	daily = {
+		day = "20261029",
+		contracts = {
+			{ id = "Mow", kind = "Mow", text = "Mow 3 lawns", need = 3, reward = 150 },
+			{ id = "Earn", kind = "Earn", text = "Earn $400", reward = 150 },
+			{ id = "Junk", kind = "Junk", text = "Pick up 4 pieces of junk", need = 4, reward = 150 },
+		},
+		done = { Mow = true },
+		count = { jobs = 3, earned = 250, junk = 1, stars = 0 },
+		bonus = false,
+	},
+	streak = { days = 4, last = "20261029" },
+	flags = { TruckPennant = true },
+	contest = { summer = 2, wins = 1, judged = 3, lastJudged = "20261024", saturdays = 2, offeredDay = "20261024" },
+}
+local storedBefore = copyOf(stored)
+Season.upgradeSave(stored)
+check(
+	stored.daily.day == "" and next(stored.daily.contracts) == nil,
+	"a stored version 14 save with a contract missing its need has its day blanked and its list emptied"
+)
+storedBefore.daily.day = ""
+storedBefore.daily.contracts = {}
+check(
+	sameTable(storedBefore, stored),
+	"and nothing else in it moves: money, xp, the streak, the flags, the contest and what was counted"
+)
+local goodStored = copyOf(storedBefore)
+goodStored.daily.day = "20261029"
+goodStored.daily.contracts = { { id = "Mow", kind = "Mow", text = "Mow 3 lawns", need = 3, reward = 150 } }
+local goodBefore = copyOf(goodStored)
+Season.upgradeSave(goodStored)
+check(sameTable(goodBefore, goodStored), "a stored version 14 save whose contracts are whole comes out as it went in")
+
 local notWhole = {
 	{ id = "Mow", kind = "Mow", text = "Mow 2 lawns", need = "2", reward = 60 },
 	{ id = "Mow", kind = "Mow", text = "Mow 2 lawns", need = 2 },

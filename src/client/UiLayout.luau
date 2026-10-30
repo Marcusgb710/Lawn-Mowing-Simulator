@@ -253,9 +253,8 @@ return {
 					.. "margin) / its width, so it only ever shrinks. On a touch screen the window stands above "
 					.. "Roblox's hotbar (its touch or compact place's distance from the bottom, 78 or 66 px, so "
 					.. "its Close button is never under a slot), so the height it has is the screen's height "
-					.. "less that and "
-					.. "touchMargin, the same 24 as margin, at the top. In the middle of the screen it is "
-					.. "already clear of the move stick and jump button in the bottom corners.",
+					.. "less that and touchMargin, the same 24 as margin, at the top. In the middle of the "
+					.. "screen it is already clear of the move stick and jump button in the bottom corners.",
 			},
 			ContractsPanel = {
 				elements = { "ContractsPanel" },
@@ -266,8 +265,7 @@ return {
 					.. "its height and (screen width - margin) / its width, so it only ever shrinks. On a touch "
 					.. "screen the window stands above Roblox's hotbar (its touch or compact place's distance "
 					.. "from the bottom, 78 or 66 px), so the height it has is the screen's height less that "
-					.. "and touchMargin, "
-					.. "the same 24 as margin, at the top.",
+					.. "and touchMargin, the same 24 as margin, at the top.",
 			},
 			ContestResults = {
 				elements = { "ContestResults" },

@@ -45,8 +45,8 @@ end
 --                 each one paid, `count` is what they've done toward them today (jobs, earned, junk
 --                 and stars), and `bonus` is true once the bonus for finishing all of them is paid.
 --                 A list with a contract that is missing a field (an id, kind, text, or a need or
---                 reward that is a number) is emptied and `day` is blanked, so the next Refresh
---                 makes the day again instead of breaking everything that reads it
+--                 reward that is a number) is emptied and `day` is blanked, and DailyService makes
+--                 the day again at its next Refresh (DataService runs this on every save it loads)
 --   streak        the login streak: how many `days` in a row, and the day key it was `last` kept
 --   flags         [flag id] = true for each cosmetic flag they own
 --   contest       gains `lastJudged`, the day key of the last Saturday judged ("" for none),
