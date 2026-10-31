@@ -15,7 +15,8 @@
 --     where the rail has no room), the job tracker on a dark glass card (the job's name in gold with
 --     its stars once it is paid, a big timer with par, to-dos, damage and a Call off pill), smaller on
 --     a phone, under it the boost pills (Crew, Curb, Truck and Business pay bonuses, while they
---     are above zero), and under those, late in the mowing, the button that lights up the grass you
+--     are above zero), under those the lawn map (a top-down picture of the job's lawn, cut and uncut, where
+--     there's room), and under that, late in the mowing, the button that lights up the grass you
 --     missed (M on a keyboard);
 --   * down the right edge, outside that column: the right buttons, glossy squares for the Shop (the
 --     Orders window, from anywhere: B on a keyboard), Gifts (claims the day's streak gift, ClaimStreak,
@@ -43,7 +44,7 @@
 -- Columns (the two columns and their placing and fitting rules), Bits (the framed bar and corner key
 -- badge they share), StatPills (the money, level, streak and countdown pills), MenuSquares (the four
 -- left squares and the Contracts badge), RightStrip (Shop, Gifts, Top Lawns and Settings), JobCard (the
--- job card and the boost pills) and Splash (the clean-stripe cheer). Grandma's goal banner, the goals
+-- job card and the boost pills), LawnMap (the lawn map under them) and Splash (the clean-stripe cheer). Grandma's goal banner, the goals
 -- rail, curb appeal, the tool's condition, the pay breakdown and the big moments are drawn here.
 
 local Players = game:GetService("Players")
@@ -1275,6 +1276,9 @@ function HudController:Start()
 	buildCurbAppeal()
 	buildNextChip()
 	JobCard.build()
+	-- The lawn map under the boost pills. Required here and not at the top, which keeps HudController's top
+	-- level (at most 200 locals, see scripts/check-compile) where it was.
+	require(Hud.LawnMap).build()
 	buildMissedButton()
 	buildCondition()
 

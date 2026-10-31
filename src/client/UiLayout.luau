@@ -526,12 +526,12 @@ return {
 		touch = { position = { 1, -64, 0, 12 } },
 		compact = { position = { 1, -64, 0, 12 } },
 		note = "Curb appeal, then on a short screen the Next chip, over the job tracker, then the boost pills, "
-			.. "then the Show what I "
+			.. "then the lawn map (not on a short screen), then the Show what I "
 			.. "missed button late in the mowing, down the right, just inside the right buttons (the strip's "
 			.. "width and a 12 px gap: 100 px in from the edge on a PC, 64 on a touch or short screen). Its "
 			.. "UIScale shrinks it to fit like the left "
 			.. "column's, toward its top right corner. Typical is during a job on a phone, where curb appeal "
-			.. "hides and the chip stays. Each of the five can be taken out of it (their detach) and put "
+			.. "hides and the chip stays. Each of the six can be taken out of it (their detach) and put "
 			.. "anywhere on the screen.",
 	},
 	CurbAppeal = {
@@ -598,12 +598,32 @@ return {
 			.. "none, and wraps to a second line when the pills don't fit. The tracker's card and this row "
 			.. "hide together.",
 	},
+	LawnMap = {
+		label = "Lawn map",
+		group = "HUD",
+		parent = "RightColumn",
+		detach = "RightColumn",
+		order = 5,
+		size = { 0, 166, 0, 0 },
+		autoSize = "Y",
+		typical = { 166, 188 },
+		note = "Under the boost pills while a job with mowing is under way (Working): a top-down picture of the "
+			.. "job's lawn on dark glass like the job card's (a 3 px ink outline), one pixel per grass cell, "
+			.. "uncut grass dark olive, mown grass bright green, torn grass yellow-green and bare ground brown, "
+			.. "with a white dot where you are and a dark dot for each piece of junk still in the grass. "
+			.. "'Lawn' and the percent mowed are over it. The picture keeps the lawn's shape inside a 150 px "
+			.. "box (a wide lawn is 150 wide, a deep one 150 tall), so the glass is 166 wide and at most 188 "
+			.. "tall. It needs the room: it is hidden on a screen shorter than __screen.scaling.Columns."
+			.. "fullHeight (a phone held sideways: the right column is at its floor without it) and on a touch "
+			.. "screen under 650 px of GUI (LawnMap's TOUCH_MIN_HEIGHT, where the move stick and jump button "
+			.. "take the room), and unless the job's lawn near you is drawn as a surface.",
+	},
 	MissedButton = {
 		label = "Show what I missed button",
 		group = "HUD",
 		parent = "RightColumn",
 		detach = "RightColumn",
-		order = 5,
+		order = 6,
 		size = { 0, 280, 0, 44 },
 		touch = { size = { 0, 280, 0, 52 } },
 		note = "Under the job tracker, once the mowing's percent (how much of what the job requires is cut, "

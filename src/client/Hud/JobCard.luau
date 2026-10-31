@@ -164,6 +164,8 @@ local function glassPanel(props, radius: number, stroke: number, lip: number): (
 	end
 	return holder, face
 end
+-- The lawn map under the pills (LawnMap) is the same glass.
+JobCard.glassPanel = glassPanel
 
 local function callOffJob()
 	Net.event("AbandonJob"):FireServer()

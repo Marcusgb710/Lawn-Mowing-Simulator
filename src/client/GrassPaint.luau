@@ -6,8 +6,10 @@
 -- shared by every lawn, and grass grows back from it too. These take GrassController's lawn record
 -- and use its turf, shells, pps (pixels per stud), columns, rows and regrows, and keep its `cells`:
 -- the lawn's ledger as this client has it (one state per cell, see LawnGrid), so a swath never
--- paints over what the server says a cell is. Everything is in lawn-local studs, which are cells
--- too, and a picture's X and Y are the lawn's X and Z (GrassImages.worldToPixel).
+-- paints over what the server says a cell is. Every change to `cells` also sets the record's
+-- `ledgerDirty`, which GrassController clears when it tells the HUD (its LawnChanged). Everything is in
+-- lawn-local studs, which are cells too, and a picture's X and Y are the lawn's X and Z
+-- (GrassImages.worldToPixel).
 --
 -- Given the lawn art (GrassArt) the pictures hold other things. The turf image is painted over a
 -- tiling texture on its part: uncut grass is an opaque mottle sampled from the uncut texture, and
@@ -106,6 +108,7 @@ end
 local GrassPaint = {}
 
 GrassPaint.UNCUT = UNCUT
+GrassPaint.GROUND = GROUND
 
 -- Made the first time a lawn is drawn (see prepare): a stamp per shade, the eraser and, with the
 -- lawn art, the mottle and the tufts, and a grass tile per shell.
@@ -398,6 +401,7 @@ function GrassPaint.reset(lawn)
 		lawn.turf:DrawRectangle(Vector2.zero, lawn.turf.Size, UNCUT, 0, OVERWRITE)
 	end
 	lawn.cells = table.create(lawn.columns * lawn.rows, LawnGrid.TALL)
+	lawn.ledgerDirty = true
 end
 
 -- A dull blade's torn cut on pixels read from (left, top) of a shell: where every other
@@ -633,8 +637,9 @@ function GrassPaint.paintSwath(lawn, segment: Swath.Segment, confirmed: boolean)
 		for _, index in cutCells(lawn, segment) do
 			local state = cells[index]
 			if state == LawnGrid.TALL or state == LawnGrid.RAGGED then
-				if confirmed then
+				if confirmed and state ~= LawnGrid.RAGGED then
 					cells[index] = LawnGrid.RAGGED
+					lawn.ledgerDirty = true
 				end
 				drawCell(lawn, index, LawnGrid.RAGGED)
 			end
@@ -647,6 +652,7 @@ function GrassPaint.paintSwath(lawn, segment: Swath.Segment, confirmed: boolean)
 		for _, index in cutCells(lawn, segment) do
 			if cells[index] == LawnGrid.TALL then
 				cells[index] = LawnGrid.MOWED
+				lawn.ledgerDirty = true
 			end
 		end
 	end
@@ -691,7 +697,10 @@ function GrassPaint.regrowCells(lawn, indexes: { number })
 	for _, index in indexes do
 		local state = lawn.cells[index]
 		if state ~= nil and state ~= LawnGrid.EMPTY then
-			lawn.cells[index] = LawnGrid.TALL
+			if state ~= LawnGrid.TALL then
+				lawn.cells[index] = LawnGrid.TALL
+				lawn.ledgerDirty = true
+			end
 			drawCell(lawn, index, LawnGrid.TALL)
 		end
 	end

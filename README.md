@@ -301,7 +301,8 @@ src/client/                  -> StarterPlayer.StarterPlayerScripts.Client
                                 Bits (the framed bar and corner key badge they share), StatPills (money,
                                 level, streak and countdown), MenuSquares (the four left squares and the
                                 Contracts badge), RightStrip (Shop, Gifts, Top Lawns, Settings), JobCard
-                                (the job card and boost pills) and Splash (the clean-stripe cheer)
+                                (the job card and boost pills), LawnMap (the lawn map under them, cut and
+                                uncut) and Splash (the clean-stripe cheer)
   Juicy.luau                    the front-page HUD's look drawn in code: faces, buttons, pills, badges, text, and
                                 the hover, press and click feel for any button (Juicy.juice)
   JuicyPalette.luau             the colours Juicy draws with (plain data, so scripts/check-gui can read it)

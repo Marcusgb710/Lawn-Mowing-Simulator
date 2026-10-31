@@ -86,6 +86,8 @@ local START_SLIVER = 0.1
 local CONFIRM_SECONDS = 0.5
 -- Seconds between looks for cells that waited too long: the ledger copy is the server's truth, and decides.
 local RECONCILE_INTERVAL = 0.1
+-- Seconds between looks at the job lawn for LawnChanged, so it fires at most four times a second.
+local LAWN_CHANGED_INTERVAL = 0.25
 
 local GrassController = {}
 
@@ -93,6 +95,22 @@ local GrassController = {}
 -- studs one way with nothing bad in it (see trackPass and Shared/Strip). The HUD cheers it; nothing is
 -- paid.
 GrassController.StripDone = Signal.new()
+
+-- Fired, with nothing, when the job lawn (see jobLawn) changes: its ledger changed (GrassPaint sets the
+-- lawn's ledgerDirty whenever it writes a cell), or a job lawn appeared, went, or is another one. Looked
+-- at every LAWN_CHANGED_INTERVAL seconds, so at most four times a second. The HUD's lawn map listens.
+GrassController.LawnChanged = Signal.new()
+
+-- The job lawn as the HUD's map reads it (see jobLawn): its Grass folder, its size in cells, the ledger
+-- (one LawnGrid state per cell, counted column by column, the table GrassPaint keeps: read it, never
+-- write it) and its Origin corner, where cell (0, 0) starts and lawn X and Z run along columns and rows.
+export type JobLawn = {
+	folder: Folder,
+	columns: number,
+	rows: number,
+	cells: { string },
+	origin: Vector3,
+}
 
 -- [Grass folder] = everything we know about that lawn
 local lawns = {}
@@ -107,6 +125,9 @@ local unconfirmed = {}
 local lastLocalDeck: Vector3? = nil
 local lastLocalTool: Tool? = nil
 local lastReconcile = 0
+-- When the job lawn was last looked at for LawnChanged, and the one it was then.
+local lastLawnCheck = 0
+local signalledLawn: Folder? = nil
 
 local function localGrass(): Folder
 	local folder = workspace:FindFirstChild("LocalGrass")
@@ -429,8 +450,10 @@ local function track(folder: Instance, regrows: boolean)
 		turfDecal = nil,
 		turfTexture = nil,
 		shells = {},
-		-- The ledger as this client has it, while drawn as a surface (see GrassPaint).
+		-- The ledger as this client has it, while drawn as a surface (see GrassPaint), and whether it
+		-- has changed since LawnChanged last said so.
 		cells = nil,
+		ledgerDirty = false,
 		-- The shells' Decals, for highlightUncut.
 		decals = {},
 		highlight = nil,
@@ -526,6 +549,33 @@ function GrassController.jobLawnFolder(): Folder?
 		end
 	end
 	return nearest
+end
+
+-- The job site's lawn you're at (jobLawnFolder) while it's drawn as a surface, for the HUD's map, or nil.
+-- It is a fresh table each time, but `cells` is the lawn's own ledger, so take it again after each
+-- LawnChanged: a redraw replaces it.
+function GrassController.jobLawn(): JobLawn?
+	local folder = GrassController.jobLawnFolder()
+	local lawn = folder and lawns[folder]
+	if not (folder and lawn and lawn.mode == "Surface" and lawn.cells) then
+		return nil
+	end
+	return { folder = folder, columns = lawn.columns, rows = lawn.rows, cells = lawn.cells, origin = lawn.origin }
+end
+
+-- Says LawnChanged when the job lawn is another one than last time (or none), or its ledger changed.
+local function checkJobLawn()
+	local folder = GrassController.jobLawnFolder()
+	local lawn = folder and lawns[folder]
+	local dirty = lawn ~= nil and lawn.ledgerDirty == true
+	if folder == signalledLawn and not dirty then
+		return
+	end
+	signalledLawn = folder
+	if lawn then
+		lawn.ledgerDirty = false
+	end
+	GrassController.LawnChanged:Fire()
 end
 
 -- Your own mower paints its strip every frame instead of waiting for the server's swaths, which
@@ -769,6 +819,10 @@ function GrassController:Start()
 		if now - lastReconcile >= RECONCILE_INTERVAL then
 			lastReconcile = now
 			reconcile(now)
+		end
+		if now - lastLawnCheck >= LAWN_CHANGED_INTERVAL then
+			lastLawnCheck = now
+			checkJobLawn()
 		end
 	end)
 

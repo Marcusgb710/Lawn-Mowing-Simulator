@@ -267,6 +267,7 @@ local COLUMN_PIECES = {
 	NextChip = "RightColumn",
 	JobTracker = "RightColumn",
 	BoostPills = "RightColumn",
+	LawnMap = "RightColumn",
 	MissedButton = "RightColumn",
 }
 -- How big or small a `scale` can be.
@@ -1494,9 +1495,9 @@ do
 	end
 
 	-- The phone: the right column's pieces that can show during a job there (curb appeal hides on a
-	-- short screen; the job card is its compact one; the pills may wrap to two rows) fit in the
-	-- column's height at its floor scale. (That the banner sits between the columns is the screens
-	-- check, further down.)
+	-- short screen, and so does the lawn map; the job card is its compact one; the pills may wrap to two
+	-- rows) fit in the column's height at its floor scale. (That the banner sits between the columns is the
+	-- screens check, further down.)
 	local columns = UiLayout.__screen.scaling.Columns
 	local phone = UiLayout.__screen.phone
 	local guiHeight = phone.height - GUI_INSET
@@ -1504,7 +1505,7 @@ do
 	local right = UiLayout.RightColumn
 	local content, pieces = 0, 0
 	for id, entry in UiLayout do
-		if id ~= "__screen" and entry.parent == "RightColumn" and id ~= "CurbAppeal" then
+		if id ~= "__screen" and entry.parent == "RightColumn" and id ~= "CurbAppeal" and id ~= "LawnMap" then
 			local height = entry.size[4]
 			if id == "JobTracker" then
 				height = entry.compact.typical[2]
@@ -1527,6 +1528,116 @@ do
 		scale >= PHONE_RIGHT_FLOOR - 1e-9,
 		`the right column is scaled to {scale} on the {phone.width} by {phone.height} phone ({guiHeight} px of it under the top bar; {content} px of column during a job), under its {PHONE_RIGHT_FLOOR} floor`
 	)
+
+	-- The lawn map (LawnMap.luau): a top-down picture of the job's lawn under the boost pills, a column piece
+	-- of its own, in the right column, right after the pills. It needs the room, so it shows only where the
+	-- right column still fits with it: not on a short screen (the phone above is one: that column is at its
+	-- floor without the map, and would be at tightScale with it), and on a touch screen only from
+	-- TOUCH_MIN_HEIGHT px of GUI. With everything that can be in the column during a job on a tall screen
+	-- (curb appeal, the job card at its typical height, two rows of pills, the missed button and the map at
+	-- its tallest; the Next chip is a short screen's only), the column must stay at minScale or more at the
+	-- shortest GUI the map shows on: fullHeight on a PC, with margin, and TOUCH_MIN_HEIGHT on a touch
+	-- screen, with touchMargin.
+	local lawnMap = UiLayout.LawnMap
+	local mapSource = fs.readFile("src/client/Hud/LawnMap.luau")
+	check(lawnMap ~= nil, "UiLayout has no LawnMap")
+	if lawnMap then
+		check(lawnMap.parent == "RightColumn", `UiLayout's LawnMap is in {lawnMap.parent}, not the RightColumn`)
+		check(
+			typeof(lawnMap.order) == "number" and lawnMap.order == UiLayout.BoostPills.order + 1,
+			"UiLayout's LawnMap isn't the piece right after the BoostPills"
+		)
+		check(lawnMap.compactOnly == nil, "UiLayout's LawnMap is a short screen's piece, but it hides there")
+		local mapBox = tonumber(string.match(mapSource, "local MAP_BOX = (%d+)"))
+		local padding = tonumber(string.match(mapSource, "local PADDING = (%d+)"))
+		local captionHeight = tonumber(string.match(mapSource, "local CAPTION_HEIGHT = (%d+)"))
+		local captionGap = tonumber(string.match(mapSource, "local CAPTION_GAP = (%d+)"))
+		local touchMin = tonumber(string.match(mapSource, "local TOUCH_MIN_HEIGHT = (%d+)"))
+		check(
+			mapBox ~= nil and padding ~= nil and captionHeight ~= nil and captionGap ~= nil and touchMin ~= nil,
+			"LawnMap has no MAP_BOX, PADDING, CAPTION_HEIGHT, CAPTION_GAP or TOUCH_MIN_HEIGHT"
+		)
+		if mapBox and padding and captionHeight and captionGap and touchMin then
+			local tallest = 2 * padding + captionHeight + captionGap + mapBox
+			check(
+				lawnMap.size[2] == mapBox + 2 * padding and lawnMap.autoSize == "Y",
+				`UiLayout's LawnMap isn't {mapBox + 2 * padding} px wide (the {mapBox} px box and its padding), growing with the picture`
+			)
+			check(
+				lawnMap.typical ~= nil and lawnMap.typical[2] == tallest,
+				`UiLayout's LawnMap isn't typically {tallest} px tall, the map at its tallest`
+			)
+			check(mapBox <= 150, `LawnMap's picture box is {mapBox} px, over the 150 px cap`)
+			check(guiHeight < columns.fullHeight, "the phone isn't a short screen, where the lawn map hides")
+			for _, touch in { false, true } do
+				local gui = if touch then touchMin else columns.fullHeight
+				local margin = if touch then columns.touchMargin else columns.margin
+				local rows, count = 0, 0
+				for id, entry in UiLayout do
+					if id ~= "__screen" and entry.parent == "RightColumn" and not entry.compactOnly then
+						local height = entry.size[4]
+						if id == "BoostPills" then
+							height = 2 * entry.size[4] + entry.list.padding
+						elseif id == "LawnMap" then
+							height = tallest
+						elseif entry.typical then
+							height = entry.typical[2]
+						elseif touch and entry.touch and entry.touch.size then
+							height = entry.touch.size[4]
+						end
+						rows += height
+						count += 1
+					end
+				end
+				rows += (count - 1) * right.list.padding
+				local fit = math.min(
+					math.clamp(gui / columns.fullHeight, columns.minScale, 1),
+					math.max(columns.tightScale, (gui - margin) / rows)
+				)
+				check(
+					fit >= columns.minScale - 1e-9,
+					`the right column with the lawn map is scaled to {fit} on a {if touch then "touch" else "PC"} screen with {gui} px of GUI ({rows} px of column during a job), under minScale {columns.minScale}`
+				)
+			end
+		end
+		check(
+			string.find(mapSource, "if Columns.shortScreen() then", 1, true) ~= nil
+				and string.find(mapSource, "AbsoluteSize.Y >= TOUCH_MIN_HEIGHT", 1, true) ~= nil,
+			"LawnMap doesn't hide on a short screen and on a touch screen under TOUCH_MIN_HEIGHT"
+		)
+		-- One pixel per cell from the ledger, in an EditableImage made the way GrassPaint makes its own
+		-- (so a device with none to spare leaves the map hidden), drawn Pixelated, and kept up to date from
+		-- GrassController's LawnChanged.
+		local mapWants = {
+			"GrassPaint.newImage(Vector2.new(lawn.columns, lawn.rows))",
+			"ResampleMode = Enum.ResamplerMode.Pixelated",
+			"GrassController.LawnChanged:Connect(refresh)",
+			"GrassController.jobLawn()",
+			'Columns.placeInColumn(holder, "LawnMap")',
+		}
+		for _, wanted in mapWants do
+			check(string.find(mapSource, wanted, 1, true) ~= nil, `LawnMap doesn't have {wanted}`)
+		end
+		check(
+			string.find(hudSource, "require(Hud.LawnMap).build()", 1, true) ~= nil,
+			"HudController doesn't build the lawn map"
+		)
+		local grassSource = fs.readFile("src/client/Controllers/GrassController.luau")
+		check(
+			string.find(grassSource, "GrassController.LawnChanged = Signal.new()", 1, true) ~= nil
+				and string.find(grassSource, "function GrassController.jobLawn(): JobLawn?", 1, true) ~= nil
+				and string.find(grassSource, "LAWN_CHANGED_INTERVAL = 0.25", 1, true) ~= nil,
+			"GrassController has no LawnChanged (at most four times a second) and jobLawn for the lawn map"
+		)
+		-- Every place GrassPaint changes the ledger marks the lawn for LawnChanged.
+		local paintSource = fs.readFile("src/client/GrassPaint.luau")
+		local writes = select(2, string.gsub(paintSource, "cells%[index%] = LawnGrid%.", ""))
+		local marks = select(2, string.gsub(paintSource, "lawn%.ledgerDirty = true", ""))
+		check(
+			writes == 3 and marks == 4,
+			`GrassPaint writes the ledger {writes} times and marks it changed {marks} times: each write (and reset) should mark it`
+		)
+	end
 end
 -- The right-edge strip and what its buttons open (front-page HUD, rulings 3, 4, 6, 8 and 14). RightButtons
 -- is Shop, Gifts, Top Lawns and Settings down the right edge at {1, -12, 0, 12}: 76 px faces with a label
