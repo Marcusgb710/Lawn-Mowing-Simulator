@@ -338,11 +338,13 @@ local lone = GrassImages.shellPlan(1, 1.5)
 check(#lone == 1 and lone[1].height == 1.5 and lone[1].density == 1, "a single shell is full height and full density")
 check(#GrassImages.shellPlan(0, 1.5) == 0, "no shells, no plan")
 
--- Uncut grass stands GameConfig.TallGrassHeight (2 studs) tall, but no stack of shells is spaced wider than
--- GrassImages.MAX_SHELL_GAP (0.375, a phone's 4 shells under 1.5 studs, the widest the grass has been seen
--- with): each shell is a flat sheet, so wider gaps show as separate sheets at a cut edge. So 6 shells stand
--- 2 studs (a third of a stud apart) and a phone's 4 stay at 1.5. GrassController builds its plan from
--- tallHeight; the simple renderer's solid blocks have no gaps and stand the full height.
+-- Uncut grass stands GameConfig.TallGrassHeight (2 studs) tall, but on a lawn of normal height (TallScale 1)
+-- no stack of shells is spaced wider than GrassImages.MAX_SHELL_GAP (0.375, a phone's 4 shells under 1.5
+-- studs, as phones have always had): each shell is a flat sheet, so wider gaps show as separate sheets at a
+-- cut edge. So 6 shells stand 2 studs (a third of a stud apart) and a phone's 4 stay at 1.5. These checks
+-- run at TallScale 1: a taller lawn's TallScale (up to 3) multiplies the height and the gaps past the cap,
+-- as it always has. GrassController builds its plan from tallHeight times TallScale; the simple renderer's
+-- solid blocks have no gaps and stand the full height.
 local tallGrass =
 	tonumber(string.match(fs.readFile("src/shared/Config/GameConfig.luau"), "%sTallGrassHeight = ([%d%.]+),"))
 check(tallGrass == 2, `GameConfig's TallGrassHeight is {tallGrass}, not 2 studs`)
@@ -362,7 +364,7 @@ for _, touch in { false, true } do
 	end
 	check(
 		widest <= GrassImages.MAX_SHELL_GAP + 1e-9,
-		`{count} shells under {tallGrass} studs of grass are {widest} studs apart, over {GrassImages.MAX_SHELL_GAP}`
+		`{count} shells under {tallGrass} studs of grass (TallScale 1) are {widest} studs apart, over {GrassImages.MAX_SHELL_GAP}`
 	)
 end
 check(

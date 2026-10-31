@@ -629,6 +629,14 @@ Layout (each step is one window size; look at each piece, then check nothing ove
       uncut glow's button: "Show uncut" until 90% and "Missed spots" from there, grey for 6 seconds after
       each press (the M key does nothing then either). Against the right edge: Shop, Gifts, Top Lawns and
       Settings squares.
+- [ ] Same window, the lawn map faces the house. Arrive on a job and stand on the sidewalk facing the
+      house: the street edge is at the bottom of the map. Walk toward the house and your white dot moves
+      up; step to your left and it moves left. The map shows the lawn's real shape (no flash of an
+      all-dark lawn while it loads), and after a respawn on the job it comes back with the same picture.
+- [ ] Same window, an overgrown job (the Overgrown Lot: 6 studs of grass on a PC, TallScale 3). In first
+      person the grass stands above eye level and its 6 layers are a stud apart. Look along a cut edge
+      from 3 to 10 studs: say whether the layers read as separate sheets, and whether junk can still be
+      found (aim at it: the outline shows, Pick up works).
 - [ ] 1024 by 768 and 1024 by 600 (the window resized). Expect the same PC layout as 1280 by 720: names
       under the squares, the banner clear of both columns, the right column just inside the strip. At
       600 tall the GUI is 542 px (Roblox's top bar takes 58), so the columns are at 0.97 and the strip is at

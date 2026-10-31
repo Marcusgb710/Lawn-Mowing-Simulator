@@ -340,7 +340,7 @@ overhaul: what is left** and **Before release**. In order:
   one throws until the toggle is on: Experience Settings → Security, for a published game and for
   Studio alike. Until then, or when a phone's image memory runs out, the client draws the plain-part
   fallback instead (`GrassFallback.luau`: a flat plate with blocks of tall grass, no stripes, no
-  "Show what I missed" button) and logs one `[Grass]` warning. The game plays and finishes the same on
+  "Show uncut" button and no lawn map) and logs one `[Grass]` warning. The game plays and finishes the same on
   it, but it isn't the look to judge or screenshot, and the game must never assume the toggle is on.
   To force the fallback for a test with the toggle on, set `useFallback = true` in the local near the
   top of `GrassController.luau` (and put it back). `lune run scripts/check-mowing` is the fast check

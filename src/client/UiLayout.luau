@@ -611,9 +611,10 @@ return {
 			.. "job's lawn on dark glass like the job card's (a 3 px ink outline), one pixel per grass cell, "
 			.. "uncut grass dark olive, mown grass bright green, torn grass yellow-green and bare ground brown, "
 			.. "with a white dot where you are and a dark dot for each piece of junk still in the grass. "
-			.. "'Lawn' and the percent mowed are over it. The picture keeps the lawn's shape inside a 150 px "
-			.. "box (a wide lawn is 150 wide, a deep one 150 tall), so the glass is 166 wide and at most 188 "
-			.. "tall. It needs the room: it is hidden on a screen shorter than __screen.scaling.Columns."
+			.. "It faces the house: the street edge is at the bottom and walking toward the house moves your "
+			.. "dot up. 'Lawn' and the percent mowed are over it. The picture keeps the lawn's shape inside a "
+			.. "150 px box, each cell the same whole number of pixels (a lawn over 150 cells a side is "
+			.. "stretched to fit), so the glass is 166 wide and at most 188 tall. It needs the room: it is hidden on a screen shorter than __screen.scaling.Columns."
 			.. "fullHeight (a phone held sideways: the right column is at its floor without it) and on a touch "
 			.. "screen under 650 px of GUI (LawnMap's TOUCH_MIN_HEIGHT, where the move stick and jump button "
 			.. "take the room), and unless the job's lawn near you is drawn as a surface.",

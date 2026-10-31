@@ -6,6 +6,12 @@
 -- white dot where you are and a dark dot for each piece of junk still in the grass. It is dark glass like
 -- the job card, with "Lawn" and the percent mowed over the picture.
 --
+-- It faces the house, the way you do when you arrive: the street (the lawn's Origin edge, row 0) is at the
+-- bottom and walking toward the house moves your dot up. That is the lawn seen from above turned half a
+-- turn from its world axes (lawn X runs right to left on the map, lawn Z bottom to top), not mirrored:
+-- facing +Z, +X is on your left, and it is on the map's left too. toMap does it for the dots and paint for
+-- the pixels.
+--
 -- It only shows where the column has room for it: never on a short screen (a phone held sideways, where
 -- the right column is already at its floor without it), and on a touch screen only from TOUCH_MIN_HEIGHT
 -- px of GUI, where Roblox's move stick and jump button leave the column less room (scripts/check-gui has
@@ -30,8 +36,8 @@ local JobCard = require(script.Parent.JobCard)
 
 local LawnMap = {}
 
--- The picture fits in a box this many pixels a side, kept to the lawn's shape: a lawn wider than it is
--- deep is MAP_BOX wide, and a deeper one MAP_BOX tall.
+-- The picture fits in a box this many pixels a side, kept to the lawn's shape, with every cell the same
+-- whole number of pixels (see fitPicture).
 local MAP_BOX = 150
 -- The glass around it (UiLayout's LawnMap is MAP_BOX + 2 * PADDING wide): how round it is, its ink outline and
 -- the lip under it, and the caption's row over the picture. As tall as what's in it, so at most
@@ -88,16 +94,21 @@ local junkWatch: { RBXScriptConnection } = {}
 -- Moves your dot every frame, only while the map shows.
 local following: RBXScriptConnection? = nil
 
--- A dot on the picture at a spot in the world, by its share of the lawn across and deep.
+-- Where a spot in the world is on the picture, as a share of it across and down: half a turn from the
+-- lawn's own axes, so the street is at the bottom (see the header).
+local function toMap(lawn: GrassController.JobLawn, spot: Vector3): UDim2
+	return UDim2.fromScale(
+		1 - math.clamp((spot.X - lawn.origin.X) / lawn.columns, 0, 1),
+		1 - math.clamp((spot.Z - lawn.origin.Z) / lawn.rows, 0, 1)
+	)
+end
+
+-- A dot on the picture at a spot in the world.
 local function dotAt(spot: Vector3, size: number, color: Color3, ring: Color3, zIndex: number, name: string): Frame
-	local lawn = shown :: GrassController.JobLawn
 	return UI.new("Frame", {
 		Name = name,
 		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.fromScale(
-			math.clamp((spot.X - lawn.origin.X) / lawn.columns, 0, 1),
-			math.clamp((spot.Z - lawn.origin.Z) / lawn.rows, 0, 1)
-		),
+		Position = toMap(shown :: GrassController.JobLawn, spot),
 		Size = UDim2.fromOffset(size, size),
 		BackgroundColor3 = color,
 		BorderSizePixel = 0,
@@ -183,13 +194,18 @@ local function release()
 	table.clear(drawn)
 end
 
--- Sizes the picture to the lawn's shape inside its MAP_BOX box.
+-- Sizes the picture to the lawn's shape inside its MAP_BOX box: each cell the same whole number of
+-- pixels, as many as fit, so Pixelated cells are all one size. A lawn of more than MAP_BOX cells along a
+-- side is stretched to fit instead (its cells are then a pixel or less, and uneven).
 local function fitPicture(columns: number, rows: number)
-	local width, height = MAP_BOX, MAP_BOX
-	if columns >= rows then
-		height = math.max(1, math.floor(MAP_BOX * rows / columns + 0.5))
+	local perCell = math.floor(MAP_BOX / math.max(columns, rows))
+	local width, height
+	if perCell >= 1 then
+		width, height = columns * perCell, rows * perCell
+	elseif columns >= rows then
+		width, height = MAP_BOX, math.max(1, math.floor(MAP_BOX * rows / columns + 0.5))
 	else
-		width = math.max(1, math.floor(MAP_BOX * columns / rows + 0.5))
+		width, height = math.max(1, math.floor(MAP_BOX * columns / rows + 0.5)), MAP_BOX
 	end
 	mapBox.Size = UDim2.fromOffset(MAP_BOX, height)
 	picture.Size = UDim2.fromOffset(width, height)
@@ -197,9 +213,11 @@ end
 
 -- Brings the picture up to the lawn's ledger, making it first for a lawn it hasn't drawn. Only the cells
 -- whose state differs from what was drawn are written into the pixels, and the image then takes the
--- whole buffer in one WritePixelsBuffer: a lawn is a few thousand pixels, so one call beats a
--- DrawRectangle per cell, and a full redraw (GetSwaths) costs the same as a mower's few cells. False when
--- the image can't be made (no EditableImage to spare), which leaves the map hidden.
+-- whole buffer in one WritePixelsBuffer: the biggest lawn (the Mansion Estate, 112 x 88 cells) is under
+-- ten thousand pixels, so one call beats a DrawRectangle per cell, and a full redraw (GetSwaths) costs the
+-- same as a mower's few cells. Cell (column, row) goes to pixel (columns - 1 - column, rows - 1 - row), half
+-- a turn, so the street is at the bottom (see the header). False when the image can't be made (no
+-- EditableImage to spare), which leaves the map hidden.
 local function paint(lawn: GrassController.JobLawn): boolean
 	if not image then
 		local made = GrassPaint.newImage(Vector2.new(lawn.columns, lawn.rows))
@@ -222,7 +240,7 @@ local function paint(lawn: GrassController.JobLawn): boolean
 			changed = true
 			local column, row = LawnGrid.cell(index, rows)
 			local rgb = COLORS[state] or COLORS[LawnGrid.TALL]
-			local offset = (row * columns + column) * 4
+			local offset = ((rows - 1 - row) * columns + (columns - 1 - column)) * 4
 			buffer.writeu8(bytes, offset, rgb[1])
 			buffer.writeu8(bytes, offset + 1, rgb[2])
 			buffer.writeu8(bytes, offset + 2, rgb[3])
@@ -244,11 +262,7 @@ local function placePlayer()
 		playerDot.Visible = false
 		return
 	end
-	local spot = root.Position
-	playerDot.Position = UDim2.fromScale(
-		math.clamp((spot.X - lawn.origin.X) / lawn.columns, 0, 1),
-		math.clamp((spot.Z - lawn.origin.Z) / lawn.rows, 0, 1)
-	)
+	playerDot.Position = toMap(lawn, root.Position)
 	playerDot.Visible = true
 end
 
@@ -286,7 +300,11 @@ local function refresh()
 	local job = ClientState.job
 	local mowing = if job and job.state == "Working" then mowingTask(job) else nil
 	local lawn = if mowing then GrassController.jobLawn() else nil
-	if shown and not (lawn and lawn.folder == shown.folder) then
+	-- While you respawn there's no character to find the job lawn from (jobLawnFolder needs it): the map
+	-- hides, but keeps its picture, so it doesn't build it all again when you're back on the same lawn.
+	local character = Players.LocalPlayer.Character
+	local respawning = mowing ~= nil and not (character and character:FindFirstChild("HumanoidRootPart"))
+	if shown and not respawning and not (lawn and lawn.folder == shown.folder) then
 		release()
 	end
 	local show = false

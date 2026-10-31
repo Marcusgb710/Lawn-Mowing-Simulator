@@ -67,9 +67,10 @@ local GameConfig = {
 	-- ...and it can be used again this many seconds after the last time (the button is greyed out until then).
 	UncutGlowCooldown = 6,
 	-- How tall uncut grass stands (studs; an overgrown lawn's TallScale multiplies it), so it shows as a
-	-- fringe beside cut stripes in first person. A lawn drawn with fewer shells (a phone's 4, or Low grass
-	-- detail) keeps its shells no further apart than GrassImages.MAX_SHELL_GAP, so it stands 1.5 there
-	-- (GrassImages.tallHeight). The simple renderer's blocks are always this tall.
+	-- fringe beside cut stripes in first person. GrassImages.tallHeight caps it by the shell count so a lawn
+	-- of normal height keeps its shells no further apart than GrassImages.MAX_SHELL_GAP: with fewer shells
+	-- (a phone's 4, or Low grass detail) it stands 1.5. A TallScale lawn stretches the shells and their gaps
+	-- past that, as it always has. The simple renderer's blocks are always this tall, times TallScale.
 	TallGrassHeight = 2.0,
 	MowedGrassHeight = 0.3,
 

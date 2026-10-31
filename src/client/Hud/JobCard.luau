@@ -4,7 +4,8 @@
 -- short screen. The boost pills are the Crew, Curb, Truck and Business pay bonuses the server sends,
 -- while they are above zero. HudController builds them (JobCard.build), hands every job update to
 -- JobCard.update and ticks the timer and the pills; it asks JobCard.isShown before it shows what
--- depends on the card (curb appeal on a phone, the "Show what I missed" button).
+-- depends on the card (curb appeal on a phone, the uncut glow's "Show uncut" button), and so does the
+-- lawn map (LawnMap).
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")

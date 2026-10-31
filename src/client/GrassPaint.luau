@@ -689,6 +689,8 @@ function GrassPaint.redraw(lawn, cells: string, log: { { number | string | boole
 		drawCells(lawn, { [LawnGrid.TALL] = true })
 	end
 	drawCells(lawn, { [LawnGrid.EMPTY] = true, [LawnGrid.RAGGED] = true })
+	-- The ledger is the server's now (reset marked it changed, so the HUD's map hears of it).
+	lawn.ledgerReady = true
 end
 
 -- Grows cells back (the Regrow event): tall in the ledger, their grass back from the tiles and the

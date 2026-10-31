@@ -329,18 +329,25 @@ flowers, the turf-renovation steps) keeps the **4-stud tile** (`GameConfig.TileS
   on **Allow Mesh / Image APIs** (Experience Settings → Security), and creating one fails too when
   a device's memory budget is spent. Then the client draws lawns the plain way for the rest of the
   session (`GrassFallback`): one flat plate of mown green with a block of tall grass over every
-  2 x 2 patch of cells that still has an uncut one. No stripes, no smooth edges, and no missed-spots
-  button, since there's nothing to tint. It follows the same ledger and the same events, so the
+  2 x 2 patch of cells that still has an uncut one. No stripes, no smooth edges, and no uncut glow
+  or lawn map, since there's nothing to tint or read. It follows the same ledger and the same events, so the
   job plays and finishes the same. It's a safety net, and the game never assumes the toggle is on.
 - **The counter.** The mowing row on the job tracker shows the percent of the required cells that
   are cut (the lawn's mowable cells less the optional ones), where other tasks count what's done.
   A job's mowing finishes at **99%** of the required cells (`GameConfig.MowCompletionThreshold`);
   every other task keeps **95%** (`CompletionThreshold`), and so does a home lawn's grass, which
-  has no percent and no missed-spots button to chase the last cells with.
-- **Show what I missed.** From **90%** (`MissedSpotsFrom`) until the job counts as done, a
-  **Show what I missed** button under the tracker (key **M** on a keyboard) tints the uncut grass
-  red for **3 s** (`MissedSpotsSeconds`), with a soft pulse. It only shows over a job's lawn drawn
+  has no percent and no uncut glow button to chase the last cells with.
+- **The uncut glow.** Any time the mowing is under way, until the job counts as done, a button
+  under the tracker (key **M** on a keyboard) tints the uncut grass red for **3 s**
+  (`MissedSpotsSeconds`), with a soft pulse. It reads **Show uncut** until the mowing reaches
+  **90%** (`MissedSpotsFrom`) and **Missed spots** from there. After each use it is grey and does
+  nothing, its key neither, for **6 s** (`UncutGlowCooldown`). It only shows over a job's lawn drawn
   as a surface.
+- **The lawn map.** Under the pay bonus pills, while a job with mowing is under way, a small
+  top-down picture of the lawn: one pixel per cell from the ledger, uncut dark, mown bright, with a
+  white dot for you and dark dots for the junk still in the grass. It faces the house (the street at
+  the bottom), as you do when you arrive. It shows on a PC and on tall touch screens only (650 px of
+  GUI or more): on a phone held sideways the right column is already at its smallest without it.
 - **Finishing.** The mowing row gets the `LawnDone` chime and the art's Job Complete! stamp, once,
   and the job goes on as before.
 - **Feel.** The server sets the tool's `Cutting` attribute when a tick's sweep cut a cell, and
@@ -1191,8 +1198,11 @@ Contracts one wears a tilted yellow tag with the contracts left today. On a keyb
 the goal, its reward when it has one and a striped bar. Down the right, curb appeal, then during a job
 the job card (dark glass: the job's name, a big timer with the par time, a bar for how much is
 mown and a small Call off pill, which asks "Sure?" before it calls the job off), and under it small
-pills for the pay bonuses you have (crew, curb appeal, truck, business). Late in the mowing the
-"Show what I missed" button appears there. Against the right edge is a strip of four squares.
+pills for the pay bonuses you have (crew, curb appeal, truck, business). Under those, on a PC or a tall
+touch screen, the lawn map: a small picture of the lawn, cut and uncut, with you and the junk on it (a
+phone has no room for it). Under that, while the mowing is under way, the uncut glow's button ("Show
+uncut", then "Missed spots" from 90%), which lights up the grass still to cut and then rests for 6
+seconds. Against the right edge is a strip of four squares.
 
 **The right buttons.** Shop opens the Orders window from anywhere (B on a keyboard): tools, supplies
 and decorations can be bought and sold wherever you stand and arrive in a box at your shop door, but

@@ -537,8 +537,8 @@ if grandma then
 end
 
 -- The boost pills (front-page HUD, ruling 3): the crew, curb appeal, truck and business pay bonuses as
--- pills in the right column, straight under the job tracker (the Show what I missed button goes under
--- them). They show during a job and hide when no bonus applies, which HudController decides, so
+-- pills in the right column, straight under the job tracker (the lawn map and the uncut glow's Show uncut
+-- button go under them). They show during a job and hide when no bonus applies, which HudController decides, so
 -- nothing in UiLayout hides them.
 local boosts = UiLayout.BoostPills
 check(boosts ~= nil, "UiLayout has no BoostPills")
@@ -1477,7 +1477,7 @@ do
 	-- into "Sure?" for 3 seconds (the Shop's sell confirm does the same) and only the second sends
 	-- AbandonJob. Every control that acts has a hit area of at least 40 px once its column's scale is
 	-- applied (addHitStrips adds invisible strips above and below it on a touch screen): the two Call off
-	-- pills and the Show what I missed button. A chip that only shows is exempt.
+	-- pills and the uncut glow's Show uncut button. A chip that only shows is exempt.
 	check(
 		string.find(hudSource, "CALL_OFF_SURE = 3", 1, true) ~= nil
 			and string.find(hudSource, '"Sure?"', 1, true) ~= nil,
@@ -1654,6 +1654,15 @@ do
 			"GrassController.LawnChanged:Connect(refresh)",
 			"GrassController.jobLawn()",
 			'Columns.placeInColumn(holder, "LawnMap")',
+			-- Half a turn from the lawn's axes, so the street (row 0) is at the bottom and walking toward the
+			-- house moves your dot up, not mirrored: the pixels and both kinds of dot alike.
+			"((rows - 1 - row) * columns + (columns - 1 - column)) * 4",
+			"1 - math.clamp((spot.X - lawn.origin.X) / lawn.columns, 0, 1)",
+			"1 - math.clamp((spot.Z - lawn.origin.Z) / lawn.rows, 0, 1)",
+			"Position = toMap(shown :: GrassController.JobLawn, spot)",
+			"playerDot.Position = toMap(lawn, root.Position)",
+			-- Every cell the same whole number of pixels where the lawn fits the box.
+			"math.floor(MAP_BOX / math.max(columns, rows))",
 		}
 		for _, wanted in mapWants do
 			check(string.find(mapSource, wanted, 1, true) ~= nil, `LawnMap doesn't have {wanted}`)
@@ -1668,6 +1677,13 @@ do
 				and string.find(grassSource, "function GrassController.jobLawn(): JobLawn?", 1, true) ~= nil
 				and string.find(grassSource, "LAWN_CHANGED_INTERVAL = 0.25", 1, true) ~= nil,
 			"GrassController has no LawnChanged (at most four times a second) and jobLawn for the lawn map"
+		)
+		-- The map waits for the server's ledger: a lawn starts all tall until its first GetSwaths is drawn.
+		check(
+			string.find(grassSource, "lawn.cells and lawn.ledgerReady) then", 1, true) ~= nil
+				and string.find(fs.readFile("src/client/GrassPaint.luau"), "lawn.ledgerReady = true", 1, true)
+					~= nil,
+			"GrassController's jobLawn doesn't wait for GrassPaint.redraw's ledgerReady"
 		)
 		-- Every place GrassPaint changes the ledger marks the lawn for LawnChanged.
 		local paintSource = fs.readFile("src/client/GrassPaint.luau")

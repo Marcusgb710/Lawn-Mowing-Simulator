@@ -17,9 +17,11 @@ local SHELLS = 6
 local TOUCH_SHELLS = 4
 -- How much thinner the top shell's grass is than the bottom one's: density runs from 1 down to 0.35.
 local DENSITY_DROP = 0.65
--- The widest gap between two shells (studs) the grass has been seen with: a phone's 4 shells under 1.5
--- studs. Each shell is a flat sheet of blades, so a stack spaced further apart shows as separate sheets
--- at a cut edge; tallHeight keeps every stack to this.
+-- The widest gap between two shells (studs) a lawn of normal height (TallScale 1) is drawn with: a phone's
+-- 4 shells under 1.5 studs, as phones have always had. Each shell is a flat sheet of blades, so a stack
+-- spaced further apart shows as separate sheets at a cut edge; tallHeight caps a lawn's base height by its
+-- shell count to keep to this. A taller lawn's TallScale (up to 3, overgrown grass) then stretches the
+-- stack and its gaps past it, as it always has (6 shells under an overgrown lawn's 6 studs are 1 apart).
 local MAX_SHELL_GAP = 0.375
 
 -- A shell carries this many dots per 4 x 4 px block at full density.
@@ -73,9 +75,10 @@ end
 
 GrassImages.MAX_SHELL_GAP = MAX_SHELL_GAP
 
--- How tall `count` shells stand for uncut grass `tallGrassHeight` studs tall (GameConfig.TallGrassHeight,
--- before a lawn's TallScale): that height, or less when the shells would be more than MAX_SHELL_GAP
--- apart, so 6 shells stand 2 studs and 4 (a phone's) stand 1.5.
+-- How tall `count` shells stand at TallScale 1 for uncut grass `tallGrassHeight` studs tall
+-- (GameConfig.TallGrassHeight): that height, or less when the shells would be more than MAX_SHELL_GAP
+-- apart, so 6 shells stand 2 studs and 4 (a phone's) stand 1.5. A lawn's TallScale multiplies the result,
+-- gaps and all, so the cap only holds for a lawn of normal height.
 function GrassImages.tallHeight(count: number, tallGrassHeight: number): number
 	if count <= 0 then
 		return tallGrassHeight

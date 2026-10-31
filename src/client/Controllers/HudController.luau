@@ -37,15 +37,16 @@
 --   * cash and XP coming in lift off the piece of the HUD they came from (FloatingText) and ring
 --     (Sounds.playUi): the pay panel's total and tip, a goal's row or the Next chip, the Contracts
 --     square (ContractDone), the money counter (the streak's gift), the level pill and the XP bar.
--- On a keyboard V switches camera motion on and off (saved, through SettingsController). Where each piece goes is in UiLayout.luau,
--- which can also take any of the columns' pieces out of its column to go anywhere on the screen.
--- This file builds the HUD and keeps it up to date; the front-page pieces are drawn in their own
--- modules in src/client/Hud (a module's top level holds at most 200 locals, and one file had hit that):
--- Columns (the two columns and their placing and fitting rules), Bits (the framed bar and corner key
--- badge they share), StatPills (the money, level, streak and countdown pills), MenuSquares (the four
--- left squares and the Contracts badge), RightStrip (Shop, Gifts, Top Lawns and Settings), JobCard (the
--- job card and the boost pills), LawnMap (the lawn map under them) and Splash (the clean-stripe cheer). Grandma's goal banner, the goals
--- rail, curb appeal, the tool's condition, the pay breakdown and the big moments are drawn here.
+-- On a keyboard V switches camera motion on and off (saved, through SettingsController). Where each
+-- piece goes is in UiLayout.luau, which can also take any of the columns' pieces out of its column to go
+-- anywhere on the screen. This file builds the HUD and keeps it up to date; the front-page pieces are
+-- drawn in their own modules in src/client/Hud (a module's top level holds at most 200 locals, and one
+-- file had hit that): Columns (the two columns and their placing and fitting rules), Bits (the framed
+-- bar and corner key badge they share), StatPills (the money, level, streak and countdown pills),
+-- MenuSquares (the four left squares and the Contracts badge), RightStrip (Shop, Gifts, Top Lawns and
+-- Settings), JobCard (the job card and the boost pills), LawnMap (the lawn map under them) and Splash
+-- (the clean-stripe cheer). Grandma's goal banner, the goals rail, curb appeal, the tool's condition, the
+-- pay breakdown and the big moments are drawn here.
 
 local Players = game:GetService("Players")
 local ProximityPromptService = game:GetService("ProximityPromptService")
@@ -87,7 +88,7 @@ local StatPills = require(Hud.StatPills)
 local player = Players.LocalPlayer
 
 local MOTION_KEY = Enum.KeyCode.V
--- The key for the "Show what I missed" button (see buildMissedButton).
+-- The key for the uncut glow's "Show uncut" button (see buildMissedButton).
 local MISSED_KEY = Enum.KeyCode.M
 -- The goals rail under the story goal: this many milestones, each in a row this tall (its words over
 -- a thin bar). A milestone just reached stays on its row, done, under a stamp this tall, for
@@ -790,7 +791,7 @@ local function updateGoal()
 	goalBar.set(if goal.need > 0 then have / goal.need else 1)
 end
 
--- "Show what I missed" -------------------------------------------------------------------------
+-- The uncut glow ("Show uncut") ----------------------------------------------------------------
 
 local missedButton: TextButton
 

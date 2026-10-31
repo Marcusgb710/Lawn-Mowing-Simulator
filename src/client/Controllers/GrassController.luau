@@ -69,7 +69,7 @@ local PROFILE_WAIT = 10
 local shellCount: number? = nil
 
 local WHITE = Color3.new(1, 1, 1)
--- "Show what I missed": the shells' tint. A Decal's tint multiplies the picture, so red goes past 1
+-- The uncut glow ("Show uncut"): the shells' tint. A Decal's tint multiplies the picture, so red goes past 1
 -- to turn green blades red rather than just dark (selene's 0-1 rule is for ordinary colours).
 -- selene: allow(roblox_incorrect_color3_new_bounds)
 local HIGHLIGHT_TINT = Color3.new(2.5, 0.35, 0.35)
@@ -226,6 +226,7 @@ local function destroyImages(lawn)
 	table.clear(lawn.shells)
 	table.clear(lawn.decals)
 	lawn.cells = nil
+	lawn.ledgerReady = false
 end
 
 -- Takes down what a lawn has in the world: its parts, or a far lawn's bare turf.
@@ -241,7 +242,9 @@ end
 -- GrassImages.shellPlan. False, with whatever was made left for show to clear away, when an image
 -- can't be made.
 local function buildSurface(lawn): boolean
-	-- (update draws nothing until shellCount is chosen, so the fallback is only for safety.)
+	-- (update draws nothing until shellCount is chosen, so the fallback is only for safety.) The shells
+	-- stand GrassImages.tallHeight, no more than MAX_SHELL_GAP apart, and an overgrown lawn's TallScale
+	-- then stretches them and their gaps with it, as it always has.
 	local count = shellCount or GrassImages.shellCount(TOUCH)
 	local plan =
 		GrassImages.shellPlan(count, GrassImages.tallHeight(count, GameConfig.TallGrassHeight) * lawn.tallScale)
@@ -453,10 +456,12 @@ local function track(folder: Instance, regrows: boolean)
 		turfDecal = nil,
 		turfTexture = nil,
 		shells = {},
-		-- The ledger as this client has it, while drawn as a surface (see GrassPaint), and whether it
-		-- has changed since LawnChanged last said so.
+		-- The ledger as this client has it, while drawn as a surface (see GrassPaint), whether it
+		-- has changed since LawnChanged last said so, and whether it's the server's yet: a lawn starts all
+		-- tall until the first GetSwaths answer is drawn (GrassPaint.redraw), and the map waits for that.
 		cells = nil,
 		ledgerDirty = false,
+		ledgerReady = false,
 		-- The shells' Decals, for highlightUncut.
 		decals = {},
 		highlight = nil,
@@ -554,13 +559,13 @@ function GrassController.jobLawnFolder(): Folder?
 	return nearest
 end
 
--- The job site's lawn you're at (jobLawnFolder) while it's drawn as a surface, for the HUD's map, or nil.
--- It is a fresh table each time, but `cells` is the lawn's own ledger, so take it again after each
--- LawnChanged: a redraw replaces it.
+-- The job site's lawn you're at (jobLawnFolder) while it's drawn as a surface and its ledger is the
+-- server's (the first GetSwaths answer has been drawn), for the HUD's map, or nil. It is a fresh table each
+-- time, but `cells` is the lawn's own ledger, so take it again after each LawnChanged: a redraw replaces it.
 function GrassController.jobLawn(): JobLawn?
 	local folder = GrassController.jobLawnFolder()
 	local lawn = folder and lawns[folder]
-	if not (folder and lawn and lawn.mode == "Surface" and lawn.cells) then
+	if not (folder and lawn and lawn.mode == "Surface" and lawn.cells and lawn.ledgerReady) then
 		return nil
 	end
 	return { folder = folder, columns = lawn.columns, rows = lawn.rows, cells = lawn.cells, origin = lawn.origin }
