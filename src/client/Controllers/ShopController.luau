@@ -1,8 +1,10 @@
--- Two apps on the shop computer (see ComputerController), one tab per category:
+-- Two apps in one window, one tab per category:
 --   Orders    tools and supplies (delivered in a box to the shop), yard decorations for your
 --             crew's business, a Premium tab of things bought with Robux (see Premium.luau), and
---             a Sell tab for tools you don't need, to free up storage
---   Business  building upgrades, trucks and trailers
+--             a Sell tab for tools you don't need, to free up storage. It opens from the HUD's
+--             Shop button (HudController) wherever you stand, or on the shop computer
+--   Business  building upgrades, trucks and trailers, on the shop computer only (ComputerController;
+--             the server asks for the computer when you buy or switch to one of them, ShopService)
 -- Every tool says what it's for: that's how players learn which tool fits which job. Each tab has
 -- its category's glyph and each card its item's picture, from the GUI art (plain until uploaded).
 -- A card's price hangs on a garden plant tag over its button, tools wear a badge with their tier
@@ -69,6 +71,8 @@ table.insert(APPS.Orders.tabs, SELL_TAB)
 
 local window: GuiObject
 local stamp: UI.Stamp
+-- The app the window was last opened on ("Orders" or "Business").
+local openedApp: string? = nil
 -- Where the last Robux button tapped was, for the stamp once Roblox's prompt says it's bought.
 local premiumSpot: Vector2? = nil
 local selectedCategory = Items.Categories[1]
@@ -661,12 +665,18 @@ function render()
 	end
 end
 
+-- Which app the window is showing ("Orders" or "Business"), or nil while it is put away.
+function ShopController.currentApp(): string?
+	return if window and window.Visible then openedApp else nil
+end
+
 -- Opens one of the shop computer's apps ("Orders" or "Business") on its first tab.
 function ShopController.openApp(name: string)
 	local app = APPS[name]
 	if not app then
 		return
 	end
+	openedApp = name
 	for category, button in tabButtons do
 		button.Visible = table.find(app.tabs, category) ~= nil
 	end

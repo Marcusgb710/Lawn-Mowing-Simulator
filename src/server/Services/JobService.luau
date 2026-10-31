@@ -311,7 +311,29 @@ local function recipients(job)
 	return if job.state == "Ready" then job.party.members else job.members
 end
 
+-- The pay bonuses completeJob multiplies together, each as a factor (1 plus its share, so 1.15 for 15
+-- percent): the crew's (GameConfig.CrewBonusPerMember for each member besides the leader), the leader's
+-- truck and business (their payoutBonus) and the home lawn's curb appeal (HomeLawn.payBonus). The truck,
+-- the business and the curb appeal are frozen when the truck pulls out (job.truckId, job.businessId and
+-- job.curbAppeal); until then, a job that is still Ready reads what the leader has now, and the crew is the
+-- party. sendUpdate sends these as they stand, so the job card's boost pills show the very numbers the pay
+-- will use, for everyone in the crew.
+local function payBonuses(job): (number, number, number, number)
+	local crew = if #job.members > 0 then #job.members else #job.party.members
+	local leaderData = if job.truckId == nil then DataService:Get(job.party.leader) else nil
+	local truckId = job.truckId or (if leaderData then leaderData.equipped.Truck else nil)
+	local businessId = job.businessId or (if leaderData then leaderData.equipped.Business else nil)
+	local truck = if truckId then Items.get("Truck", truckId) else nil
+	local business = if businessId then Items.get("Business", businessId) else nil
+	local curbAppeal = job.curbAppeal or HomeLawnService:CurbAppeal(job.party.leader)
+	return 1 + GameConfig.CrewBonusPerMember * (crew - 1),
+		1 + (if truck then truck.payoutBonus else 0),
+		1 + (if business then business.payoutBonus else 0),
+		HomeLawn.payBonus(curbAppeal)
+end
+
 local function sendUpdate(job)
+	local crewBonus, truckBonus, businessBonus, curbBonus = payBonuses(job)
 	local payload = {
 		id = job.id,
 		name = job.offer.name,
@@ -335,6 +357,11 @@ local function sendUpdate(job)
 		soil = if job.lawn and job.lawn.probed then job.lawn:SoilReading() else nil,
 		-- How many bits of junk hide in the grass, and how many have been picked up or chewed up.
 		debris = if job.lawn then job.lawn:DebrisCounts() else nil,
+		-- The pay bonuses as factors (payBonuses), for the boost pills.
+		crewBonus = crewBonus,
+		truckBonus = truckBonus,
+		businessBonus = businessBonus,
+		curbBonus = curbBonus,
 	}
 	for _, player in recipients(job) do
 		Net.event("JobUpdated"):FireClient(player, payload)
@@ -650,13 +677,8 @@ local function completeJob(job)
 	job.state = "Complete"
 
 	local members = job.members
-	local truck = Items.get("Truck", job.truckId)
 	local elapsed = os.clock() - job.startedAt
-	local crewBonus = 1 + GameConfig.CrewBonusPerMember * (#members - 1)
-	local truckBonus = 1 + (if truck then truck.payoutBonus else 0)
-	local business = job.businessId and Items.get("Business", job.businessId)
-	local businessBonus = 1 + (if business then business.payoutBonus else 0)
-	local curbBonus = HomeLawn.payBonus(job.curbAppeal or 0)
+	local crewBonus, truckBonus, businessBonus, curbBonus = payBonuses(job)
 	-- Averages over all the work done, so the tool used most counts most.
 	local toolFit = if job.work > 0 then job.fitWork / job.work else 1
 	local quality = if job.work > 0 then job.qualityWork / job.work else 0.75
@@ -1264,6 +1286,11 @@ function JobService:Init()
 	end)
 
 	Net.func("GetJobBoard").OnServerInvoke = function(player)
+		-- A client can ask as soon as this is wired up, before Start fills the board (in Studio the
+		-- client is often running first): fill it now rather than answer with an empty board.
+		if #board == 0 then
+			refreshBoard()
+		end
 		return boardFor(player)
 	end
 	Net.func("AcceptJob").OnServerInvoke = function(player, offerId)

@@ -338,6 +338,45 @@ local lone = GrassImages.shellPlan(1, 1.5)
 check(#lone == 1 and lone[1].height == 1.5 and lone[1].density == 1, "a single shell is full height and full density")
 check(#GrassImages.shellPlan(0, 1.5) == 0, "no shells, no plan")
 
+-- Uncut grass stands GameConfig.TallGrassHeight (2 studs) tall, but on a lawn of normal height (TallScale 1)
+-- no stack of shells is spaced wider than GrassImages.MAX_SHELL_GAP (0.375, a phone's 4 shells under 1.5
+-- studs, as phones have always had): each shell is a flat sheet, so wider gaps show as separate sheets at a
+-- cut edge. So 6 shells stand 2 studs (a third of a stud apart) and a phone's 4 stay at 1.5. These checks
+-- run at TallScale 1: a taller lawn's TallScale (up to 3) multiplies the height and the gaps past the cap,
+-- as it always has. GrassController builds its plan from tallHeight times TallScale; the simple renderer's
+-- solid blocks have no gaps and stand the full height.
+local tallGrass =
+	tonumber(string.match(fs.readFile("src/shared/Config/GameConfig.luau"), "%sTallGrassHeight = ([%d%.]+),"))
+check(tallGrass == 2, `GameConfig's TallGrassHeight is {tallGrass}, not 2 studs`)
+check(GrassImages.MAX_SHELL_GAP == 0.375, "the widest shell gap is a phone's 4 shells under 1.5 studs")
+check(GrassImages.tallHeight(6, 2) == 2, "6 shells stand the full 2 studs")
+check(GrassImages.tallHeight(4, 2) == 1.5, "a phone's 4 shells stay at 1.5 studs")
+check(
+	GrassImages.tallHeight(4, 1) == 1 and GrassImages.tallHeight(0, 2) == 2,
+	"a short lawn or no shells keep the height"
+)
+for _, touch in { false, true } do
+	local count = GrassImages.shellCount(touch)
+	local stack = GrassImages.shellPlan(count, GrassImages.tallHeight(count, tallGrass or 2))
+	local widest = stack[1].height
+	for shell = 2, #stack do
+		widest = math.max(widest, stack[shell].height - stack[shell - 1].height)
+	end
+	check(
+		widest <= GrassImages.MAX_SHELL_GAP + 1e-9,
+		`{count} shells under {tallGrass} studs of grass (TallScale 1) are {widest} studs apart, over {GrassImages.MAX_SHELL_GAP}`
+	)
+end
+check(
+	string.find(
+		fs.readFile("src/client/Controllers/GrassController.luau"),
+		"GrassImages.shellPlan(count, GrassImages.tallHeight(count, GameConfig.TallGrassHeight) * lawn.tallScale)",
+		1,
+		true
+	) ~= nil,
+	"GrassController doesn't stack its shells to GrassImages.tallHeight"
+)
+
 local dots = GrassImages.bladeDots(40, 40, 1, 7)
 check(#dots > 40 and #dots == #GrassImages.bladeDots(40, 40, 1, 7), "dots are plentiful and deterministic")
 check(#GrassImages.bladeDots(50, 30, 1, 3) == 56, "0.6 dots per 4 x 4 px at full density")
@@ -529,6 +568,97 @@ for total = 1, 400 do
 	end
 end
 check(agree, "the percent reaches the threshold exactly when the task has what it needs")
+
+-- A clean stripe (src/shared/Strip.luau) --------------------------------------------------------
+-- The pass maths behind the HUD's NICE STRIPE! splash, run by behaviour the way GrassController runs it:
+-- a mower sampled at 60 frames a second, the pass ended when the mower stops or turns back.
+local Strip = require("../src/shared/Strip")
+
+local goodFacts = { held = true, dead = false, blocked = false, ragged = false, motorized = true, working = true }
+local function facts(changes)
+	local made = table.clone(goodFacts)
+	for key, value in changes or {} do
+		made[key] = value
+	end
+	return made
+end
+
+-- Walks `legs` ({ { dx, dz, studs } ...}) at `speed` studs a second after waiting `wait` seconds at the start,
+-- then ends the pass with `ending` facts. Returns the studs of each pass cheered and where along the walk
+-- (in studs walked) each cheer came.
+local function walk(legs, speed, wait, ending)
+	local cheers, at = {}, {}
+	local x, z, now = 0, 0, 0
+	local pass = Strip.start(x, z, now)
+	local walked = 0
+	local function finish()
+		if Strip.cheers(pass, ending) then
+			table.insert(cheers, Strip.length(pass))
+			table.insert(at, walked)
+		end
+	end
+	while now < wait do
+		now += 1 / 60
+		if Strip.move(pass, x, z, now) then
+			finish()
+			pass = Strip.start(x, z, now)
+		end
+	end
+	for _, leg in legs do
+		local length = math.sqrt(leg[1] * leg[1] + leg[2] * leg[2])
+		local steps = math.ceil(leg[3] / speed * 60)
+		for _ = 1, steps do
+			now += 1 / 60
+			local step = speed / 60
+			x += leg[1] / length * step
+			z += leg[2] / length * step
+			walked += step
+			if Strip.move(pass, x, z, now) then
+				finish()
+				pass = Strip.start(x, z, now)
+			end
+		end
+	end
+	finish()
+	return cheers, at
+end
+
+local cheers = walk({ { 1, 0, 40 } }, 12, 0, facts())
+check(#cheers == 1 and cheers[1] > 39 and cheers[1] < 41, "a straight 40 stud pass is a stripe of about 40 studs")
+cheers = walk({ { 1, 0, 25 } }, 12, 0, facts())
+check(#cheers == 0, "a straight 25 stud pass is no stripe")
+cheers = walk({ { 0.6, 0.8, 40 } }, 12, 0, facts())
+check(#cheers == 1, "a stripe in any direction counts the same")
+cheers = walk({ { 1, 0, 35 } }, 20, 0, facts())
+check(#cheers == 1, "a fast pass that ends before the heading is known goes by its distance")
+cheers = walk({ { 1, 0, 40 } }, 12, 3, facts())
+check(#cheers == 1, "a mower that sat still first still gets its heading from where it went")
+cheers = walk({ { 1, 0, 40 } }, 12, 0, facts({ working = false }))
+check(#cheers == 0, "a pass whose engine stalled (Working off on a held motorized mower) is no stripe")
+cheers = walk({ { 1, 0, 40 } }, 12, 0, facts({ blocked = true }))
+check(#cheers == 0, "a blocked mower's pass is no stripe")
+cheers = walk({ { 1, 0, 40 } }, 12, 0, facts({ ragged = true }))
+check(#cheers == 0, "a torn blade's pass is no stripe")
+cheers = walk({ { 1, 0, 40 } }, 12, 0, facts({ dead = true }))
+check(#cheers == 0, "a pass you fell in is no stripe")
+cheers = walk({ { 1, 0, 40 } }, 12, 0, facts({ held = false, working = false }))
+check(#cheers == 1, "a pass ended by putting the mower away is a stripe")
+cheers = walk({ { 1, 0, 40 } }, 12, 0, facts({ motorized = false, working = false }))
+check(#cheers == 1, "a push mower that stops being pushed ends a clean pass")
+
+-- A U-turn is two passes. The first is over at the turn (8 studs back from the furthest point), where it
+-- cheers, and the way back cheers at its own end.
+local at
+cheers, at = walk({ { 1, 0, 40 }, { -1, 0, 40 } }, 12, 0, facts())
+check(#cheers == 2, "a 40 stud pass and 40 back are two stripes")
+check(at[1] > 47 and at[1] < 49.5, "and the first cheers at the turn, 8 studs back from its furthest point")
+cheers = walk({ { 1, 0, 15 }, { -1, 0, 15 } }, 12, 0, facts())
+check(#cheers == 0, "15 studs out and back are two short passes, not one long one")
+cheers = walk({ { 1, 0, 20 }, { 0, 1, 20 } }, 12, 0, facts())
+check(#cheers == 0, "a corner is not a longer stripe: only the way of the first seconds counts")
+cheers = walk({ { 1, 0, 40 }, { 0, 1, 40 } }, 12, 0, facts())
+check(#cheers == 1 and cheers[1] > 39 and cheers[1] < 41, "a stripe with a corner after it is still the stripe's 40")
+check(Strip.LENGTH >= 30, "a stripe is 30 studs or more")
 
 if failures > 0 then
 	print(`{failures} check(s) failed`)

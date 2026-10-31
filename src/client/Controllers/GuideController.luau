@@ -1,6 +1,6 @@
 -- The "Guide" menu: what every tool in the store is for, by shop tab. Jobs never say which tool
 -- to bring, so this is where players look things up (the same text as in the shop). It also has
--- the switch for camera motion (head bob and engine shake).
+-- the switch for camera motion (head bob and engine shake), the same choice as in the Settings window.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -13,6 +13,7 @@ local Art = require(script.Parent.Parent.Art)
 local ClientState = require(script.Parent.Parent.ClientState)
 local UI = require(script.Parent.Parent.UI)
 local CameraController = require(script.Parent.CameraController)
+local SettingsController = require(script.Parent.SettingsController)
 
 local GuideController = {}
 
@@ -41,9 +42,9 @@ local function render()
 			Parent = motion,
 		})
 		local on = CameraController.isMotionOn()
-		-- MotionChanged redraws the Guide.
+		-- SettingsController saves the choice (the Settings window shares it); MotionChanged redraws the Guide.
 		UI.button(if on then "On" else "Off", function()
-			CameraController.setMotion(not CameraController.isMotionOn())
+			SettingsController.setMotion(not CameraController.isMotionOn())
 		end, {
 			AnchorPoint = Vector2.new(1, 0.5),
 			Position = UDim2.new(1, -10, 0.5, 0),

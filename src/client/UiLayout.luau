@@ -76,9 +76,10 @@
 --   * Dialogue and BestYard have IgnoreGuiInset on too, then ScreenInsets set to
 --     DeviceSafeInsets: they can go under Roblox's top bar but keep clear of a phone's notch.
 -- LawnUI is switched off while a scene, the drive or the contest results has the screen
--- (UI.hideGame), and Roblox's own hotbar (the Backpack) only shows on a job site (UI.setHotbar).
--- The hotbar's place is Roblox's, along the bottom in the middle, so it isn't in here: the tool
--- condition and the carry hint sit far enough up to clear it.
+-- (UI.hideGame). Roblox's own hotbar (the Backpack) is off for good: the game draws its own in its
+-- place (Hotbar, HotbarController), along the bottom in the middle, and it only shows on a job site
+-- (UI.setHotbar). The tool condition and the Levels and contracts windows stand above it, and the
+-- carry hint gives way to it.
 --
 -- Scaling. Three things shrink with a UIScale to fit the screen; __screen.scaling has the exact
 -- numbers and each rule, and the controllers read them from there:
@@ -115,18 +116,18 @@
 --     shows;
 --   * the goals rail under Grandma's goal (its next two milestones, from Config/Milestones.luau), which
 --     hides on a short screen, where NextChip shows the next one instead, through a job too;
---   * what gives way to what (each piece's hideWhile): on a touch screen Grandma's goal, the
---     first-job coach and a crew invite share the top of the screen, one at a time, and the job
+--   * what gives way to what (each piece's hideWhile): Grandma's goal, the first-job coach and
+--     (on a touch screen) a crew invite share the top of the screen, one at a time, and the job
 --     tracker steps aside for the decorating buttons;
 --   * the job tracker's smaller layout on a short screen, which leaves room for the phone
 --     buttons under it;
 --   * the toasts move down to stay just under what's showing at the top of the screen in their
---     way: the first-job coach, and on a touch screen Grandma's goal or a crew invite;
+--     way: Grandma's goal, the first-job coach, and on a touch screen a crew invite;
 --   * the dialogue box's width and height, for each line and the screen it's on, and the
 --     dialogue's compact places when the screen turns;
 --   * the Levels panel and the contracts panel shrinking to fit the screen by the pay breakdown's rule
 --     (centred, so already clear of the move stick and jump button; on a touch screen they stand
---     above Roblox's hotbar, 78 px up and 66 on a short screen, the way the tool condition chips do);
+--     above the hotbar, 78 px up, the way the tool condition chips do);
 --   * a menu's window fills the computer's screen while you're at the computer;
 --   * inside the computer's screen, the taskbar hides the apps' names (and then your money) on
 --     narrower screens;
@@ -251,8 +252,8 @@ return {
 				scale = 1,
 				note = "The smallest of `scale`, (screen height - margin) / its height and (screen width - "
 					.. "margin) / its width, so it only ever shrinks. On a touch screen the window stands above "
-					.. "Roblox's hotbar (its touch or compact place's distance from the bottom, 78 or 66 px, so "
-					.. "its Close button is never under a slot), so the height it has is the screen's height "
+					.. "the hotbar (its touch or compact place's distance from the bottom, 78 px, so its Close "
+					.. "button is never over a slot), so the height it has is the screen's height "
 					.. "less that and touchMargin, the same 24 as margin, at the top. In the middle of the "
 					.. "screen it is already clear of the move stick and jump button in the bottom corners.",
 			},
@@ -263,8 +264,8 @@ return {
 				scale = 1,
 				note = "The same rule as the Levels panel's: the smallest of `scale`, (screen height - margin) / "
 					.. "its height and (screen width - margin) / its width, so it only ever shrinks. On a touch "
-					.. "screen the window stands above Roblox's hotbar (its touch or compact place's distance "
-					.. "from the bottom, 78 or 66 px), so the height it has is the screen's height less that "
+					.. "screen the window stands above the hotbar (its touch or compact place's distance "
+					.. "from the bottom, 78 px), so the height it has is the screen's height less that "
 					.. "and touchMargin, the same 24 as margin, at the top.",
 			},
 			ContestResults = {
@@ -288,125 +289,249 @@ return {
 		position = { 0, 12, 0, 12 },
 		size = { 0, 250, 0, 0 },
 		autoSize = "Y",
-		list = { direction = "Vertical", padding = 18, align = "Left" },
-		typical = { 250, 416 },
-		note = "The money panel, the menu buttons, Grandma's goal and the contracts chip stacked down the "
+		list = { direction = "Vertical", padding = 14, align = "Left" },
+		typical = { 250, 480 },
+		note = "The money pill, the level and streak pills, the judging day countdown and the menu squares "
+			.. "(Contracts among them) stacked down the "
 			.. "left, so they can't run into each other on a short screen, far enough apart that the panels "
 			.. "are clear of the menu buttons on a phone. Its UIScale shrinks it to fit "
 			.. "(__screen.scaling.Columns). Each of them can be taken out of it (their detach) and put "
-			.. "anywhere on the screen: on a touch screen Grandma's goal is, away from your thumb on the move "
-			.. "stick.",
+			.. "anywhere on the screen. Grandma's goal belongs to it but is out of it, a banner at the top "
+			.. "in the middle, on every screen.",
 	},
 	MoneyPanel = {
-		label = "Money and level panel",
+		label = "Money pill",
 		group = "HUD",
 		parent = "LeftColumn",
 		detach = "LeftColumn",
 		order = 1,
-		size = { 0, 250, 0, 72 },
-		note = "Always shown during play: your money, then your level and jobs done, then the XP bar. The level "
-			.. "line and the XP bar are the Levels button (key L). Low and wide, so it takes little of a short "
-			.. "screen's height.",
+		size = { 0, 250, 0, 76 },
+		note = "Always shown during play: your money in big white numbers beside a gold coin, on a green pill. "
+			.. "The pill itself is 250 by 70 and the other 6 px are its lip. When money comes in, the number "
+			.. "counts up to it and the pill pulses once.",
+	},
+	StatPills = {
+		label = "Level and streak pills",
+		group = "HUD",
+		parent = "LeftColumn",
+		detach = "LeftColumn",
+		order = 2,
+		size = { 0, 250, 0, 42 },
+		list = { direction = "Horizontal", padding = 8, align = "Left" },
+		note = "A row under the money pill with two pills side by side. The blue level pill (136 wide) shows "
+			.. "your level and, on its right, how far you are to the next one; it is the Levels button (key L). "
+			.. "The orange streak pill (106 wide) shows the days in a row you have played ('DAY 3') and is "
+			.. "hidden until you have a streak. The pills are 36 tall and the other 6 px are their lip.",
+	},
+	Countdown = {
+		label = "Judging day countdown",
+		group = "HUD",
+		parent = "LeftColumn",
+		detach = "LeftColumn",
+		order = 3,
+		size = { 0, 250, 0, 40 },
+		note = "A purple pill under the level and streak pills that counts down to judging day: 'Judging day in "
+			.. "2d 5h', or 'Judging day is today!' on the day itself. It is only there once judging day is on "
+			.. "the Saturday calendar, and it is hidden the rest of the time. The pill is 34 tall and the other "
+			.. "6 px are its lip.",
 	},
 	MenuButtons = {
 		label = "Menu buttons",
 		group = "HUD",
 		parent = "LeftColumn",
 		detach = "LeftColumn",
-		order = 2,
+		order = 4,
 		size = { 0, 150, 0, 0 },
 		autoSize = "Y",
 		list = { direction = "Vertical", padding = 12, align = "Left" },
-		typical = { 150, 156 },
-		note = "The Truck, Guide and Crew buttons, far enough apart to tap one at a time on a phone. With a "
-			.. "keyboard each one has its key (T, G, C) and the mouse hint goes under them, which makes it "
-			.. "184 px tall.",
+		typical = { 150, 476 },
+		touch = { size = { 0, 144, 0, 0 }, typical = { 144, 136 } },
+		compact = { size = { 0, 144, 0, 0 }, typical = { 144, 136 } },
+		note = "The Truck, Guide, Crew and Contracts squares: a column of four on a PC (12 px apart, 476 px tall). "
+			.. "On a touch screen or a short one they are a 2x2 grid instead (two squares and a 16 px gap across, "
+			.. "8 px between the rows, 136 px tall; HudController swaps the list for a grid). The grid's squares "
+			.. "are built with a 64 px face and no name under them, not drawn smaller by a scale on the grid (a "
+			.. "list is not promised to make room for a child's UIScale), so the left column's content is what "
+			.. "the squares really take; with LawnUI 58 px shorter than the phone (the top bar), that keeps "
+			.. "their faces 40 px or more on a phone held sideways, with the judging day countdown showing. With a keyboard each has its key (T, G, C) on its corner and, in the column, the mouse "
+			.. "hint goes under them.",
 	},
 	TruckButton = {
 		label = "Truck button",
 		group = "HUD",
 		parent = "MenuButtons",
 		order = 1,
-		size = { 0, 150, 0, 44 },
-		note = "Opens the Truck menu (T).",
+		size = { 0, 76, 0, 110 },
+		touch = { size = { 0, 64, 0, 64 } },
+		compact = { size = { 0, 64, 0, 64 } },
+		note = "A blue square with the Truck glyph and its name under it. Opens the Truck menu (T). 76 px of face "
+			.. "and 34 for the label (its 6 px lip hangs into that room); a bare 64 px face (no name) in the grid on "
+			.. "a touch or short screen. The other three squares are the same.",
 	},
 	GuideButton = {
 		label = "Guide button",
 		group = "HUD",
 		parent = "MenuButtons",
 		order = 2,
-		size = { 0, 150, 0, 44 },
-		note = "Opens the Tool Guide (G).",
+		size = { 0, 76, 0, 110 },
+		touch = { size = { 0, 64, 0, 64 } },
+		compact = { size = { 0, 64, 0, 64 } },
+		note = "An orange square with the Guide glyph and its name under it. Opens the Tool Guide (G).",
 	},
 	CrewButton = {
 		label = "Crew button",
 		group = "HUD",
 		parent = "MenuButtons",
 		order = 3,
-		size = { 0, 150, 0, 44 },
-		note = "Opens the Crew menu (C).",
+		size = { 0, 76, 0, 110 },
+		touch = { size = { 0, 64, 0, 64 } },
+		compact = { size = { 0, 64, 0, 64 } },
+		note = "A purple square with the Crew glyph and its name under it. Opens the Crew menu (C).",
+	},
+	ContractsButton = {
+		label = "Contracts button",
+		group = "HUD",
+		parent = "MenuButtons",
+		order = 4,
+		size = { 0, 76, 0, 110 },
+		touch = { size = { 0, 64, 0, 64 } },
+		compact = { size = { 0, 64, 0, 64 } },
+		note = "A coral square with the clipboard glyph and 'Contracts' under it. It "
+			.. "opens the contracts panel, or closes it if it is open. A tilted yellow badge on its top right corner "
+			.. "counts the contracts left today (3 minus the ones done) and is hidden at 0 and before the day's "
+			.. "contracts have arrived. It shows on every screen and stays up during a job (nothing takes its "
+			.. "spot). When a contract is done its cash lifts off it and a chime rings.",
 	},
 	MouseHint = {
 		label = "Hold Alt hint",
 		group = "HUD",
 		parent = "MenuButtons",
-		order = 4,
+		order = 5,
 		size = { 0, 150, 0, 16 },
 		device = "keyboard",
-		note = "'Hold Alt for the mouse', with a keyboard only: in first person the mouse is locked to the "
-			.. "middle of the screen.",
+		note = "'Hold Alt for the mouse', with a keyboard only, under the squares: in first person the mouse is "
+			.. "locked to the middle of the screen. It is left out when the squares are a grid.",
 	},
 	GrandmaGoal = {
 		label = "Grandma's goal",
 		group = "Trackers",
-		parent = "LeftColumn",
+		screen = "LawnUI",
 		detach = "LeftColumn",
-		order = 3,
-		size = { 0, 220, 0, 0 },
+		order = 5,
+		anchor = { 0.5, 0 },
+		position = { 0.5, 0, 0, 12 },
+		size = { 1, -784, 0, 0 },
+		min = { width = 240 },
+		max = { width = 330 },
 		autoSize = "Y",
-		typical = { 220, 86 },
-		touch = {
-			parent = false,
-			anchor = { 0.5, 0 },
-			position = { 0.5, 0, 0, 12 },
-			hideWhile = { "TutorialBanner", "CrewInvite" },
-		},
-		note = "Grandma's sticky note with your story goal and how close you are, while you have one. As "
-			.. "tall as its words. Under the goal's bar is the goals rail: the next two milestones (the ones "
-			.. "nearest to done), each a line of words over a thin bar, until the screen is shorter than "
+		typical = { 330, 64 },
+		compact = { position = { 0.5, -45, 0, 12 }, size = { 1.43, -696, 0, 0 } },
+		hideWhile = { "TutorialBanner", "CrewInvite" },
+		note = "A cream banner at the top in the middle, on every screen, with your story goal and how close "
+			.. "you are, while you have one: a red flag, the goal in a line or two, what finishing it pays (only "
+			.. "when the goal has a reward) and a striped bar. As tall as its words. Under the goal's bar is "
+			.. "the goals rail, in the cream: the next two milestones (the ones nearest to done), each a line "
+			.. "of words over a thin bar, until the screen is shorter than "
 			.. "__screen.scaling.Columns.fullHeight, where the rail is hidden and NextChip says the next one "
-			.. "instead (typical is that short screen, so it has no rail). On a touch screen it's out of the "
-			.. "column, at the top in the middle between the HUD's columns, away from your thumb on the move "
+			.. "instead (typical is that short screen, so it has no rail). It is out of the left column (its "
+			.. "detach puts it back there), between the HUD's two columns and away from your thumb on the move "
 			.. "stick, and the toasts start under it. The first-job coach and a crew invite go there too, and "
-			.. "it waits while either shows.",
+			.. "it waits while either shows (a crew invite is along the bottom on a PC, but the banner waits "
+			.. "for it there too, so one rule serves every screen). Its width is what is left between the "
+			.. "columns: the screen's width less twice the right column's reach from the edge (the right "
+			.. "buttons, 12 px either side of them, and the column's 280 px, which is 380) and a 12 px gap, so "
+			.. "784, but never wider than 330 or narrower than 240 (a 1024 px wide window gets 240; a PC window "
+			.. "narrower than that is not covered, the banner stays 240 and the job card can reach it). A short "
+			.. "screen (a phone) has less room, so its banner is the scaled-up rule for the columns' 0.7 "
+			.. "(1.43 of the width less 696 before the scale, which is the width less 487 after it) and sits "
+			.. "45 px left of the middle, in the middle of what is left between the columns, so a 667 px wide "
+			.. "phone gets 180 px and an 844 px wide one the full 330.",
 	},
-	ContractsChip = {
-		label = "Contracts chip",
-		group = "Trackers",
-		parent = "LeftColumn",
-		detach = "LeftColumn",
+	RightButtons = {
+		label = "Right buttons",
+		group = "HUD",
+		screen = "LawnUI",
+		anchor = { 1, 0 },
+		position = { 1, -12, 0, 12 },
+		size = { 0, 76, 0, 0 },
+		autoSize = "Y",
+		list = { direction = "Vertical", padding = 12, align = "Center" },
+		typical = { 76, 456 },
+		touch = { size = { 0, 40, 0, 0 }, typical = { 40, 184 } },
+		compact = { size = { 0, 40, 0, 0 }, typical = { 40, 184 } },
+		note = "The strip down the right edge: Shop, Gifts, Top Lawns and Settings, glossy squares with their "
+			.. "glyphs, 12 px apart. On a PC the first three are 76 px faces with their names under them and "
+			.. "Settings is 56 (456 px tall, so it has no scale). On a touch screen or a short one all four are "
+			.. "built 40 px with no names and 8 px apart (RightStrip sets the gap; the list's 12 is the PC's), "
+			.. "so the strip is 184 px tall: it starts 12 px under Roblox's top bar (LawnUI is not "
+			.. "IgnoreGuiInset, so that bar takes about 58 px of the phone's 390) and its last square's lip ends "
+			.. "202 px down, which is 130 px above the bottom of an 844 by 390 phone, clear of the jump button "
+			.. "and the rounded corner (115 px on a 667 by 375 one). RightColumn sits inside it by its width "
+			.. "and 12 px, on each kind of screen, so the two never overlap.",
+	},
+	ShopButton = {
+		label = "Shop button",
+		group = "HUD",
+		parent = "RightButtons",
+		order = 1,
+		size = { 0, 76, 0, 110 },
+		touch = { size = { 0, 40, 0, 40 } },
+		compact = { size = { 0, 40, 0, 40 } },
+		note = "A teal square with the Orders box glyph. Opens the Orders window (B), anywhere: the shop sells "
+			.. "away from the desk now, and what you buy still comes in a box at your shop's door.",
+	},
+	GiftsButton = {
+		label = "Gifts button",
+		group = "HUD",
+		parent = "RightButtons",
+		order = 2,
+		size = { 0, 76, 0, 110 },
+		touch = { size = { 0, 40, 0, 40 } },
+		compact = { size = { 0, 40, 0, 40 } },
+		note = "A pink square with a drawn present on it. It claims the day's streak gift while one waits (a "
+			.. "tilted CLAIM tag and a pulse say so), and with nothing waiting it opens the contracts panel, "
+			.. "where the streak line is. It has no key.",
+	},
+	TopLawnsButton = {
+		label = "Top Lawns button",
+		group = "HUD",
+		parent = "RightButtons",
+		order = 3,
+		size = { 0, 76, 0, 110 },
+		touch = { size = { 0, 40, 0, 40 } },
+		compact = { size = { 0, 40, 0, 40 } },
+		note = "A gold square with the Crown glyph. Opens the Top Lawns window, the two leaderboards (F).",
+	},
+	SettingsButton = {
+		label = "Settings button",
+		group = "HUD",
+		parent = "RightButtons",
 		order = 4,
-		size = { 0, 220, 0, 28 },
-		note = "Today's contracts on one line ('Contracts 1/3': how many of the day's three are done), under "
-			.. "Grandma's goal, from the moment the server has sent the day's contracts. It shows on every "
-			.. "screen, tall or short, and stays up during a job (nothing takes its spot); tapping it opens "
-			.. "the contracts panel. Its words shrink to fit the line (to 10 px at the least). When a "
-			.. "contract is done its cash lifts off it and a chime rings.",
+		size = { 0, 56, 0, 90 },
+		touch = { size = { 0, 40, 0, 40 } },
+		compact = { size = { 0, 40, 0, 40 } },
+		note = "A grey square with the Wrench glyph, smaller than the others on a PC (56 px; 40 on a phone, like the rest). It opens "
+			.. "the Settings window: Sound, Camera motion and Grass detail (comma).",
 	},
 	RightColumn = {
 		label = "Right HUD column",
 		group = "HUD",
 		screen = "LawnUI",
 		anchor = { 1, 0 },
-		position = { 1, -12, 0, 12 },
+		position = { 1, -100, 0, 12 },
 		size = { 0, 280, 0, 0 },
 		autoSize = "Y",
 		list = { direction = "Vertical", padding = 10, align = "Right" },
 		typical = { 280, 368 },
-		note = "Curb appeal, then on a short screen the Next chip, over the job tracker, then the Show what I "
-			.. "missed button late in the mowing, down the right. Its UIScale shrinks it to fit like the left "
+		touch = { position = { 1, -64, 0, 12 } },
+		compact = { position = { 1, -64, 0, 12 } },
+		note = "Curb appeal, then on a short screen the Next chip, over the job tracker, then the boost pills, "
+			.. "then the lawn map (not on a short screen), then the Show uncut "
+			.. "button while the mowing is under way, down the right, just inside the right buttons (the strip's "
+			.. "width and a 12 px gap: 100 px in from the edge on a PC, 64 on a touch or short screen). Its "
+			.. "UIScale shrinks it to fit like the left "
 			.. "column's, toward its top right corner. Typical is during a job on a phone, where curb appeal "
-			.. "hides and the chip stays. Each of the four can be taken out of it (their detach) and put "
+			.. "hides and the chip stays. Each of the six can be taken out of it (their detach) and put "
 			.. "anywhere on the screen.",
 	},
 	CurbAppeal = {
@@ -443,29 +568,72 @@ return {
 		size = { 0, 280, 0, 0 },
 		autoSize = "Y",
 		typical = { 280, 330 },
-		compact = { typical = { 280, 144 } },
+		compact = { typical = { 280, 150 } },
 		hideWhile = { "DecorButtons" },
-		note = "On the art's GoalTracker card, while you have a job: its name, a hint, its to-dos, the timer "
-			.. "against par and damage while you work, and a button to call it off. As tall as what's in it. "
+		note = "A dark glass card (4 px ink outline and a lip), while you have a job: its name in gold with the "
+			.. "job's three stars beside it once it's paid, a hint, the big white timer with par beside it "
+			.. "(red once over par) while you work, its to-dos (the mowing one a striped yellow bar) and damage, "
+			.. "and a small coral Call off pill. As tall as what's in it. "
 			.. "On a screen shorter than __screen.scaling.Columns.fullHeight (a phone) it's laid out small, "
 			.. "so the look-at and Snip buttons fit under it: no hint, the timer beside the job's name, each "
 			.. "to-do on one line without its bar, and the damage (once there is some) and a small call-off "
-			.. "button sharing a row at the bottom. Typical is during a job with two to-dos and the junk; "
+			.. "pill sharing a row at the bottom. Typical is during a job with two to-dos and the junk; "
 			.. "compact's is that on a short screen. It steps aside while you're putting a decoration down on a "
 			.. "phone, for the decorating buttons (and curb appeal shows again).",
 	},
-	MissedButton = {
-		label = "Show what I missed button",
+	BoostPills = {
+		label = "Boost pills",
 		group = "HUD",
 		parent = "RightColumn",
 		detach = "RightColumn",
 		order = 4,
+		size = { 0, 280, 0, 34 },
+		autoSize = "Y",
+		list = { direction = "Horizontal", padding = 6, align = "Right" },
+		note = "Under the job tracker, during a job: a dark glass pill with a glyph for each pay bonus that is "
+			.. "above zero: Crew (15% for each crew member besides the leader), Curb (from the crew's curb "
+			.. "appeal, as it was when the truck pulled out), and Truck and Business (the leader's equipped "
+			.. "ones). The numbers are the server's, sent with every job update, so everyone in the crew "
+			.. "sees all four. The row is hidden when there is "
+			.. "none, and wraps to a second line when the pills don't fit. The tracker's card and this row "
+			.. "hide together.",
+	},
+	LawnMap = {
+		label = "Lawn map",
+		group = "HUD",
+		parent = "RightColumn",
+		detach = "RightColumn",
+		order = 5,
+		size = { 0, 166, 0, 0 },
+		autoSize = "Y",
+		typical = { 166, 188 },
+		note = "Under the boost pills while a job with mowing is under way (Working): a top-down picture of the "
+			.. "job's lawn on dark glass like the job card's (a 3 px ink outline), one pixel per grass cell, "
+			.. "uncut grass dark olive, mown grass bright green, torn grass yellow-green and bare ground brown, "
+			.. "with a white dot where you are and a dark dot for each piece of junk still in the grass. "
+			.. "It faces the house: the street edge is at the bottom and walking toward the house moves your "
+			.. "dot up. 'Lawn' and the percent mowed are over it. The picture keeps the lawn's shape inside a "
+			.. "150 px box, each cell the same whole number of pixels (a lawn over 150 cells a side is "
+			.. "stretched to fit), so the glass is 166 wide and at most 188 tall. It needs the room: it is hidden on a screen shorter than __screen.scaling.Columns."
+			.. "fullHeight (a phone held sideways: the right column is at its floor without it) and on a touch "
+			.. "screen under 650 px of GUI (LawnMap's TOUCH_MIN_HEIGHT, where the move stick and jump button "
+			.. "take the room), and unless the job's lawn near you is drawn as a surface.",
+	},
+	MissedButton = {
+		label = "Show uncut button",
+		group = "HUD",
+		parent = "RightColumn",
+		detach = "RightColumn",
+		order = 6,
 		size = { 0, 280, 0, 44 },
 		touch = { size = { 0, 280, 0, 52 } },
-		note = "Under the job tracker, once the mowing's percent (how much of what the job requires is cut, "
-			.. "not counting the optional grass beside flowers and trees) reaches GameConfig.MissedSpotsFrom "
-			.. "(90%) and until the mowing counts as done: lights up all the grass that's left, red, for "
-			.. "GameConfig.MissedSpotsSeconds. With a keyboard its key (M) is on it, as on the menu buttons. "
+		note = "Under the lawn map, while the mowing is under way (from its start until it counts as done): "
+			.. "lights up all the grass that's left, red, for GameConfig.MissedSpotsSeconds, then is grey "
+			.. "(Disabled) and does nothing, its key neither, until GameConfig.UncutGlowCooldown seconds after "
+			.. "it was pressed. It says 'Show uncut' until the mowing's percent (how much of what the job "
+			.. "requires is cut, not counting the optional grass beside flowers and trees) reaches "
+			.. "GameConfig.MissedSpotsFrom (90%), and 'Missed spots' from then on. "
+			.. "With a keyboard its key (M) is on it, as on the menu buttons. "
 			.. "Taller on a touch screen, to be easy to tap. It's hidden whenever the job tracker is, and "
 			.. "unless a job site's lawn near you is drawn as a surface (the simple renderer has nothing to "
 			.. "light up, and a lawn far off isn't drawn). Nothing takes its spot.",
@@ -475,17 +643,44 @@ return {
 		group = "HUD",
 		screen = "LawnUI",
 		anchor = { 0.5, 1 },
-		position = { 0.5, 0, 1, -68 },
+		position = { 0.5, 0, 1, -88 },
 		size = { 0.9, 0, 0, 36 },
 		autoSize = "Y",
 		max = { width = 440 },
 		typical = { 440, 36 },
-		touch = { position = { 0.5, 0, 1, -78 } },
-		compact = { position = { 0.5, 0, 1, -66 }, scale = 0.85 },
+		touch = { position = { 0.5, 0, 1, -90 } },
+		compact = { position = { 0.5, 0, 1, -78 }, scale = 0.85 },
 		note = "What's wrong with the tool in your hands (a chip for each thing), or 'Working on it... 3s' "
-			.. "while you work on one. The chips go onto a second line when they don't fit. Above Roblox's "
-			.. "hotbar (60 px slots, 48 on a phone), and on a touch screen far enough above it to keep clear of "
-			.. "tapping a slot; under the look-at prompt, and a little smaller on a phone to fit between them.",
+			.. "while you work on one. The chips go onto a second line when they don't fit. Above the hotbar "
+			.. "(its top edge is 82 px up on a PC and 70 on a touch or short screen): 6 px above it, and on a "
+			.. "touch screen 20 px, far enough to keep clear of tapping a slot; under the look-at prompt, and a "
+			.. "little smaller on a phone to fit between them.",
+	},
+	Hotbar = {
+		label = "Hotbar",
+		group = "HUD",
+		screen = "LawnUI",
+		anchor = { 0.5, 1 },
+		position = { 0.5, 0, 1, -8 },
+		size = { 0, 0, 0, 74 },
+		typical = { 312, 62 },
+		touch = { size = { 0, 0, 0, 62 } },
+		compact = { size = { 0, 0, 0, 62 } },
+		note = "The game's own hotbar, in place of Roblox's (the Backpack, which stays off): a slot for every "
+			.. "tool you have on a job (at least five drawn), in the order you got them, shown only while "
+			.. "Roblox's would have been (on a job site, while nothing hides the game's screen). Its height is "
+			.. "a slot's face (60 px on a PC, 48 on a touch or short screen) and 14 px round it for the ink "
+			.. "outline (4 px a side) and the held slot's lip (6 px under it); HotbarController works the face "
+			.. "out from that, and sets the width: the slots, each the face and its outline, 8 px apart. That "
+			.. "is the most it is drawn at. When the row would come nearer the screen's sides than 120 px on a "
+			.. "touch screen (the move stick and the jump button) or 24 on a PC, its Row is drawn smaller, but "
+			.. "never so a face is under 40 px on a touch screen (48 on a PC); past that the last slot is a "
+			.. "gold '+N' that opens a tray of the tools that didn't fit just above the bar. The tray isn't "
+			.. "part of the band below: while it is open it may cover the tool condition chips. The held "
+			.. "tool's slot is a cream face, the others dark glass, the empty ones (and a tool set down to "
+			.. "be worked on) dimmer. With a keyboard the first ten tools' slots have their key (1 to 9, "
+			.. "then 0) on the top left corner, inside the outline. The tool condition and the Levels and "
+			.. "contracts windows stand above it, and the carry hint gives way to it.",
 	},
 
 	-- Prompts ------------------------------------------------------------------------------------
@@ -496,16 +691,26 @@ return {
 		screen = "LawnUI",
 		anchor = { 0.5, 0 },
 		position = { 0.5, 0, 0, 12 },
-		size = { 0.6, 0, 0, 0 },
+		size = { 1, -784, 0, 0 },
 		autoSize = "Y",
-		max = { width = 520 },
+		min = { width = 240 },
+		max = { width = 480 },
 		typical = { 450, 130 },
-		touch = { size = { 1, -400, 0, 0 }, scale = 0.85, typical = { 450, 96 }, hideWhile = { "CrewInvite" } },
-		compact = { size = { 1, -320, 0, 0 }, scale = 0.7, hideWhile = { "CrewInvite", "HoldRing" } },
+		touch = { size = { 1.18, -875, 0, 0 }, scale = 0.85, typical = { 333, 120 }, hideWhile = { "CrewInvite" } },
+		compact = {
+			position = { 0.5, -45, 0, 12 },
+			size = { 1.43, -696, 0, 0 },
+			scale = 0.7,
+			typical = { 480, 100 },
+			hideWhile = { "CrewInvite", "HoldRing" },
+		},
 		note = "Coaches a new player through their first job, a step at a time, once the intro scene's over "
 			.. "and until the job's paid: at the shop, on the way and on the lawn. As tall as its words. The "
-			.. "toasts keep below it. On a touch screen its words are shorter and it's narrower, to fit between "
-			.. "the HUD's columns (the job tracker's on the right), and smaller, so it stays above the dot. A "
+			.. "toasts keep below it. It follows Grandma's goal's rule for its width (which is its note): "
+			.. "what is left between the columns, 784 less than the screen on a PC, never narrower than 240 "
+			.. "or wider than 480. On a touch screen its words are shorter, it's drawn at 0.85 so it stays above "
+			.. "the dot (the width less 744 once scaled, because the right column is 20 px nearer the edge "
+			.. "there), and on a short screen at 0.7 and 45 px left of the middle, like the banner. A "
 			.. "crew invite goes there too on a touch screen, and it waits while that shows, and on a short "
 			.. "screen while you hold to work on a tool (the hold ring would be under it).",
 	},
@@ -522,13 +727,14 @@ return {
 		touch = { size = { 1, -360, 0, 0 } },
 		compact = { size = { 1, -372, 0, 0 }, scale = 0.85 },
 		typical = { 304, 78 },
-		hideWhile = { "ToolCondition" },
+		hideWhile = { "ToolCondition", "Hotbar" },
 		note = "What to do with the tool you're carrying or driving at your business, along the bottom under "
 			.. "the look-at prompt. On a touch screen it's 360 px narrower than the screen, to stay between "
 			.. "Roblox's move stick and jump button, and on a short screen a little smaller, under the look-at prompt "
 			.. "and clear of the Snip button. As tall as its words. A tool you can use comes out of "
 			.. "storage in your hands, for your own lawn, so it can have something wrong with it, or be worked "
-			.. "on: the tool condition goes in the same spot then, and this waits while it shows.",
+			.. "on: the tool condition shows over this spot then, and this waits while it shows. It waits "
+			.. "while the hotbar shows too (carrying a supply on a job), since the hotbar has this spot there.",
 	},
 	InteractPrompt = {
 		label = "Look-at prompt",
@@ -692,8 +898,9 @@ return {
 		touch = { size = { 0, 320, 0, 200 } },
 		list = { direction = "Vertical", padding = 6, align = "Left" },
 		note = "Where the little messages stack, each fading after a few seconds: a notice is 40 px tall or "
-			.. "as tall as it wraps to, a new text 64 px. While the first-job coach shows, the stack moves down "
-			.. "to start 8 px under it.",
+			.. "as tall as it wraps to, a new text 64 px. While Grandma's goal banner shows (it is a toast "
+			.. "blocker on every screen), or the first-job coach, or on a touch screen a crew invite, the stack "
+			.. "moves down to start 8 px under it.",
 	},
 	Moment = {
 		label = "Big moment",
@@ -705,6 +912,19 @@ return {
 		max = { width = 720, height = 140 },
 		note = "Level Up!, New Tool! or Payday! for a couple of seconds: the wordmark with a line under it. "
 			.. "It pops in with a UIScale from 0.6.",
+	},
+	Splash = {
+		label = "Stripe splash",
+		group = "Popups",
+		screen = "LawnUI",
+		anchor = { 0.5, 0.5 },
+		position = { 0.5, 0, 0.42, 0 },
+		size = { 0, 520, 0, 90 },
+		touch = { size = { 0, 380, 0, 64 } },
+		note = "NICE STRIPE!, CLEAN CUT! or PERFECT LINE! for 1.2 seconds after a clean mower pass of 30 studs "
+			.. "or more (GrassController's StripDone, shown by HudController): gold Fredoka 54 px with a 4 px "
+			.. "ink stroke, tilted 4 degrees, 40 px on a touch or short screen. At most once every 8 seconds, "
+			.. "never over a menu, the pay breakdown or a scene. It pops in on an inner frame and fades.",
 	},
 	PayBreakdown = {
 		label = "Pay breakdown",
@@ -756,13 +976,13 @@ return {
 		position = { 0.5, 0, 0.5, 0 },
 		size = { 0, 360, 0, 460 },
 		touch = { anchor = { 0.5, 1 }, position = { 0.5, 0, 1, -78 } },
-		compact = { anchor = { 0.5, 1 }, position = { 0.5, 0, 1, -66 } },
+		compact = { anchor = { 0.5, 1 }, position = { 0.5, 0, 1, -78 } },
 		note = "Opened from the XP bar (and L on a keyboard), closed by its Close button or Escape: your level "
 			.. "and the XP to the next, the streak line under that ('Streak: Day 3 of 7, next $300'), then "
 			.. "what the next five levels pay. Its own window, not one of the menus: it never opens inside "
 			.. "the shop computer, and it closes when a job's state changes, a scene starts or you open a "
 			.. "menu. Its UIScale shrinks it to fit the screen (__screen.scaling.LevelsPanel). On a touch "
-			.. "screen its bottom edge stands 78 px up (66 on a short screen), above Roblox's hotbar like "
+			.. "or short screen its bottom edge stands 78 px up, above the hotbar (70 px up there) like "
 			.. "the tool condition chips, so a tap on Close never lands on a slot.",
 	},
 	ContractsPanel = {
@@ -773,15 +993,15 @@ return {
 		position = { 0.5, 0, 0.5, 0 },
 		size = { 0, 360, 0, 400 },
 		touch = { anchor = { 0.5, 1 }, position = { 0.5, 0, 1, -78 } },
-		compact = { anchor = { 0.5, 1 }, position = { 0.5, 0, 1, -66 } },
-		note = "Opened from the contracts chip (and the curb mailbox at the street end of the driveway), "
+		compact = { anchor = { 0.5, 1 }, position = { 0.5, 0, 1, -78 } },
+		note = "Opened from the Contracts square (and the curb mailbox at the street end of the driveway), "
 			.. "closed by its Close button or Escape: today's three contracts (each with how far along it "
 			.. "is and what it pays, and a DONE stamp once it's paid), the Bonus Day for doing all three, "
 			.. "and the streak line ('Day 3 of 7, next $300'). It's opened by name like the menus "
 			.. "(UI.open), but it's a window of its own like the Levels panel: it never opens inside the "
 			.. "shop computer, and it closes when a job's state changes, a scene starts or you open a "
 			.. "menu. Its UIScale shrinks it to fit the screen (__screen.scaling.ContractsPanel). On a touch "
-			.. "screen its bottom edge stands 78 px up (66 on a short screen), above Roblox's hotbar like "
+			.. "or short screen its bottom edge stands 78 px up, above the hotbar (70 px up there) like "
 			.. "the tool condition chips, so a tap on Close never lands on a slot.",
 	},
 	ComputerMonitor = {

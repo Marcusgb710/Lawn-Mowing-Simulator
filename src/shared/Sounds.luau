@@ -3,13 +3,106 @@
 
 -- The services are fetched where they're used, not as the module loads, so scripts/check-season can
 -- load this file under Lune (which has no `game`) and read Ids.
+--
+-- Every sound made here goes through the "Effects" SoundGroup, which the player's Sound setting (the
+-- Settings window) turns up or down with setVolume. The group is made on a client the first time a
+-- sound is made, and sounds are put in it by their SoundGroup property, not by parenting them under
+-- it, so a sound on a tool or a part keeps its place in the world. A sound the server makes (the
+-- server plays some, and its ids are all still empty) carries a tag, and `watch`, which a client runs
+-- once, puts those in the group as they arrive. `watch` also puts the Sounds Roblox's own character
+-- script makes for every character (footsteps, jumping, landing) in the group, so Sound set to Off
+-- really is silent.
 
 -- How far away a sound can still be heard, in studs.
 local ROLL_OFF_DISTANCE = 60
 -- A UI sound that never ends (an id that fails to load never fires Ended) is cleaned up after this.
 local UI_SOUND_LIMIT = 30
+-- The tag on a sound the server made, for `watch`.
+local EFFECTS_TAG = "EffectsSound"
 
 local Sounds = {}
+
+-- The Effects group's volume, 0 to 1, and the group once a client has made it. The level is kept
+-- here so a group made later starts at it.
+local level = 1
+local effects: SoundGroup? = nil
+-- Whether `watch` has run.
+local watching = false
+
+-- The Effects SoundGroup, under SoundService, made when it is first wanted. Only a client has one.
+local function effectsGroup(): SoundGroup
+	local group = effects
+	if group and group.Parent then
+		return group
+	end
+	local made = Instance.new("SoundGroup")
+	made.Name = "Effects"
+	made.Volume = level
+	made.Parent = game:GetService("SoundService")
+	effects = made
+	return made
+end
+
+-- Sends `sound` through the Effects group: a client's own sounds now, a server's sounds by their tag.
+local function route(sound: Sound)
+	if game:GetService("RunService"):IsClient() then
+		sound.SoundGroup = effectsGroup()
+	else
+		game:GetService("CollectionService"):AddTag(sound, EFFECTS_TAG)
+	end
+end
+
+-- Sets how loud every sound made here is, 0 (silent) to 1 (full). The player's Sound setting calls
+-- this. It makes no group: one made later starts at this level.
+function Sounds.setVolume(newLevel: number)
+	level = math.clamp(newLevel, 0, 1)
+	local group = effects
+	if group and group.Parent then
+		group.Volume = level
+	end
+end
+
+function Sounds.getVolume(): number
+	return level
+end
+
+-- Puts the sounds the server makes (tagged in `route`) through this client's Effects group, the ones
+-- already here and each one that arrives, and the Sounds in every character (Roblox's footsteps, jump
+-- and landing, which its own script makes on this client for each character). A client calls this; a
+-- second call does nothing.
+function Sounds.watch()
+	if watching then
+		return
+	end
+	watching = true
+	local collection = game:GetService("CollectionService")
+	local players = game:GetService("Players")
+	local function adopt(instance: Instance)
+		if instance:IsA("Sound") then
+			instance.SoundGroup = effectsGroup()
+		end
+	end
+	collection:GetInstanceAddedSignal(EFFECTS_TAG):Connect(adopt)
+	for _, instance in collection:GetTagged(EFFECTS_TAG) do
+		adopt(instance)
+	end
+	local function watchCharacter(character: Model)
+		for _, descendant in character:GetDescendants() do
+			adopt(descendant)
+		end
+		character.DescendantAdded:Connect(adopt)
+	end
+	local function watchPlayer(player: Player)
+		if player.Character then
+			watchCharacter(player.Character)
+		end
+		player.CharacterAdded:Connect(watchCharacter)
+	end
+	players.PlayerAdded:Connect(watchPlayer)
+	for _, player in players:GetPlayers() do
+		watchPlayer(player)
+	end
+end
 
 Sounds.Ids = {
 	Thunk = "", -- a tool set down in the truck bed or on the floor
@@ -33,6 +126,9 @@ Sounds.Ids = {
 	Star = "rbxassetid://15675055424", -- Roblox_UI_Cute_Pop (Roblox): a star landing on the pay panel
 	Find = "rbxassetid://17208319162", -- Roblox GUI - Pickup (Roblox): finding something in a yard
 	Streak = "rbxassetid://15675043410", -- Roblox_UI_Tonal_Stinger (Roblox): a streak growing
+	-- The front-page HUD's button sound (Juicy.button plays it on every press). Found the same way:
+	-- the toolbox search for "Roblox UI click", kept to audio whose creator is Roblox (id 1).
+	Click = "rbxassetid://15675032796", -- Roblox_UI_Small_Click (Roblox): a HUD button pressed
 }
 
 -- Plays `name` from `parent` (a part or attachment), if it has an id.
@@ -46,6 +142,7 @@ function Sounds.play(parent: Instance, name: string, volume: number?)
 	sound.SoundId = id
 	sound.Volume = volume or 0.6
 	sound.RollOffMaxDistance = ROLL_OFF_DISTANCE
+	route(sound)
 	sound.Parent = parent
 	sound:Play()
 	game:GetService("Debris"):AddItem(sound, 5)
@@ -63,6 +160,7 @@ function Sounds.playUi(name: string, volume: number?)
 	sound.Name = name
 	sound.SoundId = id
 	sound.Volume = volume or 0.5
+	route(sound)
 	sound.Parent = game:GetService("SoundService")
 	sound.Ended:Once(function()
 		sound:Destroy()
@@ -84,6 +182,7 @@ function Sounds.loop(parent: Instance, name: string): Sound?
 	sound.Looped = true
 	sound.Volume = 0
 	sound.RollOffMaxDistance = ROLL_OFF_DISTANCE
+	route(sound)
 	sound.Parent = parent
 	return sound
 end

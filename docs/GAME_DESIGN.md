@@ -329,18 +329,25 @@ flowers, the turf-renovation steps) keeps the **4-stud tile** (`GameConfig.TileS
   on **Allow Mesh / Image APIs** (Experience Settings → Security), and creating one fails too when
   a device's memory budget is spent. Then the client draws lawns the plain way for the rest of the
   session (`GrassFallback`): one flat plate of mown green with a block of tall grass over every
-  2 x 2 patch of cells that still has an uncut one. No stripes, no smooth edges, and no missed-spots
-  button, since there's nothing to tint. It follows the same ledger and the same events, so the
+  2 x 2 patch of cells that still has an uncut one. No stripes, no smooth edges, and no uncut glow
+  or lawn map, since there's nothing to tint or read. It follows the same ledger and the same events, so the
   job plays and finishes the same. It's a safety net, and the game never assumes the toggle is on.
 - **The counter.** The mowing row on the job tracker shows the percent of the required cells that
   are cut (the lawn's mowable cells less the optional ones), where other tasks count what's done.
   A job's mowing finishes at **99%** of the required cells (`GameConfig.MowCompletionThreshold`);
   every other task keeps **95%** (`CompletionThreshold`), and so does a home lawn's grass, which
-  has no percent and no missed-spots button to chase the last cells with.
-- **Show what I missed.** From **90%** (`MissedSpotsFrom`) until the job counts as done, a
-  **Show what I missed** button under the tracker (key **M** on a keyboard) tints the uncut grass
-  red for **3 s** (`MissedSpotsSeconds`), with a soft pulse. It only shows over a job's lawn drawn
+  has no percent and no uncut glow button to chase the last cells with.
+- **The uncut glow.** Any time the mowing is under way, until the job counts as done, a button
+  under the tracker (key **M** on a keyboard) tints the uncut grass red for **3 s**
+  (`MissedSpotsSeconds`), with a soft pulse. It reads **Show uncut** until the mowing reaches
+  **90%** (`MissedSpotsFrom`) and **Missed spots** from there. After each use it is grey and does
+  nothing, its key neither, for **6 s** (`UncutGlowCooldown`). It only shows over a job's lawn drawn
   as a surface.
+- **The lawn map.** Under the pay bonus pills, while a job with mowing is under way, a small
+  top-down picture of the lawn: one pixel per cell from the ledger, uncut dark, mown bright, with a
+  white dot for you and dark dots for the junk still in the grass. It faces the house (the street at
+  the bottom), as you do when you arrive. It shows on a PC and on tall touch screens only (650 px of
+  GUI or more): on a phone held sideways the right column is already at its smallest without it.
 - **Finishing.** The mowing row gets the `LawnDone` chime and the art's Job Complete! stamp, once,
   and the job goes on as before.
 - **Feel.** The server sets the tool's `Cutting` attribute when a tick's sweep cut a cell, and
@@ -1132,14 +1139,18 @@ gets the same three all day). What each asks and pays depends on the level band:
 A contract pays the moment it is met, once. Finishing all three pays the **Bonus Day**, $500 more.
 They count what you do that day: jobs finished, three-star jobs, junk picked up, and money earned
 (tips, the streak's cash and the Bonus Day too). The mailbox at the curb (`Props/CurbMailbox`) and
-the "Contracts 1/3" chip under the goals rail both open the panel.
+the Contracts square on the HUD's left (with its count badge) both open the panel.
 
 **The login streak** (`Config/Streak.luau`). The first time you are in on a UTC day the streak grows
-a day (it starts again at day 1 if you missed one), pays that day and shows a card for four
-seconds: "Day 3 of 7", today's cash and tomorrow's. The week pays $100, $150, $200, $300, $400,
-$600 and, on day 7, $1,000 and a pennant for the truck, given once and flown from the bed
+a day (it starts again at day 1 if you missed one) and that day's cash waits as a gift: the HUD's
+Gifts button wears a tilted CLAIM tag and pulses until you press it. Claiming your gift pays the
+day and shows a card for four seconds: "Day 3 of 7", today's cash and tomorrow's. A gift you never
+claim is paid for you when the next day turns, once, with a "Yesterday's gift" toast, so nobody
+loses a day's cash. The week pays $100, $150, $200, $300, $400, $600 and, on day 7, $1,000 and a
+pennant for the truck, given once with the day 7 turn and flown from the bed
 (`flags.TruckPennant`). After day 7 the week repeats with the same cash and no second pennant. The
-Levels panel and the contracts panel show the streak.
+Levels panel and the contracts panel show the streak, and while a gift waits they say "claim $200
+in Gifts". With no gift waiting the Gifts button opens the contracts panel.
 
 **The leaderboards** (`LeaderboardService`). Two OrderedDataStores, `LawnsMowed_v1` (jobs finished)
 and `MoneyEarned_v1` (money earned). A player's numbers are written when one of their jobs
@@ -1162,9 +1173,77 @@ first, 96 at most), and so do four lost Saturdays after the first judging day, s
 even for someone who never wins.
 
 Saved as data version 14: `daily`, `streak`, `flags`, and the contest's `lastJudged`, `saturdays`
-and `offeredDay` (`Config/Season.luau`). Everything that depends on the day asks the server's `Clock`
+and `offeredDay` (`Config/Season.luau`). The streak's `claimed` (the day whose gift was last
+claimed) came later without a version bump: a save without it starts it at its `last`, since that
+day was paid as it was kept. Everything that depends on the day asks the server's `Clock`
 (`src/server/Clock.luau`): `os.time()` plus an offset that only Studio can set, from the test panel's
 Next day and Jump to Saturday.
+
+## 12. The HUD
+
+The play screen is built like a front-page Roblox simulator: chunky buttons with a gradient face, a
+thick dark outline and a lip under them, white rounded text with a dark edge, and a bounce when you
+touch them. All of it is drawn in code (`src/client/Juicy.luau`, with the colours in
+`JuicyPalette.luau`), so it adds no art to upload. Where each piece goes is `UiLayout.luau`. The look
+was drawn first as the "Lawn HUD Restyle" mock; this section says how it behaves.
+
+**The left.** Your money in a pill with a gold coin, which counts up when cash comes in and gives one
+pulse. Under it the level pill (your level and an XP bar; press it for the Levels window) beside the
+streak pill (the flame and "DAY 3", once you have a streak). When judging day is on the calendar, a
+purple pill counts down to it. Then four colour squares: Truck, Guide, Crew and Contracts. The
+Contracts one wears a tilted yellow tag with the contracts left today. On a keyboard each shows its key
+(T, G, C). On a phone the four sit in a 2 by 2 grid of bare faces, without the names.
+
+**The top and the right.** Grandma's goal is a cream banner at the top in the middle, with a red flag,
+the goal, its reward when it has one and a striped bar. Down the right, curb appeal, then during a job
+the job card (dark glass: the job's name, a big timer with the par time, a bar for how much is
+mown and a small Call off pill, which asks "Sure?" before it calls the job off), and under it small
+pills for the pay bonuses you have (crew, curb appeal, truck, business). Under those, on a PC or a tall
+touch screen, the lawn map: a small picture of the lawn, cut and uncut, with you and the junk on it (a
+phone has no room for it). Under that, while the mowing is under way, the uncut glow's button ("Show
+uncut", then "Missed spots" from 90%), which lights up the grass still to cut and then rests for 6
+seconds. Against the right edge is a strip of four squares.
+
+**The right buttons.** Shop opens the Orders window from anywhere (B on a keyboard): tools, supplies
+and decorations can be bought and sold wherever you stand and arrive in a box at your shop door, but
+trucks, trailers and business buildings still need the computer in your shop, and so does taking a
+job. Gifts (no key) is the daily streak gift. Top Lawns (F) is the two leaderboards from the sign at
+the town spawn, in a window: Lawns mowed and Money earned, 25 rows each and your own line under them.
+Settings (comma) is the window described below.
+
+**The gift.** The first time you play on a new day, the day turn moves your streak on but does not pay
+it. The Gifts button wears a tilted CLAIM tag and pulses until you press it, and pressing it pays the
+day's cash and plays the Payday card. If you never press it, the next day turn pays it for you with a
+toast, so nobody loses money by forgetting. With no gift waiting the button opens the streak card.
+
+**Settings.** Three choices that are kept with your save: Sound (Off, Low, High) is the volume of the
+game's sounds, Camera motion (On, Off) is the head bob and the engine shake in first person (the V key
+and the Guide's switch change the same one), and Grass detail (Auto, High, Low) is how many layers of
+grass are drawn, which takes effect the next time you join. A player who never opens the window gets
+what the game always did: full sound, motion as the camera config says, and Auto grass (4 layers on a
+phone, 6 on a PC).
+
+**The hotbar.** Roblox's own hotbar is off. The game's row of tool slots sits along the bottom on a job
+site: the held tool's slot is cream, the others dark glass, each with the tool's picture and, with a
+keyboard, its key (1 to 9, then 0). Press a key or tap a slot to take that tool out, or to put it away if
+you are holding it. Every tool you have gets a slot. If the row would run into the move stick or the
+jump button it shrinks, never below a size a thumb can hit, and past that the last slot is a gold "+N"
+that opens a tray of the rest. It is hidden while any menu window is open, and back when the window closes.
+
+**Every button feels the same.** Over a button the pointer grows it a little, a press squashes it, it
+springs back and a soft click plays (nothing grows under a finger on a phone). This is one helper
+(`Juicy.juice`). It grows the button's looks, never the button, so its hit area and its neighbours stay
+where they are. The squares, the pills, the Levels pill, the missed button, Call off, the pay panel's
+Nice!, the crew invite's buttons, the Top Lawns tabs, the Contracts and Levels windows' Close buttons and
+the X of every window made with `UI.panel` have it. The hotbar slots have their own pop and click, and
+the buttons inside the shop computer's apps keep the plain kit look.
+
+**The stripe splash.** Mow a straight pass of 30 studs or more without the blade hitting anything
+(and without the mower stalling, running out of fuel or going dull) and, when the pass ends, gold
+words pop in a little above the middle of the screen and fade after a second: "NICE STRIPE!", then
+"CLEAN CUT!", then "PERFECT LINE!", in turn. It is a pat on the back and nothing more: no XP, no
+cash, nothing sent to the server. It shows at most once every 8 seconds, never over a menu, the pay
+panel or a scene. A U-turn is two passes, not one long one.
 
 ## Phases
 

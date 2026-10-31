@@ -6,8 +6,10 @@
 -- shared by every lawn, and grass grows back from it too. These take GrassController's lawn record
 -- and use its turf, shells, pps (pixels per stud), columns, rows and regrows, and keep its `cells`:
 -- the lawn's ledger as this client has it (one state per cell, see LawnGrid), so a swath never
--- paints over what the server says a cell is. Everything is in lawn-local studs, which are cells
--- too, and a picture's X and Y are the lawn's X and Z (GrassImages.worldToPixel).
+-- paints over what the server says a cell is. Every change to `cells` also sets the record's
+-- `ledgerDirty`, which GrassController clears when it tells the HUD (its LawnChanged). Everything is in
+-- lawn-local studs, which are cells too, and a picture's X and Y are the lawn's X and Z
+-- (GrassImages.worldToPixel).
 --
 -- Given the lawn art (GrassArt) the pictures hold other things. The turf image is painted over a
 -- tiling texture on its part: uncut grass is an opaque mottle sampled from the uncut texture, and
@@ -65,8 +67,10 @@ local SHADES: { [string]: Color3 } = {}
 for shade, rgb in Swath.Colors do
 	SHADES[shade] = Color3.fromRGB(rgb[1], rgb[2], rgb[3])
 end
--- The turf under uncut grass.
-local UNCUT = darken(SHADES.Flat, 0.15)
+-- The turf under uncut grass: a deep olive, well apart from every mown shade (Swath.Colors run from
+-- 90,168,58 to 134,212,87), so what's still to cut reads at a glance. It was the flat shade a little
+-- darker, which players couldn't tell from a mown stripe.
+local UNCUT = Color3.fromRGB(80, 122, 44)
 -- Cells with no grass (flower patches, tree rings): bare ground.
 local GROUND = Color3.fromRGB(92, 68, 46)
 -- The turf under each kind of cell the ledger has.
@@ -77,8 +81,9 @@ local CELL_COLORS = {
 	[LawnGrid.EMPTY] = GROUND,
 }
 -- The blades' two greens: each dot falls between them by its tone, and higher shells lean lighter.
-local BLADE_DARK = Color3.fromRGB(58, 112, 40)
-local BLADE_LIGHT = Color3.fromRGB(98, 160, 60)
+-- Blades only stand on uncut grass, so both stay darker than the darkest mown stripe.
+local BLADE_DARK = Color3.fromRGB(50, 88, 30)
+local BLADE_LIGHT = Color3.fromRGB(86, 132, 46)
 -- Over the lawn art a shell's finished tile is shaded by its height: the lowest shell shows this much
 -- of its brightness and the highest all of it, so the lower shells read darker as BLADE_DARK to
 -- BLADE_LIGHT makes the flat dots.
@@ -103,6 +108,7 @@ end
 local GrassPaint = {}
 
 GrassPaint.UNCUT = UNCUT
+GrassPaint.GROUND = GROUND
 
 -- Made the first time a lawn is drawn (see prepare): a stamp per shade, the eraser and, with the
 -- lawn art, the mottle and the tufts, and a grass tile per shell.
@@ -395,6 +401,7 @@ function GrassPaint.reset(lawn)
 		lawn.turf:DrawRectangle(Vector2.zero, lawn.turf.Size, UNCUT, 0, OVERWRITE)
 	end
 	lawn.cells = table.create(lawn.columns * lawn.rows, LawnGrid.TALL)
+	lawn.ledgerDirty = true
 end
 
 -- A dull blade's torn cut on pixels read from (left, top) of a shell: where every other
@@ -630,8 +637,9 @@ function GrassPaint.paintSwath(lawn, segment: Swath.Segment, confirmed: boolean)
 		for _, index in cutCells(lawn, segment) do
 			local state = cells[index]
 			if state == LawnGrid.TALL or state == LawnGrid.RAGGED then
-				if confirmed then
+				if confirmed and state ~= LawnGrid.RAGGED then
 					cells[index] = LawnGrid.RAGGED
+					lawn.ledgerDirty = true
 				end
 				drawCell(lawn, index, LawnGrid.RAGGED)
 			end
@@ -644,6 +652,7 @@ function GrassPaint.paintSwath(lawn, segment: Swath.Segment, confirmed: boolean)
 		for _, index in cutCells(lawn, segment) do
 			if cells[index] == LawnGrid.TALL then
 				cells[index] = LawnGrid.MOWED
+				lawn.ledgerDirty = true
 			end
 		end
 	end
@@ -680,6 +689,8 @@ function GrassPaint.redraw(lawn, cells: string, log: { { number | string | boole
 		drawCells(lawn, { [LawnGrid.TALL] = true })
 	end
 	drawCells(lawn, { [LawnGrid.EMPTY] = true, [LawnGrid.RAGGED] = true })
+	-- The ledger is the server's now (reset marked it changed, so the HUD's map hears of it).
+	lawn.ledgerReady = true
 end
 
 -- Grows cells back (the Regrow event): tall in the ledger, their grass back from the tiles and the
@@ -688,7 +699,10 @@ function GrassPaint.regrowCells(lawn, indexes: { number })
 	for _, index in indexes do
 		local state = lawn.cells[index]
 		if state ~= nil and state ~= LawnGrid.EMPTY then
-			lawn.cells[index] = LawnGrid.TALL
+			if state ~= LawnGrid.TALL then
+				lawn.cells[index] = LawnGrid.TALL
+				lawn.ledgerDirty = true
+			end
 			drawCell(lawn, index, LawnGrid.TALL)
 		end
 	end

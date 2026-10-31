@@ -16,6 +16,7 @@ local Maintenance = require(Shared.Config.Maintenance)
 local Net = require(Shared.Net)
 local Premium = require(Shared.Config.Premium)
 local Season = require(Shared.Config.Season)
+local Settings = require(Shared.Config.Settings)
 local Signal = require(Shared.Signal)
 local Storage = require(Shared.Config.Storage)
 
@@ -208,6 +209,8 @@ local MIGRATIONS = {
 local store: DataStore? = nil
 -- [Player] = { data = {...}, canSave = boolean }
 local profiles = {}
+-- [Player] = os.clock() of their last SaveSettings (a player who leaves takes their entry with them).
+local lastSettingsSave: { [Player]: number } = setmetatable({}, { __mode = "k" }) :: any
 
 local function defaultData()
 	local data = {
@@ -260,6 +263,8 @@ local function defaultData()
 		trailerUnlocked = false,
 		-- What they've bought with Robux (see Premium.luau and PremiumService)
 		premium = Premium.empty(),
+		-- Their Settings window's choices: { sound, motion, grass } (see Config/Settings.luau)
+		settings = Settings.clean(nil),
 	}
 	-- The Busy Season's fields (`earned`, `stars`, `milestones`, `levelRewards` and `firstJob`, then
 	-- `daily`, `streak` and `flags` and the `lastJudged`, `saturdays` and `offeredDay` of the contest above, see
@@ -310,6 +315,9 @@ local function reconcile(data)
 			data[key] = value
 		end
 	end
+	-- The Settings choices: an old save has none (filled above), and one that was tampered with or
+	-- holds something the window no longer offers becomes the nearest good one.
+	data.settings = Settings.clean(data.settings)
 	for key, value in Premium.empty() do
 		if data.premium[key] == nil then
 			data.premium[key] = value
@@ -531,6 +539,8 @@ local function snapshot(data)
 		daily = data.daily,
 		streak = data.streak,
 		flags = data.flags,
+		-- Their Settings window's choices (sound, camera motion, grass detail).
+		settings = data.settings,
 		owned = data.owned,
 		equipped = data.equipped,
 		loadout = data.loadout,
@@ -752,6 +762,27 @@ function DataService:Init()
 	Net.func("GetProfile").OnServerInvoke = function(player)
 		local data = self:WaitForData(player)
 		return data and snapshot(data)
+	end
+
+	-- The Settings window saves its three choices here. Only a table is taken, and only the three
+	-- known keys of it, each checked by Settings.clean (anything else is dropped or made the
+	-- default), so a tampered call can change nothing but those. Answers the saved choices, or nil
+	-- when it refuses (not a table, too soon after the last, or no save loaded yet).
+	Net.func("SaveSettings").OnServerInvoke = function(player, value)
+		local data = self:Get(player)
+		if not data then
+			return nil
+		end
+		-- Settings.admit decides: a table, not too soon after this player's last accepted save, cleaned.
+		local now = os.clock()
+		local admitted, saved = Settings.admit(value, lastSettingsSave[player], now)
+		if not admitted then
+			return nil
+		end
+		lastSettingsSave[player] = now
+		data.settings = saved
+		self:Changed(player)
+		return Settings.clean(data.settings)
 	end
 end
 

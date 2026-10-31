@@ -128,6 +128,18 @@ Each player's `premium` table is in their profile on the client.
 
 ### 4. Publish to Roblox
 
+**Publish note, the front-page HUD (read before publishing it):** the streak gift changed how the day
+turn pays. The turn now only moves the streak on and leaves the day's cash for the Gifts button
+(or for the next turn to pay), where it used to pay at once. Old and new servers running together
+across a UTC midnight can skip one day's gift and pay another twice. So publish this one with
+**"Shut down all servers"**: once the new version is live, shut down every running server (the experience's
+"Shut down all servers" action on Roblox's Creator Hub) instead of letting old ones drain on their own, and
+expect everyone in them to be disconnected once and rejoin a fresh one. Do it at a quiet time and not
+within a few minutes of 00:00 UTC, so the shutdown cannot itself straddle the day turn. The case it
+prevents is an old server saving a player after a new one did (a player hopping back to an old server),
+which would put back the gift the new one had already moved on. It also adds a top-level
+`settings` table to the save, which an old save gets from `defaultData` without a version bump.
+
 Phones only get what's been published. Publishing is one command and doesn't need Studio
 ([README.md → Publishing](README.md#publishing) has the details):
 
@@ -222,8 +234,10 @@ overhaul: what is left** and **Before release**. In order:
 - **Branches and PRs:** never commit straight to `main` for code. Make a branch, open a PR, merge
   with `--merge`. Before PRs, run `lune run scripts/check-mowing`, `lune run scripts/check-gui`,
   `lune run scripts/check-story`, `lune run scripts/check-season`, `lune run scripts/check-models`,
-  `selene src`, `stylua --check src` (`stylua src` fixes what it finds) and
-  `rojo build -o /tmp/check.rbxl`.
+  `lune run scripts/check-compile`, `selene src`, `stylua --check src` (`stylua src` fixes what it
+  finds) and `rojo build -o /tmp/check.rbxl`. `check-compile` is the only one that compiles the code:
+  selene, stylua and rojo all pass a script Roblox can't load, like a module with more than 200 locals
+  at its top level.
   When `Config/Cast.luau` changes, also run `python scripts/cast-check.py`. It asks Roblox's catalog
   about every item the cast wears, so it needs the network and isn't one of the Lune checks.
 - **Models: the manifest pipeline.** New and replaced models go through one list,
@@ -326,7 +340,7 @@ overhaul: what is left** and **Before release**. In order:
   one throws until the toggle is on: Experience Settings → Security, for a published game and for
   Studio alike. Until then, or when a phone's image memory runs out, the client draws the plain-part
   fallback instead (`GrassFallback.luau`: a flat plate with blocks of tall grass, no stripes, no
-  "Show what I missed" button) and logs one `[Grass]` warning. The game plays and finishes the same on
+  "Show uncut" button and no lawn map) and logs one `[Grass]` warning. The game plays and finishes the same on
   it, but it isn't the look to judge or screenshot, and the game must never assume the toggle is on.
   To force the fallback for a test with the toggle on, set `useFallback = true` in the local near the
   top of `GrassController.luau` (and put it back). `lune run scripts/check-mowing` is the fast check

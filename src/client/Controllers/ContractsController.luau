@@ -1,5 +1,5 @@
 -- The contracts panel: today's three contracts, the Bonus Day for doing all three, and the streak.
--- The chip under Grandma's goal opens it (HudController), and so will the mailbox at the curb: both
+-- The Contracts square on the HUD opens it (HudController), and so will the mailbox at the curb: both
 -- ask UI.open("Contracts"), so the window is made with UI.panel, the only way UI.open finds one by
 -- name. It's still a window of its own like the Levels panel, not one of the menus: it has a place
 -- and size of its own (UiLayout's ContractsPanel) and shrinks to fit the screen the way the Levels
@@ -28,10 +28,12 @@ local Format = require(Shared.Format)
 local Streak = require(Shared.Config.Streak)
 
 local ClientState = require(script.Parent.Parent.ClientState)
+local Juicy = require(script.Parent.Parent.Juicy)
 local UI = require(script.Parent.Parent.UI)
 
 -- What DailyService sends (its viewOf): the day's contracts with how far along each is, whether
--- the Bonus Day is paid, and the streak with what tomorrow pays.
+-- the Bonus Day is paid, and the streak with what tomorrow pays, whether today's gift is waiting to
+-- be claimed and what it pays.
 export type Contract = {
 	id: string,
 	kind: string,
@@ -45,7 +47,7 @@ export type View = {
 	day: string,
 	contracts: { Contract },
 	bonus: boolean,
-	streak: { days: number, last: string, next: number },
+	streak: { days: number, last: string, next: number, claimable: boolean, cash: number },
 }
 
 local ContractsController = {}
@@ -81,7 +83,8 @@ local drawnDone: { [string]: boolean } = {}
 
 -- The streak line without its label: "Day 3 of 7, next $300", and past the first week the real count
 -- beside the week's: "Day 6 of 7 (20 days in a row), next $1,000". `next` is what tomorrow pays.
--- Nothing before there's a view or a streak to show. The Levels panel's line is this one too.
+-- While today's gift waits it says so instead: "Day 3 of 7, claim $200 in Gifts". Nothing before
+-- there's a view or a streak to show. The Levels panel's line is this one too.
 function ContractsController.streakLine(view: View?): string?
 	if not view or view.streak.days < 1 then
 		return nil
@@ -89,6 +92,9 @@ function ContractsController.streakLine(view: View?): string?
 	local line = Streak.text(view.streak.days)
 	if view.streak.days > #Streak.Rewards then
 		line ..= ` ({view.streak.days} days in a row)`
+	end
+	if view.streak.claimable then
+		return `{line}, claim {Format.money(view.streak.cash)} in Gifts`
 	end
 	return `{line}, next {Format.money(view.streak.next)}`
 end
@@ -315,16 +321,16 @@ local function build()
 		Parent = streakCard,
 	})
 	UI.new("UITextSizeConstraint", { MaxTextSize = 17, MinTextSize = 11, Parent = streakLabel })
-	UI.button("Close", close, {
+	Juicy.juice(UI.button("Close", close, {
 		Name = "CloseButton",
 		Size = UDim2.new(1, 0, 0, 40),
 		TextSize = 20,
 		LayoutOrder = 5,
 		Parent = content,
-	})
+	}))
 end
 
--- It's been opened (by name, with UI.open, or from the chip): drawn fresh and fitted, unless it
+-- It's been opened (by name, with UI.open, or from the Contracts square): drawn fresh and fitted, unless it
 -- has no room, inside the shop computer's screen or while a scene has the game's.
 local function onVisible()
 	if not panel.Visible then

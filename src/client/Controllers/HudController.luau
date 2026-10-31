@@ -1,28 +1,57 @@
 -- Always-on screen stuff, laid out like the art's HUD (alphainstructions/instructions38.md):
---   * down the left: money and level (the money counter in the display face; the level line and
---     its XP bar are one button that opens the Levels panel, LevelsController, with a gold star
---     beside the level once you have the gold business sign), the menu buttons with their glyphs
---     (and on a keyboard their keys: T, G, C), Grandma's sticky note with your story goal and,
---     under it, the goals rail: your next two milestones, then the contracts chip ("Contracts 1/3":
---     how many of today's three are done, which opens the contracts panel, ContractsController);
+--   * down the left: the money pill (a gold coin and the money counter in the display face, which
+--     counts up when money comes in), under it the level pill (a star, "LVL 3" and the XP bar, one
+--     button that opens the Levels panel, LevelsController, with the star gold once you have the gold
+--     business sign) beside the streak pill ("DAY 3", once there is a streak), the judging day
+--     countdown pill (once judging day is on the calendar), the four menu squares (Truck, Guide,
+--     Crew and Contracts: glossy colour squares with their glyphs and names under them, and on a
+--     keyboard their keys, T, G, C, on a corner; a column on a PC and a 2x2 grid on a phone; the
+--     Contracts one opens the contracts panel, ContractsController, and a yellow badge on it counts
+--     the contracts left today);
+--   * at the top in the middle, on every screen: Grandma's goal, a cream banner with a red flag, your
+--     story goal, its reward when it has one and a striped bar, and under it, in the cream, the goals
+--     rail: your next two milestones (the first-job coach and a crew invite take its spot in turn);
 --   * down the right: your business's curb appeal, on a phone the Next chip (the next milestone,
---     where the rail has no room), the job tracker on the art's GoalTracker card (to-dos, a timer
---     against par, damage), smaller on a phone, and under it, late in the mowing, the button that
---     lights up the grass you missed (M on a keyboard);
+--     where the rail has no room), the job tracker on a dark glass card (the job's name in gold with
+--     its stars once it is paid, a big timer with par, to-dos, damage and a Call off pill), smaller on
+--     a phone, under it the boost pills (Crew, Curb, Truck and Business pay bonuses, while they
+--     are above zero), under those the lawn map (a top-down picture of the job's lawn, cut and uncut, where
+--     there's room), and under that, while the mowing is under way, the button that lights up the grass
+--     still to cut ("Show uncut", "Missed spots" from 90%; M on a keyboard; once every 6 seconds);
+--   * down the right edge, outside that column: the right buttons, glossy squares for the Shop (the
+--     Orders window, from anywhere: B on a keyboard), Gifts (claims the day's streak gift, ClaimStreak,
+--     with a tilted CLAIM tag and a pulse while one waits; with none, the contracts panel), Top Lawns
+--     (the two leaderboards, TopLawnsController: F) and Settings (comma): faces 76 px with their names
+--     under them on a PC, 56 px and bare on a phone or a short screen (the column moves in to clear
+--     them, UiLayout's RightColumn);
 --   * the condition of the tool in your hands, a glyph for each thing wrong ("Running low on
 --     fuel" by the fuel can), or what you're doing to one at the workbench;
 --   * the pay breakdown when a job's done, and the big moments: Level Up! (when the server says
 --     what the level paid, LevelReward), New Tool!, and a Payday for the Bonus Day (BonusDay) and
---     for each day the streak grows (StreakAdvanced);
+--     for each day's gift claimed (StreakAdvanced), and a toast for an unclaimed gift the day turn
+--     paid (StreakGiftPaid);
+--   * a clean stripe (GrassController.StripDone: a mower pass of 30 studs or more with no blade hit) is
+--     cheered in the middle of the screen by a tilted gold NICE STRIPE! (or CLEAN CUT!, PERFECT LINE! in
+--     turn), at most once every 8 seconds and never over a menu, the pay panel or a scene: cosmetic, it
+--     pays nothing and tells the server nothing;
 --   * cash and XP coming in lift off the piece of the HUD they came from (FloatingText) and ring
---     (Sounds.playUi): the pay panel's total and tip, a goal's row or the Next chip, the contracts
---     chip (ContractDone), the money counter (the streak's day), the level line and the XP bar.
--- On a keyboard V switches camera motion on and off. Where each piece goes is in UiLayout.luau,
--- which can also take any of the columns' pieces out of its column to go anywhere on the screen.
+--     (Sounds.playUi): the pay panel's total and tip, a goal's row or the Next chip, the Contracts
+--     square (ContractDone), the money counter (the streak's gift), the level pill and the XP bar.
+-- On a keyboard V switches camera motion on and off (saved, through SettingsController). Where each
+-- piece goes is in UiLayout.luau, which can also take any of the columns' pieces out of its column to go
+-- anywhere on the screen. This file builds the HUD and keeps it up to date; the front-page pieces are
+-- drawn in their own modules in src/client/Hud (a module's top level holds at most 200 locals, and one
+-- file had hit that): Columns (the two columns and their placing and fitting rules), Bits (the framed
+-- bar and corner key badge they share), StatPills (the money, level, streak and countdown pills),
+-- MenuSquares (the four left squares and the Contracts badge), RightStrip (Shop, Gifts, Top Lawns and
+-- Settings), JobCard (the job card and the boost pills), LawnMap (the lawn map under them) and Splash
+-- (the clean-stripe cheer). Grandma's goal banner, the goals rail, curb appeal, the tool's condition, the
+-- pay breakdown and the big moments are drawn here.
 
 local Players = game:GetService("Players")
 local ProximityPromptService = game:GetService("ProximityPromptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TextService = game:GetService("TextService")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
@@ -39,32 +68,28 @@ local Sounds = require(Shared.Sounds)
 local Streak = require(Shared.Config.Streak)
 local Tools = require(Shared.Config.Tools)
 
-local Art = require(script.Parent.Parent.Art)
 local ClientState = require(script.Parent.Parent.ClientState)
 local FloatingText = require(script.Parent.Parent.FloatingText)
 local Goal = require(script.Parent.Parent.Goal)
+local Juicy = require(script.Parent.Parent.Juicy)
 local UI = require(script.Parent.Parent.UI)
 local CameraController = require(script.Parent.CameraController)
 local GrassController = require(script.Parent.GrassController)
-local LevelsController = require(script.Parent.LevelsController)
+local SettingsController = require(script.Parent.SettingsController)
+local Hud = script.Parent.Parent.Hud
+local Bits = require(Hud.Bits)
+local Columns = require(Hud.Columns)
+local JobCard = require(Hud.JobCard)
+local MenuSquares = require(Hud.MenuSquares)
+local RightStrip = require(Hud.RightStrip)
+local Splash = require(Hud.Splash)
+local StatPills = require(Hud.StatPills)
 
 local player = Players.LocalPlayer
 
--- The menu buttons down the left, their glyphs, the key that opens each one, and its button's
--- place in UiLayout.luau. Jobs and orders are on the computer in your shop (see
--- ComputerController).
-local MENUS = {
-	{ name = "Truck", key = Enum.KeyCode.T, layout = "TruckButton" },
-	{ name = "Guide", key = Enum.KeyCode.G, layout = "GuideButton" },
-	{ name = "Crew", key = Enum.KeyCode.C, layout = "CrewButton" },
-}
 local MOTION_KEY = Enum.KeyCode.V
--- The key for the "Show what I missed" button (see buildMissedButton).
+-- The key for the uncut glow's "Show uncut" button (see buildMissedButton).
 local MISSED_KEY = Enum.KeyCode.M
--- A finished mowing row gets a stamp over it (the art's "Job Complete!", the only stamp that says
--- done), this tall, with this many sparkles round it.
-local DONE_STAMP_HEIGHT = 40
-local DONE_SPARKLES = 5
 -- The goals rail under the story goal: this many milestones, each in a row this tall (its words over
 -- a thin bar). A milestone just reached stays on its row, done, under a stamp this tall, for
 -- RAIL_HOLD seconds before the rail moves on to the next.
@@ -84,44 +109,39 @@ local STAR_STEP = 0.35
 local STAR_VOLUME = 0.35
 -- The cash pops on the pay panel come this long after it opens, once it has been laid out and
 -- scaled to fit (where its total and tip are is only known then); its chime doesn't wait. The
--- tip's and the XP's are this many pixels tall, under the cash's.
+-- tip's is Bits.SMALL_POP pixels tall, under the cash's.
 local PAY_POP_DELAY = 0.25
-local SMALL_POP = 16
 -- A level's cash lifts off the level line this long after the level-up arrives, so it doesn't ride
 -- the XP pop off the bar just under it (and lines up with the Level Up moment).
 local LEVEL_POP_DELAY = 0.3
 -- Contracts paid in the same moment (one job can meet two) ring and pop this far apart, and the Bonus
 -- Day after them, so each one is heard and seen on its own and the payoff comes last.
 local CONTRACT_GAP = 0.6
--- The columns down each side are full size on screens at least `fullHeight` tall (in pixels), and
--- shrink on shorter ones (phones held sideways), down to `minScale`, or further (to `tightScale`)
--- if that's what it takes to fit everything in a column on the screen. A piece taken out of its
--- column shrinks the same way on its own.
-local COLUMNS = UI.Layout.__screen.scaling.Columns
 -- Room for the key badge at the left of a menu button.
 local KEY_ROOM = 46
--- The gold star beside the level (once the business has its gold sign) takes this much of the level
--- line's width, which is its own size and the gap.
-local GOLD_STAMP_ROOM = 18
--- On a short screen the job tracker's timer goes beside the job's name, in a box this wide.
-local COMPACT_TIMER = 112
+-- The countdown is worked out again this often (seconds): it counts down in hours.
+local COUNTDOWN_REFRESH = 60
+local WHITE = Color3.new(1, 1, 1)
+-- Grandma's goal banner: how round its cream face is, the red flag circle at its left, and the room
+-- at the right of its bar for the words that say how far along it is ("$66 / $150").
+local GOAL_RADIUS = 22
+local GOAL_FLAG = 34
+local GOAL_VALUE_ROOM = 104
+local FLAG_RED = Color3.fromHex("FF5A5F")
+-- The track of the banner's bar.
+local TRACK_CREAM = Color3.fromHex("D9D2BC")
 
 local HudController = {}
 
-local money
-local levelLabel: TextLabel
--- How far in from the left the level line starts (room for its glyph, when there's art for one).
-local levelLabelLeft = 0
-local goldStamp: TextLabel
-local xpBar: UI.Bar
--- The XP the last profile had (nil before the first), so a rise can be shown as "+40 XP".
-local lastXp: number? = nil
 local curbPanel: GuiObject
 local curbValue: TextLabel
 local curbBar: UI.Bar
 
+-- Grandma's goal banner, its words, the reward at their right (only for a goal that has one), the
+-- words that say how far along it is, and its bar.
 local goalNote: GuiObject
 local goalText: TextLabel
+local goalReward: TextLabel
 local goalValue: TextLabel
 local goalBar: UI.Bar
 
@@ -142,9 +162,6 @@ local nextChip: GuiObject
 local nextChipLabel: TextLabel
 local chipStamp: UI.Stamp?
 local chipHeld: Milestone?
--- The contracts chip under Grandma's goal and its words.
-local contractsChip: GuiObject
-local contractsChipLabel: TextLabel
 -- Milestones MilestoneReached has said are reached that the profile doesn't have yet. The server
 -- sends the profile first, so this is normally empty; it keeps a late profile from drawing a
 -- reached milestone as still to do.
@@ -156,33 +173,6 @@ local leftRail: { [string]: number } = {}
 -- Whether the rail was last drawn for a short screen, so a window turning short or tall redraws it.
 local railCompact: boolean? = nil
 
-local tracker: GuiObject
-local trackerPadding: UIPadding
-local trackerLayout: UIListLayout
-local trackerHeader: Frame
-local trackerTitle: TextLabel
-local trackerHint: TextLabel
-local timerRow: Frame
-local timer
-local damageRow: Frame
-local damageLabel: TextLabel
-local taskList: Frame
-local taskLayout: UIListLayout
-local trackerButton: TextButton
-local taskRows = {}
-local shownJobId = nil
--- The tracker on a short screen (layoutTracker): the timer beside the job's name, and the damage
--- and a small call-off button sharing a row at the bottom.
-local trackerCompact = false
-local compactTimer
-local compactFooter: Frame
-local compactDamage: TextLabel
-local compactButton: TextButton
--- What the tracker shows for the job, whichever way it's laid out: the timer and damage (while
--- you work), the damage so far, and whether there's a button to call the job off.
-local trackerTimed = false
-local trackerPenalty = 0
-local callOffShown = false
 local conditionPanel: GuiObject
 -- The chips on it, one for each thing wrong (a glyph and its words), made as they're needed and
 -- then reused.
@@ -319,171 +309,10 @@ local function buildCondition()
 	})
 end
 
--- The columns down each side -------------------------------------------------------------------
-
--- How tall the game's own screen is (the camera's view, until the screen has a size).
-local function screenHeight(): number
-	local height = UI.getScreen().AbsoluteSize.Y
-	if height <= 0 then
-		local camera = workspace.CurrentCamera
-		height = if camera then camera.ViewportSize.Y else COLUMNS.fullHeight
-	end
-	return height
-end
-
--- A screen too short for the HUD at full size, like a phone held sideways: curb appeal hides there
--- during a job, and the job tracker is laid out small, so the tracker and the phone buttons fit.
-local function shortScreen(): boolean
-	return screenHeight() < COLUMNS.fullHeight
-end
-
--- Scales a column, or a piece taken out of one, to fit (UiLayout's __screen.scaling.Columns): full
--- size on a tall screen, smaller on a short one, and smaller still if it wouldn't otherwise fit in
--- the screen's height less a margin, a bigger one on a touch screen so it ends above Roblox's move
--- stick and jump button. Its own scale (UiLayout's `scale`) multiplies into that.
-local function fitColumn(gui: GuiObject, id: string)
-	local scale = UI.scaler(gui)
-	local margin = if UI.isTouch() then COLUMNS.touchMargin else COLUMNS.margin
-	local function fit()
-		local height = screenHeight()
-		local wanted = math.clamp(height / COLUMNS.fullHeight, COLUMNS.minScale, 1)
-		-- Its own height, before scaling.
-		local content = gui.AbsoluteSize.Y / math.max(scale.Scale, 0.01)
-		if content > 0 then
-			wanted = math.min(wanted, math.max(COLUMNS.tightScale, (height - margin) / content))
-		end
-		wanted *= UI.layout(id).scale
-		if math.abs(scale.Scale - wanted) > 0.005 then
-			scale.Scale = wanted
-		end
-	end
-	UI.getScreen():GetPropertyChangedSignal("AbsoluteSize"):Connect(fit)
-	gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(fit)
-	fit()
-end
-
--- The two columns, by their names in UiLayout.
-local columns: { [string]: Frame } = {}
-
--- The money and level panel, the menu buttons and the goal stack in one column down the left, so
--- they can't run into each other on a short screen (a phone held sideways), and it shrinks to fit.
-local function buildColumns()
-	local side = UI.new("Frame", { Name = "Side", BackgroundTransparency = 1, Parent = UI.getScreen() })
-	UI.keepPlaced(side, "LeftColumn")
-	fitColumn(side, "LeftColumn")
-	columns.LeftColumn = side
-
-	-- Curb appeal and the job tracker down the right. It scales from its top right corner, so it
-	-- stays in the corner.
-	local right = UI.new("Frame", { Name = "Right", BackgroundTransparency = 1, Parent = UI.getScreen() })
-	UI.keepPlaced(right, "RightColumn")
-	fitColumn(right, "RightColumn")
-	columns.RightColumn = right
-end
-
--- Puts one of the columns' pieces (its UiLayout entry's `detach` says which column it belongs in)
--- where its entry says: in that column while the entry has it as its `parent`, or otherwise on
--- the game's own screen on its own, where it shrinks to fit by the columns' rule, so on a phone it's
--- the size it would be in the column.
-local function placeInColumn(gui: GuiObject, id: string)
-	local column = columns[UI.layout(id).parent or ""]
-	gui.Parent = column or UI.getScreen()
-	UI.keepPlaced(gui, id)
-	if not column then
-		fitColumn(gui, id)
-	end
-end
-
--- Low and wide, so it takes little of a short screen's height: the money, then your level and jobs
--- done, then the XP bar, close together.
-local function buildStats()
-	local frame = hudPanel({ Name = "Stats" })
-	placeInColumn(frame, "MoneyPanel")
-	UI.new("UIPadding", {
-		PaddingTop = UDim.new(0, 6),
-		PaddingBottom = UDim.new(0, 7),
-		PaddingLeft = UDim.new(0, 10),
-		PaddingRight = UDim.new(0, 10),
-		Parent = frame,
-	})
-	local moneyIcon = UI.icon(
-		"Money",
-		{ Size = UDim2.fromOffset(24, 24), Position = UDim2.fromOffset(0, 2), Parent = frame },
-		UI.Colors.Money
-	)
-	local moneyX = if moneyIcon then 32 else 0
-	money = UI.display(
-		"Numbers",
-		"$0",
-		{ TextSize = 26, Color = UI.Colors.Money, Fit = true },
-		{ Position = UDim2.fromOffset(moneyX, 0), Size = UDim2.new(1, -moneyX, 0, 28), Parent = frame }
-	)
-	local levelIcon =
-		UI.icon("Level", { Size = UDim2.fromOffset(14, 14), Position = UDim2.fromOffset(2, 32), Parent = frame })
-	local levelX = if levelIcon then 22 else 0
-	levelLabelLeft = levelX
-	levelLabel = UI.label("Level 1", {
-		Position = UDim2.fromOffset(levelX, 30),
-		Size = UDim2.new(1, -levelX, 0, 18),
-		TextScaled = true,
-		TextColor3 = UI.Colors.Text,
-		Parent = frame,
-	})
-	UI.new("UITextSizeConstraint", { MaxTextSize = 15, Parent = levelLabel })
-	xpBar = UI.bar({
-		Position = UDim2.fromOffset(levelX, 51),
-		Size = UDim2.new(1, -levelX, 0, 8),
-		Parent = frame,
-	})
-	-- The small gold stamp for the business's gold sign (the GoldSign attribute, updateGoldSign), at
-	-- the end of the level line. No icon is drawn for it yet, so it's a gold star like the job board's.
-	goldStamp = UI.label("★", {
-		Name = "GoldStamp",
-		AnchorPoint = Vector2.new(1, 0),
-		Position = UDim2.new(1, 0, 0, 30),
-		Size = UDim2.fromOffset(16, 18),
-		TextSize = 14,
-		TextColor3 = UI.Colors.Gold,
-		TextXAlignment = Enum.TextXAlignment.Center,
-		Visible = false,
-		Parent = frame,
-	})
-	-- The level line and the XP bar are one button that opens the Levels panel. It's invisible, but
-	-- tall enough to tap on a phone (the bar alone is 8 px), and washes faintly under the mouse.
-	local levelsButton = UI.new("TextButton", {
-		Name = "LevelsButton",
-		Text = "",
-		AutoButtonColor = false,
-		BackgroundColor3 = UI.Colors.Text,
-		BackgroundTransparency = 1,
-		Position = UDim2.fromOffset(-6, 27),
-		Size = UDim2.new(1, 12, 0, 36),
-		ZIndex = 2,
-		Parent = frame,
-	}, { UI.corner(6) })
-	levelsButton.Activated:Connect(LevelsController.toggle)
-	if UserInputService.MouseEnabled then
-		levelsButton.MouseEnter:Connect(function()
-			levelsButton.BackgroundTransparency = 0.9
-		end)
-		levelsButton.MouseLeave:Connect(function()
-			levelsButton.BackgroundTransparency = 1
-		end)
-	end
-end
-
--- Shows the gold stamp beside the level while the player has the gold business sign (the server
--- sets GoldSign at level 20), and makes room for it on the level line.
-local function updateGoldSign()
-	local gold = player:GetAttribute("GoldSign") == true
-	goldStamp.Visible = gold
-	levelLabel.Size = UDim2.new(1, -levelLabelLeft - (if gold then GOLD_STAMP_ROOM else 0), 0, 18)
-end
-
 -- Your crew's business's curb appeal (see HomeLawnService), which pays a bonus on jobs.
 local function buildCurbAppeal()
 	curbPanel = hudPanel({ Name = "CurbAppeal", Visible = false })
-	placeInColumn(curbPanel, "CurbAppeal")
+	Columns.placeInColumn(curbPanel, "CurbAppeal")
 	UI.padding(10).Parent = curbPanel
 	local icon = UI.icon(
 		"CurbAppeal",
@@ -514,7 +343,7 @@ local function updateCurbAppeal()
 	local value = owner and owner:GetAttribute("CurbAppeal")
 	-- On a short screen (a phone) the job tracker needs the room while a job's on, wherever the two
 	-- are placed.
-	curbPanel.Visible = typeof(value) == "number" and not (shortScreen() and tracker.Visible)
+	curbPanel.Visible = typeof(value) == "number" and not (Columns.shortScreen() and JobCard.isShown())
 	if typeof(value) == "number" then
 		curbValue.Text = `{value} / 100`
 		curbBar.set(value / 100)
@@ -546,87 +375,151 @@ local function addKeyBadge(button: TextButton, key: Enum.KeyCode)
 	end
 end
 
-local function buildMenuButtons()
-	local frame = UI.new("Frame", { Name = "Menu", BackgroundTransparency = 1 })
-	placeInColumn(frame, "MenuButtons")
-
-	for _, menu in MENUS do
-		local button = UI.button(menu.name, function()
-			UI.toggle(menu.name)
-		end, {
-			Style = "Menu",
-			Icon = menu.name,
-			TextXAlignment = Enum.TextXAlignment.Left,
-			Parent = frame,
-		})
-		UI.keepPlaced(button, menu.layout)
-		addKeyBadge(button, menu.key)
-	end
-	if UserInputService.KeyboardEnabled then
-		-- The mouse is locked to the middle of the screen in first person.
-		local hint = UI.label("Hold Alt for the mouse", {
-			TextSize = 13,
-			FontFace = UI.Fonts.Medium,
-			TextColor3 = UI.Colors.SubText,
-			TextStrokeTransparency = 0.6,
-			Parent = frame,
-		})
-		UI.keepPlaced(hint, "MouseHint")
-	end
+-- Changes what a right button does ("Gifts" or "Settings", or any of the four by its id), so the task
+-- that wires it up needs no new button (RightStrip keeps the buttons and what they do).
+function HudController.setRightAction(id: string, action: () -> ())
+	RightStrip.setRightAction(id, action)
 end
 
--- Grandma's sticky note: your story goal, and how close you are.
+-- Grandma's goal: a cream banner at the top in the middle of the screen (UiLayout's GrandmaGoal), a red
+-- flag, your story goal in a line or two, what finishing it pays when it pays something, and a bar
+-- for how close you are, and under that the goals rail's rows. The banner is a Juicy cream face
+-- whose holder grows with the words: the holder is the piece UiLayout places, the Face behind and the
+-- Lip under it are as tall as it, and the words sit in a Body beside them that sets the height.
 local function buildGoal()
-	goalNote = UI.sliced("StickyNote", {
-		Name = "Goal",
-		Visible = false,
-	}, { color = UI.Colors.Grandma, radius = 6 })
-	placeInColumn(goalNote, "GrandmaGoal")
-	UI.new("UIPadding", {
-		PaddingTop = UDim.new(0, 10),
-		PaddingBottom = UDim.new(0, 12),
-		PaddingLeft = UDim.new(0, 12),
-		PaddingRight = UDim.new(0, 14),
-		Parent = goalNote,
-	})
-	UI.list(4).Parent = goalNote
-	local header = UI.new("Frame", {
-		Size = UDim2.new(1, 0, 0, 22),
+	goalNote = Juicy.face("Cream", { Name = "Goal", Radius = GOAL_RADIUS, Visible = false })
+	Columns.placeInColumn(goalNote, "GrandmaGoal")
+	local body = UI.new("Frame", {
+		Name = "Body",
 		BackgroundTransparency = 1,
-		LayoutOrder = 1,
-		Parent = goalNote,
-	})
-	local flag = UI.icon("Goal", { Size = UDim2.fromOffset(20, 20), Parent = header }, UI.Colors.Ink)
-	local x = if flag then 26 else 0
-	UI.heading("GRANDMA'S GOAL", {
-		Position = UDim2.fromOffset(x, 0),
-		Size = UDim2.new(1, -x, 1, 0),
-		TextSize = 18,
-		TextColor3 = UI.Colors.Ink,
-		Parent = header,
-	})
-	goalText = UI.label("", {
+		BorderSizePixel = 0,
 		Size = UDim2.fromScale(1, 0),
 		AutomaticSize = Enum.AutomaticSize.Y,
-		TextWrapped = true,
-		TextSize = 16,
-		FontFace = UI.Fonts.Bold,
-		TextColor3 = UI.Colors.Ink,
+		ZIndex = 5,
+		Parent = goalNote,
+	})
+	UI.new("UIPadding", {
+		PaddingTop = UDim.new(0, 9),
+		PaddingBottom = UDim.new(0, 11),
+		PaddingLeft = UDim.new(0, 10),
+		PaddingRight = UDim.new(0, 14),
+		Parent = body,
+	})
+	UI.list(5).Parent = body
+
+	-- The flag and the goal's column side by side, the flag in the middle of the column's height.
+	local main = UI.new("Frame", {
+		Name = "Main",
+		BackgroundTransparency = 1,
+		Size = UDim2.fromScale(1, 0),
+		AutomaticSize = Enum.AutomaticSize.Y,
+		LayoutOrder = 1,
+		Parent = body,
+	})
+	UI.new("UIListLayout", {
+		FillDirection = Enum.FillDirection.Horizontal,
+		SortOrder = Enum.SortOrder.LayoutOrder,
+		VerticalAlignment = Enum.VerticalAlignment.Center,
+		Padding = UDim.new(0, 10),
+		Parent = main,
+	})
+	local flag = UI.new("Frame", {
+		Name = "Flag",
+		BackgroundColor3 = FLAG_RED,
+		BorderSizePixel = 0,
+		Size = UDim2.fromOffset(GOAL_FLAG, GOAL_FLAG),
+		LayoutOrder = 1,
+		Parent = main,
+	}, {
+		UI.corner(GOAL_FLAG / 2),
+		UI.new("UIStroke", {
+			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+			Color = Juicy.Palette.Ink,
+			Thickness = 3,
+		}),
+	})
+	local glyph = UI.icon("Goal", {
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.5),
+		Size = UDim2.fromOffset(18, 18),
+		Parent = flag,
+	}, WHITE)
+	if not glyph then
+		Juicy.text("!", { Size = UDim2.fromScale(1, 1), TextSize = 20, Parent = flag }, 0)
+	end
+	local column = UI.new("Frame", {
+		Name = "Column",
+		BackgroundTransparency = 1,
+		Size = UDim2.new(1, -(GOAL_FLAG + 10), 0, 0),
+		AutomaticSize = Enum.AutomaticSize.Y,
 		LayoutOrder = 2,
-		Parent = goalNote,
+		Parent = main,
 	})
-	goalValue = UI.label("", {
-		Size = UDim2.new(1, 0, 0, 22),
+	UI.list(4).Parent = column
+
+	-- The goal's words (they wrap) with the reward at the right while there is one: updateGoal gives the
+	-- words the room it takes.
+	local titleRow = UI.new("Frame", {
+		Name = "Title",
+		BackgroundTransparency = 1,
+		Size = UDim2.fromScale(1, 0),
+		AutomaticSize = Enum.AutomaticSize.Y,
+		LayoutOrder = 1,
+		Parent = column,
+	})
+	goalText = Juicy.text("", {
+		Name = "Words",
+		Size = UDim2.new(1, 0, 0, 24),
+		AutomaticSize = Enum.AutomaticSize.Y,
+		TextColor3 = Juicy.Palette.Ink,
 		TextSize = 19,
-		FontFace = UI.Fonts.Heavy,
-		TextColor3 = UI.Colors.Ink,
-		LayoutOrder = 3,
-		Parent = goalNote,
+		TextWrapped = true,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		Parent = titleRow,
+	}, 0)
+	goalReward = Juicy.text("", {
+		Name = "Reward",
+		AnchorPoint = Vector2.new(1, 0),
+		Position = UDim2.fromScale(1, 0),
+		Size = UDim2.fromOffset(0, 24),
+		TextColor3 = Juicy.Palette.Money.bottom,
+		TextSize = 14,
+		TextXAlignment = Enum.TextXAlignment.Right,
+		Visible = false,
+		Parent = titleRow,
+	}, 0)
+
+	-- The bar, and at its right how far along it is in words ("$66 / $150"). A goal with a button (the
+	-- contest's) has no bar: its line, which says what to do on the computer, takes the whole row.
+	local barRow = UI.new("Frame", {
+		Name = "Progress",
+		BackgroundTransparency = 1,
+		Size = UDim2.new(1, 0, 0, 20),
+		LayoutOrder = 2,
+		Parent = column,
 	})
-	goalBar = UI.bar({ Size = UDim2.new(1, 0, 0, 10), LayoutOrder = 4, Parent = goalNote })
-	-- The goals rail under the bar (updateMilestones fills it in): a row for each milestone, one line
-	-- of words (they shrink to fit it, up to 15 px) over a thin bar. A row has no list in it, so its
-	-- stamp and sparkles go where they're put.
+	goalBar = Bits.framedBar({
+		AnchorPoint = Vector2.new(0, 0.5),
+		Position = UDim2.fromScale(0, 0.5),
+		Size = UDim2.new(1, -GOAL_VALUE_ROOM, 0, Bits.BAR_HEIGHT),
+		Parent = barRow,
+	}, "Grass", TRACK_CREAM)
+	goalValue = Juicy.text("", {
+		Name = "Value",
+		AnchorPoint = Vector2.new(1, 0.5),
+		Position = UDim2.fromScale(1, 0.5),
+		Size = UDim2.new(0, GOAL_VALUE_ROOM - 10, 1, 0),
+		TextColor3 = Juicy.Palette.Ink,
+		TextSize = 14,
+		TextScaled = true,
+		TextXAlignment = Enum.TextXAlignment.Right,
+		Parent = barRow,
+	}, 0)
+	UI.new("UITextSizeConstraint", { MaxTextSize = 14, MinTextSize = 9, Parent = goalValue })
+
+	-- The goals rail under that, in the cream (updateMilestones fills it in): a row for each milestone,
+	-- one line of words (they shrink to fit it, up to 15 px) over a thin bar. A row has no list in it, so
+	-- its stamp and sparkles go where they're put.
 	for index = 1, RAIL_ROWS do
 		local frame = UI.new("Frame", {
 			Name = `Milestone{index}`,
@@ -634,22 +527,22 @@ local function buildGoal()
 			BackgroundTransparency = 1,
 			Visible = false,
 			LayoutOrder = 4 + index,
-			Parent = goalNote,
+			Parent = body,
 		})
 		local label = UI.label("", {
 			Position = UDim2.fromOffset(0, 6),
 			Size = UDim2.new(1, 0, 0, 18),
 			TextScaled = true,
 			TextSize = 15,
-			FontFace = UI.Fonts.Bold,
-			TextColor3 = UI.Colors.Ink,
+			FontFace = Juicy.Font,
+			TextColor3 = Juicy.Palette.Ink,
 			Parent = frame,
 		})
 		UI.new("UITextSizeConstraint", { MaxTextSize = 15, MinTextSize = 10, Parent = label })
 		local bar = UI.bar({ Position = UDim2.fromOffset(0, 26), Size = UDim2.new(1, 0, 0, 6), Parent = frame })
 		railRows[index] = { frame = frame, label = label, bar = bar }
 	end
-	-- Out of its column at the top of the screen (on a touch screen), the toasts keep below it.
+	-- At the top of the screen, in the toasts' way: they keep below it.
 	UI.keepToastsBelow(goalNote)
 end
 
@@ -661,7 +554,7 @@ local function buildNextChip()
 		Name = "NextChip",
 		Visible = false,
 	}, { color = UI.Colors.Background, transparency = 0.25, radius = 8 })
-	placeInColumn(nextChip, "NextChip")
+	Columns.placeInColumn(nextChip, "NextChip")
 	UI.new("UIPadding", {
 		PaddingLeft = UDim.new(0, 10),
 		PaddingRight = UDim.new(0, 10),
@@ -675,73 +568,6 @@ local function buildNextChip()
 		Parent = nextChip,
 	})
 	UI.new("UITextSizeConstraint", { MaxTextSize = 14, MinTextSize = 10, Parent = nextChipLabel })
-end
-
--- The contracts chip: how many of today's contracts are done ("Contracts 1/3") in the left column,
--- under Grandma's goal. Unlike the Next chip it shows on every screen, tall or short, and nothing
--- hides it, a job included. It's a button too: tapping it opens the contracts panel
--- (ContractsController), or closes it if it's open.
-local function buildContractsChip()
-	contractsChip = UI.sliced("Tooltip", {
-		Name = "ContractsChip",
-		Visible = false,
-	}, { color = UI.Colors.Background, transparency = 0.25, radius = 8 })
-	placeInColumn(contractsChip, "ContractsChip")
-	UI.new("UIPadding", {
-		PaddingLeft = UDim.new(0, 10),
-		PaddingRight = UDim.new(0, 10),
-		Parent = contractsChip,
-	})
-	contractsChipLabel = UI.label("", {
-		Size = UDim2.fromScale(1, 1),
-		TextScaled = true,
-		TextSize = 14,
-		TextXAlignment = Enum.TextXAlignment.Center,
-		Parent = contractsChip,
-	})
-	UI.new("UITextSizeConstraint", { MaxTextSize = 14, MinTextSize = 10, Parent = contractsChipLabel })
-	-- The whole chip is the button (past the padding, which only keeps the words in), and it washes
-	-- faintly under the mouse like the level line's.
-	local button = UI.new("TextButton", {
-		Name = "ContractsButton",
-		Text = "",
-		AutoButtonColor = false,
-		BackgroundColor3 = UI.Colors.Text,
-		BackgroundTransparency = 1,
-		Position = UDim2.fromOffset(-10, 0),
-		Size = UDim2.new(1, 20, 1, 0),
-		ZIndex = 2,
-		Parent = contractsChip,
-	}, { UI.corner(8) })
-	button.Activated:Connect(function()
-		UI.toggle("Contracts")
-	end)
-	if UserInputService.MouseEnabled then
-		button.MouseEnter:Connect(function()
-			button.BackgroundTransparency = 0.9
-		end)
-		button.MouseLeave:Connect(function()
-			button.BackgroundTransparency = 1
-		end)
-	end
-end
-
--- The chip's words from the day's view (ClientState.contracts): the contracts done out of the day's
--- three. It's hidden until the server has sent the day's contracts.
-local function updateContractsChip()
-	local view = ClientState.contracts
-	local total = if view then #view.contracts else 0
-	contractsChip.Visible = total > 0
-	if not view or total == 0 then
-		return
-	end
-	local done = 0
-	for _, contract in view.contracts do
-		if contract.done then
-			done += 1
-		end
-	end
-	contractsChipLabel.Text = `Contracts {done}/{total}`
 end
 
 -- The `count` milestones nearest to done, never one MilestoneReached has said is reached, which a
@@ -773,7 +599,7 @@ end
 -- instead, whenever there's a milestone left. A row that's celebrating keeps its milestone, and
 -- the rows after it take the next ones.
 local function updateMilestones()
-	local compact = shortScreen()
+	local compact = Columns.shortScreen()
 	railCompact = compact
 	local profile = ClientState.profile
 	local reached = if profile and profile.milestones then profile.milestones else {}
@@ -835,7 +661,7 @@ end
 -- redraws. Returns what the stamp landed on (the row's frame, or the chip), or nil where it landed
 -- on nothing.
 local function celebrateMilestone(milestone: Milestone): GuiObject?
-	if shortScreen() then
+	if Columns.shortScreen() then
 		chipHeld = milestone
 		local stamp = chipStamp or UI.stampText(nextChip, "DONE", RAIL_STAMP_HEIGHT)
 		chipStamp = stamp
@@ -903,60 +729,99 @@ local function onMilestoneReached(info: { id: string, text: string, cash: number
 	if info.cash > 0 then
 		local cash = `+{Format.money(info.cash)}`
 		if not (on and FloatingText.show(on, cash)) then
-			FloatingText.show(money.Frame, cash)
+			FloatingText.show(StatPills.moneyFrame(), cash)
 		end
 	end
 	updateMilestones()
 end
 
+-- What finishing `goal` pays, in words ("+$60 · 25 XP"), or nil: only a goal that carries a `cash`
+-- or an `xp` has anything to show.
+local function rewardText(goal): string?
+	local parts = {}
+	if typeof(goal.cash) == "number" and goal.cash > 0 then
+		table.insert(parts, `+{Format.money(goal.cash)}`)
+	end
+	if typeof(goal.xp) == "number" and goal.xp > 0 then
+		table.insert(parts, `{goal.xp} XP`)
+	end
+	return if #parts > 0 then table.concat(parts, " · ") else nil
+end
+
+-- The banner's progress line: under the bar and at its right, or with a button goal (done at the
+-- shop computer) the whole row, at the left, since there is no bar.
+local function setGoalValueWide(wide: boolean)
+	goalValue.AnchorPoint = Vector2.new(if wide then 0 else 1, 0.5)
+	goalValue.Position = UDim2.fromScale(if wide then 0 else 1, 0.5)
+	goalValue.Size = if wide then UDim2.fromScale(1, 1) else UDim2.new(0, GOAL_VALUE_ROOM - 10, 1, 0)
+	goalValue.TextXAlignment = if wide then Enum.TextXAlignment.Left else Enum.TextXAlignment.Right
+end
+
 local function updateGoal()
 	updateMilestones()
 	local goal = Goal.current()
-	-- Where it gives way to something else that takes its spot (on a touch screen, the first-job
-	-- coach and a crew invite at the top of the screen), it hides while that shows.
+	-- Where it gives way to something else that takes its spot (the first-job coach and a crew
+	-- invite, at the top of the screen too), it hides while that shows.
 	goalNote.Visible = goal ~= nil and not UI.givesWay("GrandmaGoal")
 	if not goal then
 		return
 	end
 	goalText.Text = goal.text
+	-- The reward sits at the right of the words, which leave it room; with none the words have it all.
+	local reward = rewardText(goal)
+	goalReward.Visible = reward ~= nil
+	if reward then
+		goalReward.Text = reward
+		local width = TextService:GetTextSize(reward, 14, Enum.Font.FredokaOne, Vector2.new(400, 24)).X
+		goalReward.Size = UDim2.fromOffset(math.ceil(width) + 2, 24)
+		goalText.Size = UDim2.new(1, -(math.ceil(width) + 10), 0, 24)
+	else
+		goalText.Size = UDim2.new(1, 0, 0, 24)
+	end
 	local hasButton = goal.button ~= nil
 	goalBar.frame.Visible = not hasButton
+	setGoalValueWide(hasButton)
 	if hasButton then
 		-- The contest's: done on the shop computer.
 		goalValue.Text = if goal.action == "Start" then "Call the judges from the computer" else "See the computer"
-		goalValue.TextSize = 15
 		return
 	end
 	local have, value = Goal.progress(goal)
 	goalValue.Text = value
-	goalValue.TextSize = 19
 	goalBar.set(if goal.need > 0 then have / goal.need else 1)
 end
 
--- "Show what I missed" -------------------------------------------------------------------------
+-- The uncut glow ("Show uncut") ----------------------------------------------------------------
 
 local missedButton: TextButton
 
--- Lights up the grass that's still tall on the job's lawn for a few seconds.
+-- Lights up the grass that's still tall on the job's lawn for a few seconds, unless it was lit less than
+-- GameConfig.UncutGlowCooldown seconds ago (GrassController.uncutGlowWait): then the button is grey and
+-- neither it nor its key does anything.
 local function showMissed()
 	local folder = GrassController.jobLawnFolder()
-	if folder then
+	if folder and GrassController.uncutGlowWait() <= 0 then
 		GrassController.highlightUncut(folder, GameConfig.MissedSpotsSeconds)
+		UI.setStyle(missedButton, "Disabled")
 	end
 end
 
--- The button under the job tracker, with its key on a keyboard. It's only there late in the
--- mowing (see updateMissedButton).
+-- The button under the job tracker, with its key on a keyboard. It's there while the mowing is under
+-- way (see updateMissedButton).
 local function buildMissedButton()
-	missedButton = UI.button("Show what I missed", showMissed, {
+	missedButton = UI.button("Show uncut", showMissed, {
 		Name = "MissedButton",
 		Style = "Menu",
 		Icon = "Goal",
 		TextXAlignment = Enum.TextXAlignment.Left,
 		Visible = false,
 	})
-	placeInColumn(missedButton, "MissedButton")
+	Columns.placeInColumn(missedButton, "MissedButton")
+	-- The key badge goes on before the button is juiced: juice moves the kit's Icon into an inner frame, and
+	-- the badge looks for the Icon (as a direct child) to see how much room to leave it.
 	addKeyBadge(missedButton, MISSED_KEY)
+	Juicy.juice(missedButton)
+	Columns.addHitStrips(missedButton, showMissed, "RightColumn")
 end
 
 local function onKey(input: InputObject, processed: boolean)
@@ -965,11 +830,14 @@ local function onKey(input: InputObject, processed: boolean)
 	if processed or not UI.getScreen().Enabled then
 		return
 	end
-	for _, menu in MENUS do
+	for _, menu in MenuSquares.MENUS do
 		if input.KeyCode == menu.key then
 			UI.toggle(menu.name)
 			return
 		end
+	end
+	if RightStrip.pressKey(input.KeyCode) then
+		return
 	end
 	if input.KeyCode == MISSED_KEY and missedButton.Visible then
 		showMissed()
@@ -977,309 +845,38 @@ local function onKey(input: InputObject, processed: boolean)
 	end
 	if input.KeyCode == MOTION_KEY and CameraController.hasMotion() then
 		local on = not CameraController.isMotionOn()
-		CameraController.setMotion(on)
+		SettingsController.setMotion(on)
 		UI.notify(if on then "Camera motion on" else "Camera motion off")
 	end
 end
 
--- The job tracker --------------------------------------------------------------------------------
+-- The job tracker (JobCard draws it) ---------------------------------------------------------------
 
-local function callOffJob()
-	Net.event("AbandonJob"):FireServer()
-end
-
--- A to-do's row: its words over a bar of how far along it is, or on a short screen just the words,
--- on one line.
-local function layoutTaskRow(row)
-	row.frame.Size = UDim2.new(1, 0, 0, if trackerCompact then 18 else 38)
-	row.bar.frame.Visible = not trackerCompact
-end
-
--- Lays the tracker out for the screen and for what it's showing. On a short screen (a phone held
--- sideways) it's small, so the look-at and Snip buttons fit under it: no hint, the timer beside the
--- job's name, each to-do on one line, and the damage (once there is some) and the call-off button
--- sharing a slim row at the bottom. It's the full card on a taller screen.
-local function layoutTracker()
-	local compact = shortScreen()
-	if compact ~= trackerCompact then
-		trackerCompact = compact
-		trackerPadding.PaddingTop = UDim.new(0, if compact then 10 else 12)
-		trackerPadding.PaddingBottom = UDim.new(0, if compact then 12 else 14)
-		trackerLayout.Padding = UDim.new(0, if compact then 4 else 6)
-		taskLayout.Padding = UDim.new(0, if compact then 4 else 6)
-		trackerHeader.Size = UDim2.new(1, 0, 0, if compact then 26 else 28)
-		trackerTitle.TextSize = if compact then 20 else 24
-		for _, row in taskRows do
-			layoutTaskRow(row)
-		end
-	end
-	trackerHint.Visible = not compact
-	timerRow.Visible = trackerTimed and not compact
-	damageRow.Visible = trackerTimed and not compact
-	trackerButton.Visible = callOffShown and not compact
-	compactTimer.Frame.Visible = trackerTimed and compact
-	-- The name leaves room for the timer beside it.
-	trackerTitle.Size = if trackerTimed and compact
-		then UDim2.new(1, -(COMPACT_TIMER + 6), 1, 0)
-		else UDim2.fromScale(1, 1)
-	compactDamage.Visible = trackerTimed and trackerPenalty > 0
-	compactButton.Visible = callOffShown
-	compactFooter.Visible = compact and (compactDamage.Visible or callOffShown)
-end
-
--- The job tracker: the art's GoalTracker card, as in the HUD style frame, or a plain dark one.
-local function buildTracker()
-	tracker = UI.sliced("GoalTracker", {
-		Name = "JobTracker",
-		Visible = false,
-	}, { color = UI.Colors.Background, transparency = 0.2, radius = 10 })
-	placeInColumn(tracker, "JobTracker")
-	trackerPadding = UI.new("UIPadding", {
-		PaddingTop = UDim.new(0, 12),
-		PaddingBottom = UDim.new(0, 14),
-		PaddingLeft = UDim.new(0, 14),
-		PaddingRight = UDim.new(0, 14),
-		Parent = tracker,
-	})
-	trackerLayout = UI.list(6)
-	trackerLayout.Parent = tracker
-
-	-- The job's name, and on a short screen the timer beside it.
-	trackerHeader = UI.new("Frame", {
-		Name = "Header",
-		Size = UDim2.new(1, 0, 0, 28),
-		BackgroundTransparency = 1,
-		LayoutOrder = 1,
-		Parent = tracker,
-	})
-	trackerTitle = UI.heading("", {
-		Size = UDim2.fromScale(1, 1),
-		TextSize = 24,
-		TextTruncate = Enum.TextTruncate.AtEnd,
-		Parent = trackerHeader,
-	})
-	compactTimer = UI.display(
-		"Numbers",
-		"",
-		{ TextSize = 20, Color = UI.Colors.Money, XAlignment = "Right", Fit = true },
-		{
-			AnchorPoint = Vector2.new(1, 0),
-			Position = UDim2.fromScale(1, 0),
-			Size = UDim2.new(0, COMPACT_TIMER, 1, 0),
-			Visible = false,
-			Parent = trackerHeader,
-		}
-	)
-	trackerHint = UI.label("", {
-		TextSize = 15,
-		FontFace = UI.Fonts.Medium,
-		TextColor3 = UI.Colors.SubText,
-		TextWrapped = true,
-		AutomaticSize = Enum.AutomaticSize.Y,
-		LayoutOrder = 2,
-		Parent = tracker,
-	})
-	taskLayout = UI.list(6)
-	taskList = UI.new("Frame", {
-		Size = UDim2.fromScale(1, 0),
-		AutomaticSize = Enum.AutomaticSize.Y,
-		BackgroundTransparency = 1,
-		LayoutOrder = 3,
-		Parent = tracker,
-	}, { taskLayout })
-	-- "03:24 / 05:00" against par, in the display face.
-	timerRow = UI.new("Frame", {
-		Name = "Timer",
-		Size = UDim2.new(1, 0, 0, 32),
-		BackgroundTransparency = 1,
-		LayoutOrder = 4,
-		Visible = false,
-		Parent = tracker,
-	})
-	local clock =
-		UI.icon("Timer", { Size = UDim2.fromOffset(22, 22), Position = UDim2.fromOffset(0, 5), Parent = timerRow })
-	local x = if clock then 30 else 0
-	timer = UI.display(
-		"Numbers",
-		"",
-		{ TextSize = 30, Color = UI.Colors.Money, Fit = true },
-		{ Position = UDim2.fromOffset(x, 0), Size = UDim2.new(1, -x, 1, 0), Parent = timerRow }
-	)
-	damageRow = UI.new("Frame", {
-		Name = "Damage",
-		Size = UDim2.new(1, 0, 0, 22),
-		BackgroundTransparency = 1,
-		LayoutOrder = 5,
-		Visible = false,
-		Parent = tracker,
-	})
-	local warning = UI.icon(
-		"Damage",
-		{ Size = UDim2.fromOffset(20, 20), Position = UDim2.fromOffset(1, 1), Parent = damageRow },
-		UI.Colors.Danger
-	)
-	local damageX = if warning then 30 else 0
-	damageLabel = UI.label("", {
-		Position = UDim2.fromOffset(damageX, 0),
-		Size = UDim2.new(1, -damageX, 1, 0),
-		TextSize = 16,
-		Parent = damageRow,
-	})
-	trackerButton = UI.button("", callOffJob, {
-		Size = UDim2.new(1, 0, 0, 36),
-		Style = "Danger",
-		TextSize = 16,
-		LayoutOrder = 6,
-		Parent = tracker,
-	})
-
-	-- On a short screen the damage (once there is some) and a small call-off button share a row at
-	-- the bottom instead.
-	compactFooter = UI.new("Frame", {
-		Name = "Footer",
-		Size = UDim2.new(1, 0, 0, 26),
-		BackgroundTransparency = 1,
-		LayoutOrder = 7,
-		Visible = false,
-		Parent = tracker,
-	})
-	compactDamage = UI.label("", {
-		AnchorPoint = Vector2.new(0, 0.5),
-		Position = UDim2.fromScale(0, 0.5),
-		Size = UDim2.new(1, -124, 0, 18),
-		TextSize = 15,
-		TextColor3 = UI.Colors.Danger,
-		TextTruncate = Enum.TextTruncate.AtEnd,
-		Parent = compactFooter,
-	})
-	compactButton = UI.button("", callOffJob, {
-		AnchorPoint = Vector2.new(1, 0.5),
-		Position = UDim2.fromScale(1, 0.5),
-		Size = UDim2.fromOffset(0, 26),
-		AutomaticSize = Enum.AutomaticSize.X,
-		Style = "Danger",
-		TextSize = 14,
-		Parent = compactFooter,
-	})
-	UI.new("UIPadding", { PaddingLeft = UDim.new(0, 10), PaddingRight = UDim.new(0, 10), Parent = compactButton })
-
-	-- Small or full size as the screen changes, like curb appeal's rule.
-	UI.getScreen():GetPropertyChangedSignal("AbsoluteSize"):Connect(layoutTracker)
-	layoutTracker()
-end
-
--- The call-off button's words, on both of the tracker's layouts.
-local function setCallOffText(text: string)
-	trackerButton.Text = text
-	compactButton.Text = text
-end
-
--- "0:42 / 1:30" against par, and the damage so far.
-local function updateTimer()
-	local job = ClientState.job
-	trackerTimed = job ~= nil and job.state == "Working" and job.startedAt ~= nil
-	if job and trackerTimed then
-		local elapsed = workspace:GetServerTimeNow() - job.startedAt
-		local text = `{Format.time(elapsed)} / {Format.time(job.parTime)}`
-		local color = if elapsed <= job.parTime then UI.Colors.Money else UI.Colors.Danger
-		timer:SetText(text)
-		timer:SetColor(color)
-		compactTimer:SetText(text)
-		compactTimer:SetColor(color)
-		trackerPenalty = job.penalty
-		damageLabel.Text = `Damage  -{Format.money(job.penalty)}`
-		damageLabel.TextColor3 = if job.penalty > 0 then UI.Colors.Danger else UI.Colors.SubText
-		compactDamage.Text = damageLabel.Text
-	end
-	layoutTracker()
-end
-
-local function getTaskRow(taskName: string, order: number)
-	local row = taskRows[taskName]
-	if row then
-		return row
-	end
-
-	local frame = UI.new("Frame", {
-		Size = UDim2.new(1, 0, 0, 38),
-		BackgroundTransparency = 1,
-		LayoutOrder = order,
-		Parent = taskList,
-	})
-	local flag = UI.icon(
-		"Goal",
-		{ Size = UDim2.fromOffset(16, 16), Position = UDim2.fromOffset(0, 1), Parent = frame },
-		UI.Colors.SubText
-	)
-	local x = if flag then 24 else 0
-	local label = UI.label("", {
-		Position = UDim2.fromOffset(x, 0),
-		Size = UDim2.new(1, -x, 0, 18),
-		TextSize = 15,
-		Parent = frame,
-	})
-	local bar = UI.bar({ Position = UDim2.fromOffset(x, 22), Size = UDim2.new(1, -x, 0, 12), Parent = frame })
-
-	-- updateJob adds `fraction` (how done it was at the last update, so it can tell when it's just
-	-- been finished) and celebrate adds `stamp`.
-	row = { frame = frame, label = label, bar = bar, flag = flag }
-	taskRows[taskName] = row
-	layoutTaskRow(row)
-	return row
-end
-
--- A to-do's line: its words, how far along, and a check once it's done.
-local function setTaskRow(row, text: string, fraction: number, fill: string)
-	row.label.Text = text
-	row.bar.set(fraction)
-	row.bar.fill(fill)
-	local done = fraction >= 1
-	local image = Art.icon(if done then "Check" else "Goal")
-	if row.flag and image ~= "" then
-		row.flag.Image = image
-		row.flag.ImageColor3 = if done then UI.Colors.Accent else UI.Colors.SubText
-	end
-end
-
-local function clearTaskRows()
-	for _, row in taskRows do
-		row.frame:Destroy()
-	end
-	table.clear(taskRows)
-end
-
--- A share (0-1) as a whole percent, rounded down so 100% means all of it. The nudge keeps a share
--- like 0.29, which times 100 comes to 28.999999999999996, from reading 28.
-local function percentText(share: number): string
-	return `{math.floor(share * 100 + 1e-6)}%`
-end
-
--- Chimes, and thumps the "done" stamp down over a to-do's row (it fades by itself).
-local function celebrate(row)
-	Sounds.play(workspace.CurrentCamera, "LawnDone", 0.8)
-	if not row.stamp then
-		row.stamp = UI.stamp(row.frame, { JobComplete = "Job Complete!" }, DONE_STAMP_HEIGHT)
-	end
-	row.stamp.flash("JobComplete", nil, DONE_SPARKLES)
-end
-
--- Whether the "Show what I missed" button shows: while the job tracker does, from the time a
--- mowing to-do (the one with a percent, of what the job requires) is MissedSpotsFrom done until it
--- counts as finished, and only while there's a lawn to light up: one on a job site, near you and
--- drawn as a surface (the simple renderer has nothing to tint). Where you are and what's drawn
--- change without a job update, so the 0.25 s loop in Start checks again.
+-- Whether the uncut glow's button shows, and what it says: while the job tracker does and a mowing to-do
+-- (the one with a percent, of what the job requires) is under way, until it counts as finished, and only
+-- while there's a lawn to light up: one on a job site, near you and drawn as a surface (the simple
+-- renderer has nothing to tint). It says "Show uncut" until the mowing is MissedSpotsFrom done and
+-- "Missed spots" from then on, and is grey (Disabled) while the glow is cooling down. Where you are,
+-- what's drawn and the cooldown change without a job update, so the 0.25 s loop in Start checks again.
 local function updateMissedButton()
 	local job = ClientState.job
-	local show = false
-	if job and job.tasks and tracker.Visible and GrassController.jobLawnFolder() then
+	local mowing = nil
+	if job and job.tasks and JobCard.isShown() and GrassController.jobLawnFolder() then
 		for _, info in job.tasks do
-			if info.percent and info.percent >= GameConfig.MissedSpotsFrom and info.done < info.needed then
-				show = true
+			if info.percent and info.done < info.needed then
+				mowing = info
 				break
 			end
 		end
 	end
-	missedButton.Visible = show
+	missedButton.Visible = mowing ~= nil
+	if mowing then
+		missedButton.Text = if mowing.percent >= GameConfig.MissedSpotsFrom then "Missed spots" else "Show uncut"
+		local style = if GrassController.uncutGlowWait() > 0 then "Disabled" else "Menu"
+		if missedButton.BackgroundColor3 ~= UI.Colors[UI.ButtonStyles[style].face] then
+			UI.setStyle(missedButton, style)
+		end
+	end
 end
 
 -- The pay breakdown ------------------------------------------------------------------------------
@@ -1460,7 +1057,7 @@ local function showPay(job)
 			return
 		end
 		if tipAmount then
-			FloatingText.show(tipAmount, `+{Format.money(result.tip)} tip`, nil, SMALL_POP)
+			FloatingText.show(tipAmount, `+{Format.money(result.tip)} tip`, nil, Bits.SMALL_POP)
 		end
 		FloatingText.show(totalDisplay.Frame, `+{Format.money(total)}`)
 	end)
@@ -1492,13 +1089,18 @@ local function showPay(job)
 		LayoutOrder = 54,
 		Parent = payPanel,
 	})
-	UI.button("Nice!", hidePay, {
+	-- Its handler destroys the panel, and so the button, so it plays its own click first (silent).
+	local niceButton = UI.button("Nice!", function()
+		Juicy.click()
+		hidePay()
+	end, {
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.fromScale(0.5, 0.5),
 		Size = UDim2.fromOffset(220, 46),
 		TextSize = 20,
 		Parent = buttonRow,
 	})
+	Juicy.juice(niceButton, nil, true)
 	fit()
 	UI.holdCursor("PayBreakdown", true)
 end
@@ -1526,7 +1128,7 @@ local function onLevelReward(info: { level: number, text: string, cash: number }
 	Sounds.playUi("LevelUp")
 	if info.cash > 0 then
 		task.delay(LEVEL_POP_DELAY, function()
-			FloatingText.show(levelLabel, `+{Format.money(info.cash)}`)
+			FloatingText.show(StatPills.levelLine(), `+{Format.money(info.cash)}`)
 		end)
 	end
 end
@@ -1546,10 +1148,11 @@ local function inTurn(play: (info: any) -> (), info: any)
 	end
 end
 
--- Moments the login brings (the streak's day, and a contract or the Bonus Day that its cash meets)
+-- Moments the login brings (an unclaimed gift the day turn paid, and a contract or the Bonus Day that
+-- its cash meets)
 -- come as soon as the save loads, while the title card is still up over the screen they play on, so
 -- nobody would see or hear them. They wait here for the card to go (UI.titleCardDone), then play in
--- the order they came, each in its turn. The counts, the chip and the panels don't wait: only the
+-- the order they came, each in its turn. The counts, the badge and the panels don't wait: only the
 -- moments and their sounds.
 local held: { { play: (info: any) -> (), info: any } } = {}
 
@@ -1571,22 +1174,22 @@ local function playHeld()
 	end
 end
 
--- The goal chime and the cash for a paid contract: the cash lifts off the contracts chip, or off the
--- money counter where the chip isn't showing.
+-- The goal chime and the cash for a paid contract: the cash lifts off the Contracts square, or off the
+-- money counter where the square isn't showing.
 local function showContractDone(info: { id: string, text: string, reward: number })
 	Sounds.playUi("GoalDone")
 	if info.reward > 0 then
 		local cash = `+{Format.money(info.reward)}`
-		if not FloatingText.show(contractsChip, cash) then
-			FloatingText.show(money.Frame, cash)
+		if not FloatingText.show(MenuSquares.contractsFace(), cash) then
+			FloatingText.show(StatPills.moneyFrame(), cash)
 		end
 	end
 end
 
 -- The server's paid a contract (`info`: its id, its words and its cash). Two paid in one frame
 -- (one job can meet two) don't play on top of each other: each waits its turn, CONTRACT_GAP after the
--- one before, and all of them wait for the title card. The chip's count follows with the view, which
--- the server sends once it has paid.
+-- one before, and all of them wait for the title card. The Contracts square's badge follows with the
+-- view, which the server sends once it has paid.
 local function onContractDone(info: { id: string, text: string, reward: number })
 	afterTitleCard(showContractDone, info)
 end
@@ -1604,7 +1207,7 @@ local function onBonusDay(info: { cash: number })
 	afterTitleCard(showBonusDay, info)
 end
 
--- The streak grew (`info`: the days in a row, what today paid, the flag today gave if it gave one,
+-- The day's gift was claimed (`info`: the days in a row, what today paid, day 7's flag if it is day 7,
 -- and what tomorrow pays): a Payday moment saying the day, what it paid and what's next, or on the
 -- day that gave the truck its pennant, that, the streak chime, and the cash lifts off the money
 -- counter. The art's wordmark reads Payday! and nothing else, so the subtitle carries the day too.
@@ -1617,13 +1220,30 @@ local function showStreakAdvanced(info: { days: number, cash: number, flag: stri
 	UI.moment("Payday", Streak.text(info.days), subtitle, 4)
 	Sounds.playUi("Streak")
 	if info.cash > 0 then
-		FloatingText.show(money.Frame, `+{Format.money(info.cash)}`)
+		FloatingText.show(StatPills.moneyFrame(), `+{Format.money(info.cash)}`)
 	end
 end
 
--- The streak grew: the moment above, once the title card is gone, which is when it is on a login.
+-- A gift was claimed (the Gifts button): the moment above, in turn with the chime of a contract its
+-- cash meets, which comes after it. A claim is a press, so the title card is long gone.
 local function onStreakAdvanced(info: { days: number, cash: number, flag: string?, tomorrow: number })
 	afterTitleCard(showStreakAdvanced, info)
+end
+
+-- A gift left unclaimed that the day turn paid for them (`info`: its cash, and whether it was
+-- yesterday's or from a visit before that): a toast saying so, the cash register, and the cash lifts
+-- off the money counter.
+local function showGiftPaid(info: { cash: number, yesterday: boolean })
+	local cash = `+{Format.money(info.cash)}`
+	UI.notify(if info.yesterday then `Yesterday's gift: {cash}` else `Your unclaimed gift: {cash}`)
+	Sounds.playUi("Cash")
+	FloatingText.show(StatPills.moneyFrame(), cash)
+end
+
+-- The turn paid an unclaimed gift: mostly on a login, so it waits for the title card like the
+-- contracts and the Bonus Day its cash can meet, which come after it.
+local function onGiftPaid(info: { cash: number, yesterday: boolean })
+	afterTitleCard(showGiftPaid, info)
 end
 
 local function updateProfile()
@@ -1631,116 +1251,46 @@ local function updateProfile()
 	if not profile then
 		return
 	end
-	money:SetText(Format.money(profile.money))
-	levelLabel.Text =
-		`Level {profile.level}  ·  {profile.jobsCompleted} {if profile.jobsCompleted == 1 then "job" else "jobs"} done`
-	local from = GameConfig.xpForLevel(profile.level)
-	local to = GameConfig.xpForLevel(profile.level + 1)
-	xpBar.set((profile.xp - from) / (to - from))
-	-- XP that came in lifts off the bar (not on the first profile, which is only what you had).
-	if lastXp and profile.xp > lastXp then
-		FloatingText.show(xpBar.frame, `+{profile.xp - lastXp} XP`, UI.Colors.Accent, SMALL_POP)
-	end
-	lastXp = profile.xp
+	StatPills.updateProfile(profile)
 	moments(profile)
 	updateGoal()
 end
 
+-- A job update: the card and its pills (JobCard), then what goes with them here. A different job puts
+-- the last one's pay panel away, and a finished one with its result shows its own, once.
 local function updateJob()
 	local job = ClientState.job
-	if not job then
-		tracker.Visible = false
-		clearTaskRows()
-		updateMissedButton()
-		updateCurbAppeal()
-		return
-	end
-
-	if job.id ~= shownJobId then
-		shownJobId = job.id
-		clearTaskRows()
-		if payShownFor ~= job.id then
+	local newJob = JobCard.update(job)
+	if job then
+		if newJob and payShownFor ~= job.id then
 			hidePay()
 		end
-	end
-	-- It steps aside for what takes its spot (the decorating buttons, on a touch screen).
-	tracker.Visible = not UI.givesWay("JobTracker")
-	trackerTitle.Text = string.upper(job.name)
-	local isLeader = job.leader == player
-	-- Whether there's a button to call the job off: updateTimer lays the tracker out with it.
-	callOffShown = true
-
-	if job.state == "Ready" then
-		trackerHint.Text = if isLeader
-			then `{job.address} · {Format.money(job.payout)}\nLoad the tools you think you'll need, then hop in!`
-			else `{job.address} · {Format.money(job.payout)}\nWaiting for {job.leader.DisplayName} to start the truck.`
-		setCallOffText("Cancel job")
-		callOffShown = isLeader
-	elseif job.state == "Traveling" then
-		trackerHint.Text = `Driving to {job.address}...`
-		callOffShown = false
-	elseif job.state == "Working" then
-		trackerHint.Text = if job.story then `"{job.story}"  - {job.customer}` else "Don't hit the flowers or gnomes!"
-		if job.soil then
-			trackerHint.Text ..= `\nSoil probe: {job.soil}`
-		end
-		setCallOffText(if isLeader then "Call off job" else "Leave job")
-	elseif job.state == "Complete" then
-		trackerHint.Text = if job.result
-			then `You earned {Format.money(job.result.share + (job.result.tip or 0))}! Heading back soon...`
-			else "Job done!"
-		callOffShown = false
-		if job.result and payShownFor ~= job.id then
+		if job.state == "Complete" and job.result and payShownFor ~= job.id then
 			payShownFor = job.id
 			showPay(job)
 		end
 	end
-	updateTimer()
 	updateCurbAppeal()
-
-	if not job.tasks then
-		clearTaskRows()
-		updateMissedButton()
-		return
-	end
-	for order, info in job.tasks do
-		local row = getTaskRow(info.task, order)
-		local fraction = if info.needed > 0 then info.done / info.needed else 1
-		-- Mowing says how much of the lawn is cut; the other to-dos count what's done.
-		local progress = if info.percent then percentText(info.percent) else `{info.done}/{info.needed}`
-		setTaskRow(row, `{info.label}  {progress}`, fraction, if fraction >= 1 then "Money" else "Grass")
-		-- Finishing the mowing gets a chime and a stamp, once. A row that's first seen finished (you
-		-- joined a job that was already there) doesn't: it has to be seen not done first.
-		if info.percent and row.fraction and row.fraction < 1 and fraction >= 1 then
-			celebrate(row)
-		end
-		row.fraction = fraction
-	end
 	updateMissedButton()
-	-- Junk hidden in the grass: how much has been found (it costs if it's left, or run over).
-	local debris = job.debris
-	if debris and debris.total > 0 then
-		local row = getTaskRow("Debris", #job.tasks + 1)
-		local fraction = (debris.picked + debris.hit) / debris.total
-		setTaskRow(
-			row,
-			`Pick up junk in the grass  {debris.picked}/{debris.total}`
-				.. (if debris.hit > 0 then `  ({debris.hit} chewed up)` else ""),
-			fraction,
-			if debris.hit > 0 then "Danger" elseif fraction >= 1 then "Money" else "Grass"
-		)
-	end
 end
 
 function HudController:Start()
-	buildColumns()
-	buildStats()
-	buildMenuButtons()
+	Columns.build()
+	StatPills.build()
+	MenuSquares.build()
+	-- Other controllers build on the Gifts and Settings buttons (a tag on Gifts, the window behind Settings).
+	local strip = RightStrip.build()
+	HudController.giftsButton = strip.giftsButton
+	HudController.giftsFace = strip.giftsFace
+	HudController.settingsButton = strip.settingsButton
+	HudController.settingsFace = strip.settingsFace
 	buildGoal()
 	buildCurbAppeal()
 	buildNextChip()
-	buildContractsChip()
-	buildTracker()
+	JobCard.build()
+	-- The lawn map under the boost pills. Required here and not at the top, which keeps HudController's top
+	-- level (at most 200 locals, see scripts/check-compile) where it was.
+	require(Hud.LawnMap).build()
 	buildMissedButton()
 	buildCondition()
 
@@ -1751,19 +1301,24 @@ function HudController:Start()
 			updateJob()
 		elseif key == "story" or key == "contest" then
 			updateGoal()
+			if key == "contest" then
+				StatPills.updateCountdown()
+			end
 		elseif key == "contracts" then
-			updateContractsChip()
+			MenuSquares.updateContractsBadge()
+			StatPills.updateStreak()
+			RightStrip.updateGiftTag()
 		end
 	end)
 	player:GetAttributeChangedSignal("CurbAppeal"):Connect(updateGoal)
-	player:GetAttributeChangedSignal("GoldSign"):Connect(updateGoldSign)
-	updateGoldSign()
+	player:GetAttributeChangedSignal("GoldSign"):Connect(StatPills.updateGoldSign)
+	StatPills.updateGoldSign()
 	UI.onGiveWay("GrandmaGoal", updateGoal)
 	UI.onGiveWay("JobTracker", updateJob)
 	-- The rail hides and the Next chip shows when the screen turns short, and the other way (a window
 	-- resized).
 	UI.getScreen():GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
-		if shortScreen() ~= railCompact then
+		if Columns.shortScreen() ~= railCompact then
 			updateMilestones()
 		end
 	end)
@@ -1772,16 +1327,39 @@ function HudController:Start()
 	Net.event("ContractDone").OnClientEvent:Connect(onContractDone)
 	Net.event("BonusDay").OnClientEvent:Connect(onBonusDay)
 	Net.event("StreakAdvanced").OnClientEvent:Connect(onStreakAdvanced)
+	Net.event("StreakGiftPaid").OnClientEvent:Connect(onGiftPaid)
 	UI.TitleCardDone:Connect(playHeld)
+	-- The clean-stripe splash keeps off the pay panel.
+	Splash.start(function()
+		return payPanel ~= nil
+	end)
 	updateGoal()
-	updateContractsChip()
+	MenuSquares.updateContractsBadge()
+	StatPills.updateStreak()
+	RightStrip.updateGiftTag()
+	StatPills.updateCountdown()
+
+	-- The Gifts button pulses while its CLAIM tag is up.
+	task.spawn(function()
+		while true do
+			task.wait(RightStrip.GIFT_PULSE_EVERY)
+			RightStrip.pulseWaitingGift()
+		end
+	end)
 
 	task.spawn(function()
 		while true do
+			task.wait(COUNTDOWN_REFRESH)
+			StatPills.updateCountdown()
+		end
+	end)
+	task.spawn(function()
+		while true do
 			task.wait(0.25)
-			updateTimer()
+			JobCard.updateTimer()
 			updateCondition()
 			updateCurbAppeal()
+			JobCard.updateBoosts()
 			updateMissedButton()
 		end
 	end)

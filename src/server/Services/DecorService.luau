@@ -1,7 +1,7 @@
 -- Yard decorations (docs/GAME_DESIGN.md, "Decorations"; the catalogue is Config/Decorations.luau).
 --
--- Decorations belong to a business: whoever orders one on the shop computer pays, and it's for
--- their crew's shop (the leader's). It comes in a box at the delivery spot like a tool
+-- Decorations belong to a business: whoever orders one (from the Shop button or the shop computer)
+-- pays, and it's for their crew's shop (the leader's). It comes in a box at the delivery spot like a tool
 -- (DeliveryService draws the boxes). Anyone in the crew can open it and place it, and pick up
 -- placed ones to move them. Placing is in first person: the client shows a ghost where you look,
 -- turns it and snaps fence sections, edging, paths and beds end to end; the server checks the
@@ -491,9 +491,6 @@ function DecorService:Buy(player: Player, id: string): (boolean, string)
 	end
 	if decoration.won then
 		return false, `The {decoration.name} can't be bought. It has to be won.`
-	end
-	if not WorldService:IsAtComputer(player) then
-		return false, "Order it from the computer in your shop."
 	end
 	local owner = leaderOf(player)
 	local data = DataService:Get(player)

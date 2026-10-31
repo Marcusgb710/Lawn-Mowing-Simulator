@@ -25,8 +25,11 @@ local CONTROLLERS = {
 	"GloriaController",
 	"ContestController",
 	"LeaderboardController",
+	"TopLawnsController",
+	"SettingsController",
 	"TutorialController",
 	"CarryController",
+	"HotbarController",
 	"ComputerController",
 	"InteractController",
 	"DecorController",
@@ -43,7 +46,7 @@ local CONTROLLERS = {
 Net.event("ProfileUpdated").OnClientEvent:Connect(function(profile)
 	ClientState.set("profile", profile)
 end)
--- Roblox's hotbar is how you switch between your loaded tools on a job site, and only there.
+-- The hotbar (HotbarController) is how you switch between your loaded tools on a job site, and only there.
 local function updateHotbar(job)
 	UI.setHotbar(job ~= nil and (job.state == "Working" or job.state == "Complete"))
 end
@@ -98,7 +101,12 @@ task.spawn(function()
 	pcall(ContentProvider.PreloadAsync, ContentProvider, ids)
 end)
 
-ClientState.set("board", Net.func("GetJobBoard"):InvokeServer())
+-- The board may have been pushed (JobBoardUpdated) while this was on its way, and a push is newer:
+-- only fill it if nothing has come in yet, so a late, empty answer never wipes out the real board.
+local board = Net.func("GetJobBoard"):InvokeServer()
+if typeof(board) == "table" and #board > 0 and #ClientState.board == 0 then
+	ClientState.set("board", board)
+end
 local profile = Net.func("GetProfile"):InvokeServer()
 if profile then
 	ClientState.set("profile", profile)

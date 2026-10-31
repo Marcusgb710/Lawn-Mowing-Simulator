@@ -1,7 +1,10 @@
--- Buying and selling gear and business upgrades, on the computer in your shop (the Orders and
--- Business apps). The client only asks; every check happens here (the rules themselves are in
--- Shared/Shop.luau, so the menus can show them too). Tools and supplies arrive in a box at the
--- shop (DeliveryService); trucks, trailers and buildings are there straight away.
+-- Buying and selling gear and business upgrades, from the HUD's Shop button or the computer in your
+-- shop (the Orders and Business apps): the client only asks, and every check happens here (the
+-- rules themselves are in Shared/Shop.luau, so the menus can show them too). Tools and supplies
+-- (and selling them) work wherever you stand, and arrive in a box at the shop (DeliveryService).
+-- Trucks, trailers and business buildings (PLOT_CATEGORIES) change what is built on your plot, are
+-- there straight away, and are still bought and switched to at the computer in your shop. Taking a
+-- job is a computer thing too (JobService:AcceptJob).
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -81,12 +84,12 @@ function ShopService:Buy(player: Player, category: string, itemId: string): (boo
 	if not item or not data then
 		return false, "That item doesn't exist."
 	end
-	if not WorldService:IsAtComputer(player) then
-		return false, "Order it from the computer in your shop."
-	end
 	local allowed, reason = Shop.canBuy(shopState(data), category, itemId)
 	if not allowed then
 		return false, reason or "You can't buy that."
+	end
+	if PLOT_CATEGORIES[category] and not WorldService:IsAtComputer(player) then
+		return false, "Order it from the computer in your shop."
 	end
 	if PLOT_CATEGORIES[category] and JobService:IsBusy(player) then
 		return false, "You can't swap vehicles or buildings in the middle of a job."
@@ -126,7 +129,7 @@ function ShopService:Buy(player: Player, category: string, itemId: string): (boo
 		`Ordered the {item.name}! It'll be delivered to your shop. Unbox it and put it on the {string.lower(spot.name)}.`
 end
 
--- Sells a tool back (Orders, on the shop computer), to free up its storage spot.
+-- Sells a tool back (Orders), to free up its storage spot.
 function ShopService:Sell(player: Player, category: string, itemId: string): (boolean, string)
 	local item = findItem(category, itemId)
 	local data = DataService:Get(player)
@@ -135,9 +138,6 @@ function ShopService:Sell(player: Player, category: string, itemId: string): (bo
 	end
 	if not data.owned[category][itemId] then
 		return false, "You don't own that."
-	end
-	if not WorldService:IsAtComputer(player) then
-		return false, "Sell it from the computer in your shop."
 	end
 	if not Shop.canSell(item) then
 		return false, "You can't sell your starter gear."
@@ -174,7 +174,7 @@ function ShopService:Equip(player: Player, category: string, itemId: string): (b
 	if not item or not data or Items.isToolCategory(category) or not data.owned[category][itemId] then
 		return false, "You don't own that yet."
 	end
-	if not WorldService:IsAtComputer(player) then
+	if PLOT_CATEGORIES[category] and not WorldService:IsAtComputer(player) then
 		return false, "Switch it over on the computer in your shop."
 	end
 	if PLOT_CATEGORIES[category] and JobService:IsBusy(player) then

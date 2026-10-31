@@ -54,6 +54,7 @@ Other useful commands:
 | `selene src` | Lints the code |
 | `lune run scripts/check-mowing` | Checks the lawn's cell maths: which cells a mower's deck cuts, and the cell counts |
 | `lune run scripts/check-season` | Checks the season's tables: the goals rail's milestones, what each level pays, how a job earns its stars and tip, the day, the clock, the contracts and the streak |
+| `lune run scripts/check-compile` | Compiles every script under `src` with Luau's compiler (the other checks never do), and says how close the fullest file's top level is to Luau's 200 locals |
 
 **Testing saves in Studio:** Game Settings → Security → turn on *Enable Studio Access to API
 Services*. Without it the game still runs, it just doesn't save progress.
@@ -247,8 +248,11 @@ src/shared/                  -> ReplicatedStorage.Shared   code used by both ser
   Config/Contracts.luau         the day's three contracts by level band, what each pays and the Bonus Day
   Config/Streak.luau            the login streak: what each of its seven days pays, and when a day counts
   Config/Season.luau            the Busy Season's part of the save, and who still counts as a first-timer
+  Config/Settings.luau          the Settings window's three choices (sound, camera motion, grass detail): what is
+                                allowed, what a bad value becomes, and the shell count for each grass detail
   Config/GuiArt.luau            GENERATED: the GUI art's image ids, slices, palette and bitmap fonts
                                 (scripts/gui-art-ids.py; see HANDOFF.md, "GUI art")
+  Strip.luau                    the maths of a clean stripe (the pass that makes the HUD's NICE STRIPE! splash)
   Daily.luau                    what day it is in UTC: the day key, Saturday and the midnights, told the moment
   GuiLayout.luau                the GUI's layout maths: bitmap text, the hold ring, striped fills
   PayBreakdown.luau             a finished job's pay split into dollar lines for the pay breakdown
@@ -287,6 +291,21 @@ src/client/                  -> StarterPlayer.StarterPlayerScripts.Client
                                 the contracts panel: today's three, the Bonus Day and the streak
   Controllers/LeaderboardController
                                 draws the two leaderboards on the sign at the town spawn
+  Controllers/HotbarController  the hotbar: a slot for every tool along the bottom of a job site, keys 1 to 9 and 0
+  Controllers/TopLawnsController
+                                the Top Lawns window: the two leaderboards, from the HUD button or F
+  Controllers/SettingsController
+                                the Settings window: sound, camera motion and grass detail, kept in the save
+  Hud/                          the front-page HUD's pieces, which HudController builds and keeps up to date:
+                                Columns (the two columns, placing and fitting pieces in them, hit strips),
+                                Bits (the framed bar and corner key badge they share), StatPills (money,
+                                level, streak and countdown), MenuSquares (the four left squares and the
+                                Contracts badge), RightStrip (Shop, Gifts, Top Lawns, Settings), JobCard
+                                (the job card and boost pills), LawnMap (the lawn map under them, cut and
+                                uncut) and Splash (the clean-stripe cheer)
+  Juicy.luau                    the front-page HUD's look drawn in code: faces, buttons, pills, badges, text, and
+                                the hover, press and click feel for any button (Juicy.juice)
+  JuicyPalette.luau             the colours Juicy draws with (plain data, so scripts/check-gui can read it)
   UI.luau                       the look: colours, fonts, windows, cards, buttons, bars, prompts
   UiLayout.luau                 where everything on the play screen goes, as plain data for the
                                 layout editor (lune run scripts/ui-layout-json prints it as JSON)

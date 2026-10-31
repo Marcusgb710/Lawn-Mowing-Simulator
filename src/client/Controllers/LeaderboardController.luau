@@ -22,6 +22,7 @@ local Format = require(Shared.Format)
 local GameConfig = require(Shared.Config.GameConfig)
 local Net = require(Shared.Net)
 
+local ClientState = require(script.Parent.Parent.ClientState)
 local UI = require(script.Parent.Parent.UI)
 
 -- What LeaderboardService sends: the boards (the first LeaderboardTop players of each) and the
@@ -89,8 +90,43 @@ local BOARDS = {
 	},
 }
 
--- The last update, drawn on any board that is there, and drawn again when one turns up.
+-- The last update, drawn on any board that is there, and drawn again when one turns up. It is also
+-- kept in ClientState.leaderboard, which the Top Lawns window (TopLawnsController) reads.
 local latest: View? = nil
+
+local function boardOf(list: string)
+	for _, board in BOARDS do
+		if board.list == list then
+			return board
+		end
+	end
+	error(`LeaderboardController has no {list} board`, 3)
+end
+
+-- How a number reads in a row of the board for `list` ("lawns" or "money"): "1,234" or "$1,234".
+function LeaderboardController.rowText(list: string, value: number): string
+	return boardOf(list).inRow(value)
+end
+
+-- The viewer's own line under that board, the sign's words: "You: #12 with 40 lawns", or "You: not in
+-- the top 100 yet, 3 lawns". Nil before the server has sent the viewer's numbers.
+function LeaderboardController.youLine(list: string, view: View): string?
+	local you = view.you
+	if not you then
+		return nil
+	end
+	local board = boardOf(list)
+	local rank = you[board.rank]
+	local number = board.inLine(you[board.number])
+	return if rank
+		then `You: #{rank} with {number}`
+		else `You: not in the top {GameConfig.LeaderboardTop * GameConfig.LeaderboardRankPages} yet, {number}`
+end
+
+-- What to say instead of the boards when the server says they are off.
+function LeaderboardController.offText(view: View): string
+	return view.notice or OFF_TEXT
+end
 
 local function findBoard(name: string): BasePart?
 	local town = workspace:FindFirstChild("Town")
@@ -101,7 +137,6 @@ end
 
 -- A divider under the rows, over the viewer's own line, at the foot of the board.
 local function addFooter(face: Frame, board, view: View)
-	local you = view.you
 	local footer = UI.new("Frame", {
 		Name = "Footer",
 		AnchorPoint = Vector2.new(0, 1),
@@ -117,14 +152,10 @@ local function addFooter(face: Frame, board, view: View)
 		BorderSizePixel = 0,
 		Parent = footer,
 	})
-	if not you then
+	local line = LeaderboardController.youLine(board.list, view)
+	if not line then
 		return
 	end
-	local rank = you[board.rank]
-	local number = board.inLine(you[board.number])
-	local line = if rank
-		then `You: #{rank} with {number}`
-		else `You: not in the top {GameConfig.LeaderboardTop * GameConfig.LeaderboardRankPages} yet, {number}`
 	UI.label(line, {
 		Name = "You",
 		Position = UDim2.fromOffset(0, DIVIDER_HEIGHT + GAP),
@@ -208,7 +239,7 @@ local function build(part: BasePart, board, view: View?)
 		Parent = gui,
 	})
 	if view and not view.available then
-		UI.label(view.notice or OFF_TEXT, {
+		UI.label(LeaderboardController.offText(view), {
 			Name = "Off",
 			Position = UDim2.fromOffset(PADDING, 0),
 			Size = UDim2.new(1, -2 * PADDING, 1, 0),
@@ -299,6 +330,7 @@ end
 function LeaderboardController:Start()
 	Net.event("LeaderboardUpdated").OnClientEvent:Connect(function(view: View)
 		latest = view
+		ClientState.set("leaderboard", view)
 		draw()
 	end)
 	task.spawn(watchSign)

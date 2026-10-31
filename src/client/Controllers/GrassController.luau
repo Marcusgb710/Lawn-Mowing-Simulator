@@ -28,9 +28,13 @@ local GrassArt = require(Shared.Config.GrassArt)
 local GrassImages = require(Shared.GrassImages)
 local LawnGrid = require(Shared.LawnGrid)
 local Net = require(Shared.Net)
+local Settings = require(Shared.Config.Settings)
+local Signal = require(Shared.Signal)
+local Strip = require(Shared.Strip)
 local Swath = require(Shared.Swath)
 local Tools = require(Shared.Config.Tools)
 
+local ClientState = require(script.Parent.Parent.ClientState)
 local GrassPaint = require(script.Parent.Parent.GrassPaint)
 local GrassFallback = require(script.Parent.GrassFallback)
 
@@ -51,12 +55,21 @@ local REFETCH_DELAY = 1.5
 local TURF_HEIGHT = 0.1
 local PLATE_THICKNESS = 0.1
 
--- A phone (touch and no keyboard) gets fewer shells. Decided once: GrassPaint makes the session's
--- grass tiles for one shell count, so a keyboard plugged in later mustn't ask for more.
+-- A phone (touch and no keyboard) gets fewer shells with the Auto grass detail. Decided once:
+-- GrassPaint makes the session's grass tiles for one shell count, so a keyboard plugged in later
+-- mustn't ask for more.
 local TOUCH = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
+-- How long the first lawn waits for the profile (and so the player's Grass detail setting), in seconds,
+-- before it is drawn with Auto.
+local PROFILE_WAIT = 10
+
+-- How many shells every lawn is drawn with this session: from the player's Grass detail setting (the
+-- Settings window), chosen once, the first time grass is prepared (see Start). nil until then, and no
+-- lawn is drawn before. Changing the setting takes effect when the player rejoins.
+local shellCount: number? = nil
 
 local WHITE = Color3.new(1, 1, 1)
--- "Show what I missed": the shells' tint. A Decal's tint multiplies the picture, so red goes past 1
+-- The uncut glow ("Show uncut"): the shells' tint. A Decal's tint multiplies the picture, so red goes past 1
 -- to turn green blades red rather than just dark (selene's 0-1 rule is for ordinary colours).
 -- selene: allow(roblox_incorrect_color3_new_bounds)
 local HIGHLIGHT_TINT = Color3.new(2.5, 0.35, 0.35)
@@ -73,8 +86,31 @@ local START_SLIVER = 0.1
 local CONFIRM_SECONDS = 0.5
 -- Seconds between looks for cells that waited too long: the ledger copy is the server's truth, and decides.
 local RECONCILE_INTERVAL = 0.1
+-- Seconds between looks at the job lawn for LawnChanged, so it fires at most four times a second.
+local LAWN_CHANGED_INTERVAL = 0.25
 
 local GrassController = {}
+
+-- Fired with the length (studs) when your mower finishes a clean stripe: a pass of at least Strip.LENGTH
+-- studs one way with nothing bad in it (see trackPass and Shared/Strip). The HUD cheers it; nothing is
+-- paid.
+GrassController.StripDone = Signal.new()
+
+-- Fired, with nothing, when the job lawn (see jobLawn) changes: its ledger changed (GrassPaint sets the
+-- lawn's ledgerDirty whenever it writes a cell), or a job lawn appeared, went, or is another one. Looked
+-- at every LAWN_CHANGED_INTERVAL seconds, so at most four times a second. The HUD's lawn map listens.
+GrassController.LawnChanged = Signal.new()
+
+-- The job lawn as the HUD's map reads it (see jobLawn): its Grass folder, its size in cells, the ledger
+-- (one LawnGrid state per cell, counted column by column, the table GrassPaint keeps: read it, never
+-- write it) and its Origin corner, where cell (0, 0) starts and lawn X and Z run along columns and rows.
+export type JobLawn = {
+	folder: Folder,
+	columns: number,
+	rows: number,
+	cells: { string },
+	origin: Vector3,
+}
 
 -- [Grass folder] = everything we know about that lawn
 local lawns = {}
@@ -89,6 +125,11 @@ local unconfirmed = {}
 local lastLocalDeck: Vector3? = nil
 local lastLocalTool: Tool? = nil
 local lastReconcile = 0
+-- When the job lawn was last looked at for LawnChanged, and the one it was then.
+local lastLawnCheck = 0
+local signalledLawn: Folder? = nil
+-- When highlightUncut last lit a lawn's uncut grass (os.clock), for uncutGlowWait.
+local lastGlow = -math.huge
 
 local function localGrass(): Folder
 	local folder = workspace:FindFirstChild("LocalGrass")
@@ -185,6 +226,7 @@ local function destroyImages(lawn)
 	table.clear(lawn.shells)
 	table.clear(lawn.decals)
 	lawn.cells = nil
+	lawn.ledgerReady = false
 end
 
 -- Takes down what a lawn has in the world: its parts, or a far lawn's bare turf.
@@ -200,7 +242,12 @@ end
 -- GrassImages.shellPlan. False, with whatever was made left for show to clear away, when an image
 -- can't be made.
 local function buildSurface(lawn): boolean
-	local plan = GrassImages.shellPlan(GrassImages.shellCount(TOUCH), GameConfig.TallGrassHeight * lawn.tallScale)
+	-- (update draws nothing until shellCount is chosen, so the fallback is only for safety.) The shells
+	-- stand GrassImages.tallHeight, no more than MAX_SHELL_GAP apart, and an overgrown lawn's TallScale
+	-- then stretches them and their gaps with it, as it always has.
+	local count = shellCount or GrassImages.shellCount(TOUCH)
+	local plan =
+		GrassImages.shellPlan(count, GrassImages.tallHeight(count, GameConfig.TallGrassHeight) * lawn.tallScale)
 	if not GrassPaint.prepare(plan) then
 		return false
 	end
@@ -357,8 +404,9 @@ end
 local function update()
 	local camera = workspace.CurrentCamera
 	-- No lawn is drawn until GrassPaint knows whether it has the lawn art: it waits on the asset
-	-- loads, and drawing a lawn in the meantime would settle the session on flat colours.
-	if not camera or not GrassPaint.loaded() then
+	-- loads, and drawing a lawn in the meantime would settle the session on flat colours. Nor before the
+	-- shell count is chosen: it is one count for the whole session.
+	if not camera or not GrassPaint.loaded() or not shellCount then
 		return
 	end
 	local cameraPosition = camera.CFrame.Position
@@ -408,8 +456,12 @@ local function track(folder: Instance, regrows: boolean)
 		turfDecal = nil,
 		turfTexture = nil,
 		shells = {},
-		-- The ledger as this client has it, while drawn as a surface (see GrassPaint).
+		-- The ledger as this client has it, while drawn as a surface (see GrassPaint), whether it
+		-- has changed since LawnChanged last said so, and whether it's the server's yet: a lawn starts all
+		-- tall until the first GetSwaths answer is drawn (GrassPaint.redraw), and the map waits for that.
 		cells = nil,
+		ledgerDirty = false,
+		ledgerReady = false,
 		-- The shells' Decals, for highlightUncut.
 		decals = {},
 		highlight = nil,
@@ -507,6 +559,33 @@ function GrassController.jobLawnFolder(): Folder?
 	return nearest
 end
 
+-- The job site's lawn you're at (jobLawnFolder) while it's drawn as a surface and its ledger is the
+-- server's (the first GetSwaths answer has been drawn), for the HUD's map, or nil. It is a fresh table each
+-- time, but `cells` is the lawn's own ledger, so take it again after each LawnChanged: a redraw replaces it.
+function GrassController.jobLawn(): JobLawn?
+	local folder = GrassController.jobLawnFolder()
+	local lawn = folder and lawns[folder]
+	if not (folder and lawn and lawn.mode == "Surface" and lawn.cells and lawn.ledgerReady) then
+		return nil
+	end
+	return { folder = folder, columns = lawn.columns, rows = lawn.rows, cells = lawn.cells, origin = lawn.origin }
+end
+
+-- Says LawnChanged when the job lawn is another one than last time (or none), or its ledger changed.
+local function checkJobLawn()
+	local folder = GrassController.jobLawnFolder()
+	local lawn = folder and lawns[folder]
+	local dirty = lawn ~= nil and lawn.ledgerDirty == true
+	if folder == signalledLawn and not dirty then
+		return
+	end
+	signalledLawn = folder
+	if lawn then
+		lawn.ledgerDirty = false
+	end
+	GrassController.LawnChanged:Fire()
+end
+
 -- Your own mower paints its strip every frame instead of waiting for the server's swaths, which
 -- come ten times a second and a little late, so the cut shows under the deck and not in chunks
 -- behind it. The server stays the judge: the swaths it sends confirm what we painted, and a cell it
@@ -565,8 +644,7 @@ end
 -- now, on the lawn under it. The deck is where the server puts it (see ToolService's workTick). A
 -- frame with no previous deck (the mower just started mowing, or was swapped) paints the deck's
 -- own rectangle, the way you face, as the server's fresh start does.
-local function paintOwnMower(now: number)
-	local tool, root = cuttingMower()
+local function paintOwnMower(now: number, tool: Tool?, root: BasePart?)
 	local itemId = if tool then tool:GetAttribute("ItemId") else nil
 	local item = if typeof(itemId) == "string" then Tools.get(itemId) else nil
 	if not (tool and root and item) then
@@ -622,6 +700,59 @@ local function reconcile(now: number)
 	end
 end
 
+-- The stripe your mower is cutting now, from the moment cuttingMower gives a tool until it gives none (or
+-- another tool): the tool and the pass's numbers (Shared/Strip: where it started, its heading and how far
+-- it has gone along it).
+local pass: Strip.Pass? = nil
+local passTool: Tool? = nil
+
+-- What can be read about a mower whose pass has just ended, for Strip.clean. A pass ends when you put
+-- the mower away (clean), the deck leaves the lawn or a push mower stops (clean), or the mower stops
+-- working: a blade hit (the server stalls the engine and clears "Working"; the BladeHit sound has no id
+-- yet and `result.struck` never leaves the server, so the stall is what a client sees), the engine will
+-- not go ("Blocked"), the blade has torn ("Ragged"), or you fell.
+local function factsOf(tool: Tool): Strip.Facts
+	local character = Players.LocalPlayer.Character
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	local itemId = tool:GetAttribute("ItemId")
+	local item = if typeof(itemId) == "string" then Tools.get(itemId) else nil
+	return {
+		held = character ~= nil and humanoid ~= nil and tool.Parent == character,
+		dead = humanoid ~= nil and humanoid.Health <= 0,
+		blocked = tool:GetAttribute("Blocked") ~= nil,
+		ragged = tool:GetAttribute("Ragged") == true,
+		motorized = item ~= nil and item.motorized ~= false,
+		working = tool:GetAttribute("Working") == true,
+	}
+end
+
+-- Ends the pass, and says so if it was a clean stripe (Strip.cheers).
+local function endPass()
+	local finished, tool = pass, passTool
+	pass, passTool = nil, nil
+	if finished and tool and Strip.cheers(finished, factsOf(tool)) then
+		GrassController.StripDone:Fire(Strip.length(finished))
+	end
+end
+
+-- Follows your mower pass by pass (every frame, given the mower paintOwnMower paints). Cosmetic: it
+-- fires StripDone and nothing else, and the server hears nothing of it.
+local function trackPass(now: number, tool: Tool?, root: BasePart?)
+	if pass and passTool ~= tool then
+		endPass()
+	end
+	if not (tool and root) then
+		return
+	end
+	local position = root.Position
+	if pass and Strip.move(pass, position.X, position.Z, now) then
+		endPass()
+	end
+	if not pass then
+		pass, passTool = Strip.start(position.X, position.Z, now), tool
+	end
+end
+
 -- Tints a drawn lawn's uncut grass red for `seconds`, with a soft pulse, then puts it back. Calling
 -- it again starts it over. The simple renderer has nothing to tint.
 function GrassController.highlightUncut(grassFolder: Folder, seconds: number)
@@ -631,6 +762,7 @@ function GrassController.highlightUncut(grassFolder: Folder, seconds: number)
 	end
 	stopHighlight(lawn)
 	local started = os.clock()
+	lastGlow = started
 	lawn.highlight = RunService.Heartbeat:Connect(function()
 		local elapsed = os.clock() - started
 		local tint = WHITE
@@ -645,6 +777,12 @@ function GrassController.highlightUncut(grassFolder: Folder, seconds: number)
 			decal.Color3 = tint
 		end
 	end)
+end
+
+-- How many seconds until the uncut glow may be lit again: GameConfig.UncutGlowCooldown after
+-- highlightUncut last lit one, and 0 once that's past. The HUD's button and its key wait for it.
+function GrassController.uncutGlowWait(): number
+	return math.max(0, lastGlow + GameConfig.UncutGlowCooldown - os.clock())
 end
 
 -- Whether lawns are drawn as surfaces: false once the simple renderer has taken over.
@@ -690,10 +828,16 @@ function GrassController:Start()
 
 	RunService.RenderStepped:Connect(function()
 		local now = os.clock()
-		paintOwnMower(now)
+		local tool, root = cuttingMower()
+		trackPass(now, tool, root)
+		paintOwnMower(now, tool, root)
 		if now - lastReconcile >= RECONCILE_INTERVAL then
 			lastReconcile = now
 			reconcile(now)
+		end
+		if now - lastLawnCheck >= LAWN_CHANGED_INTERVAL then
+			lastLawnCheck = now
+			checkJobLawn()
 		end
 	end)
 
@@ -710,6 +854,14 @@ function GrassController:Start()
 	end
 	task.spawn(function()
 		GrassPaint.load()
+		-- The Grass detail setting is in the profile, which may not have come yet (the first lawn waits
+		-- for it, up to PROFILE_WAIT seconds). The count is then fixed for the session.
+		local giveUp = os.clock() + PROFILE_WAIT
+		while not ClientState.profile and os.clock() < giveUp do
+			task.wait(0.1)
+		end
+		local profile = ClientState.profile
+		shellCount = Settings.shells(Settings.clean(profile and profile.settings).grass, TOUCH)
 		update()
 		while true do
 			task.wait(UPDATE_INTERVAL)

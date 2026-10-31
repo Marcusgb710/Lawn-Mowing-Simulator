@@ -47,7 +47,11 @@ end
 --                 A list with a contract that is missing a field (an id, kind, text, or a need or
 --                 reward that is a number) is emptied and `day` is blanked, and DailyService makes
 --                 the day again at its next Refresh (DataService runs this on every save it loads)
---   streak        the login streak: how many `days` in a row, and the day key it was `last` kept
+--   streak        the login streak: how many `days` in a row, the day key it was `last` kept, and
+--                 the day key whose gift was last `claimed` (Config/Streak.luau). A streak without
+--                 `claimed` comes from before gifts were claimed, when the day was paid as it was
+--                 kept, so `claimed` starts as its `last`: a day already paid is never paid again.
+--                 No version bump: this runs on every save DataService loads.
 --   flags         [flag id] = true for each cosmetic flag they own
 --   contest       gains `lastJudged`, the day key of the last Saturday judged ("" for none),
 --                 `saturdays`, the Saturdays judged without a win since the last one, and
@@ -133,6 +137,11 @@ function Season.upgradeSave(data: { [string]: any })
 	end
 	if typeof(data.streak.last) ~= "string" then
 		data.streak.last = ""
+	end
+	-- Filled from `last`: a streak kept before gifts were claimed had that day paid when it was kept,
+	-- so its gift counts as claimed and nobody is paid twice for one day.
+	if typeof(data.streak.claimed) ~= "string" then
+		data.streak.claimed = data.streak.last
 	end
 
 	if typeof(data.flags) ~= "table" then

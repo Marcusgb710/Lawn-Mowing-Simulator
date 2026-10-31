@@ -8,7 +8,9 @@
 --     ring that fills while you hold E to work on a tool
 --   * bobs the camera a little as you walk and shakes it slightly while a gas engine you're using
 --     is running (harder while a mower is cutting thick grass), unless camera motion is switched
---     off (GameConfig.Camera, or the player's "Camera motion" switch in the Guide, or V)
+--     off (GameConfig.Camera, or the player's "Camera motion" setting: in the Settings window, the
+--     Guide's switch or V, which all save it through SettingsController, the one writer; it also
+--     applies the saved setting when the profile arrives, through setMotion)
 --   * turns the camera the way the server says to face after it moves you (back at the shop after
 --     a respawn or a job, at the house on a job, at a new crew's shop): first person would keep
 --     looking wherever it was, and turn your character back to match
@@ -30,7 +32,7 @@ local Art = require(script.Parent.Parent.Art)
 local UI = require(script.Parent.Parent.UI)
 
 local player = Players.LocalPlayer
-local Settings = GameConfig.Camera
+local CameraConfig = GameConfig.Camera
 
 -- The camera counts as first person while it's this close to your head.
 local FIRST_PERSON_RANGE = 1.5
@@ -74,7 +76,7 @@ end
 
 -- Whether the game has any camera motion at all (GameConfig.Camera), for the switch to show.
 function CameraController.hasMotion(): boolean
-	return Settings.HeadBob or Settings.EngineShake
+	return CameraConfig.HeadBob or CameraConfig.EngineShake
 end
 
 function CameraController.isMotionOn(): boolean
@@ -191,7 +193,7 @@ local function updateMotion(deltaTime: number)
 		local riding = tool ~= nil and tool:GetAttribute("Ride") == true
 		local velocity = root.AssemblyLinearVelocity
 		local speed = Vector3.new(velocity.X, 0, velocity.Z).Magnitude
-		local walking = Settings.HeadBob
+		local walking = CameraConfig.HeadBob
 			and not riding
 			and humanoid.MoveDirection.Magnitude > 0.1
 			and humanoid.FloorMaterial ~= Enum.Material.Air
@@ -204,7 +206,7 @@ local function updateMotion(deltaTime: number)
 
 		local item = tool and Tools.get(tool:GetAttribute("ItemId"))
 		if
-			Settings.EngineShake
+			CameraConfig.EngineShake
 			and tool
 			and item
 			and tool:GetAttribute("Working") == true
@@ -272,7 +274,7 @@ end
 local function setUpCamera()
 	local camera = workspace.CurrentCamera
 	if camera then
-		camera.FieldOfView = Settings.FieldOfView
+		camera.FieldOfView = CameraConfig.FieldOfView
 	end
 end
 

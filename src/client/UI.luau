@@ -1393,6 +1393,33 @@ end
 
 -- Screens and menus -----------------------------------------------------------------------------
 
+-- Roblox's own screens the game draws its own versions of are turned off for good (the Backpack, by the
+-- hotbar, below; the player list here). Turning one off can fail while Roblox's own scripts are still
+-- starting, so `turnOff` (a pcall of SetCoreGuiEnabled) is tried again until it takes, in a thread of its
+-- own (nothing here waits). scripts/check-gui allows exactly these two calls, both false.
+local CORE_GUI_RETRY = 0.25
+local CORE_GUI_TRIES = 240
+local function keepOff(turnOff: () -> boolean, name: string)
+	task.spawn(function()
+		for _ = 1, CORE_GUI_TRIES do
+			if turnOff() then
+				return
+			end
+			task.wait(CORE_GUI_RETRY)
+		end
+		warn(`[UI] Couldn't turn Roblox's {name} off`)
+	end)
+end
+
+-- Roblox's player list sits in the top right corner of a PC screen, exactly where the right strip's Shop
+-- button is, and eats the clicks there; the money pill and Top Lawns carry what it showed. It is turned off
+-- once, when the game's screen is first made (the client's start).
+local function turnOffPlayerList()
+	keepOff(function()
+		return (pcall(StarterGui.SetCoreGuiEnabled, StarterGui, Enum.CoreGuiType.PlayerList, false))
+	end, "player list")
+end
+
 function UI.getScreen(): ScreenGui
 	if not screen then
 		screen = UI.new("ScreenGui", {
@@ -1401,6 +1428,7 @@ function UI.getScreen(): ScreenGui
 			ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
 			Parent = Players.LocalPlayer:WaitForChild("PlayerGui"),
 		})
+		turnOffPlayerList()
 	end
 	return screen
 end
@@ -1434,7 +1462,7 @@ function UI.panel(name: string, title: string)
 	})
 
 	local closeArt = Art.icon("Close") ~= ""
-	UI.button(if closeArt then "" else "X", function()
+	local closeButton = UI.button(if closeArt then "" else "X", function()
 		UI.close(name)
 	end, {
 		Name = "Close",
@@ -1446,6 +1474,9 @@ function UI.panel(name: string, title: string)
 		Size = UDim2.fromOffset(36, 36),
 		Parent = window,
 	})
+	-- Every window's X has the front-page feel (hover, press, click). Juicy needs UI, so it is asked for
+	-- here, when a window is built and UI is whole, and not when this file loads.
+	require(script.Parent.Juicy).juice(closeButton)
 
 	local top = panelTop(false)
 	local content = UI.new("Frame", {
@@ -1459,6 +1490,8 @@ function UI.panel(name: string, title: string)
 	panels[name] = window
 	window:GetPropertyChangedSignal("Visible"):Connect(function()
 		UI.CursorChanged:Fire()
+		-- The hotbar gives way to an open window, and is back when the last one closes.
+		UI.refreshHotbar()
 	end)
 	return window, content
 end
@@ -1611,11 +1644,32 @@ end
 -- takes over the screen: the drive cutscene, or a dialogue. Each says why, so one ending doesn't
 -- bring them back while the other's still up.
 local hiders: { [string]: boolean } = {}
--- Roblox's hotbar (the Backpack) is only for switching between your loaded tools on a job site.
--- Everywhere else you carry one thing at a time, and its slot would just be a dark box.
+-- The hotbar is only for switching between your loaded tools on a job site. Everywhere else you
+-- carry one thing at a time, and its slot would just be a dark box. It's the game's own
+-- (HotbarController): Roblox's (the Backpack) stays off for good, so its number keys never equip
+-- anything either. Turning it off can fail while Roblox's own scripts are still starting, so it's
+-- tried again until it takes, in a thread of its own (nothing here waits).
 local hotbarWanted = false
+local hotbarShown = false
+local backpackOff = false
+local function turnOffBackpack()
+	if backpackOff then
+		return
+	end
+	backpackOff = true
+	keepOff(function()
+		return (pcall(StarterGui.SetCoreGuiEnabled, StarterGui, Enum.CoreGuiType.Backpack, false))
+	end, "Backpack")
+end
+-- Fired with whether the hotbar shows, when that changes (HotbarController listens).
+UI.HotbarChanged = Signal.new()
 local function showHotbar()
-	pcall(StarterGui.SetCoreGuiEnabled, StarterGui, Enum.CoreGuiType.Backpack, hotbarWanted and next(hiders) == nil)
+	turnOffBackpack()
+	local shown = hotbarWanted and next(hiders) == nil and not UI.anyOpen()
+	if shown ~= hotbarShown then
+		hotbarShown = shown
+		UI.HotbarChanged:Fire(shown)
+	end
 end
 function UI.hideGame(reason: string, hidden: boolean)
 	hiders[reason] = if hidden then true else nil
@@ -1623,10 +1677,20 @@ function UI.hideGame(reason: string, hidden: boolean)
 	showHotbar()
 end
 
--- Whether Roblox's hotbar shows (when nothing's hiding the game): on a job site, not elsewhere.
+-- Works out again whether the hotbar shows, for a window opening or closing (UI.panel calls it).
+function UI.refreshHotbar()
+	showHotbar()
+end
+
+-- Whether the hotbar shows (when nothing's hiding the game and no menu window is open): on a job site, not elsewhere.
 function UI.setHotbar(wanted: boolean)
 	hotbarWanted = wanted
 	showHotbar()
+end
+
+-- Whether the hotbar shows right now: wanted (UI.setHotbar), nothing hiding the game and no menu window open.
+function UI.hotbarShown(): boolean
+	return hotbarShown
 end
 
 -- A story line (Config/Story.luau) for a RichText label: its `*highlights*` in the highlight
@@ -1690,10 +1754,9 @@ local function toastStack(): Frame
 	return toastHolder
 end
 
--- Keeps the toasts just below `gui` while it shows at the top of the screen in their way (the
--- first-job coach, and on a touch screen Grandma's goal and a crew invite), so they never sit on
--- top of it. Anything else is left alone: Grandma's goal down the HUD's left column, an invite
--- along the bottom.
+-- Keeps the toasts just below `gui` while it shows at the top of the screen in their way (Grandma's
+-- goal banner on every screen, the first-job coach, and on a touch screen a crew invite), so they
+-- never sit on top of it. Anything else is left alone: an invite along the bottom of a PC's screen.
 function UI.keepToastsBelow(gui: GuiObject)
 	toastsUnder[gui] = true
 	for _, property in { "AbsoluteSize", "AbsolutePosition", "Visible" } do

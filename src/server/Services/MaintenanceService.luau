@@ -441,7 +441,7 @@ function MaintenanceService:Work(player: Player, fixture: string?, partName: str
 	if step.kind == "Apply" then
 		local left = usesLeft(data, supplyId)
 		if left and left <= 0 then
-			return false, `The {supplyTool.name} is used up. Order more on the shop computer.`
+			return false, `The {supplyTool.name} is used up. Order more from the Shop.`
 		end
 		-- Try it on a copy first, so nobody waits around just to hear it won't work.
 		local preview = table.clone(condition)
