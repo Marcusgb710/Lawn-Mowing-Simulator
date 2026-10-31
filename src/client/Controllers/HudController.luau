@@ -16,8 +16,8 @@
 --     its stars once it is paid, a big timer with par, to-dos, damage and a Call off pill), smaller on
 --     a phone, under it the boost pills (Crew, Curb, Truck and Business pay bonuses, while they
 --     are above zero), under those the lawn map (a top-down picture of the job's lawn, cut and uncut, where
---     there's room), and under that, late in the mowing, the button that lights up the grass you
---     missed (M on a keyboard);
+--     there's room), and under that, while the mowing is under way, the button that lights up the grass
+--     still to cut ("Show uncut", "Missed spots" from 90%; M on a keyboard; once every 6 seconds);
 --   * down the right edge, outside that column: the right buttons, glossy squares for the Shop (the
 --     Orders window, from anywhere: B on a keyboard), Gifts (claims the day's streak gift, ClaimStreak,
 --     with a tilted CLAIM tag and a pulse while one waits; with none, the contracts panel), Top Lawns
@@ -794,18 +794,21 @@ end
 
 local missedButton: TextButton
 
--- Lights up the grass that's still tall on the job's lawn for a few seconds.
+-- Lights up the grass that's still tall on the job's lawn for a few seconds, unless it was lit less than
+-- GameConfig.UncutGlowCooldown seconds ago (GrassController.uncutGlowWait): then the button is grey and
+-- neither it nor its key does anything.
 local function showMissed()
 	local folder = GrassController.jobLawnFolder()
-	if folder then
+	if folder and GrassController.uncutGlowWait() <= 0 then
 		GrassController.highlightUncut(folder, GameConfig.MissedSpotsSeconds)
+		UI.setStyle(missedButton, "Disabled")
 	end
 end
 
--- The button under the job tracker, with its key on a keyboard. It's only there late in the
--- mowing (see updateMissedButton).
+-- The button under the job tracker, with its key on a keyboard. It's there while the mowing is under
+-- way (see updateMissedButton).
 local function buildMissedButton()
-	missedButton = UI.button("Show what I missed", showMissed, {
+	missedButton = UI.button("Show uncut", showMissed, {
 		Name = "MissedButton",
 		Style = "Menu",
 		Icon = "Goal",
@@ -848,23 +851,31 @@ end
 
 -- The job tracker (JobCard draws it) ---------------------------------------------------------------
 
--- Whether the "Show what I missed" button shows: while the job tracker does, from the time a
--- mowing to-do (the one with a percent, of what the job requires) is MissedSpotsFrom done until it
--- counts as finished, and only while there's a lawn to light up: one on a job site, near you and
--- drawn as a surface (the simple renderer has nothing to tint). Where you are and what's drawn
--- change without a job update, so the 0.25 s loop in Start checks again.
+-- Whether the uncut glow's button shows, and what it says: while the job tracker does and a mowing to-do
+-- (the one with a percent, of what the job requires) is under way, until it counts as finished, and only
+-- while there's a lawn to light up: one on a job site, near you and drawn as a surface (the simple
+-- renderer has nothing to tint). It says "Show uncut" until the mowing is MissedSpotsFrom done and
+-- "Missed spots" from then on, and is grey (Disabled) while the glow is cooling down. Where you are,
+-- what's drawn and the cooldown change without a job update, so the 0.25 s loop in Start checks again.
 local function updateMissedButton()
 	local job = ClientState.job
-	local show = false
+	local mowing = nil
 	if job and job.tasks and JobCard.isShown() and GrassController.jobLawnFolder() then
 		for _, info in job.tasks do
-			if info.percent and info.percent >= GameConfig.MissedSpotsFrom and info.done < info.needed then
-				show = true
+			if info.percent and info.done < info.needed then
+				mowing = info
 				break
 			end
 		end
 	end
-	missedButton.Visible = show
+	missedButton.Visible = mowing ~= nil
+	if mowing then
+		missedButton.Text = if mowing.percent >= GameConfig.MissedSpotsFrom then "Missed spots" else "Show uncut"
+		local style = if GrassController.uncutGlowWait() > 0 then "Disabled" else "Menu"
+		if missedButton.BackgroundColor3 ~= UI.Colors[UI.ButtonStyles[style].face] then
+			UI.setStyle(missedButton, style)
+		end
+	end
 end
 
 -- The pay breakdown ------------------------------------------------------------------------------

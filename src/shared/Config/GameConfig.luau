@@ -58,10 +58,14 @@ local GameConfig = {
 	CuttingSlowdown = 0.85,
 	-- Camera shake is multiplied by this while a mower is cutting.
 	CuttingShake = 1.5,
-	-- From this share of what the mowing requires, the "Show what I missed" button appears...
+	-- The uncut glow: a button under the job card (M on a keyboard) lights up the grass still to cut,
+	-- whenever mowing is under way. It reads "Show uncut" until this share of what the mowing requires
+	-- is cut, and "Missed spots" from then on...
 	MissedSpotsFrom = 0.9,
-	-- ...and the uncut spots stay lit for this many seconds.
+	-- ...the uncut spots stay lit for this many seconds...
 	MissedSpotsSeconds = 3,
+	-- ...and it can be used again this many seconds after the last time (the button is greyed out until then).
+	UncutGlowCooldown = 6,
 	TallGrassHeight = 1.5,
 	MowedGrassHeight = 0.3,
 

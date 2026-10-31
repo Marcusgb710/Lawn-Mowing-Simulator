@@ -128,6 +128,8 @@ local lastReconcile = 0
 -- When the job lawn was last looked at for LawnChanged, and the one it was then.
 local lastLawnCheck = 0
 local signalledLawn: Folder? = nil
+-- When highlightUncut last lit a lawn's uncut grass (os.clock), for uncutGlowWait.
+local lastGlow = -math.huge
 
 local function localGrass(): Folder
 	local folder = workspace:FindFirstChild("LocalGrass")
@@ -754,6 +756,7 @@ function GrassController.highlightUncut(grassFolder: Folder, seconds: number)
 	end
 	stopHighlight(lawn)
 	local started = os.clock()
+	lastGlow = started
 	lawn.highlight = RunService.Heartbeat:Connect(function()
 		local elapsed = os.clock() - started
 		local tint = WHITE
@@ -768,6 +771,12 @@ function GrassController.highlightUncut(grassFolder: Folder, seconds: number)
 			decal.Color3 = tint
 		end
 	end)
+end
+
+-- How many seconds until the uncut glow may be lit again: GameConfig.UncutGlowCooldown after
+-- highlightUncut last lit one, and 0 once that's past. The HUD's button and its key wait for it.
+function GrassController.uncutGlowWait(): number
+	return math.max(0, lastGlow + GameConfig.UncutGlowCooldown - os.clock())
 end
 
 -- Whether lawns are drawn as surfaces: false once the simple renderer has taken over.

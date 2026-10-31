@@ -1494,6 +1494,46 @@ do
 		check(string.find(hudSource, wanted, 1, true) ~= nil, `HudController doesn't have {wanted}`)
 	end
 
+	-- The uncut glow (the missed button) works whenever the mowing is under way, not only from
+	-- GameConfig.MissedSpotsFrom: that share only changes its words, "Show uncut" before it and "Missed
+	-- spots" from it. Between uses it waits GameConfig.UncutGlowCooldown (6) seconds, grey (Disabled), and
+	-- the M key waits too: the button, its hit strips and the key all go through showMissed, which asks
+	-- GrassController.uncutGlowWait.
+	local configSource = fs.readFile("src/shared/Config/GameConfig.luau")
+	local glowSource = fs.readFile("src/client/Controllers/GrassController.luau")
+	check(
+		string.match(configSource, "UncutGlowCooldown = (%d+),") == "6",
+		"GameConfig's UncutGlowCooldown isn't 6 seconds"
+	)
+	check(
+		string.find(hudSource, "info.percent >= GameConfig.MissedSpotsFrom and", 1, true) == nil
+			and string.find(hudSource, "if info.percent and info.done < info.needed then", 1, true) ~= nil,
+		"The missed button waits for MissedSpotsFrom: it should show whenever the mowing is under way"
+	)
+	check(
+		string.find(
+			hudSource,
+			'if mowing.percent >= GameConfig.MissedSpotsFrom then "Missed spots" else "Show uncut"',
+			1,
+			true
+		) ~= nil,
+		`The missed button doesn't say "Show uncut" before MissedSpotsFrom and "Missed spots" from it`
+	)
+	local glowWants = {
+		"if folder and GrassController.uncutGlowWait() <= 0 then",
+		'UI.setStyle(missedButton, "Disabled")',
+		'if GrassController.uncutGlowWait() > 0 then "Disabled" else "Menu"',
+		"if input.KeyCode == MISSED_KEY and missedButton.Visible then\n\t\tshowMissed()",
+	}
+	for _, wanted in glowWants do
+		check(string.find(hudSource, wanted, 1, true) ~= nil, `The missed button's cooldown has no {wanted}`)
+	end
+	check(
+		string.find(glowSource, "lastGlow + GameConfig.UncutGlowCooldown - os.clock()", 1, true) ~= nil
+			and string.find(glowSource, "lastGlow = started", 1, true) ~= nil,
+		"GrassController's uncutGlowWait doesn't count GameConfig.UncutGlowCooldown from the last glow"
+	)
+
 	-- The phone: the right column's pieces that can show during a job there (curb appeal hides on a
 	-- short screen, and so does the lawn map; the job card is its compact one; the pills may wrap to two
 	-- rows) fit in the column's height at its floor scale. (That the banner sits between the columns is the

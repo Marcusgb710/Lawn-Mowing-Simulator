@@ -437,7 +437,8 @@ it off.
 - [ ] Mow a curve and a figure-eight: the shape follows the deck.
 - [ ] Back-and-forth rows: light and dark stripes alternate; a diagonal reads flat.
 - [ ] Clippings only in tall grass; none crossing the cut strip; engine dips and recovers.
-- [ ] 90%: the missed button lights the strips; 99%: chime and stamp, job completes.
+- [ ] Any time while mowing: "Show uncut" (from 90%, "Missed spots") lights the strips, then waits 6 s;
+      99%: chime and stamp, job completes.
 - [ ] Dull blade: ragged tufts remain, quality drops as before.
 - [ ] Junk: push mower stops at it, gas mower chews it with the existing bits effect.
 - [ ] Home lawn: leave for a job, come back, patches have grown back and mow again.
@@ -624,8 +625,10 @@ Layout (each step is one window size; look at each piece, then check nothing ove
       first), counts down as they are done, and is gone at 0.
 - [ ] Same window, the top and the right. At the top in the middle: Grandma's cream banner, clear of both
       columns. Down the right, inside the edge strip: curb appeal, and during a job the dark job card
-      with the timer, then the boost pills, then (late in the mowing) the missed button. Against the
-      right edge: Shop, Gifts, Top Lawns and Settings squares.
+      with the timer, then the boost pills, then the lawn map, then (while the mowing is under way) the
+      uncut glow's button: "Show uncut" until 90% and "Missed spots" from there, grey for 6 seconds after
+      each press (the M key does nothing then either). Against the right edge: Shop, Gifts, Top Lawns and
+      Settings squares.
 - [ ] 1024 by 768 and 1024 by 600 (the window resized). Expect the same PC layout as 1280 by 720: names
       under the squares, the banner clear of both columns, the right column just inside the strip. At
       600 tall the GUI is 542 px (Roblox's top bar takes 58), so the columns are at 0.97 and the strip is at

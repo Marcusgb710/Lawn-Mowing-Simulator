@@ -526,8 +526,8 @@ return {
 		touch = { position = { 1, -64, 0, 12 } },
 		compact = { position = { 1, -64, 0, 12 } },
 		note = "Curb appeal, then on a short screen the Next chip, over the job tracker, then the boost pills, "
-			.. "then the lawn map (not on a short screen), then the Show what I "
-			.. "missed button late in the mowing, down the right, just inside the right buttons (the strip's "
+			.. "then the lawn map (not on a short screen), then the Show uncut "
+			.. "button while the mowing is under way, down the right, just inside the right buttons (the strip's "
 			.. "width and a 12 px gap: 100 px in from the edge on a PC, 64 on a touch or short screen). Its "
 			.. "UIScale shrinks it to fit like the left "
 			.. "column's, toward its top right corner. Typical is during a job on a phone, where curb appeal "
@@ -619,17 +619,20 @@ return {
 			.. "take the room), and unless the job's lawn near you is drawn as a surface.",
 	},
 	MissedButton = {
-		label = "Show what I missed button",
+		label = "Show uncut button",
 		group = "HUD",
 		parent = "RightColumn",
 		detach = "RightColumn",
 		order = 6,
 		size = { 0, 280, 0, 44 },
 		touch = { size = { 0, 280, 0, 52 } },
-		note = "Under the job tracker, once the mowing's percent (how much of what the job requires is cut, "
-			.. "not counting the optional grass beside flowers and trees) reaches GameConfig.MissedSpotsFrom "
-			.. "(90%) and until the mowing counts as done: lights up all the grass that's left, red, for "
-			.. "GameConfig.MissedSpotsSeconds. With a keyboard its key (M) is on it, as on the menu buttons. "
+		note = "Under the lawn map, while the mowing is under way (from its start until it counts as done): "
+			.. "lights up all the grass that's left, red, for GameConfig.MissedSpotsSeconds, then is grey "
+			.. "(Disabled) and does nothing, its key neither, until GameConfig.UncutGlowCooldown seconds after "
+			.. "it was pressed. It says 'Show uncut' until the mowing's percent (how much of what the job "
+			.. "requires is cut, not counting the optional grass beside flowers and trees) reaches "
+			.. "GameConfig.MissedSpotsFrom (90%), and 'Missed spots' from then on. "
+			.. "With a keyboard its key (M) is on it, as on the menu buttons. "
 			.. "Taller on a touch screen, to be easy to tap. It's hidden whenever the job tracker is, and "
 			.. "unless a job site's lawn near you is drawn as a surface (the simple renderer has nothing to "
 			.. "light up, and a lawn far off isn't drawn). Nothing takes its spot.",
