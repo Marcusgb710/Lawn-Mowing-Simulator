@@ -338,6 +338,43 @@ local lone = GrassImages.shellPlan(1, 1.5)
 check(#lone == 1 and lone[1].height == 1.5 and lone[1].density == 1, "a single shell is full height and full density")
 check(#GrassImages.shellPlan(0, 1.5) == 0, "no shells, no plan")
 
+-- Uncut grass stands GameConfig.TallGrassHeight (2 studs) tall, but no stack of shells is spaced wider than
+-- GrassImages.MAX_SHELL_GAP (0.375, a phone's 4 shells under 1.5 studs, the widest the grass has been seen
+-- with): each shell is a flat sheet, so wider gaps show as separate sheets at a cut edge. So 6 shells stand
+-- 2 studs (a third of a stud apart) and a phone's 4 stay at 1.5. GrassController builds its plan from
+-- tallHeight; the simple renderer's solid blocks have no gaps and stand the full height.
+local tallGrass =
+	tonumber(string.match(fs.readFile("src/shared/Config/GameConfig.luau"), "%sTallGrassHeight = ([%d%.]+),"))
+check(tallGrass == 2, `GameConfig's TallGrassHeight is {tallGrass}, not 2 studs`)
+check(GrassImages.MAX_SHELL_GAP == 0.375, "the widest shell gap is a phone's 4 shells under 1.5 studs")
+check(GrassImages.tallHeight(6, 2) == 2, "6 shells stand the full 2 studs")
+check(GrassImages.tallHeight(4, 2) == 1.5, "a phone's 4 shells stay at 1.5 studs")
+check(
+	GrassImages.tallHeight(4, 1) == 1 and GrassImages.tallHeight(0, 2) == 2,
+	"a short lawn or no shells keep the height"
+)
+for _, touch in { false, true } do
+	local count = GrassImages.shellCount(touch)
+	local stack = GrassImages.shellPlan(count, GrassImages.tallHeight(count, tallGrass or 2))
+	local widest = stack[1].height
+	for shell = 2, #stack do
+		widest = math.max(widest, stack[shell].height - stack[shell - 1].height)
+	end
+	check(
+		widest <= GrassImages.MAX_SHELL_GAP + 1e-9,
+		`{count} shells under {tallGrass} studs of grass are {widest} studs apart, over {GrassImages.MAX_SHELL_GAP}`
+	)
+end
+check(
+	string.find(
+		fs.readFile("src/client/Controllers/GrassController.luau"),
+		"GrassImages.shellPlan(count, GrassImages.tallHeight(count, GameConfig.TallGrassHeight) * lawn.tallScale)",
+		1,
+		true
+	) ~= nil,
+	"GrassController doesn't stack its shells to GrassImages.tallHeight"
+)
+
 local dots = GrassImages.bladeDots(40, 40, 1, 7)
 check(#dots > 40 and #dots == #GrassImages.bladeDots(40, 40, 1, 7), "dots are plentiful and deterministic")
 check(#GrassImages.bladeDots(50, 30, 1, 3) == 56, "0.6 dots per 4 x 4 px at full density")

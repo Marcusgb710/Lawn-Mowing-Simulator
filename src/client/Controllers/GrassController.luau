@@ -243,7 +243,8 @@ end
 local function buildSurface(lawn): boolean
 	-- (update draws nothing until shellCount is chosen, so the fallback is only for safety.)
 	local count = shellCount or GrassImages.shellCount(TOUCH)
-	local plan = GrassImages.shellPlan(count, GameConfig.TallGrassHeight * lawn.tallScale)
+	local plan =
+		GrassImages.shellPlan(count, GrassImages.tallHeight(count, GameConfig.TallGrassHeight) * lawn.tallScale)
 	if not GrassPaint.prepare(plan) then
 		return false
 	end

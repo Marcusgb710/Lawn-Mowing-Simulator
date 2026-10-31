@@ -17,6 +17,10 @@ local SHELLS = 6
 local TOUCH_SHELLS = 4
 -- How much thinner the top shell's grass is than the bottom one's: density runs from 1 down to 0.35.
 local DENSITY_DROP = 0.65
+-- The widest gap between two shells (studs) the grass has been seen with: a phone's 4 shells under 1.5
+-- studs. Each shell is a flat sheet of blades, so a stack spaced further apart shows as separate sheets
+-- at a cut edge; tallHeight keeps every stack to this.
+local MAX_SHELL_GAP = 0.375
 
 -- A shell carries this many dots per 4 x 4 px block at full density.
 local BLOCK_AREA = 16
@@ -65,6 +69,18 @@ end
 
 function GrassImages.shellCount(touch: boolean): number
 	return if touch then TOUCH_SHELLS else SHELLS
+end
+
+GrassImages.MAX_SHELL_GAP = MAX_SHELL_GAP
+
+-- How tall `count` shells stand for uncut grass `tallGrassHeight` studs tall (GameConfig.TallGrassHeight,
+-- before a lawn's TallScale): that height, or less when the shells would be more than MAX_SHELL_GAP
+-- apart, so 6 shells stand 2 studs and 4 (a phone's) stand 1.5.
+function GrassImages.tallHeight(count: number, tallGrassHeight: number): number
+	if count <= 0 then
+		return tallGrassHeight
+	end
+	return math.min(tallGrassHeight, count * MAX_SHELL_GAP)
 end
 
 -- The `count` shells, bottom to top: they climb evenly to tallHeight, and their grass thins out as

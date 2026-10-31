@@ -66,7 +66,11 @@ local GameConfig = {
 	MissedSpotsSeconds = 3,
 	-- ...and it can be used again this many seconds after the last time (the button is greyed out until then).
 	UncutGlowCooldown = 6,
-	TallGrassHeight = 1.5,
+	-- How tall uncut grass stands (studs; an overgrown lawn's TallScale multiplies it), so it shows as a
+	-- fringe beside cut stripes in first person. A lawn drawn with fewer shells (a phone's 4, or Low grass
+	-- detail) keeps its shells no further apart than GrassImages.MAX_SHELL_GAP, so it stands 1.5 there
+	-- (GrassImages.tallHeight). The simple renderer's blocks are always this tall.
+	TallGrassHeight = 2.0,
 	MowedGrassHeight = 0.3,
 
 	-- Job sites are built far away from town, one slot per active job.
