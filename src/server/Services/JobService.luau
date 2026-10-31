@@ -1286,6 +1286,11 @@ function JobService:Init()
 	end)
 
 	Net.func("GetJobBoard").OnServerInvoke = function(player)
+		-- A client can ask as soon as this is wired up, before Start fills the board (in Studio the
+		-- client is often running first): fill it now rather than answer with an empty board.
+		if #board == 0 then
+			refreshBoard()
+		end
 		return boardFor(player)
 	end
 	Net.func("AcceptJob").OnServerInvoke = function(player, offerId)

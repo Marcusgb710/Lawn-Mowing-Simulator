@@ -101,7 +101,12 @@ task.spawn(function()
 	pcall(ContentProvider.PreloadAsync, ContentProvider, ids)
 end)
 
-ClientState.set("board", Net.func("GetJobBoard"):InvokeServer())
+-- The board may have been pushed (JobBoardUpdated) while this was on its way, and a push is newer:
+-- only fill it if nothing has come in yet, so a late, empty answer never wipes out the real board.
+local board = Net.func("GetJobBoard"):InvokeServer()
+if typeof(board) == "table" and #board > 0 and #ClientState.board == 0 then
+	ClientState.set("board", board)
+end
 local profile = Net.func("GetProfile"):InvokeServer()
 if profile then
 	ClientState.set("profile", profile)
