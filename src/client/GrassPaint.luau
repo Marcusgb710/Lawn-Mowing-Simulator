@@ -65,8 +65,10 @@ local SHADES: { [string]: Color3 } = {}
 for shade, rgb in Swath.Colors do
 	SHADES[shade] = Color3.fromRGB(rgb[1], rgb[2], rgb[3])
 end
--- The turf under uncut grass.
-local UNCUT = darken(SHADES.Flat, 0.15)
+-- The turf under uncut grass: a deep olive, well apart from every mown shade (Swath.Colors run from
+-- 90,168,58 to 134,212,87), so what's still to cut reads at a glance. It was the flat shade a little
+-- darker, which players couldn't tell from a mown stripe.
+local UNCUT = Color3.fromRGB(80, 122, 44)
 -- Cells with no grass (flower patches, tree rings): bare ground.
 local GROUND = Color3.fromRGB(92, 68, 46)
 -- The turf under each kind of cell the ledger has.
@@ -77,8 +79,9 @@ local CELL_COLORS = {
 	[LawnGrid.EMPTY] = GROUND,
 }
 -- The blades' two greens: each dot falls between them by its tone, and higher shells lean lighter.
-local BLADE_DARK = Color3.fromRGB(58, 112, 40)
-local BLADE_LIGHT = Color3.fromRGB(98, 160, 60)
+-- Blades only stand on uncut grass, so both stay darker than the darkest mown stripe.
+local BLADE_DARK = Color3.fromRGB(50, 88, 30)
+local BLADE_LIGHT = Color3.fromRGB(86, 132, 46)
 -- Over the lawn art a shell's finished tile is shaded by its height: the lowest shell shows this much
 -- of its brightness and the highest all of it, so the lower shells read darker as BLADE_DARK to
 -- BLADE_LIGHT makes the flat dots.
