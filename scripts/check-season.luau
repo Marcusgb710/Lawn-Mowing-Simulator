@@ -16,7 +16,9 @@
 -- streak's pennant goes on a truck once, with or without a bed, anchored and out of the way of the aim
 -- (Assets.addPennant, src/shared/Assets.luau), and the Settings window's three choices (what
 -- Settings.clean keeps, fills in and drops, the sound volumes and grass shell counts, the Effects
--- volume in src/shared/Sounds.luau, and that the save and the SaveSettings handler use the rule).
+-- volume in src/shared/Sounds.luau, and that the save and the SaveSettings handler use the rule), and
+-- the thirty Finds with their rarities, sets and perks, the roll that hides one on a job lawn and the
+-- cleaner for the save keys they add (src/shared/Config/Finds.luau).
 -- Exits with an error if anything's off.
 
 local fs = require("@lune/fs")
@@ -1328,6 +1330,521 @@ check(
 )
 local soundsSource = source("src/shared/Sounds.luau")
 check(has(soundsSource, "SoundGroup") and has(soundsSource, '"Effects"'), "Sounds has the Effects SoundGroup")
+
+-- Finds ---------------------------------------------------------------------------------------------
+
+-- The thirty Finds, their rarities and sets, the roll that decides whether a job lawn hides one, and
+-- the save cleaner (src/shared/Config/Finds.luau, which has no requires so Lune can load it and the
+-- server can clean a save without pulling anything else in).
+local Finds = require("../src/shared/Config/Finds")
+
+do
+	local findsSource = source("src/shared/Config/Finds.luau")
+	check(findsSource ~= "" and not has(findsSource, "require("), "Finds has no requires")
+	check(not has(findsSource, "\u{2014}"), "Finds has no em dashes")
+
+	-- The list: thirty unique ids in the four rarity groups, in this order.
+	local order = {
+		Common = {
+			"BottleCap",
+			"TennisBall",
+			"SprinklerHead",
+			"OldKey",
+			"DogTag",
+			"Marble",
+			"GolfBall",
+			"ToySoldier",
+			"Seashell",
+			"BirthdayCandle",
+			"Screwdriver",
+			"BentSpoon",
+		},
+		Uncommon = {
+			"ClassRing",
+			"PocketKnife",
+			"OldPhone",
+			"Arrowhead",
+			"Horseshoe",
+			"Cassette",
+			"WeddingBand",
+			"CoinJar",
+			"Lighter",
+			"Compass",
+		},
+		Rare = { "SilverDollar", "FossilShell", "MeteoriteChip", "AntiqueWatch", "BottleMessage", "BestYardMedal" },
+		Legendary = { "GoldenGnome", "JuneLocket" },
+	}
+	local wanted = {}
+	for _, rarity in { "Common", "Uncommon", "Rare", "Legendary" } do
+		for _, id in order[rarity] do
+			table.insert(wanted, id)
+		end
+	end
+	check(#Finds.List == 30, "there are 30 Finds")
+	local listed = {}
+	local seen = {}
+	local rankOf = { Common = 1, Uncommon = 2, Rare = 3, Legendary = 4 }
+	local lastRank = 1
+	local climbs = true
+	local complete = true
+	for index, find in Finds.List do
+		table.insert(listed, find.id)
+		check(seen[find.id] == nil, `Find {find.id} is listed once`)
+		seen[find.id] = true
+		check(Finds.get(find.id) == find, `Finds.get finds {find.id}`)
+		check(rankOf[find.rarity] ~= nil, `{find.id} has a known rarity`)
+		if rankOf[find.rarity] ~= nil then
+			climbs = climbs and rankOf[find.rarity] >= lastRank
+			lastRank = rankOf[find.rarity]
+		end
+		local color = find.color
+		local goodColor = typeof(color) == "table" and #color == 3
+		if goodColor then
+			for _, channel in color do
+				goodColor = goodColor and typeof(channel) == "number" and channel >= 0 and channel <= 255
+			end
+		end
+		complete = complete
+			and typeof(find.name) == "string"
+			and find.name ~= ""
+			and typeof(find.story) == "string"
+			and find.story ~= ""
+			and goodColor
+		check(not has(find.name .. find.story, "\u{2014}"), `{find.id} has no em dash`)
+		check(
+			find.story:sub(-1) == "." and select(2, find.story:gsub("%.", "")) == 1,
+			`{find.id} has one plain sentence for a story`
+		)
+		check(index <= 30, "no more than 30")
+	end
+	check(table.concat(listed, " ") == table.concat(wanted, " "), "the 30 ids are in the ruled order")
+	check(climbs, "the list runs Common, Uncommon, Rare, Legendary")
+	check(complete, "every Find has a name, a story and an { r, g, b } colour")
+	local counts = { Common = 0, Uncommon = 0, Rare = 0, Legendary = 0 }
+	for _, find in Finds.List do
+		counts[find.rarity] += 1
+	end
+	check(
+		counts.Common == 12 and counts.Uncommon == 10 and counts.Rare == 6 and counts.Legendary == 2,
+		"12 Common, 10 Uncommon, 6 Rare and 2 Legendary"
+	)
+	check(Finds.get("Nope") == nil and Finds.get(nil :: any) == nil, "an unknown id is not a Find")
+
+	-- The rarities: weights add to 100, values and frames as ruled.
+	local weights = 0
+	for _, name in { "Common", "Uncommon", "Rare", "Legendary" } do
+		weights += Finds.Rarities[name].weight
+	end
+	check(weights == 100, "the rarity weights add to 100")
+	check(
+		Finds.Rarities.Common.weight == 70
+			and Finds.Rarities.Uncommon.weight == 22
+			and Finds.Rarities.Rare.weight == 7
+			and Finds.Rarities.Legendary.weight == 1,
+		"the weights are 70, 22, 7 and 1"
+	)
+	check(
+		Finds.Rarities.Common.value == 10
+			and Finds.Rarities.Uncommon.value == 40
+			and Finds.Rarities.Rare.value == 200
+			and Finds.Rarities.Legendary.value == 1000,
+		"the sell values are $10, $40, $200 and $1,000"
+	)
+	check(
+		sameTable(Finds.Rarities.Common.frame, { 185, 194, 187 })
+			and sameTable(Finds.Rarities.Uncommon.frame, { 105, 226, 90 })
+			and sameTable(Finds.Rarities.Rare.frame, { 61, 155, 232 })
+			and sameTable(Finds.Rarities.Legendary.frame, { 255, 210, 74 }),
+		"the frame colours are grey, green, blue and gold"
+	)
+	check(
+		Finds.TierChance.Homeowner == 0.35 and Finds.TierChance.Serious == 0.5 and Finds.TierChance.Pro == 0.65,
+		"the chances by tier are 35, 50 and 65 percent"
+	)
+
+	-- The sets: every member is a Find, no Find sits in two sets, the perks stay small.
+	check(#Finds.Sets == 5, "five sets")
+	local setOf = {}
+	local setIds = {}
+	for _, set in Finds.Sets do
+		table.insert(setIds, set.id)
+		check(typeof(set.name) == "string" and set.name ~= "" and typeof(set.text) == "string", `{set.id} has words`)
+		check(not has(set.name .. set.text, "\u{2014}"), `{set.id} has no em dash`)
+		for _, member in set.members do
+			check(Finds.get(member) ~= nil, `{set.id} member {member} is a Find`)
+			check(setOf[member] == nil, `{member} is in only one set`)
+			setOf[member] = set.id
+		end
+		local perk = set.perk
+		if perk.kind == "Pay" then
+			check(perk.amount > 0 and perk.amount <= 0.05, `{set.id} pay perk is at most 0.05`)
+		elseif perk.kind == "Reach" then
+			check(perk.amount > 0 and perk.amount <= 2, `{set.id} reach perk is at most 2`)
+		elseif perk.kind == "FlowerPenalty" then
+			check(perk.amount > 0 and perk.amount < 1, `{set.id} flower perk is a share between 0 and 1`)
+		elseif perk.kind == "GoldSign" then
+			check(perk.amount == 1, `{set.id} gold sign perk is 1`)
+		else
+			check(false, `{set.id} has a known perk kind`)
+		end
+	end
+	check(
+		table.concat(setIds, " ") == "Playground Pocket Garden Treasure MapleGrove",
+		"the sets are Playground, Pocket, Garden, Treasure and Maple Grove, in order"
+	)
+	local covered = 0
+	for _ in setOf do
+		covered += 1
+	end
+	check(covered == 30, "all 30 Finds belong to a set")
+	check(
+		#Finds.Sets[1].members == 6 and #Finds.Sets[2].members == 8 and #Finds.Sets[3].members == 6,
+		"set sizes 6, 8, 6"
+	)
+	check(#Finds.Sets[4].members == 7 and #Finds.Sets[5].members == 3, "set sizes 7 and 3")
+	check(
+		Finds.Sets[1].perk.kind == "Reach"
+			and Finds.Sets[1].perk.amount == 2
+			and Finds.Sets[2].perk.kind == "Pay"
+			and Finds.Sets[2].perk.amount == 0.03
+			and Finds.Sets[3].perk.kind == "FlowerPenalty"
+			and Finds.Sets[4].perk.kind == "Pay"
+			and Finds.Sets[4].perk.amount == 0.05
+			and Finds.Sets[5].perk.kind == "GoldSign",
+		"the perks are reach +2, pay +3%, flower penalty halved, pay +5% and the gold sign"
+	)
+
+	-- The perks, read off the sets a player has completed.
+	check(Finds.payBonus({}) == 1, "no sets, no pay bonus")
+	check(Finds.payBonus({ Pocket = true }) == 1.03, "Pocket pays 1.03")
+	check(Finds.payBonus({ Treasure = true }) == 1.05, "Treasure pays 1.05")
+	check(Finds.payBonus({ Pocket = true, Treasure = true }) == 1.08, "Pocket and Treasure pay 1.08")
+	check(
+		Finds.payBonus({ Playground = true, Garden = true, MapleGrove = true, Nope = true }) == 1,
+		"only the pay sets pay, and an unknown set does nothing"
+	)
+	check(Finds.payBonus({ Pocket = false }) == 1, "a set marked false is not complete")
+	check(Finds.reachBonus({}) == 0 and Finds.reachBonus({ Playground = true }) == 2, "Playground reaches 2 studs more")
+	check(Finds.reachBonus({ Pocket = true, Treasure = true }) == 0, "pay sets add no reach")
+	check(
+		Finds.flowerFactor({}) == 1 and Finds.flowerFactor({ Garden = true }) == 0.5,
+		"Garden halves the flower penalty"
+	)
+	check(Finds.flowerFactor({ Playground = true }) == 1, "other sets leave the flower penalty alone")
+
+	-- The roll: pure, so the same seed always gives the same answer.
+	local rolls = {}
+	local differs = false
+	for seed = 1, 200 do
+		local first = Finds.roll(seed, "Pro", { owed = true })
+		check(first == Finds.roll(seed, "Pro", { owed = true }), "the same seed rolls the same Find")
+		check(first ~= nil and Finds.get(first) ~= nil, "a sure roll is a real Find")
+		rolls[seed] = first
+		if first ~= rolls[1] then
+			differs = true
+		end
+	end
+	check(differs, "other seeds roll other Finds")
+	check(
+		Finds.roll(7, "Serious", nil :: any) == Finds.roll(7, "Serious", {}),
+		"no bonuses is the same as an empty table"
+	)
+
+	-- Chance 0 never gives a Find; owed always does, whatever the chance.
+	local homeowner = Finds.TierChance.Homeowner
+	Finds.TierChance.Homeowner = 0
+	local none = 0
+	local owedAlways = 0
+	for seed = 1, 2000 do
+		if Finds.roll(seed, "Homeowner", {}) == nil then
+			none += 1
+		end
+		if Finds.roll(seed, "Homeowner", { owed = true }) ~= nil then
+			owedAlways += 1
+		end
+	end
+	Finds.TierChance.Homeowner = homeowner
+	check(none == 2000, "a chance of 0 never rolls a Find")
+	check(owedAlways == 2000, "an owed roll is a Find whatever the chance")
+
+	-- The chance by tier, over 10,000 seeds (within 3 points), and what the run and Buster add.
+	local function share(tier: string, bonuses: any): number
+		local got = 0
+		for index = 1, 10000 do
+			if Finds.roll(Finds.seed("20261101", 4242, index), tier, bonuses) ~= nil then
+				got += 1
+			end
+		end
+		return got / 10000
+	end
+	check(math.abs(share("Homeowner", {}) - 0.35) <= 0.03, "a Homeowner lawn hides a Find about 35% of the time")
+	check(math.abs(share("Serious", {}) - 0.5) <= 0.03, "a Serious lawn hides a Find about 50% of the time")
+	check(math.abs(share("Pro", {}) - 0.65) <= 0.03, "a Pro lawn hides a Find about 65% of the time")
+	check(math.abs(share("Homeowner", { run = 2 }) - 0.45) <= 0.03, "each three-star job in a row adds 5 points")
+	check(math.abs(share("Homeowner", { run = 3 }) - 0.5) <= 0.03, "three in a row adds 15 points")
+	check(math.abs(share("Homeowner", { run = 9 }) - 0.5) <= 0.03, "the run is held at 3")
+	check(math.abs(share("Homeowner", { buster = true }) - 0.45) <= 0.03, "Buster adds 10 points")
+	check(math.abs(share("Pro", { run = 3, buster = true }) - 0.9) <= 0.03, "the bonuses stack on the tier chance")
+	local proChance = Finds.TierChance.Pro
+	Finds.TierChance.Pro = 0.95
+	check(share("Pro", { run = 3, buster = true }) == 1, "the chance never goes over 1")
+	Finds.TierChance.Pro = proChance
+	check(share("Mystery", {}) == share("Homeowner", {}), "an unknown tier has the Homeowner chance")
+	check(share("Homeowner", { run = -5 }) == share("Homeowner", {}), "a run below 0 adds nothing")
+
+	-- Rarity over 10,000 sure rolls is within 2 points of 70/22/7/1.
+	local spread = { Common = 0, Uncommon = 0, Rare = 0, Legendary = 0 }
+	for index = 1, 10000 do
+		local id = Finds.roll(Finds.seed("20261101", 4242, index), "Pro", { owed = true })
+		if id ~= nil then
+			spread[(Finds.get(id) :: any).rarity] += 1
+		end
+	end
+	check(
+		math.abs(spread.Common / 10000 - 0.70) <= 0.02
+			and math.abs(spread.Uncommon / 10000 - 0.22) <= 0.02
+			and math.abs(spread.Rare / 10000 - 0.07) <= 0.02
+			and math.abs(spread.Legendary / 10000 - 0.01) <= 0.02,
+		`the rarity spread is near 70/22/7/1 ({spread.Common}/{spread.Uncommon}/{spread.Rare}/{spread.Legendary})`
+	)
+	check(spread.Legendary > 0 and spread.Rare > 0, "Rare and Legendary Finds do come up")
+	-- Within a rarity, every Find comes up (none is unreachable).
+	local reached = {}
+	for index = 1, 20000 do
+		local id = Finds.roll(index * 7 + 1, "Pro", { owed = true })
+		if id ~= nil then
+			reached[id] = true
+		end
+	end
+	for _, find in Finds.List do
+		check(reached[find.id] == true, `{find.id} can be rolled`)
+	end
+
+	-- Buster rerolls a Common once and keeps the rarer: never worse, and sometimes better.
+	local better = 0
+	local worse = 0
+	local commonPlain = 0
+	local commonBuster = 0
+	for index = 1, 5000 do
+		local seed = Finds.seed("20261101", 99, index)
+		local plain = Finds.get(Finds.roll(seed, "Homeowner", { owed = true }) :: string) :: any
+		local lucky = Finds.get(Finds.roll(seed, "Homeowner", { owed = true, buster = true }) :: string) :: any
+		if rankOf[lucky.rarity] < rankOf[plain.rarity] then
+			worse += 1
+		elseif rankOf[lucky.rarity] > rankOf[plain.rarity] then
+			better += 1
+		end
+		if plain.rarity == "Common" then
+			commonPlain += 1
+		end
+		if lucky.rarity == "Common" then
+			commonBuster += 1
+		end
+	end
+	check(worse == 0, "Buster's reroll never makes a Find worse")
+	check(better > 0 and commonBuster < commonPlain, "Buster's reroll sometimes makes a Find better")
+
+	-- The seed: whole, the same each time, and different for another day, player or job.
+	local base = Finds.seed("20261101", 4242, 1)
+	check(base == Finds.seed("20261101", 4242, 1), "the same day, player and job give the same seed")
+	check(base == math.floor(base) and base >= 0, "a seed is a whole number from 0 up")
+	check(
+		base ~= Finds.seed("20261102", 4242, 1)
+			and base ~= Finds.seed("20261101", 4243, 1)
+			and base ~= Finds.seed("20261101", 4242, 2),
+		"another day, player or job gives another seed"
+	)
+	check(Finds.seed("not a day", 4242, 1) == Finds.seed("0", 4242, 1), "a day key that is not a number counts as 0")
+	local bigSeed = Finds.seed("20261101", 9007199254, 12)
+	check(
+		bigSeed == math.floor(bigSeed) and bigSeed >= 0 and bigSeed < 2 ^ 31,
+		"a big user id still gives a small whole seed"
+	)
+
+	-- newlyComplete: a set that is complete by the Finds and not yet in `sets`, once.
+	local playground = Finds.Sets[1].members
+	local playgroundFinds = {}
+	for _, member in playground do
+		playgroundFinds[member] = { found = 1, held = 0 }
+	end
+	check(sameTable(Finds.newlyComplete(playgroundFinds, {}), { "Playground" }), "a finished set is newly complete")
+	check(#Finds.newlyComplete(playgroundFinds, { Playground = true }) == 0, "a set already marked is not new again")
+	local partial = copyOf(playgroundFinds)
+	partial.Marble = nil
+	check(#Finds.newlyComplete(partial, {}) == 0, "a set missing one member is not complete")
+	partial.Marble = { found = 0, held = 0 }
+	check(#Finds.newlyComplete(partial, {}) == 0, "a member with found 0 does not count")
+	local two = copyOf(playgroundFinds)
+	for _, member in Finds.Sets[5].members do
+		two[member] = { found = 2, held = 1 }
+	end
+	check(
+		sameTable(Finds.newlyComplete(two, {}), { "Playground", "MapleGrove" }),
+		"two sets at once come in the sets' order"
+	)
+	check(sameTable(Finds.newlyComplete(two, { Playground = true }), { "MapleGrove" }), "only the unmarked one is new")
+	check(#Finds.newlyComplete({}, {}) == 0, "no Finds, no sets")
+
+	-- rarest: the held ones, rarest first, then in list order.
+	local shelf = {
+		GoldenGnome = { found = 1, held = 1 },
+		BottleCap = { found = 2, held = 2 },
+		TennisBall = { found = 1, held = 1 },
+		SilverDollar = { found = 1, held = 1 },
+		ClassRing = { found = 1, held = 1 },
+		Marble = { found = 2, held = 0 },
+		Ghost = { found = 1, held = 1 },
+	}
+	check(
+		sameTable(Finds.rarest(shelf, 10), { "GoldenGnome", "SilverDollar", "ClassRing", "BottleCap", "TennisBall" }),
+		"the rarest held Finds come first, then list order, and a sold one is not held"
+	)
+	check(sameTable(Finds.rarest(shelf, 2), { "GoldenGnome", "SilverDollar" }), "rarest keeps only as many as asked")
+	check(#Finds.rarest(shelf, 0) == 0 and #Finds.rarest({}, 12) == 0, "none asked or none held gives none")
+
+	-- The card words.
+	local title, subtitle = Finds.cardText("SilverDollar")
+	check(title == "Rare find: Silver Dollar", `the card title says rarity and name ({title})`)
+	check(subtitle == (Finds.get("SilverDollar") :: any).story, "the card subtitle is the story")
+	check(Finds.cardText("GoldenGnome") == "Legendary find: Golden Gnome", "a Legendary card")
+	local noTitle, noSubtitle = Finds.cardText("Nope")
+	check(noTitle == "" and noSubtitle == "", "an unknown id has no card")
+
+	-- cleanSave: fills the four keys and cleans whatever is there.
+	local blank = Finds.cleanSave(nil)
+	check(
+		sameTable(blank, {
+			finds = {},
+			sets = {},
+			buster = { owned = false, name = "Buster" },
+			findLuck = { run = 0, owed = false },
+		}),
+		"cleanSave(nil) is a table with the four defaults"
+	)
+	check(
+		sameTable(Finds.cleanSave(5), blank) and sameTable(Finds.cleanSave("save"), blank),
+		"a non-table is the defaults"
+	)
+	local v14 = { money = 500, level = 3, settings = { sound = "Low" }, flags = { GoldSign = true } }
+	local mine = Finds.cleanSave(v14)
+	check(mine == v14, "cleanSave changes the table it is given and gives it back")
+	check(
+		mine.money == 500 and mine.level == 3 and mine.settings.sound == "Low" and mine.flags.GoldSign,
+		"other keys stay"
+	)
+	check(
+		sameTable(mine.finds, {})
+			and sameTable(mine.sets, {})
+			and mine.buster.name == "Buster"
+			and mine.findLuck.run == 0,
+		"a save from before Finds gets the four keys"
+	)
+
+	-- A good save passes through as it is.
+	local good = {
+		finds = { Marble = { found = 3, held = 2 }, GoldenGnome = { found = 1, held = 0 } },
+		sets = {},
+		buster = { owned = true, name = "Rex" },
+		findLuck = { run = 2, owed = true },
+	}
+	local goodCopy = copyOf(good)
+	check(sameTable(Finds.cleanSave(good), goodCopy), "a good save is left alone")
+
+	-- A scrambled save: strings, NaN, unknown ids, a count above what was found.
+	local scrambled = Finds.cleanSave({
+		finds = {
+			BottleCap = { found = "x", held = 2 },
+			Ghost = { found = 3, held = 1 },
+			TennisBall = { found = 0 / 0, held = 1 },
+			Marble = { found = 2.9, held = -1 },
+			SilverDollar = { found = 1, held = 5 },
+			OldKey = 4,
+			Seashell = { found = 0, held = 0 },
+			DogTag = { found = math.huge, held = 0 / 0 },
+			[1] = { found = 1, held = 1 },
+		},
+		sets = { Playground = true, Fake = true, Pocket = "yes" },
+		buster = { owned = "yes", name = string.rep("x", 50) },
+		findLuck = { run = 99, owed = 1 },
+	})
+	check(scrambled.finds.BottleCap == nil, "a find with a bad count and nothing found is dropped")
+	check(scrambled.finds.Ghost == nil and scrambled.finds[1] == nil, "an unknown id is dropped")
+	check(scrambled.finds.TennisBall == nil, "NaN counts as 0")
+	check(sameTable(scrambled.finds.Marble, { found = 2, held = 0 }), "a count is floored and held cannot go below 0")
+	check(sameTable(scrambled.finds.SilverDollar, { found = 1, held = 1 }), "held cannot pass found")
+	check(scrambled.finds.OldKey == nil and scrambled.finds.Seashell == nil, "a non-table or empty entry is dropped")
+	check(
+		scrambled.finds.DogTag ~= nil and scrambled.finds.DogTag.held == 0,
+		"an infinite count is held to a whole number"
+	)
+	check(
+		scrambled.finds.DogTag.found == math.floor(scrambled.finds.DogTag.found)
+			and scrambled.finds.DogTag.found < math.huge,
+		"found stays finite"
+	)
+	check(next(scrambled.sets) == nil, "a set that is not complete is not kept, and an unknown set is dropped")
+	check(
+		scrambled.buster.owned == false and scrambled.buster.name == string.rep("x", 20),
+		"Buster's flag and name are cleaned"
+	)
+	check(
+		scrambled.findLuck.run == 3 and scrambled.findLuck.owed == false,
+		"the run is held at 3 and owed is a boolean"
+	)
+	local junkFinds = Finds.cleanSave({ finds = "lots", sets = 5, buster = "dog", findLuck = true })
+	check(sameTable(junkFinds, blank), "the wrong types for all four keys give the defaults")
+	check(
+		Finds.cleanSave({ findLuck = { run = 1.9 } }).findLuck.run == 1
+			and Finds.cleanSave({ findLuck = { run = 0 / 0 } }).findLuck.run == 0
+			and Finds.cleanSave({ findLuck = { run = -2 } }).findLuck.run == 0,
+		"the run is floored and held from 0 to 3"
+	)
+
+	-- Buster's name: trimmed, up to 20 characters, never empty.
+	check(Finds.cleanSave({ buster = { name = "  Rex  " } }).buster.name == "Rex", "a name is trimmed")
+	check(Finds.cleanSave({ buster = { name = "" } }).buster.name == "Buster", "an empty name is Buster")
+	check(Finds.cleanSave({ buster = { name = "   " } }).buster.name == "Buster", "a blank name is Buster")
+	check(Finds.cleanSave({ buster = { name = 7 } }).buster.name == "Buster", "a number is not a name")
+	check(
+		Finds.cleanSave({ buster = { name = "Sir Barks-a-Lot the Third" } }).buster.name == "Sir Barks-a-Lot the",
+		"a long name is cut at 20 characters"
+	)
+	check(Finds.cleanSave({ buster = { name = "A\nB" } }).buster.name == "AB", "control characters are dropped")
+	check(
+		Finds.cleanSave({ buster = { name = string.rep("\u{e9}", 30) } }).buster.name == string.rep("\u{e9}", 20),
+		"a cut never splits a character"
+	)
+
+	-- A set that is complete by the Finds is added, and one that is not complete is not kept.
+	local maple = {}
+	for _, member in Finds.Sets[5].members do
+		maple[member] = { found = 1, held = 0 }
+	end
+	local mapleSave = Finds.cleanSave({ finds = maple, sets = {} })
+	check(sameTable(mapleSave.sets, { MapleGrove = true }), "a complete set that was missing is added")
+	local falseSet = Finds.cleanSave({ finds = {}, sets = { Playground = true } })
+	check(next(falseSet.sets) == nil, "a set marked complete without the Finds is dropped")
+
+	-- It is a fixed point: cleaning twice changes nothing.
+	for name, save in { v14 = copyOf(v14), good = copyOf(good), scrambled = scrambled, maple = mapleSave } do
+		local once = copyOf(Finds.cleanSave(save))
+		local twice = copyOf(Finds.cleanSave(copyOf(once)))
+		check(sameTable(once, twice), `cleanSave twice changes nothing ({name})`)
+	end
+	local rescramble = Finds.cleanSave({
+		finds = {
+			BottleCap = { found = "x", held = 2 },
+			Marble = { found = 2.9, held = -1 },
+			DogTag = { found = math.huge, held = 1 },
+		},
+		buster = { name = "  " .. string.rep("y", 19) .. "  z" },
+		findLuck = { run = 7.5 },
+	})
+	check(
+		sameTable(rescramble, Finds.cleanSave(copyOf(rescramble))),
+		"a second clean of a scrambled save changes nothing"
+	)
+end
 
 if failures > 0 then
 	print(`{failures} check(s) failed`)
