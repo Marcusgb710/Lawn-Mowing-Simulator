@@ -16,7 +16,9 @@
 -- streak's pennant goes on a truck once, with or without a bed, anchored and out of the way of the aim
 -- (Assets.addPennant, src/shared/Assets.luau), and the Settings window's three choices (what
 -- Settings.clean keeps, fills in and drops, the sound volumes and grass shell counts, the Effects
--- volume in src/shared/Sounds.luau, and that the save and the SaveSettings handler use the rule).
+-- volume in src/shared/Sounds.luau, and that the save and the SaveSettings handler use the rule), and
+-- the thirty Finds with their rarities, sets and perks, the roll that hides one on a job lawn and the
+-- cleaner for the save keys they add (src/shared/Config/Finds.luau).
 -- Exits with an error if anything's off.
 
 local fs = require("@lune/fs")
@@ -27,6 +29,7 @@ local roblox = require("@lune/roblox")
 local Clock = require("../src/server/Clock")
 local Contracts = require("../src/shared/Config/Contracts")
 local Daily = require("../src/shared/Daily")
+local DogWalk = require("../src/shared/DogWalk")
 local Format = require("../src/shared/Format")
 local Levels = require("../src/shared/Config/Levels")
 local Milestones = require("../src/shared/Config/Milestones")
@@ -65,11 +68,41 @@ check(
 	"stars text"
 )
 
-check(#Milestones.List == 18, "18 milestones")
+check(#Milestones.List == 22, "22 milestones")
 check(Milestones.List[2].id == "Jobs:3" and Milestones.List[2].cash == 30, "3 jobs pays $30")
 check(Milestones.List[9].cash == 2500, "500 jobs is capped at $2500")
 check(Milestones.List[10].kind == "Earned" and Milestones.List[10].cash == 0, "earned milestones pay nothing")
 check(Milestones.List[18].id == "Stars:100" and Milestones.List[18].cash == 2500, "100 three-star jobs pays $2500")
+-- The Finds goals come last, after the stars: the first Find, ten of them, the whole book of thirty
+-- (each counted once, however many times it was found) and the first set.
+local function listed(index: number): any
+	return Milestones.List[index] or {}
+end
+check(
+	listed(19).id == "Finds:1" and listed(19).cash == 50 and listed(19).text == "Pick up your first Find",
+	"the first Find pays $50"
+)
+check(
+	listed(20).id == "Finds:10" and listed(20).cash == 250 and listed(20).text == "Find 10 different Finds",
+	"ten Finds pay $250"
+)
+check(
+	listed(21).id == "Finds:30" and listed(21).cash == 1500 and listed(21).text == "Find all 30 Finds",
+	"all thirty Finds pay $1,500"
+)
+check(
+	listed(22).id == "Sets:1" and listed(22).cash == 300 and listed(22).text == "Complete a Finds set",
+	"the first set pays $300"
+)
+local findGoals = Milestones.reachedBy({ jobs = 0, earned = 0, stars = 0, finds = 10, sets = 1 }, {})
+check(
+	#findGoals == 3 and findGoals[1].id == "Finds:1" and findGoals[2].id == "Finds:10" and findGoals[3].id == "Sets:1",
+	"ten Finds and a set meet the first Find, ten Finds and the first set, in list order"
+)
+check(
+	#Milestones.reachedBy({ jobs = 0, earned = 0, stars = 0 }, {}) == 0,
+	"numbers with no Finds or sets in them meet no Finds goal"
+)
 -- Nearest is the smallest share still to go, (at - have) / at: $500 at 4/5 has 1/5 to go, 3 jobs at
 -- 2/3 has 1/3, so the $500 comes first. With $300 earned ($500 at 3/5, 2/5 to go) the jobs lead.
 local nearest = Milestones.next({ jobs = 2, earned = 400, stars = 0 }, { ["Jobs:1"] = true }, 2)
@@ -91,7 +124,7 @@ check(
 	"milestones already met tie at nothing to go and keep the list's order"
 )
 check(#Milestones.next({ jobs = 0, earned = 0, stars = 0 }, {}, 0) == 0, "asking for none gives none")
-check(#Milestones.next({ jobs = 0, earned = 0, stars = 0 }, {}, 99) == 18, "asking for more gives what there is")
+check(#Milestones.next({ jobs = 0, earned = 0, stars = 0 }, {}, 99) == 22, "asking for more gives what there is")
 local unchanged = #Milestones.List == #listedIds
 for index, id in listedIds do
 	unchanged = unchanged and Milestones.List[index].id == id
@@ -159,6 +192,16 @@ check(Levels.rewardFor(2).text == "$100" and Levels.rewardFor(4).text == "$250",
 check(Levels.rewardFor(3).text == "Racing Red tint" and Levels.rewardFor(3).cash == 0, "a tint on its own")
 check(Levels.rewardFor(6).text == "Forest Green tint and $400", "a tint with cash")
 check(Levels.rewardFor(20).text == "A gold business sign and $5,000", "the sign with cash")
+-- Level 5 brings Buster, the dog, with its $500 (Ruling 12 of the slice 3 plan), and no other level does.
+check(Levels.rewardFor(5).buster == true and Levels.rewardFor(5).cash == 500, "level 5 gives Buster and $500")
+check(Levels.rewardFor(5).text == "Buster the dog and $500", "level 5's text names Buster")
+for level = 2, 40 do
+	local reward = Levels.rewardFor(level)
+	check(
+		reward ~= nil and reward.buster == (if level == 5 then true else nil),
+		`level {level} gives Buster only if it is level 5`
+	)
+end
 check(Levels.rewardFor(21).text == "$3,000" and Levels.rewardFor(30).text == "$5,000 and a HUD stamp", "past 20")
 local upcoming = Levels.nextRewards(18, 4)
 check(
@@ -455,7 +498,8 @@ check(
 	fresh14.daily.count.jobs == 0
 		and fresh14.daily.count.earned == 0
 		and fresh14.daily.count.junk == 0
-		and fresh14.daily.count.stars == 0,
+		and fresh14.daily.count.stars == 0
+		and fresh14.daily.count.finds == 0,
 	"a fresh day's counts all start at 0"
 )
 check(
@@ -495,7 +539,8 @@ check(
 	midDay.daily.count.jobs == 0
 		and midDay.daily.count.earned == 0
 		and midDay.daily.count.junk == 0
-		and midDay.daily.count.stars == 0,
+		and midDay.daily.count.stars == 0
+		and midDay.daily.count.finds == 0,
 	"a day with no counts gains them at 0"
 )
 local partial = { money = 0, xp = 0, jobsCompleted = 0, daily = { count = { jobs = 2, earned = 90 } } }
@@ -504,7 +549,8 @@ check(
 	partial.daily.count.jobs == 2
 		and partial.daily.count.earned == 90
 		and partial.daily.count.junk == 0
-		and partial.daily.count.stars == 0,
+		and partial.daily.count.stars == 0
+		and partial.daily.count.finds == 0,
 	"counts that are there are kept and the missing ones start at 0"
 )
 local kept14 = {
@@ -676,6 +722,8 @@ check(
 )
 storedBefore.daily.day = ""
 storedBefore.daily.contracts = {}
+-- The Finds contract's counter is newer than the save, so the save gains it at 0.
+storedBefore.daily.count.finds = 0
 check(
 	sameTable(storedBefore, stored),
 	"and nothing else in it moves: money, xp, the streak, the flags, the contest and what was counted"
@@ -730,13 +778,14 @@ check(table.concat(Contracts.Need.Mow, " ") == "2 3 4 5", "Mow needs by band")
 check(table.concat(Contracts.Need.Earn, " ") == "150 400 1200 3000", "Earn needs by band")
 check(table.concat(Contracts.Need.Junk, " ") == "3 4 6 8", "Junk needs by band")
 check(table.concat(Contracts.Need.Stars, " ") == "1 1 2 2", "Stars needs by band")
+check(table.concat(Contracts.Need.Finds, " ") == "1 1 1 1", "a Finds contract asks for one Find in every band")
 check(table.concat(Contracts.Reward, " ") == "60 150 400 900", "a contract pays 60, 150, 400 or 900 by band")
 check(Contracts.BonusCash == 500, "the Bonus Day pays $500")
 
 -- A level 5 player is in band 2: 3 lawns, $400, and a $150 reward on each.
 local day = Contracts.generate(Contracts.seed("20261029", 1234), 5)
 check(#day == 3 and day[1].id == "Mow" and day[2].id == "Earn", "a day is a Mow, an Earn and one more")
-check(day[3].id == "Junk" or day[3].id == "Stars", "the one more is Junk or Stars")
+check(day[3].id == "Junk" or day[3].id == "Stars" or day[3].id == "Finds", "the one more is Junk, Stars or Finds")
 check(day[1].kind == "Mow" and day[2].kind == "Earn" and day[3].kind == day[3].id, "a contract's kind is its id")
 check(day[1].need == 3 and day[2].need == 400, "band 2 asks for 3 lawns and $400")
 check(day[1].reward == 150 and day[2].reward == 150 and day[3].reward == 150, "band 2 pays $150 a contract")
@@ -764,6 +813,23 @@ check(
 	flavour("Stars", 9).need == 2 and flavour("Stars", 9).text == "Get 2 three-star jobs",
 	"band 3's Stars contract is two three-star jobs"
 )
+check(
+	flavour("Finds", 5).need == 1 and flavour("Finds", 5).text == "Pick up a Find" and flavour("Finds", 5).reward == 150,
+	"band 2's Finds contract is one Find, paid like the others"
+)
+check(
+	flavour("Finds", 12).need == 1 and flavour("Finds", 12).text == "Pick up a Find",
+	"band 4's Finds contract is still one Find"
+)
+-- The third contract is a third each: over 300 seeds in a row, every kind lands between 70 and 130.
+local shares = { Junk = 0, Stars = 0, Finds = 0 }
+for seedNumber = 1, 300 do
+	local kind = Contracts.generate(seedNumber, 5)[3].kind
+	shares[kind] = (shares[kind] or 0) + 1
+end
+for kind, count in shares do
+	check(count >= 70 and count <= 130, `{kind} is the third contract {count} times in 300, not about a third`)
+end
 local firstBand = Contracts.generate(1, 1)
 check(
 	firstBand[1].text == "Mow 2 lawns" and firstBand[2].text == "Earn $150" and firstBand[1].reward == 60,
@@ -786,18 +852,27 @@ local picked = {}
 for seed = 1, 50 do
 	picked[Contracts.generate(seed, 5)[3].kind] = true
 end
-check(picked.Junk == true and picked.Stars == true, "50 seeds in a row give both Junk and Stars")
+check(
+	picked.Junk == true and picked.Stars == true and picked.Finds == true,
+	"50 seeds in a row give Junk, Stars and Finds"
+)
 local pickedByDay = {}
 for offset = 0, 49 do
 	local key = Daily.dayKey(1793232000 + offset * 86400)
 	pickedByDay[Contracts.generate(Contracts.seed(key, 1234), 5)[3].kind] = true
 end
-check(pickedByDay.Junk == true and pickedByDay.Stars == true, "one player gets both Junk and Stars over 50 days")
+check(
+	pickedByDay.Junk == true and pickedByDay.Stars == true and pickedByDay.Finds == true,
+	"one player gets Junk, Stars and Finds over 50 days"
+)
 local pickedByPlayer = {}
 for userId = 1, 50 do
 	pickedByPlayer[Contracts.generate(Contracts.seed("20261029", userId), 5)[3].kind] = true
 end
-check(pickedByPlayer.Junk == true and pickedByPlayer.Stars == true, "50 players on one day get both Junk and Stars")
+check(
+	pickedByPlayer.Junk == true and pickedByPlayer.Stars == true and pickedByPlayer.Finds == true,
+	"50 players on one day get Junk, Stars and Finds"
+)
 
 local seed = Contracts.seed("20261029", 1234)
 check(seed == Contracts.seed("20261029", 1234), "the same day and player give the same seed")
@@ -815,6 +890,8 @@ check(Contracts.have({ kind = "Earn", need = 400 }, { earned = 150 }) == 150, "h
 check(Contracts.have({ kind = "Mow", need = 3 }, { jobs = 2 }) == 2, "Mow counts jobs")
 check(Contracts.have({ kind = "Junk", need = 4 }, { junk = 1 }) == 1, "Junk counts junk")
 check(Contracts.have({ kind = "Stars", need = 2 }, { stars = 5 }) == 2, "Stars counts three-star jobs")
+check(Contracts.have({ kind = "Finds", need = 1 }, { finds = 2 }) == 1, "Finds counts Finds picked up")
+check(Contracts.have({ kind = "Finds", need = 1 }, { junk = 9, stars = 9 }) == 0, "Finds ignores junk and stars")
 check(
 	Contracts.have({ kind = "Junk", need = 4 }, { jobs = 9, earned = 999, stars = 9 }) == 0
 		and Contracts.have({ kind = "Mow", need = 3 }, {}) == 0,
@@ -1320,14 +1397,1004 @@ check(
 	"the cooldown is Settings.Cooldown, not a copy in DataService"
 )
 check(has(fromHandler, "self:Changed(player)"), "SaveSettings pushes the profile")
--- Slice 3 owns data version 15 (the plan's Global Constraints): when it bumps DATA_VERSION this rule is
--- the one to change, to the new number; it only says this front-page HUD plan added no bump of its own.
+-- Slice 3 took data version 15 (the Finds, the sets, Buster and the find luck). The next slice that
+-- changes the save format owns 16: when it bumps DATA_VERSION this rule is the one to change, to the new
+-- number (the Settings keys needed no bump of their own).
 check(
-	has(dataService, "DATA_VERSION = 14"),
-	"DATA_VERSION isn't 14: if slice 3 bumped it to 15 on purpose, update this rule to the new number (the Settings keys needed no bump of their own)"
+	has(dataService, "DATA_VERSION = 15"),
+	"DATA_VERSION isn't 15: if the next slice bumped it to 16 on purpose, update this rule to the new number"
 )
 local soundsSource = source("src/shared/Sounds.luau")
 check(has(soundsSource, "SoundGroup") and has(soundsSource, '"Effects"'), "Sounds has the Effects SoundGroup")
+
+-- Finds ---------------------------------------------------------------------------------------------
+
+-- The thirty Finds, their rarities and sets, the roll that decides whether a job lawn hides one, and
+-- the save cleaner (src/shared/Config/Finds.luau, which has no requires so Lune can load it and the
+-- server can clean a save without pulling anything else in).
+local Finds = require("../src/shared/Config/Finds")
+
+do
+	local findsSource = source("src/shared/Config/Finds.luau")
+	check(findsSource ~= "" and not has(findsSource, "require("), "Finds has no requires")
+	check(not has(findsSource, "\u{2014}"), "Finds has no em dashes")
+
+	-- The list: thirty unique ids in the four rarity groups, in this order.
+	local order = {
+		Common = {
+			"BottleCap",
+			"TennisBall",
+			"SprinklerHead",
+			"OldKey",
+			"DogTag",
+			"Marble",
+			"GolfBall",
+			"ToySoldier",
+			"Seashell",
+			"BirthdayCandle",
+			"Screwdriver",
+			"BentSpoon",
+		},
+		Uncommon = {
+			"ClassRing",
+			"PocketKnife",
+			"OldPhone",
+			"Arrowhead",
+			"Horseshoe",
+			"Cassette",
+			"WeddingBand",
+			"CoinJar",
+			"Lighter",
+			"Compass",
+		},
+		Rare = { "SilverDollar", "FossilShell", "MeteoriteChip", "AntiqueWatch", "BottleMessage", "BestYardMedal" },
+		Legendary = { "GoldenGnome", "JuneLocket" },
+	}
+	local wanted = {}
+	for _, rarity in { "Common", "Uncommon", "Rare", "Legendary" } do
+		for _, id in order[rarity] do
+			table.insert(wanted, id)
+		end
+	end
+	check(#Finds.List == 30, "there are 30 Finds")
+	local listed = {}
+	local seen = {}
+	local rankOf = { Common = 1, Uncommon = 2, Rare = 3, Legendary = 4 }
+	local lastRank = 1
+	local climbs = true
+	local complete = true
+	for index, find in Finds.List do
+		table.insert(listed, find.id)
+		check(seen[find.id] == nil, `Find {find.id} is listed once`)
+		seen[find.id] = true
+		check(Finds.get(find.id) == find, `Finds.get finds {find.id}`)
+		check(rankOf[find.rarity] ~= nil, `{find.id} has a known rarity`)
+		if rankOf[find.rarity] ~= nil then
+			climbs = climbs and rankOf[find.rarity] >= lastRank
+			lastRank = rankOf[find.rarity]
+		end
+		local color = find.color
+		local goodColor = typeof(color) == "table" and #color == 3
+		if goodColor then
+			for _, channel in color do
+				goodColor = goodColor and typeof(channel) == "number" and channel >= 0 and channel <= 255
+			end
+		end
+		complete = complete
+			and typeof(find.name) == "string"
+			and find.name ~= ""
+			and typeof(find.story) == "string"
+			and find.story ~= ""
+			and goodColor
+		check(not has(find.name .. find.story, "\u{2014}"), `{find.id} has no em dash`)
+		check(
+			find.story:sub(-1) == "." and select(2, find.story:gsub("%.", "")) == 1,
+			`{find.id} has one plain sentence for a story`
+		)
+		check(index <= 30, "no more than 30")
+	end
+	check(table.concat(listed, " ") == table.concat(wanted, " "), "the 30 ids are in the ruled order")
+	check(climbs, "the list runs Common, Uncommon, Rare, Legendary")
+	check(complete, "every Find has a name, a story and an { r, g, b } colour")
+	local counts = { Common = 0, Uncommon = 0, Rare = 0, Legendary = 0 }
+	for _, find in Finds.List do
+		counts[find.rarity] += 1
+	end
+	check(
+		counts.Common == 12 and counts.Uncommon == 10 and counts.Rare == 6 and counts.Legendary == 2,
+		"12 Common, 10 Uncommon, 6 Rare and 2 Legendary"
+	)
+	check(Finds.get("Nope") == nil and Finds.get(nil :: any) == nil, "an unknown id is not a Find")
+
+	-- The rarities: weights add to 100, values and frames as ruled.
+	local weights = 0
+	for _, name in { "Common", "Uncommon", "Rare", "Legendary" } do
+		weights += Finds.Rarities[name].weight
+	end
+	check(weights == 100, "the rarity weights add to 100")
+	check(
+		Finds.Rarities.Common.weight == 70
+			and Finds.Rarities.Uncommon.weight == 22
+			and Finds.Rarities.Rare.weight == 7
+			and Finds.Rarities.Legendary.weight == 1,
+		"the weights are 70, 22, 7 and 1"
+	)
+	check(
+		Finds.Rarities.Common.value == 10
+			and Finds.Rarities.Uncommon.value == 40
+			and Finds.Rarities.Rare.value == 200
+			and Finds.Rarities.Legendary.value == 1000,
+		"the sell values are $10, $40, $200 and $1,000"
+	)
+	check(
+		sameTable(Finds.Rarities.Common.frame, { 185, 194, 187 })
+			and sameTable(Finds.Rarities.Uncommon.frame, { 105, 226, 90 })
+			and sameTable(Finds.Rarities.Rare.frame, { 61, 155, 232 })
+			and sameTable(Finds.Rarities.Legendary.frame, { 255, 210, 74 }),
+		"the frame colours are grey, green, blue and gold"
+	)
+	check(
+		Finds.TierChance.Homeowner == 0.35 and Finds.TierChance.Serious == 0.5 and Finds.TierChance.Pro == 0.65,
+		"the chances by tier are 35, 50 and 65 percent"
+	)
+
+	-- The sets: every member is a Find, no Find sits in two sets, the perks stay small.
+	check(#Finds.Sets == 5, "five sets")
+	local setOf = {}
+	local setIds = {}
+	for _, set in Finds.Sets do
+		table.insert(setIds, set.id)
+		check(typeof(set.name) == "string" and set.name ~= "" and typeof(set.text) == "string", `{set.id} has words`)
+		check(not has(set.name .. set.text, "\u{2014}"), `{set.id} has no em dash`)
+		for _, member in set.members do
+			check(Finds.get(member) ~= nil, `{set.id} member {member} is a Find`)
+			check(setOf[member] == nil, `{member} is in only one set`)
+			setOf[member] = set.id
+		end
+		local perk = set.perk
+		if perk.kind == "Pay" then
+			check(perk.amount > 0 and perk.amount <= 0.05, `{set.id} pay perk is at most 0.05`)
+		elseif perk.kind == "Reach" then
+			check(perk.amount > 0 and perk.amount <= 2, `{set.id} reach perk is at most 2`)
+		elseif perk.kind == "FlowerPenalty" then
+			check(perk.amount > 0 and perk.amount < 1, `{set.id} flower perk is a share between 0 and 1`)
+		elseif perk.kind == "GoldSign" then
+			check(perk.amount == 1, `{set.id} gold sign perk is 1`)
+		else
+			check(false, `{set.id} has a known perk kind`)
+		end
+	end
+	check(
+		table.concat(setIds, " ") == "Playground Pocket Garden Treasure MapleGrove",
+		"the sets are Playground, Pocket, Garden, Treasure and Maple Grove, in order"
+	)
+	local covered = 0
+	for _ in setOf do
+		covered += 1
+	end
+	check(covered == 30, "all 30 Finds belong to a set")
+	check(
+		#Finds.Sets[1].members == 6 and #Finds.Sets[2].members == 8 and #Finds.Sets[3].members == 6,
+		"set sizes 6, 8, 6"
+	)
+	check(#Finds.Sets[4].members == 7 and #Finds.Sets[5].members == 3, "set sizes 7 and 3")
+	check(
+		Finds.Sets[1].perk.kind == "Reach"
+			and Finds.Sets[1].perk.amount == 2
+			and Finds.Sets[2].perk.kind == "Pay"
+			and Finds.Sets[2].perk.amount == 0.03
+			and Finds.Sets[3].perk.kind == "FlowerPenalty"
+			and Finds.Sets[4].perk.kind == "Pay"
+			and Finds.Sets[4].perk.amount == 0.05
+			and Finds.Sets[5].perk.kind == "GoldSign",
+		"the perks are reach +2, pay +3%, flower penalty halved, pay +5% and the gold sign"
+	)
+
+	-- The perks, read off the sets a player has completed.
+	check(Finds.payBonus({}) == 1, "no sets, no pay bonus")
+	check(Finds.payBonus({ Pocket = true }) == 1.03, "Pocket pays 1.03")
+	check(Finds.payBonus({ Treasure = true }) == 1.05, "Treasure pays 1.05")
+	check(Finds.payBonus({ Pocket = true, Treasure = true }) == 1.08, "Pocket and Treasure pay 1.08")
+	check(
+		Finds.payBonus({ Playground = true, Garden = true, MapleGrove = true, Nope = true }) == 1,
+		"only the pay sets pay, and an unknown set does nothing"
+	)
+	check(Finds.payBonus({ Pocket = false }) == 1, "a set marked false is not complete")
+	check(Finds.reachBonus({}) == 0 and Finds.reachBonus({ Playground = true }) == 2, "Playground reaches 2 studs more")
+	check(Finds.reachBonus({ Pocket = true, Treasure = true }) == 0, "pay sets add no reach")
+	check(
+		Finds.flowerFactor({}) == 1 and Finds.flowerFactor({ Garden = true }) == 0.5,
+		"Garden halves the flower penalty"
+	)
+	check(Finds.flowerFactor({ Playground = true }) == 1, "other sets leave the flower penalty alone")
+	check(Finds.signEarly({ MapleGrove = true }) == true, "Maple Grove gives the gold sign")
+	check(
+		Finds.signEarly({}) == false
+			and Finds.signEarly({ Pocket = true, Treasure = true, Garden = true, Playground = true }) == false
+			and Finds.signEarly({ MapleGrove = false }) == false
+			and Finds.signEarly(nil) == false,
+		"no other set, a set marked false or no sets at all gives no gold sign"
+	)
+
+	-- What the Finds goals count: each Find found at least once (however many times), and each set
+	-- done.
+	check(Finds.foundCount({}) == 0 and Finds.foundCount(nil) == 0, "nothing found counts 0")
+	check(
+		Finds.foundCount({ Marble = { found = 3, held = 0 }, OldKey = { found = 1, held = 1 } }) == 2,
+		"two Finds found, one of them three times and sold, count 2"
+	)
+	check(
+		Finds.foundCount({ Marble = { found = 0, held = 0 }, Ghost = { found = 4, held = 4 }, OldKey = "x" }) == 0,
+		"a Find found 0 times, an unknown id or a broken entry does not count"
+	)
+	local wholeBook = {}
+	for _, find in Finds.List do
+		wholeBook[find.id] = { found = 1, held = 0 }
+	end
+	check(Finds.foundCount(wholeBook) == #Finds.List, "the whole book counts all thirty")
+	check(
+		Finds.setCount({}) == 0
+			and Finds.setCount({ Pocket = true, MapleGrove = true }) == 2
+			and Finds.setCount({ Pocket = false, Nope = true }) == 0,
+		"a set counts when it is marked true and is a set"
+	)
+	local bookGoal = nil
+	for _, milestone in Milestones.List do
+		if milestone.id == "Finds:30" then
+			bookGoal = milestone
+		end
+	end
+	check(bookGoal ~= nil and bookGoal.at == #Finds.List, "the last Finds goal is the whole book")
+
+	-- The roll: pure, so the same seed always gives the same answer.
+	local rolls = {}
+	local differs = false
+	for seed = 1, 200 do
+		local first = Finds.roll(seed, "Pro", { owed = true })
+		check(first == Finds.roll(seed, "Pro", { owed = true }), "the same seed rolls the same Find")
+		check(first ~= nil and Finds.get(first) ~= nil, "a sure roll is a real Find")
+		rolls[seed] = first
+		if first ~= rolls[1] then
+			differs = true
+		end
+	end
+	check(differs, "other seeds roll other Finds")
+	check(
+		Finds.roll(7, "Serious", nil :: any) == Finds.roll(7, "Serious", {}),
+		"no bonuses is the same as an empty table"
+	)
+
+	-- Chance 0 never gives a Find; owed always does, whatever the chance.
+	local homeowner = Finds.TierChance.Homeowner
+	Finds.TierChance.Homeowner = 0
+	local none = 0
+	local owedAlways = 0
+	for seed = 1, 2000 do
+		if Finds.roll(seed, "Homeowner", {}) == nil then
+			none += 1
+		end
+		if Finds.roll(seed, "Homeowner", { owed = true }) ~= nil then
+			owedAlways += 1
+		end
+	end
+	Finds.TierChance.Homeowner = homeowner
+	check(none == 2000, "a chance of 0 never rolls a Find")
+	check(owedAlways == 2000, "an owed roll is a Find whatever the chance")
+
+	-- The chance by tier, over 10,000 seeds (within 3 points), and what the run and Buster add.
+	local function share(tier: string, bonuses: any): number
+		local got = 0
+		for index = 1, 10000 do
+			if Finds.roll(Finds.seed("20261101", 4242, index), tier, bonuses) ~= nil then
+				got += 1
+			end
+		end
+		return got / 10000
+	end
+	check(math.abs(share("Homeowner", {}) - 0.35) <= 0.03, "a Homeowner lawn hides a Find about 35% of the time")
+	check(math.abs(share("Serious", {}) - 0.5) <= 0.03, "a Serious lawn hides a Find about 50% of the time")
+	check(math.abs(share("Pro", {}) - 0.65) <= 0.03, "a Pro lawn hides a Find about 65% of the time")
+	check(math.abs(share("Homeowner", { run = 2 }) - 0.45) <= 0.03, "each three-star job in a row adds 5 points")
+	check(math.abs(share("Homeowner", { run = 3 }) - 0.5) <= 0.03, "three in a row adds 15 points")
+	check(math.abs(share("Homeowner", { run = 9 }) - 0.5) <= 0.03, "the run is held at 3")
+	check(math.abs(share("Homeowner", { buster = true }) - 0.45) <= 0.03, "Buster adds 10 points")
+	check(math.abs(share("Pro", { run = 3, buster = true }) - 0.9) <= 0.03, "the bonuses stack on the tier chance")
+	local proChance = Finds.TierChance.Pro
+	Finds.TierChance.Pro = 0.95
+	check(share("Pro", { run = 3, buster = true }) == 1, "the chance never goes over 1")
+	Finds.TierChance.Pro = proChance
+	check(share("Mystery", {}) == share("Homeowner", {}), "an unknown tier has the Homeowner chance")
+	check(share("Homeowner", { run = -5 }) == share("Homeowner", {}), "a run below 0 adds nothing")
+
+	-- Rarity over 10,000 sure rolls is within 2 points of 70/22/7/1.
+	local spread = { Common = 0, Uncommon = 0, Rare = 0, Legendary = 0 }
+	for index = 1, 10000 do
+		local id = Finds.roll(Finds.seed("20261101", 4242, index), "Pro", { owed = true })
+		if id ~= nil then
+			spread[(Finds.get(id) :: any).rarity] += 1
+		end
+	end
+	check(
+		math.abs(spread.Common / 10000 - 0.70) <= 0.015
+			and math.abs(spread.Uncommon / 10000 - 0.22) <= 0.015
+			and math.abs(spread.Rare / 10000 - 0.07) <= 0.005
+			and math.abs(spread.Legendary / 10000 - 0.01) <= 0.005,
+		`the rarity spread is near 70/22/7/1 ({spread.Common}/{spread.Uncommon}/{spread.Rare}/{spread.Legendary})`
+	)
+	check(spread.Legendary > 0 and spread.Rare > 0, "Rare and Legendary Finds do come up")
+	-- Within a rarity, every Find comes up (none is unreachable).
+	local reached = {}
+	for index = 1, 20000 do
+		local id = Finds.roll(index * 7 + 1, "Pro", { owed = true })
+		if id ~= nil then
+			reached[id] = true
+		end
+	end
+	for _, find in Finds.List do
+		check(reached[find.id] == true, `{find.id} can be rolled`)
+	end
+
+	-- Buster rerolls a Common once and keeps the rarer: never worse, and sometimes better.
+	local better = 0
+	local worse = 0
+	local commonPlain = 0
+	local commonBuster = 0
+	for index = 1, 5000 do
+		local seed = Finds.seed("20261101", 99, index)
+		local plain = Finds.get(Finds.roll(seed, "Homeowner", { owed = true }) :: string) :: any
+		local lucky = Finds.get(Finds.roll(seed, "Homeowner", { owed = true, buster = true }) :: string) :: any
+		if rankOf[lucky.rarity] < rankOf[plain.rarity] then
+			worse += 1
+		elseif rankOf[lucky.rarity] > rankOf[plain.rarity] then
+			better += 1
+		end
+		if plain.rarity == "Common" then
+			commonPlain += 1
+		end
+		if lucky.rarity == "Common" then
+			commonBuster += 1
+		end
+	end
+	check(worse == 0, "Buster's reroll never makes a Find worse")
+	check(better > 0 and commonBuster < commonPlain, "Buster's reroll sometimes makes a Find better")
+
+	-- The seed: whole, the same each time, and different for another day, player or job.
+	local base = Finds.seed("20261101", 4242, 1)
+	check(base == Finds.seed("20261101", 4242, 1), "the same day, player and job give the same seed")
+	check(base == math.floor(base) and base >= 0, "a seed is a whole number from 0 up")
+	check(
+		base ~= Finds.seed("20261102", 4242, 1)
+			and base ~= Finds.seed("20261101", 4243, 1)
+			and base ~= Finds.seed("20261101", 4242, 2),
+		"another day, player or job gives another seed"
+	)
+	check(Finds.seed("not a day", 4242, 1) == Finds.seed("0", 4242, 1), "a day key that is not a number counts as 0")
+	local bigSeed = Finds.seed("20261101", 9007199254, 12)
+	check(
+		bigSeed == math.floor(bigSeed) and bigSeed >= 0 and bigSeed < 2 ^ 31,
+		"a big user id still gives a small whole seed"
+	)
+	-- Real user ids are mostly over a billion: they must stay apart, not collapse to one seed.
+	check(
+		Finds.seed("20261101", 5e9, 1) ~= Finds.seed("20261101", 6e9, 1)
+			and Finds.seed("20261101", 5e9, 1) ~= Finds.seed("20261101", 1.2e9, 1)
+			and Finds.seed("20261101", 6e9, 1) ~= Finds.seed("20261101", 1.2e9, 1),
+		"user ids of 5 billion, 6 billion and 1.2 billion give different seeds"
+	)
+	check(
+		Finds.seed("20261101", 1200000001, 1) ~= Finds.seed("20261101", 1300000007, 1),
+		"two ids just above a billion give different seeds"
+	)
+	for _, userId in { 1200000001, 1300000007, 5e9, 6e9, 9e15, 0, -5, math.huge, 0 / 0, 12.7 } do
+		local value = Finds.seed("20261101", userId, 3)
+		check(
+			value == math.floor(value) and value >= 0 and value < 2 ^ 31,
+			`the seed for user id {userId} is a whole number in range`
+		)
+	end
+	check(
+		Finds.seed("20261101", -5, 1) == Finds.seed("20261101", 0, 1)
+			and Finds.seed("20261101", 0 / 0, 1) == Finds.seed("20261101", 0, 1)
+			and Finds.seed("20261101", math.huge, 1) == Finds.seed("20261101", 0, 1),
+		"a user id that is negative, NaN or infinite counts as 0"
+	)
+
+	-- newlyComplete: a set that is complete by the Finds and not yet in `sets`, once.
+	local playground = Finds.Sets[1].members
+	local playgroundFinds = {}
+	for _, member in playground do
+		playgroundFinds[member] = { found = 1, held = 0 }
+	end
+	check(sameTable(Finds.newlyComplete(playgroundFinds, {}), { "Playground" }), "a finished set is newly complete")
+	check(#Finds.newlyComplete(playgroundFinds, { Playground = true }) == 0, "a set already marked is not new again")
+	local partial = copyOf(playgroundFinds)
+	partial.Marble = nil
+	check(#Finds.newlyComplete(partial, {}) == 0, "a set missing one member is not complete")
+	partial.Marble = { found = 0, held = 0 }
+	check(#Finds.newlyComplete(partial, {}) == 0, "a member with found 0 does not count")
+	local two = copyOf(playgroundFinds)
+	for _, member in Finds.Sets[5].members do
+		two[member] = { found = 2, held = 1 }
+	end
+	check(
+		sameTable(Finds.newlyComplete(two, {}), { "Playground", "MapleGrove" }),
+		"two sets at once come in the sets' order"
+	)
+	check(sameTable(Finds.newlyComplete(two, { Playground = true }), { "MapleGrove" }), "only the unmarked one is new")
+	check(#Finds.newlyComplete({}, {}) == 0, "no Finds, no sets")
+
+	-- setProgress: how many of a set's members have been found at least once (the Finds Book's "3/6").
+	local playgroundSet = Finds.Sets[1]
+	check(Finds.setProgress(playgroundFinds, playgroundSet) == #playground, "a finished set's progress is all of it")
+	check(Finds.setProgress(partial, playgroundSet) == #playground - 1, "a member with found 0 is not progress")
+	check(
+		Finds.setProgress({}, playgroundSet) == 0 and Finds.setProgress(nil, playgroundSet) == 0,
+		"nothing found is no progress"
+	)
+	check(
+		Finds.setProgress({ Marble = "x", TennisBall = { found = 0 / 0, held = 0 } }, playgroundSet) == 0,
+		"a broken entry or a NaN count is no progress"
+	)
+
+	-- sellOne (Review Focus 3): one held copy goes, for what its rarity is worth, and only `held` goes down,
+	-- so selling the last copy keeps the Find in the book and its set still counts.
+	local selling = copyOf(playgroundFinds)
+	for _, member in playground do
+		selling[member] = { found = 1, held = 1 }
+	end
+	selling.SilverDollar = { found = 2, held = 2 }
+	selling.GoldenGnome = { found = 1, held = 1 }
+	check(Finds.sellOne(selling, "Marble") == 10, "a Common sells for $10")
+	check(selling.Marble.found == 1 and selling.Marble.held == 0, "selling takes held down and leaves found")
+	check(Finds.sellOne(selling, "Marble") == nil, "the last copy sold, there is none left to sell")
+	check(selling.Marble.found == 1 and selling.Marble.held == 0, "a refused sale changes nothing")
+	check(Finds.setProgress(selling, playgroundSet) == #playground, "a sold Find still counts toward its set")
+	check(#Finds.newlyComplete(selling, {}) == 1, "a set whose last copy was sold is still complete")
+	check(Finds.cleanSave({ finds = selling }).sets.Playground == true, "the save's sets keep a set after a sale")
+	check(Finds.foundCount(selling) == #playground + 2, "a sold Find still counts in the book")
+	check(Finds.sellOne(selling, "SilverDollar") == 200 and selling.SilverDollar.held == 1, "a Rare sells for $200")
+	check(Finds.sellOne(selling, "GoldenGnome") == 1000, "a Legendary sells for $1,000")
+	check(
+		Finds.sellOne(selling, "Ghost") == nil
+			and Finds.sellOne(selling, "OldKey") == nil
+			and Finds.sellOne(nil, "Marble") == nil
+			and Finds.sellOne(selling, nil :: any) == nil,
+		"no sale for an unknown id, one never found, no finds or no id"
+	)
+	local scrambled = { Marble = { found = 1, held = 0 / 0 }, OldKey = { found = 1, held = "2" }, DogTag = "x" }
+	check(
+		Finds.sellOne(scrambled, "Marble") == nil
+			and Finds.sellOne(scrambled, "OldKey") == nil
+			and Finds.sellOne(scrambled, "DogTag") == nil,
+		"no sale for a NaN, text or broken held count"
+	)
+
+	-- rarest: the held ones, rarest first, then in list order.
+	local shelf = {
+		GoldenGnome = { found = 1, held = 1 },
+		BottleCap = { found = 2, held = 2 },
+		TennisBall = { found = 1, held = 1 },
+		SilverDollar = { found = 1, held = 1 },
+		ClassRing = { found = 1, held = 1 },
+		Marble = { found = 2, held = 0 },
+		Ghost = { found = 1, held = 1 },
+	}
+	check(
+		sameTable(Finds.rarest(shelf, 10), { "GoldenGnome", "SilverDollar", "ClassRing", "BottleCap", "TennisBall" }),
+		"the rarest held Finds come first, then list order, and a sold one is not held"
+	)
+	check(sameTable(Finds.rarest(shelf, 2), { "GoldenGnome", "SilverDollar" }), "rarest keeps only as many as asked")
+	check(#Finds.rarest(shelf, 0) == 0 and #Finds.rarest({}, 12) == 0, "none asked or none held gives none")
+	check(
+		#Finds.rarest(shelf, nil :: any) == 0
+			and #Finds.rarest(shelf, "5" :: any) == 0
+			and #Finds.rarest(shelf, 0 / 0) == 0
+			and #Finds.rarest(shelf, -3) == 0,
+		"a count that is nil, text, NaN or negative asks for none"
+	)
+
+	-- The card words.
+	local title, subtitle = Finds.cardText("SilverDollar")
+	check(title == "Rare find: Silver Dollar", `the card title says rarity and name ({title})`)
+	check(subtitle == (Finds.get("SilverDollar") :: any).story, "the card subtitle is the story")
+	check(Finds.cardText("GoldenGnome") == "Legendary find: Golden Gnome", "a Legendary card")
+	local noTitle, noSubtitle = Finds.cardText("Nope")
+	check(noTitle == "" and noSubtitle == "", "an unknown id has no card")
+
+	-- Keep or Return: only the wedding band and June's locket can go back to whoever lost them.
+	check(Finds.canReturn("WeddingBand") and Finds.canReturn("JuneLocket"), "the band and the locket can go back")
+	local returnable = 0
+	for _, find in Finds.List do
+		if Finds.canReturn(find.id) then
+			returnable += 1
+		end
+	end
+	check(returnable == 2, `only two Finds can go back ({returnable})`)
+	check(not Finds.canReturn("Nope") and not Finds.canReturn(nil :: any), "nothing else can go back")
+	-- Chewed up by a mower, a Find dulls the blade like junk does: within the junk's own range.
+	check(Finds.ChewWear > 0 and Finds.ChewWear <= 0.3, `a chewed Find wears the blade like junk ({Finds.ChewWear})`)
+
+	-- cleanSave: fills the four keys and cleans whatever is there.
+	local blank = Finds.cleanSave(nil)
+	check(
+		sameTable(blank, {
+			finds = {},
+			sets = {},
+			buster = { owned = false, name = "Buster" },
+			findLuck = { run = 0, owed = false, spent = 0 },
+		}),
+		"cleanSave(nil) is a table with the four defaults"
+	)
+	check(
+		sameTable(Finds.cleanSave(5), blank) and sameTable(Finds.cleanSave("save"), blank),
+		"a non-table is the defaults"
+	)
+	local v14 = { money = 500, level = 3, settings = { sound = "Low" }, flags = { GoldSign = true } }
+	local mine = Finds.cleanSave(v14)
+	check(mine == v14, "cleanSave changes the table it is given and gives it back")
+	check(
+		mine.money == 500 and mine.level == 3 and mine.settings.sound == "Low" and mine.flags.GoldSign,
+		"other keys stay"
+	)
+	check(
+		sameTable(mine.finds, {})
+			and sameTable(mine.sets, {})
+			and mine.buster.name == "Buster"
+			and mine.findLuck.run == 0,
+		"a save from before Finds gets the four keys"
+	)
+
+	-- A good save passes through as it is.
+	local good = {
+		finds = { Marble = { found = 3, held = 2 }, GoldenGnome = { found = 1, held = 0 } },
+		sets = {},
+		buster = { owned = true, name = "Rex" },
+		findLuck = { run = 2, owed = true, spent = 1234567890 },
+	}
+	local goodCopy = copyOf(good)
+	check(sameTable(Finds.cleanSave(good), goodCopy), "a good save is left alone")
+
+	-- A scrambled save: strings, NaN, unknown ids, a count above what was found.
+	local scrambled = Finds.cleanSave({
+		finds = {
+			BottleCap = { found = "x", held = 2 },
+			Ghost = { found = 3, held = 1 },
+			TennisBall = { found = 0 / 0, held = 1 },
+			Marble = { found = 2.9, held = -1 },
+			SilverDollar = { found = 1, held = 5 },
+			OldKey = 4,
+			Seashell = { found = 0, held = 0 },
+			DogTag = { found = math.huge, held = 0 / 0 },
+			[1] = { found = 1, held = 1 },
+		},
+		sets = { Playground = true, Fake = true, Pocket = "yes" },
+		buster = { owned = "yes", name = string.rep("x", 50) },
+		findLuck = { run = 99, owed = 1 },
+	})
+	check(scrambled.finds.BottleCap == nil, "a find with a bad count and nothing found is dropped")
+	check(scrambled.finds.Ghost == nil and scrambled.finds[1] == nil, "an unknown id is dropped")
+	check(scrambled.finds.TennisBall == nil, "NaN counts as 0")
+	check(sameTable(scrambled.finds.Marble, { found = 2, held = 0 }), "a count is floored and held cannot go below 0")
+	check(sameTable(scrambled.finds.SilverDollar, { found = 1, held = 1 }), "held cannot pass found")
+	check(scrambled.finds.OldKey == nil and scrambled.finds.Seashell == nil, "a non-table or empty entry is dropped")
+	check(
+		scrambled.finds.DogTag ~= nil and scrambled.finds.DogTag.held == 0,
+		"an infinite count is held to a whole number"
+	)
+	check(
+		scrambled.finds.DogTag.found == math.floor(scrambled.finds.DogTag.found)
+			and scrambled.finds.DogTag.found < math.huge,
+		"found stays finite"
+	)
+	check(next(scrambled.sets) == nil, "a set that is not complete is not kept, and an unknown set is dropped")
+	check(
+		scrambled.buster.owned == false and scrambled.buster.name == string.rep("x", 20),
+		"Buster's flag and name are cleaned"
+	)
+	check(
+		scrambled.findLuck.run == 3 and scrambled.findLuck.owed == false,
+		"the run is held at 3 and owed is a boolean"
+	)
+	local junkFinds = Finds.cleanSave({ finds = "lots", sets = 5, buster = "dog", findLuck = true })
+	check(sameTable(junkFinds, blank), "the wrong types for all four keys give the defaults")
+	check(
+		Finds.cleanSave({ findLuck = { run = 1.9 } }).findLuck.run == 1
+			and Finds.cleanSave({ findLuck = { run = 0 / 0 } }).findLuck.run == 0
+			and Finds.cleanSave({ findLuck = { run = -2 } }).findLuck.run == 0,
+		"the run is floored and held from 0 to 3"
+	)
+	-- findLuck.spent: the seed of the last job lawn whose Find was picked up (JobService's placeFind
+	-- rolls nothing for it again, so a called-off job can't hand out its Find twice). Any seed Finds.seed
+	-- gives is kept, even one past the count cap; anything else is 0.
+	check(blank.findLuck.spent == 0, "cleanSave fills findLuck.spent as 0")
+	local realSeed = Finds.seed("20261101", 9007199254, 12)
+	check(
+		Finds.cleanSave({ findLuck = { spent = 77 } }).findLuck.spent == 77
+			and Finds.cleanSave({ findLuck = { spent = realSeed } }).findLuck.spent == realSeed
+			and Finds.cleanSave({ findLuck = { spent = 2000000000 } }).findLuck.spent == 2000000000
+			and Finds.cleanSave({ findLuck = { spent = 2147483647 } }).findLuck.spent == 2147483647,
+		"a spent seed that is a whole number a seed can be is kept"
+	)
+	check(
+		Finds.cleanSave({ findLuck = { spent = 0 / 0 } }).findLuck.spent == 0
+			and Finds.cleanSave({ findLuck = { spent = -4 } }).findLuck.spent == 0
+			and Finds.cleanSave({ findLuck = { spent = "12" } }).findLuck.spent == 0
+			and Finds.cleanSave({ findLuck = { spent = 1.5 } }).findLuck.spent == 0
+			and Finds.cleanSave({ findLuck = { spent = math.huge } }).findLuck.spent == 0
+			and Finds.cleanSave({ findLuck = { spent = 2147483648 } }).findLuck.spent == 0
+			and Finds.cleanSave({ findLuck = { spent = true } }).findLuck.spent == 0,
+		"a spent seed that is NaN, negative, text, a fraction, infinite or past any seed is 0"
+	)
+	for name, value in { nan = 0 / 0, negative = -4, text = "12", whole = 77, big = 2000000000 } do
+		local once = copyOf(Finds.cleanSave({ findLuck = { run = 1, spent = value } }))
+		check(sameTable(once, Finds.cleanSave(copyOf(once))), `cleaning a spent seed twice changes nothing ({name})`)
+	end
+
+	-- Buster's name: trimmed, up to 20 characters, never empty.
+	check(Finds.cleanSave({ buster = { name = "  Rex  " } }).buster.name == "Rex", "a name is trimmed")
+	check(Finds.cleanSave({ buster = { name = "" } }).buster.name == "Buster", "an empty name is Buster")
+	check(Finds.cleanSave({ buster = { name = "   " } }).buster.name == "Buster", "a blank name is Buster")
+	check(Finds.cleanSave({ buster = { name = 7 } }).buster.name == "Buster", "a number is not a name")
+	check(
+		Finds.cleanSave({ buster = { name = "Sir Barks-a-Lot the Third" } }).buster.name == "Sir Barks-a-Lot the",
+		"a long name is cut at 20 characters"
+	)
+	check(Finds.cleanSave({ buster = { name = "A\nB" } }).buster.name == "AB", "control characters are dropped")
+	check(
+		Finds.cleanSave({ buster = { name = string.rep("\u{e9}", 30) } }).buster.name == string.rep("\u{e9}", 20),
+		"a cut never splits a character"
+	)
+
+	-- A set that is complete by the Finds is added, and one that is not complete is not kept.
+	local maple = {}
+	for _, member in Finds.Sets[5].members do
+		maple[member] = { found = 1, held = 0 }
+	end
+	local mapleSave = Finds.cleanSave({ finds = maple, sets = {} })
+	check(sameTable(mapleSave.sets, { MapleGrove = true }), "a complete set that was missing is added")
+	local falseSet = Finds.cleanSave({ finds = {}, sets = { Playground = true } })
+	check(next(falseSet.sets) == nil, "a set marked complete without the Finds is dropped")
+
+	-- It is a fixed point: cleaning twice changes nothing.
+	for name, save in { v14 = copyOf(v14), good = copyOf(good), scrambled = scrambled, maple = mapleSave } do
+		local once = copyOf(Finds.cleanSave(save))
+		local twice = copyOf(Finds.cleanSave(copyOf(once)))
+		check(sameTable(once, twice), `cleanSave twice changes nothing ({name})`)
+	end
+	local rescramble = Finds.cleanSave({
+		finds = {
+			BottleCap = { found = "x", held = 2 },
+			Marble = { found = 2.9, held = -1 },
+			DogTag = { found = math.huge, held = 1 },
+		},
+		buster = { name = "  " .. string.rep("y", 19) .. "  z" },
+		findLuck = { run = 7.5 },
+	})
+	check(
+		sameTable(rescramble, Finds.cleanSave(copyOf(rescramble))),
+		"a second clean of a scrambled save changes nothing"
+	)
+
+	-- Data version 15: the stored version 14 save above (day blanked by its upgrade) goes through what
+	-- DataService's step 14 -> 15 does, Finds.cleanSave, and gains the four keys at their defaults with
+	-- nothing else lost. DataService cannot load here, so the step itself is pinned in its text below.
+	local storedV14 = copyOf(storedBefore)
+	check(storedV14.version == 14 and storedV14.finds == nil, "the stored save is version 14 and has no Finds yet")
+	local upgraded = Finds.cleanSave(copyOf(storedV14))
+	check(
+		sameTable(upgraded.finds, {})
+			and sameTable(upgraded.sets, {})
+			and sameTable(upgraded.buster, { owned = false, name = "Buster" })
+			and sameTable(upgraded.findLuck, { run = 0, owed = false, spent = 0 }),
+		"a stored version 14 save gains the four keys at their defaults"
+	)
+	local withoutFinds = copyOf(upgraded)
+	withoutFinds.finds, withoutFinds.sets, withoutFinds.buster, withoutFinds.findLuck = nil, nil, nil, nil
+	check(
+		sameTable(withoutFinds, storedV14),
+		"and nothing else in it moves: money, xp, the ladder, the day, the streak, the flags and the contest"
+	)
+	-- A veteran with Finds already in a version 14 save (a hand-edited one) keeps what is good in it.
+	local oldWithFinds = copyOf(storedV14)
+	oldWithFinds.finds = { Marble = { found = 2, held = 1 } }
+	oldWithFinds.buster = { owned = true, name = "Rex" }
+	local keptFinds = Finds.cleanSave(copyOf(oldWithFinds))
+	check(
+		sameTable(keptFinds.finds, { Marble = { found = 2, held = 1 } })
+			and keptFinds.buster.owned == true
+			and keptFinds.buster.name == "Rex",
+		"Finds a save already holds are kept"
+	)
+
+	-- The wiring, in the text (DataService cannot load here): the step, the fresh save, every load and
+	-- the snapshot all go through the one cleaner.
+	check(has(dataService, "local Finds = require(Shared.Config.Finds)"), "DataService requires Finds")
+	local fromMigration = string.match(dataService, "%[15%] = function%(data%).-\n\tend,\n") or ""
+	check(
+		has(fromMigration, "Finds.cleanSave(data)"),
+		"the 14 -> 15 step cleans the save with Finds.cleanSave, so it gains the four keys"
+	)
+	check(
+		not has(fromMigration, "Season.upgradeSave"),
+		"the 14 -> 15 step does not go through Season (it loads without Finds)"
+	)
+	check(has(fromDefault, "Finds.cleanSave(data)"), "defaultData has the four Finds keys")
+	check(
+		has(fromReconcile, "Finds.cleanSave(data)"),
+		"reconcile fills the four Finds keys and cleans a tampered or old value on load"
+	)
+	for _, key in { "finds", "sets", "buster", "findLuck" } do
+		check(has(fromSnapshot, `\n\t\t{key} = data.{key}`), `snapshot sends {key}`)
+	end
+	check(not has(dataService, "\u{2014}"), "DataService has no em dashes")
+
+	-- The perks, goals and contract, in the text (the services cannot load here).
+	local jobService = source("src/server/Services/JobService.luau")
+	local seasonService = source("src/server/Services/SeasonService.luau")
+	local dailyService = source("src/server/Services/DailyService.luau")
+	local goal = source("src/client/Goal.luau")
+	local interact = source("src/client/Controllers/InteractController.luau")
+	local fromStats = string.match(seasonService, "local function statsOf%(data%).-\nend\n") or ""
+	check(
+		has(fromStats, "finds = Finds.foundCount(data.finds)") and has(fromStats, "sets = Finds.setCount(data.sets)"),
+		"SeasonService counts the Finds found and the sets done for the milestones"
+	)
+	check(
+		has(goal, "finds = Finds.foundCount(profile.finds)") and has(goal, "sets = Finds.setCount(profile.sets)"),
+		"the goals rail counts the Finds found and the sets done the way the server does"
+	)
+	check(has(goal, 'Finds = "finds"') and has(goal, 'Sets = "sets"'), "the goals rail shows the Finds goals' progress")
+	local fromJoin = string.match(seasonService, "local function onPlayerAdded%(player: Player%).-\nend\n") or ""
+	check(
+		has(fromJoin, "Finds.signEarly(data.sets)") and has(fromJoin, 'player:SetAttribute("GoldSign", true)'),
+		"joining with Maple Grove done gives the gold sign, as a claimed level 20 does"
+	)
+	-- A kept pickup and the Studio panel's Give a Find both go through JobService:GiveFind.
+	local fromGive = string.match(jobService, "function JobService:GiveFind%(.-\nend\n") or ""
+	local fromPickUp = string.match(jobService, "function JobService:PickUpFind%(.-\nend\n") or ""
+	check(
+		has(fromGive, "Finds.signEarly(data.sets)") and has(fromGive, 'player:SetAttribute("GoldSign", true)'),
+		"completing Maple Grove gives the gold sign at once"
+	)
+	check(
+		has(fromPickUp, "self:GiveFind(player, find.id, not returned, note)"),
+		"a Find picked up from the lawn is saved by JobService:GiveFind"
+	)
+	local studioService = fs.readFile("src/server/Services/StudioTestService.luau")
+	local studioController = fs.readFile("src/client/Controllers/StudioTestController.luau")
+	check(
+		has(studioService, "JobService:GiveFind(player, id, true, nil)") and has(studioService, "lawn:PlaceFind(id, "),
+		"the Studio panel's Give a Find and Find on this lawn use the same paths as play"
+	)
+	check(
+		has(studioController, 'run("GiveFind")') and has(studioController, 'run("LawnFind")'),
+		"the Studio panel has Give a Find and Find on this lawn buttons"
+	)
+	check(
+		has(dailyService, "data.findLuck.owed = true"),
+		"finishing all three contracts (the Bonus Day) owes a sure Find on the next job"
+	)
+	check(
+		has(dailyService, "counts.finds = (counts.finds or 0) + ((info and info.findPicked) or 0)"),
+		"DailyService counts the Finds picked up toward the Finds contract"
+	)
+	local fromWreck = string.match(jobService, "local function wreckHazards%(.-\nend\n") or ""
+	check(
+		has(fromWreck, 'hazard.kind == "FlowerPatch"') and has(fromWreck, "Finds.flowerFactor("),
+		"a wrecked flower patch costs the Garden set's share of the penalty (gnomes cost the whole of it)"
+	)
+	check(has(jobService, "PICK_UP_REACH + Finds.reachBonus("), "the server's pick-up reach adds the Playground perk")
+	check(has(interact, "REACH + Finds.reachBonus("), "the look-at reach for picking up adds the Playground perk")
+	-- A called-off job can't hand out its Find again: the lawn's seed is kept on the job, picking the Find
+	-- up spends it in the save of the leader whose roll it was, and placeFind rolls nothing for it again.
+	local fromPlace = string.match(jobService, "local function placeFind%(.-\nend\n") or ""
+	check(has(fromPlace, "seed == luck.spent"), "placeFind compares the lawn's seed with the leader's spent seed")
+	check(has(fromPlace, "job.findSeed = seed"), "placeFind keeps the lawn's seed on the job")
+	check(
+		has(fromPlace, "Finds.seed(day, leader.UserId, done + 1)")
+			and has(fromPlace, "daily.day")
+			and not has(fromPlace, "Daily.dayKey"),
+		"the seed's day is the daily state's own day key, so a Studio day jump and the seed agree"
+	)
+	check(
+		has(fromPickUp, "findLuck.spent = job.findSeed") and has(fromPickUp, "DataService:Changed(job.findLeader)"),
+		"picking up the Find spends its seed in the leader's save"
+	)
+	check(not has(fromGive, "findLuck.spent"), "the Studio panel's Give a Find (no seed) spends nothing")
+	-- The crew hears who picked it up or chewed it, and the band's money is paid when it goes back.
+	check(has(fromPickUp, "picked up the {find.name}."), "the rest of the crew is told who picked up the Find")
+	check(has(jobService, "'s mower chewed up the {result.chewed.name}."), "the crew is told whose mower chewed it")
+	check(
+		has(fromPickUp, "local each = math.floor(BAND_TIP / #job.members)")
+			and has(fromPickUp, "DataService:Earn(member, each)"),
+		"the wedding band's money is paid to the crew when it goes back"
+	)
+	check(not has(jobService, "returnTip"), "the band's money is no longer held for the tip")
+	local lawnService = source("src/server/Services/LawnService.luau")
+	check(has(lawnService, '"It got chewed up by a mower."'), "a crewmate reaching for a chewed Find is told why")
+	for path, text in { JobService = jobService, SeasonService = seasonService, DailyService = dailyService } do
+		check(not has(text, "\u{2014}"), `{path} has no em dashes`)
+	end
+end
+
+-- Buster -------------------------------------------------------------------------------------------
+
+-- Where Buster runs next on a job lawn (src/shared/DogWalk.luau): a grass cell that is clear of every
+-- player with a motor mower out, by a way that never passes closer to one, and not too far.
+do
+	local function at(x: number, z: number)
+		return roblox.Vector3.new(x, 0, z)
+	end
+	local function first()
+		return 0
+	end
+	local keep = DogWalk.KEEP_AWAY
+	check(keep == 6, "Buster keeps 6 studs from a motor mower")
+	check(math.abs(DogWalk.distanceToSegment(at(0, 5), at(-3, 0), at(3, 0)) - 5) < 1e-9, "a point over a way")
+	check(math.abs(DogWalk.distanceToSegment(at(7, 3), at(-3, 0), at(3, 0)) - 5) < 1e-9, "a point past its end")
+	check(math.abs(DogWalk.distanceToSegment(at(2, 2), at(1, 1), at(1, 1)) - math.sqrt(2)) < 1e-9, "a way of no length")
+	-- Height never counts: a mower held up high is still in the way.
+	check(
+		math.abs(DogWalk.distanceToSegment(roblox.Vector3.new(0, 9, 5), at(-3, 0), at(3, 0)) - 5) < 1e-9,
+		"only across the ground"
+	)
+
+	local options = { keep = keep, shortest = 2, longest = 12 }
+	-- No mowers: any cell in range.
+	local cells = { at(5, 0), at(30, 0), at(0, 1) }
+	check(DogWalk.pick(cells, at(0, 0), {}, options, first) == cells[1], "a cell in range, the first by the roll")
+	local picked = {}
+	for roll = 0, 0.99, 0.01 do
+		local cell = DogWalk.pick(cells, at(0, 0), {}, options, function()
+			return roll
+		end)
+		picked[cell] = true
+	end
+	check(picked[cells[1]] and not picked[cells[2]] and not picked[cells[3]], "never too far, never too near")
+
+	-- A cell within 6 studs of a mower is never picked, nor one whose way passes within 6 of it.
+	local mower = { at(10, 0) }
+	local near = at(10, 4)
+	-- Seven studs from the mower, but the way there from (4, 10) passes about four from it.
+	local behind = at(17, 0)
+	local clear = at(0, 10)
+	for roll = 0, 0.99, 0.05 do
+		local cell = DogWalk.pick(
+			{ near, behind, clear },
+			at(4, 10),
+			mower,
+			{ keep = keep, shortest = 0, longest = 40 },
+			function()
+				return roll
+			end
+		)
+		check(cell == clear, "only the cell clear of the mower, by a clear way")
+	end
+	check(not DogWalk.clearOf(near, mower, keep) and DogWalk.clearOf(clear, mower, keep), "clear of a mower")
+	check(not DogWalk.pathClear(at(4, 10), behind, mower, keep), "a way past a mower is not clear")
+	check(DogWalk.pathClear(at(4, 10), clear, mower, keep), "a way away from a mower is clear")
+	check(DogWalk.pick({ near }, at(4, 10), mower, options, first) == nil, "nowhere safe: he stays put")
+
+	-- Caught near a mower, he may run off to a safe cell further than usual, but never past it.
+	local caught = at(8, 0)
+	local away = at(-12, 0)
+	local past = at(30, 0)
+	check(
+		DogWalk.pick({ past, away }, caught, mower, options, first) == away,
+		"caught near a mower he runs away from it, even further than usual"
+	)
+	check(DogWalk.pick({ past }, caught, mower, options, first) == nil, "and never past it")
+	-- But not across the whole lawn: up to `escape` studs, and only one of the `nearest` cells that do.
+	local escaping = { keep = keep, shortest = 2, longest = 12, escape = 24, nearest = 3 }
+	check(DogWalk.pick({ at(-40, 0) }, caught, mower, escaping, first) == nil, "an escape is never past its cap")
+	local ways = { at(-16, 0), at(-2, 0), at(-14, 0), at(-4, 0), at(-10, 0) }
+	local escapes = {}
+	for roll = 0, 0.99, 0.01 do
+		local cell = DogWalk.pick(ways, caught, mower, escaping, function()
+			return roll
+		end)
+		if cell then
+			escapes[cell] = true
+		end
+	end
+	check(
+		escapes[ways[2]] and escapes[ways[4]] and escapes[ways[5]] and not escapes[ways[1]] and not escapes[ways[3]],
+		"an escape takes one of the three nearest safe cells"
+	)
+	check(DogWalk.walkableWay(at(0, 0), at(5, 0), function(point)
+		return point.X < 2
+	end) == false, "a way over ground he can't walk on is not walkable")
+
+	-- The Find: each way that isn't clear, or each trot a mower cut short with the Find still there, spends
+	-- a try; he gives up for the job after the last.
+	local spent, givesUp = DogWalk.findRetry(0, 10)
+	check(spent == 1 and givesUp == false, "the first try spent, he keeps trying")
+	spent, givesUp = DogWalk.findRetry(9, 10)
+	check(spent == 10 and givesUp == true, "the tenth try spent, he gives up on it")
+
+	-- Only over ground he may walk on (the grass, never a flower bed, a tree or a doorway).
+	local function walkable(point)
+		return not (point.X > 1 and point.X < 3)
+	end
+	local walled = { keep = keep, shortest = 0, longest = 40, walkable = walkable }
+	check(DogWalk.pick({ at(5, 0) }, at(0, 0), {}, walled, first) == nil, "not across ground he can't walk on")
+	check(DogWalk.pick({ at(0, 5) }, at(0, 0), {}, walled, first) ~= nil, "across ground he can")
+	check(DogWalk.pick({}, at(0, 0), {}, options, first) == nil, "no cells, nowhere to go")
+end
+
+-- The wiring, in the text (the services cannot load here).
+do
+	local function read(path: string): string
+		return fs.readFile(path)
+	end
+	local season = read("src/server/Services/SeasonService.luau")
+	local fromPay = string.match(season, "local function payLevels%(.-\nend\n") or ""
+	check(
+		string.find(fromPay, "if reward.buster then", 1, true) ~= nil
+			and string.find(fromPay, "data.buster.owned = true", 1, true) ~= nil,
+		"a level that gives Buster makes him theirs"
+	)
+	local fromJoin = string.match(season, "local function onPlayerAdded%(player: Player%).-\nend\n") or ""
+	check(
+		string.find(fromJoin, "reward.buster", 1, true) ~= nil
+			and string.find(fromJoin, "CompanionService:Refresh(player)", 1, true) ~= nil,
+		"joining past level 5 brings Buster, as a claimed level 20 brings the sign"
+	)
+	local jobs = read("src/server/Services/JobService.luau")
+	local _, busters = string.gsub(jobs, "buster = ownsBuster%(job.truckOwner%) or nil", "")
+	check(busters == 2, "both drives say whether the driver's Buster rides in the bed")
+	check(
+		string.find(jobs, 'Assets.shareWith(player, "Props", props)', 1, true) ~= nil,
+		"the drive shares Buster's model with the crew's screens"
+	)
+	local cutscene = read("src/client/Controllers/CutsceneController.luau")
+	check(string.find(cutscene, "info.buster", 1, true) ~= nil, "the cutscene puts Buster in the bed")
+	local map = read("src/client/Hud/LawnMap.luau")
+	check(
+		string.find(map, '"PickUpFind"', 1, true) ~= nil and string.find(map, '"BusterFound"', 1, true) ~= nil,
+		"the lawn map dots a Find once Buster has found it"
+	)
+	local order = read("src/server/init.server.luau")
+	local companion = string.find(order, '"CompanionService"', 1, true) or 0
+	check(
+		companion > (string.find(order, '"JobService"', 1, true) or math.huge)
+			and companion > (string.find(order, '"WorldService"', 1, true) or math.huge),
+		"CompanionService loads after JobService and WorldService"
+	)
+	for path, text in { SeasonService = season, JobService = jobs, CutsceneController = cutscene, LawnMap = map } do
+		check(not string.find(text, "\u{2014}", 1, true), `{path} has no em dashes`)
+	end
+	local dogs = read("src/server/Services/CompanionService.luau")
+	check(not string.find(dogs, "\u{2014}", 1, true), "CompanionService has no em dashes")
+	check(not string.find(dogs, "Heartbeat", 1, true), "Buster's loop waits with task.wait, not every frame")
+	-- In a crew someone else leads, he sits at the leader's business (where the crew is), set out past
+	-- any Buster already there; their own again once the crew ends.
+	local fromHomeSpot = string.match(dogs, "local function homeSpotOf%(.-\nend\n") or ""
+	check(
+		string.find(fromHomeSpot, "PartyService:GetParty(owner)", 1, true) ~= nil
+			and string.find(fromHomeSpot, "WorldService:GetBusterSpot(leader)", 1, true) ~= nil
+			and string.find(fromHomeSpot, "WorldService:GetBusterSpot(owner)", 1, true) ~= nil
+			and string.find(fromHomeSpot, "ahead * CREW_SPACING", 1, true) ~= nil,
+		"a crewmate's Buster sits at the leader's business, beside the leader's, and at home without a crew"
+	)
+	check(string.find(dogs, "local spot = homeSpotOf(dog.owner)", 1, true) ~= nil, "sitAtHome sits him on that spot")
+	local fromSniff = string.match(dogs, "local function sniff%(.-\nend\n") or ""
+	local _, retries = string.gsub(fromSniff, "DogWalk%.findRetry%(", "")
+	check(
+		retries == 1 and string.find(fromSniff, "retry()", 1, true) ~= nil,
+		"a blocked way and a trot cut short both spend a try at the Find (one rule, DogWalk.findRetry)"
+	)
+	check(
+		string.find(fromSniff, "DogWalk.walkableWay(", 1, true) ~= nil,
+		"the trot to the Find keeps to the grass the whole way"
+	)
+	check(
+		string.find(dogs, "TweenService:Create%(%s*dog%.root") ~= nil
+			and not string.find(dogs, "CFrameValue", 1, true),
+		"a run tweens his welded Root, with no Lua every frame"
+	)
+	check(Sounds.Ids.Bark ~= nil, "Bark is a listed sound (empty until a Roblox-owned bark is found)")
+end
 
 if failures > 0 then
 	print(`{failures} check(s) failed`)

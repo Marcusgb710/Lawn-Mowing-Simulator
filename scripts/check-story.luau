@@ -189,6 +189,40 @@ end
 for _, id in { "ContestJudging", "ContestJudgingAgain", "ContestWin", "ContestWinAgain", "ContestLose" } do
 	check(Story.Scenes[id] ~= nil, `no {id} scene`)
 end
+-- The scene JobService plays when a player returns June's locket (a Find): June on her own, three or
+-- four short lines, Proud and then Laughing, about her mother's locket that went missing the summer
+-- of the 1994 contest.
+do
+	local scene = Story.Scenes.LocketReturn
+	check(scene ~= nil, "no LocketReturn scene")
+	if scene then
+		check(#scene.lines >= 3 and #scene.lines <= 4, "LocketReturn has three or four lines")
+		local words = {}
+		local laughing = false
+		for index, line in scene.lines do
+			check(line.speaker == "June", `LocketReturn line {index} isn't June's`)
+			check(#line.text <= 120, `LocketReturn line {index} is long for a bubble`)
+			if index == 1 then
+				check(line.mood == "Proud", "LocketReturn opens with June proud")
+			end
+			if line.mood == "Laughing" then
+				laughing = true
+			else
+				check(not laughing, `LocketReturn line {index} goes back from Laughing`)
+			end
+			check(line.mood == "Proud" or line.mood == "Laughing", `LocketReturn line {index} is Proud or Laughing`)
+			table.insert(words, line.text)
+		end
+		check(laughing, "LocketReturn ends with June laughing")
+		local text = string.lower(table.concat(words, " "))
+		check(string.find(text, "mother", 1, true) ~= nil, "LocketReturn says the locket was her mother's")
+		check(
+			string.find(text, "1994", 1, true) ~= nil or string.find(text, "'94", 1, true) ~= nil,
+			"LocketReturn says it went missing the summer of the 1994 contest"
+		)
+		check(string.find(text, "\u{2014}", 1, true) == nil, "LocketReturn has no em dash")
+	end
+end
 check(#Story.GloriaRemarks == #Story.Acts, "Gloria has remarks for every act")
 for act, lines in Story.GloriaRemarks do
 	check(#lines > 0, `Gloria has nothing to say in act {act}`)

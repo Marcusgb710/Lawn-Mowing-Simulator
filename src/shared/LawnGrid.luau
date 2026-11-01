@@ -144,6 +144,28 @@ function LawnGrid.mowableMask(columns: number, rows: number, blocked: { [number]
 	return cells
 end
 
+-- The cells of `candidates` (by index) that are at least `spacing` cells from every cell in `away`,
+-- across or deep, in the order they came. A cell closer than that both ways is too close, the way
+-- junk in the grass is kept apart (LawnService): it is where a lawn's Find may go.
+function LawnGrid.clearOf(candidates: { number }, away: { number }, rows: number, spacing: number): { number }
+	local clear = {}
+	for _, index in candidates do
+		local column, row = LawnGrid.cell(index, rows)
+		local crowded = false
+		for _, other in away do
+			local otherColumn, otherRow = LawnGrid.cell(other, rows)
+			if math.abs(otherColumn - column) < spacing and math.abs(otherRow - row) < spacing then
+				crowded = true
+				break
+			end
+		end
+		if not crowded then
+			table.insert(clear, index)
+		end
+	end
+	return clear
+end
+
 -- How many of a task's `total` targets must be done to finish it: `threshold` (0-1) of the ones
 -- that aren't `optional`, rounded up so a share is never finished early.
 function LawnGrid.needed(total: number, optional: number, threshold: number): number

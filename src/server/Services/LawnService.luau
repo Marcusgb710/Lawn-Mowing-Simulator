@@ -14,7 +14,8 @@
 --                  ============ road (truck parks here) ========
 --
 -- A lawn that needs mowing also hides some junk in its uncut grass (sticks, toys, rocks; see
--- Config/Debris.luau), to pick up before cutting there.
+-- Config/Debris.luau), to pick up before cutting there. A job lawn may hide one Find as well
+-- (Config/Finds.luau, placed by JobService with Lawn:PlaceFind): not junk, and counted apart from it.
 --
 -- Everything uses the Lawn Mowing kit (Assets.Kit) when it's there and falls back to blocks.
 -- Grass is special: the server only tracks which one-stud cells are cut (see LawnGrid), mowers cut
@@ -27,6 +28,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Assets = require(Shared.Assets)
 local Debris = require(Shared.Config.Debris)
+local Finds = require(Shared.Config.Finds)
 local GameConfig = require(Shared.Config.GameConfig)
 local LawnGrid = require(Shared.LawnGrid)
 local Net = require(Shared.Net)
@@ -1967,14 +1969,13 @@ function Lawn:_removeDebris(debris, how: string?)
 	end
 end
 
--- A motorized mower ran over it: it's chewed up, and bits of it fly out from under the deck.
-function Lawn:_strike(debris)
-	self:_removeDebris(debris, "hit")
+-- Bits of something a mower chewed up fly out from under the deck at `position`, in `color`.
+local function burstBits(position: Vector3, color: Color3)
 	local burst = Instance.new("Attachment")
 	burst.Name = "DebrisBits"
-	burst.Position = debris.position + Vector3.new(0, 0.3, 0)
+	burst.Position = position + Vector3.new(0, 0.3, 0)
 	local bits = Instance.new("ParticleEmitter")
-	bits.Color = ColorSequence.new(debris.kind.color)
+	bits.Color = ColorSequence.new(color)
 	bits.Size = NumberSequence.new(0.2)
 	bits.Lifetime = NumberRange.new(0.4, 0.8)
 	bits.Rate = 60
@@ -1989,6 +1990,12 @@ function Lawn:_strike(debris)
 	task.delay(1.5, function()
 		burst:Destroy()
 	end)
+end
+
+-- A motorized mower ran over it: it's chewed up, and bits of it fly out from under the deck.
+function Lawn:_strike(debris)
+	self:_removeDebris(debris, "hit")
+	burstBits(debris.position, debris.kind.color)
 end
 
 -- Picks up the piece of junk that `thing` is part of, if it's still on the lawn and within
@@ -2011,6 +2018,191 @@ end
 function Lawn:DebrisCounts(): { total: number, picked: number, hit: number, left: number }
 	local counts = self.debrisCounts
 	return { total = counts.total, picked = counts.picked, hit = counts.hit, left = #self.debris }
+end
+
+-- A Find in the grass ----------------------------------------------------------------------------
+-- One thing worth picking up (Config/Finds.luau) that JobService rolls for a job lawn. It is not
+-- junk: it is in `find`, never in `debris`, so it is not counted with the junk, costs nothing left
+-- behind and is no junk dot on the lawn map (its model's Interact is PickUpFind, not PickUpDebris).
+-- `find` is { id, name, model, position (on the ground), index (its grass cell), yaw } while it is on
+-- the lawn, and nil once it has gone. `findGone` then says { how, model }: "picked" up, "chewed" by a
+-- mower, or "lost" with the job done.
+
+-- It sits on the uncut grass, this far down from the tops, so most of it shows over them.
+local FIND_SINK = 0.5
+
+-- How high the grass's tops stand on this lawn (an overgrown one's are taller, see TallScale).
+function Lawn:_grassTop(): number
+	local scale = self.grassFolder and self.grassFolder:GetAttribute("TallScale")
+	return GameConfig.TallGrassHeight * (if typeof(scale) == "number" then scale else 1)
+end
+
+-- Stands the Find's model at `height` over its spot on the ground.
+function Lawn:_standFind(height: number)
+	local find = self.find
+	Assets.placeOnGround(
+		find.model,
+		CFrame.new(find.position + Vector3.new(0, height + 0.03, 0)) * CFrame.Angles(0, find.yaw, 0)
+	)
+end
+
+-- Puts Find `id` on the lawn, on a grass cell that is still tall, not one of the optional ones beside
+-- flowers and trees, and at least DEBRIS_SPACING cells from every piece of junk (LawnGrid.clearOf),
+-- chosen by `rng`. Returns whether it went down: never on a home lawn, a lawn with no mowing, one that
+-- has its Find already, or one with no cell clear of the junk.
+function Lawn:PlaceFind(id: string, rng: Random): boolean
+	local find = Finds.get(id)
+	local grass = self.grassTask
+	if not (find and grass) or self.home or self.find or self.findGone then
+		return false
+	end
+	local candidates = {}
+	for _, target in grass.targets do
+		if not target.optional and target.work > 0 then
+			table.insert(candidates, target.index)
+		end
+	end
+	local junk = {}
+	for _, debris in self.debris do
+		table.insert(junk, debris.index)
+	end
+	local clear = LawnGrid.clearOf(candidates, junk, self.cellRows, DEBRIS_SPACING)
+	if #clear == 0 then
+		return false
+	end
+	local index = clear[rng:NextInteger(1, #clear)]
+	local target = grass.byIndex[index]
+	local model = Assets.prop(find.id)
+	Assets.anchor(model)
+	for _, part in model:GetDescendants() do
+		if part:IsA("BasePart") then
+			part.CanCollide = false
+			part.CanTouch = false
+			-- Players aim at it to pick it up; an invisible Root doesn't count.
+			part.CanQuery = part.Transparency < 1
+		end
+	end
+	local returnable = Finds.canReturn(find.id)
+	model.Name = "Find"
+	model:SetAttribute("Interact", "PickUpFind")
+	-- The band and the locket ask Keep (E) or Return it (R, see InteractController).
+	model:SetAttribute("InteractText", if returnable then "Keep" else "Pick up")
+	model:SetAttribute("InteractName", find.name)
+	model:SetAttribute("FindId", find.id)
+	model:SetAttribute("Returnable", returnable)
+	self.find = {
+		id = find.id,
+		name = find.name,
+		model = model,
+		position = target.position,
+		index = index,
+		yaw = rng:NextNumber(0, math.pi * 2),
+	}
+	self:_standFind(self:_grassTop() - FIND_SINK)
+	model.Parent = self.folder
+	return true
+end
+
+-- Takes the Find off the lawn (`how` it went: "picked", "chewed" or "lost") and gives it back.
+function Lawn:_takeFind(how: string)
+	local find = self.find
+	if not find then
+		return nil
+	end
+	self.find = nil
+	self.findGone = { id = find.id, how = how, model = find.model }
+	find.model:Destroy()
+	return find
+end
+
+-- The grass under the Find was cut (by shears, or a mower that doesn't chew it up): it drops to the
+-- ground instead of hanging where the tops were.
+function Lawn:_settleFind(index: number)
+	if self.find and self.find.index == index then
+		self:_standFind(0)
+	end
+end
+
+-- A motorized mower's deck went over the Find: it's chewed up, and bits of it fly out from under the
+-- deck like junk's do. Returns it.
+function Lawn:_chewFind()
+	local find = self:_takeFind("chewed")
+	local spec = find and Finds.get(find.id)
+	if find and spec then
+		burstBits(find.position, Color3.fromRGB(spec.color[1], spec.color[2], spec.color[3]))
+	end
+	return find
+end
+
+-- Picks up the Find that `thing` is part of, if it's still on the lawn and within `reach` studs of
+-- `from` (the player's eyes). Returns it, or nil and why not. It comes off the lawn here, before
+-- anything can yield, so two players reaching for it at once can't both have it: the second is told
+-- someone beat them to it, or that a mower chewed it up (their `thing` may be nil by then, the model
+-- being gone).
+function Lawn:PickUpFind(thing: Instance?, from: Vector3, reach: number): (any?, string?)
+	local find = self.find
+	if find and thing and (thing == find.model or thing:IsDescendantOf(find.model)) then
+		if (find.position - from).Magnitude > reach then
+			return nil, "Get a little closer."
+		end
+		return self:_takeFind("picked"), nil
+	end
+	local gone = self.findGone
+	if gone and (thing == nil or thing == gone.model) then
+		if gone.how == "picked" then
+			return nil, "Someone already picked it up."
+		elseif gone.how == "chewed" then
+			return nil, "It got chewed up by a mower."
+		end
+	end
+	return nil, nil
+end
+
+-- The job is done with the Find still in the grass: it's lost. Returns it, or nil when there was none.
+function Lawn:LoseFind()
+	return self:_takeFind("lost")
+end
+
+-- Where the Find stands: { id, there (still on the lawn), how (how it went, once it has) }, or nil
+-- when this lawn never had one.
+function Lawn:FindState(): { id: string, there: boolean, how: string? }?
+	if self.find then
+		return { id = self.find.id, there = true, how = nil }
+	elseif self.findGone then
+		return { id = self.findGone.id, there = false, how = self.findGone.how }
+	end
+	return nil
+end
+
+-- Buster's ground (CompanionService) ---------------------------------------------------------
+
+-- The ground a dog may run about on: every cell that has grass, except the ones beside flowers and trees
+-- (the optional cells), as [cell index] = its centre on the ground. Worked out once per lawn.
+function Lawn:OpenGround(): { [number]: Vector3 }
+	if self.openGround then
+		return self.openGround
+	end
+	local open = {}
+	local grass = self.grassTask
+	for index, state in self.grassState or {} do
+		local target = grass and grass.byIndex[index]
+		if state ~= LawnGrid.EMPTY and not (target and target.optional) then
+			local column, row = LawnGrid.cell(index, self.cellRows)
+			open[index] = LawnGrid.center(self.origin, GameConfig.CellSize, column, row)
+		end
+	end
+	self.openGround = open
+	return open
+end
+
+-- Whether a point (only X and Z count) is on that ground.
+function Lawn:IsOpenGround(point: { X: number, Z: number }): boolean
+	local column = math.floor((point.X - self.origin.X) / GameConfig.CellSize)
+	local row = math.floor((point.Z - self.origin.Z) / GameConfig.CellSize)
+	if column < 0 or row < 0 or column >= self.cellColumns or row >= self.cellRows then
+		return false
+	end
+	return self:OpenGround()[LawnGrid.index(column, row, self.cellRows)] ~= nil
 end
 
 -- Public API ---------------------------------------------------------------------------------
@@ -2054,6 +2246,10 @@ function LawnService:Build(template, origin: Vector3, address: string, condition
 		-- Junk hidden in the grass (see "Junk in the grass" above).
 		debris = {},
 		debrisByCell = {},
+		-- The Find hidden in the grass, once JobService puts one there, and how it went once it has
+		-- gone (see "A Find in the grass").
+		find = nil,
+		findGone = nil,
 		-- What's been cut on the lawn, as swath segments (see Swath and Lawn:Sweep).
 		swaths = {},
 		-- [holder] = the index in `swaths` of the entry they added last, for the next to stretch
@@ -2175,6 +2371,8 @@ export type WorkResult = {
 	debris: any?,
 	-- Junk a motorized mower just ran over and chewed up.
 	struck: { any },
+	-- The Find a motorized mower just chewed up (see "A Find in the grass"): no junk, so not in `struck`.
+	chewed: any?,
 	-- A sweep: the tool can mow this lawn, whether or not there was any tall grass under the deck.
 	fits: boolean,
 }
@@ -2211,6 +2409,7 @@ local function emptyResult(): WorkResult
 		message = nil,
 		debris = nil,
 		struck = {},
+		chewed = nil,
 		fits = false,
 	}
 end
@@ -2417,6 +2616,7 @@ function Lawn:_cutGrass(target, fit, ragged: boolean, result)
 	target.work = 0
 	target.raggedCut = ragged
 	VISUALS.Grass(target, 1)
+	self:_settleFind(target.index)
 	target.task.done += 1
 	if countsAsRequired(target) then
 		target.task.requiredDone += 1
@@ -2474,7 +2674,9 @@ end
 -- (fromX, fromZ) to (toX, toZ), in world studs. Every tall cell it passes over is cut, if the tool
 -- fits the mowing; standing still, the cells under the deck. Junk in the grass: a motorized mower
 -- (`strikes`) chews it up and cuts on; anything else stops short of it (`debris` says what stopped
--- it). The swath logged covers exactly the cells cut.
+-- it). A motorized mower that can mow the lawn chews up the Find too when its cell is under the deck,
+-- cut or not (`chewed`); anything else cuts its grass and leaves it lying there. The swath logged
+-- covers exactly the cells cut.
 function Lawn:Sweep(
 	fromX: number,
 	fromZ: number,
@@ -2499,7 +2701,11 @@ function Lawn:Sweep(
 		toX, toZ = fromX, fromZ
 	end
 	local columns, rows = self.cellColumns, self.cellRows
-	local tall = self:_tallCells(LawnGrid.cellsUnderSweep(columns, rows, fromX, fromZ, toX, toZ, halfWidth))
+	local under = LawnGrid.cellsUnderSweep(columns, rows, fromX, fromZ, toX, toZ, halfWidth)
+	if context and context.strikes and result.fits and self.find and table.find(under, self.find.index) then
+		result.chewed = self:_chewFind()
+	end
+	local tall = self:_tallCells(under)
 	if #tall == 0 then
 		return result
 	end
@@ -2800,6 +3006,10 @@ function Lawn:Finish(target)
 	local debris = target.kind == "Grass" and self:_debrisOn(target.index)
 	if debris then
 		self:_removeDebris(debris)
+	end
+	-- Nor a Find (a home lawn never has one, but a finished cell keeps nothing in it either way).
+	if target.kind == "Grass" and self.find and self.find.index == target.index then
+		self:_takeFind("lost")
 	end
 	VISUALS[target.kind](target, 1)
 end

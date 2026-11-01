@@ -2,6 +2,7 @@
 -- Nothing else in the game depends on what these look like, so feel free to delete them later.
 
 local Decorations = require(script.Parent.Config.Decorations)
+local Finds = require(script.Parent.Config.Finds)
 local Items = require(script.Parent.Config.Items)
 local Tools = require(script.Parent.Config.Tools)
 
@@ -1629,6 +1630,166 @@ PROP_BUILDERS.DebrisFrisbee = function(model: Model)
 		Size = Vector3.new(0.08, 1, 1),
 		CFrame = CFrame.new(0, 0.04, 0) * CFrame.Angles(0, 0, math.rad(90)),
 		Color = Color3.fromRGB(240, 130, 30),
+	})
+end
+
+-- The Finds (Config/Finds.luau), until their models land: a small block in the Find's colour with
+-- its name on a billboard over it and a slow sparkle, so a player can spot it on the grass. Built
+-- like the junk: origin on the ground at the centre, a "Root" part and a `<Id>__Body`. LawnService
+-- stands it on the uncut grass's tops.
+local FIND_BLOCK = Vector3.new(0.7, 0.7, 0.7)
+local FIND_LABEL_DISTANCE = 40
+local FIND_SPARKLE = Color3.fromRGB(255, 240, 180)
+
+local function findBuilder(find: Finds.Find)
+	return function(model: Model)
+		local add = debrisAdder(model, find.id)
+		local body = add({
+			Size = FIND_BLOCK,
+			Position = Vector3.new(0, FIND_BLOCK.Y / 2, 0),
+			Color = Color3.fromRGB(find.color[1], find.color[2], find.color[3]),
+			Material = Enum.Material.SmoothPlastic,
+		})
+		local label = Instance.new("BillboardGui")
+		label.Name = "Label"
+		label.Size = UDim2.fromOffset(160, 26)
+		label.StudsOffsetWorldSpace = Vector3.new(0, 1.1, 0)
+		label.MaxDistance = FIND_LABEL_DISTANCE
+		label.LightInfluence = 0
+		label.Parent = body
+		local text = Instance.new("TextLabel")
+		text.Size = UDim2.fromScale(1, 1)
+		text.BackgroundTransparency = 1
+		text.Text = find.name
+		text.TextSize = 16
+		text.Font = Enum.Font.GothamBold
+		text.TextColor3 = Color3.new(1, 1, 1)
+		text.TextStrokeTransparency = 0.4
+		text.Parent = label
+		-- A few motes a second: enough to catch the eye, cheap on a phone.
+		local sparkle = Instance.new("ParticleEmitter")
+		sparkle.Name = "Sparkle"
+		sparkle.Rate = 3
+		sparkle.Lifetime = NumberRange.new(0.6, 1)
+		sparkle.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.3), NumberSequenceKeypoint.new(1, 0) })
+		sparkle.Speed = NumberRange.new(0.5, 1.5)
+		sparkle.SpreadAngle = Vector2.new(180, 180)
+		sparkle.LightEmission = 1
+		sparkle.Color = ColorSequence.new(FIND_SPARKLE)
+		sparkle.Parent = body
+	end
+end
+for _, find in Finds.List do
+	PROP_BUILDERS[find.id] = findBuilder(find)
+end
+
+-- The finds shelf at the business (WorldService), where the player's rarest twelve held Finds
+-- stand: a wooden shelf 6 wide, 6 tall and 1.5 deep, three rows of four. Built like the storage
+-- fixtures: back flat on Z = 0, front toward -Z, bottom at Y = 0, a "Root" part. `Spot1` to
+-- `Spot12` are attachments on Root where a Find's origin goes (on a board's top, facing -Z), top
+-- row first and left to right as you face it, so the rarest end up at the top left. Only the frame
+-- collides; the Finds WorldService stands on it don't.
+local SHELF_SIZE = Vector3.new(6, 6, 1.5)
+local SHELF_WOOD = Color3.fromRGB(150, 110, 70)
+-- Board tops, bottom row first, and the thickness of the base under the bottom one.
+local SHELF_ROWS = { 0.4, 2.3, 4.2 }
+local SHELF_BOARD, SHELF_BASE, SHELF_SIDE = 0.2, 0.4, 0.2
+local SHELF_COLUMNS = 4
+
+PROP_BUILDERS.FindsShelf = function(model: Model)
+	local add = propAdder(model)
+	rootPart(model, add)
+	local width, height, depth = SHELF_SIZE.X, SHELF_SIZE.Y, SHELF_SIZE.Z
+	local function frame(props)
+		props.Name = "FindsShelf__Frame"
+		props.Color = SHELF_WOOD
+		props.Material = Enum.Material.Wood
+		return add(props)
+	end
+	frame({ Size = Vector3.new(width, SHELF_BASE, depth), Position = Vector3.new(0, SHELF_BASE / 2, -depth / 2) })
+	for index, top in SHELF_ROWS do
+		-- The bottom row stands on the base, so only the two above it get a board.
+		if index > 1 then
+			frame({
+				Size = Vector3.new(width, SHELF_BOARD, depth),
+				Position = Vector3.new(0, top - SHELF_BOARD / 2, -depth / 2),
+			})
+		end
+	end
+	frame({
+		Size = Vector3.new(width, SHELF_BOARD, depth),
+		Position = Vector3.new(0, height - SHELF_BOARD / 2, -depth / 2),
+	})
+	for _, side in { -1, 1 } do
+		frame({
+			Size = Vector3.new(SHELF_SIDE, height, depth),
+			Position = Vector3.new(side * (width - SHELF_SIDE) / 2, height / 2, -depth / 2),
+		})
+	end
+	frame({ Size = Vector3.new(width - SHELF_SIDE * 2, height, 0.1), Position = Vector3.new(0, height / 2, -0.05) })
+
+	local gap = (width - SHELF_SIDE * 2) / SHELF_COLUMNS
+	for row = 1, #SHELF_ROWS do
+		-- Spot 1 is on the top board, so the rows are taken from the top down.
+		local top = SHELF_ROWS[#SHELF_ROWS + 1 - row]
+		for column = 1, SHELF_COLUMNS do
+			-- Facing -Z, +X is on your left, so the first column is the one at +X.
+			local x = (SHELF_COLUMNS / 2 + 0.5 - column) * gap
+			marker(model, `Spot{(row - 1) * SHELF_COLUMNS + column}`, CFrame.new(x, top, -depth / 2))
+		end
+	end
+end
+
+-- Buster, the dog a player gets at level 5 (CompanionService), until his model lands: a warm brown
+-- block body low on the ground, a head at the front, two darker ears and a tail cocked up at the back,
+-- about 2.6 studs nose to tail. Built like the real models: origin on the ground at his middle, a Root
+-- part, front (his nose) toward -Z. He only runs about to be looked at, so nothing on him collides,
+-- touches or takes an aim.
+local BUSTER_COAT = Color3.fromRGB(165, 108, 60)
+local BUSTER_EARS = Color3.fromRGB(115, 72, 40)
+
+PROP_BUILDERS.Buster = function(model: Model)
+	local add = propAdder(model)
+	rootPart(model, add)
+	local function piece(props)
+		props.CanCollide = false
+		props.CanTouch = false
+		props.CanQuery = false
+		props.Material = Enum.Material.SmoothPlastic
+		return add(props)
+	end
+	piece({
+		Name = "Buster__Body",
+		Size = Vector3.new(0.9, 0.9, 1.6),
+		Position = Vector3.new(0, 0.45, 0),
+		Color = BUSTER_COAT,
+	})
+	piece({
+		Name = "Buster__Head",
+		Size = Vector3.new(0.75, 0.75, 0.75),
+		Position = Vector3.new(0, 1.05, -0.95),
+		Color = BUSTER_COAT,
+	})
+	piece({
+		Name = "Buster__Nose",
+		Size = Vector3.new(0.2, 0.15, 0.1),
+		Position = Vector3.new(0, 1.05, -1.37),
+		Color = Color3.fromRGB(30, 25, 20),
+	})
+	for _, side in { -1, 1 } do
+		piece({
+			Name = "Buster__Ear",
+			Size = Vector3.new(0.18, 0.35, 0.3),
+			Position = Vector3.new(side * 0.3, 1.55, -0.95),
+			Color = BUSTER_EARS,
+		})
+	end
+	piece({
+		Name = "Buster__Tail",
+		Size = Vector3.new(0.18, 0.18, 0.6),
+		-- Turned so its back end (+Z) points up.
+		CFrame = CFrame.new(0, 0.95, 1.0) * CFrame.Angles(math.rad(-35), 0, 0),
+		Color = BUSTER_COAT,
 	})
 end
 

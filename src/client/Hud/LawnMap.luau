@@ -3,8 +3,9 @@
 -- per grass cell (an EditableImage, drawn Pixelated): uncut grass dark, mown grass bright, torn grass its
 -- own colour and bare ground brown, from the ledger GrassController keeps (jobLawn) and not from the
 -- lawn's pictures, so it looks the same whether the lawn is painted flat or over the lawn art. On it, a
--- white dot where you are and a dark dot for each piece of junk still in the grass. It is dark glass like
--- the job card, with "Lawn" and the percent mowed over the picture.
+-- white dot where you are, a dark dot for each piece of junk still in the grass, and a gold dot for the
+-- lawn's Find once Buster has sniffed it out (CompanionService marks it BusterFound). It is dark glass
+-- like the job card, with "Lawn" and the percent mowed over the picture.
 --
 -- It faces the house, the way you do when you arrive: the street (the lawn's Origin edge, row 0) is at the
 -- bottom and walking toward the house moves your dot up. That is the lawn seen from above turned half a
@@ -58,6 +59,8 @@ local TOUCH_MIN_HEIGHT = 650
 -- dark uncut grass too.
 local PLAYER_DOT = 6
 local JUNK_DOT = 5
+-- The Find Buster found: gold with an ink ring, a little bigger than junk.
+local FIND_DOT = 7
 local DOT_RING = 1
 -- On the map uncut grass is GrassPaint's uncut turf darkened this much more, so mown grass stands out
 -- further still.
@@ -91,6 +94,9 @@ local broken = false
 -- [junk model] = its dot, and what watches the job site's Debris folder.
 local junkDots: { [Instance]: Frame } = {}
 local junkWatch: { RBXScriptConnection } = {}
+-- [Find model] = what watches its BusterFound, and its dot while it has one.
+local findWatch: { [Instance]: RBXScriptConnection } = {}
+local findDots: { [Instance]: Frame } = {}
 -- Moves your dot every frame, only while the map shows.
 local following: RBXScriptConnection? = nil
 
@@ -181,11 +187,76 @@ local function watchJunk(lawn: GrassController.JobLawn)
 	table.insert(junkWatch, waiting)
 end
 
+-- The Find ----------------------------------------------------------------------------------------
+-- A job lawn's Find is a model straight in its job site (LawnService's PlaceFind) that says Interact =
+-- "PickUpFind". It isn't junk and gets no dot of its own: only once Buster has found it (its
+-- BusterFound attribute turns true) does it get a gold one, which goes when the Find does (picked up or
+-- chewed).
+
+local function showFind(thing: Instance)
+	local found = thing:GetAttribute("BusterFound") == true
+	local dot = findDots[thing]
+	if found and not dot and shown and thing:IsA("Model") then
+		findDots[thing] =
+			dotAt(thing:GetPivot().Position, FIND_DOT, Juicy.Palette.Gold.top, Juicy.Palette.Ink, 6, "Find")
+	elseif not found and dot then
+		dot:Destroy()
+		findDots[thing] = nil
+	end
+end
+
+local function addFind(thing: Instance)
+	if findWatch[thing] or not thing:IsA("Model") or thing:GetAttribute("Interact") ~= "PickUpFind" then
+		return
+	end
+	findWatch[thing] = thing:GetAttributeChangedSignal("BusterFound"):Connect(function()
+		showFind(thing)
+	end)
+	showFind(thing)
+end
+
+local function removeFind(thing: Instance)
+	local watch = findWatch[thing]
+	if watch then
+		watch:Disconnect()
+		findWatch[thing] = nil
+	end
+	local dot = findDots[thing]
+	if dot then
+		dot:Destroy()
+		findDots[thing] = nil
+	end
+end
+
+local function forgetFinds()
+	for thing in findWatch do
+		removeFind(thing)
+	end
+	for _, dot in findDots do
+		dot:Destroy()
+	end
+	table.clear(findDots)
+end
+
+-- Follows the job site itself for its Find (it may stream in after the grass does).
+local function watchFinds(lawn: GrassController.JobLawn)
+	local site = lawn.folder.Parent
+	if not site then
+		return
+	end
+	table.insert(junkWatch, site.ChildAdded:Connect(addFind))
+	table.insert(junkWatch, site.ChildRemoved:Connect(removeFind))
+	for _, child in site:GetChildren() do
+		addFind(child)
+	end
+end
+
 -- The picture -------------------------------------------------------------------------------------
 
 -- Lets the last lawn's picture go (it's another lawn now, or none).
 local function release()
 	forgetJunk()
+	forgetFinds()
 	picture.ImageContent = Content.none
 	if image then
 		image:Destroy()
@@ -229,6 +300,7 @@ local function paint(lawn: GrassController.JobLawn): boolean
 		fitPicture(lawn.columns, lawn.rows)
 		picture.ImageContent = Content.fromObject(made)
 		watchJunk(lawn)
+		watchFinds(lawn)
 	end
 	local canvas, bytes = image :: EditableImage, pixels :: buffer
 	local cells, columns, rows = lawn.cells, lawn.columns, lawn.rows

@@ -1,7 +1,8 @@
 -- The pay breakdown after a job, in dollars: what the job paid, then what the finish, speed, crew,
--- curb appeal, a customer won back from TurfKing and the damage each added or took off, then the
--- customer's tip, adding up to what you earned. JobService works the pay out as one sum
--- (GameConfig.jobPay); this splits its result back into lines for the screen (HudController).
+-- curb appeal, the Finds sets, a customer won back from TurfKing and the damage each added or took
+-- off, then the customer's tip, adding up to what you earned. JobService works the pay out as one
+-- sum (GameConfig.jobPay); this splits its result back into lines for the screen (HudController),
+-- and gives the boost pills their words (boostWords).
 -- No Roblox requires, so scripts/check-gui.luau can test it with Lune.
 
 local PayBreakdown = {}
@@ -25,9 +26,12 @@ function PayBreakdown.lines(result, weights: { quality: number, time: number }):
 	local finishPart = performance - fit - speedPart
 	local business = result.crewBonus * result.truckBonus * result.businessBonus
 	local curb = result.curbBonus or 1
+	-- The crew leader's Finds sets' pay perk (1 for none, or a result from before there were sets).
+	local set = result.setBonus or 1
 	local crewPart = performance * (business - 1)
 	local curbPart = performance * business * (curb - 1)
-	local earned = performance * business * curb
+	local setPart = performance * business * curb * (set - 1)
+	local earned = performance * business * curb * set
 	-- Pay never goes below nothing, so damage only takes what there was.
 	local damage = math.min(result.penalty or 0, earned)
 	local wonBack = result.wonBack or 0
@@ -39,6 +43,7 @@ function PayBreakdown.lines(result, weights: { quality: number, time: number }):
 		{ label = "Speed bonus", amount = round(speedPart) },
 		{ label = "Crew, truck and business", amount = round(crewPart) },
 		{ label = "Curb appeal", amount = round(curbPart) },
+		{ label = "Finds sets", amount = round(setPart) },
 		{ label = "Won from TurfKing", amount = wonBack },
 		{ label = "Damage and junk", amount = -round(damage) },
 	}
@@ -73,6 +78,35 @@ function PayBreakdown.lines(result, weights: { quality: number, time: number }):
 		share += tip
 	end
 	return shown, share
+end
+
+-- The boost pills under the job card read their bonuses in full ("Crew +15%") while this many or
+-- fewer show. With more, every pill is just its percent ("+15%") beside its glyph, which already
+-- says which bonus it is, so all five still fit in two rows of the column.
+PayBreakdown.FullBoostWords = 4
+
+export type Boost = { id: string, label: string, bonus: number }
+
+-- The words on each boost pill, by id, for the bonuses as factors (1.15 for 15 percent). A bonus
+-- that rounds to no whole percent has no pill, so no words.
+function PayBreakdown.boostWords(boosts: { Boost }): { [string]: string }
+	local percents = {}
+	local shown = 0
+	for _, boost in boosts do
+		local percent = math.floor((boost.bonus - 1) * 100 + 0.5)
+		if percent > 0 then
+			percents[boost.id] = percent
+			shown += 1
+		end
+	end
+	local words = {}
+	for _, boost in boosts do
+		local percent = percents[boost.id]
+		if percent then
+			words[boost.id] = if shown > PayBreakdown.FullBoostWords then `+{percent}%` else `{boost.label} +{percent}%`
+		end
+	end
+	return words
 end
 
 return PayBreakdown

@@ -7,6 +7,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local Finds = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Config"):WaitForChild("Finds"))
 local Format = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Format"))
 local Milestones = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Config"):WaitForChild("Milestones"))
 
@@ -15,7 +16,7 @@ local ClientState = require(script.Parent.ClientState)
 local player = Players.LocalPlayer
 
 -- The number in Milestones.Stats that each kind of milestone counts.
-local STAT = { Jobs = "jobs", Earned = "earned", Stars = "stars" }
+local STAT = { Jobs = "jobs", Earned = "earned", Stars = "stars", Finds = "finds", Sets = "sets" }
 
 local Goal = {}
 
@@ -63,9 +64,9 @@ function Goal.progress(goal): (number, string)
 	return have, `{have} / {goal.need}`
 end
 
--- Your numbers for the goals rail, from the profile: jobs finished, money earned and three-star
--- jobs (the jobs you've got three stars on, whatever your best on the rest). Nil before the
--- profile arrives.
+-- Your numbers for the goals rail, from the profile: jobs finished, money earned, three-star jobs
+-- (the jobs you've got three stars on, whatever your best on the rest), and the Finds found and
+-- Finds sets done, counted as SeasonService counts them. Nil before the profile arrives.
 local function stats(): Milestones.Stats?
 	local profile = ClientState.profile
 	if not profile then
@@ -77,7 +78,13 @@ local function stats(): Milestones.Stats?
 			stars += 1
 		end
 	end
-	return { jobs = profile.jobsCompleted or 0, earned = profile.earned or 0, stars = stars }
+	return {
+		jobs = profile.jobsCompleted or 0,
+		earned = profile.earned or 0,
+		stars = stars,
+		finds = Finds.foundCount(profile.finds),
+		sets = Finds.setCount(profile.sets),
+	}
 end
 
 -- The `count` milestones nearest to done that you haven't reached, nearest first (the rail shows

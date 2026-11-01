@@ -9,8 +9,8 @@
 -- (the judges, for ContestController). New client code that clones a model needs it added to that
 -- list, or it gets the placeholder. Each screen also gets its own copies of what
 -- only it needs (see Assets.shareWith): its player's tools, for laying them out in storage
--- (CarryController, from DataService), and the crew's truck and trailer, for the drive
--- (CutsceneController, from JobService).
+-- (CarryController, from DataService), and the crew's truck and trailer, with the pennant and Buster
+-- when the driver has them, for the drive (CutsceneController, from JobService).
 --
 -- Where real models go (in assets/, so in ServerStorage.Assets):
 --   Tools/<item id>     e.g. Tools/GasPushMower       a Tool with a Handle, or a Model/Part (we wrap it in a Tool).
@@ -37,6 +37,20 @@
 --                                                     8 by 16 studs, which fits 25 rows at 40 px a stud (the
 --                                                     client draws as many as the size allows), and a
 --                                                     LeaderboardSign__Header above them
+--   Props/FindsShelf                                  the shelf at the business that shows the player's rarest
+--                                                     twelve held Finds (WorldService:RefreshShelf): about 6 wide,
+--                                                     6 tall and 1.5 deep, back flat on Z = 0, front toward -Z, a
+--                                                     Root part, and attachments Spot1 to Spot12 on a board's top
+--                                                     where a Find's origin goes (Spot1 to Spot4 the top row, left
+--                                                     to right as you face it). A building can place it with a
+--                                                     Mount whose Kind is "FindsShelf"
+--   Props/Buster                                      the dog a player gets at level 5 (CompanionService), about 2.5
+--                                                     studs nose to tail: origin on the ground at his middle, nose
+--                                                     toward -Z, a Root part. He sits in the truck's bed on the drive
+--   Props/<FindId>      e.g. Props/GoldenGnome        a Find lying in a job lawn's grass or standing on that shelf
+--                                                     (Config/Finds.luau has the thirty): origin on the ground at
+--                                                     its centre, a Root part, small (the shelf scales one down to
+--                                                     fit a spot of about 1.2 by 1.4 by 1.2 studs)
 --   Story/<id>          e.g. Story/GloriaHouse        the story's places and props
 --                                                     (alphainstructions/instructions37.md). Its
 --                                                     people (NPC_<name>) aren't files: they are

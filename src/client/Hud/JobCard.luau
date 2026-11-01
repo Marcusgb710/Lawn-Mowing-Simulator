@@ -1,11 +1,11 @@
 -- The job card in the right column and the boost pills under it. The card is dark glass: the job's
 -- name in gold with its stars once it is paid, a big timer with par, the hint, the to-dos with their
 -- bars, and the damage so far with a Call off pill (two taps: the first asks "Sure?"); smaller on a
--- short screen. The boost pills are the Crew, Curb, Truck and Business pay bonuses the server sends,
--- while they are above zero. HudController builds them (JobCard.build), hands every job update to
--- JobCard.update and ticks the timer and the pills; it asks JobCard.isShown before it shows what
--- depends on the card (curb appeal on a phone, the uncut glow's "Show uncut" button), and so does the
--- lawn map (LawnMap).
+-- short screen. The boost pills are the Crew, Curb, Truck, Business and Sets pay bonuses the server
+-- sends, while they are above zero. HudController builds them (JobCard.build), hands every job
+-- update to JobCard.update and ticks the timer and the pills; it asks JobCard.isShown before it
+-- shows what depends on the card (curb appeal on a phone, the uncut glow's "Show uncut" button),
+-- and so does the lawn map (LawnMap).
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -13,6 +13,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Format = require(Shared.Format)
 local Net = require(Shared.Net)
+local PayBreakdown = require(Shared.PayBreakdown)
 local Sounds = require(Shared.Sounds)
 
 local Art = require(script.Parent.Parent.Art)
@@ -58,13 +59,16 @@ local BOOST_HEIGHT = 26
 local BOOST_STROKE = 3
 local BOOST_LIP = 3
 local BOOST_ICON = 14
--- The pay bonuses the pills show, in order: the key HudController reads them under, the glyph, and
--- the palette face whose light colour tints the glyph. Each is a pill while its bonus is above zero.
+-- The pay bonuses the pills show, in order: the key HudController reads them under, the label, the
+-- glyph, and the palette face whose light colour tints the glyph. Each is a pill while its bonus is
+-- above zero. check-gui reads this list to model the row's widest case.
 local BOOSTS = {
 	{ id = "Crew", label = "Crew", icon = "Crew", tint = "Crew" },
 	{ id = "Curb", label = "Curb", icon = "CurbAppeal", tint = "Money" },
 	{ id = "Truck", label = "Truck", icon = "Truck", tint = "Truck" },
 	{ id = "Business", label = "Business", icon = "Business", tint = "Gold" },
+	-- The leader's Finds sets that pay (Pocket and Treasure): a gem, in gold.
+	{ id = "Set", label = "Sets", icon = "Premium", tint = "Gold" },
 }
 
 -- The job card: the glass piece the column holds, and the frame inside it that lays its words out.
@@ -464,10 +468,10 @@ local function buildTracker()
 	layoutTracker()
 end
 
--- The pay bonus pills under the job card: a dark glass pill with a glyph for each of the crew, curb
--- appeal, truck and business bonuses, made once here and shown by updateBoosts while their bonus is
--- above zero. The row is the column's piece (UiLayout's BoostPills): a wrapping, right-aligned row that
--- grows with its pills, and it is hidden when no pill shows.
+-- The pay bonus pills under the job card: a dark glass pill with a glyph for each of the crew,
+-- curb appeal, truck, business and Finds sets bonuses, made once here and shown by updateBoosts
+-- while their bonus is above zero. The row is the column's piece (UiLayout's BoostPills): a
+-- wrapping, right-aligned row that grows with its pills, and it is hidden when no pill shows.
 local function buildBoosts()
 	boostRow = UI.new("Frame", { Name = "BoostPills", BackgroundTransparency = 1, Visible = false })
 	-- A row of pills that wraps to a second line; UiLayout's entry gives it the rest (direction, gap).
@@ -660,25 +664,28 @@ local function updateStars(job)
 	end
 end
 
--- A bonus as the pill's words: "Crew +15%", the share above zero as a whole percent, or nil when it
--- rounds to nothing.
-local function boostWords(label: string, bonus: number): string?
-	local percent = math.floor(bonus * 100 + 0.5)
-	return if percent > 0 then `{label} +{percent}%` else nil
-end
-
--- The pay bonuses on the job you're on, as the pills under its card: Crew, Curb, Truck and Business, the
--- factors the server sends with every job update (JobService's payBonuses, the same ones the pay is
--- worked out from, so a crew member sees the leader's truck and business too). Shown only while the card
--- is, and a pill only while its bonus is above zero.
+-- The pay bonuses on the job you're on, as the pills under its card: Crew, Curb, Truck, Business
+-- and Sets, the factors the server sends with every job update (JobService's payBonuses, the same
+-- ones the pay is worked out from, so a crew member sees the leader's truck, business and sets
+-- too). Shown only while the card is, and a pill only while its bonus is above zero. The words are
+-- PayBreakdown.boostWords': "Crew +15%" while four or fewer show, and just "+15%" beside each
+-- glyph when all five do, so the row stays two lines (check-gui models the widest case).
 local function updateBoosts()
 	local job = ClientState.job
 	local words: { [string]: string? } = {}
 	if job and tracker.Visible then
-		words.Crew = boostWords("Crew", (job.crewBonus or 1) - 1)
-		words.Curb = boostWords("Curb", (job.curbBonus or 1) - 1)
-		words.Truck = boostWords("Truck", (job.truckBonus or 1) - 1)
-		words.Business = boostWords("Business", (job.businessBonus or 1) - 1)
+		local bonuses = {
+			Crew = job.crewBonus,
+			Curb = job.curbBonus,
+			Truck = job.truckBonus,
+			Business = job.businessBonus,
+			Set = job.setBonus,
+		}
+		local boosts = {}
+		for _, boost in BOOSTS do
+			table.insert(boosts, { id = boost.id, label = boost.label, bonus = bonuses[boost.id] or 1 })
+		end
+		words = PayBreakdown.boostWords(boosts)
 	end
 	local any = false
 	for id, pill in boostPills do

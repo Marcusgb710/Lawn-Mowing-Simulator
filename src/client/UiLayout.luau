@@ -592,9 +592,12 @@ return {
 		list = { direction = "Horizontal", padding = 6, align = "Right" },
 		note = "Under the job tracker, during a job: a dark glass pill with a glyph for each pay bonus that is "
 			.. "above zero: Crew (15% for each crew member besides the leader), Curb (from the crew's curb "
-			.. "appeal, as it was when the truck pulled out), and Truck and Business (the leader's equipped "
-			.. "ones). The numbers are the server's, sent with every job update, so everyone in the crew "
-			.. "sees all four. The row is hidden when there is "
+			.. "appeal, as it was when the truck pulled out), Truck and Business (the leader's equipped "
+			.. "ones), and Sets (the leader's Finds sets that pay, as they were when the truck pulled out). "
+			.. "The numbers are the server's, sent with every job update, so everyone in the crew "
+			.. "sees all five. A pill reads in full (Crew +15%) while four or fewer show; when all five "
+			.. "do, each is just its percent (+15%) beside its glyph, so the row never needs more than two "
+			.. "lines (check-gui models the biggest bonuses). The row is hidden when there is "
 			.. "none, and wraps to a second line when the pills don't fit. The tracker's card and this row "
 			.. "hide together.",
 	},
@@ -965,8 +968,9 @@ return {
 		size = { 0.9, 0, 0.75, 0 },
 		max = { width = 720, height = 520 },
 		note = "Every menu's window, one open at a time: Truck, Guide and Crew, and the computer's Jobs, "
-			.. "Orders, Business and Messages apps. While you're at the computer they fill its screen instead "
-			.. "(ComputerMonitor), however big that is.",
+			.. "Orders, Business, Messages and Finds apps. While you're at the computer they fill its screen "
+			.. "instead (ComputerMonitor), however big that is. The Finds Book lays out its own cells and side "
+			.. "pane in real pixels there (FindsController's sizes, checked against the phone in check-gui).",
 	},
 	LevelsPanel = {
 		label = "Levels panel",
@@ -1200,7 +1204,7 @@ return {
 		position = { 1, -12, 0.5, 0 },
 		size = { 0, 240, 0, 0 },
 		autoSize = "Y",
-		typical = { 240, 634 },
+		typical = { 240, 714 },
 		note = "Shortcuts for testing the story, shown and hidden with K in Studio playtests only. Its buttons "
 			.. "are laid out for its width.",
 	},

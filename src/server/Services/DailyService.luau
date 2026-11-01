@@ -15,9 +15,9 @@
 --             cash, then the Payday card (StreakAdvanced). It turns the day first, so a claim just
 --             after midnight claims the new day's gift (and the turn pays yesterday's).
 --   Counting  a finished job adds a job, a three-star job when it got three stars, and the junk
---             picked up on the lawn; any money they earn (DataService.Earned) adds to the dollars
---             earned. Then every contract that is met is paid, and when all three are paid the
---             Bonus Day too.
+--             and the Find they picked up on the lawn; any money they earn (DataService.Earned)
+--             adds to the dollars earned. Then every contract that is met is paid, and when all
+--             three are paid the Bonus Day too.
 -- The server decides all of it. The client is told where things stand (ContractsUpdated, the same
 -- view GetContracts returns) and what was paid (ContractDone, BonusDay, StreakAdvanced for a claimed
 -- gift, StreakGiftPaid for an unclaimed one the turn paid), to show it.
@@ -178,6 +178,8 @@ local function payDone(player: Player, data)
 		end
 		if not daily.bonus and allDone(daily) then
 			daily.bonus = true
+			-- The Bonus Day also owes them a sure Find on their next job (JobService's roll spends it).
+			data.findLuck.owed = true
 			DataService:Changed(player)
 			DataService:Earn(player, Contracts.BonusCash)
 			Net.event("BonusDay"):FireClient(player, { cash = Contracts.BonusCash })
@@ -286,7 +288,7 @@ function DailyService:Refresh(player: Player)
 		daily.day = today
 		daily.contracts = Contracts.generate(Contracts.seed(today, player.UserId), DataService:GetLevel(player))
 		daily.done = {}
-		daily.count = { jobs = 0, earned = 0, junk = 0, stars = 0 }
+		daily.count = { jobs = 0, earned = 0, junk = 0, stars = 0, finds = 0 }
 		daily.bonus = false
 		-- Judging day may have come round with this one, and nothing else tells the contest.
 		guarded("contest view", player, function()
@@ -399,7 +401,8 @@ local function onPlayerAdded(player: Player)
 end
 
 function DailyService:Init()
-	-- A finished job: a job, a three-star job if it got three stars, and the junk picked up.
+	-- A finished job: a job, a three-star job if it got three stars, the junk picked up and the
+	-- Find they picked up (1 or 0: whoever on the crew got it).
 	JobService.JobFinished:Connect(function(player, info)
 		guarded("job count", player, function()
 			counted(player, function(counts)
@@ -408,6 +411,7 @@ function DailyService:Init()
 					counts.stars = (counts.stars or 0) + 1
 				end
 				counts.junk = (counts.junk or 0) + ((info and info.junkPicked) or 0)
+				counts.finds = (counts.finds or 0) + ((info and info.findPicked) or 0)
 			end)
 		end)
 	end)

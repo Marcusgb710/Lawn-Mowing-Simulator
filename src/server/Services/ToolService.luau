@@ -7,7 +7,8 @@
 -- (`snip` in Tools.luau), which cut one snip at a time where you aim: the client says which way
 -- you're looking, and the server works out what's in reach there and what gets cut.
 -- A motorized mower that runs over junk hidden in the grass (Config/Debris.luau) chews it up: its
--- blade loses a chunk of its edge and it stalls for a moment.
+-- blade loses a chunk of its edge and it stalls for a moment. A Find it chews up (Config/Finds.luau)
+-- does the same to it, and costs no pay.
 -- Riding mowers aren't held at all: they're welded under the player, who sits on them and
 -- drives them around like walking. Push mowers and other walk-behind machines are held low
 -- enough that their wheels touch the ground. Tools say whether they're working with a "Working"
@@ -28,6 +29,7 @@ local RunService = game:GetService("RunService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Assets = require(Shared.Assets)
 local Debris = require(Shared.Config.Debris)
+local Finds = require(Shared.Config.Finds)
 local GameConfig = require(Shared.Config.GameConfig)
 local Items = require(Shared.Config.Items)
 local Maintenance = require(Shared.Config.Maintenance)
@@ -635,7 +637,7 @@ end
 
 -- A mower's deck, `halfWidth` studs either side, sweeping from one spot to another this tick (world
 -- studs). Says whether it cut any grass, what junk hidden in it the mower chewed up, whether junk
--- stopped it short, and whether the mower can mow the lawn at all.
+-- stopped it short, whether the mower can mow the lawn at all, and whether it chewed up a Find.
 local function sweep(
 	player: Player,
 	atJob: boolean,
@@ -646,11 +648,13 @@ local function sweep(
 	halfWidth: number,
 	toolId: string,
 	options
-): (boolean, { any }?, boolean, boolean)
+): (boolean, { any }?, boolean, boolean, boolean)
 	if atJob then
 		return JobService:Sweep(player, fromX, fromZ, toX, toZ, halfWidth, toolId, options)
 	end
-	return HomeLawnService:Sweep(player, fromX, fromZ, toX, toZ, halfWidth, toolId, options)
+	-- A home lawn never hides a Find.
+	local cut, hits, stopped, fits = HomeLawnService:Sweep(player, fromX, fromZ, toX, toZ, halfWidth, toolId, options)
+	return cut, hits, stopped, fits, false
 end
 
 -- A snip of hand shears on the grass within `radius` of (x, z), in world studs.
@@ -681,13 +685,17 @@ local function noteWarnings(player: Player, tool: Tool, item, condition, data)
 end
 
 -- A mower ran over junk hidden in the grass: each piece takes a chunk out of its blade's edge
--- (Debris.luau `wear`), and the engine stalls for a moment.
-local function strike(tool: Tool, condition, hits: { any }?, perks)
-	if not (hits and #hits > 0) then
+-- (Debris.luau `wear`), and the engine stalls for a moment. A Find it `chewed` up does the same, by
+-- Finds.ChewWear.
+local function strike(tool: Tool, condition, hits: { any }?, perks, chewed: boolean?)
+	if not ((hits and #hits > 0) or chewed) then
 		return
 	end
-	for _, debris in hits do
+	for _, debris in hits or {} do
 		Maintenance.strike(condition, debris.kind.wear, perks)
+	end
+	if chewed then
+		Maintenance.strike(condition, Finds.ChewWear, perks)
 	end
 	stalledUntil[tool] = os.clock() + Debris.StallTime
 	local base = toolBase(tool)
@@ -877,7 +885,7 @@ local function workTick(elapsed: number)
 
 		-- While it tows, a ride-on's own deck is up: the attachment behind does the work.
 		local towedId = tool:GetAttribute("Towing")
-		local cut, hits, mows = false, nil, false
+		local cut, hits, mows, chewed = false, nil, false, false
 		if not towedId then
 			local front = root.Position + root.CFrame.LookVector * GameConfig.DeckOffset
 			local options = {
@@ -914,7 +922,7 @@ local function workTick(elapsed: number)
 					end
 				end
 				local stopped, fits
-				cut, hits, stopped, fits =
+				cut, hits, stopped, fits, chewed =
 					sweep(player, atJob, from.X, from.Z, to.X, to.Z, item.radius, itemId, options)
 				-- Junk holding the deck stops it as surely as a stall: nothing to paint ahead.
 				mows = fits == true and not stopped
@@ -936,7 +944,7 @@ local function workTick(elapsed: number)
 		local premium = data and data.premium
 		local perks = Premium.perksFor(premium, itemId)
 		Maintenance.wear(item, condition, elapsed, true, moving, cut == true, rng:NextNumber(), perks)
-		strike(tool, condition, hits, perks)
+		strike(tool, condition, hits, perks, chewed)
 		if isMower(tool) then
 			syncRagged(tool, quality)
 		end

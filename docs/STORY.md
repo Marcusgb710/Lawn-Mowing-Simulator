@@ -165,6 +165,23 @@ day. 2 days to go." The results screen says so after a loss: "Judging day comes 
 Saturday." A Saturday you miss changes nothing. Four lost Saturdays start a new summer anyway, with
 Gloria's bar 2 higher.
 
+### A side scene: June's locket
+
+Not part of the four acts, and it plays whenever it happens. Among the Finds a lawn can hide
+(`docs/GAME_DESIGN.md`, "Finds") is Grandma June's Locket, one of the two Legendaries. A player who
+picks it up is asked to Keep it or Return it. Returning it plays the scene `LocketReturn` the next
+time they are home, on June's porch, and her rocker gets a cushion for good.
+
+1. **June** (proud, a speech bubble): *"Well, would you look at that. That's my mother's locket."*
+2. **June:** *"It went missing the summer of the '94 contest. I turned this whole street over looking
+   for it."*
+3. **June** (laughing): *"Thirty years in somebody's grass, and it still shines better than Gloria's
+   trophy."*
+4. **June:** *"Mother always said my rocker needed a cushion. It's getting one tonight."*
+
+It plays once. Another locket given back later is only found again. A player who keeps the locket
+loses nothing, but the scene and the cushion wait for a locket they give back.
+
 ### After the story
 
 - Best Yard comes back every "summer" (a win, or four lost Saturdays), and Gloria raises the

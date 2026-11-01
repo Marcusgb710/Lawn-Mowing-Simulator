@@ -15,6 +15,9 @@
 --   DriveToJob   heads off in the crew truck
 --   PickUpDebris picks up junk hidden in a lawn's grass, whatever's in your hands (see
 --                Config/Debris.luau)
+--   PickUpFind   picks up the Find in a job lawn's grass (Config/Finds.luau), whatever's in your
+--                hands; one marked Returnable (the wedding band, June's locket) is E Keep or
+--                R Return it
 --   Talk         talks to Grandma June on her porch (see DialogueController)
 --   PickUp       takes one of your tools out of storage (ToolId)
 --   PutBack      puts what you're carrying back in this free spot (SpotKind, SpotIndex)
@@ -35,6 +38,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Assets = require(Shared.Assets)
 local BedGrid = require(Shared.BedGrid)
 local BedLayout = require(Shared.BedLayout)
+local Finds = require(Shared.Config.Finds)
 local Maintenance = require(Shared.Config.Maintenance)
 local Net = require(Shared.Net)
 local Service = require(Shared.Service)
@@ -106,6 +110,7 @@ local ACTION_ICONS = {
 	TakeSupply = "PickUp",
 	PutBackSupply = "PutBack",
 	PickUpDebris = "PickUp",
+	PickUpFind = "PickUp",
 	Talk = "Talk",
 	DriveToJob = "Truck",
 	UseComputer = "Jobs",
@@ -318,6 +323,17 @@ local function targetFor(thing: Instance, item, hit: Instance?): Target?
 		return { action = "PutBackSupply", text = text, name = item.name, fits = true }
 	elseif action == "PickUpDebris" or action == "Talk" then
 		return { action = action, text = text, name = name, fits = true, instance = thing }
+	elseif action == "PickUpFind" then
+		return {
+			action = action,
+			text = text,
+			name = name,
+			fits = true,
+			instance = thing,
+			second = if thing:GetAttribute("Returnable") == true
+				then { action = "ReturnFind", text = "Return it" }
+				else nil,
+		}
 	elseif action == "DriveToJob" or action == "UseComputer" then
 		if item then
 			return nil
@@ -486,6 +502,12 @@ local function parkTarget(root: BasePart): Target?
 	return nil
 end
 
+-- How far from the camera junk and Finds in the grass can be picked up: REACH, plus the Playground
+-- set's studs once it is done (Finds.reachBonus of the profile's sets, as the server adds them).
+local function pickUpReach(profile): number
+	return REACH + Finds.reachBonus(profile and profile.sets)
+end
+
 local function resolve(): Target?
 	local character = player.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart")
@@ -534,6 +556,20 @@ local function resolve(): Target?
 		local wideTarget = wideThing and targetFor(wideThing, item, wide.Instance)
 		if wideTarget then
 			result, thing, target = wide, wideThing, wideTarget
+		end
+	end
+	-- With the Playground set done, junk and Finds in the grass can be picked up from a little
+	-- further (the server's reach grows by the same). Only those: everything else keeps REACH.
+	local farther = if target == nil then pickUpReach(ClientState.profile) else REACH
+	if farther > REACH then
+		local far = workspace:Raycast(origin, direction * farther, rayParams)
+		local farThing = far and interactableOf(far.Instance)
+		local action = farThing and farThing:GetAttribute("Interact")
+		if action == "PickUpDebris" or action == "PickUpFind" then
+			local farTarget = targetFor(farThing, item, far.Instance)
+			if farTarget then
+				result, thing, target = far, farThing, farTarget
+			end
 		end
 	end
 	local here = target and target.action
@@ -655,6 +691,9 @@ local function perform(target: Target, second: boolean)
 			_, message = invoke("DriveToJob")
 		elseif action == "PickUpDebris" then
 			_, message = invoke("PickUpDebris", target.instance)
+		elseif action == "PickUpFind" or action == "ReturnFind" then
+			-- Its card comes with FindPicked (HudController's FindCards); a reason it didn't work comes here.
+			_, message = invoke("PickUpFind", target.instance, action == "ReturnFind")
 		elseif action == "PickUp" then
 			_, message = invoke("PickUpTool", target.toolId)
 		elseif action == "Unload" then

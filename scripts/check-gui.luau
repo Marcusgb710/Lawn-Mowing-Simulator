@@ -1426,10 +1426,11 @@ do
 		"HudController's Levels button doesn't juice the level pill (inside a LevelSlot of the row)"
 	)
 
-	-- The boost pills show the numbers the server sends with every job update (crewBonus, truckBonus,
-	-- businessBonus and curbBonus: the same factors completeJob multiplies, through the one payBonuses,
-	-- with the curb appeal frozen at pull-out), so they are exact for every crew member; the client
-	-- has no formula of its own for them.
+	-- The boost pills show the numbers the server sends with every job update (crewBonus,
+	-- truckBonus, businessBonus, curbBonus and setBonus: the same factors completeJob multiplies,
+	-- through the one payBonuses, with the curb appeal and the leader's Finds sets frozen at
+	-- pull-out), so they are exact for every crew member; the client has no formula of its own for
+	-- them.
 	local jobSource = fs.readFile("src/server/Services/JobService.luau")
 	local updateFrom = string.find(jobSource, "local function sendUpdate(job)", 1, true)
 	local updateTo = if updateFrom then string.find(jobSource, "\nend\n", updateFrom, true) else nil
@@ -1441,7 +1442,7 @@ do
 	)
 	if updateFrom and updateTo and completeFrom and completeTo then
 		local updateBody = string.sub(jobSource, updateFrom, updateTo)
-		for _, field in { "crewBonus", "truckBonus", "businessBonus", "curbBonus" } do
+		for _, field in { "crewBonus", "truckBonus", "businessBonus", "curbBonus", "setBonus" } do
 			check(
 				string.find(updateBody, `{field} = `, 1, true) ~= nil,
 				`JobService's sendUpdate doesn't send {field} to the job card's boost pills`
@@ -1457,7 +1458,7 @@ do
 			"JobService's sendUpdate and completeJob don't both take the pay bonuses from payBonuses"
 		)
 	end
-	for _, formula in { "HomeLawn.payBonus(", "CrewBonusPerMember", "payoutBonus" } do
+	for _, formula in { "HomeLawn.payBonus(", "CrewBonusPerMember", "payoutBonus", "Finds.payBonus(" } do
 		check(
 			string.find(hudSource, formula, 1, true) == nil,
 			`HudController works the boost pills out itself ({formula}): the server sends the numbers`
@@ -2549,7 +2550,7 @@ local PREFERENCES = {
 local function job(options)
 	local weights = PREFERENCES[options.preference]
 	local performance = weights.quality * options.qualityMultiplier + weights.time * options.speedMultiplier
-	local bonus = options.crewBonus * options.truckBonus * options.businessBonus * options.curbBonus
+	local bonus = options.crewBonus * options.truckBonus * options.businessBonus * options.curbBonus * options.setBonus
 	local total = math.max(0, math.floor(options.basePay * options.toolFit * performance * bonus - options.penalty))
 	total += options.wonBack
 	local result = table.clone(options)
@@ -2567,6 +2568,12 @@ local cases = {
 	{ "some damage", { penalty = 23 } },
 	{ "more damage than pay", { penalty = 900, wonBack = 12 } },
 	{ "odd pennies", { basePay = 137, qualityMultiplier = 1.137, speedMultiplier = 0.913, curbBonus = 1.071 } },
+	{ "a Finds set", { setBonus = 1.03 } },
+	{ "two Finds sets and some damage", { setBonus = 1.08, curbBonus = 1.06, penalty = 9 } },
+	{
+		"every bonus at once",
+		{ crew = 2, crewBonus = 1.15, truckBonus = 1.1, businessBonus = 1.05, curbBonus = 1.12, setBonus = 1.08 },
+	},
 }
 for _, case in cases do
 	local options = {
@@ -2579,6 +2586,7 @@ for _, case in cases do
 		truckBonus = 1,
 		businessBonus = 1,
 		curbBonus = 1,
+		setBonus = 1,
 		penalty = 0,
 		wonBack = 0,
 		crew = 1,
@@ -2598,6 +2606,154 @@ for _, case in cases do
 	check(lines[1].label == "Job pay" and lines[1].amount ~= 0, `{case[1]}: the job pay doesn't come first`)
 end
 
+-- The Finds sets' pay perk is a line of its own, "Finds sets", right after Curb appeal, worth the
+-- share the sets add on top of everything before it; with no set done there is no line.
+do
+	local function linesFor(setBonus: number)
+		local result, weights = job({
+			basePay = 100,
+			toolFit = 1,
+			qualityMultiplier = 1,
+			speedMultiplier = 1,
+			preference = "Balanced",
+			crewBonus = 1,
+			truckBonus = 1,
+			businessBonus = 1,
+			curbBonus = 1.1,
+			setBonus = setBonus,
+			penalty = 0,
+			wonBack = 0,
+			crew = 1,
+		})
+		return PayBreakdown.lines(result, weights)
+	end
+	local function lineCalled(lines, label: string): (number?, number?)
+		for index, payLine in lines do
+			if payLine.label == label then
+				return index, payLine.amount
+			end
+		end
+		return nil, nil
+	end
+	local withSets = linesFor(1.08)
+	local setAt, setAmount = lineCalled(withSets, "Finds sets")
+	local curbAt = lineCalled(withSets, "Curb appeal")
+	-- $100 with curb appeal is $110, and the sets' 8 percent on that is $8.80, so $9.
+	check(setAmount == 9, `two Finds sets on a $110 job add {setAmount}, not $9`)
+	check(setAt ~= nil and curbAt ~= nil and setAt == curbAt + 1, "the Finds sets line isn't right after Curb appeal")
+	check(lineCalled(linesFor(1), "Finds sets") == nil, "a job with no Finds set done still shows a Finds sets line")
+end
+
+-- The boost pills fit two rows -------------------------------------------------------------------
+
+-- The row is UiLayout's BoostPills (280 wide, pills 6 apart, wrapping), and the space-budget checks
+-- above give it two rows. Every set of pills that can show at once, each at the biggest bonus the
+-- configs allow, must wrap to no more than two. A pill is its padding (9 and 10), its 14 px glyph,
+-- a 5 px gap and its words at TextSize 12 (JobCard's buildBoosts, pinned below). Fredoka One has no
+-- metrics here, so every character is taken as 0.7 of the text size, wider than its real average.
+do
+	local jobCard = fs.readFile("src/client/Hud/JobCard.luau")
+	local gameConfig = fs.readFile("src/shared/Config/GameConfig.luau")
+	local items = fs.readFile("src/shared/Config/Items.luau")
+	local Finds = require("../src/shared/Config/Finds")
+	for _, wanted in
+		{
+			"PaddingLeft = UDim.new(0, 9), PaddingRight = UDim.new(0, 10)",
+			"local BOOST_ICON = 14",
+			"Padding = UDim.new(0, 5)",
+			"TextSize = 12",
+			"words = PayBreakdown.boostWords(boosts)",
+		}
+	do
+		check(string.find(jobCard, wanted, 1, true) ~= nil, `JobCard's boost pills no longer have {wanted}`)
+	end
+	local PILL_CHROME = 9 + 14 + 5 + 10
+	local CHAR_WIDTH = 0.7 * 12
+
+	-- The biggest each bonus gets: a full crew, the best truck and business, full curb appeal and
+	-- every Finds set done.
+	local function number(source: string, pattern: string): number
+		return tonumber(string.match(source, pattern)) or 0
+	end
+	local function biggestPayout(section: string): number
+		local best = 0
+		for value in string.gmatch(section, "payoutBonus = ([%d%.]+)") do
+			best = math.max(best, tonumber(value) or 0)
+		end
+		return best
+	end
+	-- The lists of each (a `{` at the end of its line), not the shop tabs' one-line entries.
+	local trucks = string.match(items, "\n\tTruck = {\n.-\n\t}") or ""
+	local businesses = string.match(items, "\n\tBusiness = {\n.-\n\t}") or ""
+	local allSets = {}
+	for _, set in Finds.Sets do
+		allSets[set.id] = true
+	end
+	local crewSize = number(gameConfig, "MaxCrewSize = (%d+)")
+	local biggest = {
+		Crew = 1 + number(gameConfig, "CrewBonusPerMember = ([%d%.]+)") * (crewSize - 1),
+		Curb = 1 + number(gameConfig, "MaxPayBonus = ([%d%.]+)"),
+		Truck = 1 + biggestPayout(trucks),
+		Business = 1 + biggestPayout(businesses),
+		Set = Finds.payBonus(allSets),
+	}
+	check(
+		crewSize >= 2 and biggest.Truck > 1 and biggest.Business > 1 and biggest.Curb > 1 and biggest.Set > 1,
+		"check-gui can't read the biggest boost bonuses from the configs"
+	)
+
+	local pills = {}
+	for id, label in string.gmatch(jobCard, '{ id = "(%w+)", label = "(%w+)"') do
+		table.insert(pills, { id = id, label = label })
+	end
+	check(#pills == 5, `JobCard has {#pills} boost pills, not the five check-gui models`)
+	local row = UiLayout.BoostPills
+	local rowWidth, gap = row.size[2], row.list.padding
+	for subset = 1, 2 ^ #pills - 1 do
+		local boosts = {}
+		for index, pill in pills do
+			if math.floor(subset / 2 ^ (index - 1)) % 2 == 1 then
+				table.insert(boosts, { id = pill.id, label = pill.label, bonus = biggest[pill.id] or 1 })
+			end
+		end
+		local words = PayBreakdown.boostWords(boosts)
+		local rows, used, names = 1, 0, {}
+		for _, boost in boosts do
+			local text = words[boost.id] or ""
+			table.insert(names, text)
+			local width = PILL_CHROME + #text * CHAR_WIDTH
+			if used > 0 and used + gap + width > rowWidth then
+				rows += 1
+				used = width
+			else
+				used += (if used > 0 then gap else 0) + width
+			end
+		end
+		check(rows <= 2, `the boost pills {table.concat(names, ", ")} wrap to {rows} rows, not two`)
+	end
+	-- The words: in full while four show, just the percent when five do.
+	local four = PayBreakdown.boostWords({
+		{ id = "Crew", label = "Crew", bonus = 1.15 },
+		{ id = "Curb", label = "Curb", bonus = 1.06 },
+		{ id = "Truck", label = "Truck", bonus = 1.1 },
+		{ id = "Set", label = "Sets", bonus = 1.08 },
+		{ id = "Business", label = "Business", bonus = 1 },
+	})
+	check(four.Crew == "Crew +15%" and four.Set == "Sets +8%", "four pills don't read in full")
+	check(four.Business == nil, "a bonus of nothing still has words")
+	local five = PayBreakdown.boostWords({
+		{ id = "Crew", label = "Crew", bonus = 1.15 },
+		{ id = "Curb", label = "Curb", bonus = 1.06 },
+		{ id = "Truck", label = "Truck", bonus = 1.1 },
+		{ id = "Business", label = "Business", bonus = 1.25 },
+		{ id = "Set", label = "Sets", bonus = 1.08 },
+	})
+	check(
+		five.Crew == "+15%" and five.Business == "+25%" and five.Set == "+8%",
+		"five pills aren't just their percents"
+	)
+end
+
 -- A customer's tip comes after the share and the total counts it: a line "Tip from <customer>"
 -- worth the tip, and no line at all when there's no tip.
 do
@@ -2611,6 +2767,7 @@ do
 		truckBonus = 1,
 		businessBonus = 1,
 		curbBonus = 1,
+		setBonus = 1,
 		penalty = 0,
 		wonBack = 0,
 		crew = 2,
@@ -2760,6 +2917,320 @@ for name in string.gmatch(hudSource, 'Juicy%.pill%(%s*"([%w_]+)"') do
 end
 for _, name in { "Money", "Level", "Streak", "Countdown" } do
 	check(pillsDrawn[name] == true, `HudController doesn't draw the {name} pill with Juicy.pill`)
+end
+
+-- The Finds Book (slice 3, ruling 9): a sixth app on the shop computer, "Finds", that opens the Finds
+-- panel docked in the monitor like the Jobs app. FindsController draws it: a scrolling book of the
+-- thirty cells (grouped by rarity, list order inside each), the five sets with their progress and perk
+-- under them, and a pane beside the book with the tapped Find's story and, for a held one, a Sell
+-- button that takes a second tap. The server's SellFind (ShopService) sells one held copy through
+-- Finds.sellOne, pays with AddMoney (a sale is not job income), never asks for the desk and is rate
+-- limited like the shop's other remotes.
+do
+	local computerSource = fs.readFile("src/client/Controllers/ComputerController.luau")
+	local apps = string.match(computerSource, "local APPS = (%b{})") or ""
+	check(apps ~= "", "check-gui can't find ComputerController's APPS")
+	check(
+		select(2, string.gsub(apps, '\n\t\tname = "', "")) == 6,
+		"ComputerController's APPS doesn't have six apps (Jobs, Orders, Business, Crew, Messages and Finds)"
+	)
+	check(
+		string.find(apps, 'name = "Finds"', 1, true) ~= nil
+			and string.find(apps, 'panel = "Finds"', 1, true) ~= nil
+			and string.find(apps, 'UI.open("Finds")', 1, true) ~= nil,
+		"ComputerController has no Finds app that opens the Finds panel"
+	)
+	check(
+		string.find(fs.readFile("src/client/init.client.luau"), '"FindsController"', 1, true) ~= nil,
+		"init.client doesn't start FindsController"
+	)
+	local netFunctions = string.match(fs.readFile("src/shared/Net.luau"), "local FUNCTIONS = (%b{})") or ""
+	check(string.find(netFunctions, '"SellFind"', 1, true) ~= nil, "Net has no SellFind RemoteFunction")
+	check(
+		string.find(UiLayout.MenuWindow.note, "Finds", 1, true) ~= nil,
+		"UiLayout's MenuWindow note doesn't name the computer's Finds app"
+	)
+
+	local findsPath = "src/client/Controllers/FindsController.luau"
+	local findsSource = if fs.isFile(findsPath) then fs.readFile(findsPath) else ""
+	check(findsSource ~= "", "there is no FindsController")
+	for _, wanted in
+		{
+			'UI.panel("Finds", "Finds Book")',
+			"UI.scrollingList(",
+			"AutomaticSize = Enum.AutomaticSize.Y",
+			"UIGridLayout",
+			"Finds.List",
+			"Finds.Sets",
+			"Finds.setProgress(",
+			"Finds.Rarities[",
+			"UIStroke",
+			"ClientState.Changed",
+			'key == "profile"',
+			'GetPropertyChangedSignal("Visible")',
+			'Net.func("SellFind")',
+			"SELL_CONFIRM_TIME",
+			"Sell {value}?",
+			"bookSignature(",
+		}
+	do
+		check(string.find(findsSource, wanted, 1, true) ~= nil, `FindsController doesn't have {wanted}`)
+	end
+	-- Rarity is drawn in code (a UIStroke and the word in the rarity's colour), never a new Juicy face.
+	check(
+		string.find(findsSource, "Juicy.Palette.", 1, true) == nil,
+		"FindsController draws with a Juicy palette face: rarity frames are code-drawn from Finds.Rarities"
+	)
+
+	-- The server: one held copy, AddMoney not Earn, `found` never touched, anywhere, rate limited.
+	local shopSource = fs.readFile("src/server/Services/ShopService.luau")
+	local from = string.find(shopSource, "function ShopService:SellFind(", 1, true)
+	local to = if from then string.find(shopSource, "\nend\n", from, true) else nil
+	check(from ~= nil and to ~= nil, "ShopService has no SellFind")
+	if from and to then
+		local body = string.sub(shopSource, from, to)
+		check(
+			string.find(body, "Finds.sellOne(", 1, true) ~= nil,
+			"ShopService:SellFind doesn't sell through Finds.sellOne"
+		)
+		check(
+			string.find(body, "DataService:AddMoney(player", 1, true) ~= nil
+				and string.find(body, "DataService:Earn(", 1, true) == nil,
+			"ShopService:SellFind doesn't pay with DataService:AddMoney (a sale is not job income, so not Earn)"
+		)
+		-- The code forms only (`entry.found`, `found = `): a comment may say the word.
+		check(
+			string.find(body, ".found", 1, true) == nil and string.find(body, "found =", 1, true) == nil,
+			"ShopService:SellFind touches `found`: only `held` goes down, so the book and the sets keep it"
+		)
+		check(string.find(body, "IsAtComputer", 1, true) == nil, "ShopService:SellFind asks for the desk")
+		-- The money is paid by then, so a shelf problem is a warning, never a failed sale.
+		check(
+			string.find(body, "pcall(WorldService.RefreshShelf, WorldService, player)", 1, true) ~= nil
+				and string.find(body, "warn(", 1, true) ~= nil,
+			"ShopService:SellFind doesn't refresh the finds shelf inside a pcall that warns"
+		)
+	end
+	check(
+		string.find(shopSource, 'Net.func("SellFind").OnServerInvoke = handle(self.SellFind)', 1, true) ~= nil,
+		"SellFind isn't rate limited through ShopService's handle()"
+	)
+
+	-- Sizes. Docked in the monitor the panel isn't scaled (UI.unscale), so these are real pixels. The
+	-- monitor is UiLayout's ComputerMonitor on the Computer screen (under the top bar), its display 6 px in
+	-- from the bezel, the taskbar along the bottom, and the docked panel's content `edge` in from its
+	-- sides and `top` down (the Panel art's title band, the taller of the two).
+	local function number(source: string, name: string): number?
+		return tonumber(string.match(source, `local {name} = (%d+)`))
+	end
+	local cellWidth, cellHeight = number(findsSource, "CELL_WIDTH"), number(findsSource, "CELL_HEIGHT")
+	local cellGap, detailWidth = number(findsSource, "CELL_GAP"), number(findsSource, "DETAIL_WIDTH")
+	local paneGap, scrollRoom = number(findsSource, "PANE_GAP"), number(findsSource, "SCROLL_ROOM")
+	local sellHeight, detailHead = number(findsSource, "SELL_HEIGHT"), number(findsSource, "DETAIL_HEAD")
+	local storyRoom, detailPad = number(findsSource, "STORY_ROOM"), number(findsSource, "DETAIL_PAD")
+	local taskbar = number(computerSource, "TASKBAR")
+	local dockTop = tonumber(string.match(uiSource, "return if docked then (%d+) else %d+"))
+	local dockEdge = tonumber(string.match(uiSource, "local edge, top = if docked then (%d+) else %d+"))
+	check(
+		(
+			cellWidth
+			and cellHeight
+			and cellGap
+			and detailWidth
+			and paneGap
+			and scrollRoom
+			and sellHeight
+			and detailHead
+			and storyRoom
+			and detailPad
+		) ~= nil,
+		"FindsController is missing one of CELL_WIDTH, CELL_HEIGHT, CELL_GAP, DETAIL_WIDTH, PANE_GAP, "
+			.. "SCROLL_ROOM, SELL_HEIGHT, DETAIL_HEAD, STORY_ROOM and DETAIL_PAD"
+	)
+	check(
+		taskbar ~= nil and dockTop ~= nil and dockEdge ~= nil,
+		"check-gui can't read TASKBAR or the docked panel's edge and top"
+	)
+	check(
+		string.find(computerSource, "Position = UDim2.fromOffset(6, 6),\n\t\tSize = UDim2.new(1, -12, 1, -12)", 1, true)
+			~= nil,
+		"ComputerController's display isn't 6 px in from the bezel any more: update the Finds Book's sizes check"
+	)
+	check(
+		string.find(uiSource, "UI.unscale(panel)", 1, true) ~= nil,
+		"a docked panel is scaled again: the Finds Book's sizes check counts real pixels"
+	)
+	if
+		cellWidth
+		and cellHeight
+		and cellGap
+		and detailWidth
+		and paneGap
+		and scrollRoom
+		and sellHeight
+		and detailHead
+		and storyRoom
+		and detailPad
+		and taskbar
+		and dockTop
+		and dockEdge
+	then
+		-- Every cell and the Sell button are controls that act.
+		check(
+			cellWidth >= 40 and cellHeight >= 40,
+			`a Finds Book cell is {cellWidth} by {cellHeight}, under the 40 px a tap needs`
+		)
+		check(sellHeight >= 40, `the Finds Book's Sell button is {sellHeight} px tall, under the 40 px a tap needs`)
+		-- The Sell button's words fit the pane at 18 px. Its text room is the pane less its padding, the
+		-- button's own 8 px sides and the glyph's room (20 px and a 6 px gap, UI.button). Fredoka One has no
+		-- metrics here, so every character is taken as 0.7 of the text size, as the boost pills do below.
+		-- Each text the button is given is tried with the biggest value a Find sells for.
+		for _, wanted in
+			{
+				"local ICON_GAP = 6",
+				"PaddingLeft = UDim.new(0, 8 + info.iconSize + ICON_GAP)",
+				"PaddingRight = UDim.new(0, 8)",
+				"iconSize = props.IconSize or 20",
+			}
+		do
+			check(string.find(uiSource, wanted, 1, true) ~= nil, `UI.button's glyph room changed ({wanted}): update the Sell button's text check`)
+		end
+		check(
+			string.find(findsSource, '\t\tIcon = "Sell",\n', 1, true) ~= nil
+				and string.find(findsSource, "\t\tTextSize = 18,\n\t\tVisible = false,", 1, true) ~= nil,
+			"the Finds Book's Sell button isn't a 20 px glyph button at TextSize 18 any more: update the text check"
+		)
+		local FindsList = require("../src/shared/Config/Finds")
+		local FormatMoney = require("../src/shared/Format")
+		local biggest = ""
+		for _, rarity in FindsList.Rarities do
+			local text = FormatMoney.money(rarity.value)
+			if #text > #biggest then
+				biggest = text
+			end
+		end
+		local sellTexts = {}
+		for template in string.gmatch(findsSource, "sellButton%.Text = `([^`]*)`") do
+			table.insert(sellTexts, (string.gsub(template, "{value}", biggest)))
+		end
+		for plain in string.gmatch(findsSource, 'sellButton%.Text = "([^"]*)"') do
+			table.insert(sellTexts, plain)
+		end
+		check(#sellTexts >= 3, `check-gui found {#sellTexts} Sell button texts in FindsController, not its three`)
+		local sellRoom = detailWidth - 2 * detailPad - (8 + 20 + 6) - 8
+		for _, text in sellTexts do
+			local estimate = #text * 0.7 * 18
+			check(
+				estimate <= sellRoom,
+				`the Sell button's "{text}" needs about {estimate} px at 18 px, over the {sellRoom} px the {detailWidth} px pane leaves`
+			)
+		end
+		local monitor = UiLayout.ComputerMonitor
+		local MIN_ACROSS = 4
+		for _, screen in
+			{
+				{ width = UiLayout.__screen.phone.width, height = UiLayout.__screen.phone.height, name = "phone" },
+				{ width = 1280, height = 720, name = "PC window" },
+			}
+		do
+			local guiHeight = screen.height - GUI_INSET
+			local displayWidth = math.min(monitor.size[1] * screen.width + monitor.size[2], monitor.max.width) - 12
+			local displayHeight = math.min(monitor.size[3] * guiHeight + monitor.size[4], monitor.max.height) - 12
+			local contentWidth = displayWidth - 2 * dockEdge
+			local contentHeight = displayHeight - taskbar - dockTop - dockEdge
+			-- The book is what's left beside the pane, less room for the scroll bar.
+			local bookWidth = contentWidth - detailWidth - paneGap - scrollRoom
+			local across = math.floor((bookWidth + cellGap) / (cellWidth + cellGap))
+			check(
+				across >= MIN_ACROSS,
+				`the Finds Book fits {across} cells across on the {screen.width} by {screen.height} {screen.name} ({bookWidth} px of book beside the {detailWidth} px pane), under {MIN_ACROSS}`
+			)
+			-- The pane: the name and rarity, two lines of story at least, and the Sell button, inside its
+			-- padding, in the content's height (a long story scrolls inside the pane).
+			local paneHeight = detailPad + detailHead + storyRoom + detailPad + sellHeight + detailPad
+			check(
+				paneHeight <= contentHeight,
+				`the Finds Book's pane needs {paneHeight} px but the docked panel has {contentHeight} on the {screen.width} by {screen.height} {screen.name}`
+			)
+			-- At least one whole row of cells shows in the book at once.
+			check(
+				cellHeight <= contentHeight,
+				`a Finds Book cell ({cellHeight} px) is taller than the docked panel ({contentHeight} px) on the {screen.name}`
+			)
+			-- Six apps share the taskbar: each button stays a tap wide.
+			local moneyFrom, moneyWidth = number(computerSource, "MONEY_FROM"), number(computerSource, "MONEY_WIDTH")
+			local backWidth = number(computerSource, "BACK_WIDTH")
+			if moneyFrom and moneyWidth and backWidth then
+				local barWidth = displayWidth
+					- 10
+					- (backWidth + 8)
+					- (if displayWidth >= moneyFrom then moneyWidth else 0)
+				local buttonWidth = barWidth / 6 - 6
+				check(
+					buttonWidth >= 40,
+					`the computer's taskbar buttons are {buttonWidth} px wide with six apps on the {screen.name}, under 40`
+				)
+			end
+		end
+	end
+end
+
+-- The finds shelf (slice 3, ruling 10) --------------------------------------------------------------
+
+-- A shelf at the business shows the player's rarest twelve held Finds. Its placeholder is three rows of
+-- four spots (Spot1 to Spot12), WorldService places it like the Workbench and keeps it stocked
+-- (RefreshShelf), and the two paths that change what's held (a kept pickup, a sale) restock it inside a
+-- pcall, so a shelf problem never costs a pickup or a sale. Assets and the README list the new props.
+do
+	local function has(source: string, wanted: string, message: string)
+		check(string.find(source, wanted, 1, true) ~= nil, message)
+	end
+	local placeholders = fs.readFile("src/shared/Placeholders.luau")
+	for _, wanted in
+		{
+			"PROP_BUILDERS.FindsShelf = function(model: Model)",
+			"local SHELF_SIZE = Vector3.new(6, 6, 1.5)",
+			"local SHELF_COLUMNS = 4",
+			"local SHELF_ROWS = { 0.4, 2.3, 4.2 }",
+			"`Spot{(row - 1) * SHELF_COLUMNS + column}`",
+		}
+	do
+		has(placeholders, wanted, `Placeholders' finds shelf doesn't have {wanted}`)
+	end
+	local world = fs.readFile("src/server/Services/WorldService.luau")
+	for _, wanted in
+		{
+			'Assets.prop("FindsShelf")',
+			"markers.mounts.FindsShelf",
+			'shelf.Name = "FindsShelf"',
+			"stockShelf(shelf, data.finds)",
+			"function WorldService:RefreshShelf(player: Player)",
+			"Finds.rarest(finds, SHELF_COUNT)",
+			"local SHELF_COUNT = 12",
+			"pcall(standOnShelf, findId, frame, display)",
+			':IsA("ParticleEmitter")',
+			"descendant.CanQuery = false",
+		}
+	do
+		has(world, wanted, `WorldService's finds shelf doesn't have {wanted}`)
+	end
+	local jobs = fs.readFile("src/server/Services/JobService.luau")
+	local from = string.find(jobs, "function JobService:GiveFind(", 1, true)
+	local to = if from then string.find(jobs, "\nend\n", from, true) else nil
+	check(from ~= nil and to ~= nil, "JobService has no GiveFind")
+	if from and to then
+		has(
+			string.sub(jobs, from, to),
+			"pcall(WorldService.RefreshShelf, WorldService, player)",
+			"JobService:GiveFind doesn't restock the finds shelf inside a pcall"
+		)
+	end
+	has(fs.readFile("src/shared/Assets.luau"), "Props/FindsShelf", "Assets' header doesn't list Props/FindsShelf")
+	local readme = fs.readFile("assets/README.md")
+	has(readme, "`Props/FindsShelf`", "assets/README.md doesn't list Props/FindsShelf as wanted")
+	for _, find in require("../src/shared/Config/Finds").List do
+		has(readme, `\`{find.id}\``, `assets/README.md doesn't list the Find {find.id} as wanted`)
+	end
 end
 
 -- The art's own files, when there's a copy to read ------------------------------------------------

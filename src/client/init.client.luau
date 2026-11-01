@@ -17,6 +17,7 @@ local CONTROLLERS = {
 	"LevelsController",
 	"ContractsController",
 	"JobBoardController",
+	"FindsController",
 	"ShopController",
 	"TruckController",
 	"GuideController",
