@@ -1322,11 +1322,12 @@ check(
 	"the cooldown is Settings.Cooldown, not a copy in DataService"
 )
 check(has(fromHandler, "self:Changed(player)"), "SaveSettings pushes the profile")
--- Slice 3 owns data version 15 (the plan's Global Constraints): when it bumps DATA_VERSION this rule is
--- the one to change, to the new number; it only says this front-page HUD plan added no bump of its own.
+-- Slice 3 took data version 15 (the Finds, the sets, Buster and the find luck). The next slice that
+-- changes the save format owns 16: when it bumps DATA_VERSION this rule is the one to change, to the new
+-- number (the Settings keys needed no bump of their own).
 check(
-	has(dataService, "DATA_VERSION = 14"),
-	"DATA_VERSION isn't 14: if slice 3 bumped it to 15 on purpose, update this rule to the new number (the Settings keys needed no bump of their own)"
+	has(dataService, "DATA_VERSION = 15"),
+	"DATA_VERSION isn't 15: if the next slice bumped it to 16 on purpose, update this rule to the new number"
 )
 local soundsSource = source("src/shared/Sounds.luau")
 check(has(soundsSource, "SoundGroup") and has(soundsSource, '"Effects"'), "Sounds has the Effects SoundGroup")
@@ -1875,6 +1876,59 @@ do
 		sameTable(rescramble, Finds.cleanSave(copyOf(rescramble))),
 		"a second clean of a scrambled save changes nothing"
 	)
+
+	-- Data version 15: the stored version 14 save above (day blanked by its upgrade) goes through what
+	-- DataService's step 14 -> 15 does, Finds.cleanSave, and gains the four keys at their defaults with
+	-- nothing else lost. DataService cannot load here, so the step itself is pinned in its text below.
+	local storedV14 = copyOf(storedBefore)
+	check(storedV14.version == 14 and storedV14.finds == nil, "the stored save is version 14 and has no Finds yet")
+	local upgraded = Finds.cleanSave(copyOf(storedV14))
+	check(
+		sameTable(upgraded.finds, {})
+			and sameTable(upgraded.sets, {})
+			and sameTable(upgraded.buster, { owned = false, name = "Buster" })
+			and sameTable(upgraded.findLuck, { run = 0, owed = false }),
+		"a stored version 14 save gains the four keys at their defaults"
+	)
+	local withoutFinds = copyOf(upgraded)
+	withoutFinds.finds, withoutFinds.sets, withoutFinds.buster, withoutFinds.findLuck = nil, nil, nil, nil
+	check(
+		sameTable(withoutFinds, storedV14),
+		"and nothing else in it moves: money, xp, the ladder, the day, the streak, the flags and the contest"
+	)
+	-- A veteran with Finds already in a version 14 save (a hand-edited one) keeps what is good in it.
+	local oldWithFinds = copyOf(storedV14)
+	oldWithFinds.finds = { Marble = { found = 2, held = 1 } }
+	oldWithFinds.buster = { owned = true, name = "Rex" }
+	local keptFinds = Finds.cleanSave(copyOf(oldWithFinds))
+	check(
+		sameTable(keptFinds.finds, { Marble = { found = 2, held = 1 } })
+			and keptFinds.buster.owned == true
+			and keptFinds.buster.name == "Rex",
+		"Finds a save already holds are kept"
+	)
+
+	-- The wiring, in the text (DataService cannot load here): the step, the fresh save, every load and
+	-- the snapshot all go through the one cleaner.
+	check(has(dataService, "local Finds = require(Shared.Config.Finds)"), "DataService requires Finds")
+	local fromMigration = string.match(dataService, "%[15%] = function%(data%).-\n\tend,\n") or ""
+	check(
+		has(fromMigration, "Finds.cleanSave(data)"),
+		"the 14 -> 15 step cleans the save with Finds.cleanSave, so it gains the four keys"
+	)
+	check(
+		not has(fromMigration, "Season.upgradeSave"),
+		"the 14 -> 15 step does not go through Season (it loads without Finds)"
+	)
+	check(has(fromDefault, "Finds.cleanSave(data)"), "defaultData has the four Finds keys")
+	check(
+		has(fromReconcile, "Finds.cleanSave(data)"),
+		"reconcile fills the four Finds keys and cleans a tampered or old value on load"
+	)
+	for _, key in { "finds", "sets", "buster", "findLuck" } do
+		check(has(fromSnapshot, `\n\t\t{key} = data.{key}`), `snapshot sends {key}`)
+	end
+	check(not has(dataService, "\u{2014}"), "DataService has no em dashes")
 end
 
 if failures > 0 then

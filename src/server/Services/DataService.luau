@@ -11,6 +11,7 @@ local RunService = game:GetService("RunService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Assets = require(Shared.Assets)
 local GameConfig = require(Shared.Config.GameConfig)
+local Finds = require(Shared.Config.Finds)
 local Items = require(Shared.Config.Items)
 local Maintenance = require(Shared.Config.Maintenance)
 local Net = require(Shared.Net)
@@ -29,7 +30,7 @@ DataService.Earned = Signal.new()
 
 -- Bump this whenever the save format changes, and add a step to MIGRATIONS that turns the
 -- previous version into the new one. Never delete a step: old saves still need it.
-local DATA_VERSION = 14
+local DATA_VERSION = 15
 
 -- MIGRATIONS[n] turns a version n - 1 save into version n. Steps must keep money, xp and every
 -- owned item. Don't use the live config to read an old save: write down what it looked like.
@@ -204,6 +205,14 @@ local MIGRATIONS = {
 	[14] = function(data)
 		Season.upgradeSave(data)
 	end,
+
+	-- 14 -> 15, the Finds (see Finds.cleanSave): `finds` starts out as none found, `sets` as no set
+	-- complete, `buster` as not owned and named Buster, and `findLuck` as no three-star run and no sure
+	-- Find owed. Nothing the save already holds changes. This step doesn't go through Season: Season
+	-- loads without Finds, so the Finds keys have their own cleaner.
+	[15] = function(data)
+		Finds.cleanSave(data)
+	end,
 }
 
 local store: DataStore? = nil
@@ -272,6 +281,9 @@ local function defaultData()
 	-- numbers above. `levelRewards` is keyed by the level as a string (Season.levelKey), so the save
 	-- stays a dictionary rather than an array with holes.
 	Season.upgradeSave(data)
+	-- The Finds' keys (`finds`, `sets`, `buster` and `findLuck`, see Config/Finds.luau): none found, no
+	-- set complete, no Buster yet (named Buster) and no three-star run.
+	Finds.cleanSave(data)
 	for _, category in Items.Categories do
 		data.owned[category] = {}
 		local starter = Items.starter(category)
@@ -318,6 +330,9 @@ local function reconcile(data)
 	-- The Settings choices: an old save has none (filled above), and one that was tampered with or
 	-- holds something the window no longer offers becomes the nearest good one.
 	data.settings = Settings.clean(data.settings)
+	-- The Finds' four keys: an old save has none (filled above), and a scrambled one keeps what is good
+	-- in it (a count held to a whole number, a set only when its Finds are all found, a name that fits).
+	Finds.cleanSave(data)
 	for key, value in Premium.empty() do
 		if data.premium[key] == nil then
 			data.premium[key] = value
@@ -541,6 +556,12 @@ local function snapshot(data)
 		flags = data.flags,
 		-- Their Settings window's choices (sound, camera motion, grass detail).
 		settings = data.settings,
+		-- The Finds: how many of each they have found and still hold, the sets they have completed,
+		-- Buster (whether he is theirs and his name) and the luck a three-star run builds.
+		finds = data.finds,
+		sets = data.sets,
+		buster = data.buster,
+		findLuck = data.findLuck,
 		owned = data.owned,
 		equipped = data.equipped,
 		loadout = data.loadout,
