@@ -422,6 +422,14 @@ local function setArrivedFacing(player: Player, target: CFrame)
 	player:SetAttribute("Arrivals", (if typeof(arrivals) == "number" then arrivals else 0) + 1)
 end
 
+-- Whether this player has Buster, the dog level 5 gives (CompanionService runs him about): he rides in
+-- the bed of their truck on the drive. Read from the save, so JobService needs nothing from
+-- CompanionService (which needs JobService).
+local function ownsBuster(player: Player?): boolean
+	local data = player and DataService:Get(player)
+	return data ~= nil and typeof(data.buster) == "table" and data.buster.owned == true
+end
+
 -- Plays the truck cutscene for `players`, then moves each to destination(index, player).
 -- If destination returns nil the player just stays where they are.
 local function travel(players: { Player }, info, destination: (number, Player) -> CFrame?, onArrive: (() -> ())?)
@@ -436,6 +444,15 @@ local function travel(players: { Player }, info, destination: (number, Player) -
 		-- arrived by the time this has.
 		Assets.shareWith(player, "Trucks", { info.truckId })
 		Assets.shareWith(player, "Trailers", { info.trailerId })
+		-- The streak's pennant on the truck and Buster in its bed, when the driver has them.
+		local props = {}
+		if info.pennant then
+			table.insert(props, "TruckPennant")
+		end
+		if info.buster then
+			table.insert(props, "Buster")
+		end
+		Assets.shareWith(player, "Props", props)
 		Net.event("TravelStarted"):FireClient(player, info)
 
 		local target = destination(index, player)
@@ -574,6 +591,7 @@ local function sendHome(job, players: { Player })
 		trailerId = job.trailerId,
 		paintId = job.paintId,
 		pennant = WorldService:HasPennant(job.truckOwner) or nil,
+		buster = ownsBuster(job.truckOwner) or nil,
 	}, function(index, player)
 		return WorldService:GetHomeCFrame(player, index)
 	end, function()
@@ -720,6 +738,7 @@ local function startDriving(job)
 		trailerId = job.trailerId,
 		paintId = job.paintId,
 		pennant = WorldService:HasPennant(job.truckOwner) or nil,
+		buster = ownsBuster(job.truckOwner) or nil,
 	}, function(index, player)
 		if playerJobs[player] ~= job then
 			return nil

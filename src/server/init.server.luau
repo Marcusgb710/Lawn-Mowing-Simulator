@@ -16,6 +16,8 @@ local LOAD_ORDER = {
 	"SeasonService",
 	"DailyService",
 	"JobService",
+	-- Buster runs about the job lawns and the businesses, so after both.
+	"CompanionService",
 	"ToolService",
 	"TruckService",
 	"DeliveryService",

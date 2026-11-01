@@ -29,6 +29,7 @@ local roblox = require("@lune/roblox")
 local Clock = require("../src/server/Clock")
 local Contracts = require("../src/shared/Config/Contracts")
 local Daily = require("../src/shared/Daily")
+local DogWalk = require("../src/shared/DogWalk")
 local Format = require("../src/shared/Format")
 local Levels = require("../src/shared/Config/Levels")
 local Milestones = require("../src/shared/Config/Milestones")
@@ -191,6 +192,16 @@ check(Levels.rewardFor(2).text == "$100" and Levels.rewardFor(4).text == "$250",
 check(Levels.rewardFor(3).text == "Racing Red tint" and Levels.rewardFor(3).cash == 0, "a tint on its own")
 check(Levels.rewardFor(6).text == "Forest Green tint and $400", "a tint with cash")
 check(Levels.rewardFor(20).text == "A gold business sign and $5,000", "the sign with cash")
+-- Level 5 brings Buster, the dog, with its $500 (Ruling 12 of the slice 3 plan), and no other level does.
+check(Levels.rewardFor(5).buster == true and Levels.rewardFor(5).cash == 500, "level 5 gives Buster and $500")
+check(Levels.rewardFor(5).text == "Buster the dog and $500", "level 5's text names Buster")
+for level = 2, 40 do
+	local reward = Levels.rewardFor(level)
+	check(
+		reward ~= nil and reward.buster == (if level == 5 then true else nil),
+		`level {level} gives Buster only if it is level 5`
+	)
+end
 check(Levels.rewardFor(21).text == "$3,000" and Levels.rewardFor(30).text == "$5,000 and a HUD stamp", "past 20")
 local upcoming = Levels.nextRewards(18, 4)
 check(
@@ -2131,6 +2142,132 @@ do
 	for path, text in { JobService = jobService, SeasonService = seasonService, DailyService = dailyService } do
 		check(not has(text, "\u{2014}"), `{path} has no em dashes`)
 	end
+end
+
+-- Buster -------------------------------------------------------------------------------------------
+
+-- Where Buster runs next on a job lawn (src/shared/DogWalk.luau): a grass cell that is clear of every
+-- player with a motor mower out, by a way that never passes closer to one, and not too far.
+do
+	local function at(x: number, z: number)
+		return roblox.Vector3.new(x, 0, z)
+	end
+	local function first()
+		return 0
+	end
+	local keep = DogWalk.KEEP_AWAY
+	check(keep == 6, "Buster keeps 6 studs from a motor mower")
+	check(math.abs(DogWalk.distanceToSegment(at(0, 5), at(-3, 0), at(3, 0)) - 5) < 1e-9, "a point over a way")
+	check(math.abs(DogWalk.distanceToSegment(at(7, 3), at(-3, 0), at(3, 0)) - 5) < 1e-9, "a point past its end")
+	check(math.abs(DogWalk.distanceToSegment(at(2, 2), at(1, 1), at(1, 1)) - math.sqrt(2)) < 1e-9, "a way of no length")
+	-- Height never counts: a mower held up high is still in the way.
+	check(
+		math.abs(DogWalk.distanceToSegment(roblox.Vector3.new(0, 9, 5), at(-3, 0), at(3, 0)) - 5) < 1e-9,
+		"only across the ground"
+	)
+
+	local options = { keep = keep, shortest = 2, longest = 12 }
+	-- No mowers: any cell in range.
+	local cells = { at(5, 0), at(30, 0), at(0, 1) }
+	check(DogWalk.pick(cells, at(0, 0), {}, options, first) == cells[1], "a cell in range, the first by the roll")
+	local picked = {}
+	for roll = 0, 0.99, 0.01 do
+		local cell = DogWalk.pick(cells, at(0, 0), {}, options, function()
+			return roll
+		end)
+		picked[cell] = true
+	end
+	check(picked[cells[1]] and not picked[cells[2]] and not picked[cells[3]], "never too far, never too near")
+
+	-- A cell within 6 studs of a mower is never picked, nor one whose way passes within 6 of it.
+	local mower = { at(10, 0) }
+	local near = at(10, 4)
+	-- Seven studs from the mower, but the way there from (4, 10) passes about four from it.
+	local behind = at(17, 0)
+	local clear = at(0, 10)
+	for roll = 0, 0.99, 0.05 do
+		local cell = DogWalk.pick(
+			{ near, behind, clear },
+			at(4, 10),
+			mower,
+			{ keep = keep, shortest = 0, longest = 40 },
+			function()
+				return roll
+			end
+		)
+		check(cell == clear, "only the cell clear of the mower, by a clear way")
+	end
+	check(not DogWalk.clearOf(near, mower, keep) and DogWalk.clearOf(clear, mower, keep), "clear of a mower")
+	check(not DogWalk.pathClear(at(4, 10), behind, mower, keep), "a way past a mower is not clear")
+	check(DogWalk.pathClear(at(4, 10), clear, mower, keep), "a way away from a mower is clear")
+	check(DogWalk.pick({ near }, at(4, 10), mower, options, first) == nil, "nowhere safe: he stays put")
+
+	-- Caught near a mower, he may run off to any safe cell, however far, but never past it.
+	local caught = at(8, 0)
+	local away = at(-20, 0)
+	local past = at(30, 0)
+	check(
+		DogWalk.pick({ past, away }, caught, mower, options, first) == away,
+		"caught near a mower he runs away from it, even further than usual"
+	)
+	check(DogWalk.pick({ past }, caught, mower, options, first) == nil, "and never past it")
+
+	-- Only over ground he may walk on (the grass, never a flower bed, a tree or a doorway).
+	local function walkable(point)
+		return not (point.X > 1 and point.X < 3)
+	end
+	local walled = { keep = keep, shortest = 0, longest = 40, walkable = walkable }
+	check(DogWalk.pick({ at(5, 0) }, at(0, 0), {}, walled, first) == nil, "not across ground he can't walk on")
+	check(DogWalk.pick({ at(0, 5) }, at(0, 0), {}, walled, first) ~= nil, "across ground he can")
+	check(DogWalk.pick({}, at(0, 0), {}, options, first) == nil, "no cells, nowhere to go")
+end
+
+-- The wiring, in the text (the services cannot load here).
+do
+	local function read(path: string): string
+		return fs.readFile(path)
+	end
+	local season = read("src/server/Services/SeasonService.luau")
+	local fromPay = string.match(season, "local function payLevels%(.-\nend\n") or ""
+	check(
+		string.find(fromPay, "if reward.buster then", 1, true) ~= nil
+			and string.find(fromPay, "data.buster.owned = true", 1, true) ~= nil,
+		"a level that gives Buster makes him theirs"
+	)
+	local fromJoin = string.match(season, "local function onPlayerAdded%(player: Player%).-\nend\n") or ""
+	check(
+		string.find(fromJoin, "reward.buster", 1, true) ~= nil
+			and string.find(fromJoin, "CompanionService:Refresh(player)", 1, true) ~= nil,
+		"joining past level 5 brings Buster, as a claimed level 20 brings the sign"
+	)
+	local jobs = read("src/server/Services/JobService.luau")
+	local _, busters = string.gsub(jobs, "buster = ownsBuster%(job.truckOwner%) or nil", "")
+	check(busters == 2, "both drives say whether the driver's Buster rides in the bed")
+	check(
+		string.find(jobs, 'Assets.shareWith(player, "Props", props)', 1, true) ~= nil,
+		"the drive shares Buster's model with the crew's screens"
+	)
+	local cutscene = read("src/client/Controllers/CutsceneController.luau")
+	check(string.find(cutscene, "info.buster", 1, true) ~= nil, "the cutscene puts Buster in the bed")
+	local map = read("src/client/Hud/LawnMap.luau")
+	check(
+		string.find(map, '"PickUpFind"', 1, true) ~= nil and string.find(map, '"BusterFound"', 1, true) ~= nil,
+		"the lawn map dots a Find once Buster has found it"
+	)
+	local order = read("src/server/init.server.luau")
+	local companion = string.find(order, '"CompanionService"', 1, true) or 0
+	check(
+		companion > (string.find(order, '"JobService"', 1, true) or math.huge)
+			and companion > (string.find(order, '"WorldService"', 1, true) or math.huge),
+		"CompanionService loads after JobService and WorldService"
+	)
+	for path, text in { SeasonService = season, JobService = jobs, CutsceneController = cutscene, LawnMap = map } do
+		check(not string.find(text, "\u{2014}", 1, true), `{path} has no em dashes`)
+	end
+	local dogs = read("src/server/Services/CompanionService.luau")
+	check(not string.find(dogs, "\u{2014}", 1, true), "CompanionService has no em dashes")
+	check(not string.find(dogs, "Heartbeat", 1, true), "Buster's loop waits with task.wait, not every frame")
+	check(Sounds.Ids.Bark ~= nil, "Bark is a listed sound (empty until a Roblox-owned bark is found)")
 end
 
 if failures > 0 then

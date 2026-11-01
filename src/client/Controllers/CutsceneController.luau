@@ -4,6 +4,8 @@
 -- Before it, at the business, you're in the cab: the camera sits in your seat (the truck's
 -- DriverSeat attachment, or beside it for the rest of the crew) while the truck pulls out of the
 -- driveway.
+-- The streak's pennant flies on the truck and Buster, the dog, sits in its bed when the driver has them
+-- (info.pennant and info.buster, from JobService, which shares their models with this screen).
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -29,6 +31,9 @@ local LANE_OFFSET = 5
 local SEAT_OFFSETS = { Vector3.zero, Vector3.new(2.6, 0, 0), Vector3.new(0.4, 0, 1.6), Vector3.new(2.2, 0, 1.6) }
 -- Where the driver's eyes are on a truck without a DriverSeat attachment, from its pivot.
 local DEFAULT_SEAT = CFrame.new(-1.5, 4.8, -2.8)
+-- Buster sits up in the bed this far behind its middle, with his nose tipped up this much.
+local BUSTER_BACK = 1
+local BUSTER_SIT = math.rad(15)
 
 local CutsceneController = {}
 
@@ -54,7 +59,55 @@ local function part(parent: Instance, props)
 	return newPart
 end
 
-local function buildScene(truckId: string, trailerId: string?, paintId: string?, pennant: boolean?, roadLength: number)
+-- Sits Buster (Props/Buster, or his placeholder) in the truck's bed: on the middle of its own BedArea
+-- (a hitched trailer's doesn't count), a little toward the tailgate, facing the way the truck goes. A
+-- truck without one has him at its back, halfway up. He's parented to the truck, so he rides with it.
+local function addBuster(truck: Model)
+	local pivot = truck:GetPivot()
+	local trailer = truck:FindFirstChild("Trailer")
+	local bed: BasePart? = nil
+	for _, descendant in truck:GetDescendants() do
+		if
+			descendant:IsA("BasePart")
+			and descendant.Name == "BedArea"
+			and not (trailer and descendant:IsDescendantOf(trailer))
+		then
+			bed = descendant
+			break
+		end
+	end
+	local spot: Vector3
+	if bed then
+		spot = (bed.CFrame * CFrame.new(0, bed.Size.Y / 2, 0)).Position
+	else
+		local box, size = truck:GetBoundingBox()
+		local middle = pivot:PointToObjectSpace(box.Position)
+		spot = pivot:PointToWorldSpace(Vector3.new(0, middle.Y, middle.Z + size.Z * 0.3))
+	end
+	-- Trucks face -Z, so the tailgate is toward +Z.
+	spot += pivot.LookVector * -BUSTER_BACK
+	local dog = Assets.prop("Buster")
+	Assets.anchor(dog)
+	for _, descendant in dog:GetDescendants() do
+		if descendant:IsA("BasePart") then
+			descendant.CanCollide = false
+			descendant.CanTouch = false
+			descendant.CanQuery = false
+		end
+	end
+	Assets.placeAt(dog, (pivot.Rotation + spot) * CFrame.Angles(BUSTER_SIT, 0, 0))
+	dog.Name = "Buster"
+	dog.Parent = truck
+end
+
+local function buildScene(
+	truckId: string,
+	trailerId: string?,
+	paintId: string?,
+	pennant: boolean?,
+	buster: boolean?,
+	roadLength: number
+)
 	local folder = Instance.new("Folder")
 	folder.Name = "TruckCutscene"
 	local rng = Random.new(7)
@@ -120,6 +173,10 @@ local function buildScene(truckId: string, trailerId: string?, paintId: string?,
 	-- The streak's pennant, if the crew's leader has earned it (the same as on the truck at home).
 	if pennant == true then
 		Assets.addPennant(truck)
+	end
+	-- Buster in the bed, if the driver has him (the same dog that runs about their jobs).
+	if buster == true then
+		addBuster(truck)
 	end
 	Assets.anchor(truck)
 	truck.Parent = folder
@@ -234,7 +291,7 @@ local function play(info)
 
 	local driveTime = math.max(info.duration - FADE_TIME * 2 - 0.2, 1)
 	local distance = DRIVE_SPEED * driveTime
-	local scene, truck = buildScene(info.truckId, info.trailerId, info.paintId, info.pennant, distance)
+	local scene, truck = buildScene(info.truckId, info.trailerId, info.paintId, info.pennant, info.buster, distance)
 	local startCFrame = CFrame.new(SCENE_ORIGIN + Vector3.new(LANE_OFFSET, 0.2, distance / 2))
 	local endCFrame = CFrame.new(SCENE_ORIGIN + Vector3.new(LANE_OFFSET, 0.2, -distance / 2))
 	Assets.placeOnGround(truck, startCFrame)

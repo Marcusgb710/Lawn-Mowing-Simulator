@@ -1,5 +1,6 @@
 -- What each level pays (docs/superpowers/specs/2026-10-29-busy-season-design.md, 1c): cash, a
--- truck paint tint, the gold business sign, a HUD stamp, and the line that names it for the moment
+-- truck paint tint, the gold business sign, Buster the dog (level 5), a HUD stamp, and the line that
+-- names it for the moment
 -- card and the Levels panel. The table below is the single source: the screens and
 -- scripts/check-season.luau all read it. Level 1 pays nothing; level 2 to 20 are listed;
 -- past 20 every level pays `PastTwentyCash`, and every fifth pays `EveryFifthCash` and a stamp.
@@ -7,7 +8,14 @@
 --
 -- scripts/check-season.luau gates this file. It has no requires, so Lune can load it.
 
-export type Reward = { cash: number, paint: string?, sign: boolean?, stamp: boolean?, text: string }
+export type Reward = {
+	cash: number,
+	paint: string?,
+	sign: boolean?,
+	buster: boolean?,
+	stamp: boolean?,
+	text: string,
+}
 export type Upcoming = { level: number, reward: Reward }
 
 local Levels = {}
@@ -27,11 +35,11 @@ local PaintNames = {
 -- Levels 2 to 20. `cash` is always there (0 when a level pays none); the rest only where it's
 -- earned. Levels 3, 8 and 10 also open serious jobs, pro jobs and the Best Yard contest, but
 -- those come from their own gates, not from here.
-local Listed: { [number]: { cash: number, paint: string?, sign: boolean? } } = {
+local Listed: { [number]: { cash: number, paint: string?, sign: boolean?, buster: boolean? } } = {
 	[2] = { cash = 100 },
 	[3] = { cash = 0, paint = "RacingRed" },
 	[4] = { cash = 250 },
-	[5] = { cash = 500 },
+	[5] = { cash = 500, buster = true },
 	[6] = { cash = 400, paint = "ForestGreen" },
 	[7] = { cash = 600 },
 	[8] = { cash = 800 },
@@ -60,14 +68,17 @@ local function money(amount: number): string
 end
 
 -- A reward with the line that names it: "$250", "Forest Green tint and $400",
--- "A gold business sign and $5,000", "$5,000 and a HUD stamp".
-local function reward(cash: number, paint: string?, sign: boolean?, stamp: boolean?): Reward
+-- "A gold business sign and $5,000", "Buster the dog and $500", "$5,000 and a HUD stamp".
+local function reward(cash: number, paint: string?, sign: boolean?, buster: boolean?, stamp: boolean?): Reward
 	local parts = {}
 	if paint then
 		table.insert(parts, `{PaintNames[paint]} tint`)
 	end
 	if sign then
 		table.insert(parts, "a gold business sign")
+	end
+	if buster then
+		table.insert(parts, "Buster the dog")
 	end
 	if cash > 0 then
 		table.insert(parts, money(cash))
@@ -80,6 +91,7 @@ local function reward(cash: number, paint: string?, sign: boolean?, stamp: boole
 		cash = cash,
 		paint = paint,
 		sign = sign,
+		buster = buster,
 		stamp = stamp,
 		text = text:sub(1, 1):upper() .. text:sub(2),
 	}
@@ -89,11 +101,11 @@ end
 local rewards: { [number]: Reward } = {}
 local lastListed = 1
 for level, spec in Listed do
-	rewards[level] = reward(spec.cash, spec.paint, spec.sign)
+	rewards[level] = reward(spec.cash, spec.paint, spec.sign, spec.buster)
 	lastListed = math.max(lastListed, level)
 end
 local pastTwenty = reward(PastTwentyCash)
-local everyFifth = reward(EveryFifthCash, nil, nil, true)
+local everyFifth = reward(EveryFifthCash, nil, nil, nil, true)
 
 -- What reaching `level` pays, or nil for level 1 (and below, which no one is).
 function Levels.rewardFor(level: number): Reward?

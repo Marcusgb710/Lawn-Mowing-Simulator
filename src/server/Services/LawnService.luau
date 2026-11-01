@@ -2169,6 +2169,37 @@ function Lawn:FindState(): { id: string, there: boolean, how: string? }?
 	return nil
 end
 
+-- Buster's ground (CompanionService) ---------------------------------------------------------
+
+-- The ground a dog may run about on: every cell that has grass, except the ones beside flowers and trees
+-- (the optional cells), as [cell index] = its centre on the ground. Worked out once per lawn.
+function Lawn:OpenGround(): { [number]: Vector3 }
+	if self.openGround then
+		return self.openGround
+	end
+	local open = {}
+	local grass = self.grassTask
+	for index, state in self.grassState or {} do
+		local target = grass and grass.byIndex[index]
+		if state ~= LawnGrid.EMPTY and not (target and target.optional) then
+			local column, row = LawnGrid.cell(index, self.cellRows)
+			open[index] = LawnGrid.center(self.origin, GameConfig.CellSize, column, row)
+		end
+	end
+	self.openGround = open
+	return open
+end
+
+-- Whether a point (only X and Z count) is on that ground.
+function Lawn:IsOpenGround(point: { X: number, Z: number }): boolean
+	local column = math.floor((point.X - self.origin.X) / GameConfig.CellSize)
+	local row = math.floor((point.Z - self.origin.Z) / GameConfig.CellSize)
+	if column < 0 or row < 0 or column >= self.cellColumns or row >= self.cellRows then
+		return false
+	end
+	return self:OpenGround()[LawnGrid.index(column, row, self.cellRows)] ~= nil
+end
+
 -- Public API ---------------------------------------------------------------------------------
 
 -- `origin` is the front-left corner of the lawn, where it meets the sidewalk.

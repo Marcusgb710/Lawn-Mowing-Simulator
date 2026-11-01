@@ -88,6 +88,9 @@ local SHELF_LABEL_DISTANCE = 10
 -- rocker.
 local JUNE_GAP, JUNE_AHEAD, JUNE_TURN = 3, 2.5, math.rad(30)
 local JUNE_PAST_BOXES, JUNE_EDGE = 23, 5
+-- Buster sits this far out from the side of her porch (or rocker) away from the driveway, and this far
+-- back from its front edge (see buildPlot). Both are well inside JUNE_EDGE, so he stays on the plot.
+local BUSTER_BESIDE, BUSTER_BACK = 1.5, 1
 -- Walls put up for a walk-in building whose walls don't collide properly (see makeWalkable).
 local FALLBACK_WALL = 0.8
 -- A wall mesh no thicker than this (studs) is a flat piece that collides fine as it is, and one
@@ -107,7 +110,7 @@ local businessFolder: Folder
 local spawnCFrame = CFrame.new(0, 5, 0)
 -- Each plot: { cframe = CFrame, width = number, depth = number, owner = Player?, model = Model?,
 --   deliveryFrame = CFrame?, truckHome = CFrame?, lawnFrame = CFrame?, lawnSize = Vector3?,
---   awayTruck = Model? (out on a trip, see PullOut), trip = {}? }
+--   awayTruck = Model? (out on a trip, see PullOut), trip = {}?, busterSpot = CFrame? }
 local plots = {}
 -- [Player] = plot
 local playerPlots = {}
@@ -711,6 +714,14 @@ local function buildPlot(plot)
 	if porch then
 		porch.Parent = model
 	end
+	-- Where Buster sits while the owner is at the business (CompanionService): on the ground beside her
+	-- porch (or rocker), on its far side from the driveway, near its front, facing the way she does. The
+	-- doorway, the desk, the finds shelf and the workbench are all on the driveway's other side of her or
+	-- left of the building, and the delivery patch is to her left, so he is in nobody's way.
+	local foot = GrandmaJune.footprint(withPorch)
+	plot.busterSpot = at(juneX, 0, juneZ)
+		* CFrame.Angles(0, JUNE_TURN, 0)
+		* CFrame.new(foot.X / 2 + BUSTER_BESIDE, 0, -foot.Y / 2 + BUSTER_BACK)
 
 	local truck = Assets.truck(data.equipped.Truck or Items.Catalog.Truck[1].id, data.equipped.Trailer)
 	-- Their Robux paint job, if they've put one on (see Premium.luau).
@@ -991,6 +1002,13 @@ function WorldService:RefreshShelf(player: Player)
 	if shelf and shelf:IsA("Model") and data then
 		stockShelf(shelf, data.finds)
 	end
+end
+
+-- Where Buster sits at this player's own business (beside June's porch, see buildPlot), as a frame on
+-- the ground facing the way he faces, or nil while they have no business built.
+function WorldService:GetBusterSpot(player: Player): CFrame?
+	local plot = playerPlots[player]
+	return if plot and plot.model then plot.busterSpot else nil
 end
 
 -- How far a point is from the nearest point of a part.

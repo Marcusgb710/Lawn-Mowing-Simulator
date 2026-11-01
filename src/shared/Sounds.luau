@@ -129,6 +129,9 @@ Sounds.Ids = {
 	-- The front-page HUD's button sound (Juicy.button plays it on every press). Found the same way:
 	-- the toolbox search for "Roblox UI click", kept to audio whose creator is Roblox (id 1).
 	Click = "rbxassetid://15675032796", -- Roblox_UI_Small_Click (Roblox): a HUD button pressed
+	-- TODO: Buster's bark when he finds something on a job lawn (CompanionService plays it from him).
+	-- Owed: a dog bark whose creator is Roblox (id 1), checked on the Creator Store. Silent until then.
+	Bark = "",
 }
 
 -- Plays `name` from `parent` (a part or attachment), if it has an id.

@@ -1740,6 +1740,59 @@ PROP_BUILDERS.FindsShelf = function(model: Model)
 	end
 end
 
+-- Buster, the dog a player gets at level 5 (CompanionService), until his model lands: a warm brown
+-- block body low on the ground, a head at the front, two darker ears and a tail cocked up at the back,
+-- about 2.6 studs nose to tail. Built like the real models: origin on the ground at his middle, a Root
+-- part, front (his nose) toward -Z. He only runs about to be looked at, so nothing on him collides,
+-- touches or takes an aim.
+local BUSTER_COAT = Color3.fromRGB(165, 108, 60)
+local BUSTER_EARS = Color3.fromRGB(115, 72, 40)
+
+PROP_BUILDERS.Buster = function(model: Model)
+	local add = propAdder(model)
+	rootPart(model, add)
+	local function piece(props)
+		props.CanCollide = false
+		props.CanTouch = false
+		props.CanQuery = false
+		props.Material = Enum.Material.SmoothPlastic
+		return add(props)
+	end
+	piece({
+		Name = "Buster__Body",
+		Size = Vector3.new(0.9, 0.9, 1.6),
+		Position = Vector3.new(0, 0.45, 0),
+		Color = BUSTER_COAT,
+	})
+	piece({
+		Name = "Buster__Head",
+		Size = Vector3.new(0.75, 0.75, 0.75),
+		Position = Vector3.new(0, 1.05, -0.95),
+		Color = BUSTER_COAT,
+	})
+	piece({
+		Name = "Buster__Nose",
+		Size = Vector3.new(0.2, 0.15, 0.1),
+		Position = Vector3.new(0, 1.05, -1.37),
+		Color = Color3.fromRGB(30, 25, 20),
+	})
+	for _, side in { -1, 1 } do
+		piece({
+			Name = "Buster__Ear",
+			Size = Vector3.new(0.18, 0.35, 0.3),
+			Position = Vector3.new(side * 0.3, 1.55, -0.95),
+			Color = BUSTER_EARS,
+		})
+	end
+	piece({
+		Name = "Buster__Tail",
+		Size = Vector3.new(0.18, 0.18, 0.6),
+		-- Turned so its back end (+Z) points up.
+		CFrame = CFrame.new(0, 0.95, 1.0) * CFrame.Angles(math.rad(-35), 0, 0),
+		Color = BUSTER_COAT,
+	})
+end
+
 -- Job computer desks, one per business tier.
 PROP_BUILDERS.JobLaptopTable = function(model: Model)
 	desk(model, "JobLaptopTable", Vector3.new(4.5, 0, 2.6), Color3.fromRGB(230, 230, 225), 1)

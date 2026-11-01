@@ -4,7 +4,8 @@
 --      found and Finds sets done. CheckMilestones looks at their numbers after every finished
 --      job and after every bit of money they earn (tips and level cash count too), and pays each
 --      milestone they've just met.
---   2. Level rewards (Config/Levels.luau): cash, a truck paint tint and the gold business sign.
+--   2. Level rewards (Config/Levels.luau): cash, a truck paint tint, the gold business sign and
+--      Buster the dog (CompanionService builds him once he's theirs).
 --      ClaimLevels pays every level they've reached and haven't claimed, in order: when a
 --      level-up takes them past one, and once when they join, which is how an old save or a
 --      reward a later slice adds gets paid.
@@ -27,6 +28,8 @@
 -- The gold sign is the `GoldSign` attribute on the player, set for any level that gives one,
 -- claimed now or on an earlier visit, and for the Maple Grove set of Finds (Finds.signEarly;
 -- JobService sets it the moment the set is done). Whatever shows the sign reads it from there.
+-- Buster is `buster.owned` in the save, set for the level that gives him, claimed now or on an earlier
+-- visit (a save migrated past level 5 claims it without being paid, so joining sets it too).
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -38,6 +41,7 @@ local Milestones = require(Shared.Config.Milestones)
 local Net = require(Shared.Net)
 local Season = require(Shared.Config.Season)
 
+local CompanionService = require(script.Parent.CompanionService)
 local DataService = require(script.Parent.DataService)
 local JobService = require(script.Parent.JobService)
 local PremiumService = require(script.Parent.PremiumService)
@@ -99,8 +103,8 @@ local function payReached(player: Player, data)
 end
 
 -- Pays every level from 2 up to their level that isn't claimed, lowest first. A level is marked
--- claimed in the save, and the client's totals sent, before its cash, paint and sign are given,
--- and the client is told last.
+-- claimed in the save, and the client's totals sent, before its cash, paint, sign and Buster are
+-- given, and the client is told last.
 local function payLevels(player: Player, data)
 	for level = 2, DataService:GetLevel(player) do
 		local key = Season.levelKey(level)
@@ -118,6 +122,11 @@ local function payLevels(player: Player, data)
 		end
 		if reward.sign then
 			player:SetAttribute("GoldSign", true)
+		end
+		if reward.buster then
+			data.buster.owned = true
+			DataService:Changed(player)
+			CompanionService:Refresh(player)
 		end
 		Net.event("LevelReward"):FireClient(player, { level = level, text = reward.text, cash = reward.cash })
 	end
@@ -176,7 +185,8 @@ end
 -- Lifecycle ----------------------------------------------------------------------------------
 
 -- Once their save is loaded: the gold sign if a level they've claimed gave one or they've done the
--- Maple Grove set, then whatever level rewards they haven't been paid.
+-- Maple Grove set, Buster if a level they've claimed gave him, then whatever level rewards they
+-- haven't been paid, and Buster at their business if he's theirs.
 local function onPlayerAdded(player: Player)
 	local data = DataService:WaitForData(player)
 	if not data then
@@ -193,6 +203,10 @@ local function onPlayerAdded(player: Player)
 			if reward and reward.paint then
 				PremiumService:GrantPaint(player, reward.paint)
 			end
+			if reward and reward.buster and not data.buster.owned then
+				data.buster.owned = true
+				DataService:Changed(player)
+			end
 		end
 		-- The Maple Grove set brings the sign early. A complete set is always in the save (the save
 		-- cleaner adds one it was missing), so this covers a set done on an earlier visit too.
@@ -200,6 +214,7 @@ local function onPlayerAdded(player: Player)
 			player:SetAttribute("GoldSign", true)
 		end
 		SeasonService:ClaimLevels(player)
+		CompanionService:Refresh(player)
 	end)
 end
 
