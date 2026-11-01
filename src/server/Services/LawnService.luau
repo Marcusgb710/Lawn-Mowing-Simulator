@@ -2137,7 +2137,8 @@ end
 -- Picks up the Find that `thing` is part of, if it's still on the lawn and within `reach` studs of
 -- `from` (the player's eyes). Returns it, or nil and why not. It comes off the lawn here, before
 -- anything can yield, so two players reaching for it at once can't both have it: the second is told
--- someone beat them to it (their `thing` may be nil by then, the model being gone).
+-- someone beat them to it, or that a mower chewed it up (their `thing` may be nil by then, the model
+-- being gone).
 function Lawn:PickUpFind(thing: Instance?, from: Vector3, reach: number): (any?, string?)
 	local find = self.find
 	if find and thing and (thing == find.model or thing:IsDescendantOf(find.model)) then
@@ -2147,8 +2148,12 @@ function Lawn:PickUpFind(thing: Instance?, from: Vector3, reach: number): (any?,
 		return self:_takeFind("picked"), nil
 	end
 	local gone = self.findGone
-	if gone and gone.how == "picked" and (thing == nil or thing == gone.model) then
-		return nil, "Someone already picked it up."
+	if gone and (thing == nil or thing == gone.model) then
+		if gone.how == "picked" then
+			return nil, "Someone already picked it up."
+		elseif gone.how == "chewed" then
+			return nil, "It got chewed up by a mower."
+		end
 	end
 	return nil, nil
 end

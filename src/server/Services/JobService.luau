@@ -66,7 +66,7 @@ local TRUCK_REACH = 10
 local PICK_UP_REACH = 12
 -- A snip of hand shears only hurts flowers right where it lands.
 local SNIP_HAZARD_REACH = 0.3
--- What the customer adds to the tip when the crew gives back the wedding band they found.
+-- What the customer pays the crew, split evenly, when they give back the wedding band they found.
 local BAND_TIP = 250
 
 local JobService = {}
@@ -611,8 +611,12 @@ end
 
 -- Rolls whether the job's lawn hides a Find (Finds.roll), by the leader's luck: their three-star run,
 -- Buster, and a sure Find owed after a Bonus Day. The seed is the day, the leader and which of the
--- day's jobs this is for them, so a lawn can't be rerolled by calling the job off. A lawn with no
--- junk (the first-timer's FirstMow) hides none. The owed Find is spent once one is in the grass.
+-- day's jobs this is for them, and the day's job count only moves when a job is done, so a job called
+-- off and taken again rolls the same seed: a Find left in the grass comes back as it was (no reroll).
+-- One already picked up never does: picking it up (PickUpFind) spends the seed in the leader's
+-- `findLuck.spent`, and a lawn whose seed is spent hides nothing. The seed and whose roll it was stay
+-- on the job (findSeed, findLeader) for that. A lawn with no junk (the first-timer's FirstMow) hides
+-- none. The owed Find is spent once one is in the grass.
 local function placeFind(job, template)
 	local leader = job.party.leader
 	local data = leader and DataService:Get(leader)
@@ -623,14 +627,21 @@ local function placeFind(job, template)
 	local count = typeof(data.daily) == "table" and data.daily.count
 	local done = if typeof(count) == "table" and typeof(count.jobs) == "number" then count.jobs else 0
 	local seed = Finds.seed(Daily.dayKey(Clock.now()), leader.UserId, done + 1)
+	if seed == luck.spent then
+		return
+	end
 	local id = Finds.roll(seed, job.offer.tier, {
 		run = luck.run,
 		buster = data.buster.owned,
 		owed = luck.owed,
 	})
-	if id and job.lawn:PlaceFind(id, Random.new(seed)) and luck.owed then
-		luck.owed = false
-		DataService:Changed(leader)
+	if id and job.lawn:PlaceFind(id, Random.new(seed)) then
+		job.findSeed = seed
+		job.findLeader = leader
+		if luck.owed then
+			luck.owed = false
+			DataService:Changed(leader)
+		end
 	end
 end
 
@@ -813,8 +824,8 @@ local function completeJob(job)
 	local performance = Stars.round(GameConfig.performance(quality, elapsed, job.offer.parTime, weights))
 	local penalized = (debris.left + debris.hit) > 0 or job.damageCount > 0
 	local stars = Stars.of(performance, penalized)
-	-- The wedding band given back adds to it (returnTip, see PickUpFind), split evenly across the crew.
-	local tip = math.floor(share * Stars.tipRate(stars)) + math.floor((job.returnTip or 0) / #members)
+	-- (The wedding band given back is paid on its own, when it goes back: see PickUpFind.)
+	local tip = math.floor(share * Stars.tipRate(stars))
 
 	job.result = {
 		basePay = job.offer.payout,
@@ -992,11 +1003,18 @@ local function settle(job, player: Player, result, options: WorkOptions, snip: b
 			)
 		end
 	end
-	-- A mower chewed up the Find: it's gone, and only the one mowing hears it. No pay is lost (the blade
-	-- still takes the hit, in ToolService).
+	-- A mower chewed up the Find: it's gone, and the whole crew hears whose mower it was, the way junk
+	-- chewed up is told above. No pay is lost (the blade still takes the hit, in ToolService).
 	if result.chewed then
 		job.dirty = true
-		notify(player, `You chewed up {withArticle(result.chewed.name)}. Buster would have found it.`)
+		for _, member in job.members do
+			notify(
+				member,
+				if member == player
+					then `You chewed up {withArticle(result.chewed.name)}. Buster would have found it.`
+					else `{player.DisplayName}'s mower chewed up the {result.chewed.name}.`
+			)
+		end
 	end
 	job.work += result.work
 	job.fitWork += result.fitWork
@@ -1196,12 +1214,15 @@ end
 -- Picks up the Find in the grass that `thing` is part of (the client says what the player's looking
 -- at; the server checks it's on their job's lawn and within reach). The first of the crew to ask
 -- gets it: the lawn lets go of it before anything here could yield, and anyone after is told someone
--- beat them to it. It goes in their own save: found once more, and held unless they `giveBack` the
--- wedding band (its customer adds BAND_TIP to the job's tip, split across the crew) or June's
--- locket (the first time, her scene plays when they're home and her rocker gets its cushion); any
--- other Find is simply kept. A set it completes is marked complete here, so its card plays
--- (SetCompleted) instead of the save cleaner adding it quietly, and its perk starts (Maple Grove's
--- gold sign at once, the others from the next job); GiveFind does the saving and the telling.
+-- beat them to it (or that a mower chewed it up). Picking it up spends the lawn's seed in the save of
+-- the leader whose roll it was (findLuck.spent, see placeFind), so calling the job off and taking it
+-- again can't hand it out twice. It goes in their own save: found once more, and held unless they
+-- `giveBack` the wedding band (its customer pays the crew BAND_TIP there and then, split evenly) or
+-- June's locket (the first time, her scene plays when they're home and her rocker gets its cushion);
+-- any other Find is simply kept. The rest of the crew is told who picked it up. A set it completes is
+-- marked complete here, so its card plays (SetCompleted) instead of the save cleaner adding it
+-- quietly, and its perk starts (Maple Grove's gold sign at once, the others from the next job);
+-- GiveFind does the saving and the telling.
 function JobService:PickUpFind(player: Player, thing: Instance?, giveBack: boolean): (boolean, string?)
 	local character = player.Character
 	local head = character and character:FindFirstChild("Head")
@@ -1215,17 +1236,31 @@ function JobService:PickUpFind(player: Player, thing: Instance?, giveBack: boole
 	end
 	job.findPickedBy = player
 	job.dirty = true
+	local leaderData = job.findSeed and job.findLeader and DataService:Get(job.findLeader)
+	if leaderData then
+		leaderData.findLuck.spent = job.findSeed
+		DataService:Changed(job.findLeader)
+	end
 	local returned = giveBack and Finds.canReturn(find.id)
 	local note = nil
+	local crewNote = ""
 	if returned and find.id == "WeddingBand" then
-		-- Paid with the tip when the job is done, split across the crew. A job called off after the band
-		-- went back pays no tip at all, so none of this either (an accepted edge case).
-		job.returnTip = (job.returnTip or 0) + BAND_TIP
+		-- Paid now, split evenly across the crew on the job, so it's theirs even if the job is called off.
+		local each = math.floor(BAND_TIP / #job.members)
+		for _, member in job.members do
+			DataService:Earn(member, each)
+		end
 		note = if #job.members > 1
-			then `{job.offer.customer} is adding {Format.money(BAND_TIP)} to the tip, split across the crew.`
-			else `{job.offer.customer} is adding {Format.money(BAND_TIP)} to your tip.`
+			then `{job.offer.customer} gave the crew {Format.money(each)} each for the ring.`
+			else `{job.offer.customer} gave you {Format.money(each)} for the ring.`
+		crewNote = ` {note}`
 	elseif returned then
 		note = "It's June's. She'll want to see it when you're home."
+	end
+	for _, member in job.members do
+		if member ~= player then
+			notify(member, `{player.DisplayName} picked up the {find.name}.{crewNote}`)
+		end
 	end
 
 	self:GiveFind(player, find.id, not returned, note)

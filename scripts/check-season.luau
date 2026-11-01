@@ -1921,7 +1921,7 @@ do
 			finds = {},
 			sets = {},
 			buster = { owned = false, name = "Buster" },
-			findLuck = { run = 0, owed = false },
+			findLuck = { run = 0, owed = false, spent = 0 },
 		}),
 		"cleanSave(nil) is a table with the four defaults"
 	)
@@ -1949,7 +1949,7 @@ do
 		finds = { Marble = { found = 3, held = 2 }, GoldenGnome = { found = 1, held = 0 } },
 		sets = {},
 		buster = { owned = true, name = "Rex" },
-		findLuck = { run = 2, owed = true },
+		findLuck = { run = 2, owed = true, spent = 1234567890 },
 	}
 	local goodCopy = copyOf(good)
 	check(sameTable(Finds.cleanSave(good), goodCopy), "a good save is left alone")
@@ -2003,6 +2003,32 @@ do
 			and Finds.cleanSave({ findLuck = { run = -2 } }).findLuck.run == 0,
 		"the run is floored and held from 0 to 3"
 	)
+	-- findLuck.spent: the seed of the last job lawn whose Find was picked up (JobService's placeFind
+	-- rolls nothing for it again, so a called-off job can't hand out its Find twice). Any seed Finds.seed
+	-- gives is kept, even one past the count cap; anything else is 0.
+	check(blank.findLuck.spent == 0, "cleanSave fills findLuck.spent as 0")
+	local realSeed = Finds.seed("20261101", 9007199254, 12)
+	check(
+		Finds.cleanSave({ findLuck = { spent = 77 } }).findLuck.spent == 77
+			and Finds.cleanSave({ findLuck = { spent = realSeed } }).findLuck.spent == realSeed
+			and Finds.cleanSave({ findLuck = { spent = 2000000000 } }).findLuck.spent == 2000000000
+			and Finds.cleanSave({ findLuck = { spent = 2147483647 } }).findLuck.spent == 2147483647,
+		"a spent seed that is a whole number a seed can be is kept"
+	)
+	check(
+		Finds.cleanSave({ findLuck = { spent = 0 / 0 } }).findLuck.spent == 0
+			and Finds.cleanSave({ findLuck = { spent = -4 } }).findLuck.spent == 0
+			and Finds.cleanSave({ findLuck = { spent = "12" } }).findLuck.spent == 0
+			and Finds.cleanSave({ findLuck = { spent = 1.5 } }).findLuck.spent == 0
+			and Finds.cleanSave({ findLuck = { spent = math.huge } }).findLuck.spent == 0
+			and Finds.cleanSave({ findLuck = { spent = 2147483648 } }).findLuck.spent == 0
+			and Finds.cleanSave({ findLuck = { spent = true } }).findLuck.spent == 0,
+		"a spent seed that is NaN, negative, text, a fraction, infinite or past any seed is 0"
+	)
+	for name, value in { nan = 0 / 0, negative = -4, text = "12", whole = 77, big = 2000000000 } do
+		local once = copyOf(Finds.cleanSave({ findLuck = { run = 1, spent = value } }))
+		check(sameTable(once, Finds.cleanSave(copyOf(once))), `cleaning a spent seed twice changes nothing ({name})`)
+	end
 
 	-- Buster's name: trimmed, up to 20 characters, never empty.
 	check(Finds.cleanSave({ buster = { name = "  Rex  " } }).buster.name == "Rex", "a name is trimmed")
@@ -2059,7 +2085,7 @@ do
 		sameTable(upgraded.finds, {})
 			and sameTable(upgraded.sets, {})
 			and sameTable(upgraded.buster, { owned = false, name = "Buster" })
-			and sameTable(upgraded.findLuck, { run = 0, owed = false }),
+			and sameTable(upgraded.findLuck, { run = 0, owed = false, spent = 0 }),
 		"a stored version 14 save gains the four keys at their defaults"
 	)
 	local withoutFinds = copyOf(upgraded)
@@ -2159,6 +2185,27 @@ do
 	)
 	check(has(jobService, "PICK_UP_REACH + Finds.reachBonus("), "the server's pick-up reach adds the Playground perk")
 	check(has(interact, "REACH + Finds.reachBonus("), "the look-at reach for picking up adds the Playground perk")
+	-- A called-off job can't hand out its Find again: the lawn's seed is kept on the job, picking the Find
+	-- up spends it in the save of the leader whose roll it was, and placeFind rolls nothing for it again.
+	local fromPlace = string.match(jobService, "local function placeFind%(.-\nend\n") or ""
+	check(has(fromPlace, "seed == luck.spent"), "placeFind compares the lawn's seed with the leader's spent seed")
+	check(has(fromPlace, "job.findSeed = seed"), "placeFind keeps the lawn's seed on the job")
+	check(
+		has(fromPickUp, "findLuck.spent = job.findSeed") and has(fromPickUp, "DataService:Changed(job.findLeader)"),
+		"picking up the Find spends its seed in the leader's save"
+	)
+	check(not has(fromGive, "findLuck.spent"), "the Studio panel's Give a Find (no seed) spends nothing")
+	-- The crew hears who picked it up or chewed it, and the band's money is paid when it goes back.
+	check(has(fromPickUp, "picked up the {find.name}."), "the rest of the crew is told who picked up the Find")
+	check(has(jobService, "'s mower chewed up the {result.chewed.name}."), "the crew is told whose mower chewed it")
+	check(
+		has(fromPickUp, "local each = math.floor(BAND_TIP / #job.members)")
+			and has(fromPickUp, "DataService:Earn(member, each)"),
+		"the wedding band's money is paid to the crew when it goes back"
+	)
+	check(not has(jobService, "returnTip"), "the band's money is no longer held for the tip")
+	local lawnService = source("src/server/Services/LawnService.luau")
+	check(has(lawnService, '"It got chewed up by a mower."'), "a crewmate reaching for a chewed Find is told why")
 	for path, text in { JobService = jobService, SeasonService = seasonService, DailyService = dailyService } do
 		check(not has(text, "\u{2014}"), `{path} has no em dashes`)
 	end

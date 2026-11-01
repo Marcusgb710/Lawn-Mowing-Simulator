@@ -665,11 +665,24 @@ local function cleanBuster(source: any): { owned: boolean, name: string }
 	return { owned = rawget(given, "owned") == true, name = cleanName(rawget(given, "name")) }
 end
 
--- The `findLuck` key: { run, owed }, the three-star jobs in a row (0 to 3) and whether a sure Find is
--- owed on the next job.
-local function cleanLuck(source: any): { run: number, owed: boolean }
+-- A seed Finds.seed could give (a whole number from 0 up to below SEED_MODULUS), or 0 for anything else.
+local function cleanSeed(value: any): number
+	if typeof(value) ~= "number" or value ~= value or value < 0 or value >= SEED_MODULUS then
+		return 0
+	end
+	return if value == math.floor(value) then value else 0
+end
+
+-- The `findLuck` key: { run, owed, spent }, the three-star jobs in a row (0 to 3), whether a sure Find is
+-- owed on the next job, and the seed of the last job lawn whose Find was picked up (JobService rolls
+-- nothing for that seed again, so a called-off job can't hand out its Find twice; 0 for none yet).
+local function cleanLuck(source: any): { run: number, owed: boolean, spent: number }
 	local given = if typeof(source) == "table" then source else {}
-	return { run = math.min(whole(rawget(given, "run")), RUN_CAP), owed = rawget(given, "owed") == true }
+	return {
+		run = math.min(whole(rawget(given, "run")), RUN_CAP),
+		owed = rawget(given, "owed") == true,
+		spent = cleanSeed(rawget(given, "spent")),
+	}
 end
 
 -- Fills and cleans the four keys Finds adds to a save, in the table it is given, and gives that table
