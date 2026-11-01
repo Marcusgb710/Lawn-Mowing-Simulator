@@ -595,7 +595,9 @@ return {
 			.. "appeal, as it was when the truck pulled out), Truck and Business (the leader's equipped "
 			.. "ones), and Sets (the leader's Finds sets that pay, as they were when the truck pulled out). "
 			.. "The numbers are the server's, sent with every job update, so everyone in the crew "
-			.. "sees all five. The row is hidden when there is "
+			.. "sees all five. A pill reads in full (Crew +15%) while four or fewer show; when all five "
+			.. "do, each is just its percent (+15%) beside its glyph, so the row never needs more than two "
+			.. "lines (check-gui models the biggest bonuses). The row is hidden when there is "
 			.. "none, and wraps to a second line when the pills don't fit. The tracker's card and this row "
 			.. "hide together.",
 	},

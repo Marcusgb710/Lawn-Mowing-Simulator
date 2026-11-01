@@ -25,8 +25,8 @@
 --   levelRewards  [Season.levelKey(level)] = true for each level paid
 --   stars         [job template id] = their best star count on that job
 -- The gold sign is the `GoldSign` attribute on the player, set for any level that gives one,
--- claimed now or on an earlier visit, and for the Maple Grove set of Finds (Finds.signEarly; JobService
--- sets it the moment the set is done). Whatever shows the sign reads it from there.
+-- claimed now or on an earlier visit, and for the Maple Grove set of Finds (Finds.signEarly;
+-- JobService sets it the moment the set is done). Whatever shows the sign reads it from there.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")

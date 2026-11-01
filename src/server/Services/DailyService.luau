@@ -399,8 +399,8 @@ local function onPlayerAdded(player: Player)
 end
 
 function DailyService:Init()
-	-- A finished job: a job, a three-star job if it got three stars, the junk picked up and the Find
-	-- they picked up (1 or 0: whoever on the crew got it).
+	-- A finished job: a job, a three-star job if it got three stars, the junk picked up and the
+	-- Find they picked up (1 or 0: whoever on the crew got it).
 	JobService.JobFinished:Connect(function(player, info)
 		guarded("job count", player, function()
 			counted(player, function(counts)

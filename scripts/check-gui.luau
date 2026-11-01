@@ -1426,10 +1426,11 @@ do
 		"HudController's Levels button doesn't juice the level pill (inside a LevelSlot of the row)"
 	)
 
-	-- The boost pills show the numbers the server sends with every job update (crewBonus, truckBonus,
-	-- businessBonus, curbBonus and setBonus: the same factors completeJob multiplies, through the one
-	-- payBonuses, with the curb appeal and the leader's Finds sets frozen at pull-out), so they are exact
-	-- for every crew member; the client has no formula of its own for them.
+	-- The boost pills show the numbers the server sends with every job update (crewBonus,
+	-- truckBonus, businessBonus, curbBonus and setBonus: the same factors completeJob multiplies,
+	-- through the one payBonuses, with the curb appeal and the leader's Finds sets frozen at
+	-- pull-out), so they are exact for every crew member; the client has no formula of its own for
+	-- them.
 	local jobSource = fs.readFile("src/server/Services/JobService.luau")
 	local updateFrom = string.find(jobSource, "local function sendUpdate(job)", 1, true)
 	local updateTo = if updateFrom then string.find(jobSource, "\nend\n", updateFrom, true) else nil
@@ -2605,8 +2606,8 @@ for _, case in cases do
 	check(lines[1].label == "Job pay" and lines[1].amount ~= 0, `{case[1]}: the job pay doesn't come first`)
 end
 
--- The Finds sets' pay perk is a line of its own, "Finds sets", right after Curb appeal, worth the share
--- the sets add on top of everything before it; with no set done there is no line.
+-- The Finds sets' pay perk is a line of its own, "Finds sets", right after Curb appeal, worth the
+-- share the sets add on top of everything before it; with no set done there is no line.
 do
 	local function linesFor(setBonus: number)
 		local result, weights = job({
@@ -2641,6 +2642,116 @@ do
 	check(setAmount == 9, `two Finds sets on a $110 job add {setAmount}, not $9`)
 	check(setAt ~= nil and curbAt ~= nil and setAt == curbAt + 1, "the Finds sets line isn't right after Curb appeal")
 	check(lineCalled(linesFor(1), "Finds sets") == nil, "a job with no Finds set done still shows a Finds sets line")
+end
+
+-- The boost pills fit two rows -------------------------------------------------------------------
+
+-- The row is UiLayout's BoostPills (280 wide, pills 6 apart, wrapping), and the space-budget checks
+-- above give it two rows. Every set of pills that can show at once, each at the biggest bonus the
+-- configs allow, must wrap to no more than two. A pill is its padding (9 and 10), its 14 px glyph,
+-- a 5 px gap and its words at TextSize 12 (JobCard's buildBoosts, pinned below). Fredoka One has no
+-- metrics here, so every character is taken as 0.7 of the text size, wider than its real average.
+do
+	local jobCard = fs.readFile("src/client/Hud/JobCard.luau")
+	local gameConfig = fs.readFile("src/shared/Config/GameConfig.luau")
+	local items = fs.readFile("src/shared/Config/Items.luau")
+	local Finds = require("../src/shared/Config/Finds")
+	for _, wanted in
+		{
+			"PaddingLeft = UDim.new(0, 9), PaddingRight = UDim.new(0, 10)",
+			"local BOOST_ICON = 14",
+			"Padding = UDim.new(0, 5)",
+			"TextSize = 12",
+			"words = PayBreakdown.boostWords(boosts)",
+		}
+	do
+		check(string.find(jobCard, wanted, 1, true) ~= nil, `JobCard's boost pills no longer have {wanted}`)
+	end
+	local PILL_CHROME = 9 + 14 + 5 + 10
+	local CHAR_WIDTH = 0.7 * 12
+
+	-- The biggest each bonus gets: a full crew, the best truck and business, full curb appeal and
+	-- every Finds set done.
+	local function number(source: string, pattern: string): number
+		return tonumber(string.match(source, pattern)) or 0
+	end
+	local function biggestPayout(section: string): number
+		local best = 0
+		for value in string.gmatch(section, "payoutBonus = ([%d%.]+)") do
+			best = math.max(best, tonumber(value) or 0)
+		end
+		return best
+	end
+	-- The lists of each (a `{` at the end of its line), not the shop tabs' one-line entries.
+	local trucks = string.match(items, "\n\tTruck = {\n.-\n\t}") or ""
+	local businesses = string.match(items, "\n\tBusiness = {\n.-\n\t}") or ""
+	local allSets = {}
+	for _, set in Finds.Sets do
+		allSets[set.id] = true
+	end
+	local crewSize = number(gameConfig, "MaxCrewSize = (%d+)")
+	local biggest = {
+		Crew = 1 + number(gameConfig, "CrewBonusPerMember = ([%d%.]+)") * (crewSize - 1),
+		Curb = 1 + number(gameConfig, "MaxPayBonus = ([%d%.]+)"),
+		Truck = 1 + biggestPayout(trucks),
+		Business = 1 + biggestPayout(businesses),
+		Set = Finds.payBonus(allSets),
+	}
+	check(
+		crewSize >= 2 and biggest.Truck > 1 and biggest.Business > 1 and biggest.Curb > 1 and biggest.Set > 1,
+		"check-gui can't read the biggest boost bonuses from the configs"
+	)
+
+	local pills = {}
+	for id, label in string.gmatch(jobCard, '{ id = "(%w+)", label = "(%w+)"') do
+		table.insert(pills, { id = id, label = label })
+	end
+	check(#pills == 5, `JobCard has {#pills} boost pills, not the five check-gui models`)
+	local row = UiLayout.BoostPills
+	local rowWidth, gap = row.size[2], row.list.padding
+	for subset = 1, 2 ^ #pills - 1 do
+		local boosts = {}
+		for index, pill in pills do
+			if math.floor(subset / 2 ^ (index - 1)) % 2 == 1 then
+				table.insert(boosts, { id = pill.id, label = pill.label, bonus = biggest[pill.id] or 1 })
+			end
+		end
+		local words = PayBreakdown.boostWords(boosts)
+		local rows, used, names = 1, 0, {}
+		for _, boost in boosts do
+			local text = words[boost.id] or ""
+			table.insert(names, text)
+			local width = PILL_CHROME + #text * CHAR_WIDTH
+			if used > 0 and used + gap + width > rowWidth then
+				rows += 1
+				used = width
+			else
+				used += (if used > 0 then gap else 0) + width
+			end
+		end
+		check(rows <= 2, `the boost pills {table.concat(names, ", ")} wrap to {rows} rows, not two`)
+	end
+	-- The words: in full while four show, just the percent when five do.
+	local four = PayBreakdown.boostWords({
+		{ id = "Crew", label = "Crew", bonus = 1.15 },
+		{ id = "Curb", label = "Curb", bonus = 1.06 },
+		{ id = "Truck", label = "Truck", bonus = 1.1 },
+		{ id = "Set", label = "Sets", bonus = 1.08 },
+		{ id = "Business", label = "Business", bonus = 1 },
+	})
+	check(four.Crew == "Crew +15%" and four.Set == "Sets +8%", "four pills don't read in full")
+	check(four.Business == nil, "a bonus of nothing still has words")
+	local five = PayBreakdown.boostWords({
+		{ id = "Crew", label = "Crew", bonus = 1.15 },
+		{ id = "Curb", label = "Curb", bonus = 1.06 },
+		{ id = "Truck", label = "Truck", bonus = 1.1 },
+		{ id = "Business", label = "Business", bonus = 1.25 },
+		{ id = "Set", label = "Sets", bonus = 1.08 },
+	})
+	check(
+		five.Crew == "+15%" and five.Business == "+25%" and five.Set == "+8%",
+		"five pills aren't just their percents"
+	)
 end
 
 -- A customer's tip comes after the share and the total counts it: a line "Tip from <customer>"

@@ -558,8 +558,8 @@ local function resolve(): Target?
 			result, thing, target = wide, wideThing, wideTarget
 		end
 	end
-	-- With the Playground set done, junk and Finds in the grass can be picked up from a little further
-	-- (the server's reach grows by the same). Only those: everything else keeps REACH.
+	-- With the Playground set done, junk and Finds in the grass can be picked up from a little
+	-- further (the server's reach grows by the same). Only those: everything else keeps REACH.
 	local farther = if target == nil then pickUpReach(ClientState.profile) else REACH
 	if farther > REACH then
 		local far = workspace:Raycast(origin, direction * farther, rayParams)

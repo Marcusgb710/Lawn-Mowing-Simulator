@@ -1605,7 +1605,8 @@ do
 		"no other set, a set marked false or no sets at all gives no gold sign"
 	)
 
-	-- What the Finds goals count: each Find found at least once (however many times), and each set done.
+	-- What the Finds goals count: each Find found at least once (however many times), and each set
+	-- done.
 	check(Finds.foundCount({}) == 0 and Finds.foundCount(nil) == 0, "nothing found counts 0")
 	check(
 		Finds.foundCount({ Marble = { found = 3, held = 0 }, OldKey = { found = 1, held = 1 } }) == 2,

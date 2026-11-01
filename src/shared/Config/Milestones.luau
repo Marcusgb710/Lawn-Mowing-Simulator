@@ -1,15 +1,16 @@
 -- The goals rail's milestones (docs/superpowers/specs/2026-10-29-busy-season-design.md, 1b): jobs
--- finished, money earned, three-star jobs, Finds found and Finds sets done, each with what reaching
--- it pays and the line the rail shows. `next` picks the ones the rail shows (the nearest to done);
--- `reachedBy` says which a player's numbers have just met. Nothing here saves or pays anything: whoever calls these keeps
--- the reached ids and pays the cash.
+-- finished, money earned, three-star jobs, Finds found and Finds sets done, each with what
+-- reaching it pays and the line the rail shows. `next` picks the ones the rail shows (the nearest
+-- to done); `reachedBy` says which a player's numbers have just met. Nothing here saves or pays
+-- anything: whoever calls these keeps the reached ids and pays the cash.
 --
 -- scripts/check-season.luau gates this file. It has no requires, so Lune can load it.
 
 export type Kind = "Jobs" | "Earned" | "Stars" | "Finds" | "Sets"
 export type Milestone = { id: string, kind: Kind, at: number, cash: number, text: string }
--- `finds` is how many of the thirty Finds they have found at least once (Finds.foundCount) and `sets`
--- how many Finds sets they have done (Finds.setCount). Either can be left out, and counts as 0.
+-- `finds` is how many of the thirty Finds they have found at least once (Finds.foundCount) and
+-- `sets` how many Finds sets they have done (Finds.setCount). Either can be left out, and counts
+-- as 0.
 export type Stats = { jobs: number, earned: number, stars: number, finds: number?, sets: number? }
 
 local Milestones = {}
@@ -23,7 +24,8 @@ local JobCashMax = 2500
 local EarnedAt = { 500, 2000, 10000, 50000, 250000 }
 local StarsAt = { 1, 5, 25, 100 }
 local StarCashPer = 25
--- Finds found (each counted once, so 30 is the whole book) and Finds sets done, with what each pays.
+-- Finds found (each counted once, so 30 is the whole book) and Finds sets done, with what each
+-- pays.
 local FindsAt = {
 	{ at = 1, cash = 50, text = "Pick up your first Find" },
 	{ at = 10, cash = 250, text = "Find 10 different Finds" },
@@ -41,9 +43,9 @@ local function money(amount: number): string
 	return "$" .. formatted
 end
 
--- Every milestone, in the order the rail's list is read: jobs, then money earned, then stars, then
--- Finds found and Finds sets. The ids are the kind and the number: "Jobs:3", "Earned:2000", "Stars:5",
--- "Finds:10", "Sets:1".
+-- Every milestone, in the order the rail's list is read: jobs, then money earned, then stars,
+-- then Finds found and Finds sets. The ids are the kind and the number: "Jobs:3", "Earned:2000",
+-- "Stars:5", "Finds:10", "Sets:1".
 Milestones.List = {} :: { Milestone }
 
 for _, at in JobsAt do

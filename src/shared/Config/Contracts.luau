@@ -1,10 +1,11 @@
 -- The day's contracts (docs/superpowers/specs/2026-10-29-busy-season-design.md): three small jobs
--- to do before midnight UTC, always one Mow, one Earn and one more that is Junk, Stars or Finds. How much
--- each asks for, and what it pays, depends on the player's level band, so a new player is asked for
--- 2 lawns and a veteran for 5. `seed` turns a day and a player into one number, and `generate`
--- builds the list from it, so the same player on the same day always gets the same list and
--- another day or player gets another. `have` says how far along a contract is. Nothing here keeps
--- state or reads the clock: whoever calls these saves the list and its counts, and pays the cash.
+-- to do before midnight UTC, always one Mow, one Earn and one more that is Junk, Stars or Finds.
+-- How much each asks for, and what it pays, depends on the player's level band, so a new player is
+-- asked for 2 lawns and a veteran for 5. `seed` turns a day and a player into one number, and
+-- `generate` builds the list from it, so the same player on the same day always gets the same
+-- list and another day or player gets another. `have` says how far along a contract is. Nothing
+-- here keeps state or reads the clock: whoever calls these saves the list and its counts, and pays
+-- the cash.
 --
 -- scripts/check-season.luau gates this file. It has no requires, so Lune can load it.
 
@@ -35,9 +36,9 @@ local Contracts = {}
 Contracts.Bands = { { min = 1, max = 2 }, { min = 3, max = 7 }, { min = 8, max = 11 }, { min = 12, max = 999 } }
 
 -- What each kind asks for, one number for each band. Mow is lawns finished, Earn is dollars earned,
--- Junk is pieces picked up, Stars is three-star jobs, Finds is Finds picked up (Config/Finds.luau; a
--- lawn hides one at most, so one is a day's ask in every band). These and the rewards are the numbers
--- to change when the daily contracts need tuning.
+-- Junk is pieces picked up, Stars is three-star jobs, Finds is Finds picked up (Config/Finds.luau;
+-- a lawn hides one at most, so one is a day's ask in every band). These and the rewards are the
+-- numbers to change when the daily contracts need tuning.
 Contracts.Need = {
 	Mow = { 2, 3, 4, 5 },
 	Earn = { 150, 400, 1200, 3000 },
@@ -113,10 +114,11 @@ function Contracts.seed(dayKey: string, userId: number): number
 	return ((tonumber(dayKey) or 0) * DAY_PRIME + userId) % SEED_MODULUS
 end
 
--- The day's contracts for a player at `level`: a Mow, an Earn and then a Junk, a Stars or a Finds, a
--- third each, which the seed picks. The Finds take the middle third, so a seed that gave Junk or Stars
--- before there were Finds gives the same now or a Finds, never the other one. The same seed and level
--- always give the same list, and each call makes new tables, so the caller can save and change them.
+-- The day's contracts for a player at `level`: a Mow, an Earn and then a Junk, a Stars or a
+-- Finds, a third each, which the seed picks. The Finds take the middle third, so a seed that gave
+-- Junk or Stars before there were Finds gives the same now or a Finds, never the other one. The
+-- same seed and level always give the same list, and each call makes new tables, so the caller can
+-- save and change them.
 function Contracts.generate(seed: number, level: number): { Contract }
 	local band = Contracts.bandFor(level)
 	local random = randoms(seed)

@@ -10,18 +10,19 @@
 -- list, and a tool that can't do a task just gets "That won't work here".
 --
 -- Pay (GameConfig.jobPay) = job pay x how well the tools fit the tasks x a blend of finish
--- quality and speed (weighted by what the customer wants) x crew/truck/business/curb appeal bonuses x
--- the leader's Finds sets' pay perk, minus damage for every flower patch or gnome the crew ran over.
--- Then it's split evenly. Junk hidden in the grass (Config/Debris.luau) that's still there at the
--- end, or that a mower chewed up, takes some off the finish and the pay too.
+-- quality and speed (weighted by what the customer wants) x crew, truck, business and curb appeal
+-- bonuses x the leader's Finds sets' pay perk, minus damage for every flower patch or gnome the
+-- crew ran over. Then it's split evenly. Junk hidden in the grass (Config/Debris.luau) that's still
+-- there at the end, or that a mower chewed up, takes some off the finish and the pay too.
 --
 -- A job lawn may hide one Find (Config/Finds.luau), rolled when the site is built from the crew
 -- leader's luck. Whoever on the crew picks it up first keeps it (their save, not the leader's); the
 -- wedding band and June's locket can be given back instead, for a bigger tip or a scene with June.
 -- A motor mower chews it up, and one left in the grass at the end is lost. It never costs any pay.
--- The Finds sets a player has done give small perks (Finds.Sets): the leader's pay sets pay the whole
--- crew more (payBonuses), the Garden set halves what that player's wrecked flower patches cost, the
--- Playground set reaches further when picking things up, and Maple Grove brings the gold sign early.
+-- The Finds sets a player has done give small perks (Finds.Sets): the leader's pay sets pay the
+-- whole crew more (payBonuses), the Garden set halves what that player's wrecked flower patches
+-- cost, the Playground set reaches further when picking things up, and Maple Grove brings the gold
+-- sign early.
 --
 -- TurfKing (TurfKingService) can take a job off one player's board: they see it as "Taken by
 -- TurfKing" and can't accept it, while everyone else's board is the same as before. A customer
@@ -60,8 +61,8 @@ local WorldService = require(script.Parent.WorldService)
 
 -- How close to the truck (its bounding box) you have to be to drive off.
 local TRUCK_REACH = 10
--- How far from your eyes you can pick up junk or a Find in the grass (the look-at reach is 10 from the
--- camera). The Playground set adds to both (Finds.reachBonus, see pickUpReach).
+-- How far from your eyes you can pick up junk or a Find in the grass (the look-at reach is 10 from
+-- the camera). The Playground set adds to both (Finds.reachBonus, see pickUpReach).
 local PICK_UP_REACH = 12
 -- A snip of hand shears only hurts flowers right where it lands.
 local SNIP_HAZARD_REACH = 0.3
@@ -263,7 +264,8 @@ local function damagePenalty(job): number
 	return math.max(GameConfig.MinDamagePenalty, math.floor(job.offer.payout * GameConfig.DamagePenalty + 0.5))
 end
 
--- How far this player can pick things up from: PICK_UP_REACH, and more with the Playground set done.
+-- How far this player can pick things up from: PICK_UP_REACH, and more with the Playground set
+-- done.
 local function pickUpReach(player: Player): number
 	local data = DataService:Get(player)
 	return PICK_UP_REACH + Finds.reachBonus(data and data.sets)
@@ -331,14 +333,15 @@ local function recipients(job)
 	return if job.state == "Ready" then job.party.members else job.members
 end
 
--- The pay bonuses completeJob multiplies together, each as a factor (1 plus its share, so 1.15 for 15
--- percent): the crew's (GameConfig.CrewBonusPerMember for each member besides the leader), the leader's
--- truck and business (their payoutBonus), the home lawn's curb appeal (HomeLawn.payBonus) and the
--- leader's Finds sets (Finds.payBonus: the whole crew is paid on the leader's sets, like the truck). The
--- truck, the business, the curb appeal and the sets are frozen when the truck pulls out (job.truckId,
--- job.businessId, job.curbAppeal and job.setBonus); until then, a job that is still Ready reads what the
--- leader has now, and the crew is the party. sendUpdate sends these as they stand, so the job card's
--- boost pills show the very numbers the pay will use, for everyone in the crew.
+-- The pay bonuses completeJob multiplies together, each as a factor (1 plus its share, so 1.15 for
+-- 15 percent): the crew's (GameConfig.CrewBonusPerMember for each member besides the leader), the
+-- leader's truck and business (their payoutBonus), the home lawn's curb appeal (HomeLawn.payBonus)
+-- and the leader's Finds sets (Finds.payBonus: the whole crew is paid on the leader's sets, like
+-- the truck). The truck, the business, the curb appeal and the sets are frozen when the truck
+-- pulls out (job.truckId, job.businessId, job.curbAppeal and job.setBonus); until then, a job that
+-- is still Ready reads what the leader has now, and the crew is the party. sendUpdate sends these
+-- as they stand, so the job card's boost pills show the very numbers the pay will use, for everyone
+-- in the crew.
 local function payBonuses(job): (number, number, number, number, number)
 	local crew = if #job.members > 0 then #job.members else #job.party.members
 	local frozen = job.truckId ~= nil and job.setBonus ~= nil
@@ -917,8 +920,8 @@ export type WorkOptions = {
 }
 
 -- Wrecks any flower patch or gnome within `reach` of `position` (only X and Z count), and takes
--- it off the job's pay. A flower patch wrecked by a player with the Garden set done costs that set's
--- share of the penalty (Finds.flowerFactor, half); a gnome always costs the whole of it.
+-- it off the job's pay. A flower patch wrecked by a player with the Garden set done costs that
+-- set's share of the penalty (Finds.flowerFactor, half); a gnome always costs the whole of it.
 local function wreckHazards(job, player: Player, position: Vector3, reach: number)
 	for _, hazard in job.lawn:CheckHazards(position, reach) do
 		local penalty = damagePenalty(job)
@@ -1167,8 +1170,8 @@ function JobService:PickUpFind(player: Player, thing: Instance?, giveBack: boole
 	if cushion then
 		data.flags.RockerCushion = true
 	end
-	-- Maple Grove brings the gold business sign early, the way level 20 does (SeasonService gives it
-	-- again on every join, from the save's sets).
+	-- Maple Grove brings the gold business sign early, the way level 20 does (SeasonService gives
+	-- it again on every join, from the save's sets).
 	if #newSets > 0 and Finds.signEarly(data.sets) then
 		player:SetAttribute("GoldSign", true)
 	end

@@ -507,8 +507,8 @@ function Finds.signEarly(sets: any): boolean
 	return perkTotal(sets, "GoldSign") > 0
 end
 
--- How many of the thirty the player has found at least once, however many times each (the Finds goals
--- count this, so thirty is the whole book). A broken entry or an unknown id does not count.
+-- How many of the thirty the player has found at least once, however many times each (the Finds
+-- goals count this, so thirty is the whole book). A broken entry or an unknown id does not count.
 function Finds.foundCount(finds: any): number
 	local count = 0
 	if typeof(finds) == "table" then

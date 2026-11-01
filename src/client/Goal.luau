@@ -65,8 +65,8 @@ function Goal.progress(goal): (number, string)
 end
 
 -- Your numbers for the goals rail, from the profile: jobs finished, money earned, three-star jobs
--- (the jobs you've got three stars on, whatever your best on the rest), and the Finds found and Finds
--- sets done, counted as SeasonService counts them. Nil before the profile arrives.
+-- (the jobs you've got three stars on, whatever your best on the rest), and the Finds found and
+-- Finds sets done, counted as SeasonService counts them. Nil before the profile arrives.
 local function stats(): Milestones.Stats?
 	local profile = ClientState.profile
 	if not profile then
