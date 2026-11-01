@@ -1601,10 +1601,10 @@ do
 		end
 	end
 	check(
-		math.abs(spread.Common / 10000 - 0.70) <= 0.02
-			and math.abs(spread.Uncommon / 10000 - 0.22) <= 0.02
-			and math.abs(spread.Rare / 10000 - 0.07) <= 0.02
-			and math.abs(spread.Legendary / 10000 - 0.01) <= 0.02,
+		math.abs(spread.Common / 10000 - 0.70) <= 0.015
+			and math.abs(spread.Uncommon / 10000 - 0.22) <= 0.015
+			and math.abs(spread.Rare / 10000 - 0.07) <= 0.005
+			and math.abs(spread.Legendary / 10000 - 0.01) <= 0.005,
 		`the rarity spread is near 70/22/7/1 ({spread.Common}/{spread.Uncommon}/{spread.Rare}/{spread.Legendary})`
 	)
 	check(spread.Legendary > 0 and spread.Rare > 0, "Rare and Legendary Finds do come up")
@@ -1660,6 +1660,30 @@ do
 		bigSeed == math.floor(bigSeed) and bigSeed >= 0 and bigSeed < 2 ^ 31,
 		"a big user id still gives a small whole seed"
 	)
+	-- Real user ids are mostly over a billion: they must stay apart, not collapse to one seed.
+	check(
+		Finds.seed("20261101", 5e9, 1) ~= Finds.seed("20261101", 6e9, 1)
+			and Finds.seed("20261101", 5e9, 1) ~= Finds.seed("20261101", 1.2e9, 1)
+			and Finds.seed("20261101", 6e9, 1) ~= Finds.seed("20261101", 1.2e9, 1),
+		"user ids of 5 billion, 6 billion and 1.2 billion give different seeds"
+	)
+	check(
+		Finds.seed("20261101", 1200000001, 1) ~= Finds.seed("20261101", 1300000007, 1),
+		"two ids just above a billion give different seeds"
+	)
+	for _, userId in { 1200000001, 1300000007, 5e9, 6e9, 9e15, 0, -5, math.huge, 0 / 0, 12.7 } do
+		local value = Finds.seed("20261101", userId, 3)
+		check(
+			value == math.floor(value) and value >= 0 and value < 2 ^ 31,
+			`the seed for user id {userId} is a whole number in range`
+		)
+	end
+	check(
+		Finds.seed("20261101", -5, 1) == Finds.seed("20261101", 0, 1)
+			and Finds.seed("20261101", 0 / 0, 1) == Finds.seed("20261101", 0, 1)
+			and Finds.seed("20261101", math.huge, 1) == Finds.seed("20261101", 0, 1),
+		"a user id that is negative, NaN or infinite counts as 0"
+	)
 
 	-- newlyComplete: a set that is complete by the Finds and not yet in `sets`, once.
 	local playground = Finds.Sets[1].members
@@ -1701,6 +1725,13 @@ do
 	)
 	check(sameTable(Finds.rarest(shelf, 2), { "GoldenGnome", "SilverDollar" }), "rarest keeps only as many as asked")
 	check(#Finds.rarest(shelf, 0) == 0 and #Finds.rarest({}, 12) == 0, "none asked or none held gives none")
+	check(
+		#Finds.rarest(shelf, nil :: any) == 0
+			and #Finds.rarest(shelf, "5" :: any) == 0
+			and #Finds.rarest(shelf, 0 / 0) == 0
+			and #Finds.rarest(shelf, -3) == 0,
+		"a count that is nil, text, NaN or negative asks for none"
+	)
 
 	-- The card words.
 	local title, subtitle = Finds.cardText("SilverDollar")

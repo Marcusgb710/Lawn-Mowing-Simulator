@@ -380,7 +380,13 @@ end
 -- that is not a number counts as 0.
 function Finds.seed(dayKey: string, userId: number, jobIndex: number): number
 	local day = whole(tonumber(dayKey))
-	local base = (day * DAY_PRIME + whole(userId)) % SEED_MODULUS
+	-- A user id is far past the count cap (most are over a billion), so it has its own handling: a
+	-- positive, finite number is floored and taken modulo the seed modulus, anything else is 0.
+	local user = 0
+	if typeof(userId) == "number" and userId > 0 and userId < math.huge then
+		user = math.floor(userId) % SEED_MODULUS
+	end
+	local base = (day * DAY_PRIME + user) % SEED_MODULUS
 	return (base * USER_PRIME + whole(jobIndex) * JOB_PRIME) % SEED_MODULUS
 end
 
@@ -501,6 +507,10 @@ function Finds.rarest(finds: any, count: number): { string }
 	local ids = {}
 	if typeof(finds) ~= "table" then
 		return ids
+	end
+	-- A count that is not a number (or is NaN) asks for none.
+	if typeof(count) ~= "number" or count ~= count then
+		count = 0
 	end
 	for rank = #Finds.RarityOrder, 1, -1 do
 		for _, id in byRarity[Finds.RarityOrder[rank]] do
