@@ -6,8 +6,10 @@
 -- each with how many of it you have found, its perk and whether it is complete. Tapping a Find shows
 -- it in the pane beside the book: its story, and for one you hold a Sell button that takes a second
 -- tap, like the shop's (ShopService:SellFind pays). A Find you sold or returned stays found, so it
--- stays in the book and still counts toward its set. While the book is open it is drawn again every
--- time the profile changes, so a pickup or a sale shows at once.
+-- stays in the book and still counts toward its set. While the book is open it is drawn again when the
+-- Finds or sets in the profile change (or another Find is tapped), so a pickup or a sale shows at once;
+-- a money or XP push, which changes the profile but not them, leaves the cells alone, so one is never
+-- rebuilt under a finger mid-tap. The pane is redrawn every time.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -61,6 +63,9 @@ local selected: string? = nil
 local confirming: string? = nil
 local confirmingSince = 0
 local selling = false
+-- What the book on screen was drawn from (see bookSignature), so a profile push that changes none of it
+-- doesn't rebuild the cells.
+local drawn: string? = nil
 
 local function colorOf(rgb: { number }): Color3
 	return Color3.fromRGB(rgb[1], rgb[2], rgb[3])
@@ -121,7 +126,7 @@ local function renderPane(profile)
 			sellButton.Text = "Selling..."
 			UI.setStyle(sellButton, "Disabled")
 		elseif confirming == find.id then
-			sellButton.Text = `Sell for {value}?`
+			sellButton.Text = `Sell {value}?`
 			UI.setStyle(sellButton, "Danger")
 		else
 			sellButton.Text = `Sell {value}`
@@ -319,12 +324,32 @@ local function renderBook(profile)
 	book.CanvasPosition = scrolled
 end
 
+-- Everything the cells and sets are drawn from, as one short string: how many of each Find were found
+-- and are held, which sets are done, and which Find is tapped (its cell has a thicker frame). Money
+-- and XP are not in it.
+local function bookSignature(profile): string
+	local parts = { selected or "-" }
+	for _, find in Finds.List do
+		local found, held = countsOf(profile, find.id)
+		table.insert(parts, `{found}:{held}`)
+	end
+	local sets = if profile and typeof(profile.sets) == "table" then profile.sets else {}
+	for _, set in Finds.Sets do
+		table.insert(parts, if sets[set.id] == true then "1" else "0")
+	end
+	return table.concat(parts, ",")
+end
+
 function render()
 	if not (window and window.Visible) then
 		return
 	end
 	local profile = ClientState.profile
-	renderBook(profile)
+	local signature = bookSignature(profile)
+	if signature ~= drawn then
+		drawn = signature
+		renderBook(profile)
+	end
 	renderPane(profile)
 end
 

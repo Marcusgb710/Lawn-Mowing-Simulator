@@ -183,9 +183,11 @@ function ShopService:SellFind(player: Player, findId: string): (boolean, string)
 		return false, `You don't have a {find.name} to sell.`
 	end
 	DataService:AddMoney(player, value)
-	-- The finds shelf at the business shows the rarest held Finds, so a sale can take one off it.
-	if WorldService.RefreshShelf then
-		WorldService:RefreshShelf(player)
+	-- The finds shelf at the business shows the rarest held Finds, so a sale can take one off it. The
+	-- money is paid, so a shelf problem must not report the sale as failed.
+	local ok, problem = pcall(WorldService.RefreshShelf, WorldService, player)
+	if not ok then
+		warn(`The finds shelf could not be restocked: {problem}`)
 	end
 	return true, `Sold the {find.name} for {Format.money(value)}.`
 end

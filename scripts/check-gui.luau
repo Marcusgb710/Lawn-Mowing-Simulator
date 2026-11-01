@@ -2970,7 +2970,8 @@ do
 			'GetPropertyChangedSignal("Visible")',
 			'Net.func("SellFind")',
 			"SELL_CONFIRM_TIME",
-			"Sell for ",
+			"Sell {value}?",
+			"bookSignature(",
 		}
 	do
 		check(string.find(findsSource, wanted, 1, true) ~= nil, `FindsController doesn't have {wanted}`)
@@ -2997,14 +2998,17 @@ do
 				and string.find(body, "DataService:Earn(", 1, true) == nil,
 			"ShopService:SellFind doesn't pay with DataService:AddMoney (a sale is not job income, so not Earn)"
 		)
+		-- The code forms only (`entry.found`, `found = `): a comment may say the word.
 		check(
-			string.find(body, "found", 1, true) == nil,
+			string.find(body, ".found", 1, true) == nil and string.find(body, "found =", 1, true) == nil,
 			"ShopService:SellFind touches `found`: only `held` goes down, so the book and the sets keep it"
 		)
 		check(string.find(body, "IsAtComputer", 1, true) == nil, "ShopService:SellFind asks for the desk")
+		-- The money is paid by then, so a shelf problem is a warning, never a failed sale.
 		check(
-			string.find(body, "if WorldService.RefreshShelf then", 1, true) ~= nil,
-			"ShopService:SellFind doesn't refresh the finds shelf (guarded until WorldService has RefreshShelf)"
+			string.find(body, "pcall(WorldService.RefreshShelf, WorldService, player)", 1, true) ~= nil
+				and string.find(body, "warn(", 1, true) ~= nil,
+			"ShopService:SellFind doesn't refresh the finds shelf inside a pcall that warns"
 		)
 	end
 	check(
@@ -3077,6 +3081,50 @@ do
 			`a Finds Book cell is {cellWidth} by {cellHeight}, under the 40 px a tap needs`
 		)
 		check(sellHeight >= 40, `the Finds Book's Sell button is {sellHeight} px tall, under the 40 px a tap needs`)
+		-- The Sell button's words fit the pane at 18 px. Its text room is the pane less its padding, the
+		-- button's own 8 px sides and the glyph's room (20 px and a 6 px gap, UI.button). Fredoka One has no
+		-- metrics here, so every character is taken as 0.7 of the text size, as the boost pills do below.
+		-- Each text the button is given is tried with the biggest value a Find sells for.
+		for _, wanted in
+			{
+				"local ICON_GAP = 6",
+				"PaddingLeft = UDim.new(0, 8 + info.iconSize + ICON_GAP)",
+				"PaddingRight = UDim.new(0, 8)",
+				"iconSize = props.IconSize or 20",
+			}
+		do
+			check(string.find(uiSource, wanted, 1, true) ~= nil, `UI.button's glyph room changed ({wanted}): update the Sell button's text check`)
+		end
+		check(
+			string.find(findsSource, '\t\tIcon = "Sell",\n', 1, true) ~= nil
+				and string.find(findsSource, "\t\tTextSize = 18,\n\t\tVisible = false,", 1, true) ~= nil,
+			"the Finds Book's Sell button isn't a 20 px glyph button at TextSize 18 any more: update the text check"
+		)
+		local FindsList = require("../src/shared/Config/Finds")
+		local FormatMoney = require("../src/shared/Format")
+		local biggest = ""
+		for _, rarity in FindsList.Rarities do
+			local text = FormatMoney.money(rarity.value)
+			if #text > #biggest then
+				biggest = text
+			end
+		end
+		local sellTexts = {}
+		for template in string.gmatch(findsSource, "sellButton%.Text = `([^`]*)`") do
+			table.insert(sellTexts, (string.gsub(template, "{value}", biggest)))
+		end
+		for plain in string.gmatch(findsSource, 'sellButton%.Text = "([^"]*)"') do
+			table.insert(sellTexts, plain)
+		end
+		check(#sellTexts >= 3, `check-gui found {#sellTexts} Sell button texts in FindsController, not its three`)
+		local sellRoom = detailWidth - 2 * detailPad - (8 + 20 + 6) - 8
+		for _, text in sellTexts do
+			local estimate = #text * 0.7 * 18
+			check(
+				estimate <= sellRoom,
+				`the Sell button's "{text}" needs about {estimate} px at 18 px, over the {sellRoom} px the {detailWidth} px pane leaves`
+			)
+		end
 		local monitor = UiLayout.ComputerMonitor
 		local MIN_ACROSS = 4
 		for _, screen in
