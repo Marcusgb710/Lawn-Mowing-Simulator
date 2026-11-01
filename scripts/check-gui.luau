@@ -2919,6 +2919,214 @@ for _, name in { "Money", "Level", "Streak", "Countdown" } do
 	check(pillsDrawn[name] == true, `HudController doesn't draw the {name} pill with Juicy.pill`)
 end
 
+-- The Finds Book (slice 3, ruling 9): a sixth app on the shop computer, "Finds", that opens the Finds
+-- panel docked in the monitor like the Jobs app. FindsController draws it: a scrolling book of the
+-- thirty cells (grouped by rarity, list order inside each), the five sets with their progress and perk
+-- under them, and a pane beside the book with the tapped Find's story and, for a held one, a Sell
+-- button that takes a second tap. The server's SellFind (ShopService) sells one held copy through
+-- Finds.sellOne, pays with AddMoney (a sale is not job income), never asks for the desk and is rate
+-- limited like the shop's other remotes.
+do
+	local computerSource = fs.readFile("src/client/Controllers/ComputerController.luau")
+	local apps = string.match(computerSource, "local APPS = (%b{})") or ""
+	check(apps ~= "", "check-gui can't find ComputerController's APPS")
+	check(
+		select(2, string.gsub(apps, '\n\t\tname = "', "")) == 6,
+		"ComputerController's APPS doesn't have six apps (Jobs, Orders, Business, Crew, Messages and Finds)"
+	)
+	check(
+		string.find(apps, 'name = "Finds"', 1, true) ~= nil
+			and string.find(apps, 'panel = "Finds"', 1, true) ~= nil
+			and string.find(apps, 'UI.open("Finds")', 1, true) ~= nil,
+		"ComputerController has no Finds app that opens the Finds panel"
+	)
+	check(
+		string.find(fs.readFile("src/client/init.client.luau"), '"FindsController"', 1, true) ~= nil,
+		"init.client doesn't start FindsController"
+	)
+	local netFunctions = string.match(fs.readFile("src/shared/Net.luau"), "local FUNCTIONS = (%b{})") or ""
+	check(string.find(netFunctions, '"SellFind"', 1, true) ~= nil, "Net has no SellFind RemoteFunction")
+	check(
+		string.find(UiLayout.MenuWindow.note, "Finds", 1, true) ~= nil,
+		"UiLayout's MenuWindow note doesn't name the computer's Finds app"
+	)
+
+	local findsPath = "src/client/Controllers/FindsController.luau"
+	local findsSource = if fs.isFile(findsPath) then fs.readFile(findsPath) else ""
+	check(findsSource ~= "", "there is no FindsController")
+	for _, wanted in
+		{
+			'UI.panel("Finds", "Finds Book")',
+			"UI.scrollingList(",
+			"AutomaticSize = Enum.AutomaticSize.Y",
+			"UIGridLayout",
+			"Finds.List",
+			"Finds.Sets",
+			"Finds.setProgress(",
+			"Finds.Rarities[",
+			"UIStroke",
+			"ClientState.Changed",
+			'key == "profile"',
+			'GetPropertyChangedSignal("Visible")',
+			'Net.func("SellFind")',
+			"SELL_CONFIRM_TIME",
+			"Sell for ",
+		}
+	do
+		check(string.find(findsSource, wanted, 1, true) ~= nil, `FindsController doesn't have {wanted}`)
+	end
+	-- Rarity is drawn in code (a UIStroke and the word in the rarity's colour), never a new Juicy face.
+	check(
+		string.find(findsSource, "Juicy.Palette.", 1, true) == nil,
+		"FindsController draws with a Juicy palette face: rarity frames are code-drawn from Finds.Rarities"
+	)
+
+	-- The server: one held copy, AddMoney not Earn, `found` never touched, anywhere, rate limited.
+	local shopSource = fs.readFile("src/server/Services/ShopService.luau")
+	local from = string.find(shopSource, "function ShopService:SellFind(", 1, true)
+	local to = if from then string.find(shopSource, "\nend\n", from, true) else nil
+	check(from ~= nil and to ~= nil, "ShopService has no SellFind")
+	if from and to then
+		local body = string.sub(shopSource, from, to)
+		check(
+			string.find(body, "Finds.sellOne(", 1, true) ~= nil,
+			"ShopService:SellFind doesn't sell through Finds.sellOne"
+		)
+		check(
+			string.find(body, "DataService:AddMoney(player", 1, true) ~= nil
+				and string.find(body, "DataService:Earn(", 1, true) == nil,
+			"ShopService:SellFind doesn't pay with DataService:AddMoney (a sale is not job income, so not Earn)"
+		)
+		check(
+			string.find(body, "found", 1, true) == nil,
+			"ShopService:SellFind touches `found`: only `held` goes down, so the book and the sets keep it"
+		)
+		check(string.find(body, "IsAtComputer", 1, true) == nil, "ShopService:SellFind asks for the desk")
+		check(
+			string.find(body, "if WorldService.RefreshShelf then", 1, true) ~= nil,
+			"ShopService:SellFind doesn't refresh the finds shelf (guarded until WorldService has RefreshShelf)"
+		)
+	end
+	check(
+		string.find(shopSource, 'Net.func("SellFind").OnServerInvoke = handle(self.SellFind)', 1, true) ~= nil,
+		"SellFind isn't rate limited through ShopService's handle()"
+	)
+
+	-- Sizes. Docked in the monitor the panel isn't scaled (UI.unscale), so these are real pixels. The
+	-- monitor is UiLayout's ComputerMonitor on the Computer screen (under the top bar), its display 6 px in
+	-- from the bezel, the taskbar along the bottom, and the docked panel's content `edge` in from its
+	-- sides and `top` down (the Panel art's title band, the taller of the two).
+	local function number(source: string, name: string): number?
+		return tonumber(string.match(source, `local {name} = (%d+)`))
+	end
+	local cellWidth, cellHeight = number(findsSource, "CELL_WIDTH"), number(findsSource, "CELL_HEIGHT")
+	local cellGap, detailWidth = number(findsSource, "CELL_GAP"), number(findsSource, "DETAIL_WIDTH")
+	local paneGap, scrollRoom = number(findsSource, "PANE_GAP"), number(findsSource, "SCROLL_ROOM")
+	local sellHeight, detailHead = number(findsSource, "SELL_HEIGHT"), number(findsSource, "DETAIL_HEAD")
+	local storyRoom, detailPad = number(findsSource, "STORY_ROOM"), number(findsSource, "DETAIL_PAD")
+	local taskbar = number(computerSource, "TASKBAR")
+	local dockTop = tonumber(string.match(uiSource, "return if docked then (%d+) else %d+"))
+	local dockEdge = tonumber(string.match(uiSource, "local edge, top = if docked then (%d+) else %d+"))
+	check(
+		(
+			cellWidth
+			and cellHeight
+			and cellGap
+			and detailWidth
+			and paneGap
+			and scrollRoom
+			and sellHeight
+			and detailHead
+			and storyRoom
+			and detailPad
+		) ~= nil,
+		"FindsController is missing one of CELL_WIDTH, CELL_HEIGHT, CELL_GAP, DETAIL_WIDTH, PANE_GAP, "
+			.. "SCROLL_ROOM, SELL_HEIGHT, DETAIL_HEAD, STORY_ROOM and DETAIL_PAD"
+	)
+	check(
+		taskbar ~= nil and dockTop ~= nil and dockEdge ~= nil,
+		"check-gui can't read TASKBAR or the docked panel's edge and top"
+	)
+	check(
+		string.find(computerSource, "Position = UDim2.fromOffset(6, 6),\n\t\tSize = UDim2.new(1, -12, 1, -12)", 1, true)
+			~= nil,
+		"ComputerController's display isn't 6 px in from the bezel any more: update the Finds Book's sizes check"
+	)
+	check(
+		string.find(uiSource, "UI.unscale(panel)", 1, true) ~= nil,
+		"a docked panel is scaled again: the Finds Book's sizes check counts real pixels"
+	)
+	if
+		cellWidth
+		and cellHeight
+		and cellGap
+		and detailWidth
+		and paneGap
+		and scrollRoom
+		and sellHeight
+		and detailHead
+		and storyRoom
+		and detailPad
+		and taskbar
+		and dockTop
+		and dockEdge
+	then
+		-- Every cell and the Sell button are controls that act.
+		check(
+			cellWidth >= 40 and cellHeight >= 40,
+			`a Finds Book cell is {cellWidth} by {cellHeight}, under the 40 px a tap needs`
+		)
+		check(sellHeight >= 40, `the Finds Book's Sell button is {sellHeight} px tall, under the 40 px a tap needs`)
+		local monitor = UiLayout.ComputerMonitor
+		local MIN_ACROSS = 4
+		for _, screen in
+			{
+				{ width = UiLayout.__screen.phone.width, height = UiLayout.__screen.phone.height, name = "phone" },
+				{ width = 1280, height = 720, name = "PC window" },
+			}
+		do
+			local guiHeight = screen.height - GUI_INSET
+			local displayWidth = math.min(monitor.size[1] * screen.width + monitor.size[2], monitor.max.width) - 12
+			local displayHeight = math.min(monitor.size[3] * guiHeight + monitor.size[4], monitor.max.height) - 12
+			local contentWidth = displayWidth - 2 * dockEdge
+			local contentHeight = displayHeight - taskbar - dockTop - dockEdge
+			-- The book is what's left beside the pane, less room for the scroll bar.
+			local bookWidth = contentWidth - detailWidth - paneGap - scrollRoom
+			local across = math.floor((bookWidth + cellGap) / (cellWidth + cellGap))
+			check(
+				across >= MIN_ACROSS,
+				`the Finds Book fits {across} cells across on the {screen.width} by {screen.height} {screen.name} ({bookWidth} px of book beside the {detailWidth} px pane), under {MIN_ACROSS}`
+			)
+			-- The pane: the name and rarity, two lines of story at least, and the Sell button, inside its
+			-- padding, in the content's height (a long story scrolls inside the pane).
+			local paneHeight = detailPad + detailHead + storyRoom + detailPad + sellHeight + detailPad
+			check(
+				paneHeight <= contentHeight,
+				`the Finds Book's pane needs {paneHeight} px but the docked panel has {contentHeight} on the {screen.width} by {screen.height} {screen.name}`
+			)
+			-- At least one whole row of cells shows in the book at once.
+			check(
+				cellHeight <= contentHeight,
+				`a Finds Book cell ({cellHeight} px) is taller than the docked panel ({contentHeight} px) on the {screen.name}`
+			)
+			-- Six apps share the taskbar: each button stays a tap wide.
+			local moneyFrom, moneyWidth = number(computerSource, "MONEY_FROM"), number(computerSource, "MONEY_WIDTH")
+			local backWidth = number(computerSource, "BACK_WIDTH")
+			if moneyFrom and moneyWidth and backWidth then
+				local barWidth = displayWidth
+					- 10
+					- (backWidth + 8)
+					- (if displayWidth >= moneyFrom then moneyWidth else 0)
+				local buttonWidth = barWidth / 6 - 6
+				check(
+					buttonWidth >= 40,
+					`the computer's taskbar buttons are {buttonWidth} px wide with six apps on the {screen.name}, under 40`
+				)
+			end
+		end
+	end
+end
+
 -- The art's own files, when there's a copy to read ------------------------------------------------
 
 local guiFolder = process.args[1] or "art-source/GUI"

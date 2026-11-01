@@ -1812,6 +1812,52 @@ do
 	check(sameTable(Finds.newlyComplete(two, { Playground = true }), { "MapleGrove" }), "only the unmarked one is new")
 	check(#Finds.newlyComplete({}, {}) == 0, "no Finds, no sets")
 
+	-- setProgress: how many of a set's members have been found at least once (the Finds Book's "3/6").
+	local playgroundSet = Finds.Sets[1]
+	check(Finds.setProgress(playgroundFinds, playgroundSet) == #playground, "a finished set's progress is all of it")
+	check(Finds.setProgress(partial, playgroundSet) == #playground - 1, "a member with found 0 is not progress")
+	check(
+		Finds.setProgress({}, playgroundSet) == 0 and Finds.setProgress(nil, playgroundSet) == 0,
+		"nothing found is no progress"
+	)
+	check(
+		Finds.setProgress({ Marble = "x", TennisBall = { found = 0 / 0, held = 0 } }, playgroundSet) == 0,
+		"a broken entry or a NaN count is no progress"
+	)
+
+	-- sellOne (Review Focus 3): one held copy goes, for what its rarity is worth, and only `held` goes down,
+	-- so selling the last copy keeps the Find in the book and its set still counts.
+	local selling = copyOf(playgroundFinds)
+	for _, member in playground do
+		selling[member] = { found = 1, held = 1 }
+	end
+	selling.SilverDollar = { found = 2, held = 2 }
+	selling.GoldenGnome = { found = 1, held = 1 }
+	check(Finds.sellOne(selling, "Marble") == 10, "a Common sells for $10")
+	check(selling.Marble.found == 1 and selling.Marble.held == 0, "selling takes held down and leaves found")
+	check(Finds.sellOne(selling, "Marble") == nil, "the last copy sold, there is none left to sell")
+	check(selling.Marble.found == 1 and selling.Marble.held == 0, "a refused sale changes nothing")
+	check(Finds.setProgress(selling, playgroundSet) == #playground, "a sold Find still counts toward its set")
+	check(#Finds.newlyComplete(selling, {}) == 1, "a set whose last copy was sold is still complete")
+	check(Finds.cleanSave({ finds = selling }).sets.Playground == true, "the save's sets keep a set after a sale")
+	check(Finds.foundCount(selling) == #playground + 2, "a sold Find still counts in the book")
+	check(Finds.sellOne(selling, "SilverDollar") == 200 and selling.SilverDollar.held == 1, "a Rare sells for $200")
+	check(Finds.sellOne(selling, "GoldenGnome") == 1000, "a Legendary sells for $1,000")
+	check(
+		Finds.sellOne(selling, "Ghost") == nil
+			and Finds.sellOne(selling, "OldKey") == nil
+			and Finds.sellOne(nil, "Marble") == nil
+			and Finds.sellOne(selling, nil :: any) == nil,
+		"no sale for an unknown id, one never found, no finds or no id"
+	)
+	local scrambled = { Marble = { found = 1, held = 0 / 0 }, OldKey = { found = 1, held = "2" }, DogTag = "x" }
+	check(
+		Finds.sellOne(scrambled, "Marble") == nil
+			and Finds.sellOne(scrambled, "OldKey") == nil
+			and Finds.sellOne(scrambled, "DogTag") == nil,
+		"no sale for a NaN, text or broken held count"
+	)
+
 	-- rarest: the held ones, rarest first, then in list order.
 	local shelf = {
 		GoldenGnome = { found = 1, held = 1 },

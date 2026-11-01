@@ -7,6 +7,8 @@
 --   Crew      inviting and managing your crew
 --   Messages  texts from Grandma June and the neighborhood, and your goal (MessagesController);
 --             its buttons show how many texts are unread
+--   Finds     the Finds Book: the thirty Finds, the five sets, and selling a Find you hold
+--             (FindsController)
 -- The apps are the game's usual menus, shown inside the monitor, over the art's wallpaper, with
 -- each app's icon on the desktop and the taskbar, and your money at its end. The open app's
 -- button on the taskbar is green. Back, or walking away, eases the camera back to first person.
@@ -92,6 +94,14 @@ local APPS = {
 		badge = true,
 		open = function()
 			UI.open("Messages")
+		end,
+	},
+	{
+		name = "Finds",
+		hint = "Your Finds",
+		panel = "Finds",
+		open = function()
+			UI.open("Finds")
 		end,
 	},
 }
@@ -371,11 +381,13 @@ local function desktopIcon(app, index: number)
 			addBadge(icon, 6)
 		end
 	end
-	UI.label(app.hint, {
+	-- Six apps share the row, so a long hint shrinks to fit its icon instead of running into the next.
+	local hint = UI.label(app.hint, {
 		AnchorPoint = Vector2.new(0.5, 1),
 		Position = UDim2.new(0.5, 0, 1, if image ~= "" then 0 else -8),
 		Size = UDim2.new(1, -10, 0, 18),
 		TextSize = 14,
+		TextScaled = true,
 		FontFace = UI.Fonts.Medium,
 		TextColor3 = UI.Colors.SubText,
 		TextXAlignment = Enum.TextXAlignment.Center,
@@ -384,6 +396,7 @@ local function desktopIcon(app, index: number)
 		ZIndex = 2,
 		Parent = icon,
 	})
+	UI.new("UITextSizeConstraint", { MaxTextSize = 14, Parent = hint })
 end
 
 local function build()
@@ -460,7 +473,7 @@ local function build()
 		BackgroundTransparency = 1,
 		Parent = taskbar,
 	}, { UI.list(6, Enum.FillDirection.Horizontal) })
-	-- The buttons share the bar, so all five fit on a phone.
+	-- The buttons share the bar, so all six fit on a phone.
 	for index, app in APPS do
 		local button = UI.button(app.name, function()
 			openApp(app)

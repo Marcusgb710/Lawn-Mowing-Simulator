@@ -968,8 +968,9 @@ return {
 		size = { 0.9, 0, 0.75, 0 },
 		max = { width = 720, height = 520 },
 		note = "Every menu's window, one open at a time: Truck, Guide and Crew, and the computer's Jobs, "
-			.. "Orders, Business and Messages apps. While you're at the computer they fill its screen instead "
-			.. "(ComputerMonitor), however big that is.",
+			.. "Orders, Business, Messages and Finds apps. While you're at the computer they fill its screen "
+			.. "instead (ComputerMonitor), however big that is. The Finds Book lays out its own cells and side "
+			.. "pane in real pixels there (FindsController's sizes, checked against the phone in check-gui).",
 	},
 	LevelsPanel = {
 		label = "Levels panel",

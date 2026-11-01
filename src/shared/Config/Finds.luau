@@ -437,18 +437,25 @@ function Finds.roll(seed: number, tier: string, bonuses: Bonuses?): string?
 	return ids[math.floor(pick * #ids) + 1]
 end
 
--- Whether every member of a set has been found at least once, by the save's `finds`.
-local function isComplete(finds: any, set: Set): boolean
+-- How many of a set's members have been found at least once, by the save's `finds` (the Finds Book's
+-- "3/6"). A Find sold or returned since still counts: only `found` is read.
+function Finds.setProgress(finds: any, set: Set): number
+	local count = 0
 	if typeof(finds) ~= "table" then
-		return false
+		return count
 	end
 	for _, member in set.members do
 		local entry = finds[member]
-		if typeof(entry) ~= "table" or whole(entry.found) < 1 then
-			return false
+		if typeof(entry) == "table" and whole(entry.found) >= 1 then
+			count += 1
 		end
 	end
-	return true
+	return count
+end
+
+-- Whether every member of a set has been found at least once, by the save's `finds`.
+local function isComplete(finds: any, set: Set): boolean
+	return Finds.setProgress(finds, set) == #set.members
 end
 
 -- The sets that are complete by `finds` and not yet marked in `sets` (a map of set id to true), in the
@@ -558,6 +565,22 @@ function Finds.rarest(finds: any, count: number): { string }
 		end
 	end
 	return ids
+end
+
+-- Takes one held copy of a Find out of `finds` (the save's map) to be sold, and gives what it sells for,
+-- or nil when there is none to sell (not a Find, never found, none held, or a broken count). Only `held`
+-- goes down: `found` stays, so the book still shows a sold Find and its set still counts.
+function Finds.sellOne(finds: any, id: string): number?
+	local find = Finds.get(id)
+	if find == nil or typeof(finds) ~= "table" then
+		return nil
+	end
+	local entry = finds[find.id]
+	if typeof(entry) ~= "table" or whole(entry.held) < 1 then
+		return nil
+	end
+	entry.held = whole(entry.held) - 1
+	return Finds.Rarities[find.rarity].value
 end
 
 -- The Finds somebody lost and would want back: the player can Keep one or Return it (the band to the

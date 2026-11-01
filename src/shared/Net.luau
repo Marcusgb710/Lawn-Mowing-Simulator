@@ -54,6 +54,7 @@ local FUNCTIONS = {
 	"AcceptJob",
 	"BuyItem",
 	"SellItem",
+	"SellFind",
 	"EquipItem",
 	"PickUpTool",
 	"PutBackTool",

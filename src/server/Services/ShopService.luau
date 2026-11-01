@@ -4,12 +4,14 @@
 -- (and selling them) work wherever you stand, and arrive in a box at the shop (DeliveryService).
 -- Trucks, trailers and business buildings (PLOT_CATEGORIES) change what is built on your plot, are
 -- there straight away, and are still bought and switched to at the computer in your shop. Taking a
--- job is a computer thing too (JobService:AcceptJob).
+-- job is a computer thing too (JobService:AcceptJob). Finds held from the lawns are sold here as well,
+-- from the Finds Book (SellFind).
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Finds = require(Shared.Config.Finds)
 local Format = require(Shared.Format)
 local GameConfig = require(Shared.Config.GameConfig)
 local Items = require(Shared.Config.Items)
@@ -166,6 +168,28 @@ function ShopService:Sell(player: Player, category: string, itemId: string): (bo
 	return true, `Sold the {item.name} for {Format.money(refund)}.`
 end
 
+-- Sells one Find the player holds, from the Finds Book on the shop computer, for what its rarity is
+-- worth (Finds.Rarities). Like selling a tool it works wherever you stand. Finds.sellOne only takes
+-- `held` down, so a sold Find stays in the book and still counts toward its set. A sale is not job
+-- income, so it is paid with AddMoney (which also sends the new profile) and not Earn.
+function ShopService:SellFind(player: Player, findId: string): (boolean, string)
+	local find = Finds.get(findId)
+	local data = DataService:Get(player)
+	if not find or not data then
+		return false, "That isn't one of the Finds."
+	end
+	local value = Finds.sellOne(data.finds, find.id)
+	if not value then
+		return false, `You don't have a {find.name} to sell.`
+	end
+	DataService:AddMoney(player, value)
+	-- The finds shelf at the business shows the rarest held Finds, so a sale can take one off it.
+	if WorldService.RefreshShelf then
+		WorldService:RefreshShelf(player)
+	end
+	return true, `Sold the {find.name} for {Format.money(value)}.`
+end
+
 -- Switches to an owned truck, trailer or business. (Tools aren't equipped: you load the ones you
 -- want into the truck.)
 function ShopService:Equip(player: Player, category: string, itemId: string): (boolean, string)
@@ -209,15 +233,16 @@ end
 
 function ShopService:Init()
 	local function handle(method)
-		return function(player, category, itemId)
+		return function(player, ...)
 			if tooSoon(player) then
 				return false, "One thing at a time."
 			end
-			return method(self, player, category, itemId)
+			return method(self, player, ...)
 		end
 	end
 	Net.func("BuyItem").OnServerInvoke = handle(self.Buy)
 	Net.func("SellItem").OnServerInvoke = handle(self.Sell)
+	Net.func("SellFind").OnServerInvoke = handle(self.SellFind)
 	Net.func("EquipItem").OnServerInvoke = handle(self.Equip)
 	Players.PlayerRemoving:Connect(function(player)
 		lastRequest[player] = nil
