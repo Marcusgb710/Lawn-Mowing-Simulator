@@ -2191,6 +2191,12 @@ do
 	check(has(fromPlace, "seed == luck.spent"), "placeFind compares the lawn's seed with the leader's spent seed")
 	check(has(fromPlace, "job.findSeed = seed"), "placeFind keeps the lawn's seed on the job")
 	check(
+		has(fromPlace, "Finds.seed(day, leader.UserId, done + 1)")
+			and has(fromPlace, "daily.day")
+			and not has(fromPlace, "Daily.dayKey"),
+		"the seed's day is the daily state's own day key, so a Studio day jump and the seed agree"
+	)
+	check(
 		has(fromPickUp, "findLuck.spent = job.findSeed") and has(fromPickUp, "DataService:Changed(job.findLeader)"),
 		"picking up the Find spends its seed in the leader's save"
 	)
@@ -2361,6 +2367,17 @@ do
 	local dogs = read("src/server/Services/CompanionService.luau")
 	check(not string.find(dogs, "\u{2014}", 1, true), "CompanionService has no em dashes")
 	check(not string.find(dogs, "Heartbeat", 1, true), "Buster's loop waits with task.wait, not every frame")
+	-- In a crew someone else leads, he sits at the leader's business (where the crew is), set out past
+	-- any Buster already there; their own again once the crew ends.
+	local fromHomeSpot = string.match(dogs, "local function homeSpotOf%(.-\nend\n") or ""
+	check(
+		string.find(fromHomeSpot, "PartyService:GetParty(owner)", 1, true) ~= nil
+			and string.find(fromHomeSpot, "WorldService:GetBusterSpot(leader)", 1, true) ~= nil
+			and string.find(fromHomeSpot, "WorldService:GetBusterSpot(owner)", 1, true) ~= nil
+			and string.find(fromHomeSpot, "ahead * CREW_SPACING", 1, true) ~= nil,
+		"a crewmate's Buster sits at the leader's business, beside the leader's, and at home without a crew"
+	)
+	check(string.find(dogs, "local spot = homeSpotOf(dog.owner)", 1, true) ~= nil, "sitAtHome sits him on that spot")
 	local fromSniff = string.match(dogs, "local function sniff%(.-\nend\n") or ""
 	local _, retries = string.gsub(fromSniff, "DogWalk%.findRetry%(", "")
 	check(

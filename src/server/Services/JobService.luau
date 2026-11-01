@@ -33,7 +33,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Assets = require(Shared.Assets)
-local Daily = require(Shared.Daily)
 local Debris = require(Shared.Config.Debris)
 local Finds = require(Shared.Config.Finds)
 local Format = require(Shared.Format)
@@ -50,7 +49,6 @@ local TaskTypes = require(Shared.Config.TaskTypes)
 local Tools = require(Shared.Config.Tools)
 local Signal = require(Shared.Signal)
 
-local Clock = require(script.Parent.Parent.Clock)
 local Openings = require(script.Parent.Parent.Openings)
 local ServiceSpots = require(script.Parent.Parent.ServiceSpots)
 local DataService = require(script.Parent.DataService)
@@ -624,9 +622,13 @@ local function placeFind(job, template)
 		return
 	end
 	local luck = data.findLuck
-	local count = typeof(data.daily) == "table" and data.daily.count
+	-- The day is the daily state's own day key, the one its job count belongs to, so a Studio day jump
+	-- and the seed never disagree.
+	local daily = typeof(data.daily) == "table" and data.daily
+	local count = daily and daily.count
 	local done = if typeof(count) == "table" and typeof(count.jobs) == "number" then count.jobs else 0
-	local seed = Finds.seed(Daily.dayKey(Clock.now()), leader.UserId, done + 1)
+	local day = if daily and typeof(daily.day) == "string" then daily.day else ""
+	local seed = Finds.seed(day, leader.UserId, done + 1)
 	if seed == luck.spent then
 		return
 	end

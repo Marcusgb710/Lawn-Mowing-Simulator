@@ -78,6 +78,7 @@ local function statsOf(data)
 		earned = data.earned or 0,
 		stars = stars,
 		finds = Finds.foundCount(data.finds),
+		-- Counts cleanSave's derived sets: a set completed outside GiveFind would pay without its card.
 		sets = Finds.setCount(data.sets),
 	}
 end

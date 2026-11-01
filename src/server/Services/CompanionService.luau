@@ -4,7 +4,9 @@
 --   at the business   he sits on the ground beside Grandma June's porch, on its far side from the
 --                     driveway (WorldService:GetBusterSpot), clear of the doorway, the desk, the finds
 --                     shelf and the workbench, which are all on the driveway's other side or left of the
---                     building.
+--                     building. While the owner is in a crew someone else leads, that's the leader's
+--                     business (where the crew is), a few studs further out for each Buster already
+--                     there; back at their own when the crew ends.
 --   in the truck      while the owner rides (JobService:IsBusy with no lawn to be on) he isn't anywhere:
 --                     the drive's cutscene shows him in the truck's bed instead (info.buster, from the
 --                     driver's save).
@@ -34,6 +36,7 @@ local Tools = require(Shared.Config.Tools)
 
 local DataService = require(script.Parent.DataService)
 local JobService = require(script.Parent.JobService)
+local PartyService = require(script.Parent.PartyService)
 local WorldService = require(script.Parent.WorldService)
 
 -- How often the loop looks again while he sits, in seconds, and while he runs or rests on a job.
@@ -61,6 +64,9 @@ local FIND_TRIES = 10
 local OFF_LAWN_GRACE = 3
 -- How far out from the lawn's edges they still count as on it (the sidewalk and the truck at the curb).
 local LAWN_MARGIN = 30
+-- At a crew leader's business, each Buster after the first sits this many studs further out from June's
+-- porch than the one before.
+local CREW_SPACING = 3
 -- Sitting, his nose tips up this much.
 local SIT_TILT = math.rad(15)
 -- His name shows from this far away, this high over his middle.
@@ -318,9 +324,32 @@ end
 
 -- At home ----------------------------------------------------------------------------------------
 
+-- His spot at the business: the owner's own, or while they're in a crew someone else leads, the
+-- leader's (the crew is at the leader's business, so the crew sees him there). There he sits a few
+-- studs further out from June's porch for every Buster ahead of him (the leader's first, then the
+-- crew's in order), so two never sit in one spot. Their own again once the crew ends.
+local function homeSpotOf(owner: Player): CFrame?
+	local party = PartyService:GetParty(owner)
+	local leader = party and party.leader
+	local led = leader and leader ~= owner and leader.Parent == Players
+	local spot = if led then WorldService:GetBusterSpot(leader) else nil
+	if not (party and leader and spot) then
+		return WorldService:GetBusterSpot(owner)
+	end
+	local ahead = if dogs[leader] then 1 else 0
+	for _, member in party.members do
+		if member == owner then
+			break
+		elseif member ~= leader and dogs[member] then
+			ahead += 1
+		end
+	end
+	return spot * CFrame.new(ahead * CREW_SPACING, 0, 0)
+end
+
 -- Sits him on his spot at the business, or puts him away while there's no spot (no business built).
 local function sitAtHome(dog: Dog)
-	local spot = WorldService:GetBusterSpot(dog.owner)
+	local spot = homeSpotOf(dog.owner)
 	if not spot then
 		stop(dog)
 		dog.homeSpot = nil
