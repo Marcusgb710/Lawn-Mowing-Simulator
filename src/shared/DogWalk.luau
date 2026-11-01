@@ -15,6 +15,10 @@ export type Options = {
 	-- Whether he may stand at a point: the grass, never a flower bed, a tree or a doorway. The way to a
 	-- cell is tried every WALK_STEP studs along it. Without it, anywhere goes.
 	walkable: ((Point) -> boolean)?,
+	-- Caught near a mower, how long his run away may be (studs; no limit without it), and how many of
+	-- the nearest cells that will do he picks among (all of them without it).
+	escape: number?,
+	nearest: number?,
 }
 
 local DogWalk = {}
@@ -65,7 +69,7 @@ function DogWalk.pathClear(from: Point, to: Point, mowers: { Point }, keep: numb
 end
 
 -- Whether every point along the way, every WALK_STEP studs and its end, is ground he may walk on.
-local function walkableWay(from: Point, to: Point, walkable: (Point) -> boolean): boolean
+function DogWalk.walkableWay(from: Point, to: Point, walkable: (Point) -> boolean): boolean
 	local length = apart(from, to)
 	local steps = math.max(1, math.ceil(length / WALK_STEP))
 	for step = 1, steps do
@@ -81,27 +85,47 @@ end
 -- One of `cells` for Buster at `from` to run to, chosen by `random01` (a number from 0 up to 1), or
 -- nil when none will do and he should stay where he is. A cell will do when it is clear of every mower
 -- and the way there is clear too (pathClear) and walkable. While he is clear of the mowers it is also
--- `shortest` to `longest` studs away, a short run; caught near one, any distance will do, so he gets
--- away.
+-- `shortest` to `longest` studs away, a short run. Caught near one, it may be any distance up to
+-- `escape`, and he takes one of the `nearest` such cells, so he gets away without running off far.
 function DogWalk.pick<T>(cells: { T }, from: Point, mowers: { Point }, options: Options, random01: () -> number): T?
 	local caught = not DogWalk.clearOf(from, mowers, options.keep)
+	local escape = options.escape or math.huge
 	local fits = {}
+	local lengths = {}
 	for _, cell in cells do
 		local point = cell :: any
 		local length = apart(from, point)
+		local inRange = if caught then length <= escape else length >= options.shortest and length <= options.longest
 		if
-			(caught or (length >= options.shortest and length <= options.longest))
+			inRange
 			and DogWalk.clearOf(point, mowers, options.keep)
 			and DogWalk.pathClear(from, point, mowers, options.keep)
-			and (options.walkable == nil or walkableWay(from, point, options.walkable))
+			and (options.walkable == nil or DogWalk.walkableWay(from, point, options.walkable))
 		then
 			table.insert(fits, cell)
+			lengths[cell] = length
+		end
+	end
+	if caught and options.nearest and #fits > options.nearest then
+		table.sort(fits, function(a, b)
+			return lengths[a] < lengths[b]
+		end)
+		for index = #fits, options.nearest + 1, -1 do
+			fits[index] = nil
 		end
 	end
 	if #fits == 0 then
 		return nil
 	end
 	return fits[math.clamp(math.floor(random01() * #fits) + 1, 1, #fits)]
+end
+
+-- A way to the Find that wasn't clear, or a trot there a mower cut short with the Find still on the
+-- lawn: one more try spent. Returns the tries spent now and whether he gives up on it for this job
+-- (after `most` of them).
+function DogWalk.findRetry(tries: number, most: number): (number, boolean)
+	local spent = tries + 1
+	return spent, spent >= most
 end
 
 return DogWalk

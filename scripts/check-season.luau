@@ -2202,15 +2202,42 @@ do
 	check(DogWalk.pathClear(at(4, 10), clear, mower, keep), "a way away from a mower is clear")
 	check(DogWalk.pick({ near }, at(4, 10), mower, options, first) == nil, "nowhere safe: he stays put")
 
-	-- Caught near a mower, he may run off to any safe cell, however far, but never past it.
+	-- Caught near a mower, he may run off to a safe cell further than usual, but never past it.
 	local caught = at(8, 0)
-	local away = at(-20, 0)
+	local away = at(-12, 0)
 	local past = at(30, 0)
 	check(
 		DogWalk.pick({ past, away }, caught, mower, options, first) == away,
 		"caught near a mower he runs away from it, even further than usual"
 	)
 	check(DogWalk.pick({ past }, caught, mower, options, first) == nil, "and never past it")
+	-- But not across the whole lawn: up to `escape` studs, and only one of the `nearest` cells that do.
+	local escaping = { keep = keep, shortest = 2, longest = 12, escape = 24, nearest = 3 }
+	check(DogWalk.pick({ at(-40, 0) }, caught, mower, escaping, first) == nil, "an escape is never past its cap")
+	local ways = { at(-16, 0), at(-2, 0), at(-14, 0), at(-4, 0), at(-10, 0) }
+	local escapes = {}
+	for roll = 0, 0.99, 0.01 do
+		local cell = DogWalk.pick(ways, caught, mower, escaping, function()
+			return roll
+		end)
+		if cell then
+			escapes[cell] = true
+		end
+	end
+	check(
+		escapes[ways[2]] and escapes[ways[4]] and escapes[ways[5]] and not escapes[ways[1]] and not escapes[ways[3]],
+		"an escape takes one of the three nearest safe cells"
+	)
+	check(DogWalk.walkableWay(at(0, 0), at(5, 0), function(point)
+		return point.X < 2
+	end) == false, "a way over ground he can't walk on is not walkable")
+
+	-- The Find: each way that isn't clear, or each trot a mower cut short with the Find still there, spends
+	-- a try; he gives up for the job after the last.
+	local spent, givesUp = DogWalk.findRetry(0, 10)
+	check(spent == 1 and givesUp == false, "the first try spent, he keeps trying")
+	spent, givesUp = DogWalk.findRetry(9, 10)
+	check(spent == 10 and givesUp == true, "the tenth try spent, he gives up on it")
 
 	-- Only over ground he may walk on (the grass, never a flower bed, a tree or a doorway).
 	local function walkable(point)
@@ -2267,6 +2294,21 @@ do
 	local dogs = read("src/server/Services/CompanionService.luau")
 	check(not string.find(dogs, "\u{2014}", 1, true), "CompanionService has no em dashes")
 	check(not string.find(dogs, "Heartbeat", 1, true), "Buster's loop waits with task.wait, not every frame")
+	local fromSniff = string.match(dogs, "local function sniff%(.-\nend\n") or ""
+	local _, retries = string.gsub(fromSniff, "DogWalk%.findRetry%(", "")
+	check(
+		retries == 1 and string.find(fromSniff, "retry()", 1, true) ~= nil,
+		"a blocked way and a trot cut short both spend a try at the Find (one rule, DogWalk.findRetry)"
+	)
+	check(
+		string.find(fromSniff, "DogWalk.walkableWay(", 1, true) ~= nil,
+		"the trot to the Find keeps to the grass the whole way"
+	)
+	check(
+		string.find(dogs, "TweenService:Create%(%s*dog%.root") ~= nil
+			and not string.find(dogs, "CFrameValue", 1, true),
+		"a run tweens his welded Root, with no Lua every frame"
+	)
 	check(Sounds.Ids.Bark ~= nil, "Bark is a listed sound (empty until a Roblox-owned bark is found)")
 end
 

@@ -9,13 +9,15 @@
 --                     the drive's cutscene shows him in the truck's bed instead (info.buster, from the
 --                     driver's save).
 --   on a job          while their job is Working and they are on its lawn, he runs between grass cells by
---                     short tweens, one at a time with a rest between. Never to a cell within 6 studs of a
---                     player with a motor mower out, nor by a way that passes closer to one, nor across
---                     ground that isn't grass (DogWalk, Lawn:OpenGround), and he runs off when one comes
---                     near. Once a job, a little after he gets there, if the lawn still hides its Find he
---                     trots over, sits by it, barks (Sounds.Ids.Bark) and marks it BusterFound, which
---                     the lawn map dots in gold. A Find gone before or while he goes (picked up or chewed)
---                     just leaves him to carry on. Once the job is done he sits until they head home.
+--                     short tweens of his Root (every other piece is welded to it), one at a time with a
+--                     rest between. Never to a cell within 6 studs of a player with a motor mower out, nor
+--                     by a way that passes closer to one, nor across ground that isn't grass (DogWalk,
+--                     Lawn:OpenGround), and he runs off a short way when one comes near. Once a job, a
+--                     little after he gets there, if the lawn still hides its Find he trots over by the
+--                     grass, sits by it, barks (Sounds.Ids.Bark) and marks it BusterFound, which the lawn
+--                     map dots in gold. A mower cutting him off on the way only means another try a little
+--                     later; a Find gone before or while he goes (picked up or chewed) leaves him to carry
+--                     on. Once the job is done he sits until they head home.
 -- One loop per owner (task.spawn and task.wait steps, never every frame) decides where he should be. It
 -- stops, and his model goes, when they leave the game or no longer own him (a Studio reset). Each step
 -- is in a pcall: anything going wrong in it is a warning, and the next step starts afresh.
@@ -43,6 +45,9 @@ local TROT_SPEED = 10
 -- One run on a job is this many studs, at least and at most; he rests this long between runs.
 local SHORTEST_RUN, LONGEST_RUN = 3, 14
 local REST_MIN, REST_MAX = 1.5, 4
+-- Caught near a mower he runs off at most twice a normal run (DogWalk's escape), to one of this many of
+-- the nearest cells that will do.
+local ESCAPE_CHOICES = 5
 -- How many of the lawn's cells he looks at for each run (a random handful, so a big lawn costs no more).
 local CELLS_TRIED = 300
 -- He goes to the Find this long after he gets to the lawn, sits this far from it, stays this long, and
@@ -68,11 +73,14 @@ type Dog = {
 	owner: Player,
 	model: Model,
 	label: TextLabel,
-	value: CFrameValue,
+	-- The anchored part every other piece of him is welded to, and where it sits from his origin.
+	root: BasePart,
+	rootOffset: CFrame,
 	tween: Tween?,
 	alive: boolean,
 	sitting: boolean,
-	-- Where his origin is, on the ground, facing the way he faces.
+	-- Where his origin is, on the ground, facing the way he faces, whenever he isn't running (here()
+	-- says where he is while he is).
 	ground: CFrame,
 	-- The spot at the business he was last put on, the lawn he is on, and when he left it.
 	homeSpot: CFrame?,
@@ -133,27 +141,40 @@ end
 
 -- His model --------------------------------------------------------------------------------------
 
-local function build(owner: Player): (Model, TextLabel)
+-- His model, its Root (the PrimaryPart) anchored and every other piece welded to it, unanchored and
+-- massless, so moving him is moving one part: a run tweens Root's CFrame, with no Lua every frame.
+-- Also returns where Root sits from his origin (the model is built standing at the world's origin).
+local function build(owner: Player): (Model, TextLabel, BasePart, CFrame)
 	local model = Assets.prop("Buster")
-	Assets.anchor(model)
+	local root = model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart", true)
+	assert(root, "Buster's model has no parts")
+	Assets.placeAt(model, CFrame.identity)
 	for _, part in model:GetDescendants() do
 		if part:IsA("BasePart") then
 			part.CanCollide = false
 			part.CanTouch = false
 			part.CanQuery = false
+			if part ~= root then
+				part.Anchored = false
+				part.Massless = true
+				local weld = Instance.new("WeldConstraint")
+				weld.Part0 = root
+				weld.Part1 = part
+				weld.Parent = part
+			end
 		end
 	end
+	root.Anchored = true
 	model.Name = "Buster"
 	model:SetAttribute("OwnerUserId", owner.UserId)
-	local holder = model.PrimaryPart or model:FindFirstChildWhichIsA("BasePart", true)
 	local billboard = Instance.new("BillboardGui")
 	billboard.Name = "NameTag"
 	billboard.Size = UDim2.fromOffset(160, 26)
 	billboard.StudsOffsetWorldSpace = Vector3.new(0, NAME_RISE, 0)
 	billboard.MaxDistance = NAME_DISTANCE
 	billboard.LightInfluence = 0
-	billboard.Adornee = holder
-	billboard.Parent = holder or model
+	billboard.Adornee = root
+	billboard.Parent = root
 	local label = Instance.new("TextLabel")
 	label.Size = UDim2.fromScale(1, 1)
 	label.BackgroundTransparency = 1
@@ -163,35 +184,43 @@ local function build(owner: Player): (Model, TextLabel)
 	label.TextColor3 = Color3.new(1, 1, 1)
 	label.TextStrokeTransparency = 0.4
 	label.Parent = billboard
-	return model, label
+	return model, label, root, root.CFrame
 end
 
--- Puts him where his ground frame says, sitting (nose up) or standing.
-local function show(dog: Dog)
-	local frame = dog.ground
-	Assets.placeAt(dog.model, if dog.sitting then frame * CFrame.Angles(SIT_TILT, 0, 0) else frame)
+-- Where Root goes for his origin at `ground`, sitting (nose up) or standing.
+local function rootAt(dog: Dog, ground: CFrame, sitting: boolean): CFrame
+	return (if sitting then ground * CFrame.Angles(SIT_TILT, 0, 0) else ground) * dog.rootOffset
 end
 
+-- Where his origin is now: on his way while he runs (a run is always standing), else `ground`.
+local function here(dog: Dog): CFrame
+	if dog.tween then
+		return dog.root.CFrame * dog.rootOffset:Inverse()
+	end
+	return dog.ground
+end
+
+-- Stops a run where he is.
 local function stop(dog: Dog)
 	local tween = dog.tween
-	dog.tween = nil
 	if tween then
+		dog.ground = here(dog)
+		dog.tween = nil
 		tween:Cancel()
 	end
 end
 
--- Stands him at `ground` at once.
+-- Stands (or sits) him at `ground` at once.
 local function place(dog: Dog, ground: CFrame, sitting: boolean)
 	stop(dog)
 	dog.sitting = sitting
 	dog.ground = ground
-	dog.value.Value = ground
-	show(dog)
+	dog.root.CFrame = rootAt(dog, ground, sitting)
 end
 
 -- Turns him toward `to` and starts him running there at `speed`. Returns how long it takes.
 local function runTo(dog: Dog, to: Vector3, speed: number): number
-	local from = dog.ground.Position
+	local from = here(dog).Position
 	local flat = Vector3.new(to.X - from.X, 0, to.Z - from.Z)
 	if flat.Magnitude < 0.05 then
 		return 0
@@ -200,9 +229,9 @@ local function runTo(dog: Dog, to: Vector3, speed: number): number
 	place(dog, facing, false)
 	local seconds = flat.Magnitude / speed
 	local tween = TweenService:Create(
-		dog.value,
+		dog.root,
 		TweenInfo.new(seconds, Enum.EasingStyle.Linear),
-		{ Value = facing.Rotation + to }
+		{ CFrame = rootAt(dog, facing.Rotation + to, false) }
 	)
 	dog.tween = tween
 	tween:Play()
@@ -247,10 +276,10 @@ end
 -- mower that catches him again once he's clear stops him.
 local function hold(dog: Dog, seconds: number, lawn: any, still: (() -> boolean)?): boolean
 	local deadline = os.clock() + seconds
-	local wasClear = DogWalk.clearOf(dog.ground.Position, mowerSpots(), DogWalk.KEEP_AWAY)
+	local wasClear = DogWalk.clearOf(here(dog).Position, mowerSpots(), DogWalk.KEEP_AWAY)
 	repeat
 		task.wait(math.min(JOB_TICK, math.max(deadline - os.clock(), 0)))
-		local clear = DogWalk.clearOf(dog.ground.Position, mowerSpots(), DogWalk.KEEP_AWAY)
+		local clear = DogWalk.clearOf(here(dog).Position, mowerSpots(), DogWalk.KEEP_AWAY)
 		if not dog.alive or jobLawn(dog) ~= lawn or (wasClear and not clear) or (still and not still()) then
 			stop(dog)
 			return false
@@ -266,6 +295,8 @@ local function options(lawn: any): DogWalk.Options
 		keep = DogWalk.KEEP_AWAY,
 		shortest = SHORTEST_RUN,
 		longest = LONGEST_RUN,
+		escape = LONGEST_RUN * 2,
+		nearest = ESCAPE_CHOICES,
 		walkable = function(point)
 			return lawn:IsOpenGround(point)
 		end,
@@ -297,9 +328,10 @@ local function sitAtHome(dog: Dog)
 		return
 	end
 	if dog.homeSpot ~= spot or dog.model.Parent == nil then
+		-- In the workspace first, so the welds carry his pieces along with Root.
+		dog.model.Parent = companions()
 		place(dog, spot, true)
 		dog.homeSpot = spot
-		dog.model.Parent = companions()
 	end
 end
 
@@ -340,8 +372,8 @@ local function arrive(dog: Dog, lawn: any)
 		dog.lawn = nil
 		return
 	end
-	place(dog, CFrame.lookAt(best, best + (lawn.spawnCFrame.LookVector * Vector3.new(1, 0, 1))), false)
 	dog.model.Parent = companions()
+	place(dog, CFrame.lookAt(best, best + (lawn.spawnCFrame.LookVector * Vector3.new(1, 0, 1))), false)
 end
 
 -- Once a job: trots to the lawn's Find, sits by it, barks and marks it. If it's gone already, or goes
@@ -352,27 +384,37 @@ local function sniff(dog: Dog, lawn: any)
 		dog.sniffed = true
 		return
 	end
-	local from = dog.ground.Position
+	-- Not now: he runs about some more and tries again in a bit, up to FIND_TRIES times.
+	local function retry()
+		dog.findTries, dog.sniffed = DogWalk.findRetry(dog.findTries, FIND_TRIES)
+		dog.sniffAt = os.clock() + SNIFF_RETRY
+	end
+	local function stillThere()
+		return lawn.find == find and find.model.Parent ~= nil
+	end
+	local from = here(dog).Position
 	local away = Vector3.new(from.X - find.position.X, 0, from.Z - find.position.Z)
 	local beside = find.position + (if away.Magnitude > 0.05 then away.Unit else Vector3.zAxis) * SNIFF_BESIDE
 	local mowers = mowerSpots()
 	local clear = DogWalk.clearOf(beside, mowers, DogWalk.KEEP_AWAY)
 		and DogWalk.pathClear(from, beside, mowers, DogWalk.KEEP_AWAY)
-		and lawn:IsOpenGround(beside)
+		and DogWalk.walkableWay(from, beside, function(point)
+			return lawn:IsOpenGround(point)
+		end)
 	if not clear then
-		-- Not now: he runs about some more and tries again in a bit, up to FIND_TRIES times.
-		dog.findTries += 1
-		dog.sniffed = dog.findTries >= FIND_TRIES
-		dog.sniffAt = os.clock() + SNIFF_RETRY
+		retry()
+		return
+	end
+	if not hold(dog, runTo(dog, beside, TROT_SPEED), lawn, stillThere) then
+		-- Cut short (a mower came near, or they left the lawn): another go later while it's still there.
+		if stillThere() then
+			retry()
+		else
+			dog.sniffed = true
+		end
 		return
 	end
 	dog.sniffed = true
-	local function stillThere()
-		return lawn.find == find and find.model.Parent ~= nil
-	end
-	if not hold(dog, runTo(dog, beside, TROT_SPEED), lawn, stillThere) then
-		return
-	end
 	-- Sits facing it, nose up, and barks.
 	local look = Vector3.new(find.position.X, beside.Y, find.position.Z)
 	place(dog, CFrame.lookAt(beside, if (look - beside).Magnitude > 0.05 then look else beside - Vector3.zAxis), true)
@@ -386,7 +428,7 @@ end
 
 -- One short run to a cell nearby (or away from a mower that came near), then a rest.
 local function wander(dog: Dog, lawn: any)
-	local cell = DogWalk.pick(someCells(dog), dog.ground.Position, mowerSpots(), options(lawn), function()
+	local cell = DogWalk.pick(someCells(dog), here(dog).Position, mowerSpots(), options(lawn), function()
 		return dog.rng:NextNumber()
 	end)
 	if cell and not hold(dog, runTo(dog, cell, RUN_SPEED), lawn) then
@@ -394,7 +436,7 @@ local function wander(dog: Dog, lawn: any)
 	end
 	-- Now and then he sits for his rest.
 	if dog.rng:NextNumber() < 0.4 then
-		place(dog, dog.ground, true)
+		place(dog, here(dog), true)
 	end
 	hold(dog, dog.rng:NextNumber(REST_MIN, REST_MAX), lawn)
 end
@@ -429,7 +471,7 @@ local function step(dog: Dog)
 	elseif not working then
 		-- The job's done: he sits where he is until they head home.
 		if not dog.sitting then
-			place(dog, dog.ground, true)
+			place(dog, here(dog), true)
 		end
 		task.wait(JOB_TICK)
 	elseif not dog.sniffed and os.clock() >= dog.sniffAt then
@@ -471,13 +513,13 @@ function CompanionService:Refresh(player: Player)
 		dog.label.Text = nameOf(player)
 		return
 	end
-	local model, label = build(player)
-	local value = Instance.new("CFrameValue")
+	local model, label, root, rootOffset = build(player)
 	local made: Dog = {
 		owner = player,
 		model = model,
 		label = label,
-		value = value,
+		root = root,
+		rootOffset = rootOffset,
 		tween = nil,
 		alive = true,
 		sitting = true,
@@ -492,13 +534,6 @@ function CompanionService:Refresh(player: Player)
 		findTries = 0,
 		rng = Random.new(),
 	}
-	-- A run tweens the value; he follows it.
-	value.Changed:Connect(function(frame)
-		if made.alive then
-			made.ground = frame
-			show(made)
-		end
-	end)
 	dogs[player] = made
 	task.spawn(live, made)
 end
@@ -513,7 +548,6 @@ function CompanionService:Remove(player: Player)
 	dog.alive = false
 	stop(dog)
 	dog.model:Destroy()
-	dog.value:Destroy()
 end
 
 -- Lifecycle --------------------------------------------------------------------------------------
@@ -522,13 +556,7 @@ function CompanionService:Init()
 	Players.PlayerRemoving:Connect(function(player)
 		self:Remove(player)
 	end)
-	-- A rebuilt business (an upgrade) can move June's porch: the loop puts him back on his new spot.
-	WorldService.PlotBuilt:Connect(function(owner)
-		local dog = dogs[owner]
-		if dog then
-			dog.homeSpot = nil
-		end
-	end)
+	-- A rebuilt business (an upgrade) can move June's porch: sitAtHome sees the new spot on its next look.
 end
 
 return CompanionService
