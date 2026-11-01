@@ -15,6 +15,11 @@
 -- in the grass (Config/Debris.luau) that's still there at the end, or that a mower chewed up,
 -- takes some off the finish and the pay too.
 --
+-- A job lawn may hide one Find (Config/Finds.luau), rolled when the site is built from the crew
+-- leader's luck. Whoever on the crew picks it up first keeps it (their save, not the leader's); the
+-- wedding band and June's locket can be given back instead, for a bigger tip or a scene with June.
+-- A motor mower chews it up, and one left in the grass at the end is lost. It never costs any pay.
+--
 -- TurfKing (TurfKingService) can take a job off one player's board: they see it as "Taken by
 -- TurfKing" and can't accept it, while everyone else's board is the same as before. A customer
 -- won back from TurfKing pays a bonus on top (see SetWinBackBonus).
@@ -24,7 +29,9 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Assets = require(Shared.Assets)
+local Daily = require(Shared.Daily)
 local Debris = require(Shared.Config.Debris)
+local Finds = require(Shared.Config.Finds)
 local Format = require(Shared.Format)
 local HomeLawn = require(Shared.HomeLawn)
 local GameConfig = require(Shared.Config.GameConfig)
@@ -39,6 +46,7 @@ local TaskTypes = require(Shared.Config.TaskTypes)
 local Tools = require(Shared.Config.Tools)
 local Signal = require(Shared.Signal)
 
+local Clock = require(script.Parent.Parent.Clock)
 local Openings = require(script.Parent.Parent.Openings)
 local ServiceSpots = require(script.Parent.Parent.ServiceSpots)
 local DataService = require(script.Parent.DataService)
@@ -53,6 +61,8 @@ local TRUCK_REACH = 10
 local PICK_UP_REACH = 12
 -- A snip of hand shears only hurts flowers right where it lands.
 local SNIP_HAZARD_REACH = 0.3
+-- What the customer adds to the tip when the crew gives back the wedding band they found.
+local BAND_TIP = 250
 
 local JobService = {}
 -- Fired with (player) when they head out on a job, arrive at the house, or leave the job.
@@ -61,8 +71,8 @@ JobService.PlayerStateChanged = Signal.new()
 -- pay (their share), quality (the finish, 0-1), preference, crew (how many of them), wonBack
 -- (the customer was won back from TurfKing and paid a bonus), stars (1-3), tip (what the customer
 -- tipped them on top of their share, 0 for none), junkPicked (pieces of junk picked up on the
--- lawn) }. Their best stars for the job are in their save by then (SeasonService counts the
--- three-star jobs from it).
+-- lawn), findPicked (the Finds they picked up there, 1 or 0) }. Their best stars for the job are in
+-- their save by then (SeasonService counts the three-star jobs from it).
 JobService.JobFinished = Signal.new()
 
 local rng = Random.new()
@@ -559,12 +569,48 @@ end
 
 -- Job lifecycle ------------------------------------------------------------------------------
 
+-- "a Marble", "an Old Key".
+local function withArticle(name: string): string
+	return if string.find(name, "^[AEIOUaeiou]") then `an {name}` else `a {name}`
+end
+
+-- Rolls whether the job's lawn hides a Find (Finds.roll), by the leader's luck: their three-star run,
+-- Buster, and a sure Find owed after a Bonus Day. The seed is the day, the leader and which of the
+-- day's jobs this is for them, so a lawn can't be rerolled by calling the job off. A lawn with no
+-- junk (the first-timer's FirstMow) hides none. The owed Find is spent once one is in the grass.
+local function placeFind(job, template)
+	local leader = job.party.leader
+	local data = leader and DataService:Get(leader)
+	if not (data and job.lawn) or Debris.countFor(template) == 0 then
+		return
+	end
+	local luck = data.findLuck
+	local count = typeof(data.daily) == "table" and data.daily.count
+	local done = if typeof(count) == "table" and typeof(count.jobs) == "number" then count.jobs else 0
+	local seed = Finds.seed(Daily.dayKey(Clock.now()), leader.UserId, done + 1)
+	local id = Finds.roll(seed, job.offer.tier, {
+		run = luck.run,
+		buster = data.buster.owned,
+		owed = luck.owed,
+	})
+	if id and job.lawn:PlaceFind(id, Random.new(seed)) and luck.owed then
+		luck.owed = false
+		DataService:Changed(leader)
+	end
+end
+
 -- Builds the job's yard at a free site, with the crew's truck (job.truckId, trailerId and paintId)
--- parked out front.
+-- parked out front, and maybe a Find in its grass.
 local function buildSite(job)
 	job.slot = claimSlot()
 	local origin = GameConfig.JobSiteOrigin + Vector3.new(job.slot * GameConfig.JobSiteSpacing, 0, 0)
-	job.lawn = LawnService:Build(Jobs.get(job.offer.templateId), origin, job.offer.address, { soil = job.soil })
+	local template = Jobs.get(job.offer.templateId)
+	job.lawn = LawnService:Build(template, origin, job.offer.address, { soil = job.soil })
+	-- A Find is a bonus: if hiding one goes wrong, the job goes ahead without it.
+	local placed, err = pcall(placeFind, job, template)
+	if not placed then
+		warn(`Couldn't hide a Find on job {job.id}: {err}`)
+	end
 
 	local truck = Assets.truck(job.truckId, job.trailerId)
 	Premium.applyPaint(truck, if job.paintId then Premium.get(job.paintId) else nil)
@@ -687,6 +733,8 @@ local function completeJob(job)
 	local debris = job.lawn:DebrisCounts()
 	quality = math.max(0, quality - (debris.left + debris.hit) * GameConfig.DebrisQualityHit)
 	job.penalty += debris.left * debrisPenalty(job)
+	-- A Find still in the grass is lost with the job. It costs nothing; the pay panel just says so.
+	local lostFind = job.lawn:LoseFind()
 	local weights = Jobs.Preferences[job.preference]
 	local total = GameConfig.jobPay({
 		basePay = job.offer.payout,
@@ -727,7 +775,8 @@ local function completeJob(job)
 	local performance = Stars.round(GameConfig.performance(quality, elapsed, job.offer.parTime, weights))
 	local penalized = (debris.left + debris.hit) > 0 or job.damageCount > 0
 	local stars = Stars.of(performance, penalized)
-	local tip = math.floor(share * Stars.tipRate(stars))
+	-- The wedding band given back adds to it (returnTip, see PickUpFind).
+	local tip = math.floor(share * Stars.tipRate(stars)) + (job.returnTip or 0)
 
 	job.result = {
 		basePay = job.offer.payout,
@@ -756,14 +805,20 @@ local function completeJob(job)
 		stars = stars,
 		tip = tip,
 		customer = job.offer.customer,
+		-- The name of a Find left in the grass, lost with the job (a note on the pay panel), or nil.
+		findLost = if lostFind then lostFind.name else nil,
 	}
 
 	for _, member in members do
 		-- Their best stars on this kind of job, in the save before anything else hears the job is done.
+		-- A three-star job adds to their run of them (the Finds' luck, up to Finds.RunCap); anything
+		-- less starts it again.
 		local data = DataService:Get(member)
 		if data then
 			local templateId = job.offer.templateId
 			data.stars[templateId] = math.max(data.stars[templateId] or 0, stars)
+			local luck = data.findLuck
+			luck.run = if stars == 3 then math.min(luck.run + 1, Finds.RunCap) else 0
 		end
 		-- Job pay and the tip are money they earned (it counts toward the Earned milestones), each paid
 		-- only when there's something to pay.
@@ -793,6 +848,8 @@ local function completeJob(job)
 			tip = tip,
 			-- Pieces of junk picked up on the lawn, for the day's contracts (DailyService).
 			junkPicked = debris.picked,
+			-- The Find they picked up on the lawn (Keep or Return), for the day's Finds contract.
+			findPicked = if job.findPickedBy == member then 1 else 0,
 		})
 	end
 
@@ -890,6 +947,12 @@ local function settle(job, player: Player, result, options: WorkOptions, snip: b
 			)
 		end
 	end
+	-- A mower chewed up the Find: it's gone, and only the one mowing hears it. No pay is lost (the blade
+	-- still takes the hit, in ToolService).
+	if result.chewed then
+		job.dirty = true
+		notify(player, `You chewed up {withArticle(result.chewed.name)}. Buster would have found it.`)
+	end
 	job.work += result.work
 	job.fitWork += result.fitWork
 	job.qualityWork += result.qualityWork * (options.qualityScale or 1)
@@ -941,8 +1004,8 @@ end
 -- Called by ToolService every tick a mower's deck, `halfWidth` studs either side, moves over the
 -- job's lawn: from where it was last tick to where it is now, in world studs (see Lawn:Sweep).
 -- Takes the same options as ApplyWork and returns the same, plus whether junk in the grass stopped
--- the deck short (only a mower that isn't motorized stops at it) and whether the mower can mow
--- the lawn at all (it fits the mowing), cut or not.
+-- the deck short (only a mower that isn't motorized stops at it), whether the mower can mow the lawn
+-- at all (it fits the mowing), cut or not, and whether it just chewed up the lawn's Find.
 function JobService:Sweep(
 	player: Player,
 	fromX: number,
@@ -952,17 +1015,17 @@ function JobService:Sweep(
 	halfWidth: number,
 	toolId: string,
 	options: WorkOptions
-): (boolean, { any }?, boolean, boolean)
+): (boolean, { any }?, boolean, boolean, boolean)
 	local job = playerJobs[player]
 	if not job or job.state ~= "Working" then
-		return false, nil, false, false
+		return false, nil, false, false, false
 	end
 	if options.damagesHazards then
 		wreckHazards(job, player, Vector3.new(toX, 0, toZ), halfWidth)
 	end
 	local result = job.lawn:Sweep(fromX, fromZ, toX, toZ, halfWidth, toolId, workContext(player, options))
 	local changed, struck = settle(job, player, result, options, false)
-	return changed, struck, result.debris ~= nil, result.fits == true
+	return changed, struck, result.debris ~= nil, result.fits == true, result.chewed ~= nil
 end
 
 -- Called by ToolService for every snip of hand shears: the grass within `radius` of (x, z), in
@@ -1020,6 +1083,72 @@ function JobService:PickUpDebris(player: Player, thing: Instance): (boolean, str
 		if left == 0
 			then `Picked up the {debris.kind.name}. That's everything out of the grass.`
 			else `Picked up the {debris.kind.name}. {left} more hidden in the grass.`
+end
+
+-- Picks up the Find in the grass that `thing` is part of (the client says what the player's looking
+-- at; the server checks it's on their job's lawn and within reach). The first of the crew to ask
+-- gets it: the lawn lets go of it before anything here could yield, and anyone after is told someone
+-- beat them to it. It goes in their own save: found once more, and held unless they `giveBack` the
+-- wedding band (its customer adds BAND_TIP to the job's tip) or June's locket (her scene plays when
+-- they're home, and her rocker gets its cushion); any other Find is simply kept. A set it completes
+-- is marked complete here, so its card plays (SetCompleted) instead of the save cleaner adding it
+-- quietly. FindPicked tells the player's screen what they found, for the card.
+function JobService:PickUpFind(player: Player, thing: Instance?, giveBack: boolean): (boolean, string?)
+	local character = player.Character
+	local head = character and character:FindFirstChild("Head")
+	local job = playerJobs[player]
+	if not (head and head:IsA("BasePart") and job and job.state == "Working" and job.lawn) then
+		return false, nil
+	end
+	local find, reason = job.lawn:PickUpFind(thing, head.Position, PICK_UP_REACH)
+	if not find then
+		return false, reason
+	end
+	job.findPickedBy = player
+	job.dirty = true
+	local returned = giveBack and Finds.canReturn(find.id)
+	local note = nil
+	if returned and find.id == "WeddingBand" then
+		job.returnTip = (job.returnTip or 0) + BAND_TIP
+		note = `{job.offer.customer} is adding {Format.money(BAND_TIP)} to the tip.`
+	elseif returned then
+		note = "It's June's. She'll want to see it when you're home."
+	end
+
+	local data = DataService:Get(player)
+	if not data then
+		return true, nil
+	end
+	local entry = data.finds[find.id] or { found = 0, held = 0 }
+	data.finds[find.id] = entry
+	entry.found += 1
+	if not returned then
+		entry.held += 1
+	end
+	local newSets = Finds.newlyComplete(data.finds, data.sets)
+	for _, setId in newSets do
+		data.sets[setId] = true
+	end
+	local cushion = returned and find.id == "JuneLocket"
+	if cushion and typeof(data.flags) == "table" then
+		data.flags.RockerCushion = true
+	end
+	DataService:Changed(player)
+	Net.event("FindPicked"):FireClient(player, { id = find.id, kept = not returned, note = note })
+	for _, setId in newSets do
+		for _, set in Finds.Sets do
+			if set.id == setId then
+				Net.event("SetCompleted"):FireClient(player, { id = set.id, name = set.name, text = set.text })
+			end
+		end
+	end
+	if cushion then
+		WorldService:RefreshCushion(player)
+		-- StoryService requires this module, so it's looked up now rather than at the top (every
+		-- service has loaded long before anyone picks anything up).
+		require(script.Parent.StoryService):PlayScene(player, "LocketReturn")
+	end
+	return true, nil
 end
 
 -- The player put a tool away: a barrow load they were pushing spills.
@@ -1313,6 +1442,15 @@ function JobService:Init()
 		end
 		lastPickUp[player] = os.clock()
 		return self:PickUpDebris(player, thing)
+	end
+	-- And a Find, by the same rules (E keeps it, R gives the band or the locket back). `thing` may come
+	-- as nil when someone else got there first and its model is gone; PickUpFind says so.
+	Net.func("PickUpFind").OnServerInvoke = function(player, thing, giveBack)
+		if (thing ~= nil and typeof(thing) ~= "Instance") or os.clock() - (lastPickUp[player] or 0) < 0.2 then
+			return false, nil
+		end
+		lastPickUp[player] = os.clock()
+		return self:PickUpFind(player, thing, giveBack == true)
 	end
 end
 

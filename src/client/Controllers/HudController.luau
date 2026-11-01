@@ -29,7 +29,7 @@
 --   * the pay breakdown when a job's done, and the big moments: Level Up! (when the server says
 --     what the level paid, LevelReward), New Tool!, and a Payday for the Bonus Day (BonusDay) and
 --     for each day's gift claimed (StreakAdvanced), and a toast for an unclaimed gift the day turn
---     paid (StreakGiftPaid);
+--     paid (StreakGiftPaid); a Find picked up and a set completed (Hud/FindCards);
 --   * a clean stripe (GrassController.StripDone: a mower pass of 30 studs or more with no blade hit) is
 --     cheered in the middle of the screen by a tilted gold NICE STRIPE! (or CLEAN CUT!, PERFECT LINE! in
 --     turn), at most once every 8 seconds and never over a menu, the pay panel or a scene: cosmetic, it
@@ -1073,6 +1073,12 @@ local function showPay(job)
 	if hit > 0 then
 		table.insert(notes, `{hit} chewed up by a mower.`)
 	end
+	-- A Find nobody picked up went with the job (it cost nothing).
+	local lost = result.findLost
+	if typeof(lost) == "string" then
+		local article = if string.find(lost, "^[AEIOU]") then "An" else "A"
+		table.insert(notes, `{article} {lost} was left in the grass and lost.`)
+	end
 	UI.label(table.concat(notes, " "), {
 		Size = UDim2.fromScale(1, 0),
 		AutomaticSize = Enum.AutomaticSize.Y,
@@ -1328,6 +1334,9 @@ function HudController:Start()
 	Net.event("BonusDay").OnClientEvent:Connect(onBonusDay)
 	Net.event("StreakAdvanced").OnClientEvent:Connect(onStreakAdvanced)
 	Net.event("StreakGiftPaid").OnClientEvent:Connect(onGiftPaid)
+	-- A Find picked up and a set completed get their cards in turn with the rest (Hud/FindCards, required
+	-- here to keep this file's top level where it was).
+	require(Hud.FindCards).start(afterTitleCard)
 	UI.TitleCardDone:Connect(playHeld)
 	-- The clean-stripe splash keeps off the pay panel.
 	Splash.start(function()

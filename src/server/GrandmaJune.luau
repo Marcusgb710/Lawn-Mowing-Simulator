@@ -1,6 +1,7 @@
 -- Grandma June on her porch rocker, beside the shop on every business plot (docs/STORY.md). Look
 -- at her and press E (or tap the button) to talk: StoryService picks what she says, and her
--- speech bubble shows on your screen (DialogueController). WorldService puts her on each plot.
+-- speech bubble shows on your screen (DialogueController). WorldService puts her on each plot,
+-- with a cushion on her rocker once the plot's owner has given her mother's locket back (addCushion).
 --
 -- The chair is Story/PorchRockingChair. June herself is her rig, NPC_June_Sitting: CastService
 -- builds the people from Config/Cast.luau when the server starts, and she sits in the chair with
@@ -131,6 +132,35 @@ function GrandmaJune.build(ground: CFrame, withPorch: boolean?): (Model, Model?)
 	model:SetAttribute("InteractText", "Talk")
 	model:SetAttribute("InteractName", "Grandma June")
 	return model, porch
+end
+
+-- The cushion on her rocker's back, once the player has given her mother's locket back (a Find, the
+-- flag RockerCushion). A block in the rocker's frame, against the back behind her, until a real
+-- one is modelled. Adding it to a June who has one already does nothing.
+local CUSHION_NAME = "RockerCushion"
+local CUSHION_SIZE = Vector3.new(1.9, 1.3, 0.3)
+local CUSHION_AT = CFrame.new(0, 2.65, 0.78) * CFrame.Angles(math.rad(10), 0, 0)
+local CUSHION_COLOR = Color3.fromRGB(196, 72, 64)
+
+function GrandmaJune.addCushion(model: Model)
+	local anchor = model:FindFirstChild("Anchor")
+	if model:FindFirstChild(CUSHION_NAME) or not (anchor and anchor:IsA("BasePart")) then
+		return
+	end
+	local cushion = Instance.new("Part")
+	cushion.Name = CUSHION_NAME
+	cushion.Size = CUSHION_SIZE
+	-- The Anchor stands where the rocker does, on her seat's floor.
+	cushion.CFrame = anchor.CFrame * CUSHION_AT
+	cushion.Color = CUSHION_COLOR
+	cushion.Material = Enum.Material.Fabric
+	cushion.TopSurface = Enum.SurfaceType.Smooth
+	cushion.BottomSurface = Enum.SurfaceType.Smooth
+	cushion.Anchored = true
+	cushion.CanCollide = false
+	cushion.CanQuery = false
+	cushion.CanTouch = false
+	cushion.Parent = model
 end
 
 return GrandmaJune

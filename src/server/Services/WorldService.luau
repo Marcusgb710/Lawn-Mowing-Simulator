@@ -620,6 +620,10 @@ local function buildPlot(plot)
 	end
 	local june, porch = GrandmaJune.build(at(juneX, 0, juneZ) * CFrame.Angles(0, JUNE_TURN, 0), withPorch)
 	june:SetAttribute("OwnerUserId", owner.UserId)
+	-- The cushion on her rocker, once they've given her mother's locket back (see RefreshCushion).
+	if WorldService:HasCushion(owner) then
+		GrandmaJune.addCushion(june)
+	end
 	june.Parent = model
 	if porch then
 		porch.Parent = model
@@ -873,6 +877,24 @@ function WorldService:RefreshPennant(player: Player)
 	local truck = plot and (plot.awayTruck or WorldService:GetPlotTruck(player))
 	if truck and WorldService:HasPennant(player) then
 		Assets.addPennant(truck)
+	end
+end
+
+-- Whether this player gave Grandma June her mother's locket back (a Find returned, JobService sets
+-- the flag RockerCushion), so her rocker on their plot has its cushion.
+function WorldService:HasCushion(player: Player): boolean
+	local data = DataService:Get(player)
+	local flags = data and data.flags
+	return flags ~= nil and flags.RockerCushion == true
+end
+
+-- Puts the cushion on June's rocker on this player's plot if they've earned it, without rebuilding
+-- the plot (the RefreshPennant pattern). JobService calls this when the locket goes back.
+function WorldService:RefreshCushion(player: Player)
+	local plot = playerPlots[player]
+	local june = plot and plot.model and plot.model:FindFirstChild("GrandmaJune")
+	if june and june:IsA("Model") and WorldService:HasCushion(player) then
+		GrandmaJune.addCushion(june)
 	end
 end
 

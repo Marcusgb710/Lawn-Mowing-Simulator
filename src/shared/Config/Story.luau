@@ -325,6 +325,36 @@ Story.Scenes = {
 			},
 		},
 	},
+	-- The player found June's locket in a job lawn's grass and gave it back to her (a Find, see
+	-- Config/Finds.luau and JobService). It plays once they're home, on her porch, and her rocker gets
+	-- a cushion (flags.RockerCushion).
+	LocketReturn = {
+		caption = "Grandma June's porch",
+		lines = {
+			{
+				speaker = "June",
+				mood = "Proud",
+				shot = "June",
+				bubble = true,
+				text = "Well, would you look at that. That's my mother's locket.",
+			},
+			{
+				speaker = "June",
+				mood = "Proud",
+				text = "It went missing the summer of the '94 contest. I turned this whole street over looking for it.",
+			},
+			{
+				speaker = "June",
+				mood = "Laughing",
+				text = "Thirty years in somebody's grass, and it still shines better than Gloria's trophy.",
+			},
+			{
+				speaker = "June",
+				mood = "Laughing",
+				text = "Mother always said my rocker needed a cushion. It's getting one tonight.",
+			},
+		},
+	},
 }
 
 -- The acts, in order. Each one after the first starts as soon as ANY of its `startsWhen` is true

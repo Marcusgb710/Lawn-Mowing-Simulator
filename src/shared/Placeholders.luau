@@ -2,6 +2,7 @@
 -- Nothing else in the game depends on what these look like, so feel free to delete them later.
 
 local Decorations = require(script.Parent.Config.Decorations)
+local Finds = require(script.Parent.Config.Finds)
 local Items = require(script.Parent.Config.Items)
 local Tools = require(script.Parent.Config.Tools)
 
@@ -1630,6 +1631,56 @@ PROP_BUILDERS.DebrisFrisbee = function(model: Model)
 		CFrame = CFrame.new(0, 0.04, 0) * CFrame.Angles(0, 0, math.rad(90)),
 		Color = Color3.fromRGB(240, 130, 30),
 	})
+end
+
+-- The Finds (Config/Finds.luau), until their models land: a small block in the Find's colour with
+-- its name on a billboard over it and a slow sparkle, so a player can spot it on the grass. Built
+-- like the junk: origin on the ground at the centre, a "Root" part and a `<Id>__Body`. LawnService
+-- stands it on the uncut grass's tops.
+local FIND_BLOCK = Vector3.new(0.7, 0.7, 0.7)
+local FIND_LABEL_DISTANCE = 40
+local FIND_SPARKLE = Color3.fromRGB(255, 240, 180)
+
+local function findBuilder(find: Finds.Find)
+	return function(model: Model)
+		local add = debrisAdder(model, find.id)
+		local body = add({
+			Size = FIND_BLOCK,
+			Position = Vector3.new(0, FIND_BLOCK.Y / 2, 0),
+			Color = Color3.fromRGB(find.color[1], find.color[2], find.color[3]),
+			Material = Enum.Material.SmoothPlastic,
+		})
+		local label = Instance.new("BillboardGui")
+		label.Name = "Label"
+		label.Size = UDim2.fromOffset(160, 26)
+		label.StudsOffsetWorldSpace = Vector3.new(0, 1.1, 0)
+		label.MaxDistance = FIND_LABEL_DISTANCE
+		label.LightInfluence = 0
+		label.Parent = body
+		local text = Instance.new("TextLabel")
+		text.Size = UDim2.fromScale(1, 1)
+		text.BackgroundTransparency = 1
+		text.Text = find.name
+		text.TextSize = 16
+		text.Font = Enum.Font.GothamBold
+		text.TextColor3 = Color3.new(1, 1, 1)
+		text.TextStrokeTransparency = 0.4
+		text.Parent = label
+		-- A few motes a second: enough to catch the eye, cheap on a phone.
+		local sparkle = Instance.new("ParticleEmitter")
+		sparkle.Name = "Sparkle"
+		sparkle.Rate = 3
+		sparkle.Lifetime = NumberRange.new(0.6, 1)
+		sparkle.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.3), NumberSequenceKeypoint.new(1, 0) })
+		sparkle.Speed = NumberRange.new(0.5, 1.5)
+		sparkle.SpreadAngle = Vector2.new(180, 180)
+		sparkle.LightEmission = 1
+		sparkle.Color = ColorSequence.new(FIND_SPARKLE)
+		sparkle.Parent = body
+	end
+end
+for _, find in Finds.List do
+	PROP_BUILDERS[find.id] = findBuilder(find)
 end
 
 -- Job computer desks, one per business tier.

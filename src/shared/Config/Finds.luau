@@ -526,6 +526,22 @@ function Finds.rarest(finds: any, count: number): { string }
 	return ids
 end
 
+-- The Finds somebody lost and would want back: the player can Keep one or Return it (the band to the
+-- customer for a tip, the locket to June). Every other Find is simply kept.
+local RETURNABLE = { WeddingBand = true, JuneLocket = true }
+
+-- Whether this Find offers Keep or Return when it is picked up.
+function Finds.canReturn(id: string): boolean
+	return typeof(id) == "string" and RETURNABLE[id] == true
+end
+
+-- The most three-star jobs in a row the roll counts (`findLuck.run` never goes past it).
+Finds.RunCap = RUN_CAP
+
+-- How much of a blade's edge a Find takes when a motor mower chews it up: as much as a stick or a toy
+-- truck in the grass (Debris.luau `wear`).
+Finds.ChewWear = 0.15
+
 -- The words for a card or a toast when a Find is picked up: "Rare find: Silver Dollar" and its story.
 -- An id that is not a Find has none.
 function Finds.cardText(id: string): (string, string)

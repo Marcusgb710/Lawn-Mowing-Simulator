@@ -15,6 +15,9 @@
 --   DriveToJob   heads off in the crew truck
 --   PickUpDebris picks up junk hidden in a lawn's grass, whatever's in your hands (see
 --                Config/Debris.luau)
+--   PickUpFind   picks up the Find in a job lawn's grass (Config/Finds.luau), whatever's in your
+--                hands; one marked Returnable (the wedding band, June's locket) is E Keep or
+--                R Return it
 --   Talk         talks to Grandma June on her porch (see DialogueController)
 --   PickUp       takes one of your tools out of storage (ToolId)
 --   PutBack      puts what you're carrying back in this free spot (SpotKind, SpotIndex)
@@ -106,6 +109,7 @@ local ACTION_ICONS = {
 	TakeSupply = "PickUp",
 	PutBackSupply = "PutBack",
 	PickUpDebris = "PickUp",
+	PickUpFind = "PickUp",
 	Talk = "Talk",
 	DriveToJob = "Truck",
 	UseComputer = "Jobs",
@@ -318,6 +322,17 @@ local function targetFor(thing: Instance, item, hit: Instance?): Target?
 		return { action = "PutBackSupply", text = text, name = item.name, fits = true }
 	elseif action == "PickUpDebris" or action == "Talk" then
 		return { action = action, text = text, name = name, fits = true, instance = thing }
+	elseif action == "PickUpFind" then
+		return {
+			action = action,
+			text = text,
+			name = name,
+			fits = true,
+			instance = thing,
+			second = if thing:GetAttribute("Returnable") == true
+				then { action = "ReturnFind", text = "Return it" }
+				else nil,
+		}
 	elseif action == "DriveToJob" or action == "UseComputer" then
 		if item then
 			return nil
@@ -655,6 +670,9 @@ local function perform(target: Target, second: boolean)
 			_, message = invoke("DriveToJob")
 		elseif action == "PickUpDebris" then
 			_, message = invoke("PickUpDebris", target.instance)
+		elseif action == "PickUpFind" or action == "ReturnFind" then
+			-- Its card comes with FindPicked (HudController's FindCards); a reason it didn't work comes here.
+			_, message = invoke("PickUpFind", target.instance, action == "ReturnFind")
 		elseif action == "PickUp" then
 			_, message = invoke("PickUpTool", target.toolId)
 		elseif action == "Unload" then

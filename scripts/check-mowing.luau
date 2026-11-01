@@ -545,6 +545,42 @@ check(not table.find(HomeLawn.decode("10", 32, 16), true), "tile flags without t
 check(not table.find(HomeLawn.decode("10", 32, 16, 6), true), "rows that don't divide into tiles are all not done")
 check(HomeLawn.encode(spread) == string.rep("1", 16) .. string.rep("0", 16), "what was spread saves back per cell")
 
+-- Where a Find may go ------------------------------------------------------------------------------
+
+-- A Find goes on a cell at least 4 cells from every piece of junk, across or deep (the way junk is
+-- kept apart from itself), so it is never mistaken for junk or stopped behind it.
+do
+	local junk = { LawnGrid.index(5, 5, 10) }
+	local candidates = {
+		LawnGrid.index(5, 5, 10),
+		LawnGrid.index(5, 8, 10),
+		LawnGrid.index(5, 9, 10),
+		LawnGrid.index(1, 1, 10),
+		LawnGrid.index(2, 2, 10),
+		LawnGrid.index(8, 2, 10),
+		LawnGrid.index(9, 9, 10),
+	}
+	local clear = LawnGrid.clearOf(candidates, junk, 10, 4)
+	check(table.find(clear, LawnGrid.index(5, 5, 10)) == nil, "a Find never goes on a junk cell")
+	check(table.find(clear, LawnGrid.index(5, 8, 10)) == nil, "3 rows from junk is too close for a Find")
+	check(table.find(clear, LawnGrid.index(2, 2, 10)) == nil, "3 across and 3 deep from junk is too close")
+	check(table.find(clear, LawnGrid.index(5, 9, 10)) ~= nil, "4 rows from junk is far enough")
+	check(table.find(clear, LawnGrid.index(1, 1, 10)) ~= nil, "4 across from junk is far enough")
+	check(table.find(clear, LawnGrid.index(8, 2, 10)) == nil, "3 across and 3 deep the other way is too close")
+	check(table.find(clear, LawnGrid.index(9, 9, 10)) ~= nil, "4 across and 4 deep is far enough")
+	check(#clear == 3 and clear[1] == LawnGrid.index(5, 9, 10), "the clear cells keep the order they came in")
+	check(#LawnGrid.clearOf(candidates, {}, 10, 4) == #candidates, "with no junk every candidate is clear")
+	check(#LawnGrid.clearOf({}, junk, 10, 4) == 0, "no candidates, nowhere to go")
+	local crowd = {}
+	for column = 0, 9 do
+		table.insert(crowd, LawnGrid.index(column, 0, 10))
+	end
+	check(
+		#LawnGrid.clearOf({ LawnGrid.index(4, 2, 10) }, crowd, 10, 4) == 0,
+		"a row of junk closes off the rows near it"
+	)
+end
+
 -- How many cells finish a task ---------------------------------------------------------------------
 
 check(LawnGrid.needed(1000, 0, 0.99) == 990 and LawnGrid.needed(1000, 100, 0.99) == 891, "needed rounds up")

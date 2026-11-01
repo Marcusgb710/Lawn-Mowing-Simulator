@@ -1742,6 +1742,19 @@ do
 	local noTitle, noSubtitle = Finds.cardText("Nope")
 	check(noTitle == "" and noSubtitle == "", "an unknown id has no card")
 
+	-- Keep or Return: only the wedding band and June's locket can go back to whoever lost them.
+	check(Finds.canReturn("WeddingBand") and Finds.canReturn("JuneLocket"), "the band and the locket can go back")
+	local returnable = 0
+	for _, find in Finds.List do
+		if Finds.canReturn(find.id) then
+			returnable += 1
+		end
+	end
+	check(returnable == 2, `only two Finds can go back ({returnable})`)
+	check(not Finds.canReturn("Nope") and not Finds.canReturn(nil :: any), "nothing else can go back")
+	-- Chewed up by a mower, a Find dulls the blade like junk does: within the junk's own range.
+	check(Finds.ChewWear > 0 and Finds.ChewWear <= 0.3, `a chewed Find wears the blade like junk ({Finds.ChewWear})`)
+
 	-- cleanSave: fills the four keys and cleans whatever is there.
 	local blank = Finds.cleanSave(nil)
 	check(
