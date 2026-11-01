@@ -3215,14 +3215,14 @@ do
 		has(world, wanted, `WorldService's finds shelf doesn't have {wanted}`)
 	end
 	local jobs = fs.readFile("src/server/Services/JobService.luau")
-	local from = string.find(jobs, "function JobService:PickUpFind(", 1, true)
+	local from = string.find(jobs, "function JobService:GiveFind(", 1, true)
 	local to = if from then string.find(jobs, "\nend\n", from, true) else nil
-	check(from ~= nil and to ~= nil, "JobService has no PickUpFind")
+	check(from ~= nil and to ~= nil, "JobService has no GiveFind")
 	if from and to then
 		has(
 			string.sub(jobs, from, to),
 			"pcall(WorldService.RefreshShelf, WorldService, player)",
-			"JobService:PickUpFind doesn't restock the finds shelf inside a pcall"
+			"JobService:GiveFind doesn't restock the finds shelf inside a pcall"
 		)
 	end
 	has(fs.readFile("src/shared/Assets.luau"), "Props/FindsShelf", "Assets' header doesn't list Props/FindsShelf")

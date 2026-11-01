@@ -2,8 +2,10 @@
 -- jump to an act, replay the intro, start the story over, start as a first-timer again, get some
 -- money, set your level, tidy your own lawn, and open Best Yard's first judging day without the
 -- wait. Three more move the days along (the server's Clock, so it is the day for everyone in the
--- test): the next day, the next Saturday, and the leaderboards read again. The server only runs
--- them in Studio, so in a live game the remote does nothing.
+-- test): the next day, the next Saturday, and the leaderboards read again. Two more are for Finds:
+-- one goes straight into your save (the rarity changes on each press, so every card can be seen),
+-- and one hides a Find in the grass of the job you are on. Buster comes with Level 5. The server only
+-- runs them in Studio, so in a live game the remote does nothing.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -12,12 +14,14 @@ local RunService = game:GetService("RunService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Contest = require(Shared.Config.Contest)
 local Daily = require(Shared.Daily)
+local Finds = require(Shared.Config.Finds)
 local Format = require(Shared.Format)
 local GameConfig = require(Shared.Config.GameConfig)
 local Net = require(Shared.Net)
 local Story = require(Shared.Config.Story)
 
 local Clock = require(script.Parent.Parent.Clock)
+local CompanionService = require(script.Parent.CompanionService)
 local ContestService = require(script.Parent.ContestService)
 local DailyService = require(script.Parent.DailyService)
 local DataService = require(script.Parent.DataService)
@@ -26,6 +30,7 @@ local JobService = require(script.Parent.JobService)
 local LeaderboardService = require(script.Parent.LeaderboardService)
 local PartyService = require(script.Parent.PartyService)
 local StoryService = require(script.Parent.StoryService)
+local WorldService = require(script.Parent.WorldService)
 
 -- The amounts of money the panel can give.
 local MONEY = { [1000] = true, [10000] = true }
@@ -36,6 +41,9 @@ local CALL_OFF_WAIT = GameConfig.TravelTime + 5
 -- A day, and the time of day (UTC) Saturday lands on: noon, so the whole of the day is still ahead.
 local SECONDS_PER_DAY = 86400
 local NOON = 12 * 3600
+-- How many times each player has pressed the two Find shortcuts: the rarity goes round on each press.
+local given: { [Player]: number } = setmetatable({}, { __mode = "k" }) :: any
+local hidden: { [Player]: number } = setmetatable({}, { __mode = "k" }) :: any
 
 local StudioTestService = {}
 
@@ -60,6 +68,22 @@ local function turnTheDay()
 			end
 		end
 	end
+end
+
+-- The Find for a player's next press, counted in `counts`: the rarities in turn (Common, Uncommon, Rare,
+-- Legendary, then round again), and of each rarity a Find that goes round too, so the same card doesn't
+-- come up twice running. Returns its id.
+local function nextFind(counts: { [Player]: number }, player: Player): string
+	local turn = (counts[player] or 0) + 1
+	counts[player] = turn
+	local rarity = Finds.RarityOrder[(turn - 1) % #Finds.RarityOrder + 1]
+	local ofRarity = {}
+	for _, find in Finds.List do
+		if find.rarity == rarity then
+			table.insert(ofRarity, find.id)
+		end
+	end
+	return ofRarity[math.floor((turn - 1) / #Finds.RarityOrder) % #ofRarity + 1]
 end
 
 -- What the Saturday shortcut tells a player about their judging day, at the Clock's time.
@@ -127,6 +151,22 @@ local TESTS = {
 		end
 		-- What the level rewards set on them goes with the save.
 		player:SetAttribute("GoldSign", nil)
+		-- And so do the Finds' fixtures: Buster and what is on the finds shelf (a problem restocking
+		-- them is only a warning).
+		local fixtures = {
+			function()
+				CompanionService:Refresh(player)
+			end,
+			function()
+				WorldService:RefreshShelf(player)
+			end,
+		}
+		for _, restock in fixtures do
+			local ok, problem = pcall(restock)
+			if not ok then
+				warn(`StudioTestService: couldn't reset the Finds' fixtures: {problem}`)
+			end
+		end
 		-- The story's reset with the save; sending it no texts tells their screen (no scene is
 		-- queued, so the intro waits for the first payday).
 		StoryService:SendTexts(player, {})
@@ -158,6 +198,34 @@ local TESTS = {
 			return true, `Level {level}.`
 		end
 		return true, `Level {level}, nothing new to claim.`
+	end,
+	-- A Find into their save by the same path as a kept pickup (JobService:GiveFind): its card, its
+	-- set, the shelf at the business and the Finds Book all follow. The rarity changes on each press.
+	GiveFind = function(player: Player)
+		local id = nextFind(given, player)
+		if not JobService:GiveFind(player, id, true, nil) then
+			return false, "Your save isn't loaded yet."
+		end
+		local find = Finds.get(id)
+		return true, `Gave you {find.name} ({find.rarity}).`
+	end,
+	-- A Find in the grass of the job they're on, if the lawn has none (and hasn't had one this job),
+	-- so Buster, the sparkle and the pickup can be seen without waiting for a lucky roll.
+	LawnFind = function(player: Player)
+		local job = JobService:GetJob(player)
+		local lawn = job and job.state == "Working" and job.lawn
+		if not lawn then
+			return false, "Start a job and get to the lawn first."
+		end
+		local state = lawn:FindState()
+		if state then
+			return false, if state.there then "This lawn already has a Find." else "This lawn's Find is already gone."
+		end
+		local id = nextFind(hidden, player)
+		if not lawn:PlaceFind(id, Random.new()) then
+			return false, "There's no room for a Find on this lawn."
+		end
+		return true, `A {Finds.get(id).rarity} Find is hidden in the grass.`
 	end,
 	Money = function(player: Player, amount)
 		if not MONEY[amount] then

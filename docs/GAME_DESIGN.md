@@ -1107,6 +1107,8 @@ jobs of 3). A milestone pays the moment it is reached:
 - Money earned: $500, $2,000, $10,000, $50,000 and $250,000. They pay nothing, and the rail stamps
   them.
 - Three-star jobs: 1, 5, 25 and 100, paying $25 each.
+- Finds found: 1, 10 and 30 different ones, paying $50, $250 and $1,500, and the first Finds set,
+  paying $300 (see "Finds" below).
 
 On a phone held sideways the rail is the story goal alone, and the nearest milestone is the Next
 chip under curb appeal.
@@ -1126,7 +1128,7 @@ Saved as data version 13: `earned`, `stars`, `milestones`, `levelRewards` and `f
 ### Tomorrow
 
 **Today's contracts** (`Config/Contracts.luau`). Three contracts a day, new at 00:00 UTC: always
-one Mow, one Earn, and one more that is Junk or Stars, which the day's seed picks (the same player
+one Mow, one Earn, and one more that is Junk, Finds or Stars, which the day's seed picks (the same player
 gets the same three all day). What each asks and pays depends on the level band:
 
 | Level | Mow (lawns) | Earn | Junk (pieces) | Stars (three-star jobs) | Pays each |
@@ -1137,7 +1139,7 @@ gets the same three all day). What each asks and pays depends on the level band:
 | 12 and up | 5 | $3,000 | 8 | 2 | $900 |
 
 A contract pays the moment it is met, once. Finishing all three pays the **Bonus Day**, $500 more.
-They count what you do that day: jobs finished, three-star jobs, junk picked up, and money earned
+They count what you do that day: jobs finished, three-star jobs, junk and Finds picked up, and money earned
 (tips, the streak's cash and the Bonus Day too). The mailbox at the curb (`Props/CurbMailbox`) and
 the Contracts square on the HUD's left (with its count badge) both open the panel.
 
@@ -1178,6 +1180,108 @@ claimed) came later without a version bump: a save without it starts it at its `
 day was paid as it was kept. Everything that depends on the day asks the server's `Clock`
 (`src/server/Clock.luau`): `os.time()` plus an offset that only Studio can set, from the test panel's
 Next day and Jump to Saturday.
+
+### Finds
+
+Some of what lies in the grass is not junk. Thirty Finds (`Config/Finds.luau`) turn up now and
+then: a bottle cap, a class ring, a wedding band, a golden gnome. Each has a name, a one-line story
+in June's world and a rarity, and the rarity says what it is worth and how often it comes up.
+
+| Rarity | How many | Chance of a roll | Sells for | Frame |
+| --- | --- | --- | --- | --- |
+| Common | 12 | 70% | $10 | grey |
+| Uncommon | 10 | 22% | $40 | green |
+| Rare | 6 | 7% | $200 | blue |
+| Legendary | 2 | 1% | $1,000 | gold |
+
+The Commons are a Bottle Cap, Lost Tennis Ball, Broken Sprinkler Head, Old Key, Dog Tag, Marble,
+Golf Ball, Toy Soldier, Seashell, Birthday Candle, Screwdriver and Bent Spoon. The Uncommons are a
+Class Ring, Pocket Knife, Old Phone, Arrowhead, Lucky Horseshoe, 1980s Cassette, Wedding Band, Jar
+of Coins, Vintage Lighter and Compass. The Rares are a Silver Dollar, Fossil Shell, Meteorite Chip,
+Antique Watch, Message in a Bottle and the 1994 Best Yard Medal. The two Legendaries are the Golden
+Gnome and Grandma June's Locket.
+
+**The roll.** A job's lawn is rolled once, when the job is built, with the crew leader's luck. The
+chance depends on the job's tier: 35% for a homeowner job, 50% for a serious one and 65% for a pro
+one. Every three-star job in a row adds 5 points (up to three, so 15), and Buster adds 10 and
+rerolls a Common once, keeping the better of the two. The first job after a Bonus Day is a sure
+Find. The roll is seeded by the day, the leader and how many jobs they have done that day, so
+calling a job off and taking it again gives the same lawn the same answer. Your own lawn never
+hides one, and neither does a lawn with no junk (the first job's strip).
+
+**On the lawn.** A Find lies in the uncut grass with a small sparkle, so a sharp-eyed player can
+spot it, on a cell that is not beside the flowers and at least 4 cells from any junk. Look at it
+and press **E** (or tap the button) to pick it up, from as far as junk (12 studs). It is not junk:
+it is not in the junk count, there is no penalty for leaving it and it has no dot on the lawn map.
+On a crew job, whoever asks first gets it, and anyone a moment behind is told "Someone already
+picked it up." A motorized mower that runs over it chews it up ("You chewed up a Marble. Buster
+would have found it."): the blade loses as much edge as a stick would cost, the engine stalls, the
+Find is gone, and the pay is not docked. A Find still in the grass when the job ends is lost, and
+the pay panel says which.
+
+**Keep or Return.** Two Finds belong to somebody. The Wedding Band and June's Locket offer **E** to
+Keep and **R** to Return it. Giving the band back adds $250 to the customer's tip, split across the
+crew. Giving June her locket plays her scene (it is in `docs/STORY.md`) when you are next home, and the
+first time puts a cushion on her rocker. Either way the Find counts as found;
+only keeping it puts it in your hands.
+
+**Cards.** A pick-up plays the Find chime and a toast ("Rare find: Silver Dollar", with its story).
+A Rare or Legendary one gets a big moment as well. A set completing gets its own moment.
+
+**The Finds Book.** The shop computer has a sixth app, Finds. It is a scrolling book of the thirty:
+a dark cell with a question mark until found, then its name, rarity frame and how many you hold.
+Tap one for its story. A Find you hold has a Sell button that wants a second tap within three
+seconds (like the shop's) and pays the rarity's price as plain money, not earned. A Find you sold or
+gave back stays found, so the book and the sets keep it. Under the grid are the five sets with how
+far along each is and what it will do.
+
+**Sets.** A set is done when every member has been found once. It completes once, with a "Set
+complete!" card, and its perk lasts for good:
+
+| Set | Members | Perk |
+| --- | --- | --- |
+| Playground | Tennis Ball, Marble, Golf Ball, Toy Soldier, Birthday Candle, Cassette | pick-up reach +2 studs |
+| Pocket | Bottle Cap, Old Key, Dog Tag, Bent Spoon, Screwdriver, Pocket Knife, Old Phone, Lighter | pay +3% |
+| Garden | Sprinkler Head, Seashell, Arrowhead, Horseshoe, Compass, Fossil Shell | flower bed damage costs half (gnomes still cost full) |
+| Treasure | Class Ring, Wedding Band, Jar of Coins, Silver Dollar, Meteorite Chip, Antique Watch, Message in a Bottle | pay +5% |
+| Maple Grove | 1994 Best Yard Medal, Golden Gnome, June's Locket | the gold business sign, early |
+
+The two pay perks add (both is +8%). The pay panel shows them as a "Finds sets" line and the job
+card as a Sets pill. A crew is paid on its leader's sets, and a set finished on a job pays from the
+next one.
+
+**Goals and contracts.** The goals rail gains four goals: your first Find pays $50, ten different
+Finds $250, all thirty $1,500, and your first set $300. Today's contracts gain a third flavour,
+"Pick up a Find", so the third contract is Junk, Finds or Stars, a third each.
+
+**The shelf.** A finds shelf (`Props/FindsShelf`) stands at your business beside the desk and shows
+your rarest twelve held Finds, rarest first. It restocks when you keep a Find or sell one, without
+rebuilding the business.
+
+Saved as data version 15: `finds` (for each Find, how many you have found and how many you hold),
+`sets`, `buster` and `findLuck` (the three-star run, and whether a sure Find is owed). A save from
+before, or a scrambled one, is cleaned on every load by `Finds.cleanSave`.
+
+### Buster
+
+Level 5 pays $500 and gives you Buster the dog, who is yours for good (a save already past level 5
+gets him when it loads). `CompanionService` runs one per owner, on the server so every player sees
+him, with his name on a billboard over him.
+
+- **At the business** he sits on the ground beside June's porch, clear of the doorway and the desk.
+- **In the truck** he rides in the bed on the drive, and the truck and he move as one piece.
+- **On a job** he trots between grass cells in short runs with rests between them. He never goes
+  within 6 studs of a player holding a motorized mower, nor by a way that passes closer, nor over
+  anything that is not grass, and he runs off a little when a mower comes near.
+- **He finds the Find.** Once a job, a little after he reaches the lawn, if it hides a Find he
+  trots to it, sits beside it and barks. The Find is then marked, and the lawn map shows a gold
+  dot where it is. If a mower cuts him off he tries again a little later, and if the Find is picked
+  up or chewed before he gets there he just carries on.
+- **He helps the roll.** With Buster the chance of a Find goes up 10 points and a Common is
+  rerolled once.
+
+He has no bark sound yet (`Sounds.Ids.Bark` is empty), and his model is a block placeholder until
+`Props/Buster` lands.
 
 ## 12. The HUD
 

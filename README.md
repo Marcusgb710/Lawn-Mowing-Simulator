@@ -242,16 +242,20 @@ src/shared/                  -> ReplicatedStorage.Shared   code used by both ser
   Config/Story.luau             the story (docs/STORY.md): every line, beat and act gate
   Config/TurfKing.luau          TurfKing taking jobs off your board, and customers won back from it
   Config/Contest.luau           the Best Yard contest: scoring, Gloria's bar, rewards, when it's on
-  Config/Milestones.luau        the goals rail's milestones (jobs, money earned, three-star jobs) and what each pays
+  Config/Milestones.luau        the goals rail's milestones (jobs, money earned, three-star jobs, Finds, Finds sets) and what each pays
   Config/Levels.luau            what each level pays: cash, a truck tint, the gold sign, a HUD stamp
   Config/Stars.luau             how a job's performance earns one to three stars, and the tip they bring
   Config/Contracts.luau         the day's three contracts by level band, what each pays and the Bonus Day
   Config/Streak.luau            the login streak: what each of its seven days pays, and when a day counts
   Config/Season.luau            the Busy Season's part of the save, and who still counts as a first-timer
+  Config/Finds.luau             the thirty Finds, their rarities, sets and perks, the roll that hides one in a lawn,
+                                and the cleaner for the save's Finds keys
   Config/Settings.luau          the Settings window's three choices (sound, camera motion, grass detail): what is
                                 allowed, what a bad value becomes, and the shell count for each grass detail
   Config/GuiArt.luau            GENERATED: the GUI art's image ids, slices, palette and bitmap fonts
                                 (scripts/gui-art-ids.py; see HANDOFF.md, "GUI art")
+  DogWalk.luau                  where Buster runs next on a job lawn: a cell clear of every mower, by a way that
+                                keeps clear too
   Strip.luau                    the maths of a clean stripe (the pass that makes the HUD's NICE STRIPE! splash)
   Daily.luau                    what day it is in UTC: the day key, Saturday and the midnights, told the moment
   GuiLayout.luau                the GUI's layout maths: bitmap text, the hold ring, striped fills
@@ -280,6 +284,7 @@ src/server/                  -> ServerScriptService.Server
   Services/SeasonService        paying each milestone and level reward once, and telling the screen
   Services/DailyService         the day's contracts and the login streak, and paying them
   Services/LeaderboardService   the two leaderboards on the sign at spawn, kept in OrderedDataStores
+  Services/CompanionService     Buster, the dog level 5 gives: at the porch, on a job lawn, in the truck bed
 src/client/                  -> StarterPlayer.StarterPlayerScripts.Client
   init.client.luau              starts every controller
   Controllers/                  HUD, shop computer (jobs, orders, business), truck checklist, carrying tools, crew menu,
@@ -287,6 +292,7 @@ src/client/                  -> StarterPlayer.StarterPlayerScripts.Client
                                 the Messages app, Gloria's yard as your act has it, and the Best
                                 Yard contest's judges and results screen
   Controllers/LevelsController  the Levels panel: your level, and what the next five levels pay
+  Controllers/FindsController   the Finds Book, the shop computer's sixth app: the thirty Finds, the five sets, and Sell
   Controllers/ContractsController
                                 the contracts panel: today's three, the Bonus Day and the streak
   Controllers/LeaderboardController
@@ -302,7 +308,8 @@ src/client/                  -> StarterPlayer.StarterPlayerScripts.Client
                                 level, streak and countdown), MenuSquares (the four left squares and the
                                 Contracts badge), RightStrip (Shop, Gifts, Top Lawns, Settings), JobCard
                                 (the job card and boost pills), LawnMap (the lawn map under them, cut and
-                                uncut) and Splash (the clean-stripe cheer)
+                                uncut), Splash (the clean-stripe cheer) and FindCards (the toast and
+                                moment when you pick up a Find or finish a set)
   Juicy.luau                    the front-page HUD's look drawn in code: faces, buttons, pills, badges, text, and
                                 the hover, press and click feel for any button (Juicy.juice)
   JuicyPalette.luau             the colours Juicy draws with (plain data, so scripts/check-gui can read it)

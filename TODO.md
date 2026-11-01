@@ -596,6 +596,49 @@ The spec's playtest checklist for slice 2, with what to expect:
 - [ ] Pennant on the drive cutscene's truck once a real `Props/TruckPennant` model lands: the trip
       info must `Assets.shareWith` the model so the client can build it.
 
+## Busy Season, slice 3: to check
+
+Slice 3 is Finds and Buster (design: `docs/superpowers/specs/2026-10-29-busy-season-design.md`,
+plan: `docs/superpowers/plans/2026-11-01-busy-season-slice-3.md`): thirty Finds in the grass, the
+Finds Book and the shelf, five sets with small perks, and Buster the dog at level 5. The Lune checks
+cover the tables, the save, the roll, the story text and the layout (`check-season`, `check-story`,
+`check-gui`). Nothing here has been seen or heard in a playtest yet. The test panel (K) has two
+shortcuts for it: **Give a Find** puts one in your save by the same path as a kept pickup (the
+rarity goes Common, Uncommon, Rare, Legendary on each press, so every card can be seen), and
+**Find on this lawn** hides one in the grass of the job you are on. **Level 5** gives Buster.
+
+- [ ] A Find on a job lawn: spot it in the grass (the sparkle), pick it up with E, and see the
+      pickup card (the chime and the toast; a Rare or Legendary one also gets a moment). It is not
+      in the job card's junk count and has no dot on the lawn map.
+- [ ] Keep and Return for the wedding band: Return it and see the tip line on the pay panel
+      ("+$250"); on a crew job, the split.
+- [ ] Keep and Return for June's locket: Return it, finish the job, and get her scene on the porch
+      once you are home; the rocker has a cushion afterwards (and a second locket returned plays
+      nothing new).
+- [ ] Chewing a Find with a motor mower: the notice ("You chewed up ... Buster would have found
+      it."), the engine stall and the blade wear, and no pay penalty for it.
+- [ ] A Find left in the grass at job end: the pay panel's note says it was lost.
+- [ ] The Finds Book on PC and phone: the grid (a question mark until found), a Find's story on
+      tap, Sell with its two taps (and the back-out after three seconds), and the book updating
+      live while it is open (give a Find with the panel and watch the cell fill in).
+- [ ] A set completing: the "Set complete!" card, its perk on the pay panel ("Finds sets") and the
+      Sets pill on the job card; the Maple Grove set also puts the gold business sign up.
+- [ ] Five boost pills on a phone crew job (Business, Curb, Truck, Crew and Sets): two rows, not
+      three.
+- [ ] The shelf at each business building: where it stands against the desk (clearance), the Finds
+      on their spots, and the restock after you keep a Find and after you sell one.
+- [ ] Buster at level 5: his spot by the porch, wandering a job lawn, keeping clear of a mower
+      held by anyone, finding the Find (he sits by it and barks), the gold dot on the lawn map
+      once he has, and riding in the truck bed on the drive, with the truck and him moving as one
+      piece.
+- [ ] A two-player crew pickup race: both reach for the same Find and exactly one gets it; the
+      other is told it is gone.
+- [ ] Owed: a Bark sound id (`Sounds.Ids.Bark` is empty, so Buster barks silently).
+- [ ] Model wanted: `Props/FindsShelf`, the shelf at the business (a block placeholder until then).
+- [ ] Model wanted: `Props/Buster`, the dog (a block placeholder until then).
+- [ ] Models wanted: the thirty Finds, one `Props/<Id>` each (block placeholders until then; the
+      list is in `assets/README.md`).
+
 ## Front-page HUD: to check
 
 The play screen was rebuilt as a front-page Roblox simulator HUD (design: `docs/GAME_DESIGN.md`, "12.

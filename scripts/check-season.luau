@@ -2123,10 +2123,30 @@ do
 		has(fromJoin, "Finds.signEarly(data.sets)") and has(fromJoin, 'player:SetAttribute("GoldSign", true)'),
 		"joining with Maple Grove done gives the gold sign, as a claimed level 20 does"
 	)
+	-- A kept pickup and the Studio panel's Give a Find both go through JobService:GiveFind.
+	local fromGive = string.match(jobService, "function JobService:GiveFind%(.-\nend\n") or ""
 	local fromPickUp = string.match(jobService, "function JobService:PickUpFind%(.-\nend\n") or ""
 	check(
-		has(fromPickUp, "Finds.signEarly(data.sets)") and has(fromPickUp, 'player:SetAttribute("GoldSign", true)'),
+		has(fromGive, "Finds.signEarly(data.sets)") and has(fromGive, 'player:SetAttribute("GoldSign", true)'),
 		"completing Maple Grove gives the gold sign at once"
+	)
+	check(
+		has(fromPickUp, "self:GiveFind(player, find.id, not returned, note)"),
+		"a Find picked up from the lawn is saved by JobService:GiveFind"
+	)
+	local studioService = fs.readFile("src/server/Services/StudioTestService.luau")
+	local studioController = fs.readFile("src/client/Controllers/StudioTestController.luau")
+	check(
+		has(studioService, "JobService:GiveFind(player, id, true, nil)") and has(studioService, "lawn:PlaceFind(id, "),
+		"the Studio panel's Give a Find and Find on this lawn use the same paths as play"
+	)
+	check(
+		has(studioController, 'run("GiveFind")') and has(studioController, 'run("LawnFind")'),
+		"the Studio panel has Give a Find and Find on this lawn buttons"
+	)
+	check(
+		has(dailyService, "data.findLuck.owed = true"),
+		"finishing all three contracts (the Bonus Day) owes a sure Find on the next job"
 	)
 	check(
 		has(dailyService, "counts.finds = (counts.finds or 0) + ((info and info.findPicked) or 0)"),

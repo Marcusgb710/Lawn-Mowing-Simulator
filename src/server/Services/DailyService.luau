@@ -178,6 +178,8 @@ local function payDone(player: Player, data)
 		end
 		if not daily.bonus and allDone(daily) then
 			daily.bonus = true
+			-- The Bonus Day also owes them a sure Find on their next job (JobService's roll spends it).
+			data.findLuck.owed = true
 			DataService:Changed(player)
 			DataService:Earn(player, Contracts.BonusCash)
 			Net.event("BonusDay"):FireClient(player, { cash = Contracts.BonusCash })

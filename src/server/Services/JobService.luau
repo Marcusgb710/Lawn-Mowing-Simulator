@@ -1130,6 +1130,69 @@ function JobService:PickUpDebris(player: Player, thing: Instance): (boolean, str
 			else `Picked up the {debris.kind.name}. {left} more hidden in the grass.`
 end
 
+-- Puts a Find in the player's save: found once more, and held when `kept` (a wedding band or locket
+-- given back counts as found, and nothing more). A set it completes is marked complete here, so its
+-- card plays (SetCompleted) instead of the save cleaner adding it quietly, and its perk starts
+-- (Maple Grove's gold sign at once, the others from the next job). The first locket given back plays
+-- June's scene (when they're home) and gives her rocker its cushion. FindPicked tells the player's
+-- screen what they found, for the card, with `note` under it. PickUpFind uses it for a pickup on the
+-- lawn, and so does the Studio panel's Give a Find, so both go the same way. False when their save
+-- isn't loaded.
+function JobService:GiveFind(player: Player, id: string, kept: boolean, note: string?): boolean
+	local data = DataService:Get(player)
+	if not data then
+		return false
+	end
+	local entry = data.finds[id] or { found = 0, held = 0 }
+	data.finds[id] = entry
+	entry.found += 1
+	if kept then
+		entry.held += 1
+	end
+	local newSets = Finds.newlyComplete(data.finds, data.sets)
+	for _, setId in newSets do
+		data.sets[setId] = true
+	end
+	-- June's scene plays and her rocker gets its cushion the first time only: another locket given
+	-- back after that is just found again.
+	local cushion = not kept
+		and id == "JuneLocket"
+		and typeof(data.flags) == "table"
+		and data.flags.RockerCushion ~= true
+	if cushion then
+		data.flags.RockerCushion = true
+	end
+	-- Maple Grove brings the gold business sign early, the way level 20 does (SeasonService gives
+	-- it again on every join, from the save's sets).
+	if #newSets > 0 and Finds.signEarly(data.sets) then
+		player:SetAttribute("GoldSign", true)
+	end
+	DataService:Changed(player)
+	-- A kept Find may be among their rarest, so the shelf at the business is restocked (the player is
+	-- out on the job, but the shelf is there when they get back). A problem there never costs the pickup.
+	if kept then
+		local ok, problem = pcall(WorldService.RefreshShelf, WorldService, player)
+		if not ok then
+			warn(`The finds shelf could not be restocked: {problem}`)
+		end
+	end
+	Net.event("FindPicked"):FireClient(player, { id = id, kept = kept, note = note })
+	for _, setId in newSets do
+		for _, set in Finds.Sets do
+			if set.id == setId then
+				Net.event("SetCompleted"):FireClient(player, { id = set.id, name = set.name, text = set.text })
+			end
+		end
+	end
+	if cushion then
+		WorldService:RefreshCushion(player)
+		-- StoryService requires this module, so it's looked up now rather than at the top (every
+		-- service has loaded long before anyone picks anything up).
+		require(script.Parent.StoryService):PlayScene(player, "LocketReturn")
+	end
+	return true
+end
+
 -- Picks up the Find in the grass that `thing` is part of (the client says what the player's looking
 -- at; the server checks it's on their job's lawn and within reach). The first of the crew to ask
 -- gets it: the lawn lets go of it before anything here could yield, and anyone after is told someone
@@ -1138,8 +1201,7 @@ end
 -- locket (the first time, her scene plays when they're home and her rocker gets its cushion); any
 -- other Find is simply kept. A set it completes is marked complete here, so its card plays
 -- (SetCompleted) instead of the save cleaner adding it quietly, and its perk starts (Maple Grove's
--- gold sign at once, the others from the next job). FindPicked tells the player's screen what they
--- found, for the card.
+-- gold sign at once, the others from the next job); GiveFind does the saving and the telling.
 function JobService:PickUpFind(player: Player, thing: Instance?, giveBack: boolean): (boolean, string?)
 	local character = player.Character
 	local head = character and character:FindFirstChild("Head")
@@ -1166,57 +1228,7 @@ function JobService:PickUpFind(player: Player, thing: Instance?, giveBack: boole
 		note = "It's June's. She'll want to see it when you're home."
 	end
 
-	local data = DataService:Get(player)
-	if not data then
-		return true, nil
-	end
-	local entry = data.finds[find.id] or { found = 0, held = 0 }
-	data.finds[find.id] = entry
-	entry.found += 1
-	if not returned then
-		entry.held += 1
-	end
-	local newSets = Finds.newlyComplete(data.finds, data.sets)
-	for _, setId in newSets do
-		data.sets[setId] = true
-	end
-	-- June's scene plays and her rocker gets its cushion the first time only: another locket given
-	-- back after that is just found again.
-	local cushion = returned
-		and find.id == "JuneLocket"
-		and typeof(data.flags) == "table"
-		and data.flags.RockerCushion ~= true
-	if cushion then
-		data.flags.RockerCushion = true
-	end
-	-- Maple Grove brings the gold business sign early, the way level 20 does (SeasonService gives
-	-- it again on every join, from the save's sets).
-	if #newSets > 0 and Finds.signEarly(data.sets) then
-		player:SetAttribute("GoldSign", true)
-	end
-	DataService:Changed(player)
-	-- A kept Find may be among their rarest, so the shelf at the business is restocked (the player is
-	-- out on the job, but the shelf is there when they get back). A problem there never costs the pickup.
-	if not returned then
-		local ok, problem = pcall(WorldService.RefreshShelf, WorldService, player)
-		if not ok then
-			warn(`The finds shelf could not be restocked: {problem}`)
-		end
-	end
-	Net.event("FindPicked"):FireClient(player, { id = find.id, kept = not returned, note = note })
-	for _, setId in newSets do
-		for _, set in Finds.Sets do
-			if set.id == setId then
-				Net.event("SetCompleted"):FireClient(player, { id = set.id, name = set.name, text = set.text })
-			end
-		end
-	end
-	if cushion then
-		WorldService:RefreshCushion(player)
-		-- StoryService requires this module, so it's looked up now rather than at the top (every
-		-- service has loaded long before anyone picks anything up).
-		require(script.Parent.StoryService):PlayScene(player, "LocketReturn")
-	end
+	self:GiveFind(player, find.id, not returned, note)
 	return true, nil
 end
 
