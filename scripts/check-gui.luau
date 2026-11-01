@@ -3127,6 +3127,64 @@ do
 	end
 end
 
+-- The finds shelf (slice 3, ruling 10) --------------------------------------------------------------
+
+-- A shelf at the business shows the player's rarest twelve held Finds. Its placeholder is three rows of
+-- four spots (Spot1 to Spot12), WorldService places it like the Workbench and keeps it stocked
+-- (RefreshShelf), and the two paths that change what's held (a kept pickup, a sale) restock it inside a
+-- pcall, so a shelf problem never costs a pickup or a sale. Assets and the README list the new props.
+do
+	local function has(source: string, wanted: string, message: string)
+		check(string.find(source, wanted, 1, true) ~= nil, message)
+	end
+	local placeholders = fs.readFile("src/shared/Placeholders.luau")
+	for _, wanted in
+		{
+			"PROP_BUILDERS.FindsShelf = function(model: Model)",
+			"local SHELF_SIZE = Vector3.new(6, 6, 1.5)",
+			"local SHELF_COLUMNS = 4",
+			"local SHELF_ROWS = { 0.4, 2.3, 4.2 }",
+			"`Spot{(row - 1) * SHELF_COLUMNS + column}`",
+		}
+	do
+		has(placeholders, wanted, `Placeholders' finds shelf doesn't have {wanted}`)
+	end
+	local world = fs.readFile("src/server/Services/WorldService.luau")
+	for _, wanted in
+		{
+			'Assets.prop("FindsShelf")',
+			"markers.mounts.FindsShelf",
+			'shelf.Name = "FindsShelf"',
+			"stockShelf(shelf, data.finds)",
+			"function WorldService:RefreshShelf(player: Player)",
+			"Finds.rarest(finds, SHELF_COUNT)",
+			"local SHELF_COUNT = 12",
+			"pcall(standOnShelf, findId, frame, display)",
+			':IsA("ParticleEmitter")',
+			"descendant.CanQuery = false",
+		}
+	do
+		has(world, wanted, `WorldService's finds shelf doesn't have {wanted}`)
+	end
+	local jobs = fs.readFile("src/server/Services/JobService.luau")
+	local from = string.find(jobs, "function JobService:PickUpFind(", 1, true)
+	local to = if from then string.find(jobs, "\nend\n", from, true) else nil
+	check(from ~= nil and to ~= nil, "JobService has no PickUpFind")
+	if from and to then
+		has(
+			string.sub(jobs, from, to),
+			"pcall(WorldService.RefreshShelf, WorldService, player)",
+			"JobService:PickUpFind doesn't restock the finds shelf inside a pcall"
+		)
+	end
+	has(fs.readFile("src/shared/Assets.luau"), "Props/FindsShelf", "Assets' header doesn't list Props/FindsShelf")
+	local readme = fs.readFile("assets/README.md")
+	has(readme, "`Props/FindsShelf`", "assets/README.md doesn't list Props/FindsShelf as wanted")
+	for _, find in require("../src/shared/Config/Finds").List do
+		has(readme, `\`{find.id}\``, `assets/README.md doesn't list the Find {find.id} as wanted`)
+	end
+end
+
 -- The art's own files, when there's a copy to read ------------------------------------------------
 
 local guiFolder = process.args[1] or "art-source/GUI"

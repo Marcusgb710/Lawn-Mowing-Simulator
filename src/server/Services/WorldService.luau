@@ -21,6 +21,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Assets = require(Shared.Assets)
+local Finds = require(Shared.Config.Finds)
 local GameConfig = require(Shared.Config.GameConfig)
 local Items = require(Shared.Config.Items)
 local Premium = require(Shared.Config.Premium)
@@ -67,6 +68,18 @@ local TAILGATE_TIME = 0.6
 local COMPUTER_REACH = 8
 -- The building's own machines, for its Compressor and Grinder mounts.
 local SHOP_MACHINES = { Compressor = "AirCompressor", Grinder = "BenchGrinder" }
+-- The finds shelf (Props/FindsShelf) where a building has no FindsShelf mount: in plot space, in the
+-- desk's row (the same z as the fallback desk) and 9.5 studs along +X from it, toward the driveway.
+-- That is 3.5 studs past the desk's edge (its widest, the office desk, reaches x = -19), 4.5 short of
+-- the driveway's left edge (x = -5 at its narrowest), well right of the workbench (x = -31, z = -2),
+-- clear of the delivery patch (x = 11 and up), June's porch (right of the building) and the lawn
+-- (z = -8 and beyond). Its back is toward the building, so it reads from the street like the desk.
+local SHELF_FALLBACK_X = -12.5
+-- The shelf shows this many Finds, rarest first (Finds.rarest), each scaled down to fit this room (a
+-- spot's width, height and depth in studs). A shelf Find's name shows from this far away.
+local SHELF_COUNT = 12
+local SHELF_SPOT = Vector3.new(1.2, 1.4, 1.2)
+local SHELF_LABEL_DISTANCE = 10
 -- Grandma June's porch (or just her rocker, see GrandmaJune) stands to the right of the building,
 -- leaving JUNE_GAP of ground between them, its middle JUNE_AHEAD in front of the building's
 -- front, turned JUNE_TURN toward the driveway. Beside an older building, whose delivery boxes
@@ -486,6 +499,64 @@ local function decorArea(plot, model: Model)
 	model:SetAttribute("DecorArea", HttpService:JSONEncode(plot.decor))
 end
 
+-- Stands one Find on the shelf at `frame` (a spot's place, its front toward -Z): the Find's model
+-- scaled down to fit a spot, anchored and out of the way of every query and touch, with no Interact
+-- (it is a keepsake, not something to pick up) and no sparkle (that is how the grass shows one).
+local function standOnShelf(findId: string, frame: CFrame, parent: Instance)
+	local model = Assets.prop(findId)
+	local size = model:GetExtentsSize()
+	local fit = math.min(1, SHELF_SPOT.X / size.X, SHELF_SPOT.Y / size.Y, SHELF_SPOT.Z / size.Z)
+	if fit < 1 then
+		model:ScaleTo(model:GetScale() * fit)
+	end
+	for _, name in { "Interact", "InteractText", "InteractName" } do
+		model:SetAttribute(name, nil)
+	end
+	for _, descendant in model:GetDescendants() do
+		if descendant:IsA("BasePart") then
+			descendant.Anchored = true
+			descendant.CanCollide = false
+			descendant.CanQuery = false
+			descendant.CanTouch = false
+		elseif descendant:IsA("ParticleEmitter") then
+			descendant:Destroy()
+		elseif descendant:IsA("BillboardGui") then
+			descendant.MaxDistance = SHELF_LABEL_DISTANCE
+		end
+	end
+	Assets.placeOnGround(model, frame)
+	model.Name = findId
+	model.Parent = parent
+end
+
+-- Clears what a shelf shows and stands the player's rarest held Finds on its spots, Spot1 first (an
+-- Attachment, or a Part, named SpotN anywhere in the shelf model). The Finds live in a folder named
+-- Display so the next call can sweep them. One that won't stand up is skipped with a warning: a
+-- shelf problem never costs anyone their plot, their pickup or their sale.
+local function stockShelf(shelf: Model, finds: any)
+	local old = shelf:FindFirstChild("Display")
+	if old then
+		old:Destroy()
+	end
+	local display = Instance.new("Folder")
+	display.Name = "Display"
+	display.Parent = shelf
+	for index, findId in Finds.rarest(finds, SHELF_COUNT) do
+		local spot = shelf:FindFirstChild(`Spot{index}`, true)
+		local frame = if spot and spot:IsA("Attachment")
+			then spot.WorldCFrame
+			elseif spot and spot:IsA("BasePart") then spot.CFrame
+			else nil
+		if not frame then
+			break
+		end
+		local ok, problem = pcall(standOnShelf, findId, frame, display)
+		if not ok then
+			warn(`The finds shelf could not show {findId}: {problem}`)
+		end
+	end
+end
+
 -- Rebuilds everything on a plot to match its owner's business tier, truck and trailer.
 local function buildPlot(plot)
 	if plot.model then
@@ -560,6 +631,18 @@ local function buildPlot(plot)
 	)
 	bench.Name = "Workbench"
 	bench.Parent = model
+	-- The finds shelf, showing their rarest held Finds (see RefreshShelf), beside the desk.
+	local shelf = Assets.prop("FindsShelf")
+	Assets.anchor(shelf)
+	Assets.placeAt(
+		shelf,
+		if markers.mounts.FindsShelf
+			then markers.mounts.FindsShelf[1]
+			else at(SHELF_FALLBACK_X, 0, math.min(4, frontZ - 3))
+	)
+	shelf.Name = "FindsShelf"
+	shelf.Parent = model
+	stockShelf(shelf, data.finds)
 	-- The building's own air compressor and bench grinder, where it has room for them.
 	for kind, toolId in SHOP_MACHINES do
 		local tool = markers.mounts[kind] and Items.get("Supplies", toolId)
@@ -895,6 +978,18 @@ function WorldService:RefreshCushion(player: Player)
 	local june = plot and plot.model and plot.model:FindFirstChild("GrandmaJune")
 	if june and june:IsA("Model") and WorldService:HasCushion(player) then
 		GrandmaJune.addCushion(june)
+	end
+end
+
+-- Restocks the finds shelf at this player's business with their rarest held Finds, without rebuilding
+-- the plot (the RefreshPennant pattern). JobService calls this when they keep a Find, ShopService when
+-- they sell one.
+function WorldService:RefreshShelf(player: Player)
+	local plot = playerPlots[player]
+	local shelf = plot and plot.model and plot.model:FindFirstChild("FindsShelf")
+	local data = DataService:Get(player)
+	if shelf and shelf:IsA("Model") and data then
+		stockShelf(shelf, data.finds)
 	end
 end
 

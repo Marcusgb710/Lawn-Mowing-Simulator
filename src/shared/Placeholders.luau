@@ -1683,6 +1683,63 @@ for _, find in Finds.List do
 	PROP_BUILDERS[find.id] = findBuilder(find)
 end
 
+-- The finds shelf at the business (WorldService), where the player's rarest twelve held Finds
+-- stand: a wooden shelf 6 wide, 6 tall and 1.5 deep, three rows of four. Built like the storage
+-- fixtures: back flat on Z = 0, front toward -Z, bottom at Y = 0, a "Root" part. `Spot1` to
+-- `Spot12` are attachments on Root where a Find's origin goes (on a board's top, facing -Z), top
+-- row first and left to right as you face it, so the rarest end up at the top left. Only the frame
+-- collides; the Finds WorldService stands on it don't.
+local SHELF_SIZE = Vector3.new(6, 6, 1.5)
+local SHELF_WOOD = Color3.fromRGB(150, 110, 70)
+-- Board tops, bottom row first, and the thickness of the base under the bottom one.
+local SHELF_ROWS = { 0.4, 2.3, 4.2 }
+local SHELF_BOARD, SHELF_BASE, SHELF_SIDE = 0.2, 0.4, 0.2
+local SHELF_COLUMNS = 4
+
+PROP_BUILDERS.FindsShelf = function(model: Model)
+	local add = propAdder(model)
+	rootPart(model, add)
+	local width, height, depth = SHELF_SIZE.X, SHELF_SIZE.Y, SHELF_SIZE.Z
+	local function frame(props)
+		props.Name = "FindsShelf__Frame"
+		props.Color = SHELF_WOOD
+		props.Material = Enum.Material.Wood
+		return add(props)
+	end
+	frame({ Size = Vector3.new(width, SHELF_BASE, depth), Position = Vector3.new(0, SHELF_BASE / 2, -depth / 2) })
+	for index, top in SHELF_ROWS do
+		-- The bottom row stands on the base, so only the two above it get a board.
+		if index > 1 then
+			frame({
+				Size = Vector3.new(width, SHELF_BOARD, depth),
+				Position = Vector3.new(0, top - SHELF_BOARD / 2, -depth / 2),
+			})
+		end
+	end
+	frame({
+		Size = Vector3.new(width, SHELF_BOARD, depth),
+		Position = Vector3.new(0, height - SHELF_BOARD / 2, -depth / 2),
+	})
+	for _, side in { -1, 1 } do
+		frame({
+			Size = Vector3.new(SHELF_SIDE, height, depth),
+			Position = Vector3.new(side * (width - SHELF_SIDE) / 2, height / 2, -depth / 2),
+		})
+	end
+	frame({ Size = Vector3.new(width - SHELF_SIDE * 2, height, 0.1), Position = Vector3.new(0, height / 2, -0.05) })
+
+	local gap = (width - SHELF_SIDE * 2) / SHELF_COLUMNS
+	for row = 1, #SHELF_ROWS do
+		-- Spot 1 is on the top board, so the rows are taken from the top down.
+		local top = SHELF_ROWS[#SHELF_ROWS + 1 - row]
+		for column = 1, SHELF_COLUMNS do
+			-- Facing -Z, +X is on your left, so the first column is the one at +X.
+			local x = (SHELF_COLUMNS / 2 + 0.5 - column) * gap
+			marker(model, `Spot{(row - 1) * SHELF_COLUMNS + column}`, CFrame.new(x, top, -depth / 2))
+		end
+	end
+end
+
 -- Job computer desks, one per business tier.
 PROP_BUILDERS.JobLaptopTable = function(model: Model)
 	desk(model, "JobLaptopTable", Vector3.new(4.5, 0, 2.6), Color3.fromRGB(230, 230, 225), 1)

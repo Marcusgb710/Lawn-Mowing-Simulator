@@ -14,7 +14,8 @@
 -- Walk-in buildings (docs/GAME_DESIGN.md, "Immersion") say where everything goes inside with
 -- Attachments in the building model:
 --   Mount          a fixture, with attributes Kind ("Pegboard", "WallRack", "WallHooks",
---                  "Shelf"; "Workbench", "Compressor" and "Grinder" are placed by WorldService)
+--                  "Shelf"; "Workbench", "Compressor", "Grinder" and "FindsShelf" are placed by
+--                  WorldService)
 --                  and Index. Its LookVector points into the room; the fixture's back goes on it.
 --   FloorSpot      a floor spot for a push or walk-behind machine (Index)
 --   EquipmentBay   a bay for a ride-on machine (Index)

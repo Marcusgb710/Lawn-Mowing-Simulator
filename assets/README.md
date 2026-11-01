@@ -76,6 +76,20 @@ a board's size allows), and a `LeaderboardSign__Header` above the boards, which 
 with the sign's name). Until a model is in, the game stands in block placeholders for all three,
 built to the same rules (an invisible `Root`, front toward -Z).
 
+Also wanted: `Props/FindsShelf` (the shelf at the business that shows a player's rarest twelve held
+Finds: about 6 studs wide, 6 tall and 1.5 deep, back flat on Z = 0, front toward -Z, an invisible
+`Root`, and twelve attachments named `Spot1` to `Spot12` on the boards' tops, the top row first and
+left to right as you face the shelf; a building model may also carry a `Mount` of `Kind`
+`FindsShelf` to place it inside) and the thirty Finds, one `Props/<FindId>` each (ids in
+`src/shared/Config/Finds.luau`): `BottleCap`, `TennisBall`, `SprinklerHead`, `OldKey`, `DogTag`,
+`Marble`, `GolfBall`, `ToySoldier`, `Seashell`, `BirthdayCandle`, `Screwdriver`, `BentSpoon`,
+`ClassRing`, `PocketKnife`, `OldPhone`, `Arrowhead`, `Horseshoe`, `Cassette`, `WeddingBand`,
+`CoinJar`, `Lighter`, `Compass`, `SilverDollar`, `FossilShell`, `MeteoriteChip`, `AntiqueWatch`,
+`BottleMessage`, `BestYardMedal`, `GoldenGnome` and `JuneLocket`. Each is small, with its origin
+on the ground at its centre and an invisible `Root` at (0, 0.5, 0). The game lies one in a job
+lawn's grass, and the shelf stands a copy on a spot (scaled down to fit one, never up). Block
+placeholders stand in until they are in.
+
 To run a batch:
 
 1. Add or edit the entries in `manifest/models.json` (the fields are under "The manifest entry").

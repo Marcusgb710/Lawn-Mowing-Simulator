@@ -1176,6 +1176,14 @@ function JobService:PickUpFind(player: Player, thing: Instance?, giveBack: boole
 		player:SetAttribute("GoldSign", true)
 	end
 	DataService:Changed(player)
+	-- A kept Find may be among their rarest, so the shelf at the business is restocked (the player is
+	-- out on the job, but the shelf is there when they get back). A problem there never costs the pickup.
+	if not returned then
+		local ok, problem = pcall(WorldService.RefreshShelf, WorldService, player)
+		if not ok then
+			warn(`The finds shelf could not be restocked: {problem}`)
+		end
+	end
 	Net.event("FindPicked"):FireClient(player, { id = find.id, kept = not returned, note = note })
 	for _, setId in newSets do
 		for _, set in Finds.Sets do
