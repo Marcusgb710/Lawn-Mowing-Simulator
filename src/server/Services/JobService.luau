@@ -775,8 +775,8 @@ local function completeJob(job)
 	local performance = Stars.round(GameConfig.performance(quality, elapsed, job.offer.parTime, weights))
 	local penalized = (debris.left + debris.hit) > 0 or job.damageCount > 0
 	local stars = Stars.of(performance, penalized)
-	-- The wedding band given back adds to it (returnTip, see PickUpFind).
-	local tip = math.floor(share * Stars.tipRate(stars)) + (job.returnTip or 0)
+	-- The wedding band given back adds to it (returnTip, see PickUpFind), split evenly across the crew.
+	local tip = math.floor(share * Stars.tipRate(stars)) + math.floor((job.returnTip or 0) / #members)
 
 	job.result = {
 		basePay = job.offer.payout,
@@ -1089,8 +1089,9 @@ end
 -- at; the server checks it's on their job's lawn and within reach). The first of the crew to ask
 -- gets it: the lawn lets go of it before anything here could yield, and anyone after is told someone
 -- beat them to it. It goes in their own save: found once more, and held unless they `giveBack` the
--- wedding band (its customer adds BAND_TIP to the job's tip) or June's locket (her scene plays when
--- they're home, and her rocker gets its cushion); any other Find is simply kept. A set it completes
+-- wedding band (its customer adds BAND_TIP to the job's tip, split across the crew) or June's
+-- locket (the first time, her scene plays when they're home and her rocker gets its cushion); any
+-- other Find is simply kept. A set it completes
 -- is marked complete here, so its card plays (SetCompleted) instead of the save cleaner adding it
 -- quietly. FindPicked tells the player's screen what they found, for the card.
 function JobService:PickUpFind(player: Player, thing: Instance?, giveBack: boolean): (boolean, string?)
@@ -1109,8 +1110,12 @@ function JobService:PickUpFind(player: Player, thing: Instance?, giveBack: boole
 	local returned = giveBack and Finds.canReturn(find.id)
 	local note = nil
 	if returned and find.id == "WeddingBand" then
+		-- Paid with the tip when the job is done, split across the crew. A job called off after the band
+		-- went back pays no tip at all, so none of this either (an accepted edge case).
 		job.returnTip = (job.returnTip or 0) + BAND_TIP
-		note = `{job.offer.customer} is adding {Format.money(BAND_TIP)} to the tip.`
+		note = if #job.members > 1
+			then `{job.offer.customer} is adding {Format.money(BAND_TIP)} to the tip, split across the crew.`
+			else `{job.offer.customer} is adding {Format.money(BAND_TIP)} to your tip.`
 	elseif returned then
 		note = "It's June's. She'll want to see it when you're home."
 	end
@@ -1129,8 +1134,13 @@ function JobService:PickUpFind(player: Player, thing: Instance?, giveBack: boole
 	for _, setId in newSets do
 		data.sets[setId] = true
 	end
-	local cushion = returned and find.id == "JuneLocket"
-	if cushion and typeof(data.flags) == "table" then
+	-- June's scene plays and her rocker gets its cushion the first time only: another locket given
+	-- back after that is just found again.
+	local cushion = returned
+		and find.id == "JuneLocket"
+		and typeof(data.flags) == "table"
+		and data.flags.RockerCushion ~= true
+	if cushion then
 		data.flags.RockerCushion = true
 	end
 	DataService:Changed(player)

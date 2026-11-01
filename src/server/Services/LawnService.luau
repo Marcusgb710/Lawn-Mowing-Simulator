@@ -2052,12 +2052,12 @@ end
 -- has its Find already, or one with no cell clear of the junk.
 function Lawn:PlaceFind(id: string, rng: Random): boolean
 	local find = Finds.get(id)
-	local task = self.grassTask
-	if not (find and task) or self.home or self.find or self.findGone then
+	local grass = self.grassTask
+	if not (find and grass) or self.home or self.find or self.findGone then
 		return false
 	end
 	local candidates = {}
-	for _, target in task.targets do
+	for _, target in grass.targets do
 		if not target.optional and target.work > 0 then
 			table.insert(candidates, target.index)
 		end
@@ -2071,7 +2071,7 @@ function Lawn:PlaceFind(id: string, rng: Random): boolean
 		return false
 	end
 	local index = clear[rng:NextInteger(1, #clear)]
-	local target = task.byIndex[index]
+	local target = grass.byIndex[index]
 	local model = Assets.prop(find.id)
 	Assets.anchor(model)
 	for _, part in model:GetDescendants() do
