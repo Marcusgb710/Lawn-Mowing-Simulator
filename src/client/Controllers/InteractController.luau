@@ -38,6 +38,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Assets = require(Shared.Assets)
 local BedGrid = require(Shared.BedGrid)
 local BedLayout = require(Shared.BedLayout)
+local Finds = require(Shared.Config.Finds)
 local Maintenance = require(Shared.Config.Maintenance)
 local Net = require(Shared.Net)
 local Service = require(Shared.Service)
@@ -501,6 +502,12 @@ local function parkTarget(root: BasePart): Target?
 	return nil
 end
 
+-- How far from the camera junk and Finds in the grass can be picked up: REACH, plus the Playground
+-- set's studs once it is done (Finds.reachBonus of the profile's sets, as the server adds them).
+local function pickUpReach(profile): number
+	return REACH + Finds.reachBonus(profile and profile.sets)
+end
+
 local function resolve(): Target?
 	local character = player.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart")
@@ -549,6 +556,20 @@ local function resolve(): Target?
 		local wideTarget = wideThing and targetFor(wideThing, item, wide.Instance)
 		if wideTarget then
 			result, thing, target = wide, wideThing, wideTarget
+		end
+	end
+	-- With the Playground set done, junk and Finds in the grass can be picked up from a little further
+	-- (the server's reach grows by the same). Only those: everything else keeps REACH.
+	local farther = if target == nil then pickUpReach(ClientState.profile) else REACH
+	if farther > REACH then
+		local far = workspace:Raycast(origin, direction * farther, rayParams)
+		local farThing = far and interactableOf(far.Instance)
+		local action = farThing and farThing:GetAttribute("Interact")
+		if action == "PickUpDebris" or action == "PickUpFind" then
+			local farTarget = targetFor(farThing, item, far.Instance)
+			if farTarget then
+				result, thing, target = far, farThing, farTarget
+			end
 		end
 	end
 	local here = target and target.action

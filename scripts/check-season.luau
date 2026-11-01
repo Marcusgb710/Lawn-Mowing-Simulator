@@ -67,11 +67,41 @@ check(
 	"stars text"
 )
 
-check(#Milestones.List == 18, "18 milestones")
+check(#Milestones.List == 22, "22 milestones")
 check(Milestones.List[2].id == "Jobs:3" and Milestones.List[2].cash == 30, "3 jobs pays $30")
 check(Milestones.List[9].cash == 2500, "500 jobs is capped at $2500")
 check(Milestones.List[10].kind == "Earned" and Milestones.List[10].cash == 0, "earned milestones pay nothing")
 check(Milestones.List[18].id == "Stars:100" and Milestones.List[18].cash == 2500, "100 three-star jobs pays $2500")
+-- The Finds goals come last, after the stars: the first Find, ten of them, the whole book of thirty
+-- (each counted once, however many times it was found) and the first set.
+local function listed(index: number): any
+	return Milestones.List[index] or {}
+end
+check(
+	listed(19).id == "Finds:1" and listed(19).cash == 50 and listed(19).text == "Pick up your first Find",
+	"the first Find pays $50"
+)
+check(
+	listed(20).id == "Finds:10" and listed(20).cash == 250 and listed(20).text == "Find 10 different Finds",
+	"ten Finds pay $250"
+)
+check(
+	listed(21).id == "Finds:30" and listed(21).cash == 1500 and listed(21).text == "Find all 30 Finds",
+	"all thirty Finds pay $1,500"
+)
+check(
+	listed(22).id == "Sets:1" and listed(22).cash == 300 and listed(22).text == "Complete a Finds set",
+	"the first set pays $300"
+)
+local findGoals = Milestones.reachedBy({ jobs = 0, earned = 0, stars = 0, finds = 10, sets = 1 }, {})
+check(
+	#findGoals == 3 and findGoals[1].id == "Finds:1" and findGoals[2].id == "Finds:10" and findGoals[3].id == "Sets:1",
+	"ten Finds and a set meet the first Find, ten Finds and the first set, in list order"
+)
+check(
+	#Milestones.reachedBy({ jobs = 0, earned = 0, stars = 0 }, {}) == 0,
+	"numbers with no Finds or sets in them meet no Finds goal"
+)
 -- Nearest is the smallest share still to go, (at - have) / at: $500 at 4/5 has 1/5 to go, 3 jobs at
 -- 2/3 has 1/3, so the $500 comes first. With $300 earned ($500 at 3/5, 2/5 to go) the jobs lead.
 local nearest = Milestones.next({ jobs = 2, earned = 400, stars = 0 }, { ["Jobs:1"] = true }, 2)
@@ -93,7 +123,7 @@ check(
 	"milestones already met tie at nothing to go and keep the list's order"
 )
 check(#Milestones.next({ jobs = 0, earned = 0, stars = 0 }, {}, 0) == 0, "asking for none gives none")
-check(#Milestones.next({ jobs = 0, earned = 0, stars = 0 }, {}, 99) == 18, "asking for more gives what there is")
+check(#Milestones.next({ jobs = 0, earned = 0, stars = 0 }, {}, 99) == 22, "asking for more gives what there is")
 local unchanged = #Milestones.List == #listedIds
 for index, id in listedIds do
 	unchanged = unchanged and Milestones.List[index].id == id
@@ -457,7 +487,8 @@ check(
 	fresh14.daily.count.jobs == 0
 		and fresh14.daily.count.earned == 0
 		and fresh14.daily.count.junk == 0
-		and fresh14.daily.count.stars == 0,
+		and fresh14.daily.count.stars == 0
+		and fresh14.daily.count.finds == 0,
 	"a fresh day's counts all start at 0"
 )
 check(
@@ -497,7 +528,8 @@ check(
 	midDay.daily.count.jobs == 0
 		and midDay.daily.count.earned == 0
 		and midDay.daily.count.junk == 0
-		and midDay.daily.count.stars == 0,
+		and midDay.daily.count.stars == 0
+		and midDay.daily.count.finds == 0,
 	"a day with no counts gains them at 0"
 )
 local partial = { money = 0, xp = 0, jobsCompleted = 0, daily = { count = { jobs = 2, earned = 90 } } }
@@ -506,7 +538,8 @@ check(
 	partial.daily.count.jobs == 2
 		and partial.daily.count.earned == 90
 		and partial.daily.count.junk == 0
-		and partial.daily.count.stars == 0,
+		and partial.daily.count.stars == 0
+		and partial.daily.count.finds == 0,
 	"counts that are there are kept and the missing ones start at 0"
 )
 local kept14 = {
@@ -678,6 +711,8 @@ check(
 )
 storedBefore.daily.day = ""
 storedBefore.daily.contracts = {}
+-- The Finds contract's counter is newer than the save, so the save gains it at 0.
+storedBefore.daily.count.finds = 0
 check(
 	sameTable(storedBefore, stored),
 	"and nothing else in it moves: money, xp, the streak, the flags, the contest and what was counted"
@@ -732,13 +767,14 @@ check(table.concat(Contracts.Need.Mow, " ") == "2 3 4 5", "Mow needs by band")
 check(table.concat(Contracts.Need.Earn, " ") == "150 400 1200 3000", "Earn needs by band")
 check(table.concat(Contracts.Need.Junk, " ") == "3 4 6 8", "Junk needs by band")
 check(table.concat(Contracts.Need.Stars, " ") == "1 1 2 2", "Stars needs by band")
+check(table.concat(Contracts.Need.Finds, " ") == "1 1 1 1", "a Finds contract asks for one Find in every band")
 check(table.concat(Contracts.Reward, " ") == "60 150 400 900", "a contract pays 60, 150, 400 or 900 by band")
 check(Contracts.BonusCash == 500, "the Bonus Day pays $500")
 
 -- A level 5 player is in band 2: 3 lawns, $400, and a $150 reward on each.
 local day = Contracts.generate(Contracts.seed("20261029", 1234), 5)
 check(#day == 3 and day[1].id == "Mow" and day[2].id == "Earn", "a day is a Mow, an Earn and one more")
-check(day[3].id == "Junk" or day[3].id == "Stars", "the one more is Junk or Stars")
+check(day[3].id == "Junk" or day[3].id == "Stars" or day[3].id == "Finds", "the one more is Junk, Stars or Finds")
 check(day[1].kind == "Mow" and day[2].kind == "Earn" and day[3].kind == day[3].id, "a contract's kind is its id")
 check(day[1].need == 3 and day[2].need == 400, "band 2 asks for 3 lawns and $400")
 check(day[1].reward == 150 and day[2].reward == 150 and day[3].reward == 150, "band 2 pays $150 a contract")
@@ -766,6 +802,23 @@ check(
 	flavour("Stars", 9).need == 2 and flavour("Stars", 9).text == "Get 2 three-star jobs",
 	"band 3's Stars contract is two three-star jobs"
 )
+check(
+	flavour("Finds", 5).need == 1 and flavour("Finds", 5).text == "Pick up a Find" and flavour("Finds", 5).reward == 150,
+	"band 2's Finds contract is one Find, paid like the others"
+)
+check(
+	flavour("Finds", 12).need == 1 and flavour("Finds", 12).text == "Pick up a Find",
+	"band 4's Finds contract is still one Find"
+)
+-- The third contract is a third each: over 300 seeds in a row, every kind lands between 70 and 130.
+local shares = { Junk = 0, Stars = 0, Finds = 0 }
+for seedNumber = 1, 300 do
+	local kind = Contracts.generate(seedNumber, 5)[3].kind
+	shares[kind] = (shares[kind] or 0) + 1
+end
+for kind, count in shares do
+	check(count >= 70 and count <= 130, `{kind} is the third contract {count} times in 300, not about a third`)
+end
 local firstBand = Contracts.generate(1, 1)
 check(
 	firstBand[1].text == "Mow 2 lawns" and firstBand[2].text == "Earn $150" and firstBand[1].reward == 60,
@@ -788,18 +841,27 @@ local picked = {}
 for seed = 1, 50 do
 	picked[Contracts.generate(seed, 5)[3].kind] = true
 end
-check(picked.Junk == true and picked.Stars == true, "50 seeds in a row give both Junk and Stars")
+check(
+	picked.Junk == true and picked.Stars == true and picked.Finds == true,
+	"50 seeds in a row give Junk, Stars and Finds"
+)
 local pickedByDay = {}
 for offset = 0, 49 do
 	local key = Daily.dayKey(1793232000 + offset * 86400)
 	pickedByDay[Contracts.generate(Contracts.seed(key, 1234), 5)[3].kind] = true
 end
-check(pickedByDay.Junk == true and pickedByDay.Stars == true, "one player gets both Junk and Stars over 50 days")
+check(
+	pickedByDay.Junk == true and pickedByDay.Stars == true and pickedByDay.Finds == true,
+	"one player gets Junk, Stars and Finds over 50 days"
+)
 local pickedByPlayer = {}
 for userId = 1, 50 do
 	pickedByPlayer[Contracts.generate(Contracts.seed("20261029", userId), 5)[3].kind] = true
 end
-check(pickedByPlayer.Junk == true and pickedByPlayer.Stars == true, "50 players on one day get both Junk and Stars")
+check(
+	pickedByPlayer.Junk == true and pickedByPlayer.Stars == true and pickedByPlayer.Finds == true,
+	"50 players on one day get Junk, Stars and Finds"
+)
 
 local seed = Contracts.seed("20261029", 1234)
 check(seed == Contracts.seed("20261029", 1234), "the same day and player give the same seed")
@@ -817,6 +879,8 @@ check(Contracts.have({ kind = "Earn", need = 400 }, { earned = 150 }) == 150, "h
 check(Contracts.have({ kind = "Mow", need = 3 }, { jobs = 2 }) == 2, "Mow counts jobs")
 check(Contracts.have({ kind = "Junk", need = 4 }, { junk = 1 }) == 1, "Junk counts junk")
 check(Contracts.have({ kind = "Stars", need = 2 }, { stars = 5 }) == 2, "Stars counts three-star jobs")
+check(Contracts.have({ kind = "Finds", need = 1 }, { finds = 2 }) == 1, "Finds counts Finds picked up")
+check(Contracts.have({ kind = "Finds", need = 1 }, { junk = 9, stars = 9 }) == 0, "Finds ignores junk and stars")
 check(
 	Contracts.have({ kind = "Junk", need = 4 }, { jobs = 9, earned = 999, stars = 9 }) == 0
 		and Contracts.have({ kind = "Mow", need = 3 }, {}) == 0,
@@ -1532,6 +1596,43 @@ do
 		"Garden halves the flower penalty"
 	)
 	check(Finds.flowerFactor({ Playground = true }) == 1, "other sets leave the flower penalty alone")
+	check(Finds.signEarly({ MapleGrove = true }) == true, "Maple Grove gives the gold sign")
+	check(
+		Finds.signEarly({}) == false
+			and Finds.signEarly({ Pocket = true, Treasure = true, Garden = true, Playground = true }) == false
+			and Finds.signEarly({ MapleGrove = false }) == false
+			and Finds.signEarly(nil) == false,
+		"no other set, a set marked false or no sets at all gives no gold sign"
+	)
+
+	-- What the Finds goals count: each Find found at least once (however many times), and each set done.
+	check(Finds.foundCount({}) == 0 and Finds.foundCount(nil) == 0, "nothing found counts 0")
+	check(
+		Finds.foundCount({ Marble = { found = 3, held = 0 }, OldKey = { found = 1, held = 1 } }) == 2,
+		"two Finds found, one of them three times and sold, count 2"
+	)
+	check(
+		Finds.foundCount({ Marble = { found = 0, held = 0 }, Ghost = { found = 4, held = 4 }, OldKey = "x" }) == 0,
+		"a Find found 0 times, an unknown id or a broken entry does not count"
+	)
+	local wholeBook = {}
+	for _, find in Finds.List do
+		wholeBook[find.id] = { found = 1, held = 0 }
+	end
+	check(Finds.foundCount(wholeBook) == #Finds.List, "the whole book counts all thirty")
+	check(
+		Finds.setCount({}) == 0
+			and Finds.setCount({ Pocket = true, MapleGrove = true }) == 2
+			and Finds.setCount({ Pocket = false, Nope = true }) == 0,
+		"a set counts when it is marked true and is a set"
+	)
+	local bookGoal = nil
+	for _, milestone in Milestones.List do
+		if milestone.id == "Finds:30" then
+			bookGoal = milestone
+		end
+	end
+	check(bookGoal ~= nil and bookGoal.at == #Finds.List, "the last Finds goal is the whole book")
 
 	-- The roll: pure, so the same seed always gives the same answer.
 	local rolls = {}
@@ -1942,6 +2043,47 @@ do
 		check(has(fromSnapshot, `\n\t\t{key} = data.{key}`), `snapshot sends {key}`)
 	end
 	check(not has(dataService, "\u{2014}"), "DataService has no em dashes")
+
+	-- The perks, goals and contract, in the text (the services cannot load here).
+	local jobService = source("src/server/Services/JobService.luau")
+	local seasonService = source("src/server/Services/SeasonService.luau")
+	local dailyService = source("src/server/Services/DailyService.luau")
+	local goal = source("src/client/Goal.luau")
+	local interact = source("src/client/Controllers/InteractController.luau")
+	local fromStats = string.match(seasonService, "local function statsOf%(data%).-\nend\n") or ""
+	check(
+		has(fromStats, "finds = Finds.foundCount(data.finds)") and has(fromStats, "sets = Finds.setCount(data.sets)"),
+		"SeasonService counts the Finds found and the sets done for the milestones"
+	)
+	check(
+		has(goal, "finds = Finds.foundCount(profile.finds)") and has(goal, "sets = Finds.setCount(profile.sets)"),
+		"the goals rail counts the Finds found and the sets done the way the server does"
+	)
+	check(has(goal, 'Finds = "finds"') and has(goal, 'Sets = "sets"'), "the goals rail shows the Finds goals' progress")
+	local fromJoin = string.match(seasonService, "local function onPlayerAdded%(player: Player%).-\nend\n") or ""
+	check(
+		has(fromJoin, "Finds.signEarly(data.sets)") and has(fromJoin, 'player:SetAttribute("GoldSign", true)'),
+		"joining with Maple Grove done gives the gold sign, as a claimed level 20 does"
+	)
+	local fromPickUp = string.match(jobService, "function JobService:PickUpFind%(.-\nend\n") or ""
+	check(
+		has(fromPickUp, "Finds.signEarly(data.sets)") and has(fromPickUp, 'player:SetAttribute("GoldSign", true)'),
+		"completing Maple Grove gives the gold sign at once"
+	)
+	check(
+		has(dailyService, "counts.finds = (counts.finds or 0) + ((info and info.findPicked) or 0)"),
+		"DailyService counts the Finds picked up toward the Finds contract"
+	)
+	local fromWreck = string.match(jobService, "local function wreckHazards%(.-\nend\n") or ""
+	check(
+		has(fromWreck, 'hazard.kind == "FlowerPatch"') and has(fromWreck, "Finds.flowerFactor("),
+		"a wrecked flower patch costs the Garden set's share of the penalty (gnomes cost the whole of it)"
+	)
+	check(has(jobService, "PICK_UP_REACH + Finds.reachBonus("), "the server's pick-up reach adds the Playground perk")
+	check(has(interact, "REACH + Finds.reachBonus("), "the look-at reach for picking up adds the Playground perk")
+	for path, text in { JobService = jobService, SeasonService = seasonService, DailyService = dailyService } do
+		check(not has(text, "\u{2014}"), `{path} has no em dashes`)
+	end
 end
 
 if failures > 0 then

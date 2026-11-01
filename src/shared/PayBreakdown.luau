@@ -1,6 +1,6 @@
 -- The pay breakdown after a job, in dollars: what the job paid, then what the finish, speed, crew,
--- curb appeal, a customer won back from TurfKing and the damage each added or took off, then the
--- customer's tip, adding up to what you earned. JobService works the pay out as one sum
+-- curb appeal, the Finds sets, a customer won back from TurfKing and the damage each added or took
+-- off, then the customer's tip, adding up to what you earned. JobService works the pay out as one sum
 -- (GameConfig.jobPay); this splits its result back into lines for the screen (HudController).
 -- No Roblox requires, so scripts/check-gui.luau can test it with Lune.
 
@@ -25,9 +25,12 @@ function PayBreakdown.lines(result, weights: { quality: number, time: number }):
 	local finishPart = performance - fit - speedPart
 	local business = result.crewBonus * result.truckBonus * result.businessBonus
 	local curb = result.curbBonus or 1
+	-- The crew leader's Finds sets' pay perk (1 for none, or a result from before there were sets).
+	local set = result.setBonus or 1
 	local crewPart = performance * (business - 1)
 	local curbPart = performance * business * (curb - 1)
-	local earned = performance * business * curb
+	local setPart = performance * business * curb * (set - 1)
+	local earned = performance * business * curb * set
 	-- Pay never goes below nothing, so damage only takes what there was.
 	local damage = math.min(result.penalty or 0, earned)
 	local wonBack = result.wonBack or 0
@@ -39,6 +42,7 @@ function PayBreakdown.lines(result, weights: { quality: number, time: number }):
 		{ label = "Speed bonus", amount = round(speedPart) },
 		{ label = "Crew, truck and business", amount = round(crewPart) },
 		{ label = "Curb appeal", amount = round(curbPart) },
+		{ label = "Finds sets", amount = round(setPart) },
 		{ label = "Won from TurfKing", amount = wonBack },
 		{ label = "Damage and junk", amount = -round(damage) },
 	}

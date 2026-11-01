@@ -1,8 +1,9 @@
 -- The Busy Season's ladder (docs/superpowers/specs/2026-10-29-busy-season-design.md, 1b and 1c):
 -- pays what a player has reached.
---   1. Milestones (Config/Milestones.luau): jobs finished, money earned and three-star jobs.
---      CheckMilestones looks at their numbers after every finished job and after every bit of
---      money they earn (tips and level cash count too), and pays each milestone they've just met.
+--   1. Milestones (Config/Milestones.luau): jobs finished, money earned, three-star jobs, Finds
+--      found and Finds sets done. CheckMilestones looks at their numbers after every finished
+--      job and after every bit of money they earn (tips and level cash count too), and pays each
+--      milestone they've just met.
 --   2. Level rewards (Config/Levels.luau): cash, a truck paint tint and the gold business sign.
 --      ClaimLevels pays every level they've reached and haven't claimed, in order: when a
 --      level-up takes them past one, and once when they join, which is how an old save or a
@@ -24,12 +25,14 @@
 --   levelRewards  [Season.levelKey(level)] = true for each level paid
 --   stars         [job template id] = their best star count on that job
 -- The gold sign is the `GoldSign` attribute on the player, set for any level that gives one,
--- claimed now or on an earlier visit. Whatever shows the sign reads it from there.
+-- claimed now or on an earlier visit, and for the Maple Grove set of Finds (Finds.signEarly; JobService
+-- sets it the moment the set is done). Whatever shows the sign reads it from there.
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Finds = require(Shared.Config.Finds)
 local Levels = require(Shared.Config.Levels)
 local Milestones = require(Shared.Config.Milestones)
 local Net = require(Shared.Net)
@@ -57,7 +60,8 @@ local function guarded(what: string, player: Player, work: () -> ())
 end
 
 -- The numbers Milestones.reachedBy reads, from their save. A three-star job is a job they've
--- done with three stars as their best.
+-- done with three stars as their best. Finds found counts each of the thirty once, however many
+-- times it was found (so a sold one still counts), and sets the ones they've done.
 local function statsOf(data)
 	local stars = 0
 	for _, best in data.stars do
@@ -65,7 +69,13 @@ local function statsOf(data)
 			stars += 1
 		end
 	end
-	return { jobs = data.jobsCompleted or 0, earned = data.earned or 0, stars = stars }
+	return {
+		jobs = data.jobsCompleted or 0,
+		earned = data.earned or 0,
+		stars = stars,
+		finds = Finds.foundCount(data.finds),
+		sets = Finds.setCount(data.sets),
+	}
 end
 
 -- Pays every milestone they've met, then once more if paying them met another. A milestone is
@@ -165,8 +175,8 @@ end
 
 -- Lifecycle ----------------------------------------------------------------------------------
 
--- Once their save is loaded: the gold sign if a level they've claimed gave one, then whatever
--- level rewards they haven't been paid.
+-- Once their save is loaded: the gold sign if a level they've claimed gave one or they've done the
+-- Maple Grove set, then whatever level rewards they haven't been paid.
 local function onPlayerAdded(player: Player)
 	local data = DataService:WaitForData(player)
 	if not data then
@@ -183,6 +193,11 @@ local function onPlayerAdded(player: Player)
 			if reward and reward.paint then
 				PremiumService:GrantPaint(player, reward.paint)
 			end
+		end
+		-- The Maple Grove set brings the sign early. A complete set is always in the save (the save
+		-- cleaner adds one it was missing), so this covers a set done on an earlier visit too.
+		if Finds.signEarly(data.sets) then
+			player:SetAttribute("GoldSign", true)
 		end
 		SeasonService:ClaimLevels(player)
 	end)

@@ -592,9 +592,10 @@ return {
 		list = { direction = "Horizontal", padding = 6, align = "Right" },
 		note = "Under the job tracker, during a job: a dark glass pill with a glyph for each pay bonus that is "
 			.. "above zero: Crew (15% for each crew member besides the leader), Curb (from the crew's curb "
-			.. "appeal, as it was when the truck pulled out), and Truck and Business (the leader's equipped "
-			.. "ones). The numbers are the server's, sent with every job update, so everyone in the crew "
-			.. "sees all four. The row is hidden when there is "
+			.. "appeal, as it was when the truck pulled out), Truck and Business (the leader's equipped "
+			.. "ones), and Sets (the leader's Finds sets that pay, as they were when the truck pulled out). "
+			.. "The numbers are the server's, sent with every job update, so everyone in the crew "
+			.. "sees all five. The row is hidden when there is "
 			.. "none, and wraps to a second line when the pills don't fit. The tracker's card and this row "
 			.. "hide together.",
 	},

@@ -501,6 +501,40 @@ function Finds.flowerFactor(sets: any): number
 	return 1
 end
 
+-- Whether the completed sets give the gold business sign early (Maple Grove does), the way level 20
+-- gives it.
+function Finds.signEarly(sets: any): boolean
+	return perkTotal(sets, "GoldSign") > 0
+end
+
+-- How many of the thirty the player has found at least once, however many times each (the Finds goals
+-- count this, so thirty is the whole book). A broken entry or an unknown id does not count.
+function Finds.foundCount(finds: any): number
+	local count = 0
+	if typeof(finds) == "table" then
+		for _, find in Finds.List do
+			local entry = finds[find.id]
+			if typeof(entry) == "table" and whole(entry.found) >= 1 then
+				count += 1
+			end
+		end
+	end
+	return count
+end
+
+-- How many sets are complete in `sets` (a map of set id to true), for the first-set goal.
+function Finds.setCount(sets: any): number
+	local count = 0
+	if typeof(sets) == "table" then
+		for _, set in Finds.Sets do
+			if sets[set.id] == true then
+				count += 1
+			end
+		end
+	end
+	return count
+end
+
 -- The ids of the Finds the player holds (`held` above 0), at most `count`, rarest first and then in the
 -- list's order: what the shelf shows.
 function Finds.rarest(finds: any, count: number): { string }

@@ -42,8 +42,9 @@ end
 -- a day that has some of its fields keeps those and gains the rest:
 --   daily         the day's contracts: `day` is its UTC day key (Daily.dayKey; "" before the first),
 --                 `contracts` is the list made for that day, `done` has [contract id] = true for
---                 each one paid, `count` is what they've done toward them today (jobs, earned, junk
---                 and stars), and `bonus` is true once the bonus for finishing all of them is paid.
+--                 each one paid, `count` is what they've done toward them today (jobs, earned, junk,
+--                 stars and finds; finds came with the Finds contract, and a day without it gains it
+--                 at 0), and `bonus` is true once the bonus for finishing all of them is paid.
 --                 A list with a contract that is missing a field (an id, kind, text, or a need or
 --                 reward that is a number) is emptied and `day` is blanked, and DailyService makes
 --                 the day again at its next Refresh (DataService runs this on every save it loads)
@@ -120,7 +121,7 @@ function Season.upgradeSave(data: { [string]: any })
 	if typeof(daily.count) ~= "table" then
 		daily.count = {}
 	end
-	for _, counter in { "jobs", "earned", "junk", "stars" } do
+	for _, counter in { "jobs", "earned", "junk", "stars", "finds" } do
 		if typeof(daily.count[counter]) ~= "number" then
 			daily.count[counter] = 0
 		end

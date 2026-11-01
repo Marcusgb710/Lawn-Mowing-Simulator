@@ -1,5 +1,5 @@
 -- The day's contracts (docs/superpowers/specs/2026-10-29-busy-season-design.md): three small jobs
--- to do before midnight UTC, always one Mow, one Earn and one more that is Junk or Stars. How much
+-- to do before midnight UTC, always one Mow, one Earn and one more that is Junk, Stars or Finds. How much
 -- each asks for, and what it pays, depends on the player's level band, so a new player is asked for
 -- 2 lawns and a veteran for 5. `seed` turns a day and a player into one number, and `generate`
 -- builds the list from it, so the same player on the same day always gets the same list and
@@ -8,10 +8,10 @@
 --
 -- scripts/check-season.luau gates this file. It has no requires, so Lune can load it.
 
-export type Kind = "Mow" | "Earn" | "Junk" | "Stars"
+export type Kind = "Mow" | "Earn" | "Junk" | "Stars" | "Finds"
 export type Contract = { id: string, kind: Kind, need: number, reward: number, text: string }
 -- What a day has counted so far. A counter that is not there counts as 0.
-export type Count = { jobs: number?, earned: number?, junk: number?, stars: number? }
+export type Count = { jobs: number?, earned: number?, junk: number?, stars: number?, finds: number? }
 
 -- A small LCG (the Numerical Recipes one, as in GrassImages.randoms, copied here because this file
 -- has no requires) so a seed picks the same contracts on every server and every run. The modulus is
@@ -26,7 +26,7 @@ local SEED_MODULUS = 2147483648
 local DAY_PRIME = 7919
 
 -- The counter in `daily.count` that each kind of contract reads.
-local COUNTER = { Mow = "jobs", Earn = "earned", Junk = "junk", Stars = "stars" }
+local COUNTER = { Mow = "jobs", Earn = "earned", Junk = "junk", Stars = "stars", Finds = "finds" }
 
 local Contracts = {}
 
@@ -35,13 +35,15 @@ local Contracts = {}
 Contracts.Bands = { { min = 1, max = 2 }, { min = 3, max = 7 }, { min = 8, max = 11 }, { min = 12, max = 999 } }
 
 -- What each kind asks for, one number for each band. Mow is lawns finished, Earn is dollars earned,
--- Junk is pieces picked up, Stars is three-star jobs. These and the rewards are the numbers to change
--- when the daily contracts need tuning.
+-- Junk is pieces picked up, Stars is three-star jobs, Finds is Finds picked up (Config/Finds.luau; a
+-- lawn hides one at most, so one is a day's ask in every band). These and the rewards are the numbers
+-- to change when the daily contracts need tuning.
 Contracts.Need = {
 	Mow = { 2, 3, 4, 5 },
 	Earn = { 150, 400, 1200, 3000 },
 	Junk = { 3, 4, 6, 8 },
 	Stars = { 1, 1, 2, 2 },
+	Finds = { 1, 1, 1, 1 },
 }
 
 -- What each contract pays when it is done, one number for each band, and what finishing all three
@@ -73,7 +75,7 @@ local function randoms(seed: number): () -> number
 end
 
 -- The line the contract list shows: "Mow 3 lawns", "Earn $400", "Pick up 4 pieces of junk", "Get a
--- three-star job" (or "Get 2 three-star jobs").
+-- three-star job" (or "Get 2 three-star jobs"), "Pick up a Find" (or "Pick up 2 Finds").
 local function textFor(kind: Kind, need: number): string
 	if kind == "Mow" then
 		local lawns = if need == 1 then "lawn" else "lawns"
@@ -83,6 +85,8 @@ local function textFor(kind: Kind, need: number): string
 	elseif kind == "Junk" then
 		local pieces = if need == 1 then "piece" else "pieces"
 		return `Pick up {need} {pieces} of junk`
+	elseif kind == "Finds" then
+		return if need == 1 then "Pick up a Find" else `Pick up {need} Finds`
 	end
 	return if need == 1 then "Get a three-star job" else `Get {need} three-star jobs`
 end
@@ -109,13 +113,15 @@ function Contracts.seed(dayKey: string, userId: number): number
 	return ((tonumber(dayKey) or 0) * DAY_PRIME + userId) % SEED_MODULUS
 end
 
--- The day's contracts for a player at `level`: a Mow, an Earn and then a Junk or a Stars, which the
--- seed picks. The same seed and level always give the same list, and each call makes new tables, so
--- the caller can save and change them.
+-- The day's contracts for a player at `level`: a Mow, an Earn and then a Junk, a Stars or a Finds, a
+-- third each, which the seed picks. The Finds take the middle third, so a seed that gave Junk or Stars
+-- before there were Finds gives the same now or a Finds, never the other one. The same seed and level
+-- always give the same list, and each call makes new tables, so the caller can save and change them.
 function Contracts.generate(seed: number, level: number): { Contract }
 	local band = Contracts.bandFor(level)
 	local random = randoms(seed)
-	local flavour: Kind = if random() < 0.5 then "Junk" else "Stars"
+	local roll = random()
+	local flavour: Kind = if roll < 1 / 3 then "Junk" elseif roll < 2 / 3 then "Finds" else "Stars"
 	return { make("Mow", band), make("Earn", band), make(flavour, band) }
 end
 

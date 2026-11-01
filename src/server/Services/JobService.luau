@@ -10,15 +10,18 @@
 -- list, and a tool that can't do a task just gets "That won't work here".
 --
 -- Pay (GameConfig.jobPay) = job pay x how well the tools fit the tasks x a blend of finish
--- quality and speed (weighted by what the customer wants) x crew/truck/business bonuses, minus
--- damage for every flower patch or gnome the crew ran over. Then it's split evenly. Junk hidden
--- in the grass (Config/Debris.luau) that's still there at the end, or that a mower chewed up,
--- takes some off the finish and the pay too.
+-- quality and speed (weighted by what the customer wants) x crew/truck/business/curb appeal bonuses x
+-- the leader's Finds sets' pay perk, minus damage for every flower patch or gnome the crew ran over.
+-- Then it's split evenly. Junk hidden in the grass (Config/Debris.luau) that's still there at the
+-- end, or that a mower chewed up, takes some off the finish and the pay too.
 --
 -- A job lawn may hide one Find (Config/Finds.luau), rolled when the site is built from the crew
 -- leader's luck. Whoever on the crew picks it up first keeps it (their save, not the leader's); the
 -- wedding band and June's locket can be given back instead, for a bigger tip or a scene with June.
 -- A motor mower chews it up, and one left in the grass at the end is lost. It never costs any pay.
+-- The Finds sets a player has done give small perks (Finds.Sets): the leader's pay sets pay the whole
+-- crew more (payBonuses), the Garden set halves what that player's wrecked flower patches cost, the
+-- Playground set reaches further when picking things up, and Maple Grove brings the gold sign early.
 --
 -- TurfKing (TurfKingService) can take a job off one player's board: they see it as "Taken by
 -- TurfKing" and can't accept it, while everyone else's board is the same as before. A customer
@@ -57,7 +60,8 @@ local WorldService = require(script.Parent.WorldService)
 
 -- How close to the truck (its bounding box) you have to be to drive off.
 local TRUCK_REACH = 10
--- How far from your eyes you can pick up junk in the grass (the look-at reach is 10 from the camera).
+-- How far from your eyes you can pick up junk or a Find in the grass (the look-at reach is 10 from the
+-- camera). The Playground set adds to both (Finds.reachBonus, see pickUpReach).
 local PICK_UP_REACH = 12
 -- A snip of hand shears only hurts flowers right where it lands.
 local SNIP_HAZARD_REACH = 0.3
@@ -259,6 +263,12 @@ local function damagePenalty(job): number
 	return math.max(GameConfig.MinDamagePenalty, math.floor(job.offer.payout * GameConfig.DamagePenalty + 0.5))
 end
 
+-- How far this player can pick things up from: PICK_UP_REACH, and more with the Playground set done.
+local function pickUpReach(player: Player): number
+	local data = DataService:Get(player)
+	return PICK_UP_REACH + Finds.reachBonus(data and data.sets)
+end
+
 -- What each piece of junk left in the grass, or chewed up by a mower, costs.
 local function debrisPenalty(job): number
 	return math.max(GameConfig.MinDebrisPenalty, math.floor(job.offer.payout * GameConfig.DebrisPenalty + 0.5))
@@ -323,14 +333,16 @@ end
 
 -- The pay bonuses completeJob multiplies together, each as a factor (1 plus its share, so 1.15 for 15
 -- percent): the crew's (GameConfig.CrewBonusPerMember for each member besides the leader), the leader's
--- truck and business (their payoutBonus) and the home lawn's curb appeal (HomeLawn.payBonus). The truck,
--- the business and the curb appeal are frozen when the truck pulls out (job.truckId, job.businessId and
--- job.curbAppeal); until then, a job that is still Ready reads what the leader has now, and the crew is the
--- party. sendUpdate sends these as they stand, so the job card's boost pills show the very numbers the pay
--- will use, for everyone in the crew.
-local function payBonuses(job): (number, number, number, number)
+-- truck and business (their payoutBonus), the home lawn's curb appeal (HomeLawn.payBonus) and the
+-- leader's Finds sets (Finds.payBonus: the whole crew is paid on the leader's sets, like the truck). The
+-- truck, the business, the curb appeal and the sets are frozen when the truck pulls out (job.truckId,
+-- job.businessId, job.curbAppeal and job.setBonus); until then, a job that is still Ready reads what the
+-- leader has now, and the crew is the party. sendUpdate sends these as they stand, so the job card's
+-- boost pills show the very numbers the pay will use, for everyone in the crew.
+local function payBonuses(job): (number, number, number, number, number)
 	local crew = if #job.members > 0 then #job.members else #job.party.members
-	local leaderData = if job.truckId == nil then DataService:Get(job.party.leader) else nil
+	local frozen = job.truckId ~= nil and job.setBonus ~= nil
+	local leaderData = if frozen then nil else DataService:Get(job.party.leader)
 	local truckId = job.truckId or (if leaderData then leaderData.equipped.Truck else nil)
 	local businessId = job.businessId or (if leaderData then leaderData.equipped.Business else nil)
 	local truck = if truckId then Items.get("Truck", truckId) else nil
@@ -339,11 +351,12 @@ local function payBonuses(job): (number, number, number, number)
 	return 1 + GameConfig.CrewBonusPerMember * (crew - 1),
 		1 + (if truck then truck.payoutBonus else 0),
 		1 + (if business then business.payoutBonus else 0),
-		HomeLawn.payBonus(curbAppeal)
+		HomeLawn.payBonus(curbAppeal),
+		job.setBonus or Finds.payBonus(leaderData and leaderData.sets)
 end
 
 local function sendUpdate(job)
-	local crewBonus, truckBonus, businessBonus, curbBonus = payBonuses(job)
+	local crewBonus, truckBonus, businessBonus, curbBonus, setBonus = payBonuses(job)
 	local payload = {
 		id = job.id,
 		name = job.offer.name,
@@ -372,6 +385,7 @@ local function sendUpdate(job)
 		truckBonus = truckBonus,
 		businessBonus = businessBonus,
 		curbBonus = curbBonus,
+		setBonus = setBonus,
 	}
 	for _, player in recipients(job) do
 		Net.event("JobUpdated"):FireClient(player, payload)
@@ -683,6 +697,8 @@ local function startDriving(job)
 	job.paintId = if paint then paint.id else nil
 	-- How good the business looked as the crew left: customers pay a little more for that.
 	job.curbAppeal = HomeLawnService:CurbAppeal(party.leader)
+	-- The leader's Finds sets as the crew left: a set finished on this job pays from the next one.
+	job.setBonus = Finds.payBonus(leaderData and leaderData.sets)
 
 	buildSite(job)
 
@@ -724,7 +740,7 @@ local function completeJob(job)
 
 	local members = job.members
 	local elapsed = os.clock() - job.startedAt
-	local crewBonus, truckBonus, businessBonus, curbBonus = payBonuses(job)
+	local crewBonus, truckBonus, businessBonus, curbBonus, setBonus = payBonuses(job)
 	-- Averages over all the work done, so the tool used most counts most.
 	local toolFit = if job.work > 0 then job.fitWork / job.work else 1
 	local quality = if job.work > 0 then job.qualityWork / job.work else 0.75
@@ -743,7 +759,7 @@ local function completeJob(job)
 		elapsed = elapsed,
 		parTime = job.offer.parTime,
 		weights = weights,
-		bonus = crewBonus * truckBonus * businessBonus * curbBonus,
+		bonus = crewBonus * truckBonus * businessBonus * curbBonus * setBonus,
 		penalty = job.penalty,
 	})
 	-- A customer won back from TurfKing pays a little extra, the first time (it's the business of
@@ -791,6 +807,8 @@ local function completeJob(job)
 		businessBonus = businessBonus,
 		curbAppeal = job.curbAppeal or 0,
 		curbBonus = curbBonus,
+		-- The leader's Finds sets' pay perk (a factor, 1 for none).
+		setBonus = setBonus,
 		penalty = job.penalty,
 		-- Junk left in the grass, and chewed up by a mower (both are in the penalty).
 		debrisLeft = debris.left,
@@ -899,10 +917,15 @@ export type WorkOptions = {
 }
 
 -- Wrecks any flower patch or gnome within `reach` of `position` (only X and Z count), and takes
--- it off the job's pay.
+-- it off the job's pay. A flower patch wrecked by a player with the Garden set done costs that set's
+-- share of the penalty (Finds.flowerFactor, half); a gnome always costs the whole of it.
 local function wreckHazards(job, player: Player, position: Vector3, reach: number)
 	for _, hazard in job.lawn:CheckHazards(position, reach) do
 		local penalty = damagePenalty(job)
+		if hazard.kind == "FlowerPatch" then
+			local data = DataService:Get(player)
+			penalty = math.floor(penalty * Finds.flowerFactor(data and data.sets) + 0.5)
+		end
 		job.penalty += penalty
 		job.damageCount += 1
 		job.dirty = true
@@ -1068,12 +1091,12 @@ function JobService:PickUpDebris(player: Player, thing: Instance): (boolean, str
 	end
 	local job = playerJobs[player]
 	if not job then
-		return HomeLawnService:PickUpDebris(player, thing, head.Position, PICK_UP_REACH)
+		return HomeLawnService:PickUpDebris(player, thing, head.Position, pickUpReach(player))
 	end
 	if job.state ~= "Working" or not job.lawn then
 		return false, nil
 	end
-	local debris, reason = job.lawn:PickUpDebris(thing, head.Position, PICK_UP_REACH)
+	local debris, reason = job.lawn:PickUpDebris(thing, head.Position, pickUpReach(player))
 	if not debris then
 		return false, reason
 	end
@@ -1091,9 +1114,10 @@ end
 -- beat them to it. It goes in their own save: found once more, and held unless they `giveBack` the
 -- wedding band (its customer adds BAND_TIP to the job's tip, split across the crew) or June's
 -- locket (the first time, her scene plays when they're home and her rocker gets its cushion); any
--- other Find is simply kept. A set it completes
--- is marked complete here, so its card plays (SetCompleted) instead of the save cleaner adding it
--- quietly. FindPicked tells the player's screen what they found, for the card.
+-- other Find is simply kept. A set it completes is marked complete here, so its card plays
+-- (SetCompleted) instead of the save cleaner adding it quietly, and its perk starts (Maple Grove's
+-- gold sign at once, the others from the next job). FindPicked tells the player's screen what they
+-- found, for the card.
 function JobService:PickUpFind(player: Player, thing: Instance?, giveBack: boolean): (boolean, string?)
 	local character = player.Character
 	local head = character and character:FindFirstChild("Head")
@@ -1101,7 +1125,7 @@ function JobService:PickUpFind(player: Player, thing: Instance?, giveBack: boole
 	if not (head and head:IsA("BasePart") and job and job.state == "Working" and job.lawn) then
 		return false, nil
 	end
-	local find, reason = job.lawn:PickUpFind(thing, head.Position, PICK_UP_REACH)
+	local find, reason = job.lawn:PickUpFind(thing, head.Position, pickUpReach(player))
 	if not find then
 		return false, reason
 	end
@@ -1142,6 +1166,11 @@ function JobService:PickUpFind(player: Player, thing: Instance?, giveBack: boole
 		and data.flags.RockerCushion ~= true
 	if cushion then
 		data.flags.RockerCushion = true
+	end
+	-- Maple Grove brings the gold business sign early, the way level 20 does (SeasonService gives it
+	-- again on every join, from the save's sets).
+	if #newSets > 0 and Finds.signEarly(data.sets) then
+		player:SetAttribute("GoldSign", true)
 	end
 	DataService:Changed(player)
 	Net.event("FindPicked"):FireClient(player, { id = find.id, kept = not returned, note = note })
@@ -1289,6 +1318,7 @@ function JobService:StartFirstJob(player: Player)
 		local paint = Premium.paintFor(data.premium)
 		job.paintId = if paint then paint.id else nil
 		job.curbAppeal = HomeLawnService:CurbAppeal(player)
+		job.setBonus = Finds.payBonus(data.sets)
 		buildSite(job)
 		job.state = "Working"
 		job.startedAt = os.clock()

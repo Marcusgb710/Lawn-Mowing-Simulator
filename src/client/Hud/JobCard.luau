@@ -65,6 +65,8 @@ local BOOSTS = {
 	{ id = "Curb", label = "Curb", icon = "CurbAppeal", tint = "Money" },
 	{ id = "Truck", label = "Truck", icon = "Truck", tint = "Truck" },
 	{ id = "Business", label = "Business", icon = "Business", tint = "Gold" },
+	-- The leader's Finds sets that pay (Pocket and Treasure): a gem, in gold.
+	{ id = "Set", label = "Sets", icon = "Premium", tint = "Gold" },
 }
 
 -- The job card: the glass piece the column holds, and the frame inside it that lays its words out.
@@ -465,9 +467,9 @@ local function buildTracker()
 end
 
 -- The pay bonus pills under the job card: a dark glass pill with a glyph for each of the crew, curb
--- appeal, truck and business bonuses, made once here and shown by updateBoosts while their bonus is
--- above zero. The row is the column's piece (UiLayout's BoostPills): a wrapping, right-aligned row that
--- grows with its pills, and it is hidden when no pill shows.
+-- appeal, truck, business and Finds sets bonuses, made once here and shown by updateBoosts while their
+-- bonus is above zero. The row is the column's piece (UiLayout's BoostPills): a wrapping, right-aligned
+-- row that grows with its pills, and it is hidden when no pill shows.
 local function buildBoosts()
 	boostRow = UI.new("Frame", { Name = "BoostPills", BackgroundTransparency = 1, Visible = false })
 	-- A row of pills that wraps to a second line; UiLayout's entry gives it the rest (direction, gap).
@@ -667,9 +669,9 @@ local function boostWords(label: string, bonus: number): string?
 	return if percent > 0 then `{label} +{percent}%` else nil
 end
 
--- The pay bonuses on the job you're on, as the pills under its card: Crew, Curb, Truck and Business, the
--- factors the server sends with every job update (JobService's payBonuses, the same ones the pay is
--- worked out from, so a crew member sees the leader's truck and business too). Shown only while the card
+-- The pay bonuses on the job you're on, as the pills under its card: Crew, Curb, Truck, Business and
+-- Sets, the factors the server sends with every job update (JobService's payBonuses, the same ones the
+-- pay is worked out from, so a crew member sees the leader's truck, business and sets too). Shown only while the card
 -- is, and a pill only while its bonus is above zero.
 local function updateBoosts()
 	local job = ClientState.job
@@ -679,6 +681,7 @@ local function updateBoosts()
 		words.Curb = boostWords("Curb", (job.curbBonus or 1) - 1)
 		words.Truck = boostWords("Truck", (job.truckBonus or 1) - 1)
 		words.Business = boostWords("Business", (job.businessBonus or 1) - 1)
+		words.Set = boostWords("Sets", (job.setBonus or 1) - 1)
 	end
 	local any = false
 	for id, pill in boostPills do

@@ -1427,9 +1427,9 @@ do
 	)
 
 	-- The boost pills show the numbers the server sends with every job update (crewBonus, truckBonus,
-	-- businessBonus and curbBonus: the same factors completeJob multiplies, through the one payBonuses,
-	-- with the curb appeal frozen at pull-out), so they are exact for every crew member; the client
-	-- has no formula of its own for them.
+	-- businessBonus, curbBonus and setBonus: the same factors completeJob multiplies, through the one
+	-- payBonuses, with the curb appeal and the leader's Finds sets frozen at pull-out), so they are exact
+	-- for every crew member; the client has no formula of its own for them.
 	local jobSource = fs.readFile("src/server/Services/JobService.luau")
 	local updateFrom = string.find(jobSource, "local function sendUpdate(job)", 1, true)
 	local updateTo = if updateFrom then string.find(jobSource, "\nend\n", updateFrom, true) else nil
@@ -1441,7 +1441,7 @@ do
 	)
 	if updateFrom and updateTo and completeFrom and completeTo then
 		local updateBody = string.sub(jobSource, updateFrom, updateTo)
-		for _, field in { "crewBonus", "truckBonus", "businessBonus", "curbBonus" } do
+		for _, field in { "crewBonus", "truckBonus", "businessBonus", "curbBonus", "setBonus" } do
 			check(
 				string.find(updateBody, `{field} = `, 1, true) ~= nil,
 				`JobService's sendUpdate doesn't send {field} to the job card's boost pills`
@@ -1457,7 +1457,7 @@ do
 			"JobService's sendUpdate and completeJob don't both take the pay bonuses from payBonuses"
 		)
 	end
-	for _, formula in { "HomeLawn.payBonus(", "CrewBonusPerMember", "payoutBonus" } do
+	for _, formula in { "HomeLawn.payBonus(", "CrewBonusPerMember", "payoutBonus", "Finds.payBonus(" } do
 		check(
 			string.find(hudSource, formula, 1, true) == nil,
 			`HudController works the boost pills out itself ({formula}): the server sends the numbers`
@@ -2549,7 +2549,7 @@ local PREFERENCES = {
 local function job(options)
 	local weights = PREFERENCES[options.preference]
 	local performance = weights.quality * options.qualityMultiplier + weights.time * options.speedMultiplier
-	local bonus = options.crewBonus * options.truckBonus * options.businessBonus * options.curbBonus
+	local bonus = options.crewBonus * options.truckBonus * options.businessBonus * options.curbBonus * options.setBonus
 	local total = math.max(0, math.floor(options.basePay * options.toolFit * performance * bonus - options.penalty))
 	total += options.wonBack
 	local result = table.clone(options)
@@ -2567,6 +2567,12 @@ local cases = {
 	{ "some damage", { penalty = 23 } },
 	{ "more damage than pay", { penalty = 900, wonBack = 12 } },
 	{ "odd pennies", { basePay = 137, qualityMultiplier = 1.137, speedMultiplier = 0.913, curbBonus = 1.071 } },
+	{ "a Finds set", { setBonus = 1.03 } },
+	{ "two Finds sets and some damage", { setBonus = 1.08, curbBonus = 1.06, penalty = 9 } },
+	{
+		"every bonus at once",
+		{ crew = 2, crewBonus = 1.15, truckBonus = 1.1, businessBonus = 1.05, curbBonus = 1.12, setBonus = 1.08 },
+	},
 }
 for _, case in cases do
 	local options = {
@@ -2579,6 +2585,7 @@ for _, case in cases do
 		truckBonus = 1,
 		businessBonus = 1,
 		curbBonus = 1,
+		setBonus = 1,
 		penalty = 0,
 		wonBack = 0,
 		crew = 1,
@@ -2598,6 +2605,44 @@ for _, case in cases do
 	check(lines[1].label == "Job pay" and lines[1].amount ~= 0, `{case[1]}: the job pay doesn't come first`)
 end
 
+-- The Finds sets' pay perk is a line of its own, "Finds sets", right after Curb appeal, worth the share
+-- the sets add on top of everything before it; with no set done there is no line.
+do
+	local function linesFor(setBonus: number)
+		local result, weights = job({
+			basePay = 100,
+			toolFit = 1,
+			qualityMultiplier = 1,
+			speedMultiplier = 1,
+			preference = "Balanced",
+			crewBonus = 1,
+			truckBonus = 1,
+			businessBonus = 1,
+			curbBonus = 1.1,
+			setBonus = setBonus,
+			penalty = 0,
+			wonBack = 0,
+			crew = 1,
+		})
+		return PayBreakdown.lines(result, weights)
+	end
+	local function lineCalled(lines, label: string): (number?, number?)
+		for index, payLine in lines do
+			if payLine.label == label then
+				return index, payLine.amount
+			end
+		end
+		return nil, nil
+	end
+	local withSets = linesFor(1.08)
+	local setAt, setAmount = lineCalled(withSets, "Finds sets")
+	local curbAt = lineCalled(withSets, "Curb appeal")
+	-- $100 with curb appeal is $110, and the sets' 8 percent on that is $8.80, so $9.
+	check(setAmount == 9, `two Finds sets on a $110 job add {setAmount}, not $9`)
+	check(setAt ~= nil and curbAt ~= nil and setAt == curbAt + 1, "the Finds sets line isn't right after Curb appeal")
+	check(lineCalled(linesFor(1), "Finds sets") == nil, "a job with no Finds set done still shows a Finds sets line")
+end
+
 -- A customer's tip comes after the share and the total counts it: a line "Tip from <customer>"
 -- worth the tip, and no line at all when there's no tip.
 do
@@ -2611,6 +2656,7 @@ do
 		truckBonus = 1,
 		businessBonus = 1,
 		curbBonus = 1,
+		setBonus = 1,
 		penalty = 0,
 		wonBack = 0,
 		crew = 2,
